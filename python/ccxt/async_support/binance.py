@@ -55,10 +55,13 @@ class binance(Exchange, ImplicitAPI):
                 'future': True,
                 'option': True,
                 'addMargin': True,
-                'borrowMargin': True,
+                'borrowCrossMargin': True,
+                'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,  # contract only
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createOrders': True,
@@ -142,7 +145,8 @@ class binance(Exchange, ImplicitAPI):
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
                 'reduceMargin': True,
-                'repayMargin': True,
+                'repayCrossMargin': True,
+                'repayIsolatedMargin': True,
                 'setLeverage': True,
                 'setMargin': False,
                 'setMarginMode': True,
@@ -277,6 +281,7 @@ class binance(Exchange, ImplicitAPI):
                         'margin/capital-flow': 10,  # Weight(IP): 100 => cost = 0.1 * 100 = 10
                         'margin/delist-schedule': 10,  # Weight(IP): 100 => cost = 0.1 * 100 = 10
                         'margin/available-inventory': 0.3334,  # Weight(UID): 50 => cost = 0.006667 * 50 = 0.3334
+                        'margin/leverageBracket': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'loan/vip/loanable/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/collateral/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/request/data': 2.6668,  # Weight(UID): 400 => cost = 0.006667 * 400 = 2.6668
@@ -306,6 +311,7 @@ class binance(Exchange, ImplicitAPI):
                         # https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall': 1,  # get networks for withdrawing USDT ERC20 vs USDT Omni
                         'capital/deposit/address': 1,
+                        'capital/deposit/address/list': 1,
                         'capital/deposit/hisrec': 0.1,
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
@@ -609,6 +615,7 @@ class binance(Exchange, ImplicitAPI):
                 'sapiV2': {
                     'get': {
                         'sub-account/futures/account': 0.1,
+                        'sub-account/futures/accountSummary': 1,
                         'sub-account/futures/positionRisk': 0.1,
                     },
                     'post': {
@@ -891,6 +898,7 @@ class binance(Exchange, ImplicitAPI):
                         'uiKlines': 0.4,
                         'ticker/24hr': {'cost': 0.4, 'noSymbol': 16},
                         'ticker': {'cost': 0.4, 'noSymbol': 16},
+                        'ticker/tradingDay': 0.8,
                         'ticker/price': {'cost': 0.4, 'noSymbol': 0.8},
                         'ticker/bookTicker': {'cost': 0.4, 'noSymbol': 0.8},
                         'exchangeInfo': 4,  # Weight(IP): 20 => cost = 0.2 * 20 = 4
@@ -919,6 +927,7 @@ class binance(Exchange, ImplicitAPI):
                         'rateLimit/order': 8,  # Weight(IP): 40 => cost = 0.2 * 40 = 8
                         'myPreventedMatches': 4,  # Weight(IP): 20 => cost = 0.2 * 20 = 4
                         'myAllocations': 4,
+                        'account/commission': 4,
                     },
                     'post': {
                         'order/oco': 0.2,
@@ -985,7 +994,7 @@ class binance(Exchange, ImplicitAPI):
                         'cm/income': 30,
                         'um/account': 5,
                         'cm/account': 5,
-                        'portfolio/repay-futures-switch': 3,  # Weight(IP): 30 => cost = 0.1 * 30 = 3
+                        'repay-futures-switch': 3,  # Weight(IP): 30 => cost = 0.1 * 30 = 3
                         'um/adlQuantile': 5,
                         'cm/adlQuantile': 5,
                     },
@@ -1004,8 +1013,8 @@ class binance(Exchange, ImplicitAPI):
                         'cm/positionSide/dual': 1,  # 1
                         'auto-collection': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                         'bnb-transfer': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
-                        'portfolio/repay-futures-switch': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
-                        'portfolio/repay-futures-negative-balance': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'repay-futures-switch': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'repay-futures-negative-balance': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'listenKey': 1,  # 1
                         'asset-collection': 3,
                     },
@@ -1801,7 +1810,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/spot/en/#check-server-time       # spot
         :see: https://binance-docs.github.io/apidocs/futures/en/#check-server-time    # swap
         :see: https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   # future
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         defaultType = self.safe_string_2(self.options, 'fetchTime', 'defaultType', 'spot')
@@ -1822,7 +1831,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         fetchCurrenciesEnabled = self.safe_value(self.options, 'fetchCurrencies')
@@ -1992,7 +2001,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/futures/en/#exchange-information      # swap
         :see: https://binance-docs.github.io/apidocs/delivery/en/#exchange-information     # future
         :see: https://binance-docs.github.io/apidocs/voptions/en/#exchange-information     # option
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         promisesRaw = []
@@ -2482,7 +2491,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data            # swap
         :see: https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data              # future
         :see: https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade           # option
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot'
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :param str[]|None [params.symbols]: unified market symbols, only used in isolated margin mode
@@ -2724,7 +2733,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/voptions/en/#order-book  # option
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -2933,7 +2942,7 @@ class binance(Exchange, ImplicitAPI):
         """
         the latest known information on the availability of the exchange API
         :see: https://binance-docs.github.io/apidocs/spot/en/#system-status-system
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
         response = await self.sapiGetSystemStatus(params)
@@ -2961,7 +2970,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
         :see: https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     # option
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.rolling]:(spot only) default False, if True, uses the rolling 24 hour ticker endpoint /api/v3/ticker
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -2996,7 +3005,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/futures/en/#symbol-order-book-ticker     # swap
         :see: https://binance-docs.github.io/apidocs/delivery/en/#symbol-order-book-ticker    # future
         :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -3025,7 +3034,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       # swap
         :see: https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     # future
         :param str[]|None symbols: unified symbols of the markets to fetch the last prices
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -3118,13 +3127,13 @@ class binance(Exchange, ImplicitAPI):
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
         :see: https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      # swap
         :see: https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
         :see: https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     # option
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -3228,7 +3237,7 @@ class binance(Exchange, ImplicitAPI):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -3540,7 +3549,7 @@ class binance(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
         :param int [limit]: default 500, max 1000
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
         :param int [params.fetchTradesMethod]: 'publicGetAggTrades'(spot default), 'fapiPublicGetAggTrades'(swap default), 'dapiPublicGetAggTrades'(future default), 'eapiPublicGetTrades'(option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -3666,7 +3675,7 @@ class binance(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -3727,7 +3736,7 @@ class binance(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the binance api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :returns dict: request to be sent to the exchange
         """
@@ -3833,7 +3842,7 @@ class binance(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -3898,7 +3907,7 @@ class binance(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -4256,7 +4265,7 @@ class binance(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :param boolean [params.sor]: *spot only* whether to use SOR(Smart Order Routing) or not, default is False
         :param boolean [params.test]: *spot only* whether to use the test endpoint or not, default is False
@@ -4297,7 +4306,7 @@ class binance(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the binance api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
         :returns dict: request to be sent to the exchange
         """
@@ -4480,7 +4489,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/voptions/en/#query-single-order-trade
         :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-order-user_data
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -4528,7 +4537,7 @@ class binance(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :param int [params.until]: the latest time in ms to fetch orders for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -4659,7 +4668,7 @@ class binance(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -4718,7 +4727,7 @@ class binance(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -4734,7 +4743,7 @@ class binance(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market the orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -4759,7 +4768,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -4806,7 +4815,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
         cancel all open orders in a market
         :param str symbol: unified market symbol of the market to cancel orders in
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -4844,7 +4853,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/delivery/en/#cancel-multiple-orders-trade
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
-        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param str[] [params.origClientOrderIdList]: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
@@ -4914,7 +4923,7 @@ class binance(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
@@ -4940,7 +4949,7 @@ class binance(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param int [params.until]: the latest time in ms to fetch entries for
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
@@ -5071,7 +5080,7 @@ class binance(Exchange, ImplicitAPI):
         :param str symbol: not used by binance fetchMyDustTrades()
         :param int [since]: the earliest time in ms to fetch my dust trades for
         :param int [limit]: the maximum number of dust trades to retrieve
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         #
@@ -5202,7 +5211,7 @@ class binance(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.fiat]: if True, only fiat deposits will be returned
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -5304,7 +5313,7 @@ class binance(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.fiat]: if True, only fiat withdrawals will be returned
         :param int [params.until]: the latest time in ms to fetch withdrawals for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -5667,7 +5676,7 @@ class binance(Exchange, ImplicitAPI):
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
@@ -5745,7 +5754,7 @@ class binance(Exchange, ImplicitAPI):
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of transfers structures to retrieve
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch transfers for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
@@ -5809,7 +5818,7 @@ class binance(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :see: https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
         :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
@@ -5877,7 +5886,7 @@ class binance(Exchange, ImplicitAPI):
         please use fetchDepositWithdrawFees instead
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
         :param str[]|None codes: not used by binance fetchTransactionFees()
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
@@ -5987,7 +5996,7 @@ class binance(Exchange, ImplicitAPI):
         fetch deposit and withdraw fees
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
         :param str[]|None codes: not used by binance fetchDepositWithdrawFees()
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
@@ -6110,7 +6119,7 @@ class binance(Exchange, ImplicitAPI):
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -6171,7 +6180,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/futures/en/#user-commission-rate-user_data
         :see: https://binance-docs.github.io/apidocs/delivery/en/#user-commission-rate-user_data
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
@@ -6222,7 +6231,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
         :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
         :see: https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -6389,7 +6398,7 @@ class binance(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to transfer
         :param str type: 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float params.recvWindow:
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=futures-transfer-structure>`
         """
@@ -6416,7 +6425,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/futures/en/#mark-price
         :see: https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         await self.load_markets()
@@ -6456,7 +6465,7 @@ class binance(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
@@ -6521,7 +6530,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/futures/en/#mark-price
         :see: https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
         """
         await self.load_markets()
@@ -7003,7 +7012,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/futures/en/#notional-and-leverage-brackets-user_data
         :see: https://binance-docs.github.io/apidocs/delivery/en/#notional-bracket-for-symbol-user_data
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         await self.load_markets()
@@ -7102,7 +7111,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
         fetch data on an open position
         :param str symbol: unified market symbol of the market the position is held in
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
@@ -7143,7 +7152,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
         fetch data on open options positions
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
@@ -7250,7 +7259,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetch all open positions
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         defaultMethod = self.safe_string(self.options, 'fetchPositions', 'positionRisk')
@@ -7269,7 +7278,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
         :see: https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: data on account positions
         """
         if symbols is not None:
@@ -7300,7 +7309,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
         :see: https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: data on the positions risk
         """
         if symbols is not None:
@@ -7392,7 +7401,7 @@ class binance(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
         """
         await self.load_markets()
@@ -7431,7 +7440,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/delivery/en/#change-initial-leverage-trade
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -7462,7 +7471,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/delivery/en/#change-margin-type-trade
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -7518,7 +7527,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/delivery/en/#change-position-mode-trade
         :param bool hedged: set to True to use dualSidePosition
         :param str symbol: not used by binance setPositionMode()
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
         defaultType = self.safe_string(self.options, 'defaultType', 'future')
@@ -7724,7 +7733,7 @@ class binance(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: timestamp in ms of the earliest ledger entry
         :param int [limit]: max number of ledger entrys to return
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
@@ -8109,7 +8118,7 @@ class binance(Exchange, ImplicitAPI):
         remove margin from a position
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 2, params)
@@ -8121,7 +8130,7 @@ class binance(Exchange, ImplicitAPI):
         add margin
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 1, params)
@@ -8131,7 +8140,7 @@ class binance(Exchange, ImplicitAPI):
         fetch the rate of interest to borrow a currency for margin trading
         :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data
         :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `borrow rate structure <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
         """
         await self.load_markets()
@@ -8161,7 +8170,7 @@ class binance(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: timestamp for the earliest borrow rate
         :param int [limit]: the maximum number of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>` to retrieve
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
         """
         await self.load_markets()
@@ -8228,7 +8237,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/spot/en/#create-a-single-token-gift-card-user_data
         :param str code: gift code
         :param float amount: amount of currency for the gift
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: The gift code id, code, currency and amount
         """
         await self.load_markets()
@@ -8263,7 +8272,7 @@ class binance(Exchange, ImplicitAPI):
         redeem gift code
         :see: https://binance-docs.github.io/apidocs/spot/en/#redeem-a-binance-gift-card-user_data
         :param str giftcardCode:
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
         request = {
@@ -8288,7 +8297,7 @@ class binance(Exchange, ImplicitAPI):
         verify gift code
         :see: https://binance-docs.github.io/apidocs/spot/en/#verify-binance-gift-card-by-gift-card-number-user_data
         :param str id: reference number id
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
         request = {
@@ -8313,7 +8322,7 @@ class binance(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol when fetch interest in isolated markets
         :param int [since]: the earliest time in ms to fetch borrrow interest for
         :param int [limit]: the maximum number of structures to retrieve
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>`
         """
         await self.load_markets()
@@ -8367,29 +8376,23 @@ class binance(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
-        :param str symbol: unified market symbol, required for isolated margin
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
-        marginMode, query = self.handle_margin_mode_and_params('repayMargin', params)  # cross or isolated
-        self.check_required_margin_argument('repayMargin', symbol, marginMode)
         await self.load_markets()
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
+            'isIsolated': 'FALSE',
         }
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-            request['isIsolated'] = 'TRUE'
-        response = await self.sapiPostMarginRepay(self.extend(request, query))
+        response = await self.sapiPostMarginRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,
@@ -8398,29 +8401,79 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_margin_loan(response, currency)
 
-    async def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
+        """
+        repay borrowed margin and interest
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+        :param str symbol: unified market symbol, required for isolated margin
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        market = self.market(symbol)
+        request = {
+            'asset': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'symbol': market['id'],
+            'isIsolated': 'TRUE',
+        }
+        response = await self.sapiPostMarginRepay(self.extend(request, params))
+        #
+        #     {
+        #         "tranId": 108988250265,
+        #         "clientTag":""
+        #     }
+        #
+        return self.parse_margin_loan(response, currency)
+
+    async def borrow_cross_margin(self, code: str, amount, params={}):
         """
         create a loan to borrow margin
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
-        :param str symbol: unified market symbol, required for isolated margin
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
-        marginMode, query = self.handle_margin_mode_and_params('borrowMargin', params)  # cross or isolated
-        self.check_required_margin_argument('borrowMargin', symbol, marginMode)
         await self.load_markets()
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
+            'isIsolated': 'FALSE',
         }
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-            request['isIsolated'] = 'TRUE'
-        response = await self.sapiPostMarginLoan(self.extend(request, query))
+        response = await self.sapiPostMarginLoan(self.extend(request, params))
+        #
+        #     {
+        #         "tranId": 108988250265,
+        #         "clientTag":""
+        #     }
+        #
+        return self.parse_margin_loan(response, currency)
+
+    async def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+        """
+        create a loan to borrow margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+        :param str symbol: unified market symbol, required for isolated margin
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        market = self.market(symbol)
+        request = {
+            'asset': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'symbol': market['id'],
+            'isIsolated': 'TRUE',
+        }
+        response = await self.sapiPostMarginLoan(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,
@@ -8803,7 +8856,7 @@ class binance(Exchange, ImplicitAPI):
         fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
         :see: https://binance-docs.github.io/apidocs/voptions/en/#option-mark-price
         :param str symbol: unified symbol of the market to fetch greeks for
-        :param dict [params]: extra parameters specific to the binance api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `greeks structure <https://docs.ccxt.com/#/?id=greeks-structure>`
         """
         await self.load_markets()

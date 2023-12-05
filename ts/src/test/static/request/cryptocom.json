@@ -147,6 +147,15 @@
                 ],
                 "output": "{\"id\":\"1699460638700\",\"method\":\"private/get-deposit-address\",\"params\":{\"currency\":\"USDT\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"adb838a3899b4b89ad210f33326498b3b6d0cb8265525c450f38d7a706ff6eb1\",\"nonce\":\"1699460638700\"}"
             }
+        ],
+        "fetchPositions":[
+            {
+                "description": "Fetch positions",
+                "method": "fetchPositions",
+                "url": "https://api.crypto.com/exchange/v1/private/get-positions",
+                "input": [],
+                "output": "{\"id\":\"1700840923278\",\"method\":\"private/get-positions\",\"params\":{},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"c8406ac9040f04fbbc337b956a50c3bf030f24b4249717e03eac6f905ea3c4a5\",\"nonce\":\"1700840923278\"}"
+            }
         ]
     }
 }

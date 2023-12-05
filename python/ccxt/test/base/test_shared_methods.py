@@ -298,3 +298,25 @@ def check_precision_accuracy(exchange, skipped_properties, method, entry, key):
         assert_integer(exchange, skipped_properties, method, entry, key)  # should be integer
         assert_less_or_equal(exchange, skipped_properties, method, entry, key, '18')  # should be under 18 decimals
         assert_greater_or_equal(exchange, skipped_properties, method, entry, key, '-8')  # in real-world cases, there would not be less than that
+
+
+def remove_proxy_options(exchange, skipped_properties):
+    proxy_url = exchange.check_proxy_url_settings()
+    [http_proxy, https_proxy, socks_proxy] = exchange.check_proxy_settings()
+    # because of bug in transpiled, about `.proxyUrl` being transpiled into `.proxy_url`, we have to use this workaround
+    exchange.set_property(exchange, 'proxyUrl', None)
+    exchange.set_property(exchange, 'proxy_url', None)
+    exchange.set_property(exchange, 'httpProxy', None)
+    exchange.set_property(exchange, 'http_proxy', None)
+    exchange.set_property(exchange, 'httpsProxy', None)
+    exchange.set_property(exchange, 'https_proxy', None)
+    exchange.set_property(exchange, 'socksProxy', None)
+    exchange.set_property(exchange, 'socks_proxy', None)
+    return [proxy_url, http_proxy, https_proxy, socks_proxy]
+
+
+def set_proxy_options(exchange, skipped_properties, proxy_url, http_proxy, https_proxy, socks_proxy):
+    exchange.proxy_url = proxy_url
+    exchange.http_proxy = http_proxy
+    exchange.https_proxy = https_proxy
+    exchange.socks_proxy = socks_proxy

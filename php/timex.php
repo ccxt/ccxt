@@ -266,7 +266,7 @@ class timex extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all markets for timex
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
         $response = $this->publicGetMarkets ($params);
@@ -297,7 +297,7 @@ class timex extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
         $response = $this->publicGetCurrencies ($params);
@@ -340,7 +340,7 @@ class timex extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $address = $this->safe_string($params, 'address');
@@ -374,7 +374,7 @@ class timex extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of transaction structures to retrieve
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $address = $this->safe_string($params, 'address');
@@ -455,9 +455,9 @@ class timex extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
@@ -490,7 +490,7 @@ class timex extends Exchange {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
@@ -527,7 +527,7 @@ class timex extends Exchange {
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
@@ -573,7 +573,7 @@ class timex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $this->load_markets();
@@ -620,7 +620,7 @@ class timex extends Exchange {
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -680,7 +680,7 @@ class timex extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
@@ -705,7 +705,7 @@ class timex extends Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market $orders
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -827,7 +827,7 @@ class timex extends Exchange {
          * cancels an open order
          * @param {string} $id order $id
          * @param {string} $symbol not used by timex cancelOrder ()
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
@@ -839,7 +839,7 @@ class timex extends Exchange {
          * cancel multiple orders
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified market $symbol, default is null
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -878,7 +878,7 @@ class timex extends Exchange {
         /**
          * fetches information on an $order made by the user
          * @param {string} $symbol not used by timex fetchOrder
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -930,7 +930,7 @@ class timex extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -983,7 +983,7 @@ class timex extends Exchange {
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -1041,7 +1041,7 @@ class timex extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
@@ -1117,7 +1117,7 @@ class timex extends Exchange {
         /**
          * fetch the trading fees for a $market
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the timex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
          */
         $this->load_markets();

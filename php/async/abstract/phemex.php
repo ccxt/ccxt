@@ -43,6 +43,9 @@ abstract class phemex extends \ccxt\async\Exchange {
     public function public_get_exchange_public_cfg_chain_settings($params = array()) {
         return $this->request('exchange/public/cfg/chain-settings', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function v1_get_md_fullbook($params = array()) {
+        return $this->request('md/fullbook', 'v1', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function v1_get_md_orderbook($params = array()) {
         return $this->request('md/orderbook', 'v1', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -166,6 +169,21 @@ abstract class phemex extends \ccxt\async\Exchange {
     public function private_get_phemex_user_wallets_tradeaccountdetail($params = array()) {
         return $this->request('phemex-user/wallets/tradeAccountDetail', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_phemex_deposit_wallets_api_depositaddress($params = array()) {
+        return $this->request('phemex-deposit/wallets/api/depositAddress', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_phemex_deposit_wallets_api_deposithist($params = array()) {
+        return $this->request('phemex-deposit/wallets/api/depositHist', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_phemex_deposit_wallets_api_chaincfg($params = array()) {
+        return $this->request('phemex-deposit/wallets/api/chainCfg', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_phemex_withdraw_wallets_api_withdrawhist($params = array()) {
+        return $this->request('phemex-withdraw/wallets/api/withdrawHist', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_phemex_withdraw_wallets_api_asset_info($params = array()) {
+        return $this->request('phemex-withdraw/wallets/api/asset/info', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_phemex_user_order_closedpositionlist($params = array()) {
         return $this->request('phemex-user/order/closedPositionList', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -262,6 +280,12 @@ abstract class phemex extends \ccxt\async\Exchange {
     public function private_post_assets_convert($params = array()) {
         return $this->request('assets/convert', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    public function private_post_phemex_withdraw_wallets_api_createwithdraw($params = array()) {
+        return $this->request('phemex-withdraw/wallets/api/createWithdraw', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_phemex_withdraw_wallets_api_cancelwithdraw($params = array()) {
+        return $this->request('phemex-withdraw/wallets/api/cancelWithdraw', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function private_put_spot_orders_create($params = array()) {
         return $this->request('spot/orders/create', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -345,6 +369,9 @@ abstract class phemex extends \ccxt\async\Exchange {
     }
     public function publicGetExchangePublicCfgChainSettings($params = array()) {
         return $this->request('exchange/public/cfg/chain-settings', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function v1GetMdFullbook($params = array()) {
+        return $this->request('md/fullbook', 'v1', 'GET', $params, null, null, array("cost" => 5));
     }
     public function v1GetMdOrderbook($params = array()) {
         return $this->request('md/orderbook', 'v1', 'GET', $params, null, null, array("cost" => 5));
@@ -469,6 +496,21 @@ abstract class phemex extends \ccxt\async\Exchange {
     public function privateGetPhemexUserWalletsTradeAccountDetail($params = array()) {
         return $this->request('phemex-user/wallets/tradeAccountDetail', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function privateGetPhemexDepositWalletsApiDepositAddress($params = array()) {
+        return $this->request('phemex-deposit/wallets/api/depositAddress', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetPhemexDepositWalletsApiDepositHist($params = array()) {
+        return $this->request('phemex-deposit/wallets/api/depositHist', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetPhemexDepositWalletsApiChainCfg($params = array()) {
+        return $this->request('phemex-deposit/wallets/api/chainCfg', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetPhemexWithdrawWalletsApiWithdrawHist($params = array()) {
+        return $this->request('phemex-withdraw/wallets/api/withdrawHist', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetPhemexWithdrawWalletsApiAssetInfo($params = array()) {
+        return $this->request('phemex-withdraw/wallets/api/asset/info', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetPhemexUserOrderClosedPositionList($params = array()) {
         return $this->request('phemex-user/order/closedPositionList', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -564,6 +606,12 @@ abstract class phemex extends \ccxt\async\Exchange {
     }
     public function privatePostAssetsConvert($params = array()) {
         return $this->request('assets/convert', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostPhemexWithdrawWalletsApiCreateWithdraw($params = array()) {
+        return $this->request('phemex-withdraw/wallets/api/createWithdraw', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostPhemexWithdrawWalletsApiCancelWithdraw($params = array()) {
+        return $this->request('phemex-withdraw/wallets/api/cancelWithdraw', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePutSpotOrdersCreate($params = array()) {
         return $this->request('spot/orders/create', 'private', 'PUT', $params, null, null, array("cost" => 1));

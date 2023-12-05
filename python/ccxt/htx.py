@@ -50,7 +50,8 @@ class htx(Exchange, ImplicitAPI):
                 'future': True,
                 'option': None,
                 'addMargin': None,
-                'borrowMargin': True,
+                'borrowCrossMargin': True,
+                'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -130,7 +131,8 @@ class htx(Exchange, ImplicitAPI):
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
                 'reduceMargin': None,
-                'repayMargin': True,
+                'repayCrossMargin': True,
+                'repayIsolatedMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -1180,10 +1182,6 @@ class htx(Exchange, ImplicitAPI):
                     'deposit-earning': 'deposit-earning',
                     'otc-options': 'otc-options',
                 },
-                'marginAccounts': {
-                    'cross': 'super-margin',
-                    'isolated': 'margin',
-                },
                 'typesByAccount': {
                     'pro': 'spot',
                     'futures': 'future',
@@ -1444,7 +1442,7 @@ class htx(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         options = self.safe_value(self.options, 'fetchTime', {})
@@ -1488,7 +1486,7 @@ class htx(Exchange, ImplicitAPI):
         """
         fetch the trading fees for a market
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
@@ -1584,7 +1582,7 @@ class htx(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for huobi
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         options = self.safe_value(self.options, 'fetchMarkets', {})
@@ -1986,7 +1984,7 @@ class htx(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
@@ -2057,13 +2055,13 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :see: https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
         :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
         :see: https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview
         :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
@@ -2201,7 +2199,7 @@ class htx(Exchange, ImplicitAPI):
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
@@ -2412,7 +2410,7 @@ class htx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         market = None
@@ -2441,7 +2439,7 @@ class htx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch trades for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
@@ -2596,7 +2594,7 @@ class htx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         self.load_markets()
@@ -2690,7 +2688,7 @@ class htx(Exchange, ImplicitAPI):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
@@ -2797,7 +2795,7 @@ class htx(Exchange, ImplicitAPI):
     def fetch_accounts(self, params={}):
         """
         fetch all the accounts associated with a profile
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
         self.load_markets()
@@ -2860,7 +2858,7 @@ class htx(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         response = self.spotPublicGetV2ReferenceCurrencies(params)
@@ -3020,7 +3018,7 @@ class htx(Exchange, ImplicitAPI):
         :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
         :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.unified]: provide self parameter if you have a recent account with unified cross+isolated margin account
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -3316,7 +3314,7 @@ class htx(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -3551,7 +3549,11 @@ class htx(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('end-time', request, params)
         if limit is not None:
             request['size'] = limit
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'spot_private_get_v1_order_orders':
+            response = self.spotPrivateGetV1OrderOrders(self.extend(request, params))
+        else:
+            response = self.spotPrivateGetV1OrderHistory(self.extend(request, params))
         #
         # spot_private_get_v1_order_orders GET /v1/order/orders
         #
@@ -3817,7 +3819,7 @@ class htx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.stop]: *contract only* if the orders are stop trigger orders or not
         :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
         :param int [params.until]: the latest time in ms to fetch entries for
@@ -3849,7 +3851,7 @@ class htx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -3878,7 +3880,7 @@ class htx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.stop]: *contract only* if the orders are stop trigger orders or not
         :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -4540,7 +4542,7 @@ class htx(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the htx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
         :returns dict: request to be sent to the exchange
         """
@@ -4635,7 +4637,7 @@ class htx(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the htx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
         :returns dict: request to be sent to the exchange
         """
@@ -4717,7 +4719,7 @@ class htx(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.stopPrice]: the price a trigger order is triggered at
         :param str [params.triggerType]: *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
         :param float [params.stopLossPrice]: *contract only* the price a stop-loss order is triggered at
@@ -4848,7 +4850,7 @@ class htx(Exchange, ImplicitAPI):
         :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-orders
         :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-orders
         :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-        :param dict [params]: extra parameters specific to the htx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -4958,7 +4960,7 @@ class htx(Exchange, ImplicitAPI):
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.stop]: *contract only* if the order is a stop trigger order or not
         :param bool [params.stopLossTakeProfit]: *contract only* if the order is a stop-loss or take-profit order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -5071,7 +5073,7 @@ class htx(Exchange, ImplicitAPI):
         cancel multiple orders
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.stop]: *contract only* if the orders are stop trigger orders or not
         :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -5217,7 +5219,7 @@ class htx(Exchange, ImplicitAPI):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.stop]: *contract only* if the orders are stop trigger orders or not
         :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -5346,7 +5348,7 @@ class htx(Exchange, ImplicitAPI):
         """
         fetch a dictionary of addresses for a currency, indexed by network
         :param str code: unified currency code of the currency for the deposit address
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
         """
         self.load_markets()
@@ -5376,7 +5378,7 @@ class htx(Exchange, ImplicitAPI):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
@@ -5424,7 +5426,7 @@ class htx(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if limit is None or limit > 100:
@@ -5477,7 +5479,7 @@ class htx(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if limit is None or limit > 100:
@@ -5644,7 +5646,7 @@ class htx(Exchange, ImplicitAPI):
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -5727,7 +5729,7 @@ class htx(Exchange, ImplicitAPI):
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from 'spot', 'future', 'swap'
         :param str toAccount: account to transfer to 'spot', 'future', 'swap'
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.symbol]: used for isolated margin transfer
         :param str [params.subType]: 'linear' or 'inverse', only used when transfering to/from swap accounts
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
@@ -5799,7 +5801,7 @@ class htx(Exchange, ImplicitAPI):
     def fetch_isolated_borrow_rates(self, params={}):
         """
         fetch the borrow interest rates of all currencies
-        :param dict [params]: extra parameters specific to the htx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `isolated borrow rate structures <https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure>`
         """
         self.load_markets()
@@ -5890,7 +5892,7 @@ class htx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: not used by huobi, but filtered internally by ccxt
         :param int [limit]: not used by huobi, but filtered internally by ccxt
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
         """
         if symbol is None:
@@ -5999,7 +6001,7 @@ class htx(Exchange, ImplicitAPI):
         """
         fetch the current funding rate
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         self.load_markets()
@@ -6037,7 +6039,7 @@ class htx(Exchange, ImplicitAPI):
         """
         fetch the funding rate for multiple markets
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
         """
         self.load_markets()
@@ -6084,7 +6086,7 @@ class htx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol when fetch interest in isolated markets
         :param int [since]: the earliest time in ms to fetch borrrow interest for
         :param int [limit]: the maximum number of structures to retrieve
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>`
         """
         self.load_markets()
@@ -6335,7 +6337,7 @@ class htx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
         """
         self.load_markets()
@@ -6414,7 +6416,7 @@ class htx(Exchange, ImplicitAPI):
         set the level of leverage for a market
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -6595,7 +6597,7 @@ class htx(Exchange, ImplicitAPI):
         """
         fetch all open positions
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
@@ -6717,7 +6719,7 @@ class htx(Exchange, ImplicitAPI):
         """
         fetch data on a single open contract trade position
         :param str symbol: unified market symbol of the market the position is held in, default is None
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
@@ -7022,7 +7024,7 @@ class htx(Exchange, ImplicitAPI):
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
@@ -7092,7 +7094,7 @@ class htx(Exchange, ImplicitAPI):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         self.load_markets()
@@ -7133,7 +7135,7 @@ class htx(Exchange, ImplicitAPI):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
         """
         self.load_markets()
@@ -7481,43 +7483,26 @@ class htx(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+    def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         create a loan to borrow margin
         :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
         :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+        :param str symbol: unified market symbol, required for isolated margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
-        :param str symbol: unified market symbol, required for isolated margin
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
+        market = self.market(symbol)
         request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
+            'symbol': market['id'],
         }
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('borrowMargin', params)
-        marginMode = 'cross' if (marginMode is None) else marginMode
-        method = None
-        if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-            method = 'privatePostMarginOrders'
-        elif marginMode == 'cross':
-            method = 'privatePostCrossMarginOrders'
-        response = getattr(self, method)(self.extend(request, params))
-        #
-        # Cross
-        #
-        #     {
-        #         "status": "ok",
-        #         "data": null
-        #     }
+        response = self.privatePostMarginOrders(self.extend(request, params))
         #
         # Isolated
         #
@@ -7531,24 +7516,49 @@ class htx(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    def borrow_cross_margin(self, code: str, amount, params={}):
+        """
+        create a loan to borrow margin
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+        }
+        response = self.privatePostCrossMarginOrders(self.extend(request, params))
+        #
+        # Cross
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": null
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+        })
+
+    def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         repay borrowed margin and interest
         :see: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('repayMargin', params)
-        marginMode = 'cross' if (marginMode is None) else marginMode
-        marginAccounts = self.safe_value(self.options, 'marginAccounts', {})
-        accountType = self.get_supported_mapping(marginMode, marginAccounts)
-        accountId = self.fetch_account_id_by_type(accountType, marginMode, symbol, params)
+        accountId = self.fetch_account_id_by_type('spot', 'isolated', symbol, params)
         request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
@@ -7572,6 +7582,42 @@ class htx(Exchange, ImplicitAPI):
         return self.extend(transaction, {
             'amount': amount,
             'symbol': symbol,
+        })
+
+    def repay_cross_margin(self, code: str, amount, params={}):
+        """
+        repay borrowed margin and interest
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        accountId = self.fetch_account_id_by_type('spot', 'cross', None, params)
+        request = {
+            'currency': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'accountId': accountId,
+        }
+        response = self.v2PrivatePostAccountRepayment(self.extend(request, params))
+        #
+        #     {
+        #         "code":200,
+        #         "data": [
+        #             {
+        #                 "repayId":1174424,
+        #                 "repayTime":1600747722018
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'Data', [])
+        loan = self.safe_value(data, 0)
+        transaction = self.parse_margin_loan(loan, currency)
+        return self.extend(transaction, {
+            'amount': amount,
         })
 
     def parse_margin_loan(self, info, currency: Currency = None):
@@ -7598,7 +7644,7 @@ class htx(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(info, 'repayTime')
         return {
-            'id': self.safe_integer_2(info, 'repayId', 'data'),
+            'id': self.safe_string_2(info, 'repayId', 'data'),
             'currency': self.safe_currency_code(None, currency),
             'amount': None,
             'symbol': None,
@@ -7704,7 +7750,7 @@ class htx(Exchange, ImplicitAPI):
         fetch deposit and withdraw fees
         :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
         :param str[]|None codes: list of unified currency codes
-        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()

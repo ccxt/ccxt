@@ -15,7 +15,7 @@ export default class htx extends htxRest {
     watchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
+    handleOrderBookMessage(client: Client, message: any): void;
     handleOrderBook(client: Client, message: any): void;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -38,7 +38,7 @@ export default class htx extends htxRest {
     handleMessage(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any, extendParams?: {}): void;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
-    getUrlByMarketType(type: any, isLinear?: boolean, isPrivate?: boolean): any;
+    getUrlByMarketType(type: any, isLinear?: boolean, isPrivate?: boolean, isFeed?: boolean): any;
     subscribePublic(url: any, symbol: any, messageHash: any, method?: any, params?: {}): Promise<any>;
     subscribePrivate(channel: any, messageHash: any, type: any, subtype: any, params?: {}, subscriptionParams?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;

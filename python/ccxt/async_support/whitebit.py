@@ -283,7 +283,7 @@ class whitebit(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for whitebit
         :see: https://whitebit-exchange.github.io/api-docs/docs/Public/http-v4#market-info
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         markets = await self.v4PublicGetMarkets()
@@ -402,7 +402,7 @@ class whitebit(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         response = await self.v4PublicGetAssets(params)
@@ -459,7 +459,7 @@ class whitebit(Exchange, ImplicitAPI):
          * @deprecated
         please use fetchDepositWithdrawFees instead
         :param str[]|None codes: not used by fetchTransactionFees()
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
@@ -510,7 +510,7 @@ class whitebit(Exchange, ImplicitAPI):
         """
         fetch deposit and withdraw fees
         :param str[]|None codes: not used by fetchDepositWithdrawFees()
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
@@ -650,7 +650,7 @@ class whitebit(Exchange, ImplicitAPI):
     async def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -695,7 +695,7 @@ class whitebit(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -779,9 +779,9 @@ class whitebit(Exchange, ImplicitAPI):
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -814,7 +814,7 @@ class whitebit(Exchange, ImplicitAPI):
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -853,7 +853,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
@@ -882,7 +882,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
@@ -1028,7 +1028,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -1085,7 +1085,7 @@ class whitebit(Exchange, ImplicitAPI):
     async def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
         response = await self.v4PublicGetPing(params)
@@ -1106,7 +1106,7 @@ class whitebit(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         response = await self.v4PublicGetTime(params)
@@ -1125,7 +1125,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1188,7 +1188,7 @@ class whitebit(Exchange, ImplicitAPI):
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -1223,7 +1223,7 @@ class whitebit(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
@@ -1271,7 +1271,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -1312,7 +1312,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1464,7 +1464,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
@@ -1504,7 +1504,7 @@ class whitebit(Exchange, ImplicitAPI):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
@@ -1571,7 +1571,7 @@ class whitebit(Exchange, ImplicitAPI):
         set the level of leverage for a market
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
         await self.load_markets()
@@ -1595,7 +1595,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from - main, spot, collateral
         :param str toAccount: account to transfer to - main, spot, collateral
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
@@ -1639,7 +1639,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
@@ -1757,7 +1757,7 @@ class whitebit(Exchange, ImplicitAPI):
         fetch information on a deposit
         :param str id: deposit id
         :param str code: not used by whitebit fetchDeposit()
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
@@ -1819,7 +1819,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
@@ -1883,7 +1883,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch borrrow interest for
         :param int [limit]: the maximum number of structures to retrieve
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>`
         """
         await self.load_markets()
@@ -1957,7 +1957,7 @@ class whitebit(Exchange, ImplicitAPI):
         :see: https://whitebit-exchange.github.io/api-docs/public/http-v4/#available-futures-markets-list
         fetch the current funding rate
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         await self.load_markets()
@@ -1970,7 +1970,7 @@ class whitebit(Exchange, ImplicitAPI):
         :see: https://whitebit-exchange.github.io/api-docs/public/http-v4/#available-futures-markets-list
         fetch the funding rate for multiple markets
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the whitebit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
         """
         await self.load_markets()

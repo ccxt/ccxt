@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.1.57';
+const version = '4.1.77';
 
 (Exchange as any).ccxtVersion = version
 
@@ -110,7 +110,6 @@ import hollaex from  './src/hollaex.js'
 import htx from  './src/htx.js'
 import huobi from  './src/huobi.js'
 import huobijp from  './src/huobijp.js'
-import huobipro from  './src/huobipro.js'
 import idex from  './src/idex.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
@@ -125,13 +124,10 @@ import luno from  './src/luno.js'
 import lykke from  './src/lykke.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
-import mexc3 from  './src/mexc3.js'
 import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
 import oceanex from  './src/oceanex.js'
 import okcoin from  './src/okcoin.js'
-import okex from  './src/okex.js'
-import okex5 from  './src/okex5.js'
 import okx from  './src/okx.js'
 import p2b from  './src/p2b.js'
 import paymium from  './src/paymium.js'
@@ -139,7 +135,6 @@ import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
 import poloniexfutures from  './src/poloniexfutures.js'
 import probit from  './src/probit.js'
-import tidex from  './src/tidex.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
 import upbit from  './src/upbit.js'
@@ -192,7 +187,6 @@ import hollaexPro from  './src/pro/hollaex.js'
 import htxPro from  './src/pro/htx.js'
 import huobiPro from  './src/pro/huobi.js'
 import huobijpPro from  './src/pro/huobijp.js'
-import huobiproPro from  './src/pro/huobipro.js'
 import idexPro from  './src/pro/idex.js'
 import independentreservePro from  './src/pro/independentreserve.js'
 import krakenPro from  './src/pro/kraken.js'
@@ -201,10 +195,8 @@ import kucoinPro from  './src/pro/kucoin.js'
 import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
-import mexc3Pro from  './src/pro/mexc3.js'
 import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
-import okexPro from  './src/pro/okex.js'
 import okxPro from  './src/pro/okx.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
@@ -280,7 +272,6 @@ const exchanges = {
     'htx':                    htx,
     'huobi':                  huobi,
     'huobijp':                huobijp,
-    'huobipro':               huobipro,
     'idex':                   idex,
     'independentreserve':     independentreserve,
     'indodax':                indodax,
@@ -295,13 +286,10 @@ const exchanges = {
     'lykke':                  lykke,
     'mercado':                mercado,
     'mexc':                   mexc,
-    'mexc3':                  mexc3,
     'ndax':                   ndax,
     'novadax':                novadax,
     'oceanex':                oceanex,
     'okcoin':                 okcoin,
-    'okex':                   okex,
-    'okex5':                  okex5,
     'okx':                    okx,
     'p2b':                    p2b,
     'paymium':                paymium,
@@ -309,7 +297,6 @@ const exchanges = {
     'poloniex':               poloniex,
     'poloniexfutures':        poloniexfutures,
     'probit':                 probit,
-    'tidex':                  tidex,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
     'upbit':                  upbit,
@@ -362,7 +349,6 @@ const pro = {
     'htx':                    htxPro,
     'huobi':                  huobiPro,
     'huobijp':                huobijpPro,
-    'huobipro':               huobiproPro,
     'idex':                   idexPro,
     'independentreserve':     independentreservePro,
     'kraken':                 krakenPro,
@@ -371,10 +357,8 @@ const pro = {
     'kucoinfutures':          kucoinfuturesPro,
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
-    'mexc3':                  mexc3Pro,
     'ndax':                   ndaxPro,
     'okcoin':                 okcoinPro,
-    'okex':                   okexPro,
     'okx':                    okxPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
@@ -528,7 +512,6 @@ export {
     htx,
     huobi,
     huobijp,
-    huobipro,
     idex,
     independentreserve,
     indodax,
@@ -543,13 +526,10 @@ export {
     lykke,
     mercado,
     mexc,
-    mexc3,
     ndax,
     novadax,
     oceanex,
     okcoin,
-    okex,
-    okex5,
     okx,
     p2b,
     paymium,
@@ -557,7 +537,6 @@ export {
     poloniex,
     poloniexfutures,
     probit,
-    tidex,
     timex,
     tokocrypto,
     upbit,

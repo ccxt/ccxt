@@ -35,7 +35,7 @@ RUN npm install
 RUN ln -s /ccxt /usr/lib/node_modules/
 RUN echo "export NODE_PATH=/usr/lib/node_modules" >> $HOME/.bashrc
 RUN cd python \
-    && python3 setup.py develop \
+    && pip3 install -e . \
     && cd ..
 ## Install composer and everything else that it needs and manages
 RUN /ccxt/composer-install.sh

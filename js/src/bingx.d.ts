@@ -1,5 +1,5 @@
 import Exchange from './abstract/bingx.js';
-import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency } from './base/types.js';
+import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position } from './base/types.js';
 export default class bingx extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
@@ -59,8 +59,11 @@ export default class bingx extends Exchange {
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
-    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
-    parsePosition(position: any, market?: Market): import("./base/types.js").Position;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    parsePosition(position: any, market?: Market): Position;
+    createMarketOrderWithCost(symbol: string, side: OrderSide, cost: any, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
+    createMarketSellOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
@@ -130,6 +133,7 @@ export default class bingx extends Exchange {
     parseParams(params: any): {};
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): import("./base/types.js").Liquidation;
+    closeAllPositions(params?: {}): Promise<Position[]>;
     sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

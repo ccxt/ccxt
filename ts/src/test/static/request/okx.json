@@ -205,6 +205,47 @@
               }
             ],
             "output": "[{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"post_only\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"25000\",\"slTriggerPx\":\"24000\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"tpTriggerPx\":\"26000\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC6798012df444b042\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
+          },
+          {
+            "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false",
+            "method": "createOrder",
+            "url": "https://www.okx.com/api/v5/trade/batch-orders",
+            "input": [
+              "BTC/USDT",
+              "market",
+              "buy",
+              10,
+              null,
+              {
+                "createMarketBuyOrderRequiresPrice": false,
+                "tgtCcy": "quote_ccy"
+              }
+            ],
+            "output": "[{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"e847386590ce4dBCdbc74f1714de86ed\",\"tag\":\"e847386590ce4dBC\"}]"      
+          }
+        ],
+        "createMarketBuyOrderWithCost": [
+          {
+            "description": "market buy",
+            "method": "createMarketBuyOrderWithCost",
+            "url": "https://www.okx.com/api/v5/trade/batch-orders",
+            "input": [
+              "LTC/USDT",
+              10
+            ],
+            "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"e847386590ce4dBC8ce3873ff4a2839e\",\"tag\":\"e847386590ce4dBC\"}]"
+          }
+        ],
+        "createMarketSellOrderWithCost": [
+          {
+            "description": "Market sell",
+            "method": "createMarketSellOrderWithCost",
+            "url": "https://www.okx.com/api/v5/trade/batch-orders",
+            "input": [
+              "LTC/USDT",
+              10
+            ],
+            "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"e847386590ce4dBC7b6fec7f0455b533\",\"tag\":\"e847386590ce4dBC\",\"createMarketBuyOrderRequiresPrice\":false}]"
           }
         ],
         "createOrders": [

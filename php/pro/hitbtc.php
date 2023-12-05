@@ -196,7 +196,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @see https://api.hitbtc.com/#subscribe-to-top-of-book-in-batches
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] 'orderbook/full', 'orderbook/{$depth}/{$speed}', 'orderbook/{$depth}/{$speed}/batch', 'orderbook/top/{$speed}', or 'orderbook/top/{$speed}/batch'
              * @param {int} [$params->depth] 5 , 10, or 20 (default)
              * @param {int} [$params->speed] 100 (default), 500, or 1000
@@ -302,7 +302,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @see https://api.hitbtc.com/#subscribe-to-mini-ticker
              * @see https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] 'ticker/{$speed}' (default), or 'ticker/price/{$speed}'
              * @param {string} [$params->speed] '1s' (default), or '3s'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -328,7 +328,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} symbol unified symbol of the market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the hitbtc api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} $params->method 'ticker/{$speed}' (default),'ticker/price/{$speed}', 'ticker/{$speed}/batch', or 'ticker/{$speed}/price/batch''
              * @param {string} $params->speed '1s' (default), or '3s'
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
@@ -496,7 +496,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
@@ -628,7 +628,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} [$timeframe] the length of time each candle represents
              * @param {int} [$since] not used by hitbtc watchOHLCV
              * @param {int} [$limit] 0 – 1000, default value = 0 (no history returned)
-             * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -743,7 +743,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} [$symbol] unified CCXT $market $symbol
              * @param {int} [$since] timestamp in ms of the earliest order to fetch
              * @param {int} [$limit] the maximum amount of $orders to fetch
-             * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             Async\await($this->load_markets());
@@ -983,7 +983,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * watches balance updates, cannot subscribe to margin account balances
              * @see https://api.hitbtc.com/#subscribe-to-spot-balances
              * @see https://api.hitbtc.com/#subscribe-to-futures-balances
-             * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'spot', 'swap', or 'future'
              *
              * EXCHANGE SPECIFIC PARAMETERS
@@ -1019,7 +1019,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
              * @param {bool} [$params->margin] true for creating a margin order
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
@@ -1055,7 +1055,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool} [$params->margin] true for canceling a margin order
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1089,7 +1089,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @see https://api.hitbtc.com/#cancel-futures-order-3
              * cancel all open orders
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-             * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool} [$params->margin] true for canceling margin orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1123,7 +1123,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool} [$params->margin] true for fetching open margin orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~

@@ -22,6 +22,15 @@ class bybit(ccxt.async_support.bybit):
         return self.deep_extend(super(bybit, self).describe(), {
             'has': {
                 'ws': True,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'cancelOrderWs': False,
+                'cancelOrdersWs': False,
+                'cancelAllOrdersWs': False,
+                'fetchTradesWs': False,
+                'fetchBalanceWs': False,
                 'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
@@ -169,7 +178,7 @@ class bybit(ccxt.async_support.bybit):
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -192,7 +201,7 @@ class bybit(ccxt.async_support.bybit):
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
         :param str[] symbols: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -359,7 +368,7 @@ class bybit(ccxt.async_support.bybit):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -384,7 +393,7 @@ class bybit(ccxt.async_support.bybit):
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -491,7 +500,7 @@ class bybit(ccxt.async_support.bybit):
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
-        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -520,7 +529,7 @@ class bybit(ccxt.async_support.bybit):
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return.
-        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -625,7 +634,7 @@ class bybit(ccxt.async_support.bybit):
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
-        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         await self.load_markets()
@@ -647,7 +656,7 @@ class bybit(ccxt.async_support.bybit):
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
@@ -796,7 +805,7 @@ class bybit(ccxt.async_support.bybit):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.unifiedMargin]: use unified margin account
         :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
@@ -912,7 +921,7 @@ class bybit(ccxt.async_support.bybit):
         :see: https://bybit-exchange.github.io/docs/v5/websocket/private/position
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
-        :param dict params: extra parameters specific to the bybit api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
@@ -1038,7 +1047,7 @@ class bybit(ccxt.async_support.bybit):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.load_markets()
@@ -1306,7 +1315,7 @@ class bybit(ccxt.async_support.bybit):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :see: https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
-        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
@@ -1580,7 +1589,7 @@ class bybit(ccxt.async_support.bybit):
             'args': topics,
         }
         message = self.extend(request, params)
-        return await self.watch(url, messageHash, message, subscriptionHash)
+        return await self.watch(url, messageHash, message, messageHash, subscriptionHash)
 
     async def authenticate(self, url, params={}):
         self.check_required_credentials()

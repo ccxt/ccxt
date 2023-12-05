@@ -58,6 +58,7 @@ export default class bybit extends Exchange {
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
@@ -157,8 +158,8 @@ export default class bybit extends Exchange {
     };
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
+    borrowCrossMargin(code: string, amount: any, params?: {}): Promise<any>;
+    repayCrossMargin(code: string, amount: any, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: Currency): {
         id: string;
         currency: string;

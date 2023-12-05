@@ -19,6 +19,15 @@ class bybit extends \ccxt\async\bybit {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'cancelOrderWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelAllOrdersWs' => false,
+                'fetchTradesWs' => false,
+                'fetchBalanceWs' => false,
                 'watchBalance' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
@@ -174,7 +183,7 @@ class bybit extends \ccxt\async\bybit {
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
@@ -201,7 +210,7 @@ class bybit extends \ccxt\async\bybit {
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-$ticker
              * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
@@ -377,7 +386,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -406,7 +415,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -524,7 +533,7 @@ class bybit extends \ccxt\async\bybit {
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return.
-             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -560,7 +569,7 @@ class bybit extends \ccxt\async\bybit {
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return.
-             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
              */
             Async\await($this->load_markets());
@@ -679,7 +688,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             Async\await($this->load_markets());
@@ -705,7 +714,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
@@ -868,7 +877,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->unifiedMargin] use unified margin account
              * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
@@ -994,7 +1003,7 @@ class bybit extends \ccxt\async\bybit {
              * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
              * watch all open positions
              * @param {string[]|null} $symbols list of unified market $symbols
-             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
@@ -1140,7 +1149,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
@@ -1424,7 +1433,7 @@ class bybit extends \ccxt\async\bybit {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
-             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -1720,7 +1729,7 @@ class bybit extends \ccxt\async\bybit {
                 'args' => $topics,
             );
             $message = array_merge($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $subscriptionHash));
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscriptionHash));
         }) ();
     }
 

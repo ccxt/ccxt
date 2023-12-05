@@ -29,6 +29,11 @@ class bingx extends bingx$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPosition': true,
+                'closePosition': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
                 'fetchBalance': true,
@@ -72,14 +77,23 @@ class bingx extends bingx$1 {
                     'user': 'https://open-api.{hostname}/openApi',
                     'subAccount': 'https://open-api.{hostname}/openApi',
                     'account': 'https://open-api.{hostname}/openApi',
+                    'copyTrading': 'https://open-api.{hostname}/openApi',
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
                 'referral': 'https://bingx.com/invite/OHETOM',
-                'fees': {
-                    'trading': {
-                        'tierBased': true,
-                    },
+            },
+            'fees': {
+                'tierBased': true,
+                'spot': {
+                    'feeSide': 'get',
+                    'maker': this.parseNumber('0.001'),
+                    'taker': this.parseNumber('0.001'),
+                },
+                'swap': {
+                    'feeSide': 'quote',
+                    'maker': this.parseNumber('0.0002'),
+                    'taker': this.parseNumber('0.0005'),
                 },
             },
             'requiredCredentials': {
@@ -298,9 +312,6 @@ class bingx extends bingx$1 {
                 '1w': '1w',
                 '1M': '1M',
             },
-            'fees': {
-                'trading': {},
-            },
             'precisionMode': number.DECIMAL_PLACES,
             'exceptions': {
                 'exact': {
@@ -353,7 +364,7 @@ class bingx extends bingx$1 {
          * @name bingx#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the bingx server
          * @see https://bingx-api.github.io/docs/#/swapV2/base-info.html#Get%20Server%20Time
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the bingx server
          */
         const response = await this.swapV2PublicGetServerTime(params);
@@ -375,7 +386,7 @@ class bingx extends bingx$1 {
          * @name bingx#fetchCurrencies
          * @description fetches all available currencies on an exchange
          * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
         if (!this.checkRequiredCredentials(false)) {
@@ -552,11 +563,12 @@ class bingx extends bingx$1 {
         if (settle !== undefined) {
             symbol += ':' + settle;
         }
+        const fees = this.safeValue(this.fees, type, {});
         const contractSize = this.safeNumber(market, 'size');
         const isActive = this.safeString(market, 'status') === '1';
         const isInverse = (spot) ? undefined : false;
         const isLinear = (spot) ? undefined : swap;
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -575,8 +587,9 @@ class bingx extends bingx$1 {
             'contract': swap,
             'linear': isLinear,
             'inverse': isInverse,
-            'taker': undefined,
-            'maker': undefined,
+            'taker': this.safeNumber(fees, 'taker'),
+            'maker': this.safeNumber(fees, 'maker'),
+            'feeSide': this.safeString(fees, 'feeSide'),
             'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -606,7 +619,7 @@ class bingx extends bingx$1 {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     async fetchMarkets(params = {}) {
         /**
@@ -615,7 +628,7 @@ class bingx extends bingx$1 {
          * @description retrieves data on all markets for bingx
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const requests = [this.fetchSpotMarkets(params), this.fetchSwapMarkets(params)];
@@ -636,7 +649,7 @@ class bingx extends bingx$1 {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -744,7 +757,7 @@ class bingx extends bingx$1 {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
@@ -915,7 +928,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -1003,7 +1016,7 @@ class bingx extends bingx$1 {
          * @description fetch the current funding rate
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
          * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
@@ -1072,7 +1085,7 @@ class bingx extends bingx$1 {
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
@@ -1195,7 +1208,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#24%E5%B0%8F%E6%97%B6%E4%BB%B7%E6%A0%BC%E5%8F%98%E5%8A%A8%E6%83%85%E5%86%B5
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -1247,10 +1260,10 @@ class bingx extends bingx$1 {
         /**
          * @method
          * @name bingx#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -1400,7 +1413,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
          * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
-         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.standard] whether to fetch standard contract balances
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -1518,7 +1531,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Perpetual%20Swap%20Positions
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
          * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.standard] whether to fetch standard contract positions
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
@@ -1572,23 +1585,28 @@ class bingx extends bingx$1 {
         //         "avgPrice": "2.2",
         //         "leverage": 10,
         //     }
+        //
         // standard position
+        //
         //     {
-        //         "currentPrice":"82.91",
-        //         "symbol":"LTC/USDT",
-        //         "initialMargin":"5.00000000000000000000",
-        //         "unrealizedProfit":"-0.26464500",
-        //         "leverage":"20.000000000",
-        //         "isolated":true,
-        //         "entryPrice":"83.13",
-        //         "positionSide":"LONG",
-        //         "positionAmt":"1.20365912",
+        //         "currentPrice": "82.91",
+        //         "symbol": "LTC/USDT",
+        //         "initialMargin": "5.00000000000000000000",
+        //         "unrealizedProfit": "-0.26464500",
+        //         "leverage": "20.000000000",
+        //         "isolated": true,
+        //         "entryPrice": "83.13",
+        //         "positionSide": "LONG",
+        //         "positionAmt": "1.20365912",
         //     }
         //
-        let marketId = this.safeString(position, 'symbol');
+        let marketId = this.safeString(position, 'symbol', '');
         marketId = marketId.replace('/', '-'); // standard return different format
         const isolated = this.safeValue(position, 'isolated');
-        const marginMode = isolated ? 'isolated' : 'cross';
+        let marginMode = undefined;
+        if (isolated !== undefined) {
+            marginMode = isolated ? 'isolated' : 'cross';
+        }
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'positionId'),
@@ -1620,6 +1638,46 @@ class bingx extends bingx$1 {
             'takeProfitPrice': undefined,
         });
     }
+    async createMarketOrderWithCost(symbol, side, cost, params = {}) {
+        /**
+         * @method
+         * @name bingx#createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params['quoteOrderQty'] = cost;
+        return await this.createOrder(symbol, 'market', side, cost, undefined, params);
+    }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name bingx#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params['quoteOrderQty'] = cost;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
+    async createMarketSellOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name bingx#createMarketSellOrderWithCost
+         * @description create a market sell order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params['quoteOrderQty'] = cost;
+        return await this.createOrder(symbol, 'market', 'sell', cost, undefined, params);
+    }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -1631,7 +1689,7 @@ class bingx extends bingx$1 {
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market(symbol);
@@ -1655,25 +1713,20 @@ class bingx extends bingx$1 {
             if (postOnly || (timeInForce === 'POC')) {
                 request['timeInForce'] = 'POC';
             }
-            const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
-            if (isMarketOrder && (side === 'buy')) {
-                if (createMarketBuyOrderRequiresPrice) {
-                    if (price === undefined) {
-                        throw new errors.InvalidOrder(this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
-                    }
-                    else {
-                        const amountString = this.numberToString(amount);
-                        const priceString = this.numberToString(price);
-                        const cost = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
-                        request['quoteOrderQty'] = this.parseToNumeric(this.priceToPrecision(symbol, cost));
-                    }
-                }
-                else {
-                    request['quoteOrderQty'] = this.parseToNumeric(this.priceToPrecision(symbol, amount));
-                }
+            const cost = this.safeNumber2(params, 'cost', 'quoteOrderQty');
+            params = this.omit(params, 'cost');
+            if (cost !== undefined) {
+                request['quoteOrderQty'] = this.parseToNumeric(this.costToPrecision(symbol, cost));
             }
             else {
-                request['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                if (market['spot'] && isMarketOrder && (price !== undefined)) {
+                    // keep the legacy behavior, to avoid  breaking the old spot-market-buying code
+                    const calculatedCost = Precise["default"].stringMul(this.numberToString(amount), this.numberToString(price));
+                    request['quoteOrderQty'] = this.parseToNumeric(calculatedCost);
+                }
+                else {
+                    request['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                }
             }
             if (!isMarketOrder) {
                 request['price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
@@ -1749,20 +1802,20 @@ class bingx extends bingx$1 {
          * @method
          * @name bingx#createOrder
          * @description create a trade order
-         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Create%20an%20Order
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Trade%20order
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.postOnly] true to place a post only order
          * @param {string} [params.timeInForce] spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
          * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
          * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
          * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
          * @param {float} [params.takeProfitPrice] *swap only* take profit trigger price
+         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1825,7 +1878,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Batch%20Placing%20Orders
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
          * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1962,15 +2015,17 @@ class bingx extends bingx$1 {
         //       "symbol": "XRP-USDT",
         //       "orderId": 1514073325788200960,
         //       "price": "0.5",
+        //       "StopPrice": "0",
         //       "origQty": "20",
-        //       "executedQty": "0",
-        //       "cummulativeQuoteQty": "0",
+        //       "executedQty": "10",
+        //       "cummulativeQuoteQty": "5",
         //       "status": "PENDING",
         //       "type": "LIMIT",
         //       "side": "BUY",
         //       "time": 1649818185647,
         //       "updateTime": 1649818185647,
         //       "origQuoteOrderQty": "0"
+        //       "fee": "-0.01"
         //   }
         //
         //
@@ -2030,9 +2085,24 @@ class bingx extends bingx$1 {
         const amount = this.safeString2(order, 'origQty', 'q');
         const filled = this.safeString2(order, 'executedQty', 'z');
         const statusId = this.safeString2(order, 'status', 'X');
+        let feeCurrencyCode = this.safeString2(order, 'feeAsset', 'N');
+        const feeCost = this.safeStringN(order, ['fee', 'commission', 'n']);
+        if ((feeCurrencyCode === undefined)) {
+            if (market['spot']) {
+                if (side === 'buy') {
+                    feeCurrencyCode = market['base'];
+                }
+                else {
+                    feeCurrencyCode = market['quote'];
+                }
+            }
+            else {
+                feeCurrencyCode = market['quote'];
+            }
+        }
         const fee = {
-            'currency': this.safeString2(order, 'feeAsset', 'N'),
-            'rate': this.safeStringN(order, ['fee', 'commission', 'n']),
+            'currency': feeCurrencyCode,
+            'cost': Precise["default"].stringAbs(feeCost),
         };
         const clientOrderId = this.safeString2(order, 'clientOrderId', 'c');
         return this.safeOrder({
@@ -2084,7 +2154,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20an%20Order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2161,7 +2231,7 @@ class bingx extends bingx$1 {
          * @description cancel all open orders
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
          * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2216,7 +2286,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2281,7 +2351,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Orders
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Order
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2366,7 +2436,7 @@ class bingx extends bingx$1 {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open order structures to retrieve
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2455,7 +2525,7 @@ class bingx extends bingx$1 {
          * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for
          * @param {boolean} [params.standard] whether to fetch standard contract orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2550,7 +2620,7 @@ class bingx extends bingx$1 {
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
@@ -2590,7 +2660,7 @@ class bingx extends bingx$1 {
          * @param {string} [code] unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of transfers structures to retrieve
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
@@ -2665,7 +2735,7 @@ class bingx extends bingx$1 {
          * @description fetch the deposit address for a currency associated with this account
          * @see https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address
          * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
@@ -2735,7 +2805,7 @@ class bingx extends bingx$1 {
          * @param {string} [code] unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
@@ -2780,7 +2850,7 @@ class bingx extends bingx$1 {
          * @param {string} [code] unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
@@ -2925,7 +2995,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Margin%20Mode
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -2992,7 +3062,7 @@ class bingx extends bingx$1 {
          * @description fetch the set leverage for a market
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
          * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets();
@@ -3021,7 +3091,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -3057,7 +3127,7 @@ class bingx extends bingx$1 {
          * @param {string} [symbol] unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
@@ -3174,7 +3244,7 @@ class bingx extends bingx$1 {
          * @description fetch deposit and withdraw fees
          * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
          * @param {string[]|undefined} codes list of unified currency codes
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
@@ -3192,7 +3262,7 @@ class bingx extends bingx$1 {
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string} [tag]
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -3351,6 +3421,50 @@ class bingx extends bingx$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         });
+    }
+    async closeAllPositions(params = {}) {
+        /**
+         * @method
+         * @name bitget#closePositions
+         * @description closes open positions for a market
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#close-all-position
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.recvWindow] request valid time window value
+         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
+        const recvWindow = this.safeInteger(this.parseParams, 'recvWindow', defaultRecvWindow);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('closeAllPositions', undefined, params);
+        if (marketType === 'margin') {
+            throw new errors.BadRequest(this.id + ' closePositions () cannot be used for ' + marketType + ' markets');
+        }
+        const request = {
+            'recvWindow': recvWindow,
+        };
+        const response = await this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, params));
+        //
+        //    {
+        //        "code": 0,
+        //        "msg": "",
+        //        "data": {
+        //            "success": [
+        //                1727686766700486656,
+        //                1727686767048613888
+        //            ],
+        //            "failed": null
+        //        }
+        //    }
+        //
+        const data = this.safeValue(response, 'data', {});
+        const success = this.safeValue(data, 'success', []);
+        const positions = [];
+        for (let i = 0; i < success.length; i++) {
+            const position = this.parsePosition({ 'positionId': success[i] });
+            positions.push(position);
+        }
+        return positions;
     }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = section[0];

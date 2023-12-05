@@ -218,7 +218,7 @@ export default class bitget extends Exchange {
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseTransferStatus(status: any): string;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
+    borrowCrossMargin(code: string, amount: any, params?: {}): Promise<{
         id: string;
         currency: string;
         amount: number;
@@ -227,7 +227,25 @@ export default class bitget extends Exchange {
         datetime: any;
         info: any;
     }>;
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
+    borrowIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
+        id: string;
+        currency: string;
+        amount: number;
+        symbol: any;
+        timestamp: any;
+        datetime: any;
+        info: any;
+    }>;
+    repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
+        id: string;
+        currency: string;
+        amount: number;
+        symbol: any;
+        timestamp: any;
+        datetime: any;
+        info: any;
+    }>;
+    repayCrossMargin(code: string, amount: any, params?: {}): Promise<{
         id: string;
         currency: string;
         amount: number;

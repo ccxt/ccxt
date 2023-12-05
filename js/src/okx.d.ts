@@ -52,6 +52,8 @@ export default class okx extends Exchange {
         taker: number;
     }>;
     fetchBalance(params?: {}): Promise<Balances>;
+    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
+    createMarketSellOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
@@ -106,6 +108,7 @@ export default class okx extends Exchange {
     fetchLeverage(symbol: string, params?: {}): Promise<any>;
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchPositionsForSymbol(symbol: string, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
@@ -257,8 +260,24 @@ export default class okx extends Exchange {
         datetime: string;
         info: any;
     };
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
+    borrowCrossMargin(code: string, amount: any, params?: {}): Promise<{
+        id: any;
+        currency: string;
+        amount: number;
+        symbol: any;
+        timestamp: any;
+        datetime: any;
+        info: any;
+    }>;
+    repayCrossMargin(code: string, amount: any, params?: {}): Promise<{
+        id: any;
+        currency: string;
+        amount: number;
+        symbol: any;
+        timestamp: any;
+        datetime: any;
+        info: any;
+    }>;
     parseMarginLoan(info: any, currency?: Currency): {
         id: any;
         currency: string;

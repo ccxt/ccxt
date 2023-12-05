@@ -158,7 +158,7 @@ class bitbns extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
              */
             $response = Async\await($this->v1GetPlatformStatus ($params));
@@ -189,7 +189,7 @@ class bitbns extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for bitbns
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
             $response = Async\await($this->wwwGetOrderFetchMarkets ($params));
@@ -293,7 +293,7 @@ class bitbns extends Exchange {
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -389,9 +389,9 @@ class bitbns extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
@@ -465,7 +465,7 @@ class bitbns extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -597,7 +597,7 @@ class bitbns extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
              *
              * EXCHANGE SPECIFIC PARAMETERS
@@ -657,7 +657,7 @@ class bitbns extends Exchange {
              * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/cancel-stop-loss-orders
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] true if cancelling a trigger order
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -689,7 +689,7 @@ class bitbns extends Exchange {
              * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/order-status
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
@@ -746,7 +746,7 @@ class bitbns extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] true if fetching trigger orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -877,7 +877,7 @@ class bitbns extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
@@ -946,7 +946,7 @@ class bitbns extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             if ($symbol === null) {
@@ -977,7 +977,7 @@ class bitbns extends Exchange {
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             if ($code === null) {
@@ -1025,7 +1025,7 @@ class bitbns extends Exchange {
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             if ($code === null) {
@@ -1139,7 +1139,7 @@ class bitbns extends Exchange {
             /**
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
             Async\await($this->load_markets());

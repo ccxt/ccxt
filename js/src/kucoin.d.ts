@@ -171,7 +171,7 @@ export default class kucoin extends Exchange {
         datetime: string;
         info: any;
     };
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
+    borrowCrossMargin(code: string, amount: any, params?: {}): Promise<{
         id: string;
         currency: string;
         amount: number;
@@ -180,7 +180,25 @@ export default class kucoin extends Exchange {
         datetime: string;
         info: any;
     }>;
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
+    borrowIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
+        id: string;
+        currency: string;
+        amount: number;
+        symbol: any;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    }>;
+    repayCrossMargin(code: string, amount: any, params?: {}): Promise<{
+        id: string;
+        currency: string;
+        amount: number;
+        symbol: any;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    }>;
+    repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
         id: string;
         currency: string;
         amount: number;

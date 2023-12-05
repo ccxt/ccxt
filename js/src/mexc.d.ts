@@ -159,8 +159,6 @@ export default class mexc extends Exchange {
         info: any;
         hedged: boolean;
     }>;
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
     fetchTransactionFees(codes?: any, params?: {}): Promise<{
         withdraw: {};
         deposit: {};
@@ -174,15 +172,6 @@ export default class mexc extends Exchange {
     parseTransactionFee(transaction: any, currency?: Currency): {};
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
-    parseMarginLoan(info: any, currency?: Currency): {
-        id: string;
-        currency: string;
-        amount: any;
-        symbol: any;
-        timestamp: any;
-        datetime: any;
-        info: any;
-    };
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;

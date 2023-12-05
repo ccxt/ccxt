@@ -29,10 +29,10 @@ abstract class bitmart extends \ccxt\Exchange {
         return $this->request('spot/quotation/v3/ticker', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
     public function public_get_spot_quotation_v3_lite_klines($params = array()) {
-        return $this->request('spot/quotation/v3/lite-klines', 'public', 'GET', $params, null, null, array("cost" => 4));
+        return $this->request('spot/quotation/v3/lite-klines', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function public_get_spot_quotation_v3_klines($params = array()) {
-        return $this->request('spot/quotation/v3/klines', 'public', 'GET', $params, null, null, array("cost" => 6));
+        return $this->request('spot/quotation/v3/klines', 'public', 'GET', $params, null, null, array("cost" => 7));
     }
     public function public_get_spot_quotation_v3_books($params = array()) {
         return $this->request('spot/quotation/v3/books', 'public', 'GET', $params, null, null, array("cost" => 4));
@@ -53,7 +53,7 @@ abstract class bitmart extends \ccxt\Exchange {
         return $this->request('spot/v1/steps', 'public', 'GET', $params, null, null, array("cost" => 30));
     }
     public function public_get_spot_v1_symbols_kline($params = array()) {
-        return $this->request('spot/v1/symbols/kline', 'public', 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('spot/v1/symbols/kline', 'public', 'GET', $params, null, null, array("cost" => 6));
     }
     public function public_get_spot_v1_symbols_book($params = array()) {
         return $this->request('spot/v1/symbols/book', 'public', 'GET', $params, null, null, array("cost" => 5));
@@ -77,7 +77,7 @@ abstract class bitmart extends \ccxt\Exchange {
         return $this->request('contract/public/funding-rate', 'public', 'GET', $params, null, null, array("cost" => 30));
     }
     public function public_get_contract_public_kline($params = array()) {
-        return $this->request('contract/public/kline', 'public', 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('contract/public/kline', 'public', 'GET', $params, null, null, array("cost" => 6));
     }
     public function public_get_account_v1_currencies($params = array()) {
         return $this->request('account/v1/currencies', 'public', 'GET', $params, null, null, array("cost" => 30));
@@ -305,10 +305,10 @@ abstract class bitmart extends \ccxt\Exchange {
         return $this->request('spot/quotation/v3/ticker', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
     public function publicGetSpotQuotationV3LiteKlines($params = array()) {
-        return $this->request('spot/quotation/v3/lite-klines', 'public', 'GET', $params, null, null, array("cost" => 4));
+        return $this->request('spot/quotation/v3/lite-klines', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function publicGetSpotQuotationV3Klines($params = array()) {
-        return $this->request('spot/quotation/v3/klines', 'public', 'GET', $params, null, null, array("cost" => 6));
+        return $this->request('spot/quotation/v3/klines', 'public', 'GET', $params, null, null, array("cost" => 7));
     }
     public function publicGetSpotQuotationV3Books($params = array()) {
         return $this->request('spot/quotation/v3/books', 'public', 'GET', $params, null, null, array("cost" => 4));
@@ -329,7 +329,7 @@ abstract class bitmart extends \ccxt\Exchange {
         return $this->request('spot/v1/steps', 'public', 'GET', $params, null, null, array("cost" => 30));
     }
     public function publicGetSpotV1SymbolsKline($params = array()) {
-        return $this->request('spot/v1/symbols/kline', 'public', 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('spot/v1/symbols/kline', 'public', 'GET', $params, null, null, array("cost" => 6));
     }
     public function publicGetSpotV1SymbolsBook($params = array()) {
         return $this->request('spot/v1/symbols/book', 'public', 'GET', $params, null, null, array("cost" => 5));
@@ -353,7 +353,7 @@ abstract class bitmart extends \ccxt\Exchange {
         return $this->request('contract/public/funding-rate', 'public', 'GET', $params, null, null, array("cost" => 30));
     }
     public function publicGetContractPublicKline($params = array()) {
-        return $this->request('contract/public/kline', 'public', 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('contract/public/kline', 'public', 'GET', $params, null, null, array("cost" => 6));
     }
     public function publicGetAccountV1Currencies($params = array()) {
         return $this->request('account/v1/currencies', 'public', 'GET', $params, null, null, array("cost" => 30));
