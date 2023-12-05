@@ -16,8 +16,7 @@
         }
     },
     "alpaca": {
-        "skip": "private endpoints",
-        "skipWs": true
+        "skip": "private endpoints"
     },
     "ascendex": {
         "skipPhpAsync": true,
@@ -37,7 +36,6 @@
         }
     },
     "bequant": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/264802937#L2194"
@@ -51,7 +49,6 @@
     "binance": {
         "httpProxy": "http://5.75.153.75:8002",
         "skipPhpAsync": true,
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC",
@@ -83,7 +80,6 @@
     "binancecoinm": {
         "httpProxy": "http://5.75.153.75:8002",
         "skipPhpAsync": true,
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "expiry": "expiry not set for future markets",
@@ -102,7 +98,6 @@
     "binanceusdm": {
         "httpProxy": "http://5.75.153.75:8002",
         "skipPhpAsync": true,
-        "skipWs": true,
         "skipMethods": {
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -140,8 +135,7 @@
     },
     "tokocrypto": {
         "httpProxy": "http://5.75.153.75:8002",
-        "skipPhpAsync": true,
-        "skipWs": true
+        "skipPhpAsync": true
     },
     "bitbank": {
     },
@@ -164,10 +158,8 @@
         }
     },
     "bitcoincom": {
-        "skipWs": true
     },
     "bitfinex": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "linear and inverse values are same",
             "fetchTickers": {
@@ -178,7 +170,6 @@
         }
     },
     "bitfinex2": {
-        "//skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -236,7 +227,6 @@
         }
     },
     "bitmart": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "expiry":"expiry is expected to be > 0",
@@ -261,7 +251,6 @@
         }
     },
     "bitmex": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "some market types are out of expected market-types",
             "fetchOHLCV": "open might be greater than high",
@@ -307,7 +296,6 @@
         }
     },
     "bitopro": {
-        "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
@@ -319,7 +307,6 @@
         }
     },
     "bitpanda": {
-        "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "some bid might be lower than next bid",
             "fetchL2OrderBook": "same",
@@ -354,7 +341,6 @@
         }
     },
     "bitso": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "active": "not provided"
@@ -363,7 +349,6 @@
         }
     },
     "bitstamp": {
-        "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "bid/ask might be 0",
             "fetchL2OrderBook": "same",
@@ -384,7 +369,6 @@
         }
     },
     "bitstamp1": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "info": "null",
@@ -415,7 +399,6 @@
     },
     "bitvavo": {
         "httpsProxy": "http://51.83.140.52:11230",
-        "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
@@ -463,7 +446,6 @@
         }
     },
     "bittrex": {
-        "skipWs": true,
         "skipMethods": {
             "fetchStatus": "frequent rate limit for this endpoint",
             "fetchTickers": "bid might be set to 0",
@@ -495,7 +477,6 @@
         }
     },
     "btcex": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "active": "is undefined",
@@ -679,7 +660,6 @@
         }
     },
     "cex": {
-        "skipWs": true,
         "skipPhpAsync": true,
         "skipMethods": {
             "proxies": "probably they do not permit our proxy location",
@@ -696,7 +676,6 @@
         }
     },
     "coinex": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode":"broken",
@@ -714,7 +693,6 @@
         }
     },
     "cryptocom": {
-        "skipWs": true,
         "skipPhpAsync": true,
         "skipMethods": {
             "proxies": "probably they do not permit our proxy",
@@ -757,7 +735,6 @@
         }
     },
     "currencycom": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "type": "unexpected market type",
@@ -796,7 +773,6 @@
         }
     },
     "deribit": {
-        "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": "deposit/withdraw not provided",
             "loadMarkets": "strike is set when option is not true",
@@ -843,7 +819,6 @@
         }
     },
     "gemini": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
@@ -957,7 +932,6 @@
         }
     },
     "hollaex": {
-        "skipWs": true
     },
     "htx": {
         "skipMethods": {
@@ -986,7 +960,6 @@
         }
     },
     "huobijp": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "limits": "messed"
@@ -1029,8 +1002,7 @@
         }
     },
     "probit": {
-		"skipWs": true,
-        "skipMethods": {
+		"skipMethods": {
             "loadMarkets": "needs fixing",
             "fetchCurrencies": {
                 "limits": "messed"
@@ -1046,7 +1018,6 @@
         }
     },
     "idex": {
-        "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
                 "withdraw":"not provided",
@@ -1068,7 +1039,6 @@
         }
     },
     "independentreserve": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
@@ -1100,7 +1070,6 @@
         }
     },
     "kucoin": {
-        "skipWs": true,
         "skipMethods":{
             "fetchCurrencies": {
                 "depositForNonCrypto": "not provided",
@@ -1118,7 +1087,6 @@
         }
     },
     "kucoinfutures": {
-        "skipWs": true,
         "skipMethods":{
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
@@ -1201,7 +1169,6 @@
         }
     },
     "ndax": {
-        "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
                 "withdraw": "not provided",
@@ -1210,7 +1177,6 @@
         }
     },
     "mexc": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets":{
                 "currencyIdAndCode": "messed"
@@ -1303,7 +1269,6 @@
         }
     },
     "okcoin": {
-        "skipWs": true,
         "skipMethods": {
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -1316,7 +1281,6 @@
         }
     },
     "exmo": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
@@ -1383,7 +1347,6 @@
         "skip": "exchange unavailable, probably api upgrade needed"
     },
     "kraken": {
-        "skipWs": true,
         "skipPhpAsync": true,
         "skipMethods": {
             "fetchCurrencies": {
@@ -1398,7 +1361,6 @@
     },
     "krakenfutures": {
         "skip": "continious timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/265225134#L2431",
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "skip loadMarkets",
             "fetchCurrencies": {
@@ -1411,7 +1373,6 @@
         "timeout": 120000
     },
     "upbit": {
-        "skipWs": true,
         "skipMethods": {
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -1424,8 +1385,7 @@
         }
     },
     "ripio": {
-        "httpProxy": "http://5.75.153.75:8002",
-        "skipWs": true
+        "httpProxy": "http://5.75.153.75:8002"
     },
     "timex": {
         "skipMethods": {
@@ -1456,11 +1416,7 @@
             }
         }
     },
-    "wazirx": {
-        "skipWs": true
-    },
     "whitebit": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "contractSize must be undefined when contract is false",
             "fetchCurrencies": {
@@ -1527,9 +1483,6 @@
                 "active": "is undefined"
             }
         }
-    },
-    "zipmex": {
-        "skipWs": true
     },
     "zonda": {
         "skipMethods": {
