@@ -29,7 +29,7 @@ class bingx extends bingx$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'closeAllPosition': true,
+                'closeAllPositions': true,
                 'closePosition': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,

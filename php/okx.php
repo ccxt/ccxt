@@ -1051,14 +1051,7 @@ class okx extends Exchange {
             'commonCurrencies' => array(
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
                 'AE' => 'AET', // https://github.com/ccxt/ccxt/issues/4981
-                'BOX' => 'DefiBox',
-                'HOT' => 'Hydro Protocol',
-                'HSR' => 'HC',
-                'MAG' => 'Maggie',
-                'SBTC' => 'Super Bitcoin',
-                'TRADE' => 'Unitrade',
-                'YOYO' => 'YOYOW',
-                'WIN' => 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
+                'WIN' => 'WINTOKEN', // https://github.com/ccxt/ccxt/issues/5701
             ),
         ));
     }
@@ -3038,6 +3031,7 @@ class okx extends Exchange {
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->trigger] whether the order is a stop/trigger order
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         // TODO : the original endpoint signature differs, according to that you can skip individual $symbol and assign $ids in batch. At this moment, `$params` is not being used too.
@@ -3052,7 +3046,7 @@ class okx extends Exchange {
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $clientOrderIds = $this->parse_ids($this->safe_value_2($params, 'clOrdId', 'clientOrderId'));
         $algoIds = $this->parse_ids($this->safe_value($params, 'algoId'));
-        $stop = $this->safe_value($params, 'stop');
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
         if ($stop) {
             $method = 'privatePostTradeCancelAlgos';
         }
