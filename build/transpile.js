@@ -2446,10 +2446,9 @@ class Transpiler {
             return exchangeCamelCaseProps(str);
         }
 
-        const transpilationResults = [];
         for (let i = 0; i < flatResult.length; i++) {
             const result = flatResult[i];
-            const test = tests[i];
+            let test = tests[i];
             let phpAsync = phpFixes(result[0].content);
             let phpSync = phpFixes(result[1].content);
             let pythonSync = pyFixes (result[2].content);
@@ -2578,20 +2577,19 @@ class Transpiler {
     modifyWsBaseCacheAndOrderBookTests (test) {
         const isWsCache = test.tsFile.includes('pro/test/base/test.Cache.ts');
         const isWsOrderBook = test.tsFile.includes('pro/test/base/test.OrderBook.ts');
-        if (isWsCache || isWsOrderBook) {
-            // they are custom files called directly from run-tests
-            phpPreamble = phpPreamble.replace('namespace ccxt;', 
-            "namespace ccxt\\pro;\ninclude_once __DIR__ . '/../../../../vendor/autoload.php';",)
-            if (isWsCache){
-                pythonHeaderSync.push ('');
-                pythonHeaderSync.push ('from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402');
-                pythonHeaderSync.push ('');
-            }
-            if (isWsOrderBook){
-                pythonHeaderSync.push ('');
-                pythonHeaderSync.push ('from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402');
-                pythonHeaderSync.push ('');
-            }
+        if (isWsCache){
+            // php head
+            test.phpFileSyncContent = test.phpFileSyncContent.replace('namespace ccxt;', 
+            "namespace ccxt\\pro;\ninclude_once __DIR__ . '/../../../../vendor/autoload.php';");
+            // py head
+            test.pyFileSyncContent = test.pyFileSyncContent.replace('root = os', 'from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402' + '\n' + '\n' + 'root = os');
+        }
+        if (isWsOrderBook){
+            // php head
+            test.phpFileSyncContent = test.phpFileSyncContent.replace('namespace ccxt;', 
+            "namespace ccxt\\pro;\ninclude_once __DIR__ . '/../../../../vendor/autoload.php';");
+            // py head
+            test.pyFileSyncContent = test.pyFileSyncContent.replace('root =', 'from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402' + '\n' + '\n' + 'root =');
         }
     }
     // ============================================================================
