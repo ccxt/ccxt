@@ -2144,6 +2144,10 @@ class Transpiler {
         return fileArray.map( file => file.toString() );
     }
 
+    readTsFileNames (dir) {
+        return fs.readdirSync (dir).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+    }
+
     // ============================================================================
 
     uncamelcaseName (name) {
@@ -2171,17 +2175,8 @@ class Transpiler {
             php: './php/test/',
             phpBase: './php/test/base/',
         };
-        const baseWsFolders = {
-            ts: './ts/src/pro/test/',
-            tsBase: './ts/src/pro/test/base/',
-            py: './python/ccxt/pro/test/',
-            pyBase: './python/ccxt/pro/test/base/',
-            php: './php/pro/test/',
-            phpBase: './php/pro/test/base/',
-        };
-
+       
         let baseTests = fs.readdirSync (baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
-        let baseWsTests = fs.readdirSync (baseWsFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
         const exchangeTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
         // ignore throttle test for now
@@ -2213,35 +2208,58 @@ class Transpiler {
             };
             tests.push(test);
         }
-        this.transpileAndSaveExchangeTests (tests);
+        const results = this.genericTestsTranspile (tests);
+        this.saveTranspiledTests (results);
+    }
 
-        // pro tests:
-        const wsTestsName = fs.readdirSync (baseWsFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
-        
-        const wsCollectedTests = [];
-        for (const testName of baseWsTests) {
-            const testNameUncamelecased = this.uncamelcaseName(testName);
-            const test = {
-                base: true,
-                name: testName,
-                tsFile: baseWsFolders.tsBase + testName + '.ts',
-                pyFile: baseWsFolders.pyBase + testNameUncamelecased + '.py',
-                phpFile: baseWsFolders.phpBase + testNameUncamelecased + '.php',
-            };
-            wsCollectedTests.push(test);
+    transpileWsTests (){
+        const baseWsFolders = {
+            ts: './ts/src/',
+            py: './python/ccxt/',
+            php: './php/',
+        };
+        const subDir = 'pro/test/';
+
+        for (const folderName of ['', 'base/']) {
+            const fullDir = baseWsFolders.ts + subDir + folderName;
+            const fileNames = this.readTsFileNames(fullDir);
+            for (const testName of fileNames) {
+                const unCamelCasedFileName = this.uncamelcaseName(testName);
+                const test = {
+                    base: folderName.includes('base'),
+                    name: testName,
+                    tsFile: baseWsFolders.ts + testName + '.ts',
+                    pyFileAsync: baseWsFolders.py + unCamelCasedFileName + '.py',
+                    phpFileAsync: baseWsFolders.php + unCamelCasedFileName + '.php',
+                };
+                wsCollectedTests.push(test);
+            }
         }
-        for (const testName of wsTestsName) {
-            const unCamelCasedFileName = this.uncamelcaseName(testName);
-            const test = {
-                base: false,
-                name: testName,
-                tsFile: baseWsFolders.ts + testName + '.ts',
-                pyFileAsync: baseWsFolders.py + unCamelCasedFileName + '.py',
-                phpFileAsync: baseWsFolders.php + unCamelCasedFileName + '.php',
-            };
-            wsCollectedTests.push(test);
+        const results = this.genericTestsTranspile (wsCollectedTests);
+        results = this.modifyWsBaseCacheAndOrderBookTests(results);
+        this.saveTranspiledTests (results);
+    }
+
+    modifyWsBaseCacheAndOrderBookTests (results) {
+        for (const result of results) {
+            const isWsCache = test.tsFile.includes('pro/test/base/test.Cache.ts');
+            const isWsOrderBook = test.tsFile.includes('pro/test/base/test.OrderBook.ts');
+            if (isWsCache || isWsOrderBook) {
+                // they are custom files called directly from run-tests
+                phpPreamble = phpPreamble.replace('namespace ccxt;', 
+                "namespace ccxt\\pro;\ninclude_once __DIR__ . '/../../../../vendor/autoload.php';",)
+                if (isWsCache){
+                    pythonHeaderSync.push ('');
+                    pythonHeaderSync.push ('from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402');
+                    pythonHeaderSync.push ('');
+                }
+                if (isWsOrderBook){
+                    pythonHeaderSync.push ('');
+                    pythonHeaderSync.push ('from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402');
+                    pythonHeaderSync.push ('');
+                }
+            }
         }
-        this.transpileAndSaveExchangeTests (wsCollectedTests);
     }
 
     createBaseInitFile (pyPath, tests) {
@@ -2379,7 +2397,7 @@ class Transpiler {
     }
     // ============================================================================
 
-    async transpileAndSaveExchangeTests (tests) {
+    async genericTestsTranspile (tests) {
         const parser = {
             'LINES_BETWEEN_FILE_MEMBERS': 2
         }
@@ -2452,6 +2470,7 @@ class Transpiler {
             return exchangeCamelCaseProps(str);
         }
 
+        const transpilationResults = [];
         for (let i = 0; i < flatResult.length; i++) {
             const result = flatResult[i];
             const test = tests[i];
@@ -2543,59 +2562,59 @@ class Transpiler {
                 }
             }
 
-            const isWsCache = test.tsFile.includes('pro/test/base/test.Cache.ts');
-            const isWsOrderBook = test.tsFile.includes('pro/test/base/test.OrderBook.ts');
-            if (isWsCache || isWsOrderBook) {
-                // they are custom files called directly from run-tests
-                phpPreamble = phpPreamble.replace('namespace ccxt;', 
-                "namespace ccxt\\pro;\ninclude_once __DIR__ . '/../../../../vendor/autoload.php';",)
-                if (isWsCache){
-                    pythonHeaderSync.push ('');
-                    pythonHeaderSync.push ('from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402');
-                    pythonHeaderSync.push ('');
-                }
-                if (isWsOrderBook){
-                    pythonHeaderSync.push ('');
-                    pythonHeaderSync.push ('from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402');
-                    pythonHeaderSync.push ('');
-                }
-            }
-
             if (pythonHeaderAsync.length > 0) {
                 pythonHeaderAsync = ['', ...pythonHeaderAsync, '', '']
                 pythonHeaderSync = ['', ...pythonHeaderSync, '', '']
             }
 
+            const transpilationResult = { 'test': test };
             const pythonPreambleSync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderSync.join ('\n') + '\n';
             let phpPreambleSync = phpPreamble + phpHeaderSync.join ('\n') + "\n\n";
             phpPreambleSync = phpPreambleSync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;');
-
             if (!test.base) {
                 let phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
                 phpPreambleAsync = phpPreambleAsync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;\nuse React\\\Async;\nuse React\\\Promise;');
                 const pythonPreambleAsync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderAsync.join ('\n') + '\n';
                 const finalPhpContentAsync = phpPreambleAsync + phpAsync;
                 const finalPyContentAsync = pythonPreambleAsync + pythonAsync;
-                log.magenta ('→', test.pyFileAsync.yellow)
-                overwriteFile (test.pyFileAsync, finalPyContentAsync)
-                log.magenta ('→', test.phpFileAsync.yellow)
-                overwriteFile (test.phpFileAsync, finalPhpContentAsync)
+                transpilationResult ['phpFileAsync'] = finalPhpContentAsync;
+                transpilationResult ['pyFileAsync'] = finalPyContentAsync;
             }
-
             // if sync tests included
             if (test.phpFile) {
                 const finalPhpContentSync = phpPreambleSync + phpSync;
-                log.magenta ('→', test.phpFile.yellow)
-                overwriteFile (test.phpFile, finalPhpContentSync)
+                transpilationResult ['phpFileSync'] = finalPhpContentSync;
             }
             if (test.pyFile) {
                 const finalPyContentSync = pythonPreambleSync + pythonSync;
-                log.magenta ('→', test.pyFile.yellow)
-                overwriteFile (test.pyFile, finalPyContentSync)
+                transpilationResult ['pyFileSync'] = finalPyContentSync;
+            }
+            transpilationResults.push(transpilationResult);
+        }
+        return transpilationResults;
+    }
+
+    saveTranspiledTests (transpilationResults){
+        for (const result of transpilationResults){
+            if (result.pyFileSync) {
+                log.magenta ('→', result.test.pyFileSync.yellow)
+                overwriteFile (result.test.pyFileSync, result.pyFileSync)
+            }
+            if (result.pyFileAsync) {
+                log.magenta ('→', result.test.pyFileAsync.yellow)
+                overwriteFile (result.test.pyFileAsync, result.pyFileAsync)
+            }
+            if (result.phpFileSync) {
+                log.magenta ('→', result.test.phpFileSync.yellow)
+                overwriteFile (result.test.phpFileSync, result.phpFileSync)
+            }
+            if (result.phpFileAsync) {
+                log.magenta ('→', result.test.phpFileAsync.yellow)
+                overwriteFile (result.test.phpFileAsync, result.phpFileAsync)
             }
         }
     }
-
+ 
     // ============================================================================
 
     transpileTests () {
@@ -2605,6 +2624,7 @@ class Transpiler {
         this.transpileCryptoTests ()
 
         this.transpileExchangeTests ()
+        this.transpileWsTests ()
     }
 
     // ============================================================================
