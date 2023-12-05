@@ -388,8 +388,7 @@ export default class testMainClass extends baseMainTestClass {
                 const isNotSupported = (e instanceof NotSupported);
                 const isOperationFailed = (e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "isOperationFailed", "InvalidNonce", ...
                 const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
-                const isOnMaintenance = (e instanceof OnMaintenance);
-                const tempFailure = isOperationFailed && (!isExchangeNotAvailable || isOnMaintenance); // we do not mute specifically "ExchangeNotAvailable" excetpion (but its subtype "OnMaintenance" can be muted)
+                const tempFailure = isOperationFailed && !isExchangeNotAvailable; // we do not mute specifically "ExchangeNotAvailable" excetpion (but its subtype "OnMaintenance" can be muted)
                 if (tempFailure) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
