@@ -445,6 +445,18 @@
                     10
                 ]
             }
+        ],
+        "withdraw": [
+            {
+                "description": "Withdraw Currency",
+                "method": "withdraw",
+                "url": " https://api.phemex.com/phemex-withdraw/wallets/api/createWithdraw",
+                "input": [
+                    "SOL",
+                    0.03,
+                    "6CV4jDnwyiJDEmR5paeiCdia1386c15vvuwLQSScQTCK"
+                ]
+            }
         ]
     }
 }
