@@ -2420,6 +2420,11 @@ class Transpiler {
             return exchangeCamelCaseProps(str);
         }
 
+        const fileSaveFunc = (path, content) => {
+            log.magenta ('→', path);
+            overwriteFile (path, content);
+        };
+
         for (let i = 0; i < flatResult.length; i++) {
             const result = flatResult[i];
             const test = tests[i];
@@ -2459,6 +2464,9 @@ class Transpiler {
             let phpHeaderSync = []
             let phpHeaderAsync = []
 
+            phpHeaderAsync.push ('use React\\Async;');
+            phpHeaderAsync.push ('use React\\Promise;');
+
             if (usesTickSize) {
                 pythonHeaderSync.push ('from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402')
                 pythonHeaderAsync.push ('from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402')
@@ -2470,6 +2478,8 @@ class Transpiler {
             if (usesPrecise) {
                 pythonHeaderAsync.push ('from ccxt.base.precise import Precise  # noqa E402')
                 pythonHeaderSync.push ('from ccxt.base.precise import Precise  # noqa E402')
+                phpHeaderAsync.push ('use \\ccxt\\Precise;')
+                phpHeaderSync.push ('use \\ccxt\\Precise;')
             }
 
             for (const importedError of importedErrors) {
@@ -2511,29 +2521,18 @@ class Transpiler {
                 }
             }
 
-            if (pythonHeaderAsync.length > 0) {
-                pythonHeaderAsync = ['', ...pythonHeaderAsync, '', '']
-                pythonHeaderSync = ['', ...pythonHeaderSync, '', '']
-            }
 
-            const fileSaveFunc = (path, content) => {
-                log.magenta ('→', path);
-                overwriteFile (path, content);
-            };
-
-            const pythonPreambleSync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderSync.join ('\n') + '\n';
-            let phpPreambleSync = phpPreamble + phpHeaderSync.join ('\n') + "\n\n";
-            phpPreambleSync = phpPreambleSync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;');
-            test.phpFileSyncContent = phpPreambleSync + phpSync;
-            test.pyFileSyncContent = pythonPreambleSync + pythonSync;
-
-            let phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
-            phpPreambleAsync = phpPreambleAsync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;\nuse React\\\Async;\nuse React\\\Promise;');
-            const pythonPreambleAsync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderAsync.join ('\n') + '\n';
-            test.phpFileAsyncContent = phpPreambleAsync + phpAsync;
-            test.pyFileAsyncContent = pythonPreambleAsync + pythonAsync;
+            test.pythonPreambleSync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderSync.join ('\n') + '\n\n';
+            test.phpPreambleSync = phpPreamble + phpHeaderSync.join ('\n') + "\n\n";
+            test.phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
+            test.pythonPreambleAsync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderAsync.join ('\n') + '\n\n';
 
             this.modifyCustomFiles (test);
+
+            test.phpFileSyncContent = test.phpPreambleSync + phpSync;
+            test.pyFileSyncContent = test.pythonPreambleSync + pythonSync;
+            test.phpFileAsyncContent = test.phpPreambleAsync + phpAsync;
+            test.pyFileAsyncContent = test.pythonPreambleAsync + pythonAsync;
 
             if (!test.base) {
                 fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
