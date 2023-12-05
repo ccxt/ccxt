@@ -166,8 +166,8 @@ const exec = (bin, ...args) =>
             return_ ({
                 failed: hasFailed || code !== 0,
                 output,
-                warnings: warnings,
-                infos: infos,
+                warnings,
+                infos,
             })
         })
 
