@@ -1063,7 +1063,7 @@ export default class okx extends Exchange {
                 'SBTC': 'Super Bitcoin',
                 'TRADE': 'Unitrade',
                 'YOYO': 'YOYOW',
-                'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
+                'WIN': 'WINTOKEN', // https://github.com/ccxt/ccxt/issues/5701
             },
         });
     }
