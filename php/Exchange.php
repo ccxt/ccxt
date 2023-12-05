@@ -1380,10 +1380,10 @@ class Exchange {
         if ($userAgent) {
             if (gettype($userAgent) == 'string') {
                 curl_setopt($this->curl, CURLOPT_USERAGENT, $userAgent);
-                $headers = $this->extend(['User-Agent' => $userAgent], $headers);
+                $headers = $this->deep_extend(['User-Agent' => $userAgent], $headers);
             } elseif ((gettype($userAgent) == 'array') && array_key_exists('User-Agent', $userAgent)) {
                 curl_setopt($this->curl, CURLOPT_USERAGENT, $userAgent['User-Agent']);
-                $headers = $this->extend($userAgent, $headers);
+                $headers = $this->deep_extend($userAgent, $headers);
             }
         }
         // set final headers
@@ -2081,7 +2081,7 @@ class Exchange {
     }
 
     function clone($obj) {
-        return is_array($obj) ? $obj : $this->extend($obj);
+        return is_array($obj) ? $obj : $this->deep_extend($obj);
     }
 
     function parse_to_big_int($value) {
