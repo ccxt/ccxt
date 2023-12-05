@@ -1238,7 +1238,7 @@ export default class hitbtc extends Exchange {
             } else if (marketType === 'margin') {
                 response = await this.privateGetMarginHistoryTrade (this.extend (request, params));
             } else {
-                throw new NotSupported (this.id + ' not support this market type');
+                throw new NotSupported (this.id + ' fetchMyTrades() not support this market type');
             }
         }
         return this.parseTrades (response, market, since, limit);
@@ -1627,11 +1627,14 @@ export default class hitbtc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const method = this.getSupportedMapping (market['type'], {
-            'spot': 'privateGetSpotFeeSymbol',
-            'swap': 'privateGetFuturesFeeSymbol',
-        });
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['type'] === 'spot') {
+            response = await this.privateGetSpotFeeSymbol (this.extend (request, params));
+        } else if (market['type'] === 'swap') {
+            response = await this.privateGetFuturesFeeSymbol (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchTradingFee() not support this market type');
+        }
         //
         //     {
         //         "take_rate":"0.0009",
