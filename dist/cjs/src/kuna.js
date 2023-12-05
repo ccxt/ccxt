@@ -33,6 +33,8 @@ class kuna extends kuna$1 {
                 'borrowMargin': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createPostOnlyOrder': false,

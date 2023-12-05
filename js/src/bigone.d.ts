@@ -22,6 +22,7 @@ export default class bigone extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     parseType(type: string): string;
     parseOrder(order: any, market?: Market): Order;
+    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;

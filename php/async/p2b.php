@@ -32,6 +32,8 @@ class p2b extends Exchange {
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => false,
                 'createMarketOrder' => false,
                 'createOrder' => true,

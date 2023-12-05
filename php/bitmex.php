@@ -385,7 +385,12 @@ class bitmex extends Exchange {
         return $this->parse_number($finalAmount);
     }
 
-    public function convert_to_real_amount(string $code, string $amount) {
+    public function convert_to_real_amount(?string $code, ?string $amount) {
+        if ($code === null) {
+            return $amount;
+        } elseif ($amount === null) {
+            return null;
+        }
         $currency = $this->currency($code);
         $precision = $this->safe_string($currency, 'precision');
         return Precise::string_mul($amount, $precision);

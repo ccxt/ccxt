@@ -32,6 +32,8 @@ class coinsph extends coinsph$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createPostOnlyOrder': false,

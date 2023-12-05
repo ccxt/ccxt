@@ -635,5 +635,61 @@
         "tierBased": false,
         "percentage": true,
         "feeSide": "get"
+      },
+      "BTC/USDT:USDT":  {
+        "id": "E-BTC-USDT",
+        "lowercaseId": "e-btc-usdt",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": false,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.00098,
+        "maker": 0.00098,
+        "contractSize": 0.0001,
+        "precision": {
+          "price": 0.1
+        },
+        "limits": {
+          "leverage": {},
+          "amount": {
+            "max": 50
+          },
+          "price": {},
+          "cost": {
+            "min": 50
+          }
+        },
+        "info": {
+          "symbol": "E-BTC-USDT",
+          "pricePrecision": "1",
+          "side": "1",
+          "maxMarketVolume": "10000",
+          "multiplier": "0.0001000000000000000",
+          "minOrderVolume": "10",
+          "maxMarketMoney": "300000.0000000000000000",
+          "type": "E",
+          "maxLimitVolume": "150000",
+          "maxValidOrder": "50",
+          "multiplierCoin": "BTC",
+          "minOrderMoney": "50.0000000000000000",
+          "maxLimitMoney": "1000000.0000000000000000",
+          "status": "1"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get"
       }
 }

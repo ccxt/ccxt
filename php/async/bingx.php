@@ -11,7 +11,6 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
-use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -39,6 +38,11 @@ class bingx extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => true,
+                'closePosition' => false,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => true,
+                'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
                 'fetchBalance' => true,
@@ -87,10 +91,18 @@ class bingx extends Exchange {
                 'www' => 'https://bingx.com/',
                 'doc' => 'https://bingx-api.github.io/docs/',
                 'referral' => 'https://bingx.com/invite/OHETOM',
-                'fees' => array(
-                    'trading' => array(
-                        'tierBased' => true,
-                    ),
+            ),
+            'fees' => array(
+                'tierBased' => true,
+                'spot' => array(
+                    'feeSide' => 'get',
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.001'),
+                ),
+                'swap' => array(
+                    'feeSide' => 'quote',
+                    'maker' => $this->parse_number('0.0002'),
+                    'taker' => $this->parse_number('0.0005'),
                 ),
             ),
             'requiredCredentials' => array(
@@ -308,10 +320,6 @@ class bingx extends Exchange {
                 '3d' => '3d',
                 '1w' => '1w',
                 '1M' => '1M',
-            ),
-            'fees' => array(
-                'trading' => array(
-                ),
             ),
             'precisionMode' => DECIMAL_PLACES,
             'exceptions' => array(
@@ -574,11 +582,12 @@ class bingx extends Exchange {
         if ($settle !== null) {
             $symbol .= ':' . $settle;
         }
+        $fees = $this->safe_value($this->fees, $type, array());
         $contractSize = $this->safe_number($market, 'size');
         $isActive = $this->safe_string($market, 'status') === '1';
         $isInverse = ($spot) ? null : false;
         $isLinear = ($spot) ? null : $swap;
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -597,8 +606,9 @@ class bingx extends Exchange {
             'contract' => $swap,
             'linear' => $isLinear,
             'inverse' => $isInverse,
-            'taker' => null,
-            'maker' => null,
+            'taker' => $this->safe_number($fees, 'taker'),
+            'maker' => $this->safe_number($fees, 'maker'),
+            'feeSide' => $this->safe_string($fees, 'feeSide'),
             'contractSize' => $contractSize,
             'expiry' => null,
             'expiryDatetime' => null,
@@ -628,7 +638,7 @@ class bingx extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function fetch_markets($params = array ()) {
@@ -1603,23 +1613,28 @@ class bingx extends Exchange {
         //         "avgPrice" => "2.2",
         //         "leverage" => 10,
         //     }
+        //
         // standard $position
+        //
         //     {
-        //         "currentPrice":"82.91",
-        //         "symbol":"LTC/USDT",
-        //         "initialMargin":"5.00000000000000000000",
-        //         "unrealizedProfit":"-0.26464500",
-        //         "leverage":"20.000000000",
-        //         "isolated":true,
-        //         "entryPrice":"83.13",
-        //         "positionSide":"LONG",
-        //         "positionAmt":"1.20365912",
+        //         "currentPrice" => "82.91",
+        //         "symbol" => "LTC/USDT",
+        //         "initialMargin" => "5.00000000000000000000",
+        //         "unrealizedProfit" => "-0.26464500",
+        //         "leverage" => "20.000000000",
+        //         "isolated" => true,
+        //         "entryPrice" => "83.13",
+        //         "positionSide" => "LONG",
+        //         "positionAmt" => "1.20365912",
         //     }
         //
-        $marketId = $this->safe_string($position, 'symbol');
+        $marketId = $this->safe_string($position, 'symbol', '');
         $marketId = str_replace('/', '-', $marketId); // standard return different format
         $isolated = $this->safe_value($position, 'isolated');
-        $marginMode = $isolated ? 'isolated' : 'cross';
+        $marginMode = null;
+        if ($isolated !== null) {
+            $marginMode = $isolated ? 'isolated' : 'cross';
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'positionId'),
@@ -1650,6 +1665,49 @@ class bingx extends Exchange {
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
         ));
+    }
+
+    public function create_market_order_with_cost(string $symbol, string $side, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $cost, $params) {
+            /**
+             * create a market order by providing the $symbol, $side and $cost
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            $params['quoteOrderQty'] = $cost;
+            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $params));
+        }) ();
+    }
+
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market buy order by providing the $symbol and $cost
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            $params['quoteOrderQty'] = $cost;
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+        }) ();
+    }
+
+    public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market sell order by providing the $symbol and $cost
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            $params['quoteOrderQty'] = $cost;
+            return Async\await($this->create_order($symbol, 'market', 'sell', $cost, null, $params));
+        }) ();
     }
 
     public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
@@ -1685,22 +1743,18 @@ class bingx extends Exchange {
             if ($postOnly || ($timeInForce === 'POC')) {
                 $request['timeInForce'] = 'POC';
             }
-            $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-            if ($isMarketOrder && ($side === 'buy')) {
-                if ($createMarketBuyOrderRequiresPrice) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
-                    } else {
-                        $amountString = $this->number_to_string($amount);
-                        $priceString = $this->number_to_string($price);
-                        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                        $request['quoteOrderQty'] = $this->parse_to_numeric($this->price_to_precision($symbol, $cost));
-                    }
-                } else {
-                    $request['quoteOrderQty'] = $this->parse_to_numeric($this->price_to_precision($symbol, $amount));
-                }
+            $cost = $this->safe_number_2($params, 'cost', 'quoteOrderQty');
+            $params = $this->omit($params, 'cost');
+            if ($cost !== null) {
+                $request['quoteOrderQty'] = $this->parse_to_numeric($this->cost_to_precision($symbol, $cost));
             } else {
-                $request['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
+                if ($market['spot'] && $isMarketOrder && ($price !== null)) {
+                    // keep the legacy behavior, to avoid  breaking the old spot-$market-buying code
+                    $calculatedCost = Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price));
+                    $request['quoteOrderQty'] = $this->parse_to_numeric($calculatedCost);
+                } else {
+                    $request['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
+                }
             }
             if (!$isMarketOrder) {
                 $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
@@ -1767,8 +1821,7 @@ class bingx extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
-             * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Create%20an%20Order
-             * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Trade%20order
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1781,6 +1834,7 @@ class bingx extends Exchange {
              * @param {float} [$params->triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss $order will be triggered
              * @param {float} [$params->stopLossPrice] *swap only* stop loss trigger $price
              * @param {float} [$params->takeProfitPrice] *swap only* take profit trigger $price
+             * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -3408,6 +3462,51 @@ class bingx extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function close_all_positions($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * closes open $positions for a market
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#close-all-$position
+             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {string} [$params->recvWindow] $request valid time window value
+             * @return {[array]} ~@link https://docs.ccxt.com/#/?id=$position-structure A list of $position structures~
+             */
+            Async\await($this->load_markets());
+            $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
+            $recvWindow = $this->safe_integer(array($this, 'parse_params'), 'recvWindow', $defaultRecvWindow);
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('closeAllPositions', null, $params);
+            if ($marketType === 'margin') {
+                throw new BadRequest($this->id . ' closePositions () cannot be used for ' . $marketType . ' markets');
+            }
+            $request = array(
+                'recvWindow' => $recvWindow,
+            );
+            $response = Async\await($this->swapV2PrivatePostTradeCloseAllPositions (array_merge($request, $params)));
+            //
+            //    {
+            //        "code" => 0,
+            //        "msg" => "",
+            //        "data" => {
+            //            "success" => array(
+            //                1727686766700486656,
+            //                1727686767048613888
+            //            ),
+            //            "failed" => null
+            //        }
+            //    }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $success = $this->safe_value($data, 'success', array());
+            $positions = array();
+            for ($i = 0; $i < count($success); $i++) {
+                $position = $this->parse_position(array( 'positionId' => $success[$i] ));
+                $positions[] = $position;
+            }
+            return $positions;
+        }) ();
     }
 
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

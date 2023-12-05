@@ -40,6 +40,8 @@ class kuna(Exchange, ImplicitAPI):
                 'borrowMargin': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createPostOnlyOrder': False,
