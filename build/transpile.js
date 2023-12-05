@@ -2540,10 +2540,10 @@ class Transpiler {
                 fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
             }
             if (test.phpFileSync) {
-                fileSaveFunc (test.phpFile, test.phpFileSyncContent);
+                fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
             }
             if (test.pyFileSync) {
-                fileSaveFunc (test.pyFile, test.pyFileSyncContent);
+                fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
             }
         }
     }
