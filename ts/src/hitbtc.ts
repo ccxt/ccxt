@@ -2106,17 +2106,24 @@ export default class hitbtc extends Exchange {
             request['symbol'] = market['id'];
         }
         let marketType = undefined;
+        let marginMode = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateDeleteSpotOrder',
-            'swap': 'privateDeleteFuturesOrder',
-            'margin': 'privateDeleteMarginOrder',
-        });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
+        params = this.omit (params, [ 'marginMode', 'margin' ]);
+        let response = undefined;
         if (marginMode !== undefined) {
-            method = 'privateDeleteMarginOrder';
+            response = await this.privateDeleteMarginOrder (this.extend (request, params));
+        } else {
+            if (marketType === 'spot') {
+                response = await this.privateDeleteSpotOrder (this.extend (request, params));
+            } else if (marketType === 'swap') {
+                response = await this.privateDeleteFuturesOrder (this.extend (request, params));
+            } else if (marketType === 'margin') {
+                response = await this.privateDeleteMarginOrder (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' cancelAllOrders() not support this market type');
+            }
         }
-        const response = await this[method] (this.extend (request, query));
         return this.parseOrders (response, market);
     }
 

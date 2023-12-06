@@ -291,6 +291,18 @@
                     "LTC/USDT"
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\"}"
+            },
+            {
+                "description": "Cancel margin orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.hitbtc.com/api/3/margin/order",
+                "input": [
+                    null,
+                    {
+                        "margin": true
+                    }
+                ],
+                "output": "{}"
             }
         ],
         "fetchBalance": [
