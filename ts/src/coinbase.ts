@@ -2399,6 +2399,11 @@ export default class coinbase extends Exchange {
             amount = this.safeString (marketIOC, 'base_size');
         }
         const datetime = this.safeString (order, 'created_time');
+        const totalFees = this.safeString (order, 'total_fees');
+        let currencyFee = undefined;
+        if ((totalFees !== undefined) && (market !== undefined)) {
+            currencyFee = market['quote'];
+        }
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'order_id'),
@@ -2422,7 +2427,7 @@ export default class coinbase extends Exchange {
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'fee': {
                 'cost': this.safeString (order, 'total_fees'),
-                'currency': undefined,
+                'currency': currencyFee,
             },
             'trades': undefined,
         }, market);
