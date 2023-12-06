@@ -1392,7 +1392,6 @@ export default class bingx extends Exchange {
         const close = this.safeString (ticker, 'lastPrice');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         const baseVolume = this.safeString (ticker, 'volume');
-
         let percentage = this.safeString (ticker, 'priceChangePercent');
         if (percentage !== undefined) {
             percentage = percentage.replace ('%', '');
