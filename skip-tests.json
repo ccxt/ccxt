@@ -77,7 +77,8 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            }
+            },
+            "fetchStatus": "private endpoints"
         }
     },
     "binancecoinm": {
