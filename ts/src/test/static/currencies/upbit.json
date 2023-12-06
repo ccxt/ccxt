@@ -1,8 +1,12 @@
 {
     "BTC": {
-        "code": "BTC"
+        "id": "BTC",
+        "code": "BTC",
+        "precision": "0.00000001"
     },
     "USDT": {
-        "code": "USDT"
+        "id": "USDT",
+        "code": "USDT",
+        "precision": "0.00000001"
     }
 }
