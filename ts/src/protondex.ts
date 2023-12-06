@@ -2,7 +2,7 @@
 
 import Exchange from './abstract/protondex.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ripemd160 } from './static_dependencies/noble-hashes/ripemd160.js';
@@ -1539,7 +1539,10 @@ export default class protondex extends Exchange {
                 orderDetails['price'] = (orderDetails['price'] / Math.pow (10, askTokenPrecision));
                 retries = 0;
             } catch (e) {
-                if (this.last_json_response.error.details[0]) {
+                if (this.last_json_response) {
+                    if (JSON.stringify (this.last_json_response.error) === '{}' || JSON.stringify (this.last_json_response.error.details) === '{}') {
+                        throw this.last_json_response;
+                    }
                     const message = this.safeString (this.last_json_response.error.details[0], 'message');
                     if (message === 'is_canonical( c ): signature is not canonical') {
                         --retries;
@@ -1547,10 +1550,10 @@ export default class protondex extends Exchange {
                         if (message === 'assertion failure with message: overdrawn balance') {
                             throw new InsufficientFunds ('- Add funds to the account');
                         }
-                        retries = 0;
+                        throw new BadRequest (message);
                     }
                 } else {
-                    throw e;
+                    retries = 0;
                 }
                 if (!retries) {
                     throw e;
