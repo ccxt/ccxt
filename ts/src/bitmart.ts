@@ -3343,19 +3343,15 @@ export default class bitmart extends Exchange {
     }
 
     async fetchIsolatedBorrowRate (symbol: string, params = {}) {
-        //
-        // @method
-        // @name bitmart#fetchIsolatedBorrowRate
-        // @description fetch the rate of interest to borrow a currency for margin trading
-        // @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
-        // @param {string} symbol unified symbol of the market to fetch the borrow rate for
-        // @param {object} [params] extra parameters specific to the exchange API endpoint
-        // <<<<<<< HEAD
-        // @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
-        // =======
-        // @returns {object} an [isolated borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
-        // >>>>>>> 3215552206edf1cda1ae63d2063535e19973dbe5
-        //
+        /**
+         * @method
+         * @name bitmart#fetchIsolatedBorrowRate
+         * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
+         * @param {string} symbol unified symbol of the market to fetch the borrow rate for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [isolated borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
