@@ -1876,7 +1876,7 @@ export default class hitbtc extends Exchange {
             } else if (marketType === 'margin') {
                 response = await this.privateGetMarginHistoryOrder (this.extend (request, params));
             } else {
-                throw new NotSupported (this.id + ' fetchClosedOrders() not support this market type');
+                throw new NotSupported (this.id + ' fetchOrder() not support this market type');
             }
         }
         //
@@ -1925,17 +1925,24 @@ export default class hitbtc extends Exchange {
             'order_id': id, // exchange assigned order id as oppose to the client order id
         };
         let marketType = undefined;
+        let marginMode = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateGetSpotHistoryTrade',
-            'swap': 'privateGetFuturesHistoryTrade',
-            'margin': 'privateGetMarginHistoryTrade',
-        });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrderTrades', params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrderTrades', params);
+        params = this.omit (params, [ 'marginMode', 'margin' ]);
+        let response = undefined;
         if (marginMode !== undefined) {
-            method = 'privateGetMarginHistoryTrade';
+            response = await this.privateGetMarginHistoryTrade (this.extend (request, params));
+        } else {
+            if (marketType === 'spot') {
+                response = await this.privateGetSpotHistoryTrade (this.extend (request, params));
+            } else if (marketType === 'swap') {
+                response = await this.privateGetFuturesHistoryTrade (this.extend (request, params));
+            } else if (marketType === 'margin') {
+                response = await this.privateGetMarginHistoryTrade (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' fetchOrderTrades() not support this market type');
+            }
         }
-        const response = await this[method] (this.extend (request, query));
         //
         // Spot
         //

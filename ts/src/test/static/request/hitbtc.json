@@ -400,6 +400,40 @@
                     }
                 ]
             }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "Fetch order trades",
+                "method": "fetchOrderTrades",
+                "url": "https://api.hitbtc.com/api/3/spot/history/trade?order_id=n-UcdSfwxO6eOiec86a5E0UV3WTe64DC",
+                "input": [
+                    "n-UcdSfwxO6eOiec86a5E0UV3WTe64DC",
+                    "TRX/USDT"
+                ]
+            },
+            {
+                "description": "Fetch order trades - swap",
+                "method": "fetchOrderTrades",
+                "url": "https://api.hitbtc.com/api/3/futures/history/trade?order_id=n-UcdSfwxO6eOiec86a5E0UV3WTe64DC",
+                "input": [
+                    "n-UcdSfwxO6eOiec86a5E0UV3WTe64DC",
+                    "TRX/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch order trades - margin",
+                "method": "fetchOrderTrades",
+                "url": "https://api.hitbtc.com/api/3/margin/history/trade?order_id=n-UcdSfwxO6eOiec86a5E0UV3WTe64DC",
+                "input": [
+                    "n-UcdSfwxO6eOiec86a5E0UV3WTe64DC",
+                    null,
+                    null,
+                    null,
+                    {
+                        "margin": true
+                    }
+                ]
+            }
         ]
     }
 }
