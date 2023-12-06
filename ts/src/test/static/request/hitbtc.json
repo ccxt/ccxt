@@ -538,6 +538,30 @@
                     }
                 ]
             }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch positions - swap",
+                "method": "fetchPositions",
+                "url": "https://api.hitbtc.com/api/3/futures/account",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch positions - margin",
+                "method": "fetchPositions",
+                "url": "https://api.hitbtc.com/api/3/margin/account",
+                "input": [
+                    null,
+                    {
+                        "type": "margin"
+                    }
+                ]
+            }
         ]
     }
 }

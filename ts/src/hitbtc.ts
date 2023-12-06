@@ -2815,16 +2815,22 @@ export default class hitbtc extends Exchange {
         await this.loadMarkets ();
         const request = {};
         let marketType = undefined;
+        let marginMode = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
-        let method = this.getSupportedMapping (marketType, {
-            'swap': 'privateGetFuturesAccount',
-            'margin': 'privateGetMarginAccount',
-        });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchPositions', params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPositions', params);
+        params = this.omit (params, [ 'marginMode', 'margin' ]);
+        let response = undefined;
         if (marginMode !== undefined) {
-            method = 'privateGetMarginAccount';
+            response = await this.privateGetMarginAccount (this.extend (request, params));
+        } else {
+            if (marketType === 'swap') {
+                response = await this.privateGetFuturesAccount (this.extend (request, params));
+            } else if (marketType === 'margin') {
+                response = await this.privateGetMarginAccount (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' fetchPositions() not support this market type');
+            }
         }
-        const response = await this[method] (this.extend (request, query));
         //
         //     [
         //         {
