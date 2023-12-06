@@ -1539,7 +1539,7 @@ export default class protondex extends Exchange {
                 orderDetails['price'] = (orderDetails['price'] / Math.pow (10, askTokenPrecision));
                 retries = 0;
             } catch (e) {
-                if (this.last_json_response) {
+                if (this.last_json_response.error.details[0]) {
                     const message = this.safeString (this.last_json_response.error.details[0], 'message');
                     if (message === 'is_canonical( c ): signature is not canonical') {
                         --retries;
@@ -1549,6 +1549,8 @@ export default class protondex extends Exchange {
                         }
                         retries = 0;
                     }
+                } else {
+                    throw e;
                 }
                 if (!retries) {
                     throw e;
