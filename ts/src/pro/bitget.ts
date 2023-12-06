@@ -320,7 +320,9 @@ export default class bitget extends bitgetRest {
         /**
          * @method
          * @name bitget#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -334,7 +336,12 @@ export default class bitget extends bitgetRest {
         const timeframes = this.safeValue (this.options, 'timeframes');
         const interval = this.safeString (timeframes, timeframe);
         const messageHash = 'candles:' + timeframe + ':' + symbol;
-        const instType = market['spot'] ? 'sp' : 'mc';
+        let instType = undefined;
+        if ((market['swap']) || (market['future'])) {
+            [ instType, params ] = this.handleProductTypeAndParams (market, params);
+        } else {
+            instType = 'SPOT';
+        }
         const args = {
             'instType': instType,
             'channel': 'candle' + interval,
@@ -352,6 +359,8 @@ export default class bitget extends bitgetRest {
          * @method
          * @name bitget#watchOHLCVForSymbols
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
          * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
@@ -367,7 +376,12 @@ export default class bitget extends bitgetRest {
             const currentTimeframe = this.safeString (data, 1);
             const market = this.market (currentSymbol);
             const interval = this.safeString (this.options['timeframes'], currentTimeframe);
-            const instType = market['spot'] ? 'sp' : 'mc';
+            let instType = undefined;
+            if ((market['swap']) || (market['future'])) {
+                [ instType, params ] = this.handleProductTypeAndParams (market, params);
+            } else {
+                instType = 'SPOT';
+            }
             const args = {
                 'instType': instType,
                 'channel': 'candle' + interval,
@@ -387,42 +401,49 @@ export default class bitget extends bitgetRest {
 
     handleOHLCV (client: Client, message) {
         //
-        //   {
-        //       "action":"snapshot",
-        //       "arg":{
-        //          "instType":"sp",
-        //          "channel":"candle1W",
-        //          "instId":"BTCUSDT"
-        //       },
-        //       "data":[
-        //          [
-        //             "1595779200000",
-        //             "9960.05",
-        //             "12099.95",
-        //             "9839.7",
-        //             "11088.68",
-        //             "462484.9738"
-        //          ],
-        //          [
-        //             "1596384000000",
-        //             "11088.68",
-        //             "11909.89",
-        //             "10937.54",
-        //             "11571.88",
-        //             "547596.6484"
-        //          ]
-        //       ]
-        //   }
+        //     {
+        //         "action": "snapshot",
+        //         "arg": {
+        //             "instType": "SPOT",
+        //             "channel": "candle1m",
+        //             "instId": "BTCUSDT"
+        //         },
+        //         "data": [
+        //             [
+        //                 "1701871620000",
+        //                 "44080.23",
+        //                 "44080.23",
+        //                 "44028.5",
+        //                 "44028.51",
+        //                 "9.9287",
+        //                 "437404.105512",
+        //                 "437404.105512"
+        //             ],
+        //             [
+        //                 "1701871680000",
+        //                 "44028.51",
+        //                 "44108.11",
+        //                 "44028.5",
+        //                 "44108.11",
+        //                 "17.139",
+        //                 "755436.870643",
+        //                 "755436.870643"
+        //             ],
+        //         ],
+        //         "ts": 1701901610417
+        //     }
         //
         const arg = this.safeValue (message, 'arg', {});
+        const instType = this.safeString (arg, 'instType');
+        const marketType = (instType === 'SPOT') ? 'spot' : 'contract';
         const marketId = this.safeString (arg, 'instId');
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
+        const symbol = market['symbol'];
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         const channel = this.safeString (arg, 'channel');
         const interval = channel.replace ('candle', '');
         const timeframes = this.safeValue (this.options, 'timeframes');
         const timeframe = this.findTimeframe (interval, timeframes);
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -431,7 +452,7 @@ export default class bitget extends bitgetRest {
         }
         const data = this.safeValue (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const parsed = this.parseWsOHLCV (data[i]);
+            const parsed = this.parseWsOHLCV (data[i], market);
             stored.append (parsed);
         }
         const messageHash = 'candles:' + timeframe + ':' + symbol;
@@ -441,22 +462,25 @@ export default class bitget extends bitgetRest {
 
     parseWsOHLCV (ohlcv, market = undefined): OHLCV {
         //
-        //   [
-        //      "1595779200000", // timestamp
-        //      "9960.05", // open
-        //      "12099.95", // high
-        //      "9839.7", // low
-        //      "11088.68", // close
-        //      "462484.9738" // volume
-        //   ]
+        //     [
+        //         "1701871620000",  // timestamp
+        //         "44080.23", // open
+        //         "44080.23", // high
+        //         "44028.5", // low
+        //         "44028.51", // close
+        //         "9.9287", // base volume
+        //         "437404.105512", // quote volume
+        //         "437404.105512" // USDT volume
+        //     ]
         //
+        const volumeIndex = (market['inverse']) ? 6 : 5;
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
             this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 3),
             this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 5),
+            this.safeNumber (ohlcv, volumeIndex),
         ];
     }
 
