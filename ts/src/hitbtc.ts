@@ -2186,17 +2186,24 @@ export default class hitbtc extends Exchange {
             market = this.market (symbol);
         }
         let marketType = undefined;
+        let marginMode = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('editOrder', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privatePatchSpotOrderClientOrderId',
-            'swap': 'privatePatchFuturesOrderClientOrderId',
-            'margin': 'privatePatchMarginOrderClientOrderId',
-        });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('editOrder', params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('editOrder', params);
+        params = this.omit (params, [ 'marginMode', 'margin' ]);
+        let response = undefined;
         if (marginMode !== undefined) {
-            method = 'privatePatchMarginOrderClientOrderId';
+            response = await this.privatePatchMarginOrderClientOrderId (this.extend (request, params));
+        } else {
+            if (marketType === 'spot') {
+                response = await this.privatePatchSpotOrderClientOrderId (this.extend (request, params));
+            } else if (marketType === 'swap') {
+                response = await this.privatePatchFuturesOrderClientOrderId (this.extend (request, params));
+            } else if (marketType === 'margin') {
+                response = await this.privatePatchMarginOrderClientOrderId (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' editOrder() not support this market type');
+            }
         }
-        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 

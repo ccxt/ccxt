@@ -130,6 +130,53 @@
                 "output": "{\"client_order_id\":\"ZKO-jmnZ_VVSrZRP4XlqTnt-A33m5HOn\"}"
             }
         ],
+        "editOrder": [
+            {
+                "description": "editOrder - spot",
+                "method": "editOrder",
+                "url": "https://api.hitbtc.com/api/3/spot/order/8PYnj6rAdX_-vPV5nJSROzMf85B8rTQS",
+                "input": [
+                    "8PYnj6rAdX_-vPV5nJSROzMf85B8rTQS",
+                    "TRX/USDT",
+                    "limit",
+                    "buy",
+                    10,
+                    0.05
+                ],
+                "output": "{\"client_order_id\":\"8PYnj6rAdX_-vPV5nJSROzMf85B8rTQS\",\"quantity\":\"10\",\"price\":\"0.05\"}"
+            },
+            {
+                "description": "editOrder - swap",
+                "method": "editOrder",
+                "url": "https://api.hitbtc.com/api/3/futures/order/47a240fa3cfb4949b4abf349c1ad079e",
+                "input": [
+                    "47a240fa3cfb4949b4abf349c1ad079e",
+                    "TRX/USDT:USDT",
+                    "limit",
+                    "buy",
+                    10,
+                    0.05
+                ],
+                "output": "{\"client_order_id\":\"47a240fa3cfb4949b4abf349c1ad079e\",\"quantity\":\"10\",\"price\":\"0.05\"}"
+            },
+            {
+                "description": "editOrder - margin",
+                "method": "editOrder",
+                "url": "https://api.hitbtc.com/api/3/margin/order/ZKO-jmnZ_VVSrZRP4XlqTnt-A33m5HOn",
+                "input": [
+                    "ZKO-jmnZ_VVSrZRP4XlqTnt-A33m5HOn",
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    10,
+                    0.05,
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "output": "{\"client_order_id\":\"ZKO-jmnZ_VVSrZRP4XlqTnt-A33m5HOn\",\"quantity\":\"10\",\"price\":\"0.05\"}"
+            }
+        ],
         "fetchOrder": [
             {
                 "description": "Fetch open order",
