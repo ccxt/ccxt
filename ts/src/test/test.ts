@@ -339,8 +339,8 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         const isWs = ('ws' in exchange.has);
-        const wsFlag = isWs ? ' (WS)' : '';
-        let result = exchange.id + wsFlag + ' ' + marketType;
+        const wsFlag = isWs ? '(WS)' : '';
+        let result = exchange.id + ' ' + wsFlag + ' ' + marketType;
         if (marketSubType !== undefined) {
             result = result + ' [subType: ' + marketSubType + '] ';
         }
