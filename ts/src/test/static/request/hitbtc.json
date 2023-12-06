@@ -344,6 +344,28 @@
                     "LTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "Fetch Trading Fees - spot",
+                "method": "fetchTradingFees",
+                "url": "https://api.hitbtc.com/api/3/spot/fee",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch Trading Fee - swap",
+                "method": "fetchTradingFees",
+                "url": "https://api.hitbtc.com/api/3/futures/fee",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
         ]
     }
 }

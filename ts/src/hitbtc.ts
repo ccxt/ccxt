@@ -1654,11 +1654,14 @@ export default class hitbtc extends Exchange {
          */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'privateGetSpotFee',
-            'swap': 'privateGetFuturesFee',
-        });
-        const response = await this[method] (query);
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.privateGetSpotFee (query);
+        } else if (marketType === 'swap') {
+            response = await this.privateGetFuturesFee (query);
+        } else {
+            throw new NotSupported (this.id + ' fetchTradingFees() not support this market type');
+        }
         //
         //     [
         //         {
