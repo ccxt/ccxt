@@ -643,6 +643,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchMarkets
          * @description retrieves data on all markets for hitbtc
+         * @see https://api.hitbtc.com/#symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -786,6 +787,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://api.hitbtc.com/#currencies
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -905,6 +907,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#createDepositAddress
          * @description create a currency deposit address
+         * @see https://api.hitbtc.com/#generate-deposit-crypto-address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -942,6 +945,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://api.hitbtc.com/#get-deposit-crypto-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -998,6 +1002,9 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://api.hitbtc.com/#wallet-balance
+         * @see https://api.hitbtc.com/#get-spot-trading-balance
+         * @see https://api.hitbtc.com/#get-trading-balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -1201,6 +1208,9 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://api.hitbtc.com/#spot-trades-history
+         * @see https://api.hitbtc.com/#futures-trades-history
+         * @see https://api.hitbtc.com/#margin-trades-history
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1499,6 +1509,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
+         * @see https://api.hitbtc.com/#get-transactions-history
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -1513,6 +1524,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://api.hitbtc.com/#get-transactions-history
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -1527,6 +1539,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://api.hitbtc.com/#get-transactions-history
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -1618,6 +1631,8 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://api.hitbtc.com/#get-trading-commission
+         * @see https://api.hitbtc.com/#get-trading-commission-2
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1649,6 +1664,8 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://api.hitbtc.com/#get-all-trading-commissions
+         * @see https://api.hitbtc.com/#get-all-trading-commissions-2
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -1797,6 +1814,9 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://api.hitbtc.com/#spot-orders-history
+         * @see https://api.hitbtc.com/#futures-orders-history
+         * @see https://api.hitbtc.com/#margin-orders-history
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -1846,6 +1866,9 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://api.hitbtc.com/#spot-orders-history
+         * @see https://api.hitbtc.com/#futures-orders-history
+         * @see https://api.hitbtc.com/#margin-orders-history
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
@@ -1907,6 +1930,9 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://api.hitbtc.com/#spot-trades-history
+         * @see https://api.hitbtc.com/#futures-trades-history
+         * @see https://api.hitbtc.com/#margin-trades-history
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1989,6 +2015,9 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://api.hitbtc.com/#get-all-active-spot-orders
+         * @see https://api.hitbtc.com/#get-active-futures-orders
+         * @see https://api.hitbtc.com/#get-active-margin-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -2050,6 +2079,9 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchOpenOrder
          * @description fetch an open order by it's id
+         * @see https://api.hitbtc.com/#get-active-spot-order
+         * @see https://api.hitbtc.com/#get-active-futures-order
+         * @see https://api.hitbtc.com/#get-active-margin-order
          * @param {string} id order id
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2092,6 +2124,9 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#cancelAllOrders
          * @description cancel all open orders
+         * @see https://api.hitbtc.com/#cancel-all-spot-orders
+         * @see https://api.hitbtc.com/#cancel-futures-orders
+         * @see https://api.hitbtc.com/#cancel-all-margin-orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
@@ -2132,6 +2167,9 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#cancelOrder
          * @description cancels an open order
+         * @see https://api.hitbtc.com/#cancel-spot-order
+         * @see https://api.hitbtc.com/#cancel-futures-order
+         * @see https://api.hitbtc.com/#cancel-margin-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2532,6 +2570,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://api.hitbtc.com/#transfer-between-wallet-and-exchange
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -2622,6 +2661,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#withdraw
          * @description make a withdrawal
+         * @see https://api.hitbtc.com/#withdraw-crypto
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -2806,6 +2846,8 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchPositions
          * @description fetch all open positions
+         * @see https://api.hitbtc.com/#get-futures-margin-accounts
+         * @see https://api.hitbtc.com/#get-all-margin-accounts
          * @param {string[]|undefined} symbols not used by hitbtc fetchPositions ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
@@ -2875,6 +2917,8 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchPosition
          * @description fetch data on a single open contract trade position
+         * @see https://api.hitbtc.com/#get-futures-margin-account
+         * @see https://api.hitbtc.com/#get-isolated-margin-account
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
@@ -3248,6 +3292,8 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#reduceMargin
          * @description remove margin from a position
+         * @see https://api.hitbtc.com/#create-update-margin-account-2
+         * @see https://api.hitbtc.com/#create-update-margin-account
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3266,6 +3312,8 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#addMargin
          * @description add margin
+         * @see https://api.hitbtc.com/#create-update-margin-account-2
+         * @see https://api.hitbtc.com/#create-update-margin-account
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3281,6 +3329,8 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchLeverage
          * @description fetch the set leverage for a market
+         * @see https://api.hitbtc.com/#get-futures-margin-account
+         * @see https://api.hitbtc.com/#get-isolated-margin-account
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
@@ -3347,6 +3397,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#setLeverage
          * @description set the level of leverage for a market
+         * @see https://api.hitbtc.com/#create-update-margin-account-2
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
