@@ -586,6 +586,64 @@
                     }
                 ]
             }
+        ],
+        "addMargin": [
+            {
+                "description": "Add margin - swap",
+                "method": "addMargin",
+                "url": "https://api.hitbtc.com/api/3/futures/account/isolated/TRXUSDT_PERP",
+                "input": [
+                    "TRX/USDT:USDT",
+                    10,
+                    {
+                        "leverage": 5
+                    }
+                ],
+                "output": "{\"symbol\":\"TRXUSDT_PERP\",\"margin_balance\":\"10\",\"leverage\":5}"
+            },
+            {
+                "description": "Add margin - margin",
+                "method": "addMargin",
+                "url": "https://api.hitbtc.com/api/3/margin/account/isolated/TRXUSDT_PERP",
+                "input": [
+                    "TRX/USDT:USDT",
+                    10,
+                    {
+                        "leverage": 5,
+                        "margin": true
+                    }
+                ],
+                "output": "{\"symbol\":\"TRXUSDT_PERP\",\"margin_balance\":\"10\",\"leverage\":5}"
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "Reduce margin - swap",
+                "method": "reduceMargin",
+                "url": "https://api.hitbtc.com/api/3/futures/account/isolated/TRXUSDT_PERP",
+                "input": [
+                    "TRX/USDT:USDT",
+                    0,
+                    {
+                        "leverage": 5
+                    }
+                ],
+                "output": "{\"symbol\":\"TRXUSDT_PERP\",\"margin_balance\":\"0\",\"leverage\":5}"
+            },
+            {
+                "description": "Reduce margin - margin",
+                "method": "reduceMargin",
+                "url": "https://api.hitbtc.com/api/3/margin/account/isolated/TRXUSDT_PERP",
+                "input": [
+                    "TRX/USDT:USDT",
+                    0,
+                    {
+                        "leverage": 5,
+                        "margin": true
+                    }
+                ],
+                "output": "{\"symbol\":\"TRXUSDT_PERP\",\"margin_balance\":\"0\",\"leverage\":5}"
+            }
         ]
     }
 }

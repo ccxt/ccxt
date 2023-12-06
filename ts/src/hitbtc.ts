@@ -3175,7 +3175,11 @@ export default class hitbtc extends Exchange {
                 throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
         }
-        amount = this.amountToPrecision (symbol, amount);
+        if (amount !== 0) {
+            amount = this.amountToPrecision (symbol, amount);
+        } else {
+            amount = '0';
+        }
         const request = {
             'symbol': market['id'], // swap and margin
             'margin_balance': amount, // swap and margin
@@ -3186,16 +3190,22 @@ export default class hitbtc extends Exchange {
             request['leverage'] = leverage;
         }
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('modifyMarginHelper', undefined, params);
-        let method = this.getSupportedMapping (marketType, {
-            'swap': 'privatePutFuturesAccountIsolatedSymbol',
-            'margin': 'privatePutMarginAccountIsolatedSymbol',
-        });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('modifyMarginHelper', params);
+        let marginMode = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('modifyMarginHelper', market, params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('modifyMarginHelper', params);
+        params = this.omit (params, [ 'marginMode', 'margin' ]);
+        let response = undefined;
         if (marginMode !== undefined) {
-            method = 'privatePutMarginAccountIsolatedSymbol';
+            response = await this.privatePutMarginAccountIsolatedSymbol (this.extend (request, params));
+        } else {
+            if (marketType === 'swap') {
+                response = await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
+            } else if (marketType === 'margin') {
+                response = await this.privatePutMarginAccountIsolatedSymbol (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' modifyMarginHelper() not support this market type');
+            }
         }
-        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "symbol": "BTCUSDT_PERP",
