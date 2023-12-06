@@ -644,6 +644,35 @@
                 ],
                 "output": "{\"symbol\":\"TRXUSDT_PERP\",\"margin_balance\":\"0\",\"leverage\":5}"
             }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Fetch leverage - spot",
+                "method": "fetchLeverage",
+                "url": "https://api.hitbtc.com/api/3/margin/account/isolated/TRXUSDT",
+                "input": [
+                    "TRX/USDT"
+                ]
+            },
+            {
+                "description": "Fetch leverage - swap",
+                "method": "fetchLeverage",
+                "url": "https://api.hitbtc.com/api/3/futures/account/isolated/TRXUSDT_PERP",
+                "input": [
+                    "TRX/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch leverage - margin",
+                "method": "fetchLeverage",
+                "url": "https://api.hitbtc.com/api/3/margin/account/isolated/TRXUSDT_PERP",
+                "input": [
+                    "TRX/USDT:USDT",
+                    {
+                        "margin": true
+                    }
+                ]
+            }
         ]
     }
 }

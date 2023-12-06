@@ -3292,16 +3292,23 @@ export default class hitbtc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = this.getSupportedMapping (market['type'], {
-            'spot': 'privateGetMarginAccountIsolatedSymbol',
-            'margin': 'privateGetMarginAccountIsolatedSymbol',
-            'swap': 'privateGetFuturesAccountIsolatedSymbol',
-        });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('modifyMarginHelper', params);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
+        params = this.omit (params, [ 'marginMode', 'margin' ]);
+        let response = undefined;
         if (marginMode !== undefined) {
-            method = 'privateGetMarginAccountIsolatedSymbol';
+            response = await this.privateGetMarginAccountIsolatedSymbol (this.extend (request, params));
+        } else {
+            if (market['type'] === 'spot') {
+                response = await this.privateGetMarginAccountIsolatedSymbol (this.extend (request, params));
+            } else if (market['type'] === 'swap') {
+                response = await this.privateGetFuturesAccountIsolatedSymbol (this.extend (request, params));
+            } else if (market['type'] === 'margin') {
+                response = await this.privateGetMarginAccountIsolatedSymbol (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' fetchLeverage() not support this market type');
+            }
         }
-        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "symbol": "BTCUSDT",
