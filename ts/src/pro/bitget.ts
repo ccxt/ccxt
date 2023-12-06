@@ -96,7 +96,9 @@ export default class bitget extends bitgetRest {
          * @method
          * @name bitget#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+         * @param {string} symbol unified symbol of the market to watch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -104,7 +106,12 @@ export default class bitget extends bitgetRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'ticker:' + symbol;
-        const instType = market['spot'] ? 'sp' : 'mc';
+        let instType = undefined;
+        if ((market['swap']) || (market['future'])) {
+            [ instType, params ] = this.handleProductTypeAndParams (market, params);
+        } else {
+            instType = 'SPOT';
+        }
         const args = {
             'instType': instType,
             'channel': 'ticker',
@@ -118,14 +125,21 @@ export default class bitget extends bitgetRest {
          * @method
          * @name bitget#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+         * @param {string[]} symbols unified symbol of the market to watch the tickers for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const market = this.market (symbols[0]);
-        const instType = market['spot'] ? 'sp' : 'mc';
+        let instType = undefined;
+        if ((market['swap']) || (market['future'])) {
+            [ instType, params ] = this.handleProductTypeAndParams (market, params);
+        } else {
+            instType = 'SPOT';
+        }
         const messageHash = 'tickers::' + symbols.join (',');
         const marketIds = this.marketIds (symbols);
         const topics = [ ];
@@ -148,25 +162,34 @@ export default class bitget extends bitgetRest {
 
     handleTicker (client: Client, message) {
         //
-        //   {
-        //       "action": "snapshot",
-        //       "arg": { instType: 'sp', channel: "ticker", instId: "BTCUSDT" },
-        //       "data": [
-        //         {
-        //           "instId": "BTCUSDT",
-        //           "last": "21150.53",
-        //           "open24h": "20759.65",
-        //           "high24h": "21202.29",
-        //           "low24h": "20518.82",
-        //           "bestBid": "21150.500000",
-        //           "bestAsk": "21150.600000",
-        //           "baseVolume": "25402.1961",
-        //           "quoteVolume": "530452554.2156",
-        //           "ts": 1656408934044,
-        //           "labeId": 0
-        //         }
-        //       ]
-        //   }
+        //     {
+        //         "action": "snapshot",
+        //         "arg": {
+        //             "instType": "SPOT",
+        //             "channel": "ticker",
+        //             "instId": "BTCUSDT"
+        //         },
+        //         "data": [
+        //             {
+        //                 "instId": "BTCUSDT",
+        //                 "lastPr": "43528.19",
+        //                 "open24h": "42267.78",
+        //                 "high24h": "44490.00",
+        //                 "low24h": "41401.53",
+        //                 "change24h": "0.03879",
+        //                 "bidPr": "43528",
+        //                 "askPr": "43528.01",
+        //                 "bidSz": "0.0334",
+        //                 "askSz": "0.1917",
+        //                 "baseVolume": "15002.4216",
+        //                 "quoteVolume": "648006446.7164",
+        //                 "openUtc": "44071.18",
+        //                 "changeUtc24h": "-0.01232",
+        //                 "ts": "1701842994338"
+        //             }
+        //         ],
+        //         "ts": 1701842994341
+        //     }
         //
         const ticker = this.parseWsTicker (message);
         const symbol = ticker['symbol'];
@@ -190,90 +213,105 @@ export default class bitget extends bitgetRest {
     parseWsTicker (message, market = undefined) {
         //
         // spot
+        //
         //     {
         //         "action": "snapshot",
-        //         "arg": { instType: 'sp', channel: "ticker", instId: "BTCUSDT" },
+        //         "arg": {
+        //             "instType": "SPOT",
+        //             "channel": "ticker",
+        //             "instId": "BTCUSDT"
+        //         },
         //         "data": [
-        //           {
-        //             "instId": "BTCUSDT",
-        //             "last": "21150.53",
-        //             "open24h": "20759.65",
-        //             "high24h": "21202.29",
-        //             "low24h": "20518.82",
-        //             "bestBid": "21150.500000",
-        //             "bestAsk": "21150.600000",
-        //             "baseVolume": "25402.1961",
-        //             "quoteVolume": "530452554.2156",
-        //             "ts": 1656408934044,
-        //             "labeId": 0
-        //           }
-        //         ]
+        //             {
+        //                 "instId": "BTCUSDT",
+        //                 "lastPr": "43528.19",
+        //                 "open24h": "42267.78",
+        //                 "high24h": "44490.00",
+        //                 "low24h": "41401.53",
+        //                 "change24h": "0.03879",
+        //                 "bidPr": "43528",
+        //                 "askPr": "43528.01",
+        //                 "bidSz": "0.0334",
+        //                 "askSz": "0.1917",
+        //                 "baseVolume": "15002.4216",
+        //                 "quoteVolume": "648006446.7164",
+        //                 "openUtc": "44071.18",
+        //                 "changeUtc24h": "-0.01232",
+        //                 "ts": "1701842994338"
+        //             }
+        //         ],
+        //         "ts": 1701842994341
         //     }
         //
         // contract
         //
         //     {
-        //         "action":"snapshot",
-        //         "arg":{
-        //            "instType":"mc",
-        //            "channel":"ticker",
-        //            "instId":"LTCUSDT"
+        //         "action": "snapshot",
+        //         "arg": {
+        //             "instType": "USDT-FUTURES",
+        //             "channel": "ticker",
+        //             "instId": "BTCUSDT"
         //         },
-        //         "data":[
-        //            {
-        //               "instId":"LTCUSDT",
-        //               "last":"52.77",
-        //               "bestAsk":"52.78",
-        //               "bestBid":"52.75",
-        //               "high24h":"54.83",
-        //               "low24h":"51.32",
-        //               "priceChangePercent":"-0.02",
-        //               "capitalRate":"-0.000100",
-        //               "nextSettleTime":1656514800000,
-        //               "systemTime":1656513146169,
-        //               "markPrice":"52.77",
-        //               "indexPrice":"52.80",
-        //               "holding":"269813.9",
-        //               "baseVolume":"75422.0",
-        //               "quoteVolume":"3986579.8"
-        //            }
-        //         ]
+        //         "data": [
+        //             {
+        //                 "instId": "BTCUSDT",
+        //                 "lastPr": "43480.4",
+        //                 "bidPr": "43476.3",
+        //                 "askPr": "43476.8",
+        //                 "bidSz": "0.1",
+        //                 "askSz": "3.055",
+        //                 "open24h": "42252.3",
+        //                 "high24h": "44518.2",
+        //                 "low24h": "41387.0",
+        //                 "change24h": "0.03875",
+        //                 "fundingRate": "0.000096",
+        //                 "nextFundingTime": "1701849600000",
+        //                 "markPrice": "43476.4",
+        //                 "indexPrice": "43478.4",
+        //                 "holdingAmount": "50670.787",
+        //                 "baseVolume": "120187.104",
+        //                 "quoteVolume": "5167385048.693",
+        //                 "openUtc": "44071.4",
+        //                 "symbolType": "1",
+        //                 "symbol": "BTCUSDT",
+        //                 "deliveryPrice": "0",
+        //                 "ts": "1701843962811"
+        //             }
+        //         ],
+        //         "ts": 1701843962812
         //     }
         //
         const arg = this.safeValue (message, 'arg', {});
         const data = this.safeValue (message, 'data', []);
         const ticker = this.safeValue (data, 0, {});
-        const timestamp = this.safeInteger2 (ticker, 'ts', 'systemTime');
-        const marketId = this.safeString (arg, 'instId');
-        market = this.safeMarket (marketId, market);
-        const close = this.safeString (ticker, 'last');
-        const open = this.safeString (ticker, 'open24h');
-        const high = this.safeString (ticker, 'high24h');
-        const low = this.safeString (ticker, 'low24h');
-        const baseVolume = this.safeString (ticker, 'baseVolume');
-        const quoteVolume = this.safeString (ticker, 'quoteVolume');
-        const bid = this.safeString (ticker, 'bestBid');
-        const ask = this.safeString (ticker, 'bestAsk');
+        const timestamp = this.safeInteger (ticker, 'ts');
+        const instType = this.safeString (arg, 'instType');
+        const marketType = (instType === 'SPOT') ? 'spot' : 'contract';
+        const marketId = this.safeString (ticker, 'instId');
+        market = this.safeMarket (marketId, market, undefined, marketType);
+        const close = this.safeString (ticker, 'lastPr');
+        const changeDecimal = this.safeString (ticker, 'change24h');
+        const change = Precise.stringMul (changeDecimal, '100');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': high,
-            'low': low,
-            'bid': bid,
-            'bidVolume': undefined,
-            'ask': ask,
-            'askVolume': undefined,
+            'high': this.safeString (ticker, 'high24h'),
+            'low': this.safeString (ticker, 'low24h'),
+            'bid': this.safeString (ticker, 'bidPr'),
+            'bidVolume': this.safeString (ticker, 'bidSz'),
+            'ask': this.safeString (ticker, 'askPr'),
+            'askVolume': this.safeString (ticker, 'askSz'),
             'vwap': undefined,
-            'open': open,
+            'open': this.safeString (ticker, 'open24h'),
             'close': close,
             'last': close,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': undefined,
+            'percentage': change,
             'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': this.safeString (ticker, 'baseVolume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
         }, market);
     }
