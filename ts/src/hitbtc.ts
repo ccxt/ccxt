@@ -2005,17 +2005,24 @@ export default class hitbtc extends Exchange {
             request['symbol'] = market['id'];
         }
         let marketType = undefined;
+        let marginMode = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateGetSpotOrder',
-            'swap': 'privateGetFuturesOrder',
-            'margin': 'privateGetMarginOrder',
-        });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+        params = this.omit (params, [ 'marginMode', 'margin' ]);
+        let response = undefined;
         if (marginMode !== undefined) {
-            method = 'privateGetMarginOrder';
+            response = await this.privateGetMarginOrder (this.extend (request, params));
+        } else {
+            if (marketType === 'spot') {
+                response = await this.privateGetSpotOrder (this.extend (request, params));
+            } else if (marketType === 'swap') {
+                response = await this.privateGetFuturesOrder (this.extend (request, params));
+            } else if (marketType === 'margin') {
+                response = await this.privateGetMarginOrder (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' fetchOpenOrders() not support this market type');
+            }
         }
-        const response = await this[method] (this.extend (request, query));
         //
         //     [
         //       {

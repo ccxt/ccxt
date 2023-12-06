@@ -227,6 +227,19 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Margin open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.hitbtc.com/api/3/margin/order",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "margin": true
+                    }
+                ]
             }
         ],
         "fetchClosedOrders": [
