@@ -2062,21 +2062,28 @@ export default class hitbtc extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrder', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateGetSpotOrderClientOrderId',
-            'swap': 'privateGetFuturesOrderClientOrderId',
-            'margin': 'privateGetMarginOrderClientOrderId',
-        });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrder', params);
-        if (marginMode !== undefined) {
-            method = 'privateGetMarginOrderClientOrderId';
-        }
         const request = {
             'client_order_id': id,
         };
-        const response = await this[method] (this.extend (request, query));
+        let marketType = undefined;
+        let marginMode = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrder', market, params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrder', params);
+        params = this.omit (params, [ 'marginMode', 'margin' ]);
+        let response = undefined;
+        if (marginMode !== undefined) {
+            response = await this.privateGetMarginOrderClientOrderId (this.extend (request, params));
+        } else {
+            if (marketType === 'spot') {
+                response = await this.privateGetSpotOrderClientOrderId (this.extend (request, params));
+            } else if (marketType === 'swap') {
+                response = await this.privateGetFuturesOrderClientOrderId (this.extend (request, params));
+            } else if (marketType === 'margin') {
+                response = await this.privateGetMarginOrderClientOrderId (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' fetchOpenOrder() not support this market type');
+            }
+        }
         return this.parseOrder (response, market);
     }
 
