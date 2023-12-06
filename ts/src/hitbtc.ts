@@ -2148,17 +2148,24 @@ export default class hitbtc extends Exchange {
             market = this.market (symbol);
         }
         let marketType = undefined;
+        let marginMode = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateDeleteSpotOrderClientOrderId',
-            'swap': 'privateDeleteFuturesOrderClientOrderId',
-            'margin': 'privateDeleteMarginOrderClientOrderId',
-        });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
+        params = this.omit (params, [ 'marginMode', 'margin' ]);
+        let response = undefined;
         if (marginMode !== undefined) {
-            method = 'privateDeleteMarginOrderClientOrderId';
+            response = await this.privateDeleteMarginOrderClientOrderId (this.extend (request, params));
+        } else {
+            if (marketType === 'spot') {
+                response = await this.privateDeleteSpotOrderClientOrderId (this.extend (request, params));
+            } else if (marketType === 'swap') {
+                response = await this.privateDeleteFuturesOrderClientOrderId (this.extend (request, params));
+            } else if (marketType === 'margin') {
+                response = await this.privateDeleteMarginOrderClientOrderId (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' cancelOrder() not support this market type');
+            }
         }
-        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
