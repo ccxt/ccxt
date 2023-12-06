@@ -214,10 +214,14 @@ class CCXTProTranspiler extends Transpiler {
         if (isWsCache){
             // py head
             test.pythonPreambleSync = test.pythonPreambleSync + '\n' + 'from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402' + '\n' + '\n';
+            // php head
+            test.phpPreambleSync = this.getPHPPreamble(true, 4, true);
         }
         if (isWsOrderBook){
             // py head
             test.pythonPreambleSync = test.pythonPreambleSync + '\n' + 'from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402' + '\n' + '\n';
+            // php head
+            test.phpPreambleSync = this.getPHPPreamble(true, 4, true);
         }
     }
 }
