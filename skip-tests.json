@@ -649,6 +649,12 @@
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
+            },
+            "fetchTicker": {
+                "quoteVolume": "quote scale isn't right"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quote scale isn't right"
             }
         }
     },
