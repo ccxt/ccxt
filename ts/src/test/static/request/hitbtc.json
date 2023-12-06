@@ -562,6 +562,30 @@
                     }
                 ]
             }
+        ],
+        "fetchPosition": [
+            {
+                "description": "Fetch position - swap",
+                "method": "fetchPosition",
+                "url": "https://api.hitbtc.com/api/3/futures/account/isolated/TRXUSDT_PERP",
+                "input": [
+                    "TRX/USDT:USDT",
+                    {
+                        "type": "swap"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch position - margin",
+                "method": "fetchPosition",
+                "url": "https://api.hitbtc.com/api/3/margin/account/isolated/TRXUSDT_PERP",
+                "input": [
+                    "TRX/USDT:USDT",
+                    {
+                        "type": "margin"
+                    }
+                ]
+            }
         ]
     }
 }

@@ -2882,21 +2882,27 @@ export default class hitbtc extends Exchange {
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPosition', undefined, params);
-        let method = this.getSupportedMapping (marketType, {
-            'swap': 'privateGetFuturesAccountIsolatedSymbol',
-            'margin': 'privateGetMarginAccountIsolatedSymbol',
-        });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchPosition', params);
-        if (marginMode !== undefined) {
-            method = 'privateGetMarginAccountIsolatedSymbol';
-        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await this[method] (this.extend (request, query));
+        let marketType = undefined;
+        let marginMode = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPosition', undefined, params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPosition', params);
+        params = this.omit (params, [ 'marginMode', 'margin' ]);
+        let response = undefined;
+        if (marginMode !== undefined) {
+            response = await this.privateGetMarginAccountIsolatedSymbol (this.extend (request, params));
+        } else {
+            if (marketType === 'swap') {
+                response = await this.privateGetFuturesAccountIsolatedSymbol (this.extend (request, params));
+            } else if (marketType === 'margin') {
+                response = await this.privateGetMarginAccountIsolatedSymbol (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' fetchPosition() not support this market type');
+            }
+        }
         //
         //     [
         //         {
