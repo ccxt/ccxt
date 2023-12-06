@@ -920,7 +920,11 @@ export default class coinbase extends Exchange {
         } else {
             cost = costString;
         }
-        const feeCurrencyId = this.safeString (feeObject, 'currency');
+        let feeCurrencyId = this.safeString (feeObject, 'currency');
+        const feeCost = this.safeNumber (feeObject, 'amount', this.parseNumber (v3FeeCost));
+        if ((feeCurrencyId === undefined) && (market !== undefined) && (feeCost !== undefined)) {
+            feeCurrencyId = market['quote'];
+        }
         const datetime = this.safeStringN (trade, [ 'created_at', 'trade_time', 'time' ]);
         const side = this.safeStringLower2 (trade, 'resource', 'side');
         const takerOrMaker = this.safeStringLower (trade, 'liquidity_indicator');
@@ -938,7 +942,7 @@ export default class coinbase extends Exchange {
             'amount': amountString,
             'cost': cost,
             'fee': {
-                'cost': this.safeNumber (feeObject, 'amount', this.parseNumber (v3FeeCost)),
+                'cost': feeCost,
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             },
         });
