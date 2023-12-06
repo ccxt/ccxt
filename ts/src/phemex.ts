@@ -224,11 +224,6 @@ export default class phemex extends Exchange {
                         'assets/futures/sub-accounts/transfer': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote': 5, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
                         // deposit/withdraw
-                        '/phemex-deposit/wallets/api/depositAddress': 5, // ?currency=<currency>&chainName=<chainName>
-                        '/phemex-deposit/wallets/api/depositHist': 5, // ?currency=<currency>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        '/phemex-deposit/wallets/api/chainCfg': 5, // ?currency=<currency>
-                        '/phemex-withdraw/wallets/api/withdrawHist': 5, // ?currency=<currency>&chainName=<chainNameList>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        '/phemex-withdraw/wallets/api/asset/info': 5, // ?currency=<currency>&amount=<amount>
                     },
                     'post': {
                         // spot
