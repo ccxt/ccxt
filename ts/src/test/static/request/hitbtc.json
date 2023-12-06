@@ -169,7 +169,7 @@
                 ]
             },
             {
-                "description": "Swap private trades",
+                "description": "Margin private trades",
                 "method": "fetchMyTrades",
                 "url": "https://api.hitbtc.com/api/3/margin/history/trade?symbol=LTCUSDT_PERP&limit=5&from=1699457638000",
                 "input": [
@@ -223,6 +223,19 @@
                 "url": "https://api.hitbtc.com/api/3/futures/history/order?symbol=LTCUSDT_PERP",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Margin closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.hitbtc.com/api/3/margin/history/order",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "margin": true
+                    }
                 ]
             }
         ],

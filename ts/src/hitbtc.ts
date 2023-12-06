@@ -1227,7 +1227,7 @@ export default class hitbtc extends Exchange {
         let response = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
-        params = this.omit (params, 'margin');
+        params = this.omit (params, [ 'marginMode', 'margin' ]);
         if (marginMode !== undefined) {
             response = await this.privateGetMarginHistoryTrade (this.extend (request, params));
         } else {
@@ -1819,17 +1819,24 @@ export default class hitbtc extends Exchange {
             request['limit'] = limit;
         }
         let marketType = undefined;
+        let marginMode = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateGetSpotHistoryOrder',
-            'swap': 'privateGetFuturesHistoryOrder',
-            'margin': 'privateGetMarginHistoryOrder',
-        });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchClosedOrders', params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchClosedOrders', params);
+        params = this.omit (params, [ 'marginMode', 'margin' ]);
+        let response = undefined;
         if (marginMode !== undefined) {
-            method = 'privateGetMarginHistoryOrder';
+            response = await this.privateGetMarginHistoryOrder (this.extend (request, params));
+        } else {
+            if (marketType === 'spot') {
+                response = await this.privateGetSpotHistoryOrder (this.extend (request, params));
+            } else if (marketType === 'swap') {
+                response = await this.privateGetFuturesHistoryOrder (this.extend (request, params));
+            } else if (marketType === 'margin') {
+                response = await this.privateGetMarginHistoryOrder (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' fetchClosedOrders() not support this market type');
+            }
         }
-        const response = await this[method] (this.extend (request, query));
         const parsed = this.parseOrders (response, market, since, limit);
         return this.filterByArray (parsed, 'status', [ 'closed', 'canceled' ], false) as Order[];
     }
