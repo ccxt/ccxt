@@ -1857,21 +1857,28 @@ export default class hitbtc extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateGetSpotHistoryOrder',
-            'swap': 'privateGetFuturesHistoryOrder',
-            'margin': 'privateGetMarginHistoryOrder',
-        });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', params);
-        if (marginMode !== undefined) {
-            method = 'privateGetMarginHistoryOrder';
-        }
         const request = {
             'client_order_id': id,
         };
-        const response = await this[method] (this.extend (request, query));
+        let marketType = undefined;
+        let marginMode = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
+        params = this.omit (params, [ 'marginMode', 'margin' ]);
+        let response = undefined;
+        if (marginMode !== undefined) {
+            response = await this.privateGetMarginHistoryOrder (this.extend (request, params));
+        } else {
+            if (marketType === 'spot') {
+                response = await this.privateGetSpotHistoryOrder (this.extend (request, params));
+            } else if (marketType === 'swap') {
+                response = await this.privateGetFuturesHistoryOrder (this.extend (request, params));
+            } else if (marketType === 'margin') {
+                response = await this.privateGetMarginHistoryOrder (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' fetchClosedOrders() not support this market type');
+            }
+        }
         //
         //     [
         //       {

@@ -139,6 +139,27 @@
                     "n-UcdSfwxO6eOiec86a5E0UV3WTe64DC",
                     "TRX/USDT"
                 ]
+            },
+            {
+                "description": "Fetch open order - swap",
+                "method": "fetchOrder",
+                "url": "https://api.hitbtc.com/api/3/futures/history/order?client_order_id=n-UcdSfwxO6eOiec86a5E0UV3WTe64DC",
+                "input": [
+                    "n-UcdSfwxO6eOiec86a5E0UV3WTe64DC",
+                    "TRX/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch open order - margin",
+                "method": "fetchOrder",
+                "url": "https://api.hitbtc.com/api/3/margin/history/order?client_order_id=n-UcdSfwxO6eOiec86a5E0UV3WTe64DC",
+                "input": [
+                    "n-UcdSfwxO6eOiec86a5E0UV3WTe64DC",
+                    null,
+                    {
+                        "margin": true
+                    }
+                ]
             }
         ],
         "fetchMyTrades": [
