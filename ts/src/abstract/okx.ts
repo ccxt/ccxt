@@ -73,6 +73,12 @@ interface Exchange {
     publicGetFinanceSavingsLendingRateSummary (params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateHistory (params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSfpDcdProducts (params?: {}): Promise<implicitReturnType>;
+    publicGetCopytradingPublicLeadTraders (params?: {}): Promise<implicitReturnType>;
+    publicGetCopytradingPublicWeeklyPnl (params?: {}): Promise<implicitReturnType>;
+    publicGetCopytradingPublicStats (params?: {}): Promise<implicitReturnType>;
+    publicGetCopytradingPublicPreferenceCurrency (params?: {}): Promise<implicitReturnType>;
+    publicGetCopytradingPublicCurrentSubpositions (params?: {}): Promise<implicitReturnType>;
+    publicGetCopytradingPublicSubpositionsHistory (params?: {}): Promise<implicitReturnType>;
     privateGetRfqCounterparties (params?: {}): Promise<implicitReturnType>;
     privateGetRfqMakerInstrumentSettings (params?: {}): Promise<implicitReturnType>;
     privateGetRfqRfqs (params?: {}): Promise<implicitReturnType>;
@@ -174,6 +180,10 @@ interface Exchange {
     privateGetCopytradingProfitSharingDetails (params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingTotalProfitSharing (params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingUnrealizedProfitSharingDetails (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingCopySettings (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingBatchLeverageInfo (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingCurrentLeadTraders (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingLeadTradersHistory (params?: {}): Promise<implicitReturnType>;
     privateGetBrokerNdInfo (params?: {}): Promise<implicitReturnType>;
     privateGetBrokerNdSubaccountInfo (params?: {}): Promise<implicitReturnType>;
     privateGetBrokerNdSubaccountApikey (params?: {}): Promise<implicitReturnType>;
@@ -267,6 +277,10 @@ interface Exchange {
     privatePostCopytradingAlgoOrder (params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingCloseSubposition (params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingSetInstruments (params?: {}): Promise<implicitReturnType>;
+    privatePostCopytradingFirstCopySettings (params?: {}): Promise<implicitReturnType>;
+    privatePostCopytradingAmendCopySettings (params?: {}): Promise<implicitReturnType>;
+    privatePostCopytradingStopCopyTrading (params?: {}): Promise<implicitReturnType>;
+    privatePostCopytradingBatchSetLeverage (params?: {}): Promise<implicitReturnType>;
     privatePostBrokerNdCreateSubaccount (params?: {}): Promise<implicitReturnType>;
     privatePostBrokerNdDeleteSubaccount (params?: {}): Promise<implicitReturnType>;
     privatePostBrokerNdSubaccountApikey (params?: {}): Promise<implicitReturnType>;

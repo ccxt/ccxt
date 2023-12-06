@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bingx.js';
-import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired } from './base/errors.js';
+import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -32,6 +32,11 @@ export default class bingx extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': true,
+                'closePosition': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
                 'fetchBalance': true,
@@ -80,10 +85,18 @@ export default class bingx extends Exchange {
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
                 'referral': 'https://bingx.com/invite/OHETOM',
-                'fees': {
-                    'trading': {
-                        'tierBased': true,
-                    },
+            },
+            'fees': {
+                'tierBased': true,
+                'spot': {
+                    'feeSide': 'get',
+                    'maker': this.parseNumber('0.001'),
+                    'taker': this.parseNumber('0.001'),
+                },
+                'swap': {
+                    'feeSide': 'quote',
+                    'maker': this.parseNumber('0.0002'),
+                    'taker': this.parseNumber('0.0005'),
                 },
             },
             'requiredCredentials': {
@@ -301,9 +314,6 @@ export default class bingx extends Exchange {
                 '3d': '3d',
                 '1w': '1w',
                 '1M': '1M',
-            },
-            'fees': {
-                'trading': {},
             },
             'precisionMode': DECIMAL_PLACES,
             'exceptions': {
@@ -556,11 +566,12 @@ export default class bingx extends Exchange {
         if (settle !== undefined) {
             symbol += ':' + settle;
         }
+        const fees = this.safeValue(this.fees, type, {});
         const contractSize = this.safeNumber(market, 'size');
         const isActive = this.safeString(market, 'status') === '1';
         const isInverse = (spot) ? undefined : false;
         const isLinear = (spot) ? undefined : swap;
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -579,8 +590,9 @@ export default class bingx extends Exchange {
             'contract': swap,
             'linear': isLinear,
             'inverse': isInverse,
-            'taker': undefined,
-            'maker': undefined,
+            'taker': this.safeNumber(fees, 'taker'),
+            'maker': this.safeNumber(fees, 'maker'),
+            'feeSide': this.safeString(fees, 'feeSide'),
             'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -610,7 +622,7 @@ export default class bingx extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     async fetchMarkets(params = {}) {
         /**
@@ -1576,23 +1588,28 @@ export default class bingx extends Exchange {
         //         "avgPrice": "2.2",
         //         "leverage": 10,
         //     }
+        //
         // standard position
+        //
         //     {
-        //         "currentPrice":"82.91",
-        //         "symbol":"LTC/USDT",
-        //         "initialMargin":"5.00000000000000000000",
-        //         "unrealizedProfit":"-0.26464500",
-        //         "leverage":"20.000000000",
-        //         "isolated":true,
-        //         "entryPrice":"83.13",
-        //         "positionSide":"LONG",
-        //         "positionAmt":"1.20365912",
+        //         "currentPrice": "82.91",
+        //         "symbol": "LTC/USDT",
+        //         "initialMargin": "5.00000000000000000000",
+        //         "unrealizedProfit": "-0.26464500",
+        //         "leverage": "20.000000000",
+        //         "isolated": true,
+        //         "entryPrice": "83.13",
+        //         "positionSide": "LONG",
+        //         "positionAmt": "1.20365912",
         //     }
         //
-        let marketId = this.safeString(position, 'symbol');
+        let marketId = this.safeString(position, 'symbol', '');
         marketId = marketId.replace('/', '-'); // standard return different format
         const isolated = this.safeValue(position, 'isolated');
-        const marginMode = isolated ? 'isolated' : 'cross';
+        let marginMode = undefined;
+        if (isolated !== undefined) {
+            marginMode = isolated ? 'isolated' : 'cross';
+        }
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'positionId'),
@@ -1623,6 +1640,46 @@ export default class bingx extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+    async createMarketOrderWithCost(symbol, side, cost, params = {}) {
+        /**
+         * @method
+         * @name bingx#createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params['quoteOrderQty'] = cost;
+        return await this.createOrder(symbol, 'market', side, cost, undefined, params);
+    }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name bingx#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params['quoteOrderQty'] = cost;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
+    async createMarketSellOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name bingx#createMarketSellOrderWithCost
+         * @description create a market sell order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params['quoteOrderQty'] = cost;
+        return await this.createOrder(symbol, 'market', 'sell', cost, undefined, params);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -1659,25 +1716,20 @@ export default class bingx extends Exchange {
             if (postOnly || (timeInForce === 'POC')) {
                 request['timeInForce'] = 'POC';
             }
-            const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
-            if (isMarketOrder && (side === 'buy')) {
-                if (createMarketBuyOrderRequiresPrice) {
-                    if (price === undefined) {
-                        throw new InvalidOrder(this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
-                    }
-                    else {
-                        const amountString = this.numberToString(amount);
-                        const priceString = this.numberToString(price);
-                        const cost = this.parseNumber(Precise.stringMul(amountString, priceString));
-                        request['quoteOrderQty'] = this.parseToNumeric(this.priceToPrecision(symbol, cost));
-                    }
-                }
-                else {
-                    request['quoteOrderQty'] = this.parseToNumeric(this.priceToPrecision(symbol, amount));
-                }
+            const cost = this.safeNumber2(params, 'cost', 'quoteOrderQty');
+            params = this.omit(params, 'cost');
+            if (cost !== undefined) {
+                request['quoteOrderQty'] = this.parseToNumeric(this.costToPrecision(symbol, cost));
             }
             else {
-                request['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                if (market['spot'] && isMarketOrder && (price !== undefined)) {
+                    // keep the legacy behavior, to avoid  breaking the old spot-market-buying code
+                    const calculatedCost = Precise.stringMul(this.numberToString(amount), this.numberToString(price));
+                    request['quoteOrderQty'] = this.parseToNumeric(calculatedCost);
+                }
+                else {
+                    request['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                }
             }
             if (!isMarketOrder) {
                 request['price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
@@ -1753,8 +1805,7 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#createOrder
          * @description create a trade order
-         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Create%20an%20Order
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Trade%20order
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1767,6 +1818,7 @@ export default class bingx extends Exchange {
          * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
          * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
          * @param {float} [params.takeProfitPrice] *swap only* take profit trigger price
+         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -3372,6 +3424,50 @@ export default class bingx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         });
+    }
+    async closeAllPositions(params = {}) {
+        /**
+         * @method
+         * @name bitget#closePositions
+         * @description closes open positions for a market
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#close-all-position
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.recvWindow] request valid time window value
+         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
+        const recvWindow = this.safeInteger(this.parseParams, 'recvWindow', defaultRecvWindow);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('closeAllPositions', undefined, params);
+        if (marketType === 'margin') {
+            throw new BadRequest(this.id + ' closePositions () cannot be used for ' + marketType + ' markets');
+        }
+        const request = {
+            'recvWindow': recvWindow,
+        };
+        const response = await this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, params));
+        //
+        //    {
+        //        "code": 0,
+        //        "msg": "",
+        //        "data": {
+        //            "success": [
+        //                1727686766700486656,
+        //                1727686767048613888
+        //            ],
+        //            "failed": null
+        //        }
+        //    }
+        //
+        const data = this.safeValue(response, 'data', {});
+        const success = this.safeValue(data, 'success', []);
+        const positions = [];
+        for (let i = 0; i < success.length; i++) {
+            const position = this.parsePosition({ 'positionId': success[i] });
+            positions.push(position);
+        }
+        return positions;
     }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = section[0];

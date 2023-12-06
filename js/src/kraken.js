@@ -196,6 +196,8 @@ export default class kraken extends Exchange {
                         'Withdraw': 3,
                         'WithdrawCancel': 3,
                         'WithdrawInfo': 3,
+                        'WithdrawMethods': 3,
+                        'WithdrawAddresses': 3,
                         'WithdrawStatus': 3,
                         'WalletTransfer': 3,
                         // sub accounts
@@ -325,6 +327,91 @@ export default class kraken extends Exchange {
                     'YFI': 'YFI',
                     'ZEC': 'Zcash (Transparent)',
                     'ZRX': '0x (ZRX)',
+                },
+                'withdrawMethods': {
+                    'Lightning': 'Lightning',
+                    'Bitcoin': 'BTC',
+                    'Ripple': 'XRP',
+                    'Litecoin': 'LTC',
+                    'Dogecoin': 'DOGE',
+                    'Stellar': 'XLM',
+                    'Ethereum': 'ERC20',
+                    'Arbitrum One': 'Arbitrum',
+                    'Polygon': 'MATIC',
+                    'Arbitrum Nova': 'Arbitrum',
+                    'Optimism': 'Optimism',
+                    'zkSync Era': 'zkSync',
+                    'Ethereum Classic': 'ETC',
+                    'Zcash': 'ZEC',
+                    'Monero': 'XMR',
+                    'Tron': 'TRC20',
+                    'Solana': 'SOL',
+                    'EOS': 'EOS',
+                    'Bitcoin Cash': 'BCH',
+                    'Cardano': 'ADA',
+                    'Qtum': 'QTUM',
+                    'Tezos': 'XTZ',
+                    'Cosmos': 'ATOM',
+                    'Nano': 'NANO',
+                    'Siacoin': 'SC',
+                    'Lisk': 'LSK',
+                    'Waves': 'WAVES',
+                    'ICON': 'ICX',
+                    'Algorand': 'ALGO',
+                    'Polygon - USDC.e': 'MATIC',
+                    'Arbitrum One - USDC.e': 'Arbitrum',
+                    'Polkadot': 'DOT',
+                    'Kava': 'KAVA',
+                    'Filecoin': 'FIL',
+                    'Kusama': 'KSM',
+                    'Flow': 'FLOW',
+                    'Energy Web': 'EW',
+                    'Mina': 'MINA',
+                    'Centrifuge': 'CFG',
+                    'Karura': 'KAR',
+                    'Moonriver': 'MOVR',
+                    'Shiden': 'SDN',
+                    'Khala': 'PHA',
+                    'Bifrost Kusama': 'BNC',
+                    'Songbird': 'SGB',
+                    'Terra classic': 'LUNC',
+                    'KILT': 'KILT',
+                    'Basilisk': 'BSX',
+                    'Flare': 'FLR',
+                    'Avalanche C-Chain': 'AVAX',
+                    'Kintsugi': 'KINT',
+                    'Altair': 'AIR',
+                    'Moonbeam': 'GLMR',
+                    'Acala': 'ACA',
+                    'Astar': 'ASTR',
+                    'Akash': 'AKT',
+                    'Robonomics': 'XRT',
+                    'Fantom': 'FTM',
+                    'Elrond': 'EGLD',
+                    'THORchain': 'RUNE',
+                    'Secret': 'SCRT',
+                    'Near': 'NEAR',
+                    'Internet Computer Protocol': 'ICP',
+                    'Picasso': 'PICA',
+                    'Crust Shadow': 'CSM',
+                    'Integritee': 'TEER',
+                    'Parallel Finance': 'PARA',
+                    'HydraDX': 'HDX',
+                    'Interlay': 'INTR',
+                    'Fetch.ai': 'FET',
+                    'NYM': 'NYM',
+                    'Terra 2.0': 'LUNA2',
+                    'Juno': 'JUNO',
+                    'Nodle': 'NODL',
+                    'Stacks': 'STX',
+                    'Ethereum PoW': 'ETHW',
+                    'Aptos': 'APT',
+                    'Sui': 'SUI',
+                    'Genshiro': 'GENS',
+                    'Aventus': 'AVT',
+                    'Sei': 'SEI',
+                    'OriginTrail': 'OTP',
+                    'Celestia': 'TIA',
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -2072,6 +2159,10 @@ export default class kraken extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
+    parseNetwork(network) {
+        const withdrawMethods = this.safeValue(this.options, 'withdrawMethods', {});
+        return this.safeString(withdrawMethods, network, network);
+    }
     parseTransaction(transaction, currency = undefined) {
         //
         // fetchDeposits
@@ -2122,6 +2213,8 @@ export default class kraken extends Exchange {
         //         "fee": "0.0050000000",
         //         "time":  1530481750,
         //         "status": "Success"
+        //         "key":"Huobi wallet",
+        //         "network":"Tron"
         //         status-prop: 'on-hold' // this field might not be present in some cases
         //     }
         //
@@ -2158,7 +2251,7 @@ export default class kraken extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': undefined,
+            'network': this.parseNetwork(this.safeString(transaction, 'network')),
             'address': address,
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -2262,19 +2355,28 @@ export default class kraken extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.end] End timestamp, withdrawals created strictly after will be not be included in the response
+         * @param {boolean} [params.paginate]  default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
-        // https://www.kraken.com/en-us/help/api#withdraw-status
-        if (code === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchWithdrawals() requires a currency code argument');
-        }
+        */
         await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
-            'asset': currency['id'],
-        };
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
+        if (paginate) {
+            params['cursor'] = true;
+            return await this.fetchPaginatedCallCursor('fetchWithdrawals', code, since, limit, params, 'next_cursor', 'cursor');
+        }
+        const request = {};
+        if (code !== undefined) {
+            const currency = this.currency(code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['since'] = since.toString();
+        }
         const response = await this.privatePostWithdrawStatus(this.extend(request, params));
         //
+        // with no pagination
         //     {  error: [],
         //       "result": [ { "method": "Ether",
         //                     "aclass": "currency",
@@ -2286,8 +2388,51 @@ export default class kraken extends Exchange {
         //                        "fee": "0.0050000000",
         //                       "time":  1530481750,
         //                     "status": "Success"                                                             } ] }
+        // with pagination
+        //    {
+        //        "error":[],
+        //        "result":{
+        //           "withdrawals":[
+        //              {
+        //                 "method":"Tether USD (TRC20)",
+        //                 "aclass":"currency",
+        //                 "asset":"USDT",
+        //                 "refid":"BSNFZU2-MEFN4G-J3NEZV",
+        //                 "txid":"1c7a642fb7387bbc2c6a2c509fd1ae146937f4cf793b4079a4f0715e3a02615a",
+        //                 "info":"TQmdxSuC16EhFg8FZWtYgrfFRosoRF7bCp",
+        //                 "amount":"1996.50000000",
+        //                 "fee":"2.50000000",
+        //                 "time":1669126657,
+        //                 "status":"Success",
+        //                 "key":"poloniex",
+        //                 "network":"Tron"
+        //              },
+        //             ...
+        //           ],
+        //           "next_cursor":"HgAAAAAAAABGVFRSd3k1LVF4Y0JQY05Gd0xRY0NxenFndHpybkwBAQH2AwEBAAAAAQAAAAAAAAABAAAAAAAZAAAAAAAAAA=="
+        //        }
+        //     }
         //
-        return this.parseTransactionsByType('withdrawal', response['result'], code, since, limit);
+        let rawWithdrawals = undefined;
+        const result = this.safeValue(response, 'result');
+        if (!Array.isArray(result)) {
+            rawWithdrawals = this.addPaginationCursorToResult(result);
+        }
+        else {
+            rawWithdrawals = result;
+        }
+        return this.parseTransactionsByType('withdrawal', rawWithdrawals, code, since, limit);
+    }
+    addPaginationCursorToResult(result) {
+        const cursor = this.safeString(result, 'next_cursor');
+        const data = this.safeValue(result, 'withdrawals');
+        const dataLength = data.length;
+        if (cursor !== undefined && dataLength > 0) {
+            const last = data[dataLength - 1];
+            last['next_cursor'] = cursor;
+            data[dataLength - 1] = last;
+        }
+        return data;
     }
     async createDepositAddress(code, params = {}) {
         /**

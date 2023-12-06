@@ -48,6 +48,8 @@ class idex(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,

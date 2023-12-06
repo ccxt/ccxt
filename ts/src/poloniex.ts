@@ -764,32 +764,34 @@ export default class poloniex extends Exchange {
             let withdrawAvailable = this.safeValue (result[code], 'withdraw');
             withdrawAvailable = (withdrawEnabled) ? withdrawEnabled : withdrawAvailable;
             const networks = this.safeValue (result[code], 'networks', {});
-            networks[networkCode] = {
-                'info': currency,
-                'id': networkId,
-                'network': networkCode,
-                'currencyId': id,
-                'numericId': numericId,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'active': active,
-                'fee': this.parseNumber (feeString),
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': currency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'currencyId': id,
+                    'numericId': numericId,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
+                    'active': active,
+                    'fee': this.parseNumber (feeString),
+                    'precision': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
             result[code]['networks'] = networks;
             const info = this.safeValue (result[code], 'info', []);
             const rawInfo = {};

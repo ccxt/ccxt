@@ -31,6 +31,8 @@ class bitopro extends bitopro$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,

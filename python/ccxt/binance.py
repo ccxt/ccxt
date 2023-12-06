@@ -59,6 +59,8 @@ class binance(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,  # contract only
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createOrders': True,
@@ -895,6 +897,7 @@ class binance(Exchange, ImplicitAPI):
                         'uiKlines': 0.4,
                         'ticker/24hr': {'cost': 0.4, 'noSymbol': 16},
                         'ticker': {'cost': 0.4, 'noSymbol': 16},
+                        'ticker/tradingDay': 0.8,
                         'ticker/price': {'cost': 0.4, 'noSymbol': 0.8},
                         'ticker/bookTicker': {'cost': 0.4, 'noSymbol': 0.8},
                         'exchangeInfo': 4,  # Weight(IP): 20 => cost = 0.2 * 20 = 4
@@ -923,6 +926,7 @@ class binance(Exchange, ImplicitAPI):
                         'rateLimit/order': 8,  # Weight(IP): 40 => cost = 0.2 * 40 = 8
                         'myPreventedMatches': 4,  # Weight(IP): 20 => cost = 0.2 * 20 = 4
                         'myAllocations': 4,
+                        'account/commission': 4,
                     },
                     'post': {
                         'order/oco': 0.2,

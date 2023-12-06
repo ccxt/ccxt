@@ -66,6 +66,7 @@ class gate(Exchange, ImplicitAPI):
                         'subAccounts': 'https://api.gateio.ws/api/v4',
                         'rebate': 'https://api.gateio.ws/api/v4',
                         'earn': 'https://api.gateio.ws/api/v4',
+                        'account': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -560,6 +561,7 @@ class gate(Exchange, ImplicitAPI):
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
+                '2h': '2h',
                 '4h': '4h',
                 '8h': '8h',
                 '1d': '1d',

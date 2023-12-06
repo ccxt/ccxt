@@ -38,6 +38,8 @@ class bitget extends bitget$1 {
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': false,
+                'closeAllPositions': true,
+                'closePosition': false,
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -5447,6 +5449,14 @@ class bitget extends bitget$1 {
         //       "utime": "1689300238205"
         //     }
         //
+        // closeAllPositions
+        //
+        //    {
+        //        "symbol": "XRPUSDT_UMCBL",
+        //        "orderId": "1111861847410757635",
+        //        "clientOid": "1111861847410757637"
+        //    }
+        //
         const marketId = this.safeString(position, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
@@ -6996,6 +7006,67 @@ class bitget extends bitget$1 {
             'datetime': this.iso8601(timestamp),
             'info': info,
         };
+    }
+    async closeAllPositions(params = {}) {
+        /**
+         * @method
+         * @name bitget#closePositions
+         * @description closes open positions for a market
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#close-all-position
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.subType] 'linear' or 'inverse'
+         * @param {string} [params.settle] *required and only valid when params.subType === "linear"* 'USDT' or 'USDC'
+         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        let subType = undefined;
+        let settle = undefined;
+        [subType, params] = this.handleSubTypeAndParams('closeAllPositions', undefined, params);
+        settle = this.safeString(params, 'settle', 'USDT');
+        params = this.omit(params, ['settle']);
+        const productType = this.safeString(params, 'productType');
+        const request = {};
+        if (productType === undefined) {
+            const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+            let localProductType = undefined;
+            if (subType === 'inverse') {
+                localProductType = 'dmcbl';
+            }
+            else {
+                if (settle === 'USDT') {
+                    localProductType = 'umcbl';
+                }
+                else if (settle === 'USDC') {
+                    localProductType = 'cmcbl';
+                }
+            }
+            if (sandboxMode) {
+                localProductType = 's' + localProductType;
+            }
+            request['productType'] = localProductType;
+        }
+        const response = await this.privateMixPostMixV1OrderCloseAllPositions(this.extend(request, params));
+        //
+        //    {
+        //        "code": "00000",
+        //        "msg": "success",
+        //        "requestTime": 1700814442466,
+        //        "data": {
+        //            "orderInfo": [
+        //                {
+        //                    "symbol": "XRPUSDT_UMCBL",
+        //                    "orderId": "1111861847410757635",
+        //                    "clientOid": "1111861847410757637"
+        //                },
+        //            ],
+        //            "failure": [],
+        //            "result": true
+        //        }
+        //    }
+        //
+        const data = this.safeValue(response, 'data', {});
+        const orderInfo = this.safeValue(data, 'orderInfo', []);
+        return this.parsePositions(orderInfo, undefined, params);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {

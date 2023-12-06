@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.72';
+$version = '4.1.77';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.72';
+    const VERSION = '4.1.77';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -456,7 +456,6 @@ class Exchange {
         'poloniex',
         'poloniexfutures',
         'probit',
-        'tidex',
         'timex',
         'tokocrypto',
         'upbit',
@@ -1374,17 +1373,17 @@ class Exchange {
         }
         // proxy agents
         [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
-        $this->checkConflictingProxies ($httpProxy || $httpsProxy || $socksProxy, $proxyUrl);
+        $this->check_conflicting_proxies($httpProxy || $httpsProxy || $socksProxy, $proxyUrl);
         $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
         // user-agent
         $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
         if ($userAgent) {
             if (gettype($userAgent) == 'string') {
                 curl_setopt($this->curl, CURLOPT_USERAGENT, $userAgent);
-                $headers = $this->extend(['User-Agent' => $userAgent], $headers);
+                $headers = array_merge(['User-Agent' => $userAgent], $headers);
             } elseif ((gettype($userAgent) == 'array') && array_key_exists('User-Agent', $userAgent)) {
                 curl_setopt($this->curl, CURLOPT_USERAGENT, $userAgent['User-Agent']);
-                $headers = $this->extend($userAgent, $headers);
+                $headers = array_merge($userAgent, $headers);
             }
         }
         // set final headers
@@ -4625,6 +4624,21 @@ class Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
+    public function create_market_order_with_cost(string $symbol, string $side, $cost, $params = array ()) {
+        /**
+         * create a market order by providing the $symbol, $side and $cost
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        if ($this->options['createMarketOrderWithCost'] || ($this->options['createMarketBuyOrderWithCost'] && $this->options['createMarketSellOrderWithCost'])) {
+            return $this->create_order($symbol, 'market', $side, $cost, 1, $params);
+        }
+        throw new NotSupported($this->id . ' createMarketOrderWithCost() is not supported yet');
+    }
+
     public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
         /**
          * create a market buy order by providing the $symbol and $cost
@@ -4633,17 +4647,23 @@ class Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
+        if ($this->options['createMarketBuyOrderRequiresPrice'] || $this->options['createMarketBuyOrderWithCost']) {
+            return $this->create_order($symbol, 'market', 'buy', $cost, 1, $params);
+        }
         throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() is not supported yet');
     }
 
     public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
         /**
-         * create a market buy order by providing the $symbol and $cost
+         * create a market sell order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
+        if ($this->options['createMarketSellOrderRequiresPrice'] || $this->options['createMarketSellOrderWithCost']) {
+            return $this->create_order($symbol, 'market', 'sell', $cost, 1, $params);
+        }
         throw new NotSupported($this->id . ' createMarketSellOrderWithCost() is not supported yet');
     }
 
@@ -4743,11 +4763,11 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchDepositsWithdrawals() is not supported yet');
     }
 
-    public function fetch_deposits(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDeposits() is not supported yet');
     }
 
-    public function fetch_withdrawals(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchWithdrawals() is not supported yet');
     }
 
@@ -4761,6 +4781,14 @@ class Exchange {
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchFundingHistory() is not supported yet');
+    }
+
+    public function close_position(string $symbol, ?string $side = null, ?string $marginMode = null, $params = array ()) {
+        throw new NotSupported($this->id . ' closePositions() is not supported yet');
+    }
+
+    public function close_all_positions($params = array ()) {
+        throw new NotSupported($this->id . ' closeAllPositions() is not supported yet');
     }
 
     public function parse_last_price($price, ?array $market = null) {
@@ -5786,6 +5814,10 @@ class Exchange {
                 if ($cursorValue === null) {
                     break;
                 }
+                $lastTimestamp = $this->safe_integer($last, 'timestamp');
+                if ($lastTimestamp !== null && $lastTimestamp < $since) {
+                    break;
+                }
             } catch (Exception $e) {
                 $errors += 1;
                 if ($errors > $maxRetries) {
@@ -5838,10 +5870,10 @@ class Exchange {
         $first = $this->safe_value($result, 0);
         if ($first !== null) {
             if (is_array($first) && array_key_exists('timestamp', $first)) {
-                return $this->sort_by($result, 'timestamp');
+                return $this->sort_by($result, 'timestamp', true);
             }
             if (is_array($first) && array_key_exists('id', $first)) {
-                return $this->sort_by($result, 'id');
+                return $this->sort_by($result, 'id', true);
             }
         }
         return $result;

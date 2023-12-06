@@ -32,6 +32,8 @@ class binance extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,  // contract only
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createOrders' => true,
@@ -868,6 +870,7 @@ class binance extends Exchange {
                         'uiKlines' => 0.4,
                         'ticker/24hr' => array( 'cost' => 0.4, 'noSymbol' => 16 ),
                         'ticker' => array( 'cost' => 0.4, 'noSymbol' => 16 ),
+                        'ticker/tradingDay' => 0.8,
                         'ticker/price' => array( 'cost' => 0.4, 'noSymbol' => 0.8 ),
                         'ticker/bookTicker' => array( 'cost' => 0.4, 'noSymbol' => 0.8 ),
                         'exchangeInfo' => 4, // Weight(IP) => 20 => cost = 0.2 * 20 = 4
@@ -896,6 +899,7 @@ class binance extends Exchange {
                         'rateLimit/order' => 8, // Weight(IP) => 40 => cost = 0.2 * 40 = 8
                         'myPreventedMatches' => 4, // Weight(IP) => 20 => cost = 0.2 * 20 = 4
                         'myAllocations' => 4,
+                        'account/commission' => 4,
                     ),
                     'post' => array(
                         'order/oco' => 0.2,

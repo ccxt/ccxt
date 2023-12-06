@@ -27,6 +27,8 @@ class yobit extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => true,
                 'createMarketOrder' => false,
                 'createOrder' => true,

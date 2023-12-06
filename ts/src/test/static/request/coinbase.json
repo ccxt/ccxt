@@ -73,6 +73,50 @@
                   }
                 ],
                 "output": "{\"client_order_id\":\"e5297ce3-a3da-4360-80aa-563602fe2bf1\",\"product_id\":\"ADA-USDT\",\"side\":\"BUY\",\"order_configuration\":{\"limit_limit_gtc\":{\"base_size\":\"10\",\"limit_price\":\"0.25\",\"post_only\":true}}}"
+            },
+            {
+                "description": "Spot market buy with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "BTC/USDC",
+                  "market",
+                  "buy",
+                  5,
+                  null,
+                  {
+                    "createMarketBuyOrderRequiresPrice": false
+                  }
+                ],
+                "output": "{\"client_order_id\":\"523b539c-f99a-477e-ae29-c63570221d9a\",\"product_id\":\"BTC-USDC\",\"side\":\"BUY\",\"order_configuration\":{\"market_market_ioc\":{\"quote_size\":\"5\"}}}"
+            },
+            {
+                "description": "Spot market buy using the cost param",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "BTC/USDC",
+                  "market",
+                  "buy",
+                  null,
+                  null,
+                  {
+                    "cost": 5
+                  }
+                ],
+                "output": "{\"client_order_id\":\"c6449e15-78c0-4ff8-a603-2047c131faa3\",\"product_id\":\"BTC-USDC\",\"side\":\"BUY\",\"order_configuration\":{\"market_market_ioc\":{\"quote_size\":\"5\"}}}"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "Spot market buy order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "BTC/USDC",
+                  5
+                ],
+                "output": "{\"client_order_id\":\"e5e5b341-360a-48d3-9a2a-dc8a9f529237\",\"product_id\":\"BTC-USDC\",\"side\":\"BUY\",\"order_configuration\":{\"market_market_ioc\":{\"quote_size\":\"5\"}}}"
             }
         ],
         "fetchBalance": [
