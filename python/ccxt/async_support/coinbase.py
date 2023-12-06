@@ -886,6 +886,9 @@ class coinbase(Exchange, ImplicitAPI):
         else:
             cost = costString
         feeCurrencyId = self.safe_string(feeObject, 'currency')
+        feeCost = self.safe_number(feeObject, 'amount', self.parse_number(v3FeeCost))
+        if (feeCurrencyId is None) and (market is not None) and (feeCost is not None):
+            feeCurrencyId = market['quote']
         datetime = self.safe_string_n(trade, ['created_at', 'trade_time', 'time'])
         side = self.safe_string_lower_2(trade, 'resource', 'side')
         takerOrMaker = self.safe_string_lower(trade, 'liquidity_indicator')
@@ -903,7 +906,7 @@ class coinbase(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': cost,
             'fee': {
-                'cost': self.safe_number(feeObject, 'amount', self.parse_number(v3FeeCost)),
+                'cost': feeCost,
                 'currency': self.safe_currency_code(feeCurrencyId),
             },
         })
@@ -2271,6 +2274,10 @@ class coinbase(Exchange, ImplicitAPI):
         else:
             amount = self.safe_string(marketIOC, 'base_size')
         datetime = self.safe_string(order, 'created_time')
+        totalFees = self.safe_string(order, 'total_fees')
+        currencyFee = None
+        if (totalFees is not None) and (market is not None):
+            currencyFee = market['quote']
         return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'order_id'),
@@ -2294,7 +2301,7 @@ class coinbase(Exchange, ImplicitAPI):
             'status': self.parse_order_status(self.safe_string(order, 'status')),
             'fee': {
                 'cost': self.safe_string(order, 'total_fees'),
-                'currency': None,
+                'currency': currencyFee,
             },
             'trades': None,
         }, market)

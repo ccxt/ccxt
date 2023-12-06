@@ -930,6 +930,10 @@ class coinbase extends Exchange {
             $cost = $costString;
         }
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
+        $feeCost = $this->safe_number($feeObject, 'amount', $this->parse_number($v3FeeCost));
+        if (($feeCurrencyId === null) && ($market !== null) && ($feeCost !== null)) {
+            $feeCurrencyId = $market['quote'];
+        }
         $datetime = $this->safe_string_n($trade, array( 'created_at', 'trade_time', 'time' ));
         $side = $this->safe_string_lower_2($trade, 'resource', 'side');
         $takerOrMaker = $this->safe_string_lower($trade, 'liquidity_indicator');
@@ -947,7 +951,7 @@ class coinbase extends Exchange {
             'amount' => $amountString,
             'cost' => $cost,
             'fee' => array(
-                'cost' => $this->safe_number($feeObject, 'amount', $this->parse_number($v3FeeCost)),
+                'cost' => $feeCost,
                 'currency' => $this->safe_currency_code($feeCurrencyId),
             ),
         ));
@@ -2422,6 +2426,11 @@ class coinbase extends Exchange {
             $amount = $this->safe_string($marketIOC, 'base_size');
         }
         $datetime = $this->safe_string($order, 'created_time');
+        $totalFees = $this->safe_string($order, 'total_fees');
+        $currencyFee = null;
+        if (($totalFees !== null) && ($market !== null)) {
+            $currencyFee = $market['quote'];
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'order_id'),
@@ -2445,7 +2454,7 @@ class coinbase extends Exchange {
             'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'fee' => array(
                 'cost' => $this->safe_string($order, 'total_fees'),
-                'currency' => null,
+                'currency' => $currencyFee,
             ),
             'trades' => null,
         ), $market);

@@ -1375,7 +1375,8 @@ class bingx extends bingx$1 {
         const close = this.safeString(ticker, 'lastPrice');
         const quoteVolume = this.safeString(ticker, 'quoteVolume');
         const baseVolume = this.safeString(ticker, 'volume');
-        const percentage = this.safeString(ticker, 'priceChangePercent');
+        let percentage = this.safeString(ticker, 'priceChangePercent', ''); // priceChangePercent: '5.66%',
+        percentage = percentage.replace('%', '');
         const ts = this.safeInteger(ticker, 'closeTime');
         const datetime = this.iso8601(ts);
         const bid = this.safeString(ticker, 'bidPrice');

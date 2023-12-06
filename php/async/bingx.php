@@ -1403,7 +1403,8 @@ class bingx extends Exchange {
         $close = $this->safe_string($ticker, 'lastPrice');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         $baseVolume = $this->safe_string($ticker, 'volume');
-        $percentage = $this->safe_string($ticker, 'priceChangePercent');
+        $percentage = $this->safe_string($ticker, 'priceChangePercent', ''); // priceChangePercent => '5.66%',
+        $percentage = str_replace('%', '', $percentage);
         $ts = $this->safe_integer($ticker, 'closeTime');
         $datetime = $this->iso8601($ts);
         $bid = $this->safe_string($ticker, 'bidPrice');

@@ -4753,17 +4753,11 @@ class coinex extends Exchange {
     }
 
     public function fetch_isolated_borrow_rates($params = array ()) {
-        //
-        // @method
-        // @name coinex#fetchIsolatedBorrowRates
-        // @description fetch the borrow interest $rates of all currencies
-        // @param {object} [$params] extra parameters specific to the exchange API endpoint
-        // <<<<<<< HEAD
-        // @returns {object} a list of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~
-        // =======
-        // @returns {object} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure isolated borrow rate structures}
-        // >>>>>>> 3215552206edf1cda1ae63d2063535e19973dbe5
-        //
+        /**
+         * fetch the borrow interest $rates of all currencies
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure isolated borrow rate structures}
+         */
         $this->load_markets();
         $response = $this->privateGetMarginConfig ($params);
         //

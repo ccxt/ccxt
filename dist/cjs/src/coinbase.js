@@ -907,7 +907,11 @@ class coinbase extends coinbase$1 {
         else {
             cost = costString;
         }
-        const feeCurrencyId = this.safeString(feeObject, 'currency');
+        let feeCurrencyId = this.safeString(feeObject, 'currency');
+        const feeCost = this.safeNumber(feeObject, 'amount', this.parseNumber(v3FeeCost));
+        if ((feeCurrencyId === undefined) && (market !== undefined) && (feeCost !== undefined)) {
+            feeCurrencyId = market['quote'];
+        }
         const datetime = this.safeStringN(trade, ['created_at', 'trade_time', 'time']);
         const side = this.safeStringLower2(trade, 'resource', 'side');
         const takerOrMaker = this.safeStringLower(trade, 'liquidity_indicator');
@@ -925,7 +929,7 @@ class coinbase extends coinbase$1 {
             'amount': amountString,
             'cost': cost,
             'fee': {
-                'cost': this.safeNumber(feeObject, 'amount', this.parseNumber(v3FeeCost)),
+                'cost': feeCost,
                 'currency': this.safeCurrencyCode(feeCurrencyId),
             },
         });
@@ -2375,6 +2379,11 @@ class coinbase extends coinbase$1 {
             amount = this.safeString(marketIOC, 'base_size');
         }
         const datetime = this.safeString(order, 'created_time');
+        const totalFees = this.safeString(order, 'total_fees');
+        let currencyFee = undefined;
+        if ((totalFees !== undefined) && (market !== undefined)) {
+            currencyFee = market['quote'];
+        }
         return this.safeOrder({
             'info': order,
             'id': this.safeString(order, 'order_id'),
@@ -2398,7 +2407,7 @@ class coinbase extends coinbase$1 {
             'status': this.parseOrderStatus(this.safeString(order, 'status')),
             'fee': {
                 'cost': this.safeString(order, 'total_fees'),
-                'currency': undefined,
+                'currency': currencyFee,
             },
             'trades': undefined,
         }, market);
