@@ -13,7 +13,7 @@ import Client from '../base/ws/Client.js';
 /**
  * @class bitget
  * @extends Exchange
- * @description watching delivery future markets is not yet implemented (perpertual future / swap is implemented)
+ * @description watching delivery future markets is not yet implemented (perpetual future / swap is implemented)
  */
 
 export default class bitget extends bitgetRest {
@@ -43,7 +43,10 @@ export default class bitget extends bitgetRest {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws.bitget.com/spot/v1/stream',
+                    'ws': {
+                        'public': 'wss://ws.bitget.com/v2/ws/public',
+                        'private': 'wss://ws.bitget.com/v2/ws/private',
+                    },
                 },
             },
             'options': {
@@ -88,48 +91,6 @@ export default class bitget extends bitgetRest {
         });
     }
 
-    getWsMarketId (market) {
-        // WS don't use the same 'id'
-        // as the rest version
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
-        if (market['spot']) {
-            return market['info']['symbolName'];
-        } else {
-            if (!sandboxMode) {
-                return market['id'].replace ('_UMCBL', '').replace ('_DMCBL', '').replace ('_CMCBL', '');
-            } else {
-                return market['id'].replace ('_SUMCBL', '').replace ('_SDMCBL', '').replace ('_SCMCBL', '');
-            }
-        }
-    }
-
-    getMarketIdFromArg (arg) {
-        //
-        // { arg: { instType: 'sp', channel: "ticker", instId: "BTCUSDT" }
-        //
-        const instType = this.safeString (arg, 'instType');
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
-        let marketId = this.safeString (arg, 'instId');
-        if (instType === 'sp') {
-            marketId = marketId + '_SPBL';
-        } else {
-            let extension = sandboxMode ? '_S' : '_';
-            const splitByUSDT = marketId.split ('USDT');
-            const splitByPERP = marketId.split ('PERP');
-            const splitByUSDTLength = splitByUSDT.length;
-            const splitByPERPLength = splitByPERP.length;
-            if (splitByUSDTLength > 1) {
-                extension += 'UMCBL';
-            } else if (splitByPERPLength > 1) {
-                extension += 'CMCBL';
-            } else {
-                extension += 'DMCBL';
-            }
-            marketId = marketId + extension;
-        }
-        return marketId;
-    }
-
     async watchTicker (symbol: string, params = {}) {
         /**
          * @method
@@ -147,7 +108,7 @@ export default class bitget extends bitgetRest {
         const args = {
             'instType': instType,
             'channel': 'ticker',
-            'instId': this.getWsMarketId (market),
+            'instId': market['id'],
         };
         return await this.watchPublic (messageHash, args, params);
     }
@@ -174,7 +135,7 @@ export default class bitget extends bitgetRest {
             const args = {
                 'instType': instType,
                 'channel': 'ticker',
-                'instId': this.getWsMarketId (marketInner),
+                'instId': marketInner['id'],
             };
             topics.push (args);
         }
@@ -283,7 +244,7 @@ export default class bitget extends bitgetRest {
         const data = this.safeValue (message, 'data', []);
         const ticker = this.safeValue (data, 0, {});
         const timestamp = this.safeInteger2 (ticker, 'ts', 'systemTime');
-        const marketId = this.getMarketIdFromArg (arg);
+        const marketId = this.safeString (arg, 'instId');
         market = this.safeMarket (marketId, market);
         const close = this.safeString (ticker, 'last');
         const open = this.safeString (ticker, 'open24h');
@@ -339,7 +300,7 @@ export default class bitget extends bitgetRest {
         const args = {
             'instType': instType,
             'channel': 'candle' + interval,
-            'instId': this.getWsMarketId (market),
+            'instId': market['id'],
         };
         const ohlcv = await this.watchPublic (messageHash, args, params);
         if (this.newUpdates) {
@@ -372,7 +333,7 @@ export default class bitget extends bitgetRest {
             const args = {
                 'instType': instType,
                 'channel': 'candle' + interval,
-                'instId': this.getWsMarketId (market),
+                'instId': market['id'],
             };
             topics.push (args);
             hashes.push (currentSymbol + '#' + currentSymbol);
@@ -416,7 +377,7 @@ export default class bitget extends bitgetRest {
         //   }
         //
         const arg = this.safeValue (message, 'arg', {});
-        const marketId = this.getMarketIdFromArg (arg);
+        const marketId = this.safeString (arg, 'instId');
         const channel = this.safeString (arg, 'channel');
         const interval = channel.replace ('candle', '');
         const timeframes = this.safeValue (this.options, 'timeframes');
@@ -485,7 +446,7 @@ export default class bitget extends bitgetRest {
         const args = {
             'instType': instType,
             'channel': channel,
-            'instId': this.getWsMarketId (market),
+            'instId': market['id'],
         };
         const orderbook = await this.watchPublic (messageHash, args, params);
         if (incrementalFeed) {
@@ -520,7 +481,7 @@ export default class bitget extends bitgetRest {
             const args = {
                 'instType': instType,
                 'channel': channel,
-                'instId': this.getWsMarketId (market),
+                'instId': market['id'],
             };
             topics.push (args);
         }
@@ -565,7 +526,7 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeValue (message, 'arg');
         const channel = this.safeString (arg, 'channel');
-        const marketId = this.getMarketIdFromArg (arg);
+        const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
@@ -655,7 +616,7 @@ export default class bitget extends bitgetRest {
         const args = {
             'instType': instType,
             'channel': 'trade',
-            'instId': this.getWsMarketId (market),
+            'instId': market['id'],
         };
         const trades = await this.watchPublic (messageHash, args, params);
         if (this.newUpdates) {
@@ -688,7 +649,7 @@ export default class bitget extends bitgetRest {
             const args = {
                 'instType': instType,
                 'channel': 'trade',
-                'instId': this.getWsMarketId (market),
+                'instId': market['id'],
             };
             topics.push (args);
         }
@@ -720,7 +681,7 @@ export default class bitget extends bitgetRest {
         //    }
         //
         const arg = this.safeValue (message, 'arg', {});
-        const marketId = this.getMarketIdFromArg (arg);
+        const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         let stored = this.safeValue (this.trades, symbol);
@@ -1518,7 +1479,7 @@ export default class bitget extends bitgetRest {
     }
 
     async watchPublic (messageHash, args, params = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['public'];
         const request = {
             'op': 'subscribe',
             'args': [ args ],
@@ -1528,7 +1489,7 @@ export default class bitget extends bitgetRest {
     }
 
     async watchPublicMultiple (messageHash, argsArray, params = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['public'];
         const request = {
             'op': 'subscribe',
             'args': argsArray,
@@ -1539,7 +1500,7 @@ export default class bitget extends bitgetRest {
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
         const messageHash = 'authenticated';
         const future = client.future (messageHash);
@@ -1568,7 +1529,7 @@ export default class bitget extends bitgetRest {
 
     async watchPrivate (messageHash, subscriptionHash, args, params = {}) {
         await this.authenticate ();
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['private'];
         const request = {
             'op': 'subscribe',
             'args': [ args ],
