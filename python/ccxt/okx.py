@@ -4957,7 +4957,7 @@ class okx(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market=None):
+    def parse_market_leverage_tiers(self, info, market):
         """
          * @ignore
         :param dict info: Exchange response for 1 market
@@ -4982,13 +4982,19 @@ class okx(Exchange):
         #    ]
         #
         tiers = []
+        contractSize = str(self.safe_value(market, 'contractSize'))
         for i in range(0, len(info)):
             tier = info[i]
+            min_size = self.safe_number(tier, 'minSz')
+            max_size = self.safe_number(tier, 'maxSz')
+            if market['linear']:
+                min_size = float(Precise.string_mul(str(min_size), contractSize))
+                max_size = float(Precise.string_mul(str(max_size), contractSize))
             tiers.append({
                 'tier': self.safe_integer(tier, 'tier'),
                 'currency': market['quote'],
-                'minNotional': self.safe_number(tier, 'minSz'),
-                'maxNotional': self.safe_number(tier, 'maxSz'),
+                'minNotional': min_size,
+                'maxNotional': max_size,
                 'maintenanceMarginRate': self.safe_number(tier, 'mmr'),
                 'maxLeverage': self.safe_number(tier, 'maxLever'),
                 'info': tier,

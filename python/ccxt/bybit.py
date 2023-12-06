@@ -4652,7 +4652,7 @@ class bybit(Exchange):
         permissions = list()
         allow_all = type(ips) == list and "*" in ips
         unified_margin = self.safe_integer(result, 'unified') == 1
-        unifed_account = self.safe_integer(result, 'uta') == 1
+        unified_account = self.safe_integer(result, 'uta') == 1
         if not read_only:
             permissions = self.extract_trading_permissions(PERMISSION_TO_VALUE, response=exchange_permissions)
         return {
@@ -4660,7 +4660,7 @@ class bybit(Exchange):
             "expiration": self.parse8601(self.safe_string(result, "expiredAt")),
             "permissions": permissions,
             "ip_restrict": not allow_all,
-            'unified_account': unifed_account,
+            'unified_account': unified_account,
             'unified_margin': unified_margin,
             'read_only': read_only
         }
