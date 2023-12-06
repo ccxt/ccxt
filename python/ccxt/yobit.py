@@ -41,6 +41,8 @@ class yobit(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': True,
                 'createMarketOrder': False,
                 'createOrder': True,

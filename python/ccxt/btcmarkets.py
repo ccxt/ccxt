@@ -38,6 +38,8 @@ class btcmarkets(Exchange, ImplicitAPI):
                 'addMargin': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,

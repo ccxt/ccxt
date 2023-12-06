@@ -534,14 +534,16 @@ export default class Exchange {
                 'cancelOrders': undefined,
                 'cancelOrdersWs': undefined,
                 'cancelOrderWs': undefined,
+                'closeAllPositions': undefined,
+                'closePosition': undefined,
                 'CORS': undefined,
                 'createDepositAddress': undefined,
                 'createLimitOrder': true,
-                'createMarketOrder': true,
-                'createOrder': true,
                 'createMarketBuyOrderWithCost': undefined,
+                'createMarketOrder': true,
                 'createMarketOrderWithCost': undefined,
                 'createMarketSellOrderWithCost': undefined,
+                'createOrder': true,
                 'createOrders': undefined,
                 'createOrderWs': undefined,
                 'createPostOnlyOrder': undefined,
@@ -4184,6 +4186,14 @@ export default class Exchange {
 
     async fetchFundingHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingHistory[]> {
         throw new NotSupported (this.id + ' fetchFundingHistory() is not supported yet');
+    }
+
+    async closePosition (symbol: string, side: OrderSide = undefined, marginMode: string = undefined, params = {}): Promise<Position> {
+        throw new NotSupported (this.id + ' closePositions() is not supported yet');
+    }
+
+    async closeAllPositions (params = {}): Promise<Position[]> {
+        throw new NotSupported (this.id + ' closeAllPositions() is not supported yet');
     }
 
     parseLastPrice (price, market: Market = undefined): any {

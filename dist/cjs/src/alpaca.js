@@ -47,6 +47,8 @@ class alpaca extends alpaca$1 {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,

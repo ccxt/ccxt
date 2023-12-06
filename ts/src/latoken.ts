@@ -30,6 +30,8 @@ export default class latoken extends Exchange {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createStopLimitOrder': true,

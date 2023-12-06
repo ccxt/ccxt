@@ -42,6 +42,8 @@ class latoken(Exchange, ImplicitAPI):
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createOrder': True,
                 'createPostOnlyOrder': False,
                 'createStopLimitOrder': True,
