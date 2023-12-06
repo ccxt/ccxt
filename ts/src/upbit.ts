@@ -1734,6 +1734,7 @@ export default class upbit extends Exchange {
         /**
          * @method
          * @name upbit#withdraw
+         * @see https://docs.upbit.com/reference/디지털자산-출금하기
          * @see https://docs.upbit.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0
          * @description make a withdrawal
          * @param {string} code unified currency code
@@ -1744,7 +1745,6 @@ export default class upbit extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1752,6 +1752,7 @@ export default class upbit extends Exchange {
         };
         let response = undefined;
         if (code !== 'KRW') {
+            this.checkAddress (address);
             // 2023-05-23 Change to required parameters for digital assets
             const network = this.safeStringUpper2 (params, 'network', 'net_type');
             if (network === undefined) {
