@@ -30,7 +30,7 @@ function test_trade($exchange, $skipped_properties, $method, $entry, $symbol, $n
     // removed side because some public endpoints return trades without side
     $empty_allowed_for = ['fees', 'fee', 'symbol', 'order', 'id', 'takerOrMaker', 'timestamp', 'datetime'];
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
-    assert_timestamp($exchange, $skipped_properties, $method, $entry, $now);
+    assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now);
     assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
     //
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'side', ['buy', 'sell']);

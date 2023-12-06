@@ -1,4 +1,4 @@
-import { RequestTimeout, NetworkError ,NotSupported, BaseError } from '../../base/errors.js';
+import { RequestTimeout, NetworkError, NotSupported, BaseError } from '../../base/errors.js';
 import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
 import { Future, createFuture } from './Future.js';
 
@@ -12,30 +12,55 @@ import { utf8 } from '../../static_dependencies/scure-base/index.js';
 
 export default class Client {
     connected: Promise<any>
+
     disconnected: Future
+
     futures: {}
+
     rejections: {}
+
     keepAlive: number
+
     connection: any
+
     connectionTimeout: any
+
     verbose: boolean
+
     connectionTimer: any
+
     lastPong: any
+
     maxPingPongMisses: any
+
     pingInterval: any
+
     connectionEstablished: any
+
     gunzip: any
+
     error: any
+
     inflate: any
+
     url: string
+
     isConnected: any
+
     onConnectedCallback: any
+
     onMessageCallback: any
+
     onErrorCallback: any
+
     onCloseCallback: any
+
     ping: any
+
     subscriptions: {}
+
     throttle: any
+
     constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         const defaults = {
             url,
@@ -238,6 +263,7 @@ export default class Client {
         this.onErrorCallback (this, this.error)
     }
 
+    /* eslint-disable no-shadow */
     onClose (event) {
         if (this.verbose) {
             this.log (new Date (), 'onClose', event)
@@ -267,6 +293,7 @@ export default class Client {
         message = (typeof message === 'string') ? message : JSON.stringify (message)
         const future = createFuture ()
         if (isNode) {
+            /* eslint-disable no-inner-declarations */
             function onSendComplete (error) {
                 if (error) {
                     future.reject (error)
@@ -292,21 +319,18 @@ export default class Client {
 
         let message : Buffer | string = messageEvent.data
         let arrayBuffer : Uint8Array
-        if (this.gunzip || this.inflate) {
-            if (typeof message === 'string') {
-                arrayBuffer = utf8.decode (message)
-            } else {
-                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
-            }
-            if (this.gunzip) {
-                arrayBuffer = gunzipSync (arrayBuffer)
-            } else if (this.inflate) {
-                arrayBuffer = inflateSync (arrayBuffer)
-            }
-            message = utf8.encode (arrayBuffer)
-        }
         if (typeof message !== 'string') {
-            message = message.toString ()
+            if (this.gunzip || this.inflate) {
+                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
+                if (this.gunzip) {
+                    arrayBuffer = gunzipSync (arrayBuffer)
+                } else if (this.inflate) {
+                    arrayBuffer = inflateSync (arrayBuffer)
+                }
+                message = utf8.encode (arrayBuffer)
+            } else {
+                message = message.toString ()
+            }
         }
         try {
             if (isJsonEncodedObject (message)) {

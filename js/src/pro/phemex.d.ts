@@ -1,5 +1,5 @@
 import phemexRest from '../phemex.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class phemex extends phemexRest {
     describe(): any;
@@ -64,9 +64,9 @@ export default class phemex extends phemexRest {
     handleDelta(bookside: any, delta: any, market?: any): void;
     handleDeltas(bookside: any, deltas: any, market?: any): void;
     handleOrderBook(client: Client, message: any): void;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleMyTrades(client: Client, message: any): void;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): void;
     parseWSSwapOrder(order: any, market?: any): import("../base/types.js").Order;
     handleMessage(client: Client, message: any): any;

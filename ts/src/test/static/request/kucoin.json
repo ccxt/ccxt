@@ -1,0 +1,168 @@
+{
+    "exchange": "kucoin",
+    "skipKeys": [
+        "clientOid"
+    ],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "Spot market buy order",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v1/orders",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    0.1
+                ],
+                "output": "{\"clientOid\":\"c2a0ba35-2315-4434-a779-eae247832be7\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"size\":\"0.1\"}"
+            },
+            {
+                "description": "Spot market sell",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v1/orders",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "sell",
+                    0.1
+                ],
+                "output": "{\"clientOid\":\"8296d75d-4447-4a23-bf7c-a62bee87b081\",\"side\":\"sell\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"size\":\"0.1\"}"
+            },
+            {
+                "description": "Spot order with trigger price",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v1/stop-order",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  55,
+                  {
+                    "triggerPrice": 60
+                  }
+                ],
+                "output": "{\"clientOid\":\"7417761e-9fa9-4030-8863-66fba6487b24\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"limit\",\"size\":\"0.1\",\"price\":\"55\",\"stopPrice\":\"60\"}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.kucoin.com/api/v1/orders?status=active&symbol=LTC-USDT&tradeType=TRADE",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Spot closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.kucoin.com/api/v1/orders?status=done&symbol=LTC-USDT&tradeType=TRADE",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel spot orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.kucoin.com/api/v1/orders?symbol=LTC-USDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Canceling stop order",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v1/stop-order/vs8lgpan88t0q73m003j7m81",
+                "input": [
+                  "vs8lgpan88t0q73m003j7m81",
+                  "LTC/USDT",
+                  {
+                    "stop": true
+                  }
+                ]
+            },
+            {
+                "description": "Canceling regular order",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v1/orders/6556088034d111000738f7b8",
+                "input": [
+                  "6556088034d111000738f7b8",
+                  "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Canceling order by clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v1/order/client-order/myorderid",
+                "input": [
+                  "random",
+                  "LTC/USDT",
+                  {
+                    "clientOrderId": "myorderid"
+                  }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/v1/accounts?type=trade",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.kucoin.com/api/v1/deposits",
+                "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.kucoin.com/api/v1/withdrawals",
+                "input": []
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://api.kucoin.com/api/v2/accounts/inner-transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "swap"
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"from\":\"trade\",\"to\":\"contract\",\"clientOid\":\"eac5ee3a-c116-4109-9a47-29c4b1aa6567\"}"
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch USDT ledger",
+                "method": "fetchLedger",
+                "url": "https://api.kucoin.com/api/v1/accounts/ledgers?currency=USDT",
+                "input": [
+                    "USDT"
+                ]
+            }
+        ]
+    }
+}

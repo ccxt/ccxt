@@ -11,6 +11,8 @@ error_hierarchy = {
             'BadRequest': {
                 'BadSymbol': {},
                 'MarginModeAlreadySet': {},
+                'NoChange': {},
+                'OperationRejected': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -30,15 +32,17 @@ error_hierarchy = {
             },
             'NotSupported': {},
         },
-        'NetworkError': {
-            'DDoSProtection': {
-                'RateLimitExceeded': {},
+        'OperationFailed': {
+            'NetworkError': {
+                'DDoSProtection': {
+                    'RateLimitExceeded': {},
+                },
+                'ExchangeNotAvailable': {
+                    'OnMaintenance': {},
+                },
+                'InvalidNonce': {},
+                'RequestTimeout': {},
             },
-            'ExchangeNotAvailable': {
-                'OnMaintenance': {},
-            },
-            'InvalidNonce': {},
-            'RequestTimeout': {},
         },
     },
 }
@@ -81,6 +85,14 @@ class BadSymbol(BadRequest):
 
 
 class MarginModeAlreadySet(BadRequest):
+    pass
+
+
+class NoChange(BadRequest):
+    pass
+
+
+class OperationRejected(BadRequest):
     pass
 
 
@@ -140,7 +152,11 @@ class NotSupported(ExchangeError):
     pass
 
 
-class NetworkError(BaseError):
+class OperationFailed(BaseError):
+    pass
+
+
+class NetworkError(OperationFailed):
     pass
 
 
@@ -180,6 +196,8 @@ __all__ = [
     'BadRequest',
     'BadSymbol',
     'MarginModeAlreadySet',
+    'NoChange',
+    'OperationRejected',
     'BadResponse',
     'NullResponse',
     'InsufficientFunds',
@@ -194,6 +212,7 @@ __all__ = [
     'DuplicateOrderId',
     'ContractUnavailable',
     'NotSupported',
+    'OperationFailed',
     'NetworkError',
     'DDoSProtection',
     'RateLimitExceeded',

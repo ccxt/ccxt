@@ -1,5 +1,5 @@
 import idexRest from '../idex.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class idex extends idexRest {
     describe(): any;
@@ -20,9 +20,9 @@ export default class idex extends idexRest {
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     authenticate(params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
-    watchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchTransactions(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTransaction(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
 }

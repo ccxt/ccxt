@@ -21,7 +21,7 @@ function testOrderBook (exchange, skippedProperties, method, entry, symbol) {
     };
     const emptyAllowedFor = [ 'symbol', 'nonce', 'datetime', 'timestamp' ]; // todo: make timestamp required
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry);
+    testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //

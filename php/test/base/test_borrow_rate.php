@@ -20,7 +20,7 @@ function test_borrow_rate($exchange, $skipped_properties, $method, $entry, $requ
         'period' => 86400000,
     );
     assert_structure($exchange, $skipped_properties, $method, $entry, $format);
-    assert_timestamp($exchange, $skipped_properties, $method, $entry);
+    assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry);
     assert_currency_code($exchange, $skipped_properties, $method, $entry, $entry['currency'], $requested_code);
     //
     // assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) // Milliseconds in an hour or a day

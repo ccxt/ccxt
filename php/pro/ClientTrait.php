@@ -5,6 +5,7 @@ namespace ccxt\pro;
 use ccxt\async\Throttler;
 use ccxt\BaseError;
 use ccxt\ExchangeError;
+use Exception;
 use React\Async;
 use React\EventLoop\Loop;
 
@@ -83,8 +84,19 @@ trait ClientTrait {
         });
     }
 
+    private function checkProxyClient($client, $url) {
+        [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_ws_proxy_settings();
+        $connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
+        if ($connector) {
+            $client->set_ws_connector($connector);
+        } else {
+            $client->set_ws_connector($client->default_connector);
+        }
+    }
+
     public function watch($url, $message_hash, $message = null, $subscribe_hash = null, $subscription = null) {
         $client = $this->client($url);
+        $this->checkProxyClient($client, $url);
         // todo: calculate the backoff delay in php
         $backoff_delay = 0; // milliseconds
         if (($subscribe_hash == null) && array_key_exists($message_hash, $client->futures)) {
@@ -98,7 +110,7 @@ trait ClientTrait {
         $connected = $client->connect($backoff_delay);
         if (!$subscribed) {
             $connected->then(
-                function($result) use ($client, $message_hash, $message, $subscribe_hash, $subscription, $subscribed) {
+                function($result) use ($client, $message, $message_hash, $subscribe_hash) {
                     // todo: add PHP async rate-limiting
                     // todo: decouple signing from subscriptions
                     $options = $this->safe_value($this->options, 'ws');
@@ -108,17 +120,27 @@ trait ClientTrait {
                             // add cost here |
                             //               |
                             //               V
-                            \call_user_func($client->throttle, $cost)->then(function ($result) use ($client, $message) {
-                                Async\await($client->send($message));
+                            \call_user_func($client->throttle, $cost)->then(function ($result) use ($client, $message, $message_hash, $subscribe_hash) {
+                                try {
+                                    Async\await($client->send($message));
+                                } catch (Exception $error) {
+                                    $client->reject($error, $message_hash);
+                                    unset($client->subscriptions[$subscribe_hash]);
+                                }
                             });
                         } else {
-                            Async\await($client->send($message));
+                            try {
+                                Async\await($client->send($message));
+                            } catch (Exception $error) {
+                                $client->reject($error, $message_hash);
+                                unset($client->subscriptions[$subscribe_hash]);
+                            }
                         }
                     }
                 },
-                function($error) use ($client, $subscribe_hash) {
+                function($error) use ($client, $subscribe_hash, $message_hash) {
+                    $client->reject($error, $message_hash);
                     unset($client->subscriptions[$subscribe_hash]);
-                    throw new ExchangeError($error);
                 }
             );
         }

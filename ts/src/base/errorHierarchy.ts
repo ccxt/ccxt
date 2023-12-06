@@ -11,6 +11,8 @@ const errorHierarchy = {
             'BadRequest': {
                 'BadSymbol': {},
                 'MarginModeAlreadySet': {},
+                'NoChange': {},
+                'OperationRejected': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -30,15 +32,17 @@ const errorHierarchy = {
             },
             'NotSupported': {},
         },
-        'NetworkError': {
-            'DDoSProtection': {
-                'RateLimitExceeded': {},
+        'OperationFailed': {
+            'NetworkError': {
+                'DDoSProtection': {
+                    'RateLimitExceeded': {},
+                },
+                'ExchangeNotAvailable': {
+                    'OnMaintenance': {},
+                },
+                'InvalidNonce': {},
+                'RequestTimeout': {},
             },
-            'ExchangeNotAvailable': {
-                'OnMaintenance': {},
-            },
-            'InvalidNonce': {},
-            'RequestTimeout': {},
         },
     },
 };

@@ -14,6 +14,7 @@ use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class coinsph extends Exchange {
 
@@ -38,6 +39,8 @@ class coinsph extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => false,
@@ -51,14 +54,13 @@ class coinsph extends Exchange {
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchBorrowInterest' => false,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => false,
                 'fetchClosedOrder' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => false,
                 'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
@@ -72,6 +74,8 @@ class coinsph extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchL3OrderBook' => false,
                 'fetchLedger' => false,
                 'fetchLeverage' => false,
@@ -441,8 +445,8 @@ class coinsph extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure status structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
              */
             $response = Async\await($this->publicGetOpenapiV1Ping ($params));
             return array(
@@ -459,7 +463,7 @@ class coinsph extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
             $response = Async\await($this->publicGetOpenapiV1Time ($params));
@@ -474,64 +478,64 @@ class coinsph extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for coinsph
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
             $response = Async\await($this->publicGetOpenapiV1ExchangeInfo ($params));
             //
             //     {
-            //         timezone => 'UTC',
-            //         serverTime => '1677449496897',
-            //         exchangeFilters => array(),
-            //         symbols => array(
+            //         "timezone" => "UTC",
+            //         "serverTime" => "1677449496897",
+            //         "exchangeFilters" => array(),
+            //         "symbols" => array(
             //             array(
-            //                 symbol => 'XRPPHP',
-            //                 status => 'TRADING',
-            //                 baseAsset => 'XRP',
-            //                 baseAssetPrecision => '2',
-            //                 quoteAsset => 'PHP',
-            //                 quoteAssetPrecision => '4',
-            //                 orderTypes => array(
-            //                     'LIMIT',
-            //                     'MARKET',
-            //                     'LIMIT_MAKER',
-            //                     'STOP_LOSS_LIMIT',
-            //                     'STOP_LOSS',
-            //                     'TAKE_PROFIT_LIMIT',
-            //                     'TAKE_PROFIT'
+            //                 "symbol" => "XRPPHP",
+            //                 "status" => "TRADING",
+            //                 "baseAsset" => "XRP",
+            //                 "baseAssetPrecision" => "2",
+            //                 "quoteAsset" => "PHP",
+            //                 "quoteAssetPrecision" => "4",
+            //                 "orderTypes" => array(
+            //                     "LIMIT",
+            //                     "MARKET",
+            //                     "LIMIT_MAKER",
+            //                     "STOP_LOSS_LIMIT",
+            //                     "STOP_LOSS",
+            //                     "TAKE_PROFIT_LIMIT",
+            //                     "TAKE_PROFIT"
             //                 ),
-            //                 filters => array(
+            //                 "filters" => array(
             //                     array(
-            //                         minPrice => '0.01',
-            //                         maxPrice => '99999999.00000000',
-            //                         tickSize => '0.01',
-            //                         filterType => 'PRICE_FILTER'
+            //                         "minPrice" => "0.01",
+            //                         "maxPrice" => "99999999.00000000",
+            //                         "tickSize" => "0.01",
+            //                         "filterType" => "PRICE_FILTER"
             //                     ),
             //                     array(
-            //                         minQty => '0.01',
-            //                         maxQty => '99999999999.00000000',
-            //                         stepSize => '0.01',
-            //                         filterType => 'LOT_SIZE'
+            //                         "minQty" => "0.01",
+            //                         "maxQty" => "99999999999.00000000",
+            //                         "stepSize" => "0.01",
+            //                         "filterType" => "LOT_SIZE"
             //                     ),
-            //                     array( minNotional => '50', filterType => 'NOTIONAL' ),
-            //                     array( minNotional => '50', filterType => 'MIN_NOTIONAL' ),
+            //                     array( minNotional => "50", filterType => "NOTIONAL" ),
+            //                     array( minNotional => "50", filterType => "MIN_NOTIONAL" ),
             //                     array(
-            //                         priceUp => '99999999',
-            //                         priceDown => '0.01',
-            //                         filterType => 'STATIC_PRICE_RANGE'
-            //                     ),
-            //                     array(
-            //                         multiplierUp => '1.1',
-            //                         multiplierDown => '0.9',
-            //                         filterType => 'PERCENT_PRICE_INDEX'
+            //                         "priceUp" => "99999999",
+            //                         "priceDown" => "0.01",
+            //                         "filterType" => "STATIC_PRICE_RANGE"
             //                     ),
             //                     array(
-            //                         multiplierUp => '1.1',
-            //                         multiplierDown => '0.9',
-            //                         filterType => 'PERCENT_PRICE_ORDER_SIZE'
+            //                         "multiplierUp" => "1.1",
+            //                         "multiplierDown" => "0.9",
+            //                         "filterType" => "PERCENT_PRICE_INDEX"
             //                     ),
-            //                     array( maxNumOrders => '200', filterType => 'MAX_NUM_ORDERS' ),
-            //                     array( maxNumAlgoOrders => '5', filterType => 'MAX_NUM_ALGO_ORDERS' )
+            //                     array(
+            //                         "multiplierUp" => "1.1",
+            //                         "multiplierDown" => "0.9",
+            //                         "filterType" => "PERCENT_PRICE_ORDER_SIZE"
+            //                     ),
+            //                     array( maxNumOrders => "200", filterType => "MAX_NUM_ORDERS" ),
+            //                     array( maxNumAlgoOrders => "5", filterType => "MAX_NUM_ALGO_ORDERS" )
             //                 )
             //             ),
             //         )
@@ -546,7 +550,6 @@ class coinsph extends Exchange {
                 $quoteId = $this->safe_string($market, 'quoteAsset');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                $isActive = $this->safe_string($market, 'status') === 'TRADING';
                 $limits = $this->index_by($this->safe_value($market, 'filters'), 'filterType');
                 $amountLimits = $this->safe_value($limits, 'LOT_SIZE', array());
                 $priceLimits = $this->safe_value($limits, 'PRICE_FILTER', array());
@@ -566,7 +569,7 @@ class coinsph extends Exchange {
                     'swap' => false,
                     'future' => false,
                     'option' => false,
-                    'active' => $isActive,
+                    'active' => $this->safe_string_lower($market, 'status') === 'trading',
                     'contract' => false,
                     'linear' => null,
                     'inverse' => null,
@@ -599,6 +602,7 @@ class coinsph extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -607,13 +611,13 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -634,13 +638,13 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -655,31 +659,31 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // publicGetOpenapiQuoteV1Ticker24hr
         //     {
-        //         symbol => 'ETHUSDT',
-        //         priceChange => '41.440000000000000000',
-        //         priceChangePercent => '0.0259',
-        //         weightedAvgPrice => '1631.169825783972125436',
-        //         prevClosePrice => '1601.520000000000000000',
-        //         lastPrice => '1642.96',
-        //         lastQty => '0.000001000000000000',
-        //         bidPrice => '1638.790000000000000000',
-        //         bidQty => '0.280075000000000000',
-        //         askPrice => '1647.340000000000000000',
-        //         askQty => '0.165183000000000000',
-        //         openPrice => '1601.52',
-        //         highPrice => '1648.28',
-        //         lowPrice => '1601.52',
-        //         volume => '0.000287',
-        //         $quoteVolume => '0.46814574',
-        //         openTime => '1677417000000',
-        //         closeTime => '1677503415200',
-        //         firstId => '1364680572697591809',
-        //         lastId => '1365389809203560449',
-        //         count => '100'
+        //         "symbol" => "ETHUSDT",
+        //         "priceChange" => "41.440000000000000000",
+        //         "priceChangePercent" => "0.0259",
+        //         "weightedAvgPrice" => "1631.169825783972125436",
+        //         "prevClosePrice" => "1601.520000000000000000",
+        //         "lastPrice" => "1642.96",
+        //         "lastQty" => "0.000001000000000000",
+        //         "bidPrice" => "1638.790000000000000000",
+        //         "bidQty" => "0.280075000000000000",
+        //         "askPrice" => "1647.340000000000000000",
+        //         "askQty" => "0.165183000000000000",
+        //         "openPrice" => "1601.52",
+        //         "highPrice" => "1648.28",
+        //         "lowPrice" => "1601.52",
+        //         "volume" => "0.000287",
+        //         "quoteVolume" => "0.46814574",
+        //         "openTime" => "1677417000000",
+        //         "closeTime" => "1677503415200",
+        //         "firstId" => "1364680572697591809",
+        //         "lastId" => "1365389809203560449",
+        //         "count" => "100"
         //     }
         //
         // publicGetOpenapiQuoteV1TickerPrice
@@ -734,14 +738,14 @@ class coinsph extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -771,7 +775,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -779,7 +783,7 @@ class coinsph extends Exchange {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch (default 500, max 1000)
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -792,7 +796,7 @@ class coinsph extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
                 $request['limit'] = 1000;
-                // $since work properly only when it is "younger" than last 'limit' candle
+                // $since work properly only when it is "younger" than last "limit" candle
                 if ($limit !== null) {
                     $duration = $this->parse_timeframe($timeframe) * 1000;
                     $request['endTime'] = $this->sum($since, $duration * ($limit - 1));
@@ -826,7 +830,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -837,15 +841,15 @@ class coinsph extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch (default 500, max 1000)
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -864,13 +868,13 @@ class coinsph extends Exchange {
             //
             //     array(
             //         array(
-            //             price => '89685.8',
-            //             id => '1365561108437680129',
-            //             qty => '0.000004',
-            //             quoteQty => '0.000004000000000000',
-            //             time => '1677523569575',
-            //             isBuyerMaker => false,
-            //             isBestMatch => true
+            //             "price" => "89685.8",
+            //             "id" => "1365561108437680129",
+            //             "qty" => "0.000004",
+            //             "quoteQty" => "0.000004000000000000",
+            //             "time" => "1677523569575",
+            //             "isBuyerMaker" => false,
+            //             "isBestMatch" => true
             //         ),
             //     )
             //
@@ -885,8 +889,8 @@ class coinsph extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve (default 500, max 1000)
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -916,8 +920,8 @@ class coinsph extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades to retrieve
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
@@ -929,17 +933,17 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades
         //     array(
-        //         price => '89685.8',
-        //         $id => '1365561108437680129',
-        //         qty => '0.000004',
-        //         quoteQty => '0.000004000000000000', // warning => report to exchange - this is not quote quantity, this is base quantity
-        //         time => '1677523569575',
-        //         isBuyerMaker => false,
-        //         isBestMatch => true
+        //         "price" => "89685.8",
+        //         "id" => "1365561108437680129",
+        //         "qty" => "0.000004",
+        //         "quoteQty" => "0.000004000000000000", // warning => report to exchange - this is not quote quantity, this is base quantity
+        //         "time" => "1677523569575",
+        //         "isBuyerMaker" => false,
+        //         "isBestMatch" => true
         //     ),
         //
         // fetchMyTrades
@@ -1016,19 +1020,19 @@ class coinsph extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetOpenapiV1Account ($params));
             //
             //     {
-            //         accountType => 'SPOT',
-            //         balances => array(
+            //         "accountType" => "SPOT",
+            //         "balances" => array(
             //             array(
             //                 "asset" => "BTC",
             //                 "free" => "4723846.89208129",
@@ -1040,17 +1044,17 @@ class coinsph extends Exchange {
             //                 "locked" => "0.00000000"
             //             }
             //         ),
-            //         canDeposit => true,
-            //         canTrade => true,
-            //         canWithdraw => true,
-            //         updateTime => '1677430932528'
+            //         "canDeposit" => true,
+            //         "canTrade" => true,
+            //         "canWithdraw" => true,
+            //         "updateTime" => "1677430932528"
             //     }
             //
             return $this->parse_balance($response);
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'balances', array());
         $timestamp = $this->milliseconds();
         $result = array(
@@ -1079,8 +1083,8 @@ class coinsph extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             // todo => add test order low priority
             Async\await($this->load_markets());
@@ -1143,27 +1147,27 @@ class coinsph extends Exchange {
             $response = Async\await($this->privatePostOpenapiV1Order (array_merge($request, $params)));
             //
             //     {
-            //         $symbol => 'ETHUSDT',
-            //         orderId => '1375407140139731486',
-            //         clientOrderId => '1375407140139733169',
-            //         transactTime => '1678697308023',
-            //         $price => '1600',
-            //         origQty => '0.02',
-            //         executedQty => '0.02',
-            //         cummulativeQuoteQty => '31.9284',
-            //         status => 'FILLED',
-            //         timeInForce => 'GTC',
-            //         $type => 'LIMIT',
-            //         $side => 'BUY',
-            //         $stopPrice => '0',
-            //         origQuoteOrderQty => '0',
-            //         fills => array(
+            //         "symbol" => "ETHUSDT",
+            //         "orderId" => "1375407140139731486",
+            //         "clientOrderId" => "1375407140139733169",
+            //         "transactTime" => "1678697308023",
+            //         "price" => "1600",
+            //         "origQty" => "0.02",
+            //         "executedQty" => "0.02",
+            //         "cummulativeQuoteQty" => "31.9284",
+            //         "status" => "FILLED",
+            //         "timeInForce" => "GTC",
+            //         "type" => "LIMIT",
+            //         "side" => "BUY",
+            //         "stopPrice" => "0",
+            //         "origQuoteOrderQty" => "0",
+            //         "fills" => array(
             //             array(
-            //                 $price => '1596.42',
-            //                 qty => '0.02',
-            //                 commission => '0',
-            //                 commissionAsset => 'ETH',
-            //                 tradeId => '1375407140281532417'
+            //                 "price" => "1596.42",
+            //                 "qty" => "0.02",
+            //                 "commission" => "0",
+            //                 "commissionAsset" => "ETH",
+            //                 "tradeId" => "1375407140281532417"
             //             }
             //         )
             //     ),
@@ -1178,8 +1182,8 @@ class coinsph extends Exchange {
              * fetches information on an order made by the user
              * @param {int|string} $id order $id
              * @param {string} $symbol not used by coinsph fetchOrder ()
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1195,15 +1199,15 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1217,15 +1221,15 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve (default 500, max 1000)
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {int} [$limit] the maximum number of order structures to retrieve (default 500, max 1000)
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
@@ -1253,8 +1257,8 @@ class coinsph extends Exchange {
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol not used by coinsph cancelOrder ()
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1275,8 +1279,8 @@ class coinsph extends Exchange {
             /**
              * cancel open orders of $market
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -1293,7 +1297,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder POST /openapi/v1/order
         //     {
@@ -1465,8 +1469,8 @@ class coinsph extends Exchange {
             /**
              * fetch the trading fees for a $market
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1492,22 +1496,22 @@ class coinsph extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$fee-structure $fee structures} indexed by market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetOpenapiV1AssetTradeFee ($params));
             //
             //     array(
             //         array(
-            //             $symbol => 'ETHPHP',
-            //             makerCommission => '0.0025',
-            //             takerCommission => '0.003'
+            //             "symbol" => "ETHPHP",
+            //             "makerCommission" => "0.0025",
+            //             "takerCommission" => "0.003"
             //         ),
             //         array(
-            //             $symbol => 'UNIPHP',
-            //             makerCommission => '0.0025',
-            //             takerCommission => '0.003'
+            //             "symbol" => "UNIPHP",
+            //             "makerCommission" => "0.0025",
+            //             "takerCommission" => "0.003"
             //         ),
             //     )
             //
@@ -1521,7 +1525,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -1549,8 +1553,8 @@ class coinsph extends Exchange {
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address not used by coinsph withdraw ()
              * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             $options = $this->safe_value($this->options, 'withdraw');
             $warning = $this->safe_value($options, 'warning', true);
@@ -1587,8 +1591,8 @@ class coinsph extends Exchange {
              * @param {float} $amount the $amount to deposit
              * @param {string} $address not used by coinsph deposit ()
              * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             $options = $this->safe_value($this->options, 'deposit');
             $warning = $this->safe_value($options, 'warning', true);
@@ -1609,7 +1613,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1617,8 +1621,8 @@ class coinsph extends Exchange {
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             // todo => returns an empty array - find out why
             Async\await($this->load_markets());
@@ -1667,7 +1671,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1675,8 +1679,8 @@ class coinsph extends Exchange {
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-             * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             // todo => returns an empty array - find out why
             Async\await($this->load_markets());
@@ -1731,7 +1735,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //     {
@@ -1797,11 +1801,8 @@ class coinsph extends Exchange {
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
-        $internal = $this->safe_integer($transaction, 'transferType');
-        if ($internal !== null) {
-            $internal = $internal ? true : false;
-        }
         $network = $this->safe_string($transaction, 'network');
+        $internal = $network === 'Internal';
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1821,6 +1822,7 @@ class coinsph extends Exchange {
             'status' => $status,
             'updated' => $updated,
             'internal' => $internal,
+            'comment' => null,
             'fee' => $fee,
         );
     }
@@ -1841,9 +1843,9 @@ class coinsph extends Exchange {
              * fetch the deposit address for a $currency associated with this account
              * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] network for fetch deposit address
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             $networkCode = $this->safe_string($params, 'network');
             $networkId = $this->network_code_to_id($networkCode, $code);
@@ -1869,7 +1871,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "coin" => "ETH",

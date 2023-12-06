@@ -1,11 +1,11 @@
 import alpacaRest from '../alpaca.js';
-import { Int } from '../base/types.js';
+import { Int, Str, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class alpaca extends alpacaRest {
     describe(): any;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
-    parseTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
+    parseTicker(ticker: any, market?: any): Ticker;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
@@ -14,8 +14,8 @@ export default class alpaca extends alpacaRest {
     handleDeltas(bookside: any, deltas: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTradeUpdate(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any): void;

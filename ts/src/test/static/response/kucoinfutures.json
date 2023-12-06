@@ -1,0 +1,231 @@
+{
+  "exchange": "kucoinfutures",
+  "skipKeys": [],
+  "options": {
+  },
+  "methods": {
+    "fetchOpenOrders": [
+      {
+        "description": "Fetch open orders",
+        "method": "fetchOpenOrders",
+        "input": [
+          "LTC/USDT:USDT"
+        ],
+        "httpResponse": {
+          "code": "200000",
+          "data": {
+            "currentPage": 1,
+            "pageSize": 50,
+            "totalNum": 1,
+            "totalPage": 1,
+            "items": [
+              {
+                "id": "114606863965757440",
+                "symbol": "LTCUSDTM",
+                "type": "limit",
+                "side": "buy",
+                "price": "50",
+                "size": 1,
+                "value": "5",
+                "dealValue": "0",
+                "dealSize": 0,
+                "stp": "",
+                "stop": "",
+                "stopPriceType": "",
+                "stopTriggered": false,
+                "stopPrice": null,
+                "timeInForce": "GTC",
+                "postOnly": false,
+                "hidden": false,
+                "iceberg": false,
+                "leverage": "1",
+                "forceHold": false,
+                "closeOrder": false,
+                "visibleSize": 0,
+                "clientOid": "a4ebb53e-028e-4977-91de-10f30c491ca2",
+                "remark": null,
+                "tags": "ccxtfutures",
+                "isActive": true,
+                "cancelExist": false,
+                "createdAt": 1700137607713,
+                "updatedAt": 1700137607713,
+                "endAt": null,
+                "orderTime": 1700137607661694200,
+                "settleCurrency": "USDT",
+                "status": "open",
+                "filledValue": "0",
+                "filledSize": 0,
+                "reduceOnly": false
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "id": "114606863965757440",
+            "clientOrderId": "a4ebb53e-028e-4977-91de-10f30c491ca2",
+            "symbol": "LTC/USDT:USDT",
+            "type": "limit",
+            "timeInForce": "GTC",
+            "postOnly": false,
+            "side": "buy",
+            "amount": 1,
+            "price": 50,
+            "stopPrice": null,
+            "triggerPrice": null,
+            "cost": 0,
+            "filled": 0,
+            "remaining": 1,
+            "timestamp": 1700137607713,
+            "datetime": "2023-11-16T12:26:47.713Z",
+            "fee": {
+              "currency": null,
+              "cost": null
+            },
+            "status": "open",
+            "info": {
+              "id": "114606863965757440",
+              "symbol": "LTCUSDTM",
+              "type": "limit",
+              "side": "buy",
+              "price": "50",
+              "size": 1,
+              "value": "5",
+              "dealValue": "0",
+              "dealSize": 0,
+              "stp": "",
+              "stop": "",
+              "stopPriceType": "",
+              "stopTriggered": false,
+              "stopPrice": null,
+              "timeInForce": "GTC",
+              "postOnly": false,
+              "hidden": false,
+              "iceberg": false,
+              "leverage": "1",
+              "forceHold": false,
+              "closeOrder": false,
+              "visibleSize": 0,
+              "clientOid": "a4ebb53e-028e-4977-91de-10f30c491ca2",
+              "remark": null,
+              "tags": "ccxtfutures",
+              "isActive": true,
+              "cancelExist": false,
+              "createdAt": 1700137607713,
+              "updatedAt": 1700137607713,
+              "endAt": null,
+              "orderTime": 1700137607661694200,
+              "settleCurrency": "USDT",
+              "status": "open",
+              "filledValue": "0",
+              "filledSize": 0,
+              "reduceOnly": false
+            },
+            "lastTradeTimestamp": null,
+            "lastUpdateTimestamp": 1700137607713,
+            "average": null,
+            "trades": [],
+            "fees": [
+              {
+                "currency": null,
+                "cost": null
+              }
+            ],
+            "reduceOnly": null,
+            "takeProfitPrice": null,
+            "stopLossPrice": null
+          }
+        ]
+      }
+    ],
+    "fetchMyTrades": [
+      {
+        "description": "fethc swap trade",
+        "method": "fetchMyTrades",
+        "input": [
+          "LTC/USDT:USDT"
+        ],
+        "httpResponse": {
+          "code": "200000",
+          "data": {
+            "currentPage": 1,
+            "pageSize": 50,
+            "totalNum": 1,
+            "totalPage": 1,
+            "items": [
+              {
+                "symbol": "LTCUSDTM",
+                "tradeId": "1694909144276",
+                "orderId": "114607169852157954",
+                "side": "buy",
+                "liquidity": "taker",
+                "forceTaker": false,
+                "price": "72.5",
+                "size": 1,
+                "value": "7.25",
+                "feeRate": "0.0006",
+                "fixFee": "0",
+                "feeCurrency": "USDT",
+                "stop": "",
+                "tradeTime": 1700137680617000000,
+                "fee": "0.00435",
+                "settleCurrency": "USDT",
+                "orderType": "market",
+                "tradeType": "trade",
+                "createdAt": 1700137680654
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "symbol": "LTCUSDTM",
+              "tradeId": "1694909144276",
+              "orderId": "114607169852157954",
+              "side": "buy",
+              "liquidity": "taker",
+              "forceTaker": false,
+              "price": "72.5",
+              "size": 1,
+              "value": "7.25",
+              "feeRate": "0.0006",
+              "fixFee": "0",
+              "feeCurrency": "USDT",
+              "stop": "",
+              "tradeTime": 1700137680617000000,
+              "fee": "0.00435",
+              "settleCurrency": "USDT",
+              "orderType": "market",
+              "tradeType": "trade",
+              "createdAt": 1700137680654
+            },
+            "id": "1694909144276",
+            "order": "114607169852157954",
+            "timestamp": 1700137680654,
+            "datetime": "2023-11-16T12:28:00.654Z",
+            "symbol": "LTC/USDT:USDT",
+            "type": "market",
+            "takerOrMaker": "taker",
+            "side": "buy",
+            "price": 72.5,
+            "amount": 1,
+            "cost": 7.25,
+            "fee": {
+              "cost": 0.00435,
+              "currency": "USDT",
+              "rate": 0.0006
+            },
+            "fees": [
+              {
+                "cost": 0.00435,
+                "currency": "USDT",
+                "rate": 0.0006
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

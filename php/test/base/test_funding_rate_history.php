@@ -20,7 +20,7 @@ function test_funding_rate_history($exchange, $skipped_properties, $method, $ent
     );
     assert_structure($exchange, $skipped_properties, $method, $entry, $format);
     assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
-    assert_timestamp($exchange, $skipped_properties, $method, $entry);
+    assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry);
     assert_greater($exchange, $skipped_properties, $method, $entry, 'fundingRate', '-100');
     assert_less($exchange, $skipped_properties, $method, $entry, 'fundingRate', '100');
 }

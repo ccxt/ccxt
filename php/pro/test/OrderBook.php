@@ -130,7 +130,7 @@ $anotherStoredIncrementalIndexedOrderBookTarget = array(
 );
 
 $overwrite1234 = array(
-    'bids' => array( array( 9.1, 11, '1235' ), array( 8.2, 12, '1236' ), array( 7.3, 13, '1237' ), array( 6.4, 14, '1238' ), array( 4.5, 13, '1239' ) ),
+    'bids' => array( array( 9.1, 11, '1235' ), array( 9, 3, '1231' ), array( 9, 1, '1232' ), array( 8.2, 12, '1236' ), array( 7.3, 13, '1237' ), array( 6.4, 14, '1238' ), array( 4.5, 13, '1239' ), array( 4, 2, '12399' ) ),
     'asks' => array( array( 11.1, 13, '1244' ), array( 13.3, 13, '1243' ), array( 14.4, 12, '1242' ), array( 15.5, 11, '1241' ), array( 16.6, 10, '1240' ) ),
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
@@ -285,6 +285,12 @@ $bids = $indexedOrderBook['bids'];
 $bids->store (1000, 0, '12345');
 assert (equals ($indexedOrderBook, $indexedOrderBookTarget));
 $bids->store (10, 0, '1234');
+$bids->store (10, 2, '1231');
+$bids->store (10, 1, '1232');
+$bids->store (4, 2, '12399');
+$bids->store (9, 2, '1231');
+$bids->store (9, 3, '1231');
+$bids->store (9, 1, '1232');
 $indexedOrderBook->limit ();
 assert (equals ($indexedOrderBook, $overwrite1234));
 $indexedOrderBook = new IndexedOrderBook ($indexedOrderBookInput);
