@@ -424,7 +424,7 @@ export default class okx extends Exchange {
                         'asset/convert-dust-assets': 10,
                         'asset/convert/estimate-quote': 1,
                         'asset/convert/trade': 1,
-                        'asset/monthly-statement': 1296000,
+                        'asset/monthly-statement': 1,
                         // account
                         'account/set-position-mode': 4,
                         'account/set-leverage': 1,
