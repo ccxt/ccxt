@@ -45,6 +45,7 @@ export default class gate extends Exchange {
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
                         'subAccounts': 'https://api.gateio.ws/api/v4',
+                        'portfolio': 'https://api.gateio.ws/api/v4',
                         'rebate': 'https://api.gateio.ws/api/v4',
                         'earn': 'https://api.gateio.ws/api/v4',
                         'account': 'https://api.gateio.ws/api/v4',
@@ -282,6 +283,21 @@ export default class gate extends Exchange {
                         },
                         'delete': {
                             'sub_accounts/{user_id}/keys/{key}': 2.5,
+                        },
+                    },
+                    'portfolio': {
+                        'get': {
+                            'accounts': 20 / 15,
+                            'account_mode': 20 / 15,
+                            'borrowable': 20 / 15,
+                            'transferable': 20 / 15,
+                            'loans': 20 / 15,
+                            'loan_records': 20 / 15,
+                            'interest_records': 20 / 15,
+                        },
+                        'post': {
+                            'account_mode': 20 / 15,
+                            'loans': 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
                         },
                     },
                     'spot': {
