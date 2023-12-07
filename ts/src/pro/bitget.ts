@@ -489,6 +489,8 @@ export default class bitget extends bitgetRest {
          * @method
          * @name bitget#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -498,7 +500,12 @@ export default class bitget extends bitgetRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook' + ':' + symbol;
-        const instType = market['spot'] ? 'sp' : 'mc';
+        let instType = undefined;
+        if ((market['swap']) || (market['future'])) {
+            [ instType, params ] = this.handleProductTypeAndParams (market, params);
+        } else {
+            instType = 'SPOT';
+        }
         let channel = 'books';
         let incrementalFeed = true;
         if ((limit === 1) || (limit === 5) || (limit === 15)) {
@@ -523,6 +530,8 @@ export default class bitget extends bitgetRest {
          * @method
          * @name bitget#watchOrderBookForSymbols
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
          * @param {string[]} symbols unified array of symbols
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -539,7 +548,12 @@ export default class bitget extends bitgetRest {
         const topics = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
-            const instType = market['spot'] ? 'sp' : 'mc';
+            let instType = undefined;
+            if ((market['swap']) || (market['future'])) {
+                [ instType, params ] = this.handleProductTypeAndParams (market, params);
+            } else {
+                instType = 'SPOT';
+            }
             const args = {
                 'instType': instType,
                 'channel': channel,
@@ -561,7 +575,7 @@ export default class bitget extends bitgetRest {
         //   {
         //       "action":"snapshot",
         //       "arg":{
-        //          "instType":"sp",
+        //          "instType":"SPOT",
         //          "channel":"books5",
         //          "instId":"BTCUSDT"
         //       },
@@ -581,6 +595,7 @@ export default class bitget extends bitgetRest {
         //                ["21040.61","0.3004"],
         //                ["21040.60","1.3357"]
         //             ],
+        //             "checksum": -1367582038,
         //             "ts":"1656413855484"
         //          }
         //       ]
@@ -588,8 +603,10 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeValue (message, 'arg');
         const channel = this.safeString (arg, 'channel');
+        const instType = this.safeString (arg, 'instType');
+        const marketType = (instType === 'SPOT') ? 'spot' : 'contract';
         const marketId = this.safeString (arg, 'instId');
-        const market = this.safeMarket (marketId);
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const data = this.safeValue (message, 'data');
