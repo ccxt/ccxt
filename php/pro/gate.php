@@ -289,7 +289,7 @@ class gate extends \ccxt\async\gate {
             $marketId = $market['id'];
             $url = $this->get_url_by_market($market);
             $messageType = $this->get_type_by_market($market);
-            list($topic, $query) = $this->handle_option_and_params($params, 'watchTicker', 'method', 'tickers');
+            list($topic, $query) = $this->handle_option_and_params($params, 'watchTicker', 'name', 'tickers');
             $channel = $messageType . '.' . $topic;
             $messageHash = 'ticker:' . $symbol;
             $payload = array( $marketId );

@@ -204,6 +204,11 @@ export default class woo extends Exchange {
                     },
                 },
                 'v3': {
+                    'public': {
+                        'get': {
+                            'insuranceFund': 3,
+                        },
+                    },
                     'private': {
                         'get': {
                             'algo/order/{oid}': 1,

@@ -4531,17 +4531,11 @@ class coinex(Exchange, ImplicitAPI):
         return self.parse_isolated_borrow_rate(data, market)
 
     def fetch_isolated_borrow_rates(self, params={}):
-        #
-        # @method
-        # @name coinex#fetchIsolatedBorrowRates
-        # @description fetch the borrow interest rates of all currencies
-        # @param {object} [params] extra parameters specific to the exchange API endpoint
-        # <<<<<<< HEAD
-        # @returns {object} a list of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
-        # =====
-        # @returns {object} a list of `isolated borrow rate structures <https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure>`
-        # >>>>>>> 3215552206edf1cda1ae63d2063535e19973dbe5
-        #
+        """
+        fetch the borrow interest rates of all currencies
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `isolated borrow rate structures <https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure>`
+        """
         self.load_markets()
         response = self.privateGetMarginConfig(params)
         #

@@ -208,6 +208,11 @@ class woo(Exchange, ImplicitAPI):
                     },
                 },
                 'v3': {
+                    'public': {
+                        'get': {
+                            'insuranceFund': 3,
+                        },
+                    },
                     'private': {
                         'get': {
                             'algo/order/{oid}': 1,

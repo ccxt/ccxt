@@ -84,9 +84,9 @@ trait ClientTrait {
         });
     }
 
-    private function checkProxyClient($client, $url) {
-        [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_ws_proxy_settings();
-        $connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
+    private function checkProxyClient($client) {
+        [ $httpProxy, $httpsProxy ] = $this->check_ws_proxy_settings();
+        $connector = $this->setProxyAgents($httpProxy, $httpsProxy, null);
         if ($connector) {
             $client->set_ws_connector($connector);
         } else {
@@ -96,7 +96,7 @@ trait ClientTrait {
 
     public function watch($url, $message_hash, $message = null, $subscribe_hash = null, $subscription = null) {
         $client = $this->client($url);
-        $this->checkProxyClient($client, $url);
+        $this->checkProxyClient($client);
         // todo: calculate the backoff delay in php
         $backoff_delay = 0; // milliseconds
         if (($subscribe_hash == null) && array_key_exists($message_hash, $client->futures)) {

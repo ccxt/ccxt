@@ -109,6 +109,7 @@ interface Exchange {
     privateGetAssetConvertCurrencies(params?: {}): Promise<implicitReturnType>;
     privateGetAssetConvertCurrencyPair(params?: {}): Promise<implicitReturnType>;
     privateGetAssetConvertHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetAssetMonthlyStatement(params?: {}): Promise<implicitReturnType>;
     privateGetAccountBalance(params?: {}): Promise<implicitReturnType>;
     privateGetAccountPositions(params?: {}): Promise<implicitReturnType>;
     privateGetAccountPositionsHistory(params?: {}): Promise<implicitReturnType>;
@@ -228,6 +229,7 @@ interface Exchange {
     privatePostAssetConvertDustAssets(params?: {}): Promise<implicitReturnType>;
     privatePostAssetConvertEstimateQuote(params?: {}): Promise<implicitReturnType>;
     privatePostAssetConvertTrade(params?: {}): Promise<implicitReturnType>;
+    privatePostAssetMonthlyStatement(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSetPositionMode(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSetLeverage(params?: {}): Promise<implicitReturnType>;
     privatePostAccountPositionMarginBalance(params?: {}): Promise<implicitReturnType>;

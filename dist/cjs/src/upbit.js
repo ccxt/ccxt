@@ -1710,6 +1710,7 @@ class upbit extends upbit$1 {
         /**
          * @method
          * @name upbit#withdraw
+         * @see https://docs.upbit.com/reference/디지털자산-출금하기
          * @see https://docs.upbit.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0
          * @description make a withdrawal
          * @param {string} code unified currency code
@@ -1720,14 +1721,14 @@ class upbit extends upbit$1 {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
             'amount': amount,
         };
-        let method = 'privatePostWithdraws';
+        let response = undefined;
         if (code !== 'KRW') {
+            this.checkAddress(address);
             // 2023-05-23 Change to required parameters for digital assets
             const network = this.safeStringUpper2(params, 'network', 'net_type');
             if (network === undefined) {
@@ -1735,18 +1736,17 @@ class upbit extends upbit$1 {
             }
             params = this.omit(params, ['network']);
             request['net_type'] = network;
-            method += 'Coin';
             request['currency'] = currency['id'];
             request['address'] = address;
             if (tag !== undefined) {
                 request['secondary_address'] = tag;
             }
             params = this.omit(params, 'network');
+            response = await this.privatePostWithdrawsCoin(this.extend(request, params));
         }
         else {
-            method += 'Krw';
+            response = await this.privatePostWithdrawsKrw(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         //     {
         //         "type": "withdraw",

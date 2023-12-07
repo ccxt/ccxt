@@ -331,6 +331,9 @@ abstract class okx extends \ccxt\Exchange {
     public function private_get_asset_convert_history($params = array()) {
         return $this->request('asset/convert/history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
+    public function private_get_asset_monthly_statement($params = array()) {
+        return $this->request('asset/monthly-statement', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_get_account_balance($params = array()) {
         return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
@@ -687,6 +690,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_post_asset_convert_trade($params = array()) {
         return $this->request('asset/convert/trade', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_asset_monthly_statement($params = array()) {
+        return $this->request('asset/monthly-statement', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_account_set_position_mode($params = array()) {
         return $this->request('account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 4));
@@ -1192,6 +1198,9 @@ abstract class okx extends \ccxt\Exchange {
     public function privateGetAssetConvertHistory($params = array()) {
         return $this->request('asset/convert/history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
+    public function privateGetAssetMonthlyStatement($params = array()) {
+        return $this->request('asset/monthly-statement', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function privateGetAccountBalance($params = array()) {
         return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
@@ -1548,6 +1557,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privatePostAssetConvertTrade($params = array()) {
         return $this->request('asset/convert/trade', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostAssetMonthlyStatement($params = array()) {
+        return $this->request('asset/monthly-statement', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostAccountSetPositionMode($params = array()) {
         return $this->request('account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 4));
