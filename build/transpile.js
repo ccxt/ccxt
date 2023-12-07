@@ -2505,9 +2505,7 @@ class Transpiler {
                     } else {
                         phpHeaderSync.push (`include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';`)
                     }
-                }
-
-                if (!isSharedMethodsImport) {
+                } else {
                     if (test.base) {
                         phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)
                         pythonHeaderSync.push (`from ccxt.test.base.${snake_case} import ${snake_case}  # noqa E402`)
