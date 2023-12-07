@@ -3596,7 +3596,12 @@ export default class okx extends Exchange {
             }
         }
         const query = this.omit (params, [ 'method', 'stop' ]);
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoPending') {
+            response = await this.privateGetTradeOrdersAlgoPending (this.extend (request, query));
+        } else {
+            response = await this.privateGetTradeOrdersPending (this.extend (request, query));
+        }
         //
         //     {
         //         "code": "0",
