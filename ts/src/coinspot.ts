@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinspot.js';
-import { ExchangeError, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
@@ -511,7 +511,6 @@ export default class coinspot extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const method = 'privatePostMy' + this.capitalize (side);
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
@@ -521,7 +520,16 @@ export default class coinspot extends Exchange {
             'amount': amount,
             'rate': price,
         };
-        return await this[method] (this.extend (request, params));
+        side = side.toLowerCase ();
+        let response = undefined;
+        if (side === 'buy') {
+            response = await this.privatePostMyBuy (this.extend (request, params));
+        } else if (side === 'sell') {
+            response = await this.privatePostMySell (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' createOrder() side must be "buy" or "sell"');
+        }
+        return response;
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
