@@ -2175,7 +2175,7 @@ class Transpiler {
             php: './php/test/',
             phpBase: './php/test/base/',
         };
-       
+
         let baseTests = fs.readdirSync (baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
         const exchangeTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
@@ -2210,7 +2210,6 @@ class Transpiler {
         }
         this.transpileAndSaveExchangeTests (tests);
     }
-
 
     createBaseInitFile (pyPath, tests) {
         const finalPath = pyPath + '__init__.py';
