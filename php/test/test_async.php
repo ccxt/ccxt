@@ -227,12 +227,12 @@ function set_test_files ($holderClass, $properties) {
         for ($i = 0; $i < count($finalPropList); $i++) {
             $name = $finalPropList[$i];
             $name_snake_case = convert_to_snake_case($name);
-            $dir_to_test = isWsTests ? __DIR__ . '/../pro/test/Exchange/' : __DIR__ . '/' . (is_synchronous ? 'sync' : 'async');
-            $test_file = $dir_to_test . $name_snake_case . '.' . ext;
+            $dir_to_test = isWsTests ? dirname(__DIR__) . '/pro/test/exchange/' : __DIR__ . '/' . (is_synchronous ? 'sync' : 'async');
+            $test_method_name = 'test_'. $name_snake_case;
+            $test_file = $dir_to_test . $test_method_name . '.' . ext;
             if (io_file_exists ($test_file)) {
-                include_once $filename;
-                $nameWithoutNs = str_replace('ccxt\\', '', $name_snake_case);
-                $holderClass->test_files[$nameWithoutNs] = $fName;
+                include_once $test_file;
+                $holderClass->test_files[$name_snake_case] = $test_method_name;
             }
         }
     })();
