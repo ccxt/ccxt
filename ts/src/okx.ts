@@ -5146,7 +5146,12 @@ export default class okx extends Exchange {
         }
         const fetchPositionsOptions = this.safeValue (this.options, 'fetchPositions', {});
         const method = this.safeString (fetchPositionsOptions, 'method', 'privateGetAccountPositions');
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'privateGetAccountPositionsHistory') {
+            response = await this.privateGetAccountPositionsHistory (this.extend (request, params));
+        } else {
+            response = await this.privateGetAccountPositions (this.extend (request, params));
+        }
         //
         //     {
         //         "code": "0",
