@@ -91,6 +91,16 @@ export default class bitget extends bitgetRest {
         });
     }
 
+    getInstType (market, params = {}) {
+        let instType = undefined;
+        if ((market['swap']) || (market['future'])) {
+            [ instType, params ] = this.handleProductTypeAndParams (market, params);
+        } else {
+            instType = 'SPOT';
+        }
+        return instType;
+    }
+
     async watchTicker (symbol: string, params = {}) {
         /**
          * @method
@@ -106,12 +116,7 @@ export default class bitget extends bitgetRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'ticker:' + symbol;
-        let instType = undefined;
-        if ((market['swap']) || (market['future'])) {
-            [ instType, params ] = this.handleProductTypeAndParams (market, params);
-        } else {
-            instType = 'SPOT';
-        }
+        const instType = this.getInstType (market, params);
         const args = {
             'instType': instType,
             'channel': 'ticker',
@@ -134,12 +139,7 @@ export default class bitget extends bitgetRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const market = this.market (symbols[0]);
-        let instType = undefined;
-        if ((market['swap']) || (market['future'])) {
-            [ instType, params ] = this.handleProductTypeAndParams (market, params);
-        } else {
-            instType = 'SPOT';
-        }
+        const instType = this.getInstType (market, params);
         const messageHash = 'tickers::' + symbols.join (',');
         const marketIds = this.marketIds (symbols);
         const topics = [ ];
@@ -336,12 +336,7 @@ export default class bitget extends bitgetRest {
         const timeframes = this.safeValue (this.options, 'timeframes');
         const interval = this.safeString (timeframes, timeframe);
         const messageHash = 'candles:' + timeframe + ':' + symbol;
-        let instType = undefined;
-        if ((market['swap']) || (market['future'])) {
-            [ instType, params ] = this.handleProductTypeAndParams (market, params);
-        } else {
-            instType = 'SPOT';
-        }
+        const instType = this.getInstType (market, params);
         const args = {
             'instType': instType,
             'channel': 'candle' + interval,
@@ -376,12 +371,7 @@ export default class bitget extends bitgetRest {
             const currentTimeframe = this.safeString (data, 1);
             const market = this.market (currentSymbol);
             const interval = this.safeString (this.options['timeframes'], currentTimeframe);
-            let instType = undefined;
-            if ((market['swap']) || (market['future'])) {
-                [ instType, params ] = this.handleProductTypeAndParams (market, params);
-            } else {
-                instType = 'SPOT';
-            }
+            const instType = this.getInstType (market, params);
             const args = {
                 'instType': instType,
                 'channel': 'candle' + interval,
@@ -500,12 +490,7 @@ export default class bitget extends bitgetRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook' + ':' + symbol;
-        let instType = undefined;
-        if ((market['swap']) || (market['future'])) {
-            [ instType, params ] = this.handleProductTypeAndParams (market, params);
-        } else {
-            instType = 'SPOT';
-        }
+        const instType = this.getInstType (market, params);
         let channel = 'books';
         let incrementalFeed = true;
         if ((limit === 1) || (limit === 5) || (limit === 15)) {
@@ -548,12 +533,7 @@ export default class bitget extends bitgetRest {
         const topics = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
-            let instType = undefined;
-            if ((market['swap']) || (market['future'])) {
-                [ instType, params ] = this.handleProductTypeAndParams (market, params);
-            } else {
-                instType = 'SPOT';
-            }
+            const instType = this.getInstType (market, params);
             const args = {
                 'instType': instType,
                 'channel': channel,
