@@ -2995,7 +2995,8 @@ export default class bingx extends Exchange {
 
     parseTransactionStatus (status) {
         const statuses = {
-            '0': 'ok',
+            '0': 'pending',
+            '1': 'ok',
             '10': 'pending',
             '20': 'rejected',
             '30': 'ok',
