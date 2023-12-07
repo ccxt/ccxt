@@ -1210,42 +1210,44 @@ export default class whitebit extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        let method: string;
         if (marginMode !== undefined && marginMode !== 'cross') {
             throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
         }
+        params = this.omit (query, [ 'postOnly', 'triggerPrice', 'stopPrice' ]);
         const useCollateralEndpoint = marginMode !== undefined || marketType === 'swap';
+        let response = undefined;
         if (isStopOrder) {
             request['activation_price'] = this.priceToPrecision (symbol, stopPrice);
             if (isLimitOrder) {
                 // stop limit order
-                method = 'v4PrivatePostOrderStopLimit';
                 request['price'] = this.priceToPrecision (symbol, price);
+                response = await this.v4PrivatePostOrderStopLimit (this.extend (request, params));
             } else {
                 // stop market order
-                method = 'v4PrivatePostOrderStopMarket';
                 if (useCollateralEndpoint) {
-                    method = 'v4PrivatePostOrderCollateralTriggerMarket';
+                    response = await this.v4PrivatePostOrderCollateralTriggerMarket (this.extend (request, params));
+                } else {
+                    response = await this.v4PrivatePostOrderStopMarket (this.extend (request, params));
                 }
             }
         } else {
             if (isLimitOrder) {
                 // limit order
-                method = 'v4PrivatePostOrderNew';
-                if (useCollateralEndpoint) {
-                    method = 'v4PrivatePostOrderCollateralLimit';
-                }
                 request['price'] = this.priceToPrecision (symbol, price);
+                if (useCollateralEndpoint) {
+                    response = await this.v4PrivatePostOrderCollateralLimit (this.extend (request, params));
+                } else {
+                    response = await this.v4PrivatePostOrderNew (this.extend (request, params));
+                }
             } else {
                 // market order
-                method = 'v4PrivatePostOrderStockMarket';
                 if (useCollateralEndpoint) {
-                    method = 'v4PrivatePostOrderCollateralMarket';
+                    response = await this.v4PrivatePostOrderCollateralMarket (this.extend (request, params));
+                } else {
+                    response = await this.v4PrivatePostOrderStockMarket (this.extend (request, params));
                 }
             }
         }
-        params = this.omit (query, [ 'postOnly', 'triggerPrice', 'stopPrice' ]);
-        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
     }
 
