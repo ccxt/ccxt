@@ -230,13 +230,17 @@ class CCXTProTranspiler extends Transpiler {
 // main entry point
 if (isMainEntry(import.meta.url)) { // called directly like `node module`
     const transpiler = new CCXTProTranspiler ()
+    const test = process.argv.includes ('--test') || process.argv.includes ('--tests');
     const force = process.argv.includes ('--force')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     const child = process.argv.includes ('--child')
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }
-    if (multiprocess) {
+    if (test) {
+        transpiler.transpileWsTests ()
+    } 
+    else if (multiprocess) {
         parallelizeTranspiling (exchanges.ws)
     } else {
         (async () => {
