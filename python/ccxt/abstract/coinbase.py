@@ -59,6 +59,7 @@ class ImplicitAPI:
     v3_private_get_brokerage_product_book = v3PrivateGetBrokerageProductBook = Entry('brokerage/product_book', ['v3', 'private'], 'GET', {})
     v3_private_get_brokerage_best_bid_ask = v3PrivateGetBrokerageBestBidAsk = Entry('brokerage/best_bid_ask', ['v3', 'private'], 'GET', {})
     v3_private_get_brokerage_convert_trade_trade_id = v3PrivateGetBrokerageConvertTradeTradeId = Entry('brokerage/convert/trade/{trade_id}', ['v3', 'private'], 'GET', {})
+    v3_private_get_brokerage_time = v3PrivateGetBrokerageTime = Entry('brokerage/time', ['v3', 'private'], 'GET', {})
     v3_private_post_brokerage_orders = v3PrivatePostBrokerageOrders = Entry('brokerage/orders', ['v3', 'private'], 'POST', {})
     v3_private_post_brokerage_orders_batch_cancel = v3PrivatePostBrokerageOrdersBatchCancel = Entry('brokerage/orders/batch_cancel', ['v3', 'private'], 'POST', {})
     v3_private_post_brokerage_orders_edit = v3PrivatePostBrokerageOrdersEdit = Entry('brokerage/orders/edit', ['v3', 'private'], 'POST', {})

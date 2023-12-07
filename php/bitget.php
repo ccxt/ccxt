@@ -32,6 +32,8 @@ class bitget extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => true,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createReduceOnlyOrder' => false,
@@ -5330,6 +5332,14 @@ class bitget extends Exchange {
         //       "utime" => "1689300238205"
         //     }
         //
+        // closeAllPositions
+        //
+        //    {
+        //        "symbol" => "XRPUSDT_UMCBL",
+        //        "orderId" => "1111861847410757635",
+        //        "clientOid" => "1111861847410757637"
+        //    }
+        //
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
@@ -6864,6 +6874,64 @@ class bitget extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
         );
+    }
+
+    public function close_all_positions($params = array ()): array {
+        /**
+         * closes open positions for a market
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#close-all-position
+         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {string} [$params->subType] 'linear' or 'inverse'
+         * @param {string} [$params->settle] *required and only valid when $params->subType === "linear"* 'USDT' or 'USDC'
+         * @return {[array]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+         */
+        $this->load_markets();
+        $subType = null;
+        $settle = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('closeAllPositions', null, $params);
+        $settle = $this->safe_string($params, 'settle', 'USDT');
+        $params = $this->omit($params, array( 'settle' ));
+        $productType = $this->safe_string($params, 'productType');
+        $request = array();
+        if ($productType === null) {
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $localProductType = null;
+            if ($subType === 'inverse') {
+                $localProductType = 'dmcbl';
+            } else {
+                if ($settle === 'USDT') {
+                    $localProductType = 'umcbl';
+                } elseif ($settle === 'USDC') {
+                    $localProductType = 'cmcbl';
+                }
+            }
+            if ($sandboxMode) {
+                $localProductType = 's' . $localProductType;
+            }
+            $request['productType'] = $localProductType;
+        }
+        $response = $this->privateMixPostMixV1OrderCloseAllPositions (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => "00000",
+        //        "msg" => "success",
+        //        "requestTime" => 1700814442466,
+        //        "data" => {
+        //            "orderInfo" => array(
+        //                array(
+        //                    "symbol" => "XRPUSDT_UMCBL",
+        //                    "orderId" => "1111861847410757635",
+        //                    "clientOid" => "1111861847410757637"
+        //                ),
+        //            ),
+        //            "failure" => array(),
+        //            "result" => true
+        //        }
+        //    }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $orderInfo = $this->safe_value($data, 'orderInfo', array());
+        return $this->parse_positions($orderInfo, null, $params);
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

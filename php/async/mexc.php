@@ -43,6 +43,9 @@ class mexc extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createDepositAddress' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createReduceOnlyOrder' => true,
@@ -2077,10 +2080,33 @@ class mexc extends Exchange {
         }) ();
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a $market buy order by providing the $symbol and $cost
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+            }
+            $params['createMarketBuyOrderRequiresPrice'] = false;
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+        }) ();
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -2110,12 +2136,15 @@ class mexc extends Exchange {
             'type' => strtoupper($type),
         );
         if ($orderSide === 'BUY' && $type === 'market') {
-            $quoteOrderQty = $this->safe_number($params, 'quoteOrderQty');
-            if ($quoteOrderQty !== null) {
-                $amount = $quoteOrderQty;
-            } elseif ($this->options['createMarketBuyOrderRequiresPrice']) {
+            $createMarketBuyOrderRequiresPrice = true;
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            $cost = $this->safe_number_2($params, 'cost', 'quoteOrderQty');
+            $params = $this->omit($params, 'cost');
+            if ($cost !== null) {
+                $amount = $cost;
+            } elseif ($createMarketBuyOrderRequiresPrice) {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
                 } else {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);

@@ -1685,6 +1685,7 @@ class upbit extends Exchange {
 
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
+         * @see https://docs.upbit.com/reference/디지털자산-출금하기
          * @see https://docs.upbit.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1695,14 +1696,14 @@ class upbit extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
             'amount' => $amount,
         );
-        $method = 'privatePostWithdraws';
+        $response = null;
         if ($code !== 'KRW') {
+            $this->check_address($address);
             // 2023-05-23 Change to required parameters for digital assets
             $network = $this->safe_string_upper_2($params, 'network', 'net_type');
             if ($network === null) {
@@ -1710,17 +1711,16 @@ class upbit extends Exchange {
             }
             $params = $this->omit($params, array( 'network' ));
             $request['net_type'] = $network;
-            $method .= 'Coin';
             $request['currency'] = $currency['id'];
             $request['address'] = $address;
             if ($tag !== null) {
                 $request['secondary_address'] = $tag;
             }
             $params = $this->omit($params, 'network');
+            $response = $this->privatePostWithdrawsCoin (array_merge($request, $params));
         } else {
-            $method .= 'Krw';
+            $response = $this->privatePostWithdrawsKrw (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "type" => "withdraw",

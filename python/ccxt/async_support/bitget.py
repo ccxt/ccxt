@@ -8,7 +8,7 @@ from ccxt.abstract.bitget import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, FundingHistory, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, FundingHistory, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -57,6 +57,8 @@ class bitget(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': True,
+                'closePosition': False,
                 'createOrder': True,
                 'createOrders': True,
                 'createReduceOnlyOrder': False,
@@ -5085,6 +5087,14 @@ class bitget(Exchange, ImplicitAPI):
         #       "utime": "1689300238205"
         #     }
         #
+        # closeAllPositions
+        #
+        #    {
+        #        "symbol": "XRPUSDT_UMCBL",
+        #        "orderId": "1111861847410757635",
+        #        "clientOid": "1111861847410757637"
+        #    }
+        #
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -6533,6 +6543,59 @@ class bitget(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'info': info,
         }
+
+    async def close_all_positions(self, params={}) -> List[Position]:
+        """
+        closes open positions for a market
+        :see: https://bitgetlimited.github.io/apidoc/en/mix/#close-all-position
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.subType]: 'linear' or 'inverse'
+        :param str [params.settle]: *required and only valid when params.subType == "linear"* 'USDT' or 'USDC'
+        :returns [dict]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        subType = None
+        settle = None
+        subType, params = self.handle_sub_type_and_params('closeAllPositions', None, params)
+        settle = self.safe_string(params, 'settle', 'USDT')
+        params = self.omit(params, ['settle'])
+        productType = self.safe_string(params, 'productType')
+        request = {}
+        if productType is None:
+            sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+            localProductType = None
+            if subType == 'inverse':
+                localProductType = 'dmcbl'
+            else:
+                if settle == 'USDT':
+                    localProductType = 'umcbl'
+                elif settle == 'USDC':
+                    localProductType = 'cmcbl'
+            if sandboxMode:
+                localProductType = 's' + localProductType
+            request['productType'] = localProductType
+        response = await self.privateMixPostMixV1OrderCloseAllPositions(self.extend(request, params))
+        #
+        #    {
+        #        "code": "00000",
+        #        "msg": "success",
+        #        "requestTime": 1700814442466,
+        #        "data": {
+        #            "orderInfo": [
+        #                {
+        #                    "symbol": "XRPUSDT_UMCBL",
+        #                    "orderId": "1111861847410757635",
+        #                    "clientOid": "1111861847410757637"
+        #                },
+        #            ],
+        #            "failure": [],
+        #            "result": True
+        #        }
+        #    }
+        #
+        data = self.safe_value(response, 'data', {})
+        orderInfo = self.safe_value(data, 'orderInfo', [])
+        return self.parse_positions(orderInfo, None, params)
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

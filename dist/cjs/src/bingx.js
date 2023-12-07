@@ -29,7 +29,7 @@ class bingx extends bingx$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'closeAllPosition': true,
+                'closeAllPositions': true,
                 'closePosition': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
@@ -1344,7 +1344,7 @@ class bingx extends bingx$1 {
         //    {
         //        "symbol": "BTC-USDT",
         //        "priceChange": "52.5",
-        //        "priceChangePercent": "0.31",
+        //        "priceChangePercent": "0.31%", // they started to add the percent sign in value
         //        "lastPrice": "16880.5",
         //        "lastQty": "2.2238",
         //        "highPrice": "16897.5",
@@ -1375,7 +1375,10 @@ class bingx extends bingx$1 {
         const close = this.safeString(ticker, 'lastPrice');
         const quoteVolume = this.safeString(ticker, 'quoteVolume');
         const baseVolume = this.safeString(ticker, 'volume');
-        const percentage = this.safeString(ticker, 'priceChangePercent');
+        let percentage = this.safeString(ticker, 'priceChangePercent');
+        if (percentage !== undefined) {
+            percentage = percentage.replace('%', '');
+        }
         const ts = this.safeInteger(ticker, 'closeTime');
         const datetime = this.iso8601(ts);
         const bid = this.safeString(ticker, 'bidPrice');

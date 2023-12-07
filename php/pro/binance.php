@@ -1661,18 +1661,25 @@ class binance extends \ccxt\async\binance {
             $url = $this->urls['api']['ws']['ws'];
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
+            $sor = $this->safe_value_2($params, 'sor', 'SOR', false);
+            $params = $this->omit($params, 'sor', 'SOR');
             $payload = $this->createOrderRequest ($symbol, $type, $side, $amount, $price, $params);
             $returnRateLimits = false;
             list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'returnRateLimits', false);
             $payload['returnRateLimits'] = $returnRateLimits;
+            $test = $this->safe_value($params, 'test', false);
+            $params = $this->omit($params, 'test');
             $message = array(
                 'id' => $messageHash,
                 'method' => 'order.place',
                 'params' => $this->sign_params(array_merge($payload, $params)),
             );
-            $test = $this->safe_value($params, 'test', false);
             if ($test) {
-                $message['method'] = 'order.test';
+                if ($sor) {
+                    $message['method'] = 'sor.order.test';
+                } else {
+                    $message['method'] = 'order.test';
+                }
             }
             $subscription = array(
                 'method' => array($this, 'handle_order_ws'),
