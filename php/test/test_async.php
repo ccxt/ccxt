@@ -224,7 +224,7 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
 function set_test_files ($holderClass, $properties) {
     return Async\async (function() use ($holderClass, $properties){
         $skiped = ['test_throttle'];
-        $pathRestOrWs = isWsTests ? __DIR__ . '/../pro/test/' : __DIR__ . '/' . (is_synchronous ? 'sync' : 'async');
+        $pathRestOrWs = isWsTests ? __DIR__ . '/../pro/test/Exchange/' : __DIR__ . '/' . (is_synchronous ? 'sync' : 'async');
         foreach (glob($pathRestOrWs . '/test_*.php') as $filename) {
             $basename = basename($filename);
             if (!in_array($basename, $skiped)) {
