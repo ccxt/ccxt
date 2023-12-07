@@ -1218,35 +1218,6 @@ class bingx extends Exchange {
         } else {
             $response = $this->swapV2PublicGetQuoteTicker (array_merge($request, $params));
         }
-        //
-        //    {
-        //        "code" => 0,
-        //        "msg" => "",
-        //        "data" => {
-        //          "symbol" => "BTC-USDT",
-        //          "priceChange" => "52.5",
-        //          "priceChangePercent" => "0.31",
-        //          "lastPrice" => "16880.5",
-        //          "lastQty" => "2.2238",
-        //          "highPrice" => "16897.5",
-        //          "lowPrice" => "16726.0",
-        //          "volume" => "245870.1692",
-        //          "quoteVolume" => "4151395117.73",
-        //          "openPrice" => "16832.0",
-        //          "openTime" => 1672026667803,
-        //          "closeTime" => 1672026648425,
-        //  added some time ago:
-        //          "firstId" => 12345,
-        //          "lastId" => 12349,
-        //          "count" => 5,
-        //  added 2023-11-10:
-        //          "bidPrice" => 16726.0,
-        //          "bidQty" => 0.05,
-        //          "askPrice" => 16726.0,
-        //          "askQty" => 0.05,
-        //        }
-        //    }
-        //
         $data = $this->safe_value($response, 'data');
         $ticker = $this->safe_value($data, 0, $data);
         return $this->parse_ticker($ticker, $market);
@@ -1275,37 +1246,6 @@ class bingx extends Exchange {
         } else {
             $response = $this->swapV2PublicGetQuoteTicker ($params);
         }
-        //
-        //    {
-        //        "code" => 0,
-        //        "msg" => "",
-        //        "data" => array(
-        //            array(
-        //                "symbol" => "BTC-USDT",
-        //                "priceChange" => "52.5",
-        //                "priceChangePercent" => "0.31",
-        //                "lastPrice" => "16880.5",
-        //                "lastQty" => "2.2238",
-        //                "highPrice" => "16897.5",
-        //                "lowPrice" => "16726.0",
-        //                "volume" => "245870.1692",
-        //                "quoteVolume" => "4151395117.73",
-        //                "openPrice" => "16832.0",
-        //                "openTime" => 1672026667803,
-        //                "closeTime" => 1672026648425,
-        //  added some time ago:
-        //                "firstId" => 12345,
-        //                "lastId" => 12349,
-        //                "count" => 5,
-        //  added 2023-11-10:
-        //                "bidPrice" => 16726.0,
-        //                "bidQty" => 0.05,
-        //                "askPrice" => 16726.0,
-        //                "askQty" => 0.05,
-        //            ),
-        //        )
-        //    }
-        //
         $tickers = $this->safe_value($response, 'data');
         return $this->parse_tickers($tickers, $symbols);
     }
@@ -1323,10 +1263,6 @@ class bingx extends Exchange {
         //        "quoteVolume" => "30288466.44",
         //        "openTime" => "1693081020762",
         //        "closeTime" => "1693167420762",
-        //  added some time ago:
-        //        "firstId" => 12345,
-        //        "lastId" => 12349,
-        //        "count" => 5,
         //  added 2023-11-10:
         //        "bidPrice" => 16726.0,
         //        "bidQty" => 0.05,
@@ -1340,7 +1276,7 @@ class bingx extends Exchange {
         //        "priceChange" => "52.5",
         //        "priceChangePercent" => "0.31%", // they started to add the percent sign in value
         //        "lastPrice" => "16880.5",
-        //        "lastQty" => "2.2238",
+        //        "lastQty" => "2.2238",          // only present in swap!
         //        "highPrice" => "16897.5",
         //        "lowPrice" => "16726.0",
         //        "volume" => "245870.1692",
@@ -1348,10 +1284,6 @@ class bingx extends Exchange {
         //        "openPrice" => "16832.0",
         //        "openTime" => 1672026667803,
         //        "closeTime" => 1672026648425,
-        //  added some time ago:
-        //        "firstId" => 12345,
-        //        "lastId" => 12349,
-        //        "count" => 5,
         //  added 2023-11-10:
         //        "bidPrice" => 16726.0,
         //        "bidQty" => 0.05,
@@ -1361,7 +1293,10 @@ class bingx extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $change = $this->safe_string($ticker, 'priceChange');
-        $type = ($change === null) ? 'spot' : 'swap';
+        $lastQty = $this->safe_string($ticker, 'lastQty');
+        // in spot markets, $lastQty is not present
+        // it's (bad, but) the only way we can check the tickers origin
+        $type = ($lastQty === null) ? 'spot' : 'swap';
         $symbol = $this->safe_symbol($marketId, $market, null, $type);
         $open = $this->safe_string($ticker, 'openPrice');
         $high = $this->safe_string($ticker, 'highPrice');
