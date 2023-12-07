@@ -227,7 +227,7 @@ function set_test_files ($holderClass, $properties) {
         for ($i = 0; $i < count($finalPropList); $i++) {
             $name = $finalPropList[$i];
             $name_snake_case = convert_to_snake_case($name);
-            $dir_to_test = isWsTests ? dirname(__DIR__) . '/pro/test/exchange/' : __DIR__ . '/' . (is_synchronous ? 'sync' : 'async');
+            $dir_to_test = isWsTests ? dirname(__DIR__) . '/pro/test/exchange/' : __DIR__ . '/' . (is_synchronous ? 'sync' : 'async') .'/';
             $test_method_name = 'test_'. $name_snake_case;
             $test_file = $dir_to_test . $test_method_name . '.' . ext;
             if (io_file_exists ($test_file)) {
