@@ -1347,7 +1347,7 @@ export default class bingx extends Exchange {
         //    {
         //        "symbol": "BTC-USDT",
         //        "priceChange": "52.5",
-        //        "priceChangePercent": "0.31",
+        //        "priceChangePercent": "0.31%", // they started to add the percent sign in value
         //        "lastPrice": "16880.5",
         //        "lastQty": "2.2238",
         //        "highPrice": "16897.5",
@@ -1378,8 +1378,10 @@ export default class bingx extends Exchange {
         const close = this.safeString(ticker, 'lastPrice');
         const quoteVolume = this.safeString(ticker, 'quoteVolume');
         const baseVolume = this.safeString(ticker, 'volume');
-        let percentage = this.safeString(ticker, 'priceChangePercent', ''); // priceChangePercent: '5.66%',
-        percentage = percentage.replace('%', '');
+        let percentage = this.safeString(ticker, 'priceChangePercent');
+        if (percentage !== undefined) {
+            percentage = percentage.replace('%', '');
+        }
         const ts = this.safeInteger(ticker, 'closeTime');
         const datetime = this.iso8601(ts);
         const bid = this.safeString(ticker, 'bidPrice');

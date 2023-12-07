@@ -1303,7 +1303,7 @@ class bingx(Exchange, ImplicitAPI):
         #    {
         #        "symbol": "BTC-USDT",
         #        "priceChange": "52.5",
-        #        "priceChangePercent": "0.31",
+        #        "priceChangePercent": "0.31%",  # they started to add the percent sign in value
         #        "lastPrice": "16880.5",
         #        "lastQty": "2.2238",
         #        "highPrice": "16897.5",
@@ -1334,8 +1334,9 @@ class bingx(Exchange, ImplicitAPI):
         close = self.safe_string(ticker, 'lastPrice')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         baseVolume = self.safe_string(ticker, 'volume')
-        percentage = self.safe_string(ticker, 'priceChangePercent', '')  # priceChangePercent: '5.66%',
-        percentage = percentage.replace('%', '')
+        percentage = self.safe_string(ticker, 'priceChangePercent')
+        if percentage is not None:
+            percentage = percentage.replace('%', '')
         ts = self.safe_integer(ticker, 'closeTime')
         datetime = self.iso8601(ts)
         bid = self.safe_string(ticker, 'bidPrice')

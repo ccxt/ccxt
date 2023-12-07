@@ -201,6 +201,7 @@ class coinbase extends coinbase$1 {
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
                             'brokerage/convert/trade/{trade_id}',
+                            'brokerage/time',
                         ],
                         'post': [
                             'brokerage/orders',

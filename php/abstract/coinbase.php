@@ -178,6 +178,9 @@ abstract class coinbase extends \ccxt\Exchange {
     public function v3_private_get_brokerage_convert_trade_trade_id($params = array()) {
         return $this->request('brokerage/convert/trade/{trade_id}', array('v3', 'private'), 'GET', $params, null, null, array());
     }
+    public function v3_private_get_brokerage_time($params = array()) {
+        return $this->request('brokerage/time', array('v3', 'private'), 'GET', $params, null, null, array());
+    }
     public function v3_private_post_brokerage_orders($params = array()) {
         return $this->request('brokerage/orders', array('v3', 'private'), 'POST', $params, null, null, array());
     }
@@ -366,6 +369,9 @@ abstract class coinbase extends \ccxt\Exchange {
     }
     public function v3PrivateGetBrokerageConvertTradeTradeId($params = array()) {
         return $this->request('brokerage/convert/trade/{trade_id}', array('v3', 'private'), 'GET', $params, null, null, array());
+    }
+    public function v3PrivateGetBrokerageTime($params = array()) {
+        return $this->request('brokerage/time', array('v3', 'private'), 'GET', $params, null, null, array());
     }
     public function v3PrivatePostBrokerageOrders($params = array()) {
         return $this->request('brokerage/orders', array('v3', 'private'), 'POST', $params, null, null, array());
