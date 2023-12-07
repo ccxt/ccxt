@@ -2869,7 +2869,8 @@ class bingx extends Exchange {
 
     public function parse_transaction_status($status) {
         $statuses = array(
-            '0' => 'ok',
+            '0' => 'pending',
+            '1' => 'ok',
             '10' => 'pending',
             '20' => 'rejected',
             '30' => 'ok',

@@ -2753,7 +2753,8 @@ class bingx(Exchange, ImplicitAPI):
 
     def parse_transaction_status(self, status):
         statuses = {
-            '0': 'ok',
+            '0': 'pending',
+            '1': 'ok',
             '10': 'pending',
             '20': 'rejected',
             '30': 'ok',
