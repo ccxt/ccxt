@@ -1379,6 +1379,7 @@ export default class bitget extends bitgetRest {
          * @method
          * @name bitget#watchMyTrades
          * @description watches trades made by the user
+         * @see https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
          * @param {str} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1400,10 +1401,11 @@ export default class bitget extends bitgetRest {
         if (type === 'spot') {
             throw new NotSupported (this.id + ' watchMyTrades is not supported for ' + type + ' markets.');
         }
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        let instType = undefined;
+        [ instType, params ] = this.getInstType (market, params);
         const subscriptionHash = 'order:trades';
         const args = {
-            'instType': (!sandboxMode) ? 'umcbl' : 'sumcbl',
+            'instType': instType,
             'channel': 'orders',
             'instId': 'default',
         };
@@ -1418,36 +1420,33 @@ export default class bitget extends bitgetRest {
         //
         // order and trade mixin (contract)
         //
-        //   {
-        //       "accFillSz": "0.1",
-        //       "avgPx": "52.81",
-        //       "cTime": 1656511777208,
-        //       "clOrdId": "926043001195237376",
-        //       "execType": "T",
-        //       "fillFee": "-0.0031686",
-        //       "fillFeeCcy": "USDT",
-        //       "fillNotionalUsd": "5.281",
-        //       "fillPx": "52.81",
-        //       "fillSz": "0.1",
-        //       "fillTime": "1656511777266",
-        //       "force": "normal",
-        //       "instId": "LTCUSDT_UMCBL",
-        //       "lever": "1",
-        //       "notionalUsd": "5.281",
-        //       "ordId": "926043001132322816",
-        //       "ordType": "market",
-        //       "orderFee": [Array],
-        //       "pnl": "0.004",
-        //       "posSide": "long",
-        //       "px": "0",
-        //       "side": "sell",
-        //       "status": "full-fill",
-        //       "sz": "0.1",
-        //       "tdMode": "cross",
-        //       "tgtCcy": "USDT",
-        //       "tradeId": "926043001438552105",
-        //       "uTime": 1656511777266
-        //   }
+        //     {
+        //         "accBaseVolume": "0",
+        //         "cTime": "1701920553759",
+        //         "clientOid": "1116501214318198793",
+        //         "enterPointSource": "WEB",
+        //         "feeDetail": [{
+        //             "feeCoin": "USDT",
+        //             "fee": "-0.162003"
+        //         }],
+        //         "force": "gtc",
+        //         "instId": "BTCUSDT",
+        //         "leverage": "20",
+        //         "marginCoin": "USDT",
+        //         "marginMode": "isolated",
+        //         "notionalUsd": "105",
+        //         "orderId": "1116501214293032964",
+        //         "orderType": "limit",
+        //         "posMode": "hedge_mode",
+        //         "posSide": "long",
+        //         "price": "35000",
+        //         "reduceOnly": "no",
+        //         "side": "buy",
+        //         "size": "0.003",
+        //         "status": "canceled",
+        //         "tradeSide": "open",
+        //         "uTime": "1701920595866"
+        //     }
         //
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1467,67 +1466,62 @@ export default class bitget extends bitgetRest {
         //
         // order and trade mixin (contract)
         //
-        //   {
-        //       "accFillSz": "0.1",
-        //       "avgPx": "52.81",
-        //       "cTime": 1656511777208,
-        //       "clOrdId": "926043001195237376",
-        //       "execType": "T",
-        //       "fillFee": "-0.0031686",
-        //       "fillFeeCcy": "USDT",
-        //       "fillNotionalUsd": "5.281",
-        //       "fillPx": "52.81",
-        //       "fillSz": "0.1",
-        //       "fillTime": "1656511777266",
-        //       "force": "normal",
-        //       "instId": "LTCUSDT_UMCBL",
-        //       "lever": "1",
-        //       "notionalUsd": "5.281",
-        //       "ordId": "926043001132322816",
-        //       "ordType": "market",
-        //       "orderFee": [Array],
-        //       "pnl": "0.004",
-        //       "posSide": "long",
-        //       "px": "0",
-        //       "side": "sell",
-        //       "status": "full-fill",
-        //       "sz": "0.1",
-        //       "tdMode": "cross",
-        //       "tgtCcy": "USDT",
-        //       "tradeId": "926043001438552105",
-        //       "uTime": 1656511777266
-        //   }
+        //     {
+        //         "accBaseVolume": "0",
+        //         "cTime": "1701920553759",
+        //         "clientOid": "1116501214318198793",
+        //         "enterPointSource": "WEB",
+        //         "feeDetail": [{
+        //             "feeCoin": "USDT",
+        //             "fee": "-0.162003"
+        //         }],
+        //         "force": "gtc",
+        //         "instId": "BTCUSDT",
+        //         "leverage": "20",
+        //         "marginCoin": "USDT",
+        //         "marginMode": "isolated",
+        //         "notionalUsd": "105",
+        //         "orderId": "1116501214293032964",
+        //         "orderType": "limit",
+        //         "posMode": "hedge_mode",
+        //         "posSide": "long",
+        //         "price": "35000",
+        //         "reduceOnly": "no",
+        //         "side": "buy",
+        //         "size": "0.003",
+        //         "status": "canceled",
+        //         "tradeSide": "open",
+        //         "uTime": "1701920595866"
+        //     }
         //
-        const id = this.safeString (trade, 'tradeId');
-        const orderId = this.safeString (trade, 'ordId');
         const marketId = this.safeString (trade, 'instId');
-        market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger (trade, 'fillTime');
-        const side = this.safeString (trade, 'side');
-        const price = this.safeString (trade, 'fillPx');
-        const amount = this.safeString (trade, 'fillSz');
-        const type = this.safeString (trade, 'ordType');
-        const cost = this.safeString (trade, 'notional');
-        const feeCurrency = this.safeString (trade, 'fillFeeCcy');
-        const feeAmount = Precise.stringAbs (this.safeString (trade, 'fillFee'));
-        const fee = {
-            'code': this.safeCurrencyCode (feeCurrency),
-            'cost': feeAmount,
-        } as any;
+        market = this.safeMarket (marketId, market, undefined, 'contract');
+        const timestamp = this.safeInteger2 (trade, 'uTime', 'cTime');
+        const orderFee = this.safeValue (trade, 'feeDetail', []);
+        const fee = this.safeValue (orderFee, 0);
+        const feeAmount = this.safeString (fee, 'fee');
+        let feeObject = undefined;
+        if (feeAmount !== undefined) {
+            const feeCurrency = this.safeString (fee, 'feeCoin');
+            feeObject = {
+                'cost': Precise.stringAbs (feeAmount),
+                'currency': this.safeCurrencyCode (feeCurrency),
+            };
+        }
         return this.safeTrade ({
             'info': trade,
-            'id': id,
-            'order': orderId,
+            'id': undefined,
+            'order': this.safeString (trade, 'orderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'type': type,
-            'side': side,
+            'type': this.safeString (trade, 'orderType'),
+            'side': this.safeString (trade, 'side'),
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': fee,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'size'),
+            'cost': this.safeString (trade, 'notionalUsd'),
+            'fee': feeObject,
         }, market);
     }
 
