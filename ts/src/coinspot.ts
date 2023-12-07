@@ -182,8 +182,7 @@ export default class coinspot extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
-        const response = await this[method] (params);
+        const response = await this.privatePostMyBalances (params);
         //
         // read-write api keys
         //
