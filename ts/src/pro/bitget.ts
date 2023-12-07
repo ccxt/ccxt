@@ -98,7 +98,8 @@ export default class bitget extends bitgetRest {
         } else {
             instType = 'SPOT';
         }
-        return instType;
+        [ instType, params ] = this.handleOptionAndParams (params, 'getInstType', 'instType', instType);
+        return [ instType, params ];
     }
 
     async watchTicker (symbol: string, params = {}) {
@@ -116,7 +117,8 @@ export default class bitget extends bitgetRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'ticker:' + symbol;
-        const instType = this.getInstType (market, params);
+        let instType = undefined;
+        [ instType, params ] = this.getInstType (market, params);
         const args = {
             'instType': instType,
             'channel': 'ticker',
@@ -139,7 +141,8 @@ export default class bitget extends bitgetRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const market = this.market (symbols[0]);
-        const instType = this.getInstType (market, params);
+        let instType = undefined;
+        [ instType, params ] = this.getInstType (market, params);
         const messageHash = 'tickers::' + symbols.join (',');
         const marketIds = this.marketIds (symbols);
         const topics = [ ];
@@ -336,7 +339,8 @@ export default class bitget extends bitgetRest {
         const timeframes = this.safeValue (this.options, 'timeframes');
         const interval = this.safeString (timeframes, timeframe);
         const messageHash = 'candles:' + timeframe + ':' + symbol;
-        const instType = this.getInstType (market, params);
+        let instType = undefined;
+        [ instType, params ] = this.getInstType (market, params);
         const args = {
             'instType': instType,
             'channel': 'candle' + interval,
@@ -371,7 +375,8 @@ export default class bitget extends bitgetRest {
             const currentTimeframe = this.safeString (data, 1);
             const market = this.market (currentSymbol);
             const interval = this.safeString (this.options['timeframes'], currentTimeframe);
-            const instType = this.getInstType (market, params);
+            let instType = undefined;
+            [ instType, params ] = this.getInstType (market, params);
             const args = {
                 'instType': instType,
                 'channel': 'candle' + interval,
@@ -490,7 +495,8 @@ export default class bitget extends bitgetRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook' + ':' + symbol;
-        const instType = this.getInstType (market, params);
+        let instType = undefined;
+        [ instType, params ] = this.getInstType (market, params);
         let channel = 'books';
         let incrementalFeed = true;
         if ((limit === 1) || (limit === 5) || (limit === 15)) {
@@ -533,7 +539,8 @@ export default class bitget extends bitgetRest {
         const topics = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
-            const instType = this.getInstType (market, params);
+            let instType = undefined;
+            [ instType, params ] = this.getInstType (market, params);
             const args = {
                 'instType': instType,
                 'channel': channel,
@@ -671,7 +678,8 @@ export default class bitget extends bitgetRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
-        const instType = this.getInstType (market, params);
+        let instType = undefined;
+        [ instType, params ] = this.getInstType (market, params);
         const args = {
             'instType': instType,
             'channel': 'trade',
@@ -706,7 +714,8 @@ export default class bitget extends bitgetRest {
         const topics = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
-            const instType = this.getInstType (market, params);
+            let instType = undefined;
+            [ instType, params ] = this.getInstType (market, params);
             const args = {
                 'instType': instType,
                 'channel': 'trade',
@@ -798,29 +807,22 @@ export default class bitget extends bitgetRest {
          * @method
          * @name bitget#watchPositions
          * @description watch all open positions
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#positions-channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the exchange API endpoint
-         * @param {string} params.instType Instrument Type umcbl:USDT Perpetual Contract Private Channel; dmcbl:Coin Margin Perpetual Contract Private Channel; cmcbl: USDC margin Perpetual Contract Private Channel
+         * @param {string} [params.instType] one of 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES', default is 'USDT-FUTURES'
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
         let messageHash = '';
         const subscriptionHash = 'positions';
-        let instType = 'umcbl';
+        let instType = 'USDT-FUTURES';
         symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
-            instType = 'dmcbl';
             market = this.getMarketFromSymbols (symbols);
-            messageHash = '::' + symbols.join (',');
-            if (market['settle'] === 'USDT') {
-                instType = 'umcbl';
-            } else if (market['settle'] === 'USDC') {
-                instType = 'cmcbl';
-            }
+            [ instType, params ] = this.getInstType (market, params);
         }
-        [ instType, params ] = this.handleOptionAndParams (params, 'watchPositions', 'instType', instType);
         messageHash = instType + ':positions' + messageHash;
         const args = {
             'instType': instType,
@@ -836,41 +838,41 @@ export default class bitget extends bitgetRest {
 
     handlePositions (client: Client, message) {
         //
-        //    {
-        //        action: 'snapshot',
-        //        arg: {
-        //            instType: 'umcbl',
-        //            channel: 'positions',
-        //            instId: 'default'
-        //        },
-        //        data: [{
-        //                posId: '926036334386778112',
-        //                instId: 'LTCUSDT_UMCBL',
-        //                instName: 'LTCUSDT',
-        //                marginCoin: 'USDT',
-        //                margin: '9.667',
-        //                marginMode: 'crossed',
-        //                holdSide: 'long',
-        //                holdMode: 'double_hold',
-        //                total: '0.3',
-        //                available: '0.3',
-        //                locked: '0',
-        //                averageOpenPrice: '64.44',
-        //                leverage: 2,
-        //                achievedProfits: '0',
-        //                upl: '0.0759',
-        //                uplRate: '0.0078',
-        //                liqPx: '-153.32',
-        //                keepMarginRate: '0.010',
-        //                marginRate: '0.005910309637',
-        //                cTime: '1656510187717',
-        //                uTime: '1694880005480',
-        //                markPrice: '64.7',
-        //                autoMargin: 'off'
-        //            },
-        //            ...
-        //        ]
-        //    }
+        //     {
+        //         "action": "snapshot",
+        //         "arg": {
+        //             "instType": "USDT-FUTURES",
+        //             "channel": "positions",
+        //             "instId": "default"
+        //         },
+        //         "data": [
+        //             {
+        //                 "posId": "926036334386778112",
+        //                 "instId": "BTCUSDT",
+        //                 "marginCoin": "USDT",
+        //                 "marginSize": "2.19245",
+        //                 "marginMode": "crossed",
+        //                 "holdSide": "long",
+        //                 "posMode": "hedge_mode",
+        //                 "total": "0.001",
+        //                 "available": "0.001",
+        //                 "frozen": "0",
+        //                 "openPriceAvg": "43849",
+        //                 "leverage": 20,
+        //                 "achievedProfits": "0",
+        //                 "unrealizedPL": "-0.0032",
+        //                 "unrealizedPLR": "-0.00145955438",
+        //                 "liquidationPrice": "17629.684814834",
+        //                 "keepMarginRate": "0.004",
+        //                 "marginRate": "0.007634649185",
+        //                 "cTime": "1652331666985",
+        //                 "uTime": "1701913016923",
+        //                 "autoMargin": "off"
+        //             },
+        //             ...
+        //         ]
+        //         "ts": 1701913043767
+        //     }
         //
         const arg = this.safeValue (message, 'arg', {});
         const instType = this.safeString (arg, 'instType', '');
@@ -889,7 +891,9 @@ export default class bitget extends bitgetRest {
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
-            const position = this.parseWsPosition (rawPosition);
+            const marketId = this.safeString (rawPosition, 'instId');
+            const market = this.safeMarket (marketId, undefined, undefined, 'contract');
+            const position = this.parseWsPosition (rawPosition, market);
             newPositions.push (position);
             cache.append (position);
         }
@@ -909,57 +913,58 @@ export default class bitget extends bitgetRest {
 
     parseWsPosition (position, market = undefined) {
         //
-        //    {
-        //        posId: '926036334386778112',
-        //        instId: 'LTCUSDT_UMCBL',
-        //        instName: 'LTCUSDT',
-        //        marginCoin: 'USDT',
-        //        margin: '9.667',
-        //        marginMode: 'crossed',
-        //        holdSide: 'long',
-        //        holdMode: 'double_hold',
-        //        total: '0.3',
-        //        available: '0.3',
-        //        locked: '0',
-        //        averageOpenPrice: '64.44',
-        //        leverage: 2,
-        //        achievedProfits: '0',
-        //        upl: '0.0759',
-        //        uplRate: '0.0078',
-        //        liqPx: '-153.32',
-        //        keepMarginRate: '0.010',
-        //        marginRate: '0.005910309637',
-        //        cTime: '1656510187717',
-        //        uTime: '1694880005480',
-        //        markPrice: '64.7',
-        //        autoMargin: 'off'
-        //    }
+        //     {
+        //         "posId": "926036334386778112",
+        //         "instId": "BTCUSDT",
+        //         "marginCoin": "USDT",
+        //         "marginSize": "2.19245",
+        //         "marginMode": "crossed",
+        //         "holdSide": "long",
+        //         "posMode": "hedge_mode",
+        //         "total": "0.001",
+        //         "available": "0.001",
+        //         "frozen": "0",
+        //         "openPriceAvg": "43849",
+        //         "leverage": 20,
+        //         "achievedProfits": "0",
+        //         "unrealizedPL": "-0.0032",
+        //         "unrealizedPLR": "-0.00145955438",
+        //         "liquidationPrice": "17629.684814834",
+        //         "keepMarginRate": "0.004",
+        //         "marginRate": "0.007634649185",
+        //         "cTime": "1652331666985",
+        //         "uTime": "1701913016923",
+        //         "autoMargin": "off"
+        //     }
         //
         const marketId = this.safeString (position, 'instId');
         const marginModeId = this.safeString (position, 'marginMode');
         const marginMode = this.getSupportedMapping (marginModeId, {
             'crossed': 'cross',
-            'fixed': 'isolated',
+            'isolated': 'isolated',
         });
-        const hedgedId = this.safeString (position, 'holdMode');
-        const hedged = this.getSupportedMapping (hedgedId, {
-            'double_hold': true,
-            'single_hold': false,
-        });
+        const hedgedId = this.safeString (position, 'posMode');
+        const hedged = (hedgedId === 'hedge_mode') ? true : false;
         const timestamp = this.safeInteger2 (position, 'uTime', 'cTime');
+        const percentageDecimal = this.safeString (position, 'unrealizedPLR');
+        const percentage = Precise.stringMul (percentageDecimal, '100');
+        let contractSize = undefined;
+        if (market !== undefined) {
+            contractSize = market['contractSize'];
+        }
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'posId'),
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
             'notional': undefined,
             'marginMode': marginMode,
-            'liquidationPrice': undefined,
-            'entryPrice': this.safeNumber (position, 'averageOpenPrice'),
-            'unrealizedPnl': this.safeNumber (position, 'upl'),
-            'percentage': this.safeNumber (position, 'uplRate'),
+            'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
+            'entryPrice': this.safeNumber (position, 'openPriceAvg'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPL'),
+            'percentage': this.parseNumber (percentage),
             'contracts': this.safeNumber (position, 'total'),
-            'contractSize': undefined,
-            'markPrice': this.safeNumber (position, 'markPrice'),
+            'contractSize': contractSize,
+            'markPrice': undefined,
             'side': this.safeString (position, 'holdSide'),
             'hedged': hedged,
             'timestamp': timestamp,
