@@ -2190,8 +2190,8 @@ class Transpiler {
                 base: true,
                 name: testName,
                 tsFile: baseFolders.tsBase + testName + '.ts',
-                pyFile: baseFolders.pyBase + unCamelCasedFileName + '.py',
-                phpFile: baseFolders.phpBase + unCamelCasedFileName + '.php',
+                pyFileSync: baseFolders.pyBase + unCamelCasedFileName + '.py',
+                phpFileSync: baseFolders.phpBase + unCamelCasedFileName + '.php',
             };
             tests.push(test);
         }
