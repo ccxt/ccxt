@@ -1,6 +1,6 @@
 export type Bool = boolean | undefined;
-export type IndexType = number | string;
 // must be an integer in other langs
+export type IndexType = number | string;
 export type Int = number | undefined;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option';
 export type Num = number | undefined;
