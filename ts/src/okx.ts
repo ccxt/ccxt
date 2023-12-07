@@ -7158,15 +7158,15 @@ export default class okx extends Exchange {
         };
     }
 
-    async closePosition (symbol: string, side: OrderSide = undefined, marginMode: string = undefined, params = {}): Promise<Order> {
+    async closePosition (symbol: string, marginMode: string = undefined, side: OrderSide = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name okx#closePositions
          * @description closes open positions for a market
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
          * @param {string} symbol Unified CCXT market symbol
-         * @param {string} [side] 'buy' or 'sell', required when not in net mode
          * @param {string} marginMode 'cross' or 'isolated'
+         * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.clientOrderId] 'cross' or 'isolated'
          * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
