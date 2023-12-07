@@ -186,7 +186,7 @@ class CCXTProTranspiler extends Transpiler {
         const wsFolder = 'pro/test/';
 
         const wsCollectedTests = [];
-        for (const currentFolder of ['', 'base/']) {
+        for (const currentFolder of ['Exchange/', 'base/']) {
             const subDirectory = wsFolder + currentFolder;
             const fileNames = this.readTsFileNames(baseWsFolders.ts + subDirectory);
             for (const testName of fileNames) {
