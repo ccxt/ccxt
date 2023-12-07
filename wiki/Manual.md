@@ -5907,6 +5907,45 @@ It is recommended to use the `maintenanceMargin` and `initialMargin` instead of 
 
 An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
 
+#### Closing Positions
+
+*contract only*
+
+To quickly close open positions with a market order, use
+
+- closePosition ()               // for a single market
+- closeAllPositions ()           // for all positions
+
+```typescript
+closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order>
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **side** *required* a string literal for the direction of your order.
+  **Unified sides:**
+  - `buy` give quote currency and receive base currency; for example, buying `BTC/USD` means that you will receive bitcoins for your dollars.
+  - `sell` give base currency and receive quote currency; for example, buying `BTC/USD` means that you will receive dollars for your bitcoins.
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An [order structure](#order-structure)
+
+```typescript
+closeAllPositions (params = {}): Promise<Position[]>
+```
+
+Parameters
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A list of [order structures](#order-structure)
+
+
+
 #### Liquidation Price
 
 It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
