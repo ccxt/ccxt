@@ -223,18 +223,15 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
 
 function set_test_files ($holderClass, $properties) {
     return Async\async (function() use ($holderClass, $properties){
-        $skiped = ['test_throttle'];
-        $pathRestOrWs = isWsTests ? __DIR__ . '/../pro/test/Exchange/' : __DIR__ . '/' . (is_synchronous ? 'sync' : 'async');
-        foreach (glob($pathRestOrWs . '/test_*.php') as $filename) {
-            $basename = basename($filename);
-            if (!in_array($basename, $skiped)) {
+        $finalPropList = array_merge ($properties, [proxyTestFileName]);
+        for ($i = 0; $i < count($finalPropList); $i++) {
+            $name = $finalPropList[$i];
+            $name_snake_case = convert_to_snake_case($name);
+            $dir_to_test = isWsTests ? __DIR__ . '/../pro/test/Exchange/' : __DIR__ . '/' . (is_synchronous ? 'sync' : 'async');
+            $test_file = $dir_to_test . $name_snake_case . '.' . ext;
+            if (io_file_exists ($test_file)) {
                 include_once $filename;
-            }
-        }
-        $allfuncs = get_defined_functions()['user'];
-        foreach ($allfuncs as $fName) {
-            if (stripos($fName, 'ccxt\\test_')!==false) {
-                $nameWithoutNs = str_replace('ccxt\\', '', $fName);
+                $nameWithoutNs = str_replace('ccxt\\', '', $name_snake_case);
                 $holderClass->test_files[$nameWithoutNs] = $fName;
             }
         }
