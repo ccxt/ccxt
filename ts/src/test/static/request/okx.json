@@ -639,7 +639,7 @@
         ],
         "closePosition": [
           {
-            "description": "Fill this with a description of the method call",
+            "description": "Closing positiion in net mode",
             "method": "closePosition",
             "url": "https://www.okx.com/api/v5/trade/close-position",
             "input": [
@@ -649,7 +649,7 @@
             "output": "{\"instId\":\"ADA-USDT-SWAP\",\"mgnMode\":\"cross\"}"
           },
           {
-            "description": "Fill this with a description of the method call",
+            "description": "Closing a short position in dual mode",
             "method": "closePosition",
             "url": "https://www.okx.com/api/v5/trade/close-position",
             "input": [
@@ -660,7 +660,7 @@
             "output": "{\"instId\":\"ADA-USDT-SWAP\",\"mgnMode\":\"cross\",\"posSide\":\"short\"}"
           },
           {
-            "description": "Fill this with a description of the method call",
+            "description": "closing a long position in dual mode",
             "method": "closePosition",
             "url": "https://www.okx.com/api/v5/trade/close-position",
             "input": [
