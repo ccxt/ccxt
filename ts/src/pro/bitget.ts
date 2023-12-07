@@ -659,8 +659,8 @@ export default class bitget extends bitgetRest {
          * @method
          * @name bitget#watchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#trades-channel
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#trades-channel
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -671,7 +671,7 @@ export default class bitget extends bitgetRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
-        const instType = market['spot'] ? 'sp' : 'mc';
+        const instType = this.getInstType (market, params);
         const args = {
             'instType': instType,
             'channel': 'trade',
@@ -689,6 +689,8 @@ export default class bitget extends bitgetRest {
          * @method
          * @name bitget#watchTradesForSymbols
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -704,7 +706,7 @@ export default class bitget extends bitgetRest {
         const topics = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
-            const instType = market['spot'] ? 'sp' : 'mc';
+            const instType = this.getInstType (market, params);
             const args = {
                 'instType': instType,
                 'channel': 'trade',
@@ -724,24 +726,26 @@ export default class bitget extends bitgetRest {
 
     handleTrades (client: Client, message) {
         //
-        //    {
-        //        "action": "snapshot",
-        //        "arg": { instType: 'sp', channel: "trade", instId: "BTCUSDT" },
-        //        "data": [
-        //          [ '1656411148032', '21047.78', "2.2294", "buy" ],
-        //          [ '1656411142030', '21047.85', "2.1225", "buy" ],
-        //          [ '1656411133064', '21045.88', "1.7704", "sell" ],
-        //          [ '1656411126037', '21052.39', "2.6905", "buy" ],
-        //          [ '1656411118029', '21056.87', "1.2308", "sell" ],
-        //          [ '1656411108028', '21060.01', "1.7186", "sell" ],
-        //          [ '1656411100027', '21060.4', "1.3641", "buy" ],
-        //          [ '1656411093030', '21058.76', "1.5049", "sell" ]
-        //        ]
-        //    }
+        //     {
+        //         "action": "snapshot",
+        //         "arg": { "instType": "SPOT", "channel": "trade", "instId": "BTCUSDT" },
+        //         "data": [
+        //             {
+        //                 "ts": "1701910980366",
+        //                 "price": "43854.01",
+        //                 "size": "0.0535",
+        //                 "side": "buy",
+        //                 "tradeId": "1116461060594286593"
+        //             },
+        //         ],
+        //         "ts": 1701910980730
+        //     }
         //
         const arg = this.safeValue (message, 'arg', {});
+        const instType = this.safeString (arg, 'instType');
+        const marketType = (instType === 'SPOT') ? 'spot' : 'contract';
         const marketId = this.safeString (arg, 'instId');
-        const market = this.safeMarket (marketId);
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -762,32 +766,28 @@ export default class bitget extends bitgetRest {
 
     parseWsTrade (trade, market = undefined) {
         //
-        // public trade
-        //
-        //   [
-        //       "1656411148032", // timestamp
-        //       "21047.78", // price
-        //       "2.2294", // size
-        //       "buy", // side
-        //   ]
+        //     {
+        //         "ts": "1701910980366",
+        //         "price": "43854.01",
+        //         "size": "0.0535",
+        //         "side": "buy",
+        //         "tradeId": "1116461060594286593"
+        //     }
         //
         market = this.safeMarket (undefined, market);
-        const timestamp = this.safeInteger (trade, 0);
-        const side = this.safeString (trade, 3);
-        const price = this.safeString (trade, 1);
-        const amount = this.safeString (trade, 2);
+        const timestamp = this.safeInteger (trade, 'ts');
         return this.safeTrade ({
             'info': trade,
-            'id': undefined,
+            'id': this.safeString (trade, 'tradeId'),
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'side': side,
+            'side': this.safeString (trade, 'side'),
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'size'),
             'cost': undefined,
             'fee': undefined,
         }, market);
