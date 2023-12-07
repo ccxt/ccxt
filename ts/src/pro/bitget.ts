@@ -1530,69 +1530,116 @@ export default class bitget extends bitgetRest {
          * @method
          * @name bitget#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.bitget.com/api-doc/spot/websocket/private/Account-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/private/Account-Channel
+         * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Margin-Cross-Account-Assets
+         * @see https://www.bitget.com/api-doc/margin/isolated/websocket/private/Margin-isolated-account-assets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
+         * @param {string} [params.instType] one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+         * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin balances
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', undefined, params);
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
-        let instType = 'spbl';
-        if (type === 'swap') {
-            instType = 'UMCBL';
-            if (sandboxMode) {
-                instType = 'S' + instType;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('watchBalance', params);
+        let instType = undefined;
+        let channel = 'account';
+        if ((type === 'swap') || (type === 'future')) {
+            instType = 'USDT-FUTURES';
+        } else if (marginMode !== undefined) {
+            instType = 'MARGIN';
+            if (marginMode === 'isolated') {
+                channel = 'account-isolated';
+            } else {
+                channel = 'account-crossed';
             }
+        } else {
+            instType = 'SPOT';
         }
+        [ instType, params ] = this.handleOptionAndParams (params, 'watchBalance', 'instType', instType);
         const args = {
             'instType': instType,
-            'channel': 'account',
-            'instId': 'default',
+            'channel': channel,
+            'coin': 'default',
         };
         const messageHash = 'balance:' + instType.toLowerCase ();
         return await this.watchPrivate (messageHash, messageHash, args, params);
     }
 
     handleBalance (client: Client, message) {
+        //
         // spot
         //
-        //    {
-        //        "action": "snapshot",
-        //        "arg": { instType: 'spbl', channel: "account", instId: "default" },
-        //        "data": [
-        //          { coinId: '5', coinName: "LTC", available: "0.1060938000000000" },
-        //          { coinId: '2', coinName: "USDT", available: "13.4498240000000000" }
-        //        ]
-        //    }
+        //     {
+        //         "action": "snapshot",
+        //         "arg": { "instType": "SPOT", "channel": "account", "coin": "default" },
+        //         "data": [
+        //             {
+        //                 "coin": "USDT",
+        //                 "available": "19.1430952856087",
+        //                 "frozen": "7",
+        //                 "locked": "0",
+        //                 "limitAvailable": "0",
+        //                 "uTime": "1701931970487"
+        //             },
+        //         ],
+        //         "ts": 1701931970487
+        //     }
         //
         // swap
-        //    {
-        //      "action": "snapshot",
-        //      "arg": {
-        //        "instType": "umcbl",
-        //        "channel": "account",
-        //        "instId": "default"
-        //      },
-        //      "data": [
-        //        {
-        //          "marginCoin": "USDT",
-        //          "locked": "0.00000000",
-        //          "available": "3384.58046492",
-        //          "maxOpenPosAvailable": "3384.58046492",
-        //          "maxTransferOut": "3384.58046492",
-        //          "equity": "3384.58046492",
-        //          "usdtEquity": "3384.580464925690"
-        //        }
-        //      ]
-        //    }
+        //
+        //     {
+        //         "action": "snapshot",
+        //         "arg": { "instType": "USDT-FUTURES", "channel": "account", "coin": "default" },
+        //         "data": [
+        //             {
+        //                 "marginCoin": "USDT",
+        //                 "frozen": "5.36581500",
+        //                 "available": "26.14309528",
+        //                 "maxOpenPosAvailable": "20.77728028",
+        //                 "maxTransferOut": "20.77728028",
+        //                 "equity": "26.14309528",
+        //                 "usdtEquity": "26.143095285166"
+        //             }
+        //         ],
+        //         "ts": 1701932570822
+        //     }
+        //
+        // margin
+        //
+        //     {
+        //         "action": "snapshot",
+        //         "arg": { "instType": "MARGIN", "channel": "account-crossed", "coin": "default" },
+        //         "data": [
+        //             {
+        //                 "uTime": "1701933110544",
+        //                 "id": "1096916799926710272",
+        //                 "coin": "USDT",
+        //                 "available": "16.24309528",
+        //                 "borrow": "0.00000000",
+        //                 "frozen": "9.90000000",
+        //                 "interest": "0.00000000",
+        //                 "coupon": "0.00000000"
+        //             }
+        //         ],
+        //         "ts": 1701933110544
+        //     }
         //
         const data = this.safeValue (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rawBalance = data[i];
-            const currencyId = this.safeString2 (rawBalance, 'coinName', 'marginCoin');
+            const currencyId = this.safeString2 (rawBalance, 'coin', 'marginCoin');
             const code = this.safeCurrencyCode (currencyId);
             const account = (code in this.balance) ? this.balance[code] : this.account ();
-            account['free'] = this.safeString (rawBalance, 'available');
+            const borrow = this.safeString (rawBalance, 'borrow');
+            if (borrow !== undefined) {
+                const interest = this.safeString (rawBalance, 'interest');
+                account['debt'] = Precise.stringAdd (borrow, interest);
+            }
+            const freeQuery = ('maxTransferOut' in rawBalance) ? 'maxTransferOut' : 'available';
+            account['free'] = this.safeString (rawBalance, freeQuery);
             account['total'] = this.safeString (rawBalance, 'equity');
             account['used'] = this.safeString (rawBalance, 'frozen');
             this.balance[code] = account;
@@ -1707,7 +1754,7 @@ export default class bitget extends bitgetRest {
         //
         //   {
         //       "action": "snapshot",
-        //       "arg": { instType: 'sp', channel: "ticker", instId: "BTCUSDT" },
+        //       "arg": { instType: 'SPOT', channel: "ticker", instId: "BTCUSDT" },
         //       "data": [
         //         {
         //           "instId": "BTCUSDT",
@@ -1735,7 +1782,7 @@ export default class bitget extends bitgetRest {
         //
         //    {
         //        "event": "subscribe",
-        //        "arg": { instType: 'spbl', channel: "account", instId: "default" }
+        //        "arg": { instType: 'SPOT', channel: "account", instId: "default" }
         //    }
         //
         if (this.handleErrorMessage (client, message)) {
@@ -1794,7 +1841,7 @@ export default class bitget extends bitgetRest {
         //
         //    {
         //        "event": "subscribe",
-        //        "arg": { instType: 'spbl', channel: "account", instId: "default" }
+        //        "arg": { instType: 'SPOT', channel: "account", instId: "default" }
         //    }
         //
         return message;
