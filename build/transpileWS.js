@@ -140,43 +140,6 @@ class CCXTProTranspiler extends Transpiler {
 
     // -----------------------------------------------------------------------
 
-    async transpileEverything (force = false, child = false) {
-
-        // default pattern is '.js'
-        // const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
-        const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
-            // , python2Folder = './python/ccxtpro/', // CCXT Pro does not support Python 2
-            , python3Folder = './python/ccxt/pro/'
-            , phpAsyncFolder = './php/pro/'
-            , jsFolder = './js/src/pro/'
-            , tsFolder = './ts/src/pro/'
-            , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, jsFolder, exchanges }
-
-        // createFolderRecursively (python2Folder)
-        createFolderRecursively (python3Folder)
-        createFolderRecursively (phpAsyncFolder)
-
-        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
-
-        this.transpileWsTests ()
-
-        if (child) {
-            return
-        }
-
-        if (classes === null) {
-            log.bright.yellow ('0 files transpiled.')
-            return;
-        }
-
-        //*/
-
-        // this.transpileErrorHierarchy ({ tsFilename })
-
-        log.bright.green ('Transpiled successfully.')
-    }
-
-    
     transpileWsTests (){
         const baseWsFolders = {
             ts: './ts/src/',
@@ -223,6 +186,44 @@ class CCXTProTranspiler extends Transpiler {
             // php head
             test.phpPreambleSync = this.getPHPPreamble(true, 4, true);
         }
+    }
+
+    // -----------------------------------------------------------------------
+
+    async transpileEverything (force = false, child = false) {
+
+        // default pattern is '.js'
+        // const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
+        const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
+            // , python2Folder = './python/ccxtpro/', // CCXT Pro does not support Python 2
+            , python3Folder = './python/ccxt/pro/'
+            , phpAsyncFolder = './php/pro/'
+            , jsFolder = './js/src/pro/'
+            , tsFolder = './ts/src/pro/'
+            , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, jsFolder, exchanges }
+
+        // createFolderRecursively (python2Folder)
+        createFolderRecursively (python3Folder)
+        createFolderRecursively (phpAsyncFolder)
+
+        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
+
+        this.transpileWsTests ()
+
+        if (child) {
+            return
+        }
+
+        if (classes === null) {
+            log.bright.yellow ('0 files transpiled.')
+            return;
+        }
+
+        //*/
+
+        // this.transpileErrorHierarchy ({ tsFilename })
+
+        log.bright.green ('Transpiled successfully.')
     }
 }
 

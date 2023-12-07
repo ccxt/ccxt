@@ -2444,7 +2444,7 @@ class Transpiler {
             const usesTickSize = pythonAsync.indexOf ('TICK_SIZE') >= 0;
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
 
-            let importedErrors = imports.filter(x => Object.keys(errors).includes(x.name)).map(x => x.name); // returns 'OnMaintenance,ExchangeNotAvailable', etc...
+            let importedExceptionTypes = imports.filter(x => Object.keys(errors).includes(x.name)).map(x => x.name); // returns 'OnMaintenance,ExchangeNotAvailable', etc...
             
             const findDirsAmountForPath = (langFolder, filePath, defaultDirs) => {
                 let directoriesToPythonFile = undefined;
@@ -2482,8 +2482,8 @@ class Transpiler {
                 phpHeaderSync.push ('use \\ccxt\\Precise;')
             }
 
-            for (const importedError of importedErrors) {
-                const py = `from ccxt.base.errors import ${importedError}  # noqa E402`;
+            for (const eType of importedExceptionTypes) {
+                const py = `from ccxt.base.errors import ${eType}  # noqa E402`;
                 pythonHeaderAsync.push (py)
                 pythonHeaderSync.push (py)
             }
@@ -2492,7 +2492,7 @@ class Transpiler {
                 const snake_case = unCamelCase(subTestName);
                 const isSharedMethodsImport = subTestName.includes ('SharedMethods');
                 const isSameDirImport = tests.find(t => t.name === subTestName);
-                let phpPrefix = isSameDirImport ? '__DIR__ . \'/' : 'PATH_TO_CCXT . \'/test/base/';
+                const phpPrefix = isSameDirImport ? '__DIR__ . \'/' : 'PATH_TO_CCXT . \'/test/base/';
                 let pySuffix = isSameDirImport ? '' : '.base';
 
                 if (isSharedMethodsImport) {
