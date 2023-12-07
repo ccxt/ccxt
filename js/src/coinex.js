@@ -4825,17 +4825,13 @@ export default class coinex extends Exchange {
         return this.parseIsolatedBorrowRate(data, market);
     }
     async fetchIsolatedBorrowRates(params = {}) {
-        //
-        // @method
-        // @name coinex#fetchIsolatedBorrowRates
-        // @description fetch the borrow interest rates of all currencies
-        // @param {object} [params] extra parameters specific to the exchange API endpoint
-        // <<<<<<< HEAD
-        // @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
-        // =======
-        // @returns {object} a list of [isolated borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
-        // >>>>>>> 3215552206edf1cda1ae63d2063535e19973dbe5
-        //
+        /**
+         * @method
+         * @name coinex#fetchIsolatedBorrowRates
+         * @description fetch the borrow interest rates of all currencies
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [isolated borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
+         */
         await this.loadMarkets();
         const response = await this.privateGetMarginConfig(params);
         //

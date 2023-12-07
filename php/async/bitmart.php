@@ -3352,19 +3352,13 @@ class bitmart extends Exchange {
 
     public function fetch_isolated_borrow_rate(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
-            //
-            // @method
-            // @name bitmart#fetchIsolatedBorrowRate
-            // @description fetch the rate of interest to borrow a currency for margin trading
-            // @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
-            // @param {string} $symbol unified $symbol of the $market to fetch the borrow rate for
-            // @param {object} [$params] extra parameters specific to the exchange API endpoint
-            // <<<<<<< HEAD
-            // @returns {object} a ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structure~
-            // =======
-            // @returns {object} an {@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure isolated borrow rate structure}
-            // >>>>>>> 3215552206edf1cda1ae63d2063535e19973dbe5
-            //
+            /**
+             * fetch the rate of interest to borrow a currency for margin trading
+             * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
+             * @param {string} $symbol unified $symbol of the $market to fetch the borrow rate for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure isolated borrow rate structure}
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(

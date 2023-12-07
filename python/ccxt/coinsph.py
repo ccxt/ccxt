@@ -51,6 +51,8 @@ class coinsph(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createPostOnlyOrder': False,

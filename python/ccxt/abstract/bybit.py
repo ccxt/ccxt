@@ -169,6 +169,8 @@ class ImplicitAPI:
     private_get_v5_lending_history_order = privateGetV5LendingHistoryOrder = Entry('v5/lending/history-order', 'private', 'GET', {'cost': 5})
     private_get_v5_lending_account = privateGetV5LendingAccount = Entry('v5/lending/account', 'private', 'GET', {'cost': 5})
     private_get_v5_broker_earning_record = privateGetV5BrokerEarningRecord = Entry('v5/broker/earning-record', 'private', 'GET', {'cost': 5})
+    private_get_v5_broker_earnings_info = privateGetV5BrokerEarningsInfo = Entry('v5/broker/earnings-info', 'private', 'GET', {'cost': 5})
+    private_get_v5_broker_account_info = privateGetV5BrokerAccountInfo = Entry('v5/broker/account-info', 'private', 'GET', {'cost': 5})
     private_post_option_usdc_openapi_private_v1_place_order = privatePostOptionUsdcOpenapiPrivateV1PlaceOrder = Entry('option/usdc/openapi/private/v1/place-order', 'private', 'POST', {'cost': 2.5})
     private_post_option_usdc_openapi_private_v1_replace_order = privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder = Entry('option/usdc/openapi/private/v1/replace-order', 'private', 'POST', {'cost': 2.5})
     private_post_option_usdc_openapi_private_v1_cancel_order = privatePostOptionUsdcOpenapiPrivateV1CancelOrder = Entry('option/usdc/openapi/private/v1/cancel-order', 'private', 'POST', {'cost': 2.5})

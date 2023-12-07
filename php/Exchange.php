@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.75';
+$version = '4.1.79';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.75';
+    const VERSION = '4.1.79';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1373,17 +1373,17 @@ class Exchange {
         }
         // proxy agents
         [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
-        $this->checkConflictingProxies ($httpProxy || $httpsProxy || $socksProxy, $proxyUrl);
+        $this->check_conflicting_proxies($httpProxy || $httpsProxy || $socksProxy, $proxyUrl);
         $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
         // user-agent
         $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
         if ($userAgent) {
             if (gettype($userAgent) == 'string') {
                 curl_setopt($this->curl, CURLOPT_USERAGENT, $userAgent);
-                $headers = $this->extend(['User-Agent' => $userAgent], $headers);
+                $headers = array_merge(['User-Agent' => $userAgent], $headers);
             } elseif ((gettype($userAgent) == 'array') && array_key_exists('User-Agent', $userAgent)) {
                 curl_setopt($this->curl, CURLOPT_USERAGENT, $userAgent['User-Agent']);
-                $headers = $this->extend($userAgent, $headers);
+                $headers = array_merge($userAgent, $headers);
             }
         }
         // set final headers
@@ -4781,6 +4781,14 @@ class Exchange {
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchFundingHistory() is not supported yet');
+    }
+
+    public function close_position(string $symbol, ?string $side = null, ?string $marginMode = null, $params = array ()) {
+        throw new NotSupported($this->id . ' closePositions() is not supported yet');
+    }
+
+    public function close_all_positions($params = array ()) {
+        throw new NotSupported($this->id . ' closeAllPositions() is not supported yet');
     }
 
     public function parse_last_price($price, ?array $market = null) {

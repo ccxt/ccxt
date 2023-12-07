@@ -1,4 +1,4 @@
-import { RequestTimeout, NetworkError ,NotSupported, BaseError } from '../../base/errors.js';
+import { RequestTimeout, NetworkError, NotSupported, BaseError } from '../../base/errors.js';
 import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
 import { Future, createFuture } from './Future.js';
 
@@ -12,30 +12,55 @@ import { utf8 } from '../../static_dependencies/scure-base/index.js';
 
 export default class Client {
     connected: Promise<any>
+
     disconnected: Future
+
     futures: {}
+
     rejections: {}
+
     keepAlive: number
+
     connection: any
+
     connectionTimeout: any
+
     verbose: boolean
+
     connectionTimer: any
+
     lastPong: any
+
     maxPingPongMisses: any
+
     pingInterval: any
+
     connectionEstablished: any
+
     gunzip: any
+
     error: any
+
     inflate: any
+
     url: string
+
     isConnected: any
+
     onConnectedCallback: any
+
     onMessageCallback: any
+
     onErrorCallback: any
+
     onCloseCallback: any
+
     ping: any
+
     subscriptions: {}
+
     throttle: any
+
     constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         const defaults = {
             url,
@@ -238,6 +263,7 @@ export default class Client {
         this.onErrorCallback (this, this.error)
     }
 
+    /* eslint-disable no-shadow */
     onClose (event) {
         if (this.verbose) {
             this.log (new Date (), 'onClose', event)
@@ -267,6 +293,7 @@ export default class Client {
         message = (typeof message === 'string') ? message : JSON.stringify (message)
         const future = createFuture ()
         if (isNode) {
+            /* eslint-disable no-inner-declarations */
             function onSendComplete (error) {
                 if (error) {
                     future.reject (error)

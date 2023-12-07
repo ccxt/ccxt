@@ -102,7 +102,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchTradingFees': False,
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,
-                'fetchTransfers': True,
+                'fetchTransfers': False,
                 'fetchUnderlyingAssets': False,
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
@@ -111,7 +111,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
-                'transfer': True,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -218,6 +218,9 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/get-currency-networks': 10 / 3,
                             'private/get-deposit-history': 10 / 3,
                             'private/get-deposit-address': 10 / 3,
+                            'private/export/create-export-request': 10 / 3,
+                            'private/export/get-export-requests': 10 / 3,
+                            'private/export/download-export-output': 10 / 3,
                             'private/get-account-summary': 10 / 3,
                             'private/create-order': 2 / 3,
                             'private/cancel-order': 2 / 3,
@@ -236,6 +239,7 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/otc/accept-quote': 100,
                             'private/otc/get-quote-history': 10 / 3,
                             'private/otc/get-trade-history': 10 / 3,
+                            'private/otc/create-order': 10 / 3,
                         },
                     },
                 },
@@ -1706,171 +1710,6 @@ class cryptocom(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'result', {})
         withdrawalList = self.safe_value(data, 'withdrawal_list', [])
         return self.parse_transactions(withdrawalList, currency, since, limit)
-
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
-        """
-        transfer currency internally between wallets on the same account
-        :param str code: unified currency code
-        :param float amount: amount to transfer
-        :param str fromAccount: account to transfer from
-        :param str toAccount: account to transfer to
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
-        """
-        await self.load_markets()
-        currency = self.currency(code)
-        fromAccount = fromAccount.lower()
-        toAccount = toAccount.lower()
-        accountsById = self.safe_value(self.options, 'accountsById', {})
-        fromId = self.safe_string(accountsById, fromAccount, fromAccount)
-        toId = self.safe_string(accountsById, toAccount, toAccount)
-        request = {
-            'currency': currency['id'],
-            'amount': float(amount),
-            'from': fromId,
-            'to': toId,
-        }
-        method = 'v2PrivatePostPrivateDerivTransfer'
-        if (fromAccount == 'margin') or (toAccount == 'margin'):
-            method = 'v2PrivatePostPrivateMarginTransfer'
-        response = await getattr(self, method)(self.extend(request, params))
-        #
-        #     {
-        #         "id": 11,
-        #         "method": "private/deriv/transfer",
-        #         "code": 0
-        #     }
-        #
-        return self.parse_transfer(response, currency)
-
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
-        """
-        fetch a history of internal transfers made on an account
-        :param str code: unified currency code of the currency transferred
-        :param int [since]: the earliest time in ms to fetch transfers for
-        :param int [limit]: the maximum number of  transfers structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
-        """
-        if not ('direction' in params):
-            raise ArgumentsRequired(self.id + ' fetchTransfers() requires a direction param to be either "IN" or "OUT"')
-        await self.load_markets()
-        currency = None
-        request = {
-            'direction': 'OUT',
-        }
-        if code is not None:
-            currency = self.currency(code)
-            request['currency'] = currency['id']
-        if since is not None:
-            request['start_ts'] = since
-        if limit is not None:
-            request['page_size'] = limit
-        method = 'v2PrivatePostPrivateDerivGetTransferHistory'
-        marginMode, query = self.custom_handle_margin_mode_and_params('fetchTransfers', params)
-        if marginMode is not None:
-            method = 'v2PrivatePostPrivateMarginGetTransferHistory'
-        response = await getattr(self, method)(self.extend(request, query))
-        #
-        #     {
-        #       "id": "1641032709328",
-        #       "method": "private/deriv/get-transfer-history",
-        #       "code": "0",
-        #       "result": {
-        #         "transfer_list": [
-        #           {
-        #             "direction": "IN",
-        #             "time": "1641025185223",
-        #             "amount": "109.56",
-        #             "status": "COMPLETED",
-        #             "information": "From Spot Wallet",
-        #             "currency": "USDC"
-        #           }
-        #         ]
-        #       }
-        #     }
-        #
-        transfer = []
-        transfer.append({
-            'response': response,
-        })
-        return self.parse_transfers(transfer, currency, since, limit, params)
-
-    def parse_transfer_status(self, status):
-        statuses = {
-            'COMPLETED': 'ok',
-            'PROCESSING': 'pending',
-        }
-        return self.safe_string(statuses, status, status)
-
-    def parse_transfer(self, transfer, currency: Currency = None):
-        #
-        #   {
-        #     "response": {
-        #       "id": "1641032709328",
-        #       "method": "private/deriv/get-transfer-history",
-        #       "code": "0",
-        #       "result": {
-        #         "transfer_list": [
-        #           {
-        #             "direction": "IN",
-        #             "time": "1641025185223",
-        #             "amount": "109.56",
-        #             "status": "COMPLETED",
-        #             "information": "From Spot Wallet",
-        #             "currency": "USDC"
-        #           }
-        #         ]
-        #       }
-        #     }
-        #   }
-        #
-        response = self.safe_value(transfer, 'response', {})
-        result = self.safe_value(response, 'result', {})
-        transferList = self.safe_value(result, 'transfer_list', [])
-        timestamp = None
-        amount = None
-        code = None
-        information = None
-        status = None
-        for i in range(0, len(transferList)):
-            entry = transferList[i]
-            timestamp = self.safe_integer(entry, 'time')
-            amount = self.safe_number(entry, 'amount')
-            currencyId = self.safe_string(entry, 'currency')
-            code = self.safe_currency_code(currencyId)
-            information = self.safe_string(entry, 'information')
-            rawStatus = self.safe_string(entry, 'status')
-            status = self.parse_transfer_status(rawStatus)
-        fromAccount = None
-        toAccount = None
-        if information is not None:
-            parts = information.split(' ')
-            direction = self.safe_string_lower(parts, 0)
-            method = self.safe_string(response, 'method')
-            if direction == 'from':
-                fromAccount = self.safe_string_lower(parts, 1)
-                if method == 'private/margin/get-transfer-history':
-                    toAccount = 'margin'
-                else:
-                    toAccount = 'derivative'
-            elif direction == 'to':
-                toAccount = self.safe_string_lower(parts, 1)
-                if method == 'private/margin/get-transfer-history':
-                    fromAccount = 'margin'
-                else:
-                    fromAccount = 'derivative'
-        return {
-            'info': transferList,
-            'id': self.safe_string(response, 'id'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'currency': code,
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'status': status,
-        }
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #

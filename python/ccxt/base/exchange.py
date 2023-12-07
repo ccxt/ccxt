@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.75'
+__version__ = '4.1.79'
 
 # -----------------------------------------------------------------------------
 
@@ -3846,6 +3846,12 @@ class Exchange(object):
 
     def fetch_funding_history(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
+
+    def close_position(self, symbol: str, side: OrderSide = None, marginMode: str = None, params={}):
+        raise NotSupported(self.id + ' closePositions() is not supported yet')
+
+    def close_all_positions(self, params={}):
+        raise NotSupported(self.id + ' closeAllPositions() is not supported yet')
 
     def parse_last_price(self, price, market: Market = None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')

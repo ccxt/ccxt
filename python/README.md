@@ -21,7 +21,7 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![BitMart Trading Journey Through CCXT – Win VIP Fee Rates and Dive into a $30,000 Rewards Pool](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/287287291-697bdaf6-6ded-4c53-abb5-511a37ffd1bb.jpg)](https://github.com/ccxt/ccxt/issues/20189)
+[![BitMart Trading Journey Through CCXT – Win VIP Fee Rates and Dive into a $30,000 Rewards Pool](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/287287291-697bdaf6-6ded-4c53-abb5-511a37ffd1bb.jpg)](https://www.bitmart.com/activity/CCXT-Promotion?r=rQCFLh)
 
 ## See Also
 
@@ -209,13 +209,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.1.75/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@4.1.75/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.1.79/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@4.1.79/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.1.75/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.1.79/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:

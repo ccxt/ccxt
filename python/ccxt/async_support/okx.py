@@ -42,7 +42,7 @@ class okx(Exchange, ImplicitAPI):
             'name': 'OKX',
             'countries': ['CN', 'US'],
             'version': 'v5',
-            'rateLimit': 100,
+            'rateLimit': 100 * 1.03,  # 3% tolerance because of  #20229
             'pro': True,
             'certified': True,
             'has': {
@@ -258,6 +258,13 @@ class okx(Exchange, ImplicitAPI):
                         'finance/savings/lending-rate-history': 5 / 3,
                         # public broker
                         'finance/sfp/dcd/products': 2 / 3,
+                        # copytrading
+                        'copytrading/public-lead-traders': 4,
+                        'copytrading/public-weekly-pnl': 4,
+                        'copytrading/public-stats': 4,
+                        'copytrading/public-preference-currency': 4,
+                        'copytrading/public-current-subpositions': 4,
+                        'copytrading/public-subpositions-history': 4,
                     },
                 },
                 'private': {
@@ -304,6 +311,7 @@ class okx(Exchange, ImplicitAPI):
                         'asset/convert/currencies': 5 / 3,
                         'asset/convert/currency-pair': 5 / 3,
                         'asset/convert/history': 5 / 3,
+                        'asset/monthly-statement': 2,
                         # account
                         'account/balance': 2,
                         'account/positions': 2,
@@ -367,12 +375,16 @@ class okx(Exchange, ImplicitAPI):
                         'finance/staking-defi/eth/balance': 5 / 3,
                         'finance/staking-defi/eth/purchase-redeem-history': 5 / 3,
                         # copytrading
-                        'copytrading/current-subpositions': 4,
-                        'copytrading/subpositions-history': 10,
-                        'copytrading/instruments': 10,
-                        'copytrading/profit-sharing-details': 10,
-                        'copytrading/total-profit-sharing': 10,
-                        'copytrading/unrealized-profit-sharing-details': 10,
+                        'copytrading/current-subpositions': 1,
+                        'copytrading/subpositions-history': 1,
+                        'copytrading/instruments': 4,
+                        'copytrading/profit-sharing-details': 4,
+                        'copytrading/total-profit-sharing': 4,
+                        'copytrading/unrealized-profit-sharing-details': 4,
+                        'copytrading/copy-settings': 4,
+                        'copytrading/batch-leverage-info': 4,
+                        'copytrading/current-lead-traders': 4,
+                        'copytrading/lead-traders-history': 4,
                         # broker
                         'broker/nd/info': 10,
                         'broker/nd/subaccount-info': 10,
@@ -433,6 +445,7 @@ class okx(Exchange, ImplicitAPI):
                         'asset/convert-dust-assets': 10,
                         'asset/convert/estimate-quote': 1,
                         'asset/convert/trade': 1,
+                        'asset/monthly-statement': 1,
                         # account
                         'account/set-position-mode': 4,
                         'account/set-leverage': 1,
@@ -477,9 +490,13 @@ class okx(Exchange, ImplicitAPI):
                         'finance/staking-defi/eth/purchase': 5,
                         'finance/staking-defi/eth/redeem': 5,
                         # copytrading
-                        'copytrading/algo-order': 20,
-                        'copytrading/close-subposition': 4,
-                        'copytrading/set-instruments': 10,
+                        'copytrading/algo-order': 1,
+                        'copytrading/close-subposition': 1,
+                        'copytrading/set-instruments': 4,
+                        'copytrading/first-copy-settings': 4,
+                        'copytrading/amend-copy-settings': 4,
+                        'copytrading/stop-copy-trading': 4,
+                        'copytrading/batch-set-leverage': 4,
                         # broker
                         'broker/nd/create-subaccount': 0.25,
                         'broker/nd/delete-subaccount': 1,
@@ -1062,14 +1079,7 @@ class okx(Exchange, ImplicitAPI):
             'commonCurrencies': {
                 # the exchange refers to ERC20 version of Aeternity(AEToken)
                 'AE': 'AET',  # https://github.com/ccxt/ccxt/issues/4981
-                'BOX': 'DefiBox',
-                'HOT': 'Hydro Protocol',
-                'HSR': 'HC',
-                'MAG': 'Maggie',
-                'SBTC': 'Super Bitcoin',
-                'TRADE': 'Unitrade',
-                'YOYO': 'YOYOW',
-                'WIN': 'WinToken',  # https://github.com/ccxt/ccxt/issues/5701
+                'WIN': 'WINTOKEN',  # https://github.com/ccxt/ccxt/issues/5701
             },
         })
 
@@ -2902,6 +2912,7 @@ class okx(Exchange, ImplicitAPI):
         :param str[] ids: order ids
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: whether the order is a stop/trigger order
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At self moment, `params` is not being used too.
@@ -2915,7 +2926,7 @@ class okx(Exchange, ImplicitAPI):
         method = self.safe_string(params, 'method', defaultMethod)
         clientOrderIds = self.parse_ids(self.safe_value_2(params, 'clOrdId', 'clientOrderId'))
         algoIds = self.parse_ids(self.safe_value(params, 'algoId'))
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
         if stop:
             method = 'privatePostTradeCancelAlgos'
         if clientOrderIds is None:

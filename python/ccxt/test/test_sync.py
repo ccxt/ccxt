@@ -945,6 +945,7 @@ class testMainClass(baseMainTestClass):
             'apiKey': 'key',
             'secret': 'secretsecret',
             'password': 'password',
+            'walletAddress': 'wallet',
             'uid': 'uid',
             'accounts': [{
     'id': 'myAccount',

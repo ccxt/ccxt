@@ -34,7 +34,12 @@ class mexc extends mexc$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': true,
@@ -2057,11 +2062,33 @@ class mexc extends mexc$1 {
         }
         return this.parseTickers(tickers, symbols);
     }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name mexc#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#createOrder
          * @description create a trade order
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -2090,13 +2117,16 @@ class mexc extends mexc$1 {
             'type': type.toUpperCase(),
         };
         if (orderSide === 'BUY' && type === 'market') {
-            const quoteOrderQty = this.safeNumber(params, 'quoteOrderQty');
-            if (quoteOrderQty !== undefined) {
-                amount = quoteOrderQty;
+            let createMarketBuyOrderRequiresPrice = true;
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber2(params, 'cost', 'quoteOrderQty');
+            params = this.omit(params, 'cost');
+            if (cost !== undefined) {
+                amount = cost;
             }
-            else if (this.options['createMarketBuyOrderRequiresPrice']) {
+            else if (createMarketBuyOrderRequiresPrice) {
                 if (price === undefined) {
-                    throw new errors.InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 }
                 else {
                     const amountString = this.numberToString(amount);

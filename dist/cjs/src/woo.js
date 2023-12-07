@@ -35,6 +35,8 @@ class woo extends woo$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelWithdraw': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createMarketOrder': false,
                 'createOrder': true,
@@ -199,6 +201,11 @@ class woo extends woo$1 {
                     },
                 },
                 'v3': {
+                    'public': {
+                        'get': {
+                            'insuranceFund': 3,
+                        },
+                    },
                     'private': {
                         'get': {
                             'algo/order/{oid}': 1,

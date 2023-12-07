@@ -39,6 +39,8 @@ class bithumb(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createMarketOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,

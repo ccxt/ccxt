@@ -88,7 +88,7 @@ export default class cryptocom extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
-                'fetchTransfers': true,
+                'fetchTransfers': false,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
@@ -97,7 +97,7 @@ export default class cryptocom extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': true,
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -204,6 +204,9 @@ export default class cryptocom extends Exchange {
                             'private/get-currency-networks': 10 / 3,
                             'private/get-deposit-history': 10 / 3,
                             'private/get-deposit-address': 10 / 3,
+                            'private/export/create-export-request': 10 / 3,
+                            'private/export/get-export-requests': 10 / 3,
+                            'private/export/download-export-output': 10 / 3,
                             'private/get-account-summary': 10 / 3,
                             'private/create-order': 2 / 3,
                             'private/cancel-order': 2 / 3,
@@ -222,6 +225,7 @@ export default class cryptocom extends Exchange {
                             'private/otc/accept-quote': 100,
                             'private/otc/get-quote-history': 10 / 3,
                             'private/otc/get-trade-history': 10 / 3,
+                            'private/otc/create-order': 10 / 3,
                         },
                     },
                 },
@@ -1839,190 +1843,6 @@ export default class cryptocom extends Exchange {
         const data = this.safeValue (response, 'result', {});
         const withdrawalList = this.safeValue (data, 'withdrawal_list', []);
         return this.parseTransactions (withdrawalList, currency, since, limit);
-    }
-
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
-        /**
-         * @method
-         * @name cryptocom#transfer
-         * @description transfer currency internally between wallets on the same account
-         * @param {string} code unified currency code
-         * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        fromAccount = fromAccount.toLowerCase ();
-        toAccount = toAccount.toLowerCase ();
-        const accountsById = this.safeValue (this.options, 'accountsById', {});
-        const fromId = this.safeString (accountsById, fromAccount, fromAccount);
-        const toId = this.safeString (accountsById, toAccount, toAccount);
-        const request = {
-            'currency': currency['id'],
-            'amount': parseFloat (amount),
-            'from': fromId,
-            'to': toId,
-        };
-        let method = 'v2PrivatePostPrivateDerivTransfer';
-        if ((fromAccount === 'margin') || (toAccount === 'margin')) {
-            method = 'v2PrivatePostPrivateMarginTransfer';
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //     {
-        //         "id": 11,
-        //         "method": "private/deriv/transfer",
-        //         "code": 0
-        //     }
-        //
-        return this.parseTransfer (response, currency);
-    }
-
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name cryptocom#fetchTransfers
-         * @description fetch a history of internal transfers made on an account
-         * @param {string} code unified currency code of the currency transferred
-         * @param {int} [since] the earliest time in ms to fetch transfers for
-         * @param {int} [limit] the maximum number of  transfers structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
-        if (!('direction' in params)) {
-            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a direction param to be either "IN" or "OUT"');
-        }
-        await this.loadMarkets ();
-        let currency = undefined;
-        const request = {
-            'direction': 'OUT',
-        };
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['start_ts'] = since;
-        }
-        if (limit !== undefined) {
-            request['page_size'] = limit;
-        }
-        let method = 'v2PrivatePostPrivateDerivGetTransferHistory';
-        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchTransfers', params);
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginGetTransferHistory';
-        }
-        const response = await this[method] (this.extend (request, query));
-        //
-        //     {
-        //       "id": "1641032709328",
-        //       "method": "private/deriv/get-transfer-history",
-        //       "code": "0",
-        //       "result": {
-        //         "transfer_list": [
-        //           {
-        //             "direction": "IN",
-        //             "time": "1641025185223",
-        //             "amount": "109.56",
-        //             "status": "COMPLETED",
-        //             "information": "From Spot Wallet",
-        //             "currency": "USDC"
-        //           }
-        //         ]
-        //       }
-        //     }
-        //
-        const transfer = [];
-        transfer.push ({
-            'response': response,
-        });
-        return this.parseTransfers (transfer, currency, since, limit, params);
-    }
-
-    parseTransferStatus (status) {
-        const statuses = {
-            'COMPLETED': 'ok',
-            'PROCESSING': 'pending',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
-    parseTransfer (transfer, currency: Currency = undefined) {
-        //
-        //   {
-        //     "response": {
-        //       "id": "1641032709328",
-        //       "method": "private/deriv/get-transfer-history",
-        //       "code": "0",
-        //       "result": {
-        //         "transfer_list": [
-        //           {
-        //             "direction": "IN",
-        //             "time": "1641025185223",
-        //             "amount": "109.56",
-        //             "status": "COMPLETED",
-        //             "information": "From Spot Wallet",
-        //             "currency": "USDC"
-        //           }
-        //         ]
-        //       }
-        //     }
-        //   }
-        //
-        const response = this.safeValue (transfer, 'response', {});
-        const result = this.safeValue (response, 'result', {});
-        const transferList = this.safeValue (result, 'transfer_list', []);
-        let timestamp = undefined;
-        let amount = undefined;
-        let code = undefined;
-        let information = undefined;
-        let status = undefined;
-        for (let i = 0; i < transferList.length; i++) {
-            const entry = transferList[i];
-            timestamp = this.safeInteger (entry, 'time');
-            amount = this.safeNumber (entry, 'amount');
-            const currencyId = this.safeString (entry, 'currency');
-            code = this.safeCurrencyCode (currencyId);
-            information = this.safeString (entry, 'information');
-            const rawStatus = this.safeString (entry, 'status');
-            status = this.parseTransferStatus (rawStatus);
-        }
-        let fromAccount = undefined;
-        let toAccount = undefined;
-        if (information !== undefined) {
-            const parts = information.split (' ');
-            const direction = this.safeStringLower (parts, 0);
-            const method = this.safeString (response, 'method');
-            if (direction === 'from') {
-                fromAccount = this.safeStringLower (parts, 1);
-                if (method === 'private/margin/get-transfer-history') {
-                    toAccount = 'margin';
-                } else {
-                    toAccount = 'derivative';
-                }
-            } else if (direction === 'to') {
-                toAccount = this.safeStringLower (parts, 1);
-                if (method === 'private/margin/get-transfer-history') {
-                    fromAccount = 'margin';
-                } else {
-                    fromAccount = 'derivative';
-                }
-            }
-        }
-        return {
-            'info': transferList,
-            'id': this.safeString (response, 'id'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'currency': code,
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'status': status,
-        };
     }
 
     parseTicker (ticker, market: Market = undefined): Ticker {

@@ -200,6 +200,7 @@ class Client {
         this.reset(this.error);
         this.onErrorCallback(this, this.error);
     }
+    /* eslint-disable no-shadow */
     onClose(event) {
         if (this.verbose) {
             this.log(new Date(), 'onClose', event);
@@ -227,6 +228,7 @@ class Client {
         message = (typeof message === 'string') ? message : JSON.stringify(message);
         const future = Future.createFuture();
         if (platform.isNode) {
+            /* eslint-disable no-inner-declarations */
             function onSendComplete(error) {
                 if (error) {
                     future.reject(error);

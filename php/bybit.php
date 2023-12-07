@@ -31,6 +31,8 @@ class bybit extends Exchange {
                 'borrowCrossMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
@@ -338,6 +340,8 @@ class bybit extends Exchange {
                         'v5/lending/account' => 5,
                         // broker
                         'v5/broker/earning-record' => 5,
+                        'v5/broker/earnings-info' => 5,
+                        'v5/broker/account-info' => 5,
                     ),
                     'post' => array(
                         // Legacy option USDC

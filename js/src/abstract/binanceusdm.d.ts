@@ -552,6 +552,7 @@ interface binance {
     publicGetUiKlines(params?: {}): Promise<implicitReturnType>;
     publicGetTicker24hr(params?: {}): Promise<implicitReturnType>;
     publicGetTicker(params?: {}): Promise<implicitReturnType>;
+    publicGetTickerTradingDay(params?: {}): Promise<implicitReturnType>;
     publicGetTickerPrice(params?: {}): Promise<implicitReturnType>;
     publicGetTickerBookTicker(params?: {}): Promise<implicitReturnType>;
     publicGetExchangeInfo(params?: {}): Promise<implicitReturnType>;
@@ -570,6 +571,7 @@ interface binance {
     privateGetRateLimitOrder(params?: {}): Promise<implicitReturnType>;
     privateGetMyPreventedMatches(params?: {}): Promise<implicitReturnType>;
     privateGetMyAllocations(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountCommission(params?: {}): Promise<implicitReturnType>;
     privatePostOrderOco(params?: {}): Promise<implicitReturnType>;
     privatePostSorOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSorOrderTest(params?: {}): Promise<implicitReturnType>;
