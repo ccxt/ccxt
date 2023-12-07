@@ -1047,7 +1047,8 @@ export default class bitmart extends bitmartRest {
                 const marketId = this.safeString (data[i], 'symbol');
                 const market = this.safeMarket (marketId);
                 const symbol = market['symbol'];
-                const parsed = this.parseOHLCV (data, market);
+                const rawOHLCV = this.safeValue (data[i], 'candle');
+                const parsed = this.parseOHLCV (rawOHLCV, market);
                 parsed[0] = this.parseToInt (parsed[0] / durationInMs) * durationInMs;
                 this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
                 let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
