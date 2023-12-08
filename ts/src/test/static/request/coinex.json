@@ -416,6 +416,24 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Spot fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.coinex.com/v1/market/kline?market=BTCUSDT&type=1min",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.coinex.com/perpetual/v1/market/kline?market=BTCUSDT&type=1min",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     },
     "disabledTests": {}
