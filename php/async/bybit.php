@@ -3039,7 +3039,7 @@ class bybit extends Exchange {
              * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] wallet $type, ['spot', 'swap', 'fund']
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $request = array();

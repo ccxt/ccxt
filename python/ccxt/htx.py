@@ -3192,14 +3192,16 @@ class htx(Exchange, ImplicitAPI):
         #                 "margin_mode": "cross",
         #                 "margin_account": "USDT",
         #                 "margin_asset": "USDT",
-        #                 "margin_balance": 200.000000000000000000,
-        #                 "margin_static": 200.000000000000000000,
-        #                 "margin_position": 0,
-        #                 "margin_frozen": 0,
-        #                 "profit_real": 0E-18,
-        #                 "profit_unreal": 0,
-        #                 "withdraw_available": 2E+2,
-        #                 "risk_rate": null,
+        #                 "margin_balance": 49.874186030200000000,
+        #                 "money_in": 50,
+        #                 "money_out": 0,
+        #                 "margin_static": 49.872786030200000000,
+        #                 "margin_position": 6.180000000000000000,
+        #                 "margin_frozen": 6.000000000000000000,
+        #                 "profit_unreal": 0.001400000000000000,
+        #                 "withdraw_available": 37.6927860302,
+        #                 "risk_rate": 271.984050521072796934,
+        #                 "new_risk_rate": 0.001858676950514399,
         #                 "contract_detail": [
         #                     {
         #                         "symbol": "MANA",
@@ -3292,8 +3294,8 @@ class htx(Exchange, ImplicitAPI):
                         result[symbol] = self.safe_balance(accountsByCode)
             else:
                 account = self.account()
-                account['free'] = self.safe_string(first, 'margin_balance', 'margin_available')
-                account['used'] = self.safe_string(first, 'margin_frozen')
+                account['free'] = self.safe_string(first, 'withdraw_available')
+                account['total'] = self.safe_string(first, 'margin_balance')
                 currencyId = self.safe_string_2(first, 'margin_asset', 'symbol')
                 code = self.safe_currency_code(currencyId)
                 result[code] = account
