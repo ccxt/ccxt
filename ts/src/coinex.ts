@@ -4603,7 +4603,7 @@ export default class coinex extends Exchange {
         let currency = undefined;
         const request = {
             'page': 1,
-            'limit': limit,
+            // 'limit': limit,
             // 'asset': 'USDT',
             // 'start_time': since,
             // 'end_time': 1515806440,
@@ -4615,15 +4615,24 @@ export default class coinex extends Exchange {
         }
         if (code !== undefined) {
             currency = this.safeCurrencyCode (code);
-            request['asset'] = currency['id'];
+            request['asset'] = currency;
         }
         if (since !== undefined) {
             request['start_time'] = since;
         }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        } else {
+            request['limit'] = 100;
+        }
         params = this.omit (params, 'page');
         const defaultType = this.safeString (this.options, 'defaultType');
-        const method = (defaultType === 'margin') ? 'privateGetMarginTransferHistory' : 'privateGetContractTransferHistory';
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (defaultType === 'margin') {
+            response = await this.privateGetMarginTransferHistory (this.extend (request, params));
+        } else {
+            response = await this.privateGetContractTransferHistory (this.extend (request, params));
+        }
         //
         // Swap
         //

@@ -518,6 +518,16 @@
                     }
                 ]
             }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "Spot fetch transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.coinex.com/v1/contract/transfer/history?access_id=key&page=1&tonce=1702016708915&asset=BTC&limit=100",
+                "input": [
+                    "BTC"
+                ]
+            }
         ]
     },
     "disabledTests": {}
