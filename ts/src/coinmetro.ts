@@ -28,7 +28,7 @@ export default class coinmetro extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
-                'swap': true,
+                'swap': false, // todo: check
                 'future': false,
                 'option': false,
                 'addMargin': false,
@@ -58,7 +58,7 @@ export default class coinmetro extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
@@ -79,7 +79,7 @@ export default class coinmetro extends Exchange {
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarketLeverageTiers': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
@@ -277,8 +277,8 @@ export default class coinmetro extends Exchange {
          */
         const response = await this.publicGetMarkets (params);
         // todo: check
-        if (this.safeValue (this, 'currencies') === undefined) {
-            await this.fetchCurrencies ();
+        if (this.isEmpty (this.safeValue (this, 'currencies'))) {
+            this['currenciesHelper'] = await this.fetchCurrencies ();
         }
         //
         //     [
@@ -338,7 +338,7 @@ export default class coinmetro extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': undefined,
-                'price': this.parseNumber (pricePrecision),
+                'price': this.parseNumber (pricePrecision), // todo: check
             },
             'limits': {
                 'leverage': {
@@ -365,7 +365,7 @@ export default class coinmetro extends Exchange {
 
     parseMarketId (marketId) {
         const result = {};
-        const currencies = this.safeValue (this, 'currencies', {});
+        const currencies = this.safeValue (this, 'currenciesHelper', {});
         const currencyCodes = Object.keys (currencies);
         for (let i = 0; i < currencyCodes.length; i++) {
             const currencyCode = currencyCodes[i];
@@ -373,12 +373,9 @@ export default class coinmetro extends Exchange {
             const currencyId = currency['id'];
             const index = marketId.indexOf (currencyId);
             if (index !== -1) {
-                const rest = marketId.replace (currencyId, '');
                 if (index === 0) {
                     result['baseId'] = currencyId;
-                    result['quoteId'] = rest;
                 } else {
-                    result['baseId'] = rest;
                     result['quoteId'] = currencyId;
                 }
             }
