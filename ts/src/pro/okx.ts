@@ -389,7 +389,7 @@ export default class okx extends okxRest {
          */
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0) {
-            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a non-empty array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
         await this.loadMarkets ();
         const topics = [];
