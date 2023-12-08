@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinmetro.js';
-// import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, InsufficientFunds, InvalidAddress, InvalidOrder, NotSupported, OnMaintenance, OrderNotFound, PermissionDenied } from './base/errors.js';
+import { ArgumentsRequired } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 // import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, Market, OHLCV } from './base/types.js';
+import { Int, Market, OHLCV, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -82,7 +82,7 @@ export default class coinmetro extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
@@ -99,7 +99,7 @@ export default class coinmetro extends Exchange {
                 'fetchTicker': false,
                 'fetchTickers': false,
                 'fetchTime': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
@@ -146,7 +146,7 @@ export default class coinmetro extends Exchange {
                     'get': {
                         'exchange/candles/{pair}/{timeframe}/{from}/{to}': 1,
                         'exchange/prices': 1,
-                        'exchange/ticks/:pair/:from': 1,
+                        'exchange/ticks/{pair}/{from}': 1,
                         'assets': 1,
                         'markets': 1,
                         'exchange/book/:pair': 1,
@@ -463,6 +463,104 @@ export default class coinmetro extends Exchange {
             this.safeNumber (ohlcv, 'c'),
             this.safeNumber (ohlcv, 'v'),
         ];
+    }
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name coinmetro#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ee5d698-06da-4570-8c84-914185e05065
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+        };
+        if (since !== undefined) {
+            request['from'] = since;
+        } else {
+            request['from'] = '';
+        }
+        const response = await this.publicGetExchangeTicksPairFrom (this.extend (request, params));
+        //
+        //     {
+        //         "tickHistory": [
+        //             {
+        //                 "pair": "ETHUSDT",
+        //                 "price": 2077.5623,
+        //                 "qty": 0.002888,
+        //                 "timestamp": 1700684689420,
+        //                 "seqNum": 10644554718
+        //             },
+        //             {
+        //                 "pair": "ETHUSDT",
+        //                 "price": 2078.3848,
+        //                 "qty": 0.003368,
+        //                 "timestamp": 1700684738410,
+        //                 "seqNum": 10644559561
+        //             },
+        //             {
+        //                 "pair": "ETHUSDT",
+        //                 "price": 2077.1513,
+        //                 "qty": 0.00337,
+        //                 "timestamp": 1700684816853,
+        //                 "seqNum": 10644567113
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        // todo: check what is seqNum?
+        const tickHistory = this.safeValue (response, 'tickHistory', []);
+        return this.parseTrades (tickHistory, market, since, limit);
+    }
+
+    parseTrade (trade, market: Market = undefined): Trade {
+        //
+        // fetchTrades
+        //     {
+        //         "pair": "ETHUSDT",
+        //         "price": 2077.1513,
+        //         "qty": 0.00337,
+        //         "timestamp": 1700684816853,
+        //         "seqNum": 10644567113
+        //     },
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const id = this.safeString (trade, 'pair');
+        const timestamp = this.safeString (trade, 'timestamp');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'qty');
+        const order = undefined;
+        const fee = undefined;
+        const side = undefined;
+        const takerOrMaker = undefined;
+        return this.safeTrade ({
+            'id': id,
+            'order': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
+            'fee': fee,
+            'info': trade,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
