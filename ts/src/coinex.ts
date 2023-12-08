@@ -4495,11 +4495,13 @@ export default class coinex extends Exchange {
             'amount': amountToPrecision,
             'coin_type': currency['id'],
         };
-        let method = 'privatePostContractBalanceTransfer';
+        let response = undefined;
         if ((fromAccount === 'spot') && (toAccount === 'swap')) {
             request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
+            response = await this.privatePostContractBalanceTransfer (this.extend (request, params));
         } else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
             request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
+            response = await this.privatePostContractBalanceTransfer (this.extend (request, params));
         } else {
             const accountsById = this.safeValue (this.options, 'accountsById', {});
             const fromId = this.safeString (accountsById, fromAccount, fromAccount);
@@ -4508,9 +4510,8 @@ export default class coinex extends Exchange {
             // spot is 0, use fetchBalance() to find the margin account id
             request['from_account'] = parseInt (fromId);
             request['to_account'] = parseInt (toId);
-            method = 'privatePostMarginTransfer';
+            response = await this.privatePostMarginTransfer (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {"code": 0, "data": null, "message": "Success"}
         //
