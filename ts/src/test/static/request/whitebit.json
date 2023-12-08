@@ -105,6 +105,38 @@
                 ],
                 "output": "{\"request\":\"/api/v4/order/collateral/trigger_market\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"activation_price\":\"0.08\"}"
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch Balance - trade",
+                "method": "fetchBalance",
+                "url": "https://whitebit.com/api/v4/trade-account/balance",
+                "input": [
+                ],
+                "output": "{\"request\":\"/api/v4/trade-account/balance\",\"nonce\":\"1701937579352\"}"
+            },
+            {
+                "description": "Fetch Balance - main",
+                "method": "fetchBalance",
+                "url": "https://whitebit.com/api/v4/main-account/balance",
+                "input": [
+                    {
+                        "account": "main"
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/main-account/balance\",\"nonce\":\"1701937579352\"}"
+            },
+            {
+                "description": "Fetch Balance - trade",
+                "method": "fetchBalance",
+                "url": "https://whitebit.com/api/v4/collateral-account/balance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/collateral-account/balance\",\"nonce\":\"1701937579352\"}"
+            }
         ]
     }
 }

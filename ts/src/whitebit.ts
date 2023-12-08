@@ -1304,22 +1304,22 @@ export default class whitebit extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let method = undefined;
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let response = undefined;
         if (marketType === 'swap') {
-            method = 'v4PrivatePostCollateralAccountBalance';
+            response = await this.v4PrivatePostCollateralAccountBalance (params);
         } else {
             const options = this.safeValue (this.options, 'fetchBalance', {});
             const defaultAccount = this.safeString (options, 'account');
             const account = this.safeString (params, 'account', defaultAccount);
             params = this.omit (params, 'account');
             if (account === 'main') {
-                method = 'v4PrivatePostMainAccountBalance';
+                response = await this.v4PrivatePostMainAccountBalance (params);
             } else {
-                method = 'v4PrivatePostTradeAccountBalance';
+                response = await this.v4PrivatePostTradeAccountBalance (params);
             }
         }
-        const response = await this[method] (query);
         //
         // main account
         //
