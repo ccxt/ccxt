@@ -754,8 +754,12 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const method = market['swap'] ? 'perpetualPublicGetMarketTicker' : 'publicGetMarketTicker';
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.perpetualPublicGetMarketTicker (this.extend (request, params));
+        } else {
+            response = await this.publicGetMarketTicker (this.extend (request, params));
+        }
         //
         // Spot
         //

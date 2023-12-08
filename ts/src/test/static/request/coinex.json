@@ -343,6 +343,24 @@
                 ],
                 "output": "access_id=86AC33D5904F432C9C9DDD4708233F38&market=BTCUSDT&order_ids=115938781741,115938847458&timestamp=1701232526724"
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Spot fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://api.coinex.com/v1/market/ticker?market=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://api.coinex.com/perpetual/v1/market/ticker?market=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     },
     "disabledTests": {
