@@ -15,7 +15,6 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
@@ -1509,15 +1508,7 @@ class currencycom(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        response = None
-        if method == 'privateGetV2Deposits':
-            response = await self.privateGetV2Deposits(self.extend(request, params))
-        elif method == 'privateGetV2Withdrawals':
-            response = await self.privateGetV2Withdrawals(self.extend(request, params))
-        elif method == 'privateGetV2Transactions':
-            response = await self.privateGetV2Transactions(self.extend(request, params))
-        else:
-            raise NotSupported(self.id + ' fetchTransactionsByMethod() not support self method')
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #    [
         #        {
