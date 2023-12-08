@@ -396,10 +396,9 @@ export default class okx extends okxRest {
         const joinedHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
-            const symbol = symbolAndTimeframe[0];
-            const timeframe = symbolAndTimeframe[1];
-            const marketId = this.marketId (symbol);
-            const interval = this.safeString (this.timeframes, timeframe, timeframe);
+            const tf = symbolAndTimeframe[1];
+            const marketId = this.marketId (symbolAndTimeframe[0]);
+            const interval = this.safeString (this.timeframes, tf, tf);
             const channel = 'candle' + interval;
             const topic = {
                 'channel': channel,
