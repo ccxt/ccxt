@@ -361,8 +361,26 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Spot fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://api.coinex.com/v1/market/ticker/all",
+                "input": []
+            },
+            {
+                "description": "Swap fetch ticker",
+                "method": "fetchTickers",
+                "url": "https://api.coinex.com/perpetual/v1/market/ticker/all",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
         ]
     },
-    "disabledTests": {
-    }
+    "disabledTests": {}
 }

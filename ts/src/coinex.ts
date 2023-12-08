@@ -830,14 +830,18 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let market: Market = undefined;
+        let market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
             market = this.market (symbol);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        const method = (marketType === 'swap') ? 'perpetualPublicGetMarketTickerAll' : 'publicGetMarketTickerAll';
-        const response = await this[method] (query);
+        let response = undefined;
+        if (marketType === 'swap') {
+            response = await this.perpetualPublicGetMarketTickerAll (query);
+        } else {
+            response = await this.publicGetMarketTickerAll ();
+        }
         //
         // Spot
         //
