@@ -4662,8 +4662,8 @@ export default class coinex extends Exchange {
             request['page'] = page;
         }
         if (code !== undefined) {
-            currency = this.safeCurrencyCode (code);
-            request['asset'] = currency;
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
         }
         if (since !== undefined) {
             request['start_time'] = since;
