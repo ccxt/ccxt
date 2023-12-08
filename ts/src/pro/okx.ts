@@ -393,7 +393,7 @@ export default class okx extends okxRest {
         }
         await this.loadMarkets ();
         const topics = [];
-        let joinedHashes = [];
+        const joinedHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const symbol = symbolAndTimeframe[0];
@@ -402,25 +402,24 @@ export default class okx extends okxRest {
             const interval = this.safeString (this.timeframes, timeframe, timeframe);
             const channel = 'candle' + interval;
             const topic = {
-                'channel': 'candle' + interval,
+                'channel': channel,
                 'instId': marketId,
             };
             topics.push (topic);
-            joinedHashes.push (channel + ':' + marketId);
+            joinedHashes.push (marketId + '#' + interval);
         }
         const request = {
             'op': 'subscribe',
             'args': topics,
         };
-        const messageHash = 'multipleOHLCVs::' + joinedHashes;
+        const messageHash = 'multipleOHLCV::' + joinedHashes;
         const url = this.getUrl ('candle', 'public');
-        const ohlcvs = await this.watch (url, messageHash, request, messageHash);
+        const [ symbol, timeframe, stored ] = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
-            const first = this.safeValue (ohlcvs, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = ohlcvs.getLimit (tradeSymbol, limit);
+            limit = stored.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcvs, since, limit, 'timestamp', true);
+        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
     handleOHLCV (client: Client, message) {
@@ -461,7 +460,7 @@ export default class okx extends okxRest {
             stored.append (parsed);
             const messageHash = channel + ':' + marketId;
             client.resolve (stored, messageHash);
-            this.resolvePromiseIfMessagehashMatches (client, 'multipleOHLCVs::', messageHash, stored);
+            this.resolveMultipleOHLCV (client, 'multipleOHLCV::', symbol, timeframe, stored);
         }
     }
 
