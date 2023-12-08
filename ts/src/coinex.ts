@@ -958,8 +958,12 @@ export default class coinex extends Exchange {
             'merge': '0',
             'limit': limit.toString (),
         };
-        const method = market['swap'] ? 'perpetualPublicGetMarketDepth' : 'publicGetMarketDepth';
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.perpetualPublicGetMarketDepth (this.extend (request, params));
+        } else {
+            response = await this.publicGetMarketDepth (this.extend (request, params));
+        }
         //
         // Spot
         //

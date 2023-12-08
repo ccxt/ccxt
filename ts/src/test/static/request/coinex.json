@@ -380,6 +380,24 @@
                     }
                 ]
             }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Spot fetch orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.coinex.com/v1/market/depth?market=BTCUSDT&merge=0&limit=20",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.coinex.com/perpetual/v1/market/depth?market=BTCUSDT&merge=0&limit=20",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     },
     "disabledTests": {}
