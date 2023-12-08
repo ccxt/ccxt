@@ -36,6 +36,32 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Spot open stop orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.coinex.com/v1/order/stop/pending?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&page=1&tonce=1699458294944",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "stop": true
+                    }
+                ]
+            },
+            {
+                "description": "Swap open stop orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.coinex.com/perpetual/v1/order/stop_pending?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&offset=0&side=0&timestamp=1699458295225",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "stop": true
+                    }
+                ]
             }
         ],
         "fetchClosedOrders": [
@@ -53,6 +79,32 @@
                 "url": "https://api.coinex.com/perpetual/v1/order/finished?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&offset=0&side=0&timestamp=1699458295831",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Spot closed stop orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.coinex.com/v1/order/stop/finished?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&page=1&tonce=1699458295531",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "stop": true
+                    }
+                ]
+            },
+            {
+                "description": "Swap closed stop orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.coinex.com/perpetual/v1/order/stop_pending?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&offset=0&side=0&timestamp=1699458295831",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "stop": true
+                    }
                 ]
             }
         ],

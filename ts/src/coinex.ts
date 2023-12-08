@@ -2901,28 +2901,6 @@ export default class coinex extends Exchange {
             request['market'] = market['id'];
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
-        let method = undefined;
-        if (marketType === 'swap') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol argument for swap markets');
-            }
-            method = 'perpetualPrivateGetOrder' + this.capitalize (status);
-            if (stop) {
-                method = 'perpetualPrivateGetOrderStopPending';
-            }
-            if (side !== undefined) {
-                request['side'] = side;
-            } else {
-                request['side'] = 0;
-            }
-            request['offset'] = 0;
-        } else {
-            method = 'privateGetOrder' + this.capitalize (status);
-            if (stop) {
-                method = 'privateGetOrderStop' + this.capitalize (status);
-            }
-            request['page'] = 1;
-        }
         const accountId = this.safeInteger (params, 'account_id');
         const defaultType = this.safeString (this.options, 'defaultType');
         if (defaultType === 'margin') {
@@ -2932,7 +2910,42 @@ export default class coinex extends Exchange {
             request['account_id'] = accountId;
         }
         params = this.omit (query, 'account_id');
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (marketType === 'swap') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol argument for swap markets');
+            }
+            if (side !== undefined) {
+                request['side'] = side;
+            } else {
+                request['side'] = 0;
+            }
+            request['offset'] = 0;
+            if (stop) {
+                response = await this.perpetualPrivateGetOrderStopPending (this.extend (request, params));
+            } else {
+                if (status === 'finished') {
+                    response = await this.perpetualPrivateGetOrderFinished (this.extend (request, params));
+                } else if (status === 'pending') {
+                    response = await this.perpetualPrivateGetOrderPending (this.extend (request, params));
+                }
+            }
+        } else {
+            request['page'] = 1;
+            if (status === 'finished') {
+                if (stop) {
+                    response = await this.privateGetOrderStopFinished (this.extend (request, params));
+                } else {
+                    response = await this.privateGetOrderFinished (this.extend (request, params));
+                }
+            } else if (status === 'pending') {
+                if (stop) {
+                    response = await this.privateGetOrderStopPending (this.extend (request, params));
+                } else {
+                    response = await this.privateGetOrderPending (this.extend (request, params));
+                }
+            }
+        }
         //
         // Spot and Margin
         //
