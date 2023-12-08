@@ -2763,6 +2763,7 @@ export default class coinex extends Exchange {
         const market = this.market (symbol);
         const swap = market['swap'];
         const stop = this.safeValue (params, 'stop');
+        params = this.omit (params, 'stop');
         const request = {
             'market': market['id'],
             // 'id': id, // SPOT
@@ -2770,14 +2771,16 @@ export default class coinex extends Exchange {
         };
         const idRequest = swap ? 'order_id' : 'id';
         request[idRequest] = id;
-        let method = undefined;
+        let response = undefined;
         if (swap) {
-            method = stop ? 'perpetualPrivateGetOrderStopStatus' : 'perpetualPrivateGetOrderStatus';
+            if (stop) {
+                response = await this.perpetualPrivateGetOrderStopStatus (this.extend (request, params));
+            } else {
+                response = await this.perpetualPrivateGetOrderStatus (this.extend (request, params));
+            }
         } else {
-            method = 'privateGetOrderStatus';
+            response = await this.privateGetOrderStatus (this.extend (request, params));
         }
-        params = this.omit (params, 'stop');
-        const response = await this[method] (this.extend (request, params));
         //
         // Spot
         //
