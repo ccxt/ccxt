@@ -2719,21 +2719,22 @@ export default class coinex extends Exchange {
         };
         const swap = market['swap'];
         const stop = this.safeValue (params, 'stop');
-        let method: string;
+        params = this.omit (params, [ 'stop', 'account_id' ]);
+        let response = undefined;
         if (swap) {
-            method = 'perpetualPrivatePostOrderCancelAll';
             if (stop) {
-                method = 'perpetualPrivatePostOrderCancelStopAll';
+                response = await this.perpetualPrivatePostOrderCancelStopAll (this.extend (request, params));
+            } else {
+                response = await this.perpetualPrivatePostOrderCancelAll (this.extend (request, params));
             }
         } else {
-            method = 'privateDeleteOrderPending';
-            if (stop) {
-                method = 'privateDeleteOrderStopPending';
-            }
             request['account_id'] = accountId;
+            if (stop) {
+                response = await this.privateDeleteOrderStopPending (this.extend (request, params));
+            } else {
+                response = await this.privateDeleteOrderPending (this.extend (request, params));
+            }
         }
-        params = this.omit (params, [ 'stop', 'account_id' ]);
-        const response = await this[method] (this.extend (request, params));
         //
         // Spot and Margin
         //
