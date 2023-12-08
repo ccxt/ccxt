@@ -398,6 +398,24 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Spot fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.coinex.com/v1/market/deals?market=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.coinex.com/perpetual/v1/market/deals?market=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     },
     "disabledTests": {}

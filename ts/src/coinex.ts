@@ -1157,8 +1157,12 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const method = market['swap'] ? 'perpetualPublicGetMarketDeals' : 'publicGetMarketDeals';
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.perpetualPublicGetMarketDeals (this.extend (request, params));
+        } else {
+            response = await this.publicGetMarketDeals (this.extend (request, params));
+        }
         //
         // Spot and Swap
         //
