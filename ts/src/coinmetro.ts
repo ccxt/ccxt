@@ -6,7 +6,7 @@ import Exchange from './abstract/coinmetro.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 // import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Market } from './base/types.js';
+import { Int, Market, OHLCV } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -122,7 +122,11 @@ export default class coinmetro extends Exchange {
                 'ws': false,
             },
             'timeframes': {
-                // todo
+                '1m': '60000',
+                '5m': '300000',
+                '30m': '1800000',
+                '4h': '14400000',
+                '24h': '86400000',
             },
             'urls': {
                 'logo': '', // todo
@@ -140,7 +144,7 @@ export default class coinmetro extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'exchange/candles/:pair/:timeframe/:from/:to': 1,
+                        'exchange/candles/{pair}/{timeframe}/{from}/{to}': 1,
                         'exchange/prices': 1,
                         'exchange/ticks/:pair/:from': 1,
                         'assets': 1,
@@ -277,7 +281,7 @@ export default class coinmetro extends Exchange {
          */
         const response = await this.publicGetMarkets (params);
         // todo: check
-        if (this.isEmpty (this.safeValue (this, 'currencies'))) {
+        if (this.safeValue (this, 'currenciesHelper') === undefined) {
             this['currenciesHelper'] = await this.fetchCurrencies ();
         }
         //
@@ -381,6 +385,84 @@ export default class coinmetro extends Exchange {
             }
         }
         return result;
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name coinmetro#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#13cfb5bc-7bfb-4847-85e1-e0f35dfb3573
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+            'timeframe': this.safeString (this.timeframes, timeframe),
+        };
+        if (since !== undefined) {
+            request['from'] = since;
+            if (limit !== undefined) {
+                const duration = this.parseTimeframe (timeframe) * 1000;
+                // todo: should we substract 1 from duration?
+                request['to'] = this.sum (since, duration * (limit));
+            } else {
+                request['to'] = this.milliseconds ();
+            }
+        }
+        const until = this.safeInteger2 (params, 'till', 'until');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'till', 'until' ]);
+            request['to'] = until;
+        }
+        const response = await this.publicGetExchangeCandlesPairTimeframeFromTo (this.extend (request, params));
+        //
+        //     {
+        //         "candleHistory": [
+        //             {
+        //                 "pair": "ETHUSDT",
+        //                 "timeframe": 86400000,
+        //                 "timestamp": 1697673600000,
+        //                 "c": 1567.4409353098604,
+        //                 "h": 1566.7514068472303,
+        //                 "l": 1549.4563666936847,
+        //                 "o": 1563.4490341395904,
+        //                 "v": 0
+        //             },
+        //             {
+        //                 "pair": "ETHUSDT",
+        //                 "timeframe": 86400000,
+        //                 "timestamp": 1697760000000,
+        //                 "c": 1603.7831363339324,
+        //                 "h": 1625.0356823666407,
+        //                 "l": 1565.4629390011505,
+        //                 "o": 1566.8387619426028,
+        //                 "v": 0
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const candleHistory = this.safeValue (response, 'candleHistory', []);
+        return this.parseOHLCVs (candleHistory, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        return [
+            this.safeNumber (ohlcv, 'timestamp'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
