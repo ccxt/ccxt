@@ -385,9 +385,10 @@ async function testAllExchanges () {
 
 (async function () {
 
-    log.bright.magenta.noPretty ('Testing'.white, Object.assign (
-                                                            { exchanges, symbol, debugKeys, langKeys, exchangeSpecificFlags },
-                                                            maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency }))
+    log.bright.magenta.noPretty (
+        'Testing'.white, 
+        Object.assign ({ exchanges, symbol, debugKeys, langKeys, exchangeSpecificFlags }, maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency })
+    )
 
     const tested    = await testAllExchanges ()
         , warnings  = tested.filter (t => !t.failed && t.hasWarnings)
