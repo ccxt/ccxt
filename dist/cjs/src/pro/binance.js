@@ -1646,18 +1646,26 @@ class binance extends binance$1 {
         const url = this.urls['api']['ws']['ws'];
         const requestId = this.requestId(url);
         const messageHash = requestId.toString();
+        const sor = this.safeValue2(params, 'sor', 'SOR', false);
+        params = this.omit(params, 'sor', 'SOR');
         const payload = this.createOrderRequest(symbol, type, side, amount, price, params);
         let returnRateLimits = false;
         [returnRateLimits, params] = this.handleOptionAndParams(params, 'createOrderWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
+        const test = this.safeValue(params, 'test', false);
+        params = this.omit(params, 'test');
         const message = {
             'id': messageHash,
             'method': 'order.place',
             'params': this.signParams(this.extend(payload, params)),
         };
-        const test = this.safeValue(params, 'test', false);
         if (test) {
-            message['method'] = 'order.test';
+            if (sor) {
+                message['method'] = 'sor.order.test';
+            }
+            else {
+                message['method'] = 'order.test';
+            }
         }
         const subscription = {
             'method': this.handleOrderWs,

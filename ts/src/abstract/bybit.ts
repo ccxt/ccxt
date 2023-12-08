@@ -176,6 +176,8 @@ interface Exchange {
     privateGetV5LendingHistoryOrder (params?: {}): Promise<implicitReturnType>;
     privateGetV5LendingAccount (params?: {}): Promise<implicitReturnType>;
     privateGetV5BrokerEarningRecord (params?: {}): Promise<implicitReturnType>;
+    privateGetV5BrokerEarningsInfo (params?: {}): Promise<implicitReturnType>;
+    privateGetV5BrokerAccountInfo (params?: {}): Promise<implicitReturnType>;
     privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (params?: {}): Promise<implicitReturnType>;
     privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder (params?: {}): Promise<implicitReturnType>;
     privatePostOptionUsdcOpenapiPrivateV1CancelOrder (params?: {}): Promise<implicitReturnType>;
