@@ -23,6 +23,7 @@ export default class okx extends okxRest {
                 'watchOrderBookForSymbols': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchPositions': true,
@@ -375,6 +376,53 @@ export default class okx extends okxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchOHLCVForSymbols
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        await this.loadMarkets ();
+        const topics = [];
+        let joinedHashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const symbol = symbolAndTimeframe[0];
+            const timeframe = symbolAndTimeframe[1];
+            const marketId = this.marketId (symbol);
+            const interval = this.safeString (this.timeframes, timeframe, timeframe);
+            const channel = 'candle' + interval;
+            const topic = {
+                'channel': 'candle' + interval,
+                'instId': marketId,
+            };
+            topics.push (topic);
+            joinedHashes.push (channel + ':' + marketId);
+        }
+        const request = {
+            'op': 'subscribe',
+            'args': topics,
+        };
+        const messageHash = 'multipleOHLCVs::' + joinedHashes;
+        const url = this.getUrl ('candle', 'public');
+        const ohlcvs = await this.watch (url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            const first = this.safeValue (ohlcvs, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = ohlcvs.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcvs, since, limit, 'timestamp', true);
+    }
+
     handleOHLCV (client: Client, message) {
         //
         //     {
@@ -413,6 +461,7 @@ export default class okx extends okxRest {
             stored.append (parsed);
             const messageHash = channel + ':' + marketId;
             client.resolve (stored, messageHash);
+            this.resolvePromiseIfMessagehashMatches (client, 'multipleOHLCVs::', messageHash, stored);
         }
     }
 
