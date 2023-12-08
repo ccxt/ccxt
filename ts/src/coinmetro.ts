@@ -6,7 +6,7 @@ import { ArgumentsRequired } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 // import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, Market, OHLCV, Trade } from './base/types.js';
+import { Int, Market, OHLCV, OrderBook, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -87,7 +87,7 @@ export default class coinmetro extends Exchange {
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
@@ -149,7 +149,7 @@ export default class coinmetro extends Exchange {
                         'exchange/ticks/{pair}/{from}': 1,
                         'assets': 1,
                         'markets': 1,
-                        'exchange/book/:pair': 1,
+                        'exchange/book/{pair}': 1,
                         'exchange/bookUpdates/:pair/:from': 1,
                     },
                 },
@@ -561,6 +561,74 @@ export default class coinmetro extends Exchange {
             'fee': fee,
             'info': trade,
         }, market);
+    }
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name coinmetro#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#26ad80d7-8c46-41b5-9208-386f439a8b87
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+        };
+        const response = await this.publicGetExchangeBookPair (this.extend (request, params));
+        //
+        //     {
+        //         "book": {
+        //             "pair": "ETHUSDT",
+        //             "seqNumber": 10800409239,
+        //             "ask": {
+        //                 "2354.2861": 3.75,
+        //                 "2354.3138": 19,
+        //                 "2354.7538": 80,
+        //                 "2355.5430": 260,
+        //                 "2356.4611": 950,
+        //                 "2361.7150": 1500,
+        //                 "206194.0000": 0.01
+        //             },
+        //             "bid": {
+        //                 "2352.6339": 3.75,
+        //                 "2352.6002": 19,
+        //                 "2352.2402": 80,
+        //                 "2351.4582": 260,
+        //                 "2349.3111": 950,
+        //                 "2343.8601": 1500,
+        //                 "1.0000": 5
+        //             },
+        //             "checksum": 2108177337
+        //         }
+        //     }
+        //
+        const book = this.safeValue (response, 'book', {});
+        const rawBids = this.safeValue (book, 'bid', {});
+        const rawAsks = this.safeValue (book, 'ask', {});
+        const rawOrderbook = {
+            'bids': rawBids,
+            'asks': rawAsks,
+        };
+        const orderbook = this.parseOrderBook (rawOrderbook, symbol);
+        orderbook['nonce'] = this.safeInteger (book, 'checksum'); // todo: check
+        return orderbook;
+    }
+
+    parseBidsAsks (rawBidsAsks) {
+        const prices = Object.keys (rawBidsAsks);
+        const result = [];
+        for (let i = 0; i < prices.length; i++) {
+            const priceString = this.safeString (prices, i);
+            const price = this.safeNumber (prices, i);
+            const volume = this.safeNumber (rawBidsAsks, priceString);
+            result.push ([ price, volume ]);
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
