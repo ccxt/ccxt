@@ -1065,15 +1065,10 @@ export default class bitteam extends Exchange {
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
         };
-        // the exchange requires price for market orders
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         } else if (type === 'limit') {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
-        } else {
-            // using market.info.lastPrice as the price of the market order
-            const info = market['info'];
-            request['price'] = this.safeString (info, 'lastPrice');
         }
         // todo: ask about executed price for an order filled with many trades with different prices
         const response = await this.privatePostTradeApiCcxtOrdercreate (this.extend (request, params));
@@ -1842,7 +1837,8 @@ export default class bitteam extends Exchange {
         //                     },
         //                     "pair": "eth_usdt",
         //                     "createdAt": "2023-11-22T01:07:30.593Z",
-        //                     "updatedAt": "2023-11-22T01:10:00.117Z"
+        //                     "updatedAt": "2023-11-22T01:10:00.117Z",
+        //                     "isCurrentSide": "maker"
         //                 },
         //                 {
         //                     "id": 34875793,
@@ -1882,7 +1878,8 @@ export default class bitteam extends Exchange {
         //                     },
         //                     "pair": "eth_usdt",
         //                     "createdAt": "2023-11-21T21:43:02.758Z",
-        //                     "updatedAt": "2023-11-21T21:45:00.147Z"
+        //                     "updatedAt": "2023-11-21T21:45:00.147Z",
+        //                     "isCurrentSide": "maker"
         //                 },
         //                 {
         //                     "id": 34871727,
@@ -1923,6 +1920,7 @@ export default class bitteam extends Exchange {
         //                     "pair": "btc_usdt",
         //                     "createdAt": "2023-11-21T19:29:20.092Z",
         //                     "updatedAt": "2023-11-21T19:30:00.159Z"
+        //                     "isCurrentSide": "taker"
         //                 }
         //             ]
         //         }
@@ -1984,53 +1982,45 @@ export default class bitteam extends Exchange {
         //         },
         //         "pair": "eth_usdt",
         //         "createdAt": "2023-11-21T21:43:02.758Z",
-        //         "updatedAt": "2023-11-21T21:45:00.147Z"
+        //         "updatedAt": "2023-11-21T21:45:00.147Z",
+        //         "isCurrentSide": "maker"
         //     }
         //
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const id = this.safeString2 (trade, 'id', 'trade_id');
-        let timestamp = this.safeString (trade, 'timestamp');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'quantity', 'base_volume');
         const cost = this.safeString (trade, 'quote_volume');
+        const takerOrMaker = this.safeString (trade, 'isCurrentSide');
+        let timestamp = this.safeString (trade, 'timestamp');
+        if (takerOrMaker !== undefined) {
+            timestamp = Precise.stringMul (timestamp, '1000');
+        }
+        // the exchange returns the side of the taker
         let side = this.safeString2 (trade, 'side', 'type');
-        // fetchMyTrades response retruns the side of the taker
-        let takerOrMaker = undefined;
         let feeInfo = undefined;
         let order = undefined;
-        let fee = undefined;
-        const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
-        // if trade from fetchMyTrades
-        // todo!!!: wrong logic - wrong fee is not always equals to '0'
-        if (isBuyerMaker !== undefined) {
-            timestamp = Precise.stringMul (timestamp, '1000');
-            const feeMaker = this.safeValue (trade, 'feeMaker', {});
-            const makerFeeAmount = this.safeString (feeMaker, 'amount'); // equals '0' if user is taker
-            const feeTaker = this.safeValue (trade, 'feeTaker', {});
-            const takerFeeAmount = this.safeString (feeTaker, 'amount'); // equals '0' if user is maker
-            if (makerFeeAmount === '0') {
-                // user is taker
-                takerOrMaker = 'taker';
-                feeInfo = feeTaker;
-                order = this.safeString (trade, 'takerOrderId');
-                side = (isBuyerMaker) ? 'sell' : 'buy';
-            } else if (takerFeeAmount === '0') {
-                // user is maker
-                takerOrMaker = 'maker';
-                feeInfo = feeMaker;
-                order = this.safeString (trade, 'makerOrderId');
-                side = (isBuyerMaker) ? 'buy' : 'sell';
+        if (takerOrMaker === 'maker') {
+            if (side === 'sell') {
+                side = 'buy';
+            } else if (side === 'buy') {
+                side = 'sell';
             }
-            const feeCurrencyId = this.safeString (feeInfo, 'symbol');
-            const feeCost = this.safeString (feeInfo, 'amount');
-            fee = {
-                'currency': this.safeCurrencyCode (feeCurrencyId),
-                'cost': feeCost,
-                'rate': undefined,
-            };
+            order = this.safeString (trade, 'makerOrderId');
+            feeInfo = this.safeValue (trade, 'feeMaker', {});
+        } else if (takerOrMaker === 'taker') {
+            order = this.safeString (trade, 'takerOrderId');
+            feeInfo = this.safeValue (trade, 'feeTaker', {});
         }
+        const feeCurrencyId = this.safeString (feeInfo, 'symbol');
+        const feeCost = this.safeString (feeInfo, 'amount');
+        const fee = {
+            'currency': this.safeCurrencyCode (feeCurrencyId),
+            'cost': feeCost,
+            'rate': undefined,
+        };
         return this.safeTrade ({
             'id': id,
             'order': order,
