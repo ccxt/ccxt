@@ -137,6 +137,31 @@
                 ],
                 "output": "{\"request\":\"/api/v4/collateral-account/balance\",\"nonce\":\"1701937579352\"}"
             }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch Deposit Address",
+                "method": "fetchDepositAddress",
+                "url": "https://whitebit.com/api/v4/main-account/fiat-deposit-url",
+                "input": [
+                    "USD",
+                    {
+                        "provider": "provider",
+                        "amount": 10,
+                        "uniqueId": "uniqueId"
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/main-account/fiat-deposit-url\",\"nonce\":\"1701937579352\",\"ticker\":\"USD\",\"provider\":\"provider\",\"amount\":10,\"uniqueId\":\"uniqueId\"}"
+            },
+            {
+                "description": "Fetch Deposit Address",
+                "method": "fetchDepositAddress",
+                "url": "https://whitebit.com/api/v4/main-account/address",
+                "input": [
+                    "BTC"
+                ],
+                "output": "{\"request\":\"/api/v4/main-account/address\",\"nonce\":\"1701937579352\",\"ticker\":\"BTC\"}"
+            }
         ]
     }
 }

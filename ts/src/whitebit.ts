@@ -1616,10 +1616,9 @@ export default class whitebit extends Exchange {
         const request = {
             'ticker': currency['id'],
         };
-        let method = 'v4PrivatePostMainAccountAddress';
+        let response = undefined;
         if (this.isFiat (code)) {
-            method = 'v4PrivatePostMainAccountFiatDepositUrl';
-            const provider = this.safeNumber (params, 'provider');
+            const provider = this.safeString (params, 'provider');
             if (provider === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a provider when the ticker is fiat');
             }
@@ -1633,8 +1632,10 @@ export default class whitebit extends Exchange {
             if (uniqueId === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
             }
+            response = await this.v4PrivatePostMainAccountFiatDepositUrl (this.extend (request, params));
+        } else {
+            response = await this.v4PrivatePostMainAccountAddress (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // fiat
         //
