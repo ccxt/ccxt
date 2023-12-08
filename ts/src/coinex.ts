@@ -3294,22 +3294,6 @@ export default class coinex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument for non-spot markets');
         }
         const swap = (type === 'swap');
-        let method = undefined;
-        if (swap) {
-            method = 'perpetualPublicGetMarketUserDeals';
-            const side = this.safeInteger (params, 'side');
-            if (side === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a side parameter for swap markets');
-            }
-            if (since !== undefined) {
-                request['start_time'] = since;
-            }
-            request['side'] = side;
-            params = this.omit (params, 'side');
-        } else {
-            method = 'privateGetOrderUserDeals';
-            request['page'] = 1;
-        }
         const accountId = this.safeInteger (params, 'account_id');
         const defaultType = this.safeString (this.options, 'defaultType');
         if (defaultType === 'margin') {
@@ -3319,7 +3303,22 @@ export default class coinex extends Exchange {
             request['account_id'] = accountId;
             params = this.omit (params, 'account_id');
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (swap) {
+            const side = this.safeInteger (params, 'side');
+            if (side === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a side parameter for swap markets');
+            }
+            if (since !== undefined) {
+                request['start_time'] = since;
+            }
+            request['side'] = side;
+            params = this.omit (params, 'side');
+            response = await this.perpetualPublicGetMarketUserDeals (this.extend (request, params));
+        } else {
+            request['page'] = 1;
+            response = await this.privateGetOrderUserDeals (this.extend (request, params));
+        }
         //
         // Spot and Margin
         //
