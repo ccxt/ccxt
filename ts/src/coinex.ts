@@ -2563,14 +2563,6 @@ export default class coinex extends Exchange {
         };
         const idRequest = swap ? 'order_id' : 'id';
         request[idRequest] = id;
-        let method = swap ? 'perpetualPrivatePostOrderCancel' : 'privateDeleteOrderPending';
-        if (stop) {
-            if (swap) {
-                method = 'perpetualPrivatePostOrderCancelStop';
-            } else {
-                method = 'privateDeleteOrderStopPendingId';
-            }
-        }
         const accountId = this.safeInteger (params, 'account_id');
         const defaultType = this.safeString (this.options, 'defaultType');
         if (defaultType === 'margin') {
@@ -2580,7 +2572,20 @@ export default class coinex extends Exchange {
             request['account_id'] = accountId;
         }
         const query = this.omit (params, [ 'stop', 'account_id' ]);
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (stop) {
+            if (swap) {
+                response = await this.perpetualPrivatePostOrderCancelStop (this.extend (request, query));
+            } else {
+                response = await this.privateDeleteOrderStopPendingId (this.extend (request, query));
+            }
+        } else {
+            if (swap) {
+                response = await this.perpetualPrivatePostOrderCancel (this.extend (request, query));
+            } else {
+                response = await this.privateDeleteOrderPending (this.extend (request, query));
+            }
+        }
         //
         // Spot and Margin
         //
