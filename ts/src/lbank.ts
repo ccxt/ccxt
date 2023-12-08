@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/lbank.js';
-import { ExchangeError, InvalidAddress, DuplicateOrderId, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, InvalidAddress, DuplicateOrderId, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
@@ -36,6 +36,9 @@ export default class lbank extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -1274,6 +1277,27 @@ export default class lbank extends Exchange {
         return result;
     }
 
+    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+        /**
+         * @method
+         * @name lbank#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://www.lbank.com/en-US/docs/index.html#place-order
+         * @see https://www.lbank.com/en-US/docs/index.html#place-an-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -1321,19 +1345,27 @@ export default class lbank extends Exchange {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             } else if (side === 'buy') {
                 request['type'] = side + '_' + 'market';
-                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                let quoteAmount = undefined;
+                let createMarketBuyOrderRequiresPrice = true;
+                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber (params, 'cost');
+                params = this.omit (params, 'cost');
+                if (cost !== undefined) {
+                    quoteAmount = this.costToPrecision (symbol, cost);
+                } else if (createMarketBuyOrderRequiresPrice) {
                     if (price === undefined) {
-                        throw new InvalidOrder (this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply the price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     } else {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
-                        const quoteAmount = Precise.stringMul (amountString, priceString);
-                        const cost = this.parseNumber (quoteAmount);
-                        request['price'] = this.priceToPrecision (symbol, cost);
+                        const costRequest = Precise.stringMul (amountString, priceString);
+                        quoteAmount = this.costToPrecision (symbol, costRequest);
                     }
                 } else {
-                    request['price'] = amount;
+                    quoteAmount = this.costToPrecision (symbol, amount);
                 }
+                // market buys require filling the price param instead of the amount param, for market buys the price is treated as the cost by lbank
+                request['price'] = quoteAmount;
             }
         }
         if (clientOrderId !== undefined) {

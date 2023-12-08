@@ -442,6 +442,7 @@ class bybit extends Exchange {
                         'v5/position/confirm-pending-mmr' => 5,
                         // account
                         'v5/account/upgrade-to-uta' => 5,
+                        'v5/account/quick-repayment' => 5,
                         'v5/account/set-margin-mode' => 5,
                         'v5/account/set-hedging-mode' => 5,
                         'v5/account/mmp-modify' => 5,
@@ -2080,8 +2081,9 @@ class bybit extends Exchange {
          */
         $this->load_markets();
         $market = null;
-        $parsedSymbols = array();
+        $parsedSymbols = null;
         if ($symbols !== null) {
+            $parsedSymbols = array();
             $marketTypeInfo = $this->handle_market_type_and_params('fetchTickers', null, $params);
             $defaultType = $marketTypeInfo[0]; // don't omit here
             // we can't use marketSymbols here due to the conflicing ids between markets

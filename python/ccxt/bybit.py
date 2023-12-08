@@ -461,6 +461,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/position/confirm-pending-mmr': 5,
                         # account
                         'v5/account/upgrade-to-uta': 5,
+                        'v5/account/quick-repayment': 5,
                         'v5/account/set-margin-mode': 5,
                         'v5/account/set-hedging-mode': 5,
                         'v5/account/mmp-modify': 5,
@@ -2040,8 +2041,9 @@ class bybit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        parsedSymbols = []
+        parsedSymbols = None
         if symbols is not None:
+            parsedSymbols = []
             marketTypeInfo = self.handle_market_type_and_params('fetchTickers', None, params)
             defaultType = marketTypeInfo[0]  # don't omit here
             # we can't use marketSymbols here due to the conflicing ids between markets
