@@ -75,7 +75,7 @@
                   "sell",
                   25
                 ],
-                "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"2CB04E933B6879A267FFA72AE044F8844F9DCDBB4727AE8B1CD63202A3B4182E\",\"nonce\":\"1701456773083\",\"type\":\"sell\",\"amount\":25,\"order_type\":\"market\"}"
+                "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"2CB04E933B6879A267FFA72AE044F8844F9DCDBB4727AE8B1CD63202A3B4182E\",\"nonce\":\"1701456773083\",\"type\":\"sell\",\"amount\":\"25\",\"order_type\":\"market\"}"
             },
             {
                 "description": "Spot limit buy",
@@ -88,7 +88,7 @@
                   100,
                   0.1
                 ],
-                "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"07AEF74E40D9F94DC04BF2BDC5E224CF75D3E482A7578E92FF31C992744307E2\",\"nonce\":\"1701456826846\",\"type\":\"buy\",\"amount\":100,\"price\":0.1}"
+                "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"07AEF74E40D9F94DC04BF2BDC5E224CF75D3E482A7578E92FF31C992744307E2\",\"nonce\":\"1701456826846\",\"type\":\"buy\",\"amount\":\"100\",\"price\":\"0.1\"}"
             }
         ],
         "cancelAllOrders": [
