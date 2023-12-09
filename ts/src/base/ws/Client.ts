@@ -15,6 +15,8 @@ export default class Client {
 
     disconnected: Future
 
+    calledMethods: {}
+
     futures: {}
 
     rejections: {}
@@ -71,6 +73,7 @@ export default class Client {
             verbose: false, // verbose output
             protocols: undefined, // ws-specific protocols
             options: undefined, // ws-specific options
+            calledMethods: {},
             futures: {},
             subscriptions: {},
             rejections: {}, // so that we can reject things in the future
@@ -117,6 +120,7 @@ export default class Client {
             const promise = this.futures[messageHash]
             promise.resolve (result)
             delete this.futures[messageHash]
+            // TODO : check if should I delete also from calledMethods?
         }
         return result
     }

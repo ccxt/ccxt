@@ -129,7 +129,8 @@ import {
     , ExchangeNotAvailable
     , ArgumentsRequired
     , RateLimitExceeded,
-    BadRequest} from "./errors.js"
+    BadRequest,
+    NotFound} from "./errors.js"
 
 import { Precise } from './Precise.js'
 
@@ -1269,7 +1270,47 @@ export default class Exchange {
         return this.clients[url];
     }
 
-    watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
+
+    // User experience
+    // Option 0 - return an id when creating a subscription. Rejected: wouldn't be backwards compatible
+    // Option 00 - allow user to access client subscriptions and unsubscribe. Rejected: wouldn't be a unified solution
+    // Option 1 - by method - unsubscribe all methods of a type
+    //unwatch ("watchOrders" )
+    // Option 2 - by signature
+    // unwatch ("watchOrders::BTC/USDT")
+    // 
+
+    unwatch (methodHash, url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
+        /**
+         * @method
+         * @name exchange#unwatch
+         * @description resolves methodHash, and if it's the last of the subscription it unsubscribes from the subscription
+         * @returns {Future} future to resolve with succesful unwatch
+         */
+        const client = this.client (url) as WsClient;
+        const future = client.future (messageHash);
+        const calledMethod = this.safeValue (client.calledMethods, methodHash);
+        if (calledMethod === undefined) {
+            throw new NotFound ("could not find methodHash " + methodHash);
+        }
+        const unsubscribeMessageHash = calledMethod['messageHash'];
+        const unsubscribeHash = calledMethod['subscribeHash'];
+        // resolve awaiting future
+        const bySubscriptions = this.groupBy (client.calledMethods, 'subscribeHash');
+        const messageHashes = this.safeValue (bySubscriptions, unsubscribeHash);
+        const methods = Object.keys (messageHashes);
+        const length = methods.length;
+        // unsubscribe if no messageHash
+        if (length <= 1 ) { // if last subscription unsubscribe websokcer
+            return this.watch (url, messageHash, message, subscribeHash, subscription);
+        } else { // else delete calledMethod and resolve unsubscribe
+            delete client.calledMethods[methodHash];
+            client.resolve (null, unsubscribeMessageHash);
+        }
+        return future;
+    }
+
+    watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined, methodHash = undefined) {
         //
         // Without comments the code of this method is short and easy:
         //
@@ -1301,6 +1342,13 @@ export default class Exchange {
         //                                 |               |
         //                             subscribe -----→ receive
         //
+        // save calledMethod hashes
+        if (methodHash !== undefined) {
+            client.calledMethods[methodHash] = {
+                'messageHash': messageHash,
+                'subscribeHash': subscribeHash,
+            }
+        }
         if ((subscribeHash === undefined) && (messageHash in client.futures)) {
             return client.futures[messageHash];
         }
@@ -1332,18 +1380,21 @@ export default class Exchange {
                                 client.send (message);
                             }).catch ((e) => {
                                 delete client.subscriptions[subscribeHash];
+                                delete client.calledMethods[methodHash]
                                 future.reject (e);
                             });
                         } else {
                             client.send (message)
                             .catch ((e) => {
                                 delete client.subscriptions[subscribeHash];
+                                delete client.calledMethods[methodHash]
                                 future.reject (e);
                             });
                         }
                     }
                 }).catch ((e)=> {
                     delete client.subscriptions[subscribeHash];
+                    delete client.calledMethods[methodHash]
                     future.reject (e);
             });
         }
