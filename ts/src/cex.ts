@@ -798,9 +798,9 @@ export default class cex extends Exchange {
             } else {
                 quoteAmount = this.costToPrecision (symbol, amount);
             }
-            request['amount'] = quoteAmount;
+            request['amount'] = this.numberToString (quoteAmount);
         } else {
-            request['amount'] = this.amountToPrecision (symbol, amount);
+            request['amount'] = this.numberToString (this.amountToPrecision (symbol, amount));
         }
         if (type === 'limit') {
             request['price'] = price;
