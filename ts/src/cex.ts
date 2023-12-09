@@ -782,7 +782,7 @@ export default class cex extends Exchange {
             let quoteAmount = undefined;
             let createMarketBuyOrderRequiresPrice = true;
             [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            const cost = this.safeNumber (params, 'cost');
+            const cost = this.safeString (params, 'cost');
             params = this.omit (params, 'cost');
             if (cost !== undefined) {
                 quoteAmount = this.costToPrecision (symbol, cost);
@@ -798,12 +798,12 @@ export default class cex extends Exchange {
             } else {
                 quoteAmount = this.costToPrecision (symbol, amount);
             }
-            request['amount'] = this.numberToString (quoteAmount);
+            request['amount'] = quoteAmount;
         } else {
-            request['amount'] = this.numberToString (this.amountToPrecision (symbol, amount));
+            request['amount'] = this.amountToPrecision (symbol, amount);
         }
         if (type === 'limit') {
-            request['price'] = price;
+            request['price'] = this.numberToString (price);
         } else {
             request['order_type'] = type;
         }
