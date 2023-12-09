@@ -101,6 +101,18 @@
                 ],
                 "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"34129B378E0BC9314449554ACFF58EB594D0BFF8C6C1C85B5FFD0C6486BEF258\",\"nonce\":\"1701456852632\"}"
             }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://cex.io/api/place_order/LTC/USDT/",
+                "input": [
+                  "LTC/USDT",
+                  10
+                ],
+                "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"B451A19ED09702E88B96F77CA230264F5FC4DBA812F3922F1F3C08414D00C0AC\",\"nonce\":\"1702114325194\",\"type\":\"buy\",\"amount\":\"10\",\"order_type\":\"market\"}"
+            }
         ]
     }
 }
