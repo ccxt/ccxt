@@ -58,7 +58,7 @@ function run_tests {
 }
 
 build_and_test_all () {
-  npm run tsc
+  npm run pre-transpile-pr
   run_tests
   exit
 }
