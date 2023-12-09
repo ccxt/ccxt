@@ -43,9 +43,6 @@ const exchangeSpecificFlags = {
     '--privateOnly': false,
 }
 
-const content = fs.readFileSync ('skip-tests.json', 'utf8');
-const skipSettings = JSON.parse (content);
-
 let exchanges = []
 let symbol = 'all'
 let maxConcurrency = 5 // Number.MAX_VALUE // no limit
@@ -66,6 +63,8 @@ for (const arg of args) {
     else                                     { exchanges.push (arg) }
 }
 
+const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
+
 /*  --------------------------------------------------------------------------- */
 
 const exchangeOptions = []
@@ -76,6 +75,9 @@ for (const key of Object.keys (exchangeSpecificFlags)) {
 }
 /*  --------------------------------------------------------------------------- */
 
+const content = fs.readFileSync ('skip-tests.json', 'utf8');
+const skipSettings = JSON.parse (content);
+
 if (!exchanges.length) {
 
     if (!fs.existsSync ('./exchanges.json')) {
@@ -85,7 +87,7 @@ if (!exchanges.length) {
     }
     let exchangesFile =  fs.readFileSync('./exchanges.json');
     exchangesFile = JSON.parse(exchangesFile)
-    exchanges = exchangeSpecificFlags['--ws'] ? exchangesFile.ws : exchangesFile.ids
+    exchanges = wsFlag ? exchangesFile.ws : exchangesFile.ids
 }
 
 /*  --------------------------------------------------------------------------- */
@@ -214,7 +216,7 @@ const testExchange = async (exchange) => {
     // no need to test alias classes
     if (exchange.alias) {
         numExchangesTested++;
-        log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, exchangeSpecificFlags['--ws'] ? '(WS)' : '', '[Skipped alias]'.yellow)
+        log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped alias]'.yellow)
         return [];
     }
 
@@ -222,13 +224,13 @@ const testExchange = async (exchange) => {
         if (!('until' in skipSettings[exchange])) {
             // if until not specified, skip forever
             numExchangesTested++;
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped]'.yellow)
             return [];
         }
         if (new Date(skipSettings[exchange].until) > new Date()) {
             numExchangesTested++;
             // if untilDate has not been yet reached, skip test for exchange
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped till ' + skipSettings[exchange].until + ']'.yellow)
             return [];
         }
     }
@@ -300,7 +302,7 @@ const testExchange = async (exchange) => {
         }
     }
     numExchangesTested++;
-    log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, logMessage)
+    log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, logMessage)
 
 /*  Return collected data to main loop     */
 
