@@ -258,6 +258,7 @@ class ImplicitAPI:
     private_post_v5_position_add_margin = privatePostV5PositionAddMargin = Entry('v5/position/add-margin', 'private', 'POST', {'cost': 5})
     private_post_v5_position_confirm_pending_mmr = privatePostV5PositionConfirmPendingMmr = Entry('v5/position/confirm-pending-mmr', 'private', 'POST', {'cost': 5})
     private_post_v5_account_upgrade_to_uta = privatePostV5AccountUpgradeToUta = Entry('v5/account/upgrade-to-uta', 'private', 'POST', {'cost': 5})
+    private_post_v5_account_quick_repayment = privatePostV5AccountQuickRepayment = Entry('v5/account/quick-repayment', 'private', 'POST', {'cost': 5})
     private_post_v5_account_set_margin_mode = privatePostV5AccountSetMarginMode = Entry('v5/account/set-margin-mode', 'private', 'POST', {'cost': 5})
     private_post_v5_account_set_hedging_mode = privatePostV5AccountSetHedgingMode = Entry('v5/account/set-hedging-mode', 'private', 'POST', {'cost': 5})
     private_post_v5_account_mmp_modify = privatePostV5AccountMmpModify = Entry('v5/account/mmp-modify', 'private', 'POST', {'cost': 5})

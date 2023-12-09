@@ -3137,7 +3137,12 @@ class okx extends Exchange {
                     );
                 }
             }
-            $response = Async\await($this->$method ($request)); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            $response = null;
+            if ($method === 'privatePostTradeCancelAlgos') {
+                $response = Async\await($this->privatePostTradeCancelAlgos ($request)); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            } else {
+                $response = Async\await($this->privatePostTradeCancelBatchOrders ($request)); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            }
             //
             //     {
             //         "code" => "0",
@@ -3433,7 +3438,12 @@ class okx extends Exchange {
                 }
             }
             $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId', 'stop' ));
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($method === 'privateGetTradeOrderAlgo') {
+                $response = Async\await($this->privateGetTradeOrderAlgo (array_merge($request, $query)));
+            } else {
+                $response = Async\await($this->privateGetTradeOrder (array_merge($request, $query)));
+            }
             //
             // Spot and Swap
             //
@@ -3593,7 +3603,12 @@ class okx extends Exchange {
                 }
             }
             $query = $this->omit($params, array( 'method', 'stop' ));
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($method === 'privateGetTradeOrdersAlgoPending') {
+                $response = Async\await($this->privateGetTradeOrdersAlgoPending (array_merge($request, $query)));
+            } else {
+                $response = Async\await($this->privateGetTradeOrdersPending (array_merge($request, $query)));
+            }
             //
             //     {
             //         "code" => "0",
@@ -3765,7 +3780,12 @@ class okx extends Exchange {
                 }
             }
             $send = $this->omit($query, array( 'method', 'stop', 'ordType' ));
-            $response = Async\await($this->$method (array_merge($request, $send)));
+            $response = null;
+            if ($method === 'privateGetTradeOrdersAlgoHistory') {
+                $response = Async\await($this->privateGetTradeOrdersAlgoHistory (array_merge($request, $send)));
+            } else {
+                $response = Async\await($this->privateGetTradeOrdersHistory (array_merge($request, $send)));
+            }
             //
             //     {
             //         "code" => "0",
@@ -3942,7 +3962,12 @@ class okx extends Exchange {
                 $request['state'] = 'filled';
             }
             $send = $this->omit($query, array( 'method', 'stop' ));
-            $response = Async\await($this->$method (array_merge($request, $send)));
+            $response = null;
+            if ($method === 'privateGetTradeOrdersAlgoHistory') {
+                $response = Async\await($this->privateGetTradeOrdersAlgoHistory (array_merge($request, $send)));
+            } else {
+                $response = Async\await($this->privateGetTradeOrdersHistory (array_merge($request, $send)));
+            }
             //
             //     {
             //         "code" => "0",
@@ -4198,7 +4223,14 @@ class okx extends Exchange {
                 $request['ccy'] = $currency['id'];
             }
             list($request, $params) = $this->handle_until_option('end', $request, $params);
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($method === 'privateGetAccountBillsArchive') {
+                $response = Async\await($this->privateGetAccountBillsArchive (array_merge($request, $query)));
+            } elseif ($method === 'privateGetAssetBills') {
+                $response = Async\await($this->privateGetAssetBills (array_merge($request, $query)));
+            } else {
+                $response = Async\await($this->privateGetAccountBills (array_merge($request, $query)));
+            }
             //
             // privateGetAccountBills, privateGetAccountBillsArchive
             //
@@ -5121,7 +5153,12 @@ class okx extends Exchange {
             }
             $fetchPositionsOptions = $this->safe_value($this->options, 'fetchPositions', array());
             $method = $this->safe_string($fetchPositionsOptions, 'method', 'privateGetAccountPositions');
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($method === 'privateGetAccountPositionsHistory') {
+                $response = Async\await($this->privateGetAccountPositionsHistory (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetAccountPositions (array_merge($request, $params)));
+            }
             //
             //     {
             //         "code" => "0",

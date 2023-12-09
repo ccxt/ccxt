@@ -430,14 +430,22 @@ class probit extends probit$1 {
                 }
                 const precision = this.parsePrecision(this.safeString(network, 'precision'));
                 const withdrawFee = this.safeValue(network, 'withdrawal_fee', []);
-                const networkfee = this.safeValue(withdrawFee, 0, {});
+                let networkFee = this.safeValue(withdrawFee, 0, {});
+                for (let k = 0; k < withdrawFee.length; k++) {
+                    const withdrawPlatform = withdrawFee[k];
+                    const feeCurrencyId = this.safeString(withdrawPlatform, 'currency_id');
+                    if (feeCurrencyId === id) {
+                        networkFee = withdrawPlatform;
+                        break;
+                    }
+                }
                 networkList[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
                     'active': currentActive,
                     'deposit': currentDeposit,
                     'withdraw': currentWithdraw,
-                    'fee': this.safeNumber(networkfee, 'amount'),
+                    'fee': this.safeNumber(networkFee, 'amount'),
                     'precision': this.parseNumber(precision),
                     'limits': {
                         'withdraw': {

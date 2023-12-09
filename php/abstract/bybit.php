@@ -775,6 +775,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_post_v5_account_upgrade_to_uta($params = array()) {
         return $this->request('v5/account/upgrade-to-uta', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    public function private_post_v5_account_quick_repayment($params = array()) {
+        return $this->request('v5/account/quick-repayment', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function private_post_v5_account_set_margin_mode($params = array()) {
         return $this->request('v5/account/set-margin-mode', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -1626,6 +1629,9 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privatePostV5AccountUpgradeToUta($params = array()) {
         return $this->request('v5/account/upgrade-to-uta', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostV5AccountQuickRepayment($params = array()) {
+        return $this->request('v5/account/quick-repayment', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostV5AccountSetMarginMode($params = array()) {
         return $this->request('v5/account/set-margin-mode', 'private', 'POST', $params, null, null, array("cost" => 5));

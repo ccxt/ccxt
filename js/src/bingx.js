@@ -1226,35 +1226,6 @@ export default class bingx extends Exchange {
         else {
             response = await this.swapV2PublicGetQuoteTicker(this.extend(request, params));
         }
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //          "symbol": "BTC-USDT",
-        //          "priceChange": "52.5",
-        //          "priceChangePercent": "0.31",
-        //          "lastPrice": "16880.5",
-        //          "lastQty": "2.2238",
-        //          "highPrice": "16897.5",
-        //          "lowPrice": "16726.0",
-        //          "volume": "245870.1692",
-        //          "quoteVolume": "4151395117.73",
-        //          "openPrice": "16832.0",
-        //          "openTime": 1672026667803,
-        //          "closeTime": 1672026648425,
-        //  added some time ago:
-        //          "firstId": 12345,
-        //          "lastId": 12349,
-        //          "count": 5,
-        //  added 2023-11-10:
-        //          "bidPrice": 16726.0,
-        //          "bidQty": 0.05,
-        //          "askPrice": 16726.0,
-        //          "askQty": 0.05,
-        //        }
-        //    }
-        //
         const data = this.safeValue(response, 'data');
         const ticker = this.safeValue(data, 0, data);
         return this.parseTicker(ticker, market);
@@ -1285,37 +1256,6 @@ export default class bingx extends Exchange {
         else {
             response = await this.swapV2PublicGetQuoteTicker(params);
         }
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": [
-        //            {
-        //                "symbol": "BTC-USDT",
-        //                "priceChange": "52.5",
-        //                "priceChangePercent": "0.31",
-        //                "lastPrice": "16880.5",
-        //                "lastQty": "2.2238",
-        //                "highPrice": "16897.5",
-        //                "lowPrice": "16726.0",
-        //                "volume": "245870.1692",
-        //                "quoteVolume": "4151395117.73",
-        //                "openPrice": "16832.0",
-        //                "openTime": 1672026667803,
-        //                "closeTime": 1672026648425,
-        //  added some time ago:
-        //                "firstId": 12345,
-        //                "lastId": 12349,
-        //                "count": 5,
-        //  added 2023-11-10:
-        //                "bidPrice": 16726.0,
-        //                "bidQty": 0.05,
-        //                "askPrice": 16726.0,
-        //                "askQty": 0.05,
-        //            },
-        //        ]
-        //    }
-        //
         const tickers = this.safeValue(response, 'data');
         return this.parseTickers(tickers, symbols);
     }
@@ -1332,10 +1272,6 @@ export default class bingx extends Exchange {
         //        "quoteVolume": "30288466.44",
         //        "openTime": "1693081020762",
         //        "closeTime": "1693167420762",
-        //  added some time ago:
-        //        "firstId": 12345,
-        //        "lastId": 12349,
-        //        "count": 5,
         //  added 2023-11-10:
         //        "bidPrice": 16726.0,
         //        "bidQty": 0.05,
@@ -1349,7 +1285,7 @@ export default class bingx extends Exchange {
         //        "priceChange": "52.5",
         //        "priceChangePercent": "0.31%", // they started to add the percent sign in value
         //        "lastPrice": "16880.5",
-        //        "lastQty": "2.2238",
+        //        "lastQty": "2.2238",          // only present in swap!
         //        "highPrice": "16897.5",
         //        "lowPrice": "16726.0",
         //        "volume": "245870.1692",
@@ -1357,10 +1293,6 @@ export default class bingx extends Exchange {
         //        "openPrice": "16832.0",
         //        "openTime": 1672026667803,
         //        "closeTime": 1672026648425,
-        //  added some time ago:
-        //        "firstId": 12345,
-        //        "lastId": 12349,
-        //        "count": 5,
         //  added 2023-11-10:
         //        "bidPrice": 16726.0,
         //        "bidQty": 0.05,
@@ -1370,7 +1302,10 @@ export default class bingx extends Exchange {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const change = this.safeString(ticker, 'priceChange');
-        const type = (change === undefined) ? 'spot' : 'swap';
+        const lastQty = this.safeString(ticker, 'lastQty');
+        // in spot markets, lastQty is not present
+        // it's (bad, but) the only way we can check the tickers origin
+        const type = (lastQty === undefined) ? 'spot' : 'swap';
         const symbol = this.safeSymbol(marketId, market, undefined, type);
         const open = this.safeString(ticker, 'openPrice');
         const high = this.safeString(ticker, 'highPrice');
@@ -2977,7 +2912,8 @@ export default class bingx extends Exchange {
     }
     parseTransactionStatus(status) {
         const statuses = {
-            '0': 'ok',
+            '0': 'pending',
+            '1': 'ok',
             '10': 'pending',
             '20': 'rejected',
             '30': 'ok',

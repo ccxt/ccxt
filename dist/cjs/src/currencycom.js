@@ -1573,7 +1573,19 @@ class currencycom extends currencycom$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateGetV2Deposits') {
+            response = await this.privateGetV2Deposits(this.extend(request, params));
+        }
+        else if (method === 'privateGetV2Withdrawals') {
+            response = await this.privateGetV2Withdrawals(this.extend(request, params));
+        }
+        else if (method === 'privateGetV2Transactions') {
+            response = await this.privateGetV2Transactions(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchTransactionsByMethod() not support this method');
+        }
         //
         //    [
         //        {

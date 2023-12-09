@@ -47,6 +47,7 @@ class ImplicitAPI:
     v1_private_delete_orders = v1PrivateDeleteOrders = Entry('orders', ['v1', 'private'], 'DELETE', {'cost': 1})
     v1_private_delete_asset_withdraw = v1PrivateDeleteAssetWithdraw = Entry('asset/withdraw', ['v1', 'private'], 'DELETE', {'cost': 120})
     v2_private_get_client_holding = v2PrivateGetClientHolding = Entry('client/holding', ['v2', 'private'], 'GET', {'cost': 1})
+    v3_public_get_insurancefund = v3PublicGetInsuranceFund = Entry('insuranceFund', ['v3', 'public'], 'GET', {'cost': 3})
     v3_private_get_algo_order_oid = v3PrivateGetAlgoOrderOid = Entry('algo/order/{oid}', ['v3', 'private'], 'GET', {'cost': 1})
     v3_private_get_algo_orders = v3PrivateGetAlgoOrders = Entry('algo/orders', ['v3', 'private'], 'GET', {'cost': 1})
     v3_private_get_balances = v3PrivateGetBalances = Entry('balances', ['v3', 'private'], 'GET', {'cost': 1})
