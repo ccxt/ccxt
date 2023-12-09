@@ -17,7 +17,7 @@ process.on ('unhandledRejection', (e: any) => {
     throw new Error (exceptionMessage (e));
     // process.exit (1);
 });
-const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
+
 const AuthenticationError = ccxt.AuthenticationError;
 const NotSupported = ccxt.NotSupported;
 const NetworkError = ccxt.NetworkError;
@@ -25,6 +25,8 @@ const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
+const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
+const exchangeSymbolFinal = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
 // non-transpiled part, but shared names among langs
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
@@ -1545,4 +1547,4 @@ export default class testMainClass extends baseMainTestClass {
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass ()).init (exchangeIdFromArgv, exchangeSymbol);
+(new testMainClass ()).init (exchangeIdFromArgv, exchangeSymbolFinal);
