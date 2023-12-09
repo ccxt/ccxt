@@ -2824,9 +2824,9 @@ export default class binance extends binanceRest {
         // delete subscription
         delete client.subscriptions[unsubsribedSuscription];
         // resolve any waiting futures;
-        client.resolve (null, messageHash);
-        // resolve unsubscribe
         client.resolve (null, unsubscibeMessageHash);
+        // resolve unsubscribe
+        client.resolve (null, messageHash);
     }
 
     handleMyTrade (client: Client, message) {
