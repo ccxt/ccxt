@@ -96,6 +96,7 @@ if [[ "$diff" =~ $critical_pattern ]]; then
   # echo "$msgPrefix Important changes detected - doing full build & test"
   # echo "$diff"
   # build_and_test_all
+  echo ""
 fi
 
 echo "$msgPrefix Unimportant changes detected - build & test only specific exchange(s)"
