@@ -5,7 +5,6 @@ import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js
 
 async function testWatchTicker (exchange, skippedProperties, symbol) {
     const method = 'watchTicker';
-    console.log ('SYM', symbol);
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
