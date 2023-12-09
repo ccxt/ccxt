@@ -27,6 +27,9 @@ class digifinex extends Exchange {
                 'addMargin' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createPostOnlyOrder' => true,
@@ -1537,6 +1540,7 @@ class digifinex extends Exchange {
          * @param {bool} [$params->postOnly] true or false
          * @param {bool} [$params->reduceOnly] true or false
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -1740,15 +1744,24 @@ class digifinex extends Exchange {
             $request['type'] = $side . $suffix;
             // limit orders require the $amount in the base currency, $market orders require the $amount in the quote currency
             $quantity = null;
-            $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-            if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
-                if ($price === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+            $createMarketBuyOrderRequiresPrice = true;
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
+            if ($isMarketOrder && ($side === 'buy')) {
+                $cost = $this->safe_number($params, 'cost');
+                $params = $this->omit($params, 'cost');
+                if ($cost !== null) {
+                    $quantity = $this->cost_to_precision($symbol, $cost);
+                } elseif ($createMarketBuyOrderRequiresPrice) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                    } else {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $costRequest = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                        $quantity = $this->cost_to_precision($symbol, $costRequest);
+                    }
                 } else {
-                    $amountString = $this->number_to_string($amount);
-                    $priceString = $this->number_to_string($price);
-                    $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                    $quantity = $this->price_to_precision($symbol, $cost);
+                    $quantity = $this->cost_to_precision($symbol, $amount);
                 }
             } else {
                 $quantity = $this->amount_to_precision($symbol, $amount);
@@ -1764,6 +1777,24 @@ class digifinex extends Exchange {
         }
         $params = $this->omit($params, array( 'postOnly' ));
         return array_merge($request, $params);
+    }
+
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * create a $market buy order by providing the $symbol and $cost
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        $params['createMarketBuyOrderRequiresPrice'] = false;
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {

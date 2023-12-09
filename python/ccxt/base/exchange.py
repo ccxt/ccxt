@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.79'
+__version__ = '4.1.82'
 
 # -----------------------------------------------------------------------------
 
@@ -3847,7 +3847,7 @@ class Exchange(object):
     def fetch_funding_history(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
 
-    def close_position(self, symbol: str, side: OrderSide = None, marginMode: str = None, params={}):
+    def close_position(self, symbol: str, side: OrderSide = None, params={}):
         raise NotSupported(self.id + ' closePositions() is not supported yet')
 
     def close_all_positions(self, params={}):

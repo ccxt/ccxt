@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.79';
+$version = '4.1.82';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.79';
+    const VERSION = '4.1.82';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4783,7 +4783,7 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchFundingHistory() is not supported yet');
     }
 
-    public function close_position(string $symbol, ?string $side = null, ?string $marginMode = null, $params = array ()) {
+    public function close_position(string $symbol, ?string $side = null, $params = array ()) {
         throw new NotSupported($this->id . ' closePositions() is not supported yet');
     }
 

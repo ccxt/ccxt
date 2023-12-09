@@ -737,6 +737,42 @@
             "url": "https://www.okx.com/api/v5/account/interest-rate",
             "input": []
           }
+        ],
+        "fetchLedger": [
+          {
+            "description": "Fetch Ledger",
+            "method": "fetchLedger",
+            "url": "https://www.okx.com/api/v5/account/bills?instType=SPOT&ccy=USDT",
+            "input": [
+              "USDT"
+            ]
+          },
+          {
+            "description": "Fetch Ledger",
+            "method": "fetchLedger",
+            "url": "https://www.okx.com/api/v5/account/bills-archive?instType=SPOT&ccy=USDT",
+            "input": [
+              "USDT",
+              null,
+              null,
+              {
+                "method": "privateGetAccountBillsArchive"
+              }
+            ]
+          },
+          {
+            "description": "Fetch Ledger",
+            "method": "fetchLedger",
+            "url": "https://www.okx.com/api/v5/asset/bills?instType=SPOT&ccy=USDT",
+            "input": [
+              "USDT",
+              null,
+              null,
+              {
+                "method": "privateGetAssetBills"
+              }
+            ]
+          }
         ]
     }
 }
