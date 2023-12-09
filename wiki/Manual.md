@@ -5913,8 +5913,8 @@ An inverse contract will allow you to go long or short on BTC/USD by putting up 
 
 To quickly close open positions with a market order, use
 
-- closePosition ()               // for a single market
-- closeAllPositions ()           // for all positions
+- closePosition (symbol)               // for a single market
+- closeAllPositions (symbol)           // for all positions
 
 ```typescript
 closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order>
@@ -5923,7 +5923,7 @@ closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promis
 Parameters
 
 - **symbol** (String) *required* Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
-- **side** *required* a string literal for the direction of your order.
+- **side** *optional* a string literal for the direction of your order. Some exchanges require it.
   **Unified sides:**
   - `buy` give quote currency and receive base currency; for example, buying `BTC/USD` means that you will receive bitcoins for your dollars.
   - `sell` give base currency and receive quote currency; for example, buying `BTC/USD` means that you will receive dollars for your bitcoins.
