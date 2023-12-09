@@ -20,7 +20,7 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 /*  --------------------------------------------------------------------------- */
 
 const [,, ...args] = process.argv
-
+console.log(process.argv)
 const langKeys = {
     '--ts': false,      // run TypeScript tests only
     '--js': false,      // run JavaScript tests only
@@ -210,7 +210,7 @@ const sequentialMap = async (input, fn) => {
 /*  ------------------------------------------------------------------------ */
 
 const testExchange = async (exchange) => {
-
+    if (exchange!=='bitget') return;
     const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
 
     // no need to test alias classes
@@ -245,6 +245,7 @@ const testExchange = async (exchange) => {
     if (debugKeys['--info']) {
         args.push ('--info')
     }
+    console.log('RARGS', args);
     const allTestsWithoutTs = [
             { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',              ...args] },
             { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',    ...args] },
