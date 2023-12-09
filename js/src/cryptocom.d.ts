@@ -99,6 +99,7 @@ export default class cryptocom extends Exchange {
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
     nonce(): number;
     paramsToString(object: any, level: any): any;
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

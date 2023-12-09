@@ -3021,7 +3021,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchFundingHistory() is not supported yet');
     }
 
-    public function close_position(string $symbol, ?string $side = null, ?string $marginMode = null, $params = array ()) {
+    public function close_position(string $symbol, ?string $side = null, $params = array ()) {
         throw new NotSupported($this->id . ' closePositions() is not supported yet');
     }
 

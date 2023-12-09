@@ -40,6 +40,8 @@ class cryptocom extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => true,
                 'createOrder' => true,
                 'createOrders' => true,
                 'fetchAccounts' => true,
@@ -2898,6 +2900,52 @@ class cryptocom extends Exchange {
             }
         }
         return $returnString;
+    }
+
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $side, $params) {
+            /**
+             * closes open positions for a $market
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
+             * @param {string} $symbol Unified CCXT $market $symbol
+             * @param {string} [marginMode] not used by cryptocom.closePositions
+             * @param {string} [$side] not used by cryptocom.closePositions
+             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} [$params->type] LIMIT or MARKET
+             * @param {number} [$params->price] for limit orders only
+             * @return {[array]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument_name' => $market['id'],
+                'type' => 'MARKET',
+            );
+            $type = $this->safe_string_upper($params, 'type');
+            $price = $this->safe_string($params, 'price');
+            if ($type !== null) {
+                $request['type'] = $type;
+            }
+            if ($price !== null) {
+                $request['price'] = $this->price_to_precision($market['symbol'], $price);
+            }
+            $response = Async\await($this->v1PrivatePostPrivateClosePosition (array_merge($request, $params)));
+            //
+            //    {
+            //        "id" : 1700830813298,
+            //        "method" : "private/close-position",
+            //        "code" : 0,
+            //        "result" : {
+            //            "client_oid" : "179a909d-5614-655b-0d0e-9e85c9a25c85",
+            //            "order_id" : "6142909897021751347"
+            //        }
+            //    }
+            //
+            $result = $this->safe_value($response, 'result');
+            return $this->parse_order($result, $market);
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
