@@ -2897,7 +2897,7 @@ export default class cryptocom extends Exchange {
         return returnString;
     }
 
-    async closePosition (symbol: string, marginMode: string = undefined, side: OrderSide = undefined, params = {}): Promise<Order> {
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name cryptocom#closePositions
