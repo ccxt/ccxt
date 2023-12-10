@@ -5734,14 +5734,12 @@ export default class bybit extends Exchange {
         let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
             request['symbol'] = market['id'];
             isUsdcSettled = market['settle'] === 'USDC';
         }
         let type = undefined;
         [ type, params ] = this.getBybitType ('fetchPositions', market, params);
-        if (type === 'spot') {
-            throw new NotSupported (this.id + ' fetchPositions() not support spot market');
-        }
         if (type === 'linear' || type === 'inverse') {
             const baseCoin = this.safeString (params, 'baseCoin');
             if (type === 'linear') {
