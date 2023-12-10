@@ -7218,7 +7218,7 @@ export default class okx extends Exchange {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const code = this.safeString (params, 'code');
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', market, params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params, 'cross');
         const request = {
             'instId': market['id'],
             'mgnMode': marginMode,
