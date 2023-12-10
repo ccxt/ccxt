@@ -5723,8 +5723,10 @@ export default class bybit extends Exchange {
             } else if (symbolsLength === 1) {
                 symbol = symbols[0];
             }
+            symbols = this.marketSymbols (symbols);
         } else if (symbols !== undefined) {
             symbol = symbols;
+            symbols = [ this.symbol (symbol) ];
         }
         await this.loadMarkets ();
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
