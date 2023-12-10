@@ -135,8 +135,8 @@ for exchange in "${REST_EXCHANGES[@]}"; do
 done
 echo "$msgPrefix WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[*]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
-  npm run eslint "ts/src/pro/$exchange.ts"
-  node build/transpileWS.js $exchange --force --child
+  # npm run eslint "ts/src/pro/$exchange.ts"
+  # node build/transpileWS.js $exchange --force --child
   # PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
 done
 # faster version of post-transpile
@@ -166,4 +166,4 @@ rest_args=$(IFS=" " ; echo "${REST_EXCHANGES[*]}") || "skip"
 # ws_args=${WS_EXCHANGES[*]} || "skip"
 ws_args=$(IFS=" " ; echo "${WS_EXCHANGES[*]}") || "skip"
 
-run_tests "$rest_args" "$ws_args"
+run_tests "$rest_args" "$ws_args" --info
