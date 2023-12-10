@@ -6554,7 +6554,7 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.subType]: 'linear' or 'inverse'
         :param str [params.settle]: *required and only valid when params.subType == "linear"* 'USDT' or 'USDC'
-        :returns [dict]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         subType = None

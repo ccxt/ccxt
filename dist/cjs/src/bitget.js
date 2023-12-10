@@ -7020,7 +7020,7 @@ class bitget extends bitget$1 {
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.subType] 'linear' or 'inverse'
          * @param {string} [params.settle] *required and only valid when params.subType === "linear"* 'USDT' or 'USDC'
-         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         let subType = undefined;

@@ -6887,7 +6887,7 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @param {string} [$params->subType] 'linear' or 'inverse'
          * @param {string} [$params->settle] *required and only valid when $params->subType === "linear"* 'USDT' or 'USDC'
-         * @return {[array]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+         * @return {array[]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
          */
         $this->load_markets();
         $subType = null;

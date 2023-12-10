@@ -2915,7 +2915,7 @@ class cryptocom extends Exchange {
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {string} [$params->type] LIMIT or MARKET
              * @param {number} [$params->price] for limit orders only
-             * @return {[array]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+             * @return {array[]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
