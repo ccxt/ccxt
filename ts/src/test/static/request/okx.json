@@ -643,8 +643,7 @@
             "method": "closePosition",
             "url": "https://www.okx.com/api/v5/trade/close-position",
             "input": [
-              "ADA/USDT:USDT",
-              "cross"
+              "ADA/USDT:USDT"
             ],
             "output": "{\"instId\":\"ADA-USDT-SWAP\",\"mgnMode\":\"cross\"}"
           },
@@ -654,7 +653,6 @@
             "url": "https://www.okx.com/api/v5/trade/close-position",
             "input": [
               "ADA/USDT:USDT",
-              "cross",
               "sell"
             ],
             "output": "{\"instId\":\"ADA-USDT-SWAP\",\"mgnMode\":\"cross\",\"posSide\":\"short\"}"
@@ -665,7 +663,6 @@
             "url": "https://www.okx.com/api/v5/trade/close-position",
             "input": [
               "ADA/USDT:USDT",
-              "cross",
               "buy"
             ],
             "output": "{\"instId\":\"ADA-USDT-SWAP\",\"mgnMode\":\"cross\",\"posSide\":\"long\"}"

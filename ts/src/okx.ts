@@ -7195,17 +7195,17 @@ export default class okx extends Exchange {
         };
     }
 
-    async closePosition (symbol: string, marginMode: string = undefined, side: OrderSide = undefined, params = {}): Promise<Order> {
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         /**
          * @method
-         * @name okx#closePositions
+         * @name okx#closePosition
          * @description closes open positions for a market
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
          * @param {string} symbol Unified CCXT market symbol
-         * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @param {string} [params.clientOrderId] 'cross' or 'isolated'
+         * @param {string} [params.clientOrderId] a unique identifier for the order
+         * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
          * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
          *
          * EXCHANGE SPECIFIC PARAMETERS
@@ -7217,15 +7217,14 @@ export default class okx extends Exchange {
         const market = this.market (symbol);
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const code = this.safeString (params, 'code');
-        if (marginMode === undefined) {
-            throw new ArgumentsRequired (this.id + ' closePosition () requires a marginMode argument');
-        }
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', market, params);
         const request = {
             'instId': market['id'],
             'mgnMode': marginMode,
         };
         if (side !== undefined) {
-            if (side === 'buy') {
+            if ((side === 'buy')) {
                 request['posSide'] = 'long';
             } else if (side === 'sell') {
                 request['posSide'] = 'short';
