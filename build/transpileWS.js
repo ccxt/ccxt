@@ -108,7 +108,7 @@ class CCXTProTranspiler extends Transpiler {
         }
         const orderBookClasses = bodyAsString.match(/\s(Asks|Bids)\(.*\)/g)
         if (orderBookClasses) {
-            const uniqueOrderBookClasses = unique (orderBookClasses.map(match => match.replace(/\(.*\)/, ''))).sort ()
+            const uniqueOrderBookClasses = unique (orderBookClasses.map(match => match.replace(/\(.*\)/, '').trim())).sort ()
             const orderBookSideImport = 'from ccxt.async_support.base.ws.order_book_side import ' + uniqueOrderBookClasses.join (', ')
             imports.push (orderBookSideImport)
         }
