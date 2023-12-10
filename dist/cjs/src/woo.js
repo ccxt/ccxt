@@ -201,6 +201,11 @@ class woo extends woo$1 {
                     },
                 },
                 'v3': {
+                    'public': {
+                        'get': {
+                            'insuranceFund': 3,
+                        },
+                    },
                     'private': {
                         'get': {
                             'algo/order/{oid}': 1,

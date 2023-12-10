@@ -496,7 +496,7 @@ class binance extends binance$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false, true, true);
@@ -1646,18 +1646,26 @@ class binance extends binance$1 {
         const url = this.urls['api']['ws']['ws'];
         const requestId = this.requestId(url);
         const messageHash = requestId.toString();
+        const sor = this.safeValue2(params, 'sor', 'SOR', false);
+        params = this.omit(params, 'sor', 'SOR');
         const payload = this.createOrderRequest(symbol, type, side, amount, price, params);
         let returnRateLimits = false;
         [returnRateLimits, params] = this.handleOptionAndParams(params, 'createOrderWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
+        const test = this.safeValue(params, 'test', false);
+        params = this.omit(params, 'test');
         const message = {
             'id': messageHash,
             'method': 'order.place',
             'params': this.signParams(this.extend(payload, params)),
         };
-        const test = this.safeValue(params, 'test', false);
         if (test) {
-            message['method'] = 'order.test';
+            if (sor) {
+                message['method'] = 'sor.order.test';
+            }
+            else {
+                message['method'] = 'order.test';
+            }
         }
         const subscription = {
             'method': this.handleOrderWs,

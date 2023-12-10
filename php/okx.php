@@ -285,6 +285,7 @@ class okx extends Exchange {
                         'asset/convert/currencies' => 5 / 3,
                         'asset/convert/currency-pair' => 5 / 3,
                         'asset/convert/history' => 5 / 3,
+                        'asset/monthly-statement' => 2,
                         // account
                         'account/balance' => 2,
                         'account/positions' => 2,
@@ -418,6 +419,7 @@ class okx extends Exchange {
                         'asset/convert-dust-assets' => 10,
                         'asset/convert/estimate-quote' => 1,
                         'asset/convert/trade' => 1,
+                        'asset/monthly-statement' => 1,
                         // account
                         'account/set-position-mode' => 4,
                         'account/set-leverage' => 1,
@@ -3081,7 +3083,12 @@ class okx extends Exchange {
                 );
             }
         }
-        $response = $this->$method ($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+        $response = null;
+        if ($method === 'privatePostTradeCancelAlgos') {
+            $response = $this->privatePostTradeCancelAlgos ($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+        } else {
+            $response = $this->privatePostTradeCancelBatchOrders ($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+        }
         //
         //     {
         //         "code" => "0",
@@ -3375,7 +3382,12 @@ class okx extends Exchange {
             }
         }
         $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId', 'stop' ));
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if ($method === 'privateGetTradeOrderAlgo') {
+            $response = $this->privateGetTradeOrderAlgo (array_merge($request, $query));
+        } else {
+            $response = $this->privateGetTradeOrder (array_merge($request, $query));
+        }
         //
         // Spot and Swap
         //
@@ -3533,7 +3545,12 @@ class okx extends Exchange {
             }
         }
         $query = $this->omit($params, array( 'method', 'stop' ));
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if ($method === 'privateGetTradeOrdersAlgoPending') {
+            $response = $this->privateGetTradeOrdersAlgoPending (array_merge($request, $query));
+        } else {
+            $response = $this->privateGetTradeOrdersPending (array_merge($request, $query));
+        }
         //
         //     {
         //         "code" => "0",
@@ -3703,7 +3720,12 @@ class okx extends Exchange {
             }
         }
         $send = $this->omit($query, array( 'method', 'stop', 'ordType' ));
-        $response = $this->$method (array_merge($request, $send));
+        $response = null;
+        if ($method === 'privateGetTradeOrdersAlgoHistory') {
+            $response = $this->privateGetTradeOrdersAlgoHistory (array_merge($request, $send));
+        } else {
+            $response = $this->privateGetTradeOrdersHistory (array_merge($request, $send));
+        }
         //
         //     {
         //         "code" => "0",
@@ -3878,7 +3900,12 @@ class okx extends Exchange {
             $request['state'] = 'filled';
         }
         $send = $this->omit($query, array( 'method', 'stop' ));
-        $response = $this->$method (array_merge($request, $send));
+        $response = null;
+        if ($method === 'privateGetTradeOrdersAlgoHistory') {
+            $response = $this->privateGetTradeOrdersAlgoHistory (array_merge($request, $send));
+        } else {
+            $response = $this->privateGetTradeOrdersHistory (array_merge($request, $send));
+        }
         //
         //     {
         //         "code" => "0",
@@ -4128,7 +4155,14 @@ class okx extends Exchange {
             $request['ccy'] = $currency['id'];
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if ($method === 'privateGetAccountBillsArchive') {
+            $response = $this->privateGetAccountBillsArchive (array_merge($request, $query));
+        } elseif ($method === 'privateGetAssetBills') {
+            $response = $this->privateGetAssetBills (array_merge($request, $query));
+        } else {
+            $response = $this->privateGetAccountBills (array_merge($request, $query));
+        }
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -5031,7 +5065,12 @@ class okx extends Exchange {
         }
         $fetchPositionsOptions = $this->safe_value($this->options, 'fetchPositions', array());
         $method = $this->safe_string($fetchPositionsOptions, 'method', 'privateGetAccountPositions');
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($method === 'privateGetAccountPositionsHistory') {
+            $response = $this->privateGetAccountPositionsHistory (array_merge($request, $params));
+        } else {
+            $response = $this->privateGetAccountPositions (array_merge($request, $params));
+        }
         //
         //     {
         //         "code" => "0",

@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/lbank.js';
-import { ExchangeError, InvalidAddress, DuplicateOrderId, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, InvalidAddress, DuplicateOrderId, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
@@ -36,6 +36,9 @@ export default class lbank extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -106,10 +109,10 @@ export default class lbank extends Exchange {
                     'contract': 'https://lbkperp.lbank.com',
                 },
                 'api2': 'https://api.lbkex.com',
-                'www': 'https://www.lbank.info',
-                'doc': 'https://www.lbank.info/en-US/docs/index.html',
-                'fees': 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
-                'referral': 'https://www.lbank.info/invitevip?icode=7QCY',
+                'www': 'https://www.lbank.com',
+                'doc': 'https://www.lbank.com/en-US/docs/index.html',
+                'fees': 'https://support.lbank.site/hc/en-gb/articles/900000535703-Trading-Fees-From-14-00-on-April-7-2020-UTC-8-',
+                'referral': 'https://www.lbank.com/login/?icode=7QCY',
             },
             'api': {
                 'spot': {
@@ -298,7 +301,7 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @see https://www.lbank.info/en-US/docs/index.html#get-timestamp
+         * @see https://www.lbank.com/en-US/docs/index.html#get-timestamp
          * @see https://www.lbank.com/en-US/docs/contract.html#get-the-current-time
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -597,7 +600,7 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://www.lbank.info/en-US/docs/index.html#query-current-market-data-new
+         * @see https://www.lbank.com/en-US/docs/index.html#query-current-market-data-new
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -643,7 +646,7 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://www.lbank.info/en-US/docs/index.html#query-current-market-data-new
+         * @see https://www.lbank.com/en-US/docs/index.html#query-current-market-data-new
          * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -723,7 +726,7 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://www.lbank.info/en-US/docs/index.html#query-market-depth
+         * @see https://www.lbank.com/en-US/docs/index.html#query-market-depth
          * @see https://www.lbank.com/en-US/docs/contract.html#get-handicap
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -912,8 +915,8 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://www.lbank.info/en-US/docs/index.html#query-historical-transactions
-         * @see https://www.lbank.info/en-US/docs/index.html#recent-transactions-list
+         * @see https://www.lbank.com/en-US/docs/index.html#query-historical-transactions
+         * @see https://www.lbank.com/en-US/docs/index.html#recent-transactions-list
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -986,7 +989,7 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://www.lbank.info/en-US/docs/index.html#query-k-bar-data
+         * @see https://www.lbank.com/en-US/docs/index.html#query-k-bar-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1173,9 +1176,9 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://www.lbank.info/en-US/docs/index.html#asset-information
-         * @see https://www.lbank.info/en-US/docs/index.html#account-information
-         * @see https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
+         * @see https://www.lbank.com/en-US/docs/index.html#asset-information
+         * @see https://www.lbank.com/en-US/docs/index.html#account-information
+         * @see https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -1242,7 +1245,7 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchTradingFee
          * @description fetch the trading fees for a market
-         * @see https://www.lbank.info/en-US/docs/index.html#transaction-fee-rate-query
+         * @see https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1257,7 +1260,7 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @see https://www.lbank.info/en-US/docs/index.html#transaction-fee-rate-query
+         * @see https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -1274,13 +1277,34 @@ export default class lbank extends Exchange {
         return result;
     }
 
+    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+        /**
+         * @method
+         * @name lbank#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://www.lbank.com/en-US/docs/index.html#place-order
+         * @see https://www.lbank.com/en-US/docs/index.html#place-an-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#createOrder
          * @description create a trade order
-         * @see https://www.lbank.info/en-US/docs/index.html#place-order
-         * @see https://www.lbank.info/en-US/docs/index.html#place-an-order
+         * @see https://www.lbank.com/en-US/docs/index.html#place-order
+         * @see https://www.lbank.com/en-US/docs/index.html#place-an-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1321,19 +1345,27 @@ export default class lbank extends Exchange {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             } else if (side === 'buy') {
                 request['type'] = side + '_' + 'market';
-                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                let quoteAmount = undefined;
+                let createMarketBuyOrderRequiresPrice = true;
+                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber (params, 'cost');
+                params = this.omit (params, 'cost');
+                if (cost !== undefined) {
+                    quoteAmount = this.costToPrecision (symbol, cost);
+                } else if (createMarketBuyOrderRequiresPrice) {
                     if (price === undefined) {
-                        throw new InvalidOrder (this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply the price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     } else {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
-                        const quoteAmount = Precise.stringMul (amountString, priceString);
-                        const cost = this.parseNumber (quoteAmount);
-                        request['price'] = this.priceToPrecision (symbol, cost);
+                        const costRequest = Precise.stringMul (amountString, priceString);
+                        quoteAmount = this.costToPrecision (symbol, costRequest);
                     }
                 } else {
-                    request['price'] = amount;
+                    quoteAmount = this.costToPrecision (symbol, amount);
                 }
+                // market buys require filling the price param instead of the amount param, for market buys the price is treated as the cost by lbank
+                request['price'] = quoteAmount;
             }
         }
         if (clientOrderId !== undefined) {
@@ -1508,8 +1540,8 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchOrder
          * @description fetches information on an order made by the user
-         * @see https://www.lbank.info/en-US/docs/index.html#query-order
-         * @see https://www.lbank.info/en-US/docs/index.html#query-order-new
+         * @see https://www.lbank.com/en-US/docs/index.html#query-order
+         * @see https://www.lbank.com/en-US/docs/index.html#query-order-new
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1614,7 +1646,7 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchMyTrades
          * @description fetch all trades made by the user
-         * @see https://www.lbank.info/en-US/docs/index.html#past-transaction-details
+         * @see https://www.lbank.com/en-US/docs/index.html#past-transaction-details
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -1674,7 +1706,7 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @see https://www.lbank.info/en-US/docs/index.html#query-all-orders
+         * @see https://www.lbank.com/en-US/docs/index.html#query-all-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1735,7 +1767,7 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @see https://www.lbank.info/en-US/docs/index.html#current-pending-order
+         * @see https://www.lbank.com/en-US/docs/index.html#current-pending-order
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -1793,7 +1825,7 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#cancelOrder
          * @description cancels an open order
-         * @see https://www.lbank.info/en-US/docs/index.html#cancel-order-new
+         * @see https://www.lbank.com/en-US/docs/index.html#cancel-order-new
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1836,7 +1868,7 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#cancelAllOrders
          * @description cancel all open orders in a market
-         * @see https://www.lbank.info/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair
+         * @see https://www.lbank.com/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1885,8 +1917,8 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @see https://www.lbank.info/en-US/docs/index.html#get-deposit-address
-         * @see https://www.lbank.info/en-US/docs/index.html#the-user-obtains-the-deposit-address
+         * @see https://www.lbank.com/en-US/docs/index.html#get-deposit-address
+         * @see https://www.lbank.com/en-US/docs/index.html#the-user-obtains-the-deposit-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1987,7 +2019,7 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#withdraw
          * @description make a withdrawal
-         * @see https://www.lbank.info/en-US/docs/index.html#withdrawal
+         * @see https://www.lbank.com/en-US/docs/index.html#withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -2154,7 +2186,7 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchDeposits
          * @description fetch all deposits made to an account
-         * @see https://www.lbank.info/en-US/docs/index.html#get-recharge-history
+         * @see https://www.lbank.com/en-US/docs/index.html#get-recharge-history
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2208,7 +2240,7 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @see https://www.lbank.info/en-US/docs/index.html#get-withdrawal-history
+         * @see https://www.lbank.com/en-US/docs/index.html#get-withdrawal-history
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2414,8 +2446,8 @@ export default class lbank extends Exchange {
          * @method
          * @name lbank2#fetchDepositWithdrawFees
          * @description when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying this.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
-         * @see https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
-         * @see https://www.lbank.info/en-US/docs/index.html#withdrawal-configurations
+         * @see https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
+         * @see https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
          * @param {string[]|undefined} codes array of unified currency codes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}

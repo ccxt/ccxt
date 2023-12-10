@@ -340,6 +340,8 @@ class bybit extends Exchange {
                         'v5/lending/account' => 5,
                         // broker
                         'v5/broker/earning-record' => 5,
+                        'v5/broker/earnings-info' => 5,
+                        'v5/broker/account-info' => 5,
                     ),
                     'post' => array(
                         // Legacy option USDC
@@ -440,6 +442,7 @@ class bybit extends Exchange {
                         'v5/position/confirm-pending-mmr' => 5,
                         // account
                         'v5/account/upgrade-to-uta' => 5,
+                        'v5/account/quick-repayment' => 5,
                         'v5/account/set-margin-mode' => 5,
                         'v5/account/set-hedging-mode' => 5,
                         'v5/account/mmp-modify' => 5,
@@ -2078,8 +2081,9 @@ class bybit extends Exchange {
          */
         $this->load_markets();
         $market = null;
-        $parsedSymbols = array();
+        $parsedSymbols = null;
         if ($symbols !== null) {
+            $parsedSymbols = array();
             $marketTypeInfo = $this->handle_market_type_and_params('fetchTickers', null, $params);
             $defaultType = $marketTypeInfo[0]; // don't omit here
             // we can't use marketSymbols here due to the conflicing ids between markets
@@ -2993,7 +2997,7 @@ class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] wallet $type, ['spot', 'swap', 'fund']
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $request = array();

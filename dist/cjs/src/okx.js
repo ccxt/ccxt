@@ -288,6 +288,7 @@ class okx extends okx$1 {
                         'asset/convert/currencies': 5 / 3,
                         'asset/convert/currency-pair': 5 / 3,
                         'asset/convert/history': 5 / 3,
+                        'asset/monthly-statement': 2,
                         // account
                         'account/balance': 2,
                         'account/positions': 2,
@@ -421,6 +422,7 @@ class okx extends okx$1 {
                         'asset/convert-dust-assets': 10,
                         'asset/convert/estimate-quote': 1,
                         'asset/convert/trade': 1,
+                        'asset/monthly-statement': 1,
                         // account
                         'account/set-position-mode': 4,
                         'account/set-leverage': 1,
@@ -3132,7 +3134,13 @@ class okx extends okx$1 {
                 });
             }
         }
-        const response = await this[method](request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        let response = undefined;
+        if (method === 'privatePostTradeCancelAlgos') {
+            response = await this.privatePostTradeCancelAlgos(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        }
+        else {
+            response = await this.privatePostTradeCancelBatchOrders(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        }
         //
         //     {
         //         "code": "0",
@@ -3431,7 +3439,13 @@ class okx extends okx$1 {
             }
         }
         const query = this.omit(params, ['method', 'clOrdId', 'clientOrderId', 'stop']);
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (method === 'privateGetTradeOrderAlgo') {
+            response = await this.privateGetTradeOrderAlgo(this.extend(request, query));
+        }
+        else {
+            response = await this.privateGetTradeOrder(this.extend(request, query));
+        }
         //
         // Spot and Swap
         //
@@ -3590,7 +3604,13 @@ class okx extends okx$1 {
             }
         }
         const query = this.omit(params, ['method', 'stop']);
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoPending') {
+            response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, query));
+        }
+        else {
+            response = await this.privateGetTradeOrdersPending(this.extend(request, query));
+        }
         //
         //     {
         //         "code": "0",
@@ -3762,7 +3782,13 @@ class okx extends okx$1 {
             }
         }
         const send = this.omit(query, ['method', 'stop', 'ordType']);
-        const response = await this[method](this.extend(request, send));
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoHistory') {
+            response = await this.privateGetTradeOrdersAlgoHistory(this.extend(request, send));
+        }
+        else {
+            response = await this.privateGetTradeOrdersHistory(this.extend(request, send));
+        }
         //
         //     {
         //         "code": "0",
@@ -3939,7 +3965,13 @@ class okx extends okx$1 {
             request['state'] = 'filled';
         }
         const send = this.omit(query, ['method', 'stop']);
-        const response = await this[method](this.extend(request, send));
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoHistory') {
+            response = await this.privateGetTradeOrdersAlgoHistory(this.extend(request, send));
+        }
+        else {
+            response = await this.privateGetTradeOrdersHistory(this.extend(request, send));
+        }
         //
         //     {
         //         "code": "0",
@@ -4192,7 +4224,16 @@ class okx extends okx$1 {
             request['ccy'] = currency['id'];
         }
         [request, params] = this.handleUntilOption('end', request, params);
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (method === 'privateGetAccountBillsArchive') {
+            response = await this.privateGetAccountBillsArchive(this.extend(request, query));
+        }
+        else if (method === 'privateGetAssetBills') {
+            response = await this.privateGetAssetBills(this.extend(request, query));
+        }
+        else {
+            response = await this.privateGetAccountBills(this.extend(request, query));
+        }
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -5104,7 +5145,13 @@ class okx extends okx$1 {
         }
         const fetchPositionsOptions = this.safeValue(this.options, 'fetchPositions', {});
         const method = this.safeString(fetchPositionsOptions, 'method', 'privateGetAccountPositions');
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateGetAccountPositionsHistory') {
+            response = await this.privateGetAccountPositionsHistory(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetAccountPositions(this.extend(request, params));
+        }
         //
         //     {
         //         "code": "0",

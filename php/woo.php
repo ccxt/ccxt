@@ -198,6 +198,11 @@ class woo extends Exchange {
                     ),
                 ),
                 'v3' => array(
+                    'public' => array(
+                        'get' => array(
+                            'insuranceFund' => 3,
+                        ),
+                    ),
                     'private' => array(
                         'get' => array(
                             'algo/order/{oid}' => 1,

@@ -289,7 +289,7 @@ class gate extends \ccxt\async\gate {
             $marketId = $market['id'];
             $url = $this->get_url_by_market($market);
             $messageType = $this->get_type_by_market($market);
-            list($topic, $query) = $this->handle_option_and_params($params, 'watchTicker', 'method', 'tickers');
+            list($topic, $query) = $this->handle_option_and_params($params, 'watchTicker', 'name', 'tickers');
             $channel = $messageType . '.' . $topic;
             $messageHash = 'ticker:' . $symbol;
             $payload = array( $marketId );
@@ -418,7 +418,7 @@ class gate extends \ccxt\async\gate {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);

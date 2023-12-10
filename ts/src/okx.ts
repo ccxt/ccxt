@@ -3132,7 +3132,12 @@ export default class okx extends Exchange {
                 });
             }
         }
-        const response = await this[method] (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        let response = undefined;
+        if (method === 'privatePostTradeCancelAlgos') {
+            response = await this.privatePostTradeCancelAlgos (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        } else {
+            response = await this.privatePostTradeCancelBatchOrders (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        }
         //
         //     {
         //         "code": "0",
@@ -3428,7 +3433,12 @@ export default class okx extends Exchange {
             }
         }
         const query = this.omit (params, [ 'method', 'clOrdId', 'clientOrderId', 'stop' ]);
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (method === 'privateGetTradeOrderAlgo') {
+            response = await this.privateGetTradeOrderAlgo (this.extend (request, query));
+        } else {
+            response = await this.privateGetTradeOrder (this.extend (request, query));
+        }
         //
         // Spot and Swap
         //
@@ -3588,7 +3598,12 @@ export default class okx extends Exchange {
             }
         }
         const query = this.omit (params, [ 'method', 'stop' ]);
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoPending') {
+            response = await this.privateGetTradeOrdersAlgoPending (this.extend (request, query));
+        } else {
+            response = await this.privateGetTradeOrdersPending (this.extend (request, query));
+        }
         //
         //     {
         //         "code": "0",
@@ -3760,7 +3775,12 @@ export default class okx extends Exchange {
             }
         }
         const send = this.omit (query, [ 'method', 'stop', 'ordType' ]);
-        const response = await this[method] (this.extend (request, send));
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoHistory') {
+            response = await this.privateGetTradeOrdersAlgoHistory (this.extend (request, send));
+        } else {
+            response = await this.privateGetTradeOrdersHistory (this.extend (request, send));
+        }
         //
         //     {
         //         "code": "0",
@@ -3937,7 +3957,12 @@ export default class okx extends Exchange {
             request['state'] = 'filled';
         }
         const send = this.omit (query, [ 'method', 'stop' ]);
-        const response = await this[method] (this.extend (request, send));
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoHistory') {
+            response = await this.privateGetTradeOrdersAlgoHistory (this.extend (request, send));
+        } else {
+            response = await this.privateGetTradeOrdersHistory (this.extend (request, send));
+        }
         //
         //     {
         //         "code": "0",
@@ -4193,7 +4218,14 @@ export default class okx extends Exchange {
             request['ccy'] = currency['id'];
         }
         [ request, params ] = this.handleUntilOption ('end', request, params);
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (method === 'privateGetAccountBillsArchive') {
+            response = await this.privateGetAccountBillsArchive (this.extend (request, query));
+        } else if (method === 'privateGetAssetBills') {
+            response = await this.privateGetAssetBills (this.extend (request, query));
+        } else {
+            response = await this.privateGetAccountBills (this.extend (request, query));
+        }
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -5116,7 +5148,12 @@ export default class okx extends Exchange {
         }
         const fetchPositionsOptions = this.safeValue (this.options, 'fetchPositions', {});
         const method = this.safeString (fetchPositionsOptions, 'method', 'privateGetAccountPositions');
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'privateGetAccountPositionsHistory') {
+            response = await this.privateGetAccountPositionsHistory (this.extend (request, params));
+        } else {
+            response = await this.privateGetAccountPositions (this.extend (request, params));
+        }
         //
         //     {
         //         "code": "0",

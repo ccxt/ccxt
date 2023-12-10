@@ -311,6 +311,7 @@ class okx(Exchange, ImplicitAPI):
                         'asset/convert/currencies': 5 / 3,
                         'asset/convert/currency-pair': 5 / 3,
                         'asset/convert/history': 5 / 3,
+                        'asset/monthly-statement': 2,
                         # account
                         'account/balance': 2,
                         'account/positions': 2,
@@ -444,6 +445,7 @@ class okx(Exchange, ImplicitAPI):
                         'asset/convert-dust-assets': 10,
                         'asset/convert/estimate-quote': 1,
                         'asset/convert/trade': 1,
+                        'asset/monthly-statement': 1,
                         # account
                         'account/set-position-mode': 4,
                         'account/set-leverage': 1,
@@ -2952,7 +2954,11 @@ class okx(Exchange, ImplicitAPI):
                     'instId': market['id'],
                     'clOrdId': clientOrderIds[i],
                 })
-        response = await getattr(self, method)(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+        response = None
+        if method == 'privatePostTradeCancelAlgos':
+            response = await self.privatePostTradeCancelAlgos(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+        else:
+            response = await self.privatePostTradeCancelBatchOrders(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
         #
         #     {
         #         "code": "0",
@@ -3233,7 +3239,11 @@ class okx(Exchange, ImplicitAPI):
             else:
                 request['ordId'] = id
         query = self.omit(params, ['method', 'clOrdId', 'clientOrderId', 'stop'])
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if method == 'privateGetTradeOrderAlgo':
+            response = await self.privateGetTradeOrderAlgo(self.extend(request, query))
+        else:
+            response = await self.privateGetTradeOrder(self.extend(request, query))
         #
         # Spot and Swap
         #
@@ -3384,7 +3394,11 @@ class okx(Exchange, ImplicitAPI):
                 if ordType is None:
                     raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"')
         query = self.omit(params, ['method', 'stop'])
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if method == 'privateGetTradeOrdersAlgoPending':
+            response = await self.privateGetTradeOrdersAlgoPending(self.extend(request, query))
+        else:
+            response = await self.privateGetTradeOrdersPending(self.extend(request, query))
         #
         #     {
         #         "code": "0",
@@ -3545,7 +3559,11 @@ class okx(Exchange, ImplicitAPI):
                 request['end'] = until
                 query = self.omit(query, ['until', 'till'])
         send = self.omit(query, ['method', 'stop', 'ordType'])
-        response = await getattr(self, method)(self.extend(request, send))
+        response = None
+        if method == 'privateGetTradeOrdersAlgoHistory':
+            response = await self.privateGetTradeOrdersAlgoHistory(self.extend(request, send))
+        else:
+            response = await self.privateGetTradeOrdersHistory(self.extend(request, send))
         #
         #     {
         #         "code": "0",
@@ -3711,7 +3729,11 @@ class okx(Exchange, ImplicitAPI):
                 query = self.omit(query, ['until', 'till'])
             request['state'] = 'filled'
         send = self.omit(query, ['method', 'stop'])
-        response = await getattr(self, method)(self.extend(request, send))
+        response = None
+        if method == 'privateGetTradeOrdersAlgoHistory':
+            response = await self.privateGetTradeOrdersAlgoHistory(self.extend(request, send))
+        else:
+            response = await self.privateGetTradeOrdersHistory(self.extend(request, send))
         #
         #     {
         #         "code": "0",
@@ -3948,7 +3970,13 @@ class okx(Exchange, ImplicitAPI):
             currency = self.currency(code)
             request['ccy'] = currency['id']
         request, params = self.handle_until_option('end', request, params)
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if method == 'privateGetAccountBillsArchive':
+            response = await self.privateGetAccountBillsArchive(self.extend(request, query))
+        elif method == 'privateGetAssetBills':
+            response = await self.privateGetAssetBills(self.extend(request, query))
+        else:
+            response = await self.privateGetAccountBills(self.extend(request, query))
         #
         # privateGetAccountBills, privateGetAccountBillsArchive
         #
@@ -4801,7 +4829,11 @@ class okx(Exchange, ImplicitAPI):
                 request['instId'] = ','.join(marketIds)
         fetchPositionsOptions = self.safe_value(self.options, 'fetchPositions', {})
         method = self.safe_string(fetchPositionsOptions, 'method', 'privateGetAccountPositions')
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetAccountPositionsHistory':
+            response = await self.privateGetAccountPositionsHistory(self.extend(request, params))
+        else:
+            response = await self.privateGetAccountPositions(self.extend(request, params))
         #
         #     {
         #         "code": "0",
