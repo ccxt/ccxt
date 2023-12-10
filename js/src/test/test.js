@@ -87,7 +87,8 @@ function ioDirRead(path) {
 }
 async function callMethod(testFiles, methodName, exchange, skippedProperties, args) {
     // used for calling methods from test files
-    dump('[INFO:Calling method]',  methodName, args);
+    dump('[INFO:PARAMS]',  methodName, args);
+    dump('[TEST_FAILURE]',  methodName, args);
     return await testFiles[methodName](exchange, skippedProperties, ...args);
 }
 async function callExchangeMethodDynamically(exchange, methodName, args) {

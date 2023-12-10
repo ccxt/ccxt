@@ -138,6 +138,7 @@ for exchange in "${WS_EXCHANGES[@]}"; do
   # npm run eslint "ts/src/pro/$exchange.ts"
   # node build/transpileWS.js $exchange --force --child
   # PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
+  echo ""
 done
 # faster version of post-transpile
 # npm run check-php-syntax
