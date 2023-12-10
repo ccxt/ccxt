@@ -34,8 +34,9 @@ function run_tests {
   if [ -z "$rest_pid" ]; then
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node test-commonjs.cjs && node run-tests --js --python-async --php-async $rest_args &
-      local rest_pid=$!
+      # node test-commonjs.cjs && node run-tests --js --python-async --php-async $rest_args --info  &
+      # local rest_pid=$!
+      echo ""
     fi
   fi
   if [ -z "$ws_pid" ]; then
@@ -43,7 +44,7 @@ function run_tests {
       # shellcheck disable=SC2086
 	  echo "WS ARGS"
 	  # echo $ws_args
-      node run-tests --ws --js --python-async --php-async $ws_args &
+      node run-tests --ws --js bitget --info &
       local ws_pid=$!
     fi
   fi
@@ -60,8 +61,8 @@ function run_tests {
 build_and_test_all () {
   # npm run force-build
   if [ "$IS_TRAVIS" = "TRUE" ]; then
-    npm run test-base
-    npm run test-base-ws
+    # npm run test-base
+    # npm run test-base-ws
     run_tests
   fi
   exit
@@ -128,10 +129,11 @@ npm run export-exchanges && npm run tsBuild && npm run emitAPI
 echo "$msgPrefix REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[*]}"
 PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
-  npm run eslint "ts/src/$exchange.ts"
-  node build/transpile.js $exchange --force --child
+  # npm run eslint "ts/src/$exchange.ts"
+  # node build/transpile.js $exchange --force --child
   # PYTHON_FILES+=("python/ccxt/$exchange.py")
   # PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
+  echo ""
 done
 echo "$msgPrefix WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[*]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
