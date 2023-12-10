@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface } from './base/types.js';
+import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, ApiKeyPermission } from './base/types.js';
 /**
  * @class binance
  * @extends Exchange
@@ -430,4 +430,5 @@ export default class binance extends Exchange {
         underlyingPrice: any;
         info: any;
     };
+    fetchPermissions(params?: {}): Promise<ApiKeyPermission>;
 }
