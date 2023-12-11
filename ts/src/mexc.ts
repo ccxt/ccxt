@@ -2525,20 +2525,21 @@ export default class mexc extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument for spot market');
             }
             const [ marginMode, queryInner ] = this.handleMarginModeAndParams ('fetchOrders', params);
-            let method = 'spotPrivateGetAllOrders';
-            if (marginMode !== undefined) {
-                if (marginMode !== 'isolated') {
-                    throw new BadRequest (this.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
-                }
-                method = 'spotPrivateGetMarginAllOrders';
-            }
             if (since !== undefined) {
                 request['startTime'] = since;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const response = await this[method] (this.extend (request, queryInner));
+            let response = undefined;
+            if (marginMode !== undefined) {
+                if (marginMode !== 'isolated') {
+                    throw new BadRequest (this.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
+                }
+                response = await this.spotPrivateGetMarginAllOrders (this.extend (request, queryInner));
+            } else {
+                response = await this.spotPrivateGetAllOrders (this.extend (request, queryInner));
+            }
             //
             // spot
             //
