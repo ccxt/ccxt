@@ -7,7 +7,7 @@ import { Balances, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderTy
 
 /**
  * @class wazirx
- * @extends Exchange
+ * @augments Exchange
  */
 export default class wazirx extends Exchange {
     describe () {

@@ -12,7 +12,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class btcalpha
- * @extends Exchange
+ * @augments Exchange
  */
 export default class btcalpha extends Exchange {
     describe () {

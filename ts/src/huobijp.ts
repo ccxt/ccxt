@@ -12,7 +12,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class huobijp
- * @extends Exchange
+ * @augments Exchange
  */
 export default class huobijp extends Exchange {
     describe () {

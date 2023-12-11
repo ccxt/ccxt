@@ -11,7 +11,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class tokocrypto
- * @extends Exchange
+ * @augments Exchange
  */
 export default class tokocrypto extends Exchange {
     describe () {

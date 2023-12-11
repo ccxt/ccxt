@@ -12,7 +12,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class bitopro
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitopro extends Exchange {
     describe () {

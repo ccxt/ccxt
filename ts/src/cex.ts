@@ -12,7 +12,7 @@ import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, S
 
 /**
  * @class cex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class cex extends Exchange {
     describe () {

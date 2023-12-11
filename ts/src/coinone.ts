@@ -12,7 +12,7 @@ import { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Str
 
 /**
  * @class coinone
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinone extends Exchange {
     describe () {

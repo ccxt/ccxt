@@ -12,7 +12,7 @@ import { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Nu
 
 /**
  * @class phemex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class phemex extends Exchange {
     describe () {

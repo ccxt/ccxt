@@ -12,7 +12,7 @@ import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType
 
 /**
  * @class bitbns
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitbns extends Exchange {
     describe () {

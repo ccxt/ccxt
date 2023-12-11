@@ -15,7 +15,7 @@ import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 
 /**
  * @class binance
- * @extends Exchange
+ * @augments Exchange
  */
 export default class binance extends Exchange {
     describe () {
@@ -4356,7 +4356,7 @@ export default class binance extends Exchange {
          * @name binance#createOrders
          * @description *contract only* create a list of trade orders
          * @see https://binance-docs.github.io/apidocs/futures/en/#place-multiple-orders-trade
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
