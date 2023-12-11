@@ -1,8 +1,6 @@
 
 import { pro } from '../../../../ccxt.js'; // import from TS dir
 
-// AUTO-TRANSPILE //
-
 
 async function example_webSockets () {
     const myEx = new pro.kucoin ();
