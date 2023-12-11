@@ -3,6 +3,46 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "fetchTicker": [
+            {
+                "description": "Fetch spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api-cloud.bitmart.com/spot/v1/ticker?symbol=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api-cloud.bitmart.com/contract/v1/tickers?contract_symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api-cloud.bitmart.com/spot/v2/ticker",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "Fetch swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api-cloud.bitmart.com/contract/v1/tickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot limit buy",
@@ -115,6 +155,34 @@
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"type\":\"limit\",\"size\":1,\"mode\":4,\"price\":\"55\",\"side\":1,\"open_type\":\"cross\",\"client_order_id\":\"myClientOrderId\",\"leverage\":\"1\"}"
+            },
+            {
+                "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    5,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"side\":\"buy\",\"type\":\"market\",\"notional\":\"5\"}"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "Spot create market buy order with the quote amount as the cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
+                "input": [
+                    "BTC/USDT",
+                    5
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"side\":\"buy\",\"type\":\"market\",\"notional\":\"5\"}"
             }
         ],
         "fetchMyTrades": [
@@ -240,6 +308,26 @@
                 "input": [
                     {
                         "type": "swap"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch accoun Balance",
+                "method": "fetchBalance",
+                "url": "https://api-cloud.bitmart.com/account/v1/wallet",
+                "input": [
+                    {
+                        "type": "account"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch margin Balance",
+                "method": "fetchBalance",
+                "url": "https://api-cloud.bitmart.com/spot/v1/margin/isolated/account",
+                "input": [
+                    {
+                        "type": "margin"
                     }
                 ]
             }

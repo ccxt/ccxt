@@ -36,6 +36,8 @@ class p2b(Exchange, ImplicitAPI):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
                 'createMarketOrder': False,
                 'createOrder': True,
@@ -237,7 +239,7 @@ class p2b(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for bigone
         :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         response = self.publicGetMarkets(params)
@@ -334,10 +336,10 @@ class p2b(Exchange, ImplicitAPI):
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :see: https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the p2b api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
@@ -375,7 +377,7 @@ class p2b(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the p2b api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
@@ -476,7 +478,7 @@ class p2b(Exchange, ImplicitAPI):
         :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the p2bfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param str [params.interval]: 0(default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
@@ -526,7 +528,7 @@ class p2b(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: 1-100, default=50
-        :param dict [params]: extra parameters specific to the p2b api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
          *
         :param int params['lastId']: order id
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
@@ -639,7 +641,7 @@ class p2b(Exchange, ImplicitAPI):
         :param str timeframe: 1m, 1h, or 1d
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: 1-500, default=50
-        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
          *
         :param int [params.offset]: default=0, with self value the last candles are returned
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
@@ -704,7 +706,7 @@ class p2b(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
-        :param dict [params]: extra parameters specific to the p2b api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
@@ -768,7 +770,7 @@ class p2b(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float price: the price at which the order is to be fullfilled, in units of the quote currency
-        :param dict [params]: extra parameters specific to the p2b api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -813,7 +815,7 @@ class p2b(Exchange, ImplicitAPI):
         :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#cancel-order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the p2b api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -857,7 +859,7 @@ class p2b(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
-        :param dict [params]: extra parameters specific to the p2b api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param int [params.offset]: 0-10000, default=0
@@ -909,7 +911,7 @@ class p2b(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: 1-100, default=50
-        :param dict [params]: extra parameters specific to the p2b api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param int [params.offset]: 0-10000, default=0
@@ -957,7 +959,7 @@ class p2b(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for, default = params["until"] - 86400000
         :param int [limit]: 1-100, default=50
-        :param dict [params]: extra parameters specific to the p2b api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for, default = current timestamp or since + 86400000
          *
          * EXCHANGE SPECIFIC PARAMETERS
@@ -1024,7 +1026,7 @@ class p2b(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for, default = params["until"] - 86400000
         :param int [limit]: 1-100, default=50
-        :param dict [params]: extra parameters specific to the p2b api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for, default = current timestamp or since + 86400000
          *
          * EXCHANGE SPECIFIC PARAMETERS

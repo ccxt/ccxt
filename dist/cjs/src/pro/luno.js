@@ -39,10 +39,10 @@ class luno extends luno$1 {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of    trades to fetch
-         * @param {object} [params] extra parameters specific to the luno api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.checkRequiredCredentials();
+        this.checkRequiredCredentials();
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -135,11 +135,11 @@ class luno extends luno$1 {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {objectConstructor} [params] extra parameters specific to the luno api endpoint
+         * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.checkRequiredCredentials();
+        this.checkRequiredCredentials();
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];

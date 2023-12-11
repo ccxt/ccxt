@@ -48,8 +48,11 @@ class coinex extends Exchange {
                 'borrowIsolatedMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'createDepositAddress' => true,
+                'createMarketBuyOrderWithCost' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createReduceOnlyOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
@@ -472,7 +475,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for coinex
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http006_market_list
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
             $promises = array(
@@ -751,8 +756,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market007_single_market_ticker
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
@@ -760,8 +767,12 @@ class coinex extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $method = $market['swap'] ? 'perpetualPublicGetMarketTicker' : 'publicGetMarketTicker';
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($market['swap']) {
+                $response = Async\await($this->perpetualPublicGetMarketTicker (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetMarketTicker (array_merge($request, $params)));
+            }
             //
             // Spot
             //
@@ -823,11 +834,11 @@ class coinex extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market008_all_market_ticker
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
@@ -838,8 +849,12 @@ class coinex extends Exchange {
                 $market = $this->market($symbol);
             }
             list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-            $method = ($marketType === 'swap') ? 'perpetualPublicGetMarketTickerAll' : 'publicGetMarketTickerAll';
-            $response = Async\await($this->$method ($query));
+            $response = null;
+            if ($marketType === 'swap') {
+                $response = Async\await($this->perpetualPublicGetMarketTickerAll ($query));
+            } else {
+                $response = Async\await($this->publicGetMarketTickerAll ());
+            }
             //
             // Spot
             //
@@ -922,7 +937,8 @@ class coinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http005_system_time
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
             $response = Async\await($this->perpetualPublicGetTime ($params));
@@ -941,9 +957,11 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market004_market_depth
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http010_market_depth
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -956,8 +974,12 @@ class coinex extends Exchange {
                 'merge' => '0',
                 'limit' => (string) $limit,
             );
-            $method = $market['swap'] ? 'perpetualPublicGetMarketDepth' : 'publicGetMarketDepth';
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($market['swap']) {
+                $response = Async\await($this->perpetualPublicGetMarketDepth (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetMarketDepth (array_merge($request, $params)));
+            }
             //
             // Spot
             //
@@ -1136,10 +1158,12 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market005_market_deals
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http011_market_deals
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
@@ -1151,8 +1175,12 @@ class coinex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $method = $market['swap'] ? 'perpetualPublicGetMarketDeals' : 'publicGetMarketDeals';
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($market['swap']) {
+                $response = Async\await($this->perpetualPublicGetMarketDeals (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetMarketDeals (array_merge($request, $params)));
+            }
             //
             // Spot and Swap
             //
@@ -1179,8 +1207,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market003_single_market_info
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
@@ -1214,7 +1243,8 @@ class coinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -1289,11 +1319,13 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market006_market_kline
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http012_market_kline
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -1305,8 +1337,12 @@ class coinex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $method = $market['swap'] ? 'perpetualPublicGetMarketKline' : 'publicGetMarketKline';
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($market['swap']) {
+                $response = Async\await($this->perpetualPublicGetMarketKline (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetMarketKline (array_merge($request, $params)));
+            }
             //
             // Spot
             //
@@ -1546,7 +1582,7 @@ class coinex extends Exchange {
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account004_investment_balance   // financial
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account006_margin_account       // margin
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http016_asset_query       // swap
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'margin', 'swap', 'financial', or 'spot'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -1569,6 +1605,8 @@ class coinex extends Exchange {
 
     public function parse_order_status($status) {
         $statuses = array(
+            'rejected' => 'rejected',
+            'open' => 'open',
             'not_deal' => 'open',
             'part_deal' => 'open',
             'done' => 'closed',
@@ -1603,7 +1641,7 @@ class coinex extends Exchange {
         //         "client_id" => "",
         //     }
         //
-        // Spot and Margin createOrder, cancelOrder, fetchOrder
+        // Spot and Margin createOrder, createOrders, cancelOrder, cancelOrders, fetchOrder
         //
         //      {
         //          "amount":"1.5",
@@ -1802,13 +1840,50 @@ class coinex extends Exchange {
         //         "user_id" => 3620173
         //     }
         //
+        // swap => cancelOrders
+        //
+        //     {
+        //         "amount" => "0.0005",
+        //         "client_id" => "x-167673045-b0cee0c584718b65",
+        //         "create_time" => 1701233683.294231,
+        //         "deal_asset_fee" => "0.00000000000000000000",
+        //         "deal_fee" => "0.00000000000000000000",
+        //         "deal_profit" => "0.00000000000000000000",
+        //         "deal_stock" => "0.00000000000000000000",
+        //         "effect_type" => 1,
+        //         "fee_asset" => "",
+        //         "fee_discount" => "0.00000000000000000000",
+        //         "last_deal_amount" => "0.00000000000000000000",
+        //         "last_deal_id" => 0,
+        //         "last_deal_price" => "0.00000000000000000000",
+        //         "last_deal_role" => 0,
+        //         "last_deal_time" => 0,
+        //         "last_deal_type" => 0,
+        //         "left" => "0.0005",
+        //         "leverage" => "3",
+        //         "maker_fee" => "0.00030",
+        //         "market" => "BTCUSDT",
+        //         "option" => 0,
+        //         "order_id" => 115940476323,
+        //         "position_id" => 0,
+        //         "position_type" => 2,
+        //         "price" => "25000.00",
+        //         "side" => 2,
+        //         "source" => "api.v1",
+        //         "stop_id" => 0,
+        //         "stop_loss_price" => "0.00000000000000000000",
+        //         "stop_loss_type" => 0,
+        //         "take_profit_price" => "0.00000000000000000000",
+        //         "take_profit_type" => 0,
+        //         "taker_fee" => "0.00050",
+        //         "target" => 0,
+        //         "type" => 1,
+        //         "update_time" => 1701233721.718884,
+        //         "user_id" => 3620173
+        //     }
+        //
+        $rawStatus = $this->safe_string($order, 'status');
         $timestamp = $this->safe_timestamp($order, 'create_time');
-        $priceString = $this->safe_string($order, 'price');
-        $costString = $this->safe_string($order, 'deal_money');
-        $amountString = $this->safe_string($order, 'amount');
-        $filledString = $this->safe_string($order, 'deal_amount');
-        $averageString = $this->safe_string($order, 'avg_price');
-        $remainingString = $this->safe_string($order, 'left');
         $marketId = $this->safe_string($order, 'market');
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $orderType = (is_array($order) && array_key_exists('source', $order)) ? 'swap' : $defaultType;
@@ -1818,7 +1893,6 @@ class coinex extends Exchange {
         if ($feeCurrency === null) {
             $feeCurrency = $market['quote'];
         }
-        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $rawSide = $this->safe_integer($order, 'side');
         $side = null;
         if ($rawSide === 1) {
@@ -1850,21 +1924,23 @@ class coinex extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => $this->safe_timestamp($order, 'update_time'),
-            'status' => $status,
+            'status' => $this->parse_order_status($rawStatus),
             'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
             'reduceOnly' => null,
             'side' => $side,
-            'price' => $priceString,
+            'price' => $this->safe_string($order, 'price'),
             'stopPrice' => $this->safe_string($order, 'stop_price'),
             'triggerPrice' => $this->safe_string($order, 'stop_price'),
-            'cost' => $costString,
-            'average' => $averageString,
-            'amount' => $amountString,
-            'filled' => $filledString,
-            'remaining' => $remainingString,
+            'takeProfitPrice' => $this->safe_number($order, 'take_profit_price'),
+            'stopLossPrice' => $this->safe_number($order, 'stop_loss_price'),
+            'cost' => $this->safe_string($order, 'deal_money'),
+            'average' => $this->safe_string($order, 'avg_price'),
+            'amount' => $this->safe_string($order, 'amount'),
+            'filled' => $this->safe_string($order, 'deal_amount'),
+            'remaining' => $this->safe_string($order, 'left'),
             'trades' => null,
             'fee' => array(
                 'currency' => $feeCurrency,
@@ -1872,6 +1948,164 @@ class coinex extends Exchange {
             ),
             'info' => $order,
         ), $market);
+    }
+
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market buy order by providing the $symbol and $cost
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            $params['createMarketBuyOrderRequiresPrice'] = false;
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+        }) ();
+    }
+
+    public function create_order_request($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $swap = $market['swap'];
+        $clientOrderId = $this->safe_string_2($params, 'client_id', 'clientOrderId');
+        $stopPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $option = $this->safe_string($params, 'option');
+        $isMarketOrder = $type === 'market';
+        $postOnly = $this->is_post_only($isMarketOrder, $option === 'MAKER_ONLY', $params);
+        $positionId = $this->safe_integer_2($params, 'position_id', 'positionId'); // Required for closing $swap positions
+        $timeInForceRaw = $this->safe_string($params, 'timeInForce'); // Spot => IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        if ($reduceOnly) {
+            if (!$market['swap']) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for $swap markets only');
+            }
+            if ($positionId === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a position_id/positionId parameter for $reduceOnly orders');
+            }
+        }
+        $request = array(
+            'market' => $market['id'],
+        );
+        if ($clientOrderId === null) {
+            $defaultId = 'x-167673045';
+            $brokerId = $this->safe_string($this->options, 'brokerId', $defaultId);
+            $request['client_id'] = $brokerId . '-' . $this->uuid16();
+        } else {
+            $request['client_id'] = $clientOrderId;
+        }
+        if ($swap) {
+            if ($stopLossPrice || $takeProfitPrice) {
+                $request['stop_type'] = $this->safe_integer($params, 'stop_type', 1); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price
+                if ($positionId === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a position_id parameter for stop loss and take profit orders');
+                }
+                $request['position_id'] = $positionId;
+                if ($stopLossPrice) {
+                    $request['stop_loss_price'] = $this->price_to_precision($symbol, $stopLossPrice);
+                } elseif ($takeProfitPrice) {
+                    $request['take_profit_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
+                }
+            } else {
+                $requestSide = ($side === 'buy') ? 2 : 1;
+                if ($stopPrice !== null) {
+                    $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+                    $request['stop_type'] = $this->safe_integer($params, 'stop_type', 1); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price;
+                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                    $request['side'] = $requestSide;
+                    if ($type === 'limit') {
+                        $request['price'] = $this->price_to_precision($symbol, $price);
+                    }
+                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                }
+                $timeInForce = null;
+                if (($type !== 'market') || ($stopPrice !== null)) {
+                    if ($postOnly) {
+                        $request['option'] = 1;
+                    } elseif ($timeInForceRaw !== null) {
+                        if ($timeInForceRaw === 'IOC') {
+                            $timeInForce = 2;
+                        } elseif ($timeInForceRaw === 'FOK') {
+                            $timeInForce = 3;
+                        } else {
+                            $timeInForce = 1;
+                        }
+                        $request['effect_type'] = $timeInForce; // exchange takes 'IOC' and 'FOK'
+                    }
+                }
+                if ($type === 'limit' && $stopPrice === null) {
+                    if ($reduceOnly) {
+                        $request['position_id'] = $positionId;
+                    } else {
+                        $request['side'] = $requestSide;
+                    }
+                    $request['price'] = $this->price_to_precision($symbol, $price);
+                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                } elseif ($type === 'market' && $stopPrice === null) {
+                    if ($reduceOnly) {
+                        $request['position_id'] = $positionId;
+                    } else {
+                        $request['side'] = $requestSide;
+                        $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                    }
+                }
+            }
+        } else {
+            $request['type'] = $side;
+            if (($type === 'market') && ($side === 'buy')) {
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number($params, 'cost');
+                $params = $this->omit($params, 'cost');
+                if ($createMarketBuyOrderRequiresPrice) {
+                    if (($price === null) && ($cost === null)) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice $option or param to false and pass the $cost to spend in the $amount argument');
+                    } else {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $quoteAmount = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
+                        $costRequest = ($cost !== null) ? $cost : $quoteAmount;
+                        $request['amount'] = $this->cost_to_precision($symbol, $costRequest);
+                    }
+                } else {
+                    $request['amount'] = $this->cost_to_precision($symbol, $amount);
+                }
+            } else {
+                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+            }
+            if (($type === 'limit') || ($type === 'ioc')) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            if ($stopPrice !== null) {
+                $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+            }
+            if (($type !== 'market') || ($stopPrice !== null)) {
+                // following options cannot be applied to vanilla $market orders (but can be applied to stop-$market orders)
+                if (($timeInForceRaw !== null) || $postOnly) {
+                    if (($postOnly || ($timeInForceRaw !== 'IOC')) && (($type === 'limit') && ($stopPrice !== null))) {
+                        throw new InvalidOrder($this->id . ' createOrder() only supports the IOC $option for stop-limit orders');
+                    }
+                    if ($postOnly) {
+                        $request['option'] = 'MAKER_ONLY';
+                    } else {
+                        if ($timeInForceRaw !== null) {
+                            $request['option'] = $timeInForceRaw; // exchange takes 'IOC' and 'FOK'
+                        }
+                    }
+                }
+            }
+        }
+        $accountId = $this->safe_integer($params, 'account_id');
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        if ($defaultType === 'margin') {
+            if ($accountId === null) {
+                throw new BadRequest($this->id . ' createOrder() requires an account_id parameter for margin orders');
+            }
+            $request['account_id'] = $accountId;
+        }
+        $params = $this->omit($params, array( 'reduceOnly', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        return array_merge($request, $params);
     }
 
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
@@ -1887,172 +2121,73 @@ class coinex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} $amount how much you want to trade in units of the base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
-             * @param {float} triggerPrice $price at which to triger stop orders
-             * @param {float} $stopPrice $price at which to triger stop orders
-             * @param {float} $stopLossPrice $price at which to trigger stop-loss orders
-             * @param {float} $takeProfitPrice $price at which to trigger take-profit orders
-             * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", "PO"
-             * @param {bool} $params->postOnly
-             * @param {bool} $params->reduceOnly
-             * @param {bool} [$params->position_id] *required for reduce only orders* the position id to reduce
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->triggerPrice] $price to trigger stop orders
+             * @param {float} [$params->stopLossPrice] $price to trigger stop loss orders
+             * @param {float} [$params->takeProfitPrice] $price to trigger take profit orders
+             * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK', 'PO'
+             * @param {boolean} [$params->postOnly] set to true if you wish to make a post only order
+             * @param {boolean} [$params->reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+             * @param {int} [$params->position_id] *required for reduce only orders* the position id to reduce
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $swap = $market['swap'];
-            $clientOrderId = $this->safe_string_2($params, 'client_id', 'clientOrderId');
-            $stopPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
-            $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
-            $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-            $option = $this->safe_string($params, 'option');
-            $isMarketOrder = $type === 'market';
-            $postOnly = $this->is_post_only($isMarketOrder, $option === 'MAKER_ONLY', $params);
-            $positionId = $this->safe_integer_2($params, 'position_id', 'positionId'); // Required for closing $swap positions
-            $timeInForceRaw = $this->safe_string($params, 'timeInForce'); // Spot => IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
             $reduceOnly = $this->safe_value($params, 'reduceOnly');
-            if ($reduceOnly) {
-                if ($market['type'] !== 'swap') {
-                    throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for $swap markets only');
-                }
-                if ($positionId === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a position_id/positionId parameter for $reduceOnly orders');
-                }
-            }
-            $method = null;
-            $request = array(
-                'market' => $market['id'],
-            );
-            if ($clientOrderId === null) {
-                $defaultId = 'x-167673045';
-                $brokerId = $this->safe_string($this->options, 'brokerId', $defaultId);
-                $request['client_id'] = $brokerId . '-' . $this->uuid16();
-            } else {
-                $request['client_id'] = $clientOrderId;
-            }
-            if ($swap) {
-                if ($stopLossPrice || $takeProfitPrice) {
-                    $request['stop_type'] = $this->safe_integer($params, 'stop_type', 1); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price
-                    if ($positionId === null) {
-                        throw new ArgumentsRequired($this->id . ' createOrder() requires a position_id parameter for stop loss and take profit orders');
-                    }
-                    $request['position_id'] = $positionId;
-                    if ($stopLossPrice) {
-                        $method = 'perpetualPrivatePostPositionStopLoss';
-                        $request['stop_loss_price'] = $this->price_to_precision($symbol, $stopLossPrice);
-                    } elseif ($takeProfitPrice) {
-                        $method = 'perpetualPrivatePostPositionTakeProfit';
-                        $request['take_profit_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
+            $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
+            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
+            $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
+            $isTriggerOrder = $triggerPrice !== null;
+            $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
+            $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
+            $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
+            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = null;
+            if ($market['spot']) {
+                if ($isTriggerOrder) {
+                    if ($type === 'limit') {
+                        $response = Async\await($this->privatePostOrderStopLimit ($request));
+                    } else {
+                        $response = Async\await($this->privatePostOrderStopMarket ($request));
                     }
                 } else {
-                    $method = 'perpetualPrivatePostOrderPut' . $this->capitalize($type);
-                    $requestSide = ($side === 'buy') ? 2 : 1;
-                    if ($stopPrice !== null) {
-                        $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
-                        $request['stop_type'] = $this->safe_integer($params, 'stop_type', 1); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price;
-                        $request['amount'] = $this->amount_to_precision($symbol, $amount);
-                        $request['side'] = $requestSide;
-                        if ($type === 'limit') {
-                            $method = 'perpetualPrivatePostOrderPutStopLimit';
-                            $request['price'] = $this->price_to_precision($symbol, $price);
-                        } elseif ($type === 'market') {
-                            $method = 'perpetualPrivatePostOrderPutStopMarket';
-                        }
-                        $request['amount'] = $this->amount_to_precision($symbol, $amount);
-                    }
-                    $timeInForce = null;
-                    if (($type !== 'market') || ($stopPrice !== null)) {
-                        if ($postOnly) {
-                            $request['option'] = 1;
-                        } elseif ($timeInForceRaw !== null) {
-                            if ($timeInForceRaw === 'IOC') {
-                                $timeInForce = 2;
-                            } elseif ($timeInForceRaw === 'FOK') {
-                                $timeInForce = 3;
-                            } else {
-                                $timeInForce = 1;
-                            }
-                            $request['effect_type'] = $timeInForce; // exchange takes 'IOC' and 'FOK'
-                        }
-                    }
-                    if ($type === 'limit' && $stopPrice === null) {
-                        if ($reduceOnly) {
-                            $method = 'perpetualPrivatePostOrderCloseLimit';
-                            $request['position_id'] = $positionId;
-                        } else {
-                            $request['side'] = $requestSide;
-                        }
-                        $request['price'] = $this->price_to_precision($symbol, $price);
-                        $request['amount'] = $this->amount_to_precision($symbol, $amount);
-                    } elseif ($type === 'market' && $stopPrice === null) {
-                        if ($reduceOnly) {
-                            $method = 'perpetualPrivatePostOrderCloseMarket';
-                            $request['position_id'] = $positionId;
-                        } else {
-                            $request['side'] = $requestSide;
-                            $request['amount'] = $this->amount_to_precision($symbol, $amount);
-                        }
+                    if ($type === 'limit') {
+                        $response = Async\await($this->privatePostOrderLimit ($request));
+                    } else {
+                        $response = Async\await($this->privatePostOrderMarket ($request));
                     }
                 }
             } else {
-                $method = 'privatePostOrder' . $this->capitalize($type);
-                $request['type'] = $side;
-                if (($type === 'market') && ($side === 'buy')) {
-                    if ($this->options['createMarketBuyOrderRequiresPrice']) {
-                        if ($price === null) {
-                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                if ($isTriggerOrder) {
+                    if ($type === 'limit') {
+                        $response = Async\await($this->perpetualPrivatePostOrderPutStopLimit ($request));
+                    } else {
+                        $response = Async\await($this->perpetualPrivatePostOrderPutStopMarket ($request));
+                    }
+                } elseif ($isStopLossOrTakeProfitTrigger) {
+                    if ($isStopLossTriggerOrder) {
+                        $response = Async\await($this->perpetualPrivatePostPositionStopLoss ($request));
+                    } elseif ($isTakeProfitTriggerOrder) {
+                        $response = Async\await($this->perpetualPrivatePostPositionTakeProfit ($request));
+                    }
+                } else {
+                    if ($reduceOnly) {
+                        if ($type === 'limit') {
+                            $response = Async\await($this->perpetualPrivatePostOrderCloseLimit ($request));
                         } else {
-                            $amountString = $this->amount_to_precision($symbol, $amount);
-                            $priceString = $this->price_to_precision($symbol, $price);
-                            $costString = Precise::string_mul($amountString, $priceString);
-                            $costNumber = $this->parse_number($costString);
-                            $request['amount'] = $this->cost_to_precision($symbol, $costNumber);
+                            $response = Async\await($this->perpetualPrivatePostOrderCloseMarket ($request));
                         }
                     } else {
-                        $request['amount'] = $this->cost_to_precision($symbol, $amount);
-                    }
-                } else {
-                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
-                }
-                if (($type === 'limit') || ($type === 'ioc')) {
-                    $request['price'] = $this->price_to_precision($symbol, $price);
-                }
-                if ($stopPrice !== null) {
-                    $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
-                    if ($type === 'limit') {
-                        $method = 'privatePostOrderStopLimit';
-                    } elseif ($type === 'market') {
-                        $method = 'privatePostOrderStopMarket';
-                    }
-                }
-                if (($type !== 'market') || ($stopPrice !== null)) {
-                    // following options cannot be applied to vanilla $market orders (but can be applied to stop-$market orders)
-                    if (($timeInForceRaw !== null) || $postOnly) {
-                        if (($postOnly || ($timeInForceRaw !== 'IOC')) && (($type === 'limit') && ($stopPrice !== null))) {
-                            throw new InvalidOrder($this->id . ' createOrder() only supports the IOC $option for stop-limit orders');
-                        }
-                        if ($postOnly) {
-                            $request['option'] = 'MAKER_ONLY';
+                        if ($type === 'limit') {
+                            $response = Async\await($this->perpetualPrivatePostOrderPutLimit ($request));
                         } else {
-                            if ($timeInForceRaw !== null) {
-                                $request['option'] = $timeInForceRaw; // exchange takes 'IOC' and 'FOK'
-                            }
+                            $response = Async\await($this->perpetualPrivatePostOrderPutMarket ($request));
                         }
                     }
                 }
             }
-            $accountId = $this->safe_integer($params, 'account_id');
-            $defaultType = $this->safe_string($this->options, 'defaultType');
-            if ($defaultType === 'margin') {
-                if ($accountId === null) {
-                    throw new BadRequest($this->id . ' createOrder() requires an account_id parameter for margin orders');
-                }
-                $request['account_id'] = $accountId;
-            }
-            $params = $this->omit($params, array( 'reduceOnly', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // Spot and Margin
             //
@@ -2130,8 +2265,241 @@ class coinex extends Exchange {
             //
             //     array("code":0,"data":array("status":"success"),"message":"OK")
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_value($response, 'data', array());
             return $this->parse_order($data, $market);
+        }) ();
+    }
+
+    public function create_orders(array $orders, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders (all $orders should be of the same $symbol)
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade002_batch_limit_orders
+             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to the api endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $symbol = null;
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                if ($symbol === null) {
+                    $symbol = $marketId;
+                } else {
+                    if ($symbol !== $marketId) {
+                        throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                    }
+                }
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                if ($type !== 'limit') {
+                    throw new NotSupported($this->id . ' createOrders() does not support ' . $type . ' $orders, only limit $orders are accepted');
+                }
+                $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' createOrders() does not support ' . $market['type'] . ' $orders, only spot $orders are accepted');
+            }
+            $request = array(
+                'market' => $market['id'],
+                'batch_orders' => $this->json($ordersRequests),
+            );
+            $response = Async\await($this->privatePostOrderLimitBatch ($request));
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             array(
+            //                 "code" => 0,
+            //                 "data" => array(
+            //                     "amount" => "0.0005",
+            //                     "asset_fee" => "0",
+            //                     "avg_price" => "0.00",
+            //                     "client_id" => "x-167673045-d34bfb41242d8fd1",
+            //                     "create_time" => 1701229157,
+            //                     "deal_amount" => "0",
+            //                     "deal_fee" => "0",
+            //                     "deal_money" => "0",
+            //                     "fee_asset" => null,
+            //                     "fee_discount" => "1",
+            //                     "finished_time" => null,
+            //                     "id" => 107745856676,
+            //                     "left" => "0.0005",
+            //                     "maker_fee_rate" => "0.002",
+            //                     "market" => "BTCUSDT",
+            //                     "money_fee" => "0",
+            //                     "order_type" => "limit",
+            //                     "price" => "23000",
+            //                     "source_id" => "",
+            //                     "status" => "not_deal",
+            //                     "stock_fee" => "0",
+            //                     "taker_fee_rate" => "0.002",
+            //                     "type" => "buy"
+            //                 ),
+            //                 "message" => "OK"
+            //             ),
+            //         ),
+            //         "message" => "Success"
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $results = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $status = null;
+                $code = $this->safe_integer($entry, 'code');
+                if ($code !== null) {
+                    if ($code !== 0) {
+                        $status = 'rejected';
+                    } else {
+                        $status = 'open';
+                    }
+                }
+                $item = $this->safe_value($entry, 'data', array());
+                $item['status'] = $status;
+                $order = $this->parse_order($item, $market);
+                $results[] = $order;
+            }
+            return $results;
+        }) ();
+    }
+
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple orders
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade016_batch_cancel_order
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021-0_cancel_order_batch
+             * @param {string[]} $ids $order $ids
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+            );
+            $idsString = implode(',', $ids);
+            $response = null;
+            if ($market['spot']) {
+                $request['batch_ids'] = $idsString;
+                $response = Async\await($this->privateDeleteOrderPendingBatch (array_merge($request, $params)));
+            } else {
+                $request['order_ids'] = $idsString;
+                $response = Async\await($this->perpetualPrivatePostOrderCancelBatch (array_merge($request, $params)));
+            }
+            //
+            // spot
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             array(
+            //                 "code" => 0,
+            //                 "data" => array(
+            //                     "account_id" => 0,
+            //                     "amount" => "0.0005",
+            //                     "asset_fee" => "0",
+            //                     "avg_price" => "0.00",
+            //                     "client_id" => "x-167673045-d4e03c38f4d19b4e",
+            //                     "create_time" => 1701229157,
+            //                     "deal_amount" => "0",
+            //                     "deal_fee" => "0",
+            //                     "deal_money" => "0",
+            //                     "fee_asset" => null,
+            //                     "fee_discount" => "1",
+            //                     "finished_time" => 0,
+            //                     "id" => 107745856682,
+            //                     "left" => "0",
+            //                     "maker_fee_rate" => "0.002",
+            //                     "market" => "BTCUSDT",
+            //                     "money_fee" => "0",
+            //                     "order_type" => "limit",
+            //                     "price" => "22000",
+            //                     "status" => "not_deal",
+            //                     "stock_fee" => "0",
+            //                     "taker_fee_rate" => "0.002",
+            //                     "type" => "buy"
+            //                 ),
+            //                 "message" => ""
+            //             ),
+            //         ),
+            //         "message" => "Success"
+            //     }
+            //
+            // swap
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             {
+            //                 "code" => 0,
+            //                 "message" => "",
+            //                 "order" => array(
+            //                     "amount" => "0.0005",
+            //                     "client_id" => "x-167673045-b0cee0c584718b65",
+            //                     "create_time" => 1701233683.294231,
+            //                     "deal_asset_fee" => "0.00000000000000000000",
+            //                     "deal_fee" => "0.00000000000000000000",
+            //                     "deal_profit" => "0.00000000000000000000",
+            //                     "deal_stock" => "0.00000000000000000000",
+            //                     "effect_type" => 1,
+            //                     "fee_asset" => "",
+            //                     "fee_discount" => "0.00000000000000000000",
+            //                     "last_deal_amount" => "0.00000000000000000000",
+            //                     "last_deal_id" => 0,
+            //                     "last_deal_price" => "0.00000000000000000000",
+            //                     "last_deal_role" => 0,
+            //                     "last_deal_time" => 0,
+            //                     "last_deal_type" => 0,
+            //                     "left" => "0.0005",
+            //                     "leverage" => "3",
+            //                     "maker_fee" => "0.00030",
+            //                     "market" => "BTCUSDT",
+            //                     "option" => 0,
+            //                     "order_id" => 115940476323,
+            //                     "position_id" => 0,
+            //                     "position_type" => 2,
+            //                     "price" => "25000.00",
+            //                     "side" => 2,
+            //                     "source" => "api.v1",
+            //                     "stop_id" => 0,
+            //                     "stop_loss_price" => "0.00000000000000000000",
+            //                     "stop_loss_type" => 0,
+            //                     "take_profit_price" => "0.00000000000000000000",
+            //                     "take_profit_type" => 0,
+            //                     "taker_fee" => "0.00050",
+            //                     "target" => 0,
+            //                     "type" => 1,
+            //                     "update_time" => 1701233721.718884,
+            //                     "user_id" => 3620173
+            //                 }
+            //             ),
+            //         ),
+            //         "message" => "OK"
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $results = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $dataRequest = $market['spot'] ? 'data' : 'order';
+                $item = $this->safe_value($entry, $dataRequest, array());
+                $order = $this->parse_order($item, $market);
+                $results[] = $order;
+            }
+            return $results;
         }) ();
     }
 
@@ -2146,7 +2514,7 @@ class coinex extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
@@ -2208,9 +2576,13 @@ class coinex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http023_cancel_stop_order
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021_cancel_order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
@@ -2225,14 +2597,6 @@ class coinex extends Exchange {
             );
             $idRequest = $swap ? 'order_id' : 'id';
             $request[$idRequest] = $id;
-            $method = $swap ? 'perpetualPrivatePostOrderCancel' : 'privateDeleteOrderPending';
-            if ($stop) {
-                if ($swap) {
-                    $method = 'perpetualPrivatePostOrderCancelStop';
-                } else {
-                    $method = 'privateDeleteOrderStopPendingId';
-                }
-            }
             $accountId = $this->safe_integer($params, 'account_id');
             $defaultType = $this->safe_string($this->options, 'defaultType');
             if ($defaultType === 'margin') {
@@ -2242,7 +2606,20 @@ class coinex extends Exchange {
                 $request['account_id'] = $accountId;
             }
             $query = $this->omit($params, array( 'stop', 'account_id' ));
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($stop) {
+                if ($swap) {
+                    $response = Async\await($this->perpetualPrivatePostOrderCancelStop (array_merge($request, $query)));
+                } else {
+                    $response = Async\await($this->privateDeleteOrderStopPendingId (array_merge($request, $query)));
+                }
+            } else {
+                if ($swap) {
+                    $response = Async\await($this->perpetualPrivatePostOrderCancel (array_merge($request, $query)));
+                } else {
+                    $response = Async\await($this->privateDeleteOrderPending (array_merge($request, $query)));
+                }
+            }
             //
             // Spot and Margin
             //
@@ -2358,8 +2735,12 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http024_cancel_stop_all
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http022_cancel_all
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
@@ -2376,20 +2757,22 @@ class coinex extends Exchange {
             );
             $swap = $market['swap'];
             $stop = $this->safe_value($params, 'stop');
+            $params = $this->omit($params, array( 'stop', 'account_id' ));
+            $response = null;
             if ($swap) {
-                $method = 'perpetualPrivatePostOrderCancelAll';
                 if ($stop) {
-                    $method = 'perpetualPrivatePostOrderCancelStopAll';
+                    $response = Async\await($this->perpetualPrivatePostOrderCancelStopAll (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->perpetualPrivatePostOrderCancelAll (array_merge($request, $params)));
                 }
             } else {
-                $method = 'privateDeleteOrderPending';
-                if ($stop) {
-                    $method = 'privateDeleteOrderStopPending';
-                }
                 $request['account_id'] = $accountId;
+                if ($stop) {
+                    $response = Async\await($this->privateDeleteOrderStopPending (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->privateDeleteOrderPending (array_merge($request, $params)));
+                }
             }
-            $params = $this->omit($params, array( 'stop', 'account_id' ));
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // Spot and Margin
             //
@@ -2407,8 +2790,11 @@ class coinex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http028_stop_status
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http026_order_status
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade007_order_status
              * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
@@ -2418,6 +2804,7 @@ class coinex extends Exchange {
             $market = $this->market($symbol);
             $swap = $market['swap'];
             $stop = $this->safe_value($params, 'stop');
+            $params = $this->omit($params, 'stop');
             $request = array(
                 'market' => $market['id'],
                 // 'id' => $id, // SPOT
@@ -2425,14 +2812,16 @@ class coinex extends Exchange {
             );
             $idRequest = $swap ? 'order_id' : 'id';
             $request[$idRequest] = $id;
-            $method = null;
+            $response = null;
             if ($swap) {
-                $method = $stop ? 'perpetualPrivateGetOrderStopStatus' : 'perpetualPrivateGetOrderStatus';
+                if ($stop) {
+                    $response = Async\await($this->perpetualPrivateGetOrderStopStatus (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->perpetualPrivateGetOrderStatus (array_merge($request, $params)));
+                }
             } else {
-                $method = 'privateGetOrderStatus';
+                $response = Async\await($this->privateGetOrderStatus (array_merge($request, $params)));
             }
-            $params = $this->omit($params, 'stop');
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // Spot
             //
@@ -2555,28 +2944,6 @@ class coinex extends Exchange {
                 $request['market'] = $market['id'];
             }
             list($marketType, $query) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
-            $method = null;
-            if ($marketType === 'swap') {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a $symbol argument for swap markets');
-                }
-                $method = 'perpetualPrivateGetOrder' . $this->capitalize($status);
-                if ($stop) {
-                    $method = 'perpetualPrivateGetOrderStopPending';
-                }
-                if ($side !== null) {
-                    $request['side'] = $side;
-                } else {
-                    $request['side'] = 0;
-                }
-                $request['offset'] = 0;
-            } else {
-                $method = 'privateGetOrder' . $this->capitalize($status);
-                if ($stop) {
-                    $method = 'privateGetOrderStop' . $this->capitalize($status);
-                }
-                $request['page'] = 1;
-            }
             $accountId = $this->safe_integer($params, 'account_id');
             $defaultType = $this->safe_string($this->options, 'defaultType');
             if ($defaultType === 'margin') {
@@ -2586,7 +2953,42 @@ class coinex extends Exchange {
                 $request['account_id'] = $accountId;
             }
             $params = $this->omit($query, 'account_id');
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($marketType === 'swap') {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a $symbol argument for swap markets');
+                }
+                if ($side !== null) {
+                    $request['side'] = $side;
+                } else {
+                    $request['side'] = 0;
+                }
+                $request['offset'] = 0;
+                if ($stop) {
+                    $response = Async\await($this->perpetualPrivateGetOrderStopPending (array_merge($request, $params)));
+                } else {
+                    if ($status === 'finished') {
+                        $response = Async\await($this->perpetualPrivateGetOrderFinished (array_merge($request, $params)));
+                    } elseif ($status === 'pending') {
+                        $response = Async\await($this->perpetualPrivateGetOrderPending (array_merge($request, $params)));
+                    }
+                }
+            } else {
+                $request['page'] = 1;
+                if ($status === 'finished') {
+                    if ($stop) {
+                        $response = Async\await($this->privateGetOrderStopFinished (array_merge($request, $params)));
+                    } else {
+                        $response = Async\await($this->privateGetOrderFinished (array_merge($request, $params)));
+                    }
+                } elseif ($status === 'pending') {
+                    if ($stop) {
+                        $response = Async\await($this->privateGetOrderStopPending (array_merge($request, $params)));
+                    } else {
+                        $response = Async\await($this->privateGetOrderPending (array_merge($request, $params)));
+                    }
+                }
+            }
             //
             // Spot and Margin
             //
@@ -2748,10 +3150,14 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http027_query_pending_stop
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http025_query_pending
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade013_stop_pending_order
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade011_pending_order
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_status('pending', $symbol, $since, $limit, $params));
@@ -2762,10 +3168,13 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http029_query_finished
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade010_stop_finished_order
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade012_finished_order
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params));
@@ -2776,8 +3185,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit address
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account019_update_deposit_address
              * @param {string} $code unified $currency $code of the $currency for the deposit address
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
@@ -2809,8 +3219,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account020_query_deposit_address
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
@@ -2906,10 +3317,12 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http013_user_deals
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade014_user_deals
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
@@ -2935,22 +3348,6 @@ class coinex extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument for non-spot markets');
             }
             $swap = ($type === 'swap');
-            $method = null;
-            if ($swap) {
-                $method = 'perpetualPublicGetMarketUserDeals';
-                $side = $this->safe_integer($params, 'side');
-                if ($side === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $side parameter for $swap markets');
-                }
-                if ($since !== null) {
-                    $request['start_time'] = $since;
-                }
-                $request['side'] = $side;
-                $params = $this->omit($params, 'side');
-            } else {
-                $method = 'privateGetOrderUserDeals';
-                $request['page'] = 1;
-            }
             $accountId = $this->safe_integer($params, 'account_id');
             $defaultType = $this->safe_string($this->options, 'defaultType');
             if ($defaultType === 'margin') {
@@ -2960,7 +3357,22 @@ class coinex extends Exchange {
                 $request['account_id'] = $accountId;
                 $params = $this->omit($params, 'account_id');
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($swap) {
+                $side = $this->safe_integer($params, 'side');
+                if ($side === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $side parameter for $swap markets');
+                }
+                if ($since !== null) {
+                    $request['start_time'] = $since;
+                }
+                $request['side'] = $side;
+                $params = $this->omit($params, 'side');
+                $response = Async\await($this->perpetualPublicGetMarketUserDeals (array_merge($request, $params)));
+            } else {
+                $request['page'] = 1;
+                $response = Async\await($this->privateGetOrderUserDeals (array_merge($request, $params)));
+            }
             //
             // Spot and Margin
             //
@@ -3044,8 +3456,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
              * @param {string[]|null} $symbols list of unified $market $symbols
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
              */
             Async\await($this->load_markets());
@@ -3139,8 +3552,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch $data on a single open contract trade position
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
              * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
@@ -3323,9 +3737,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
              * @param {string} $marginMode 'cross' or 'isolated'
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from the exchange
              */
             if ($symbol === null) {
@@ -3374,7 +3789,7 @@ class coinex extends Exchange {
              * set the level of $leverage for a $market
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' (default is 'cross')
              * @return {array} response from the exchange
              */
@@ -3412,8 +3827,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http007_market_limit
              * @param {string[]|null} $symbols list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
@@ -3583,9 +3999,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http032_adjust_position_margin
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 1, $params));
@@ -3596,9 +4013,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http032_adjust_position_margin
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 2, $params));
@@ -3609,10 +4027,11 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch the history of funding payments paid and received on this account
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http034_funding_position
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch funding history for
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
              */
             if ($symbol === null) {
@@ -3685,8 +4104,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
              */
             Async\await($this->load_markets());
@@ -3796,8 +4216,9 @@ class coinex extends Exchange {
             /**
              *  @method
              * fetch the current funding rates
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
              * @param {string[]} $symbols unified $market $symbols
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
              */
             Async\await($this->load_markets());
@@ -3871,7 +4292,7 @@ class coinex extends Exchange {
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] unified network $code
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transaction-structure $transaction structure~
              */
@@ -3939,7 +4360,7 @@ class coinex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
              * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {int} [$params->until] $timestamp in ms of the latest funding rate
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
@@ -4126,11 +4547,13 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account014_balance_contract_transfer
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account013_margin_transfer
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
             Async\await($this->load_markets());
@@ -4140,11 +4563,13 @@ class coinex extends Exchange {
                 'amount' => $amountToPrecision,
                 'coin_type' => $currency['id'],
             );
-            $method = 'privatePostContractBalanceTransfer';
+            $response = null;
             if (($fromAccount === 'spot') && ($toAccount === 'swap')) {
                 $request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
+                $response = Async\await($this->privatePostContractBalanceTransfer (array_merge($request, $params)));
             } elseif (($fromAccount === 'swap') && ($toAccount === 'spot')) {
                 $request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
+                $response = Async\await($this->privatePostContractBalanceTransfer (array_merge($request, $params)));
             } else {
                 $accountsById = $this->safe_value($this->options, 'accountsById', array());
                 $fromId = $this->safe_string($accountsById, $fromAccount, $fromAccount);
@@ -4153,9 +4578,8 @@ class coinex extends Exchange {
                 // spot is 0, use fetchBalance() to find the margin account id
                 $request['from_account'] = intval($fromId);
                 $request['to_account'] = intval($toId);
-                $method = 'privatePostMarginTransfer';
+                $response = Async\await($this->privatePostMarginTransfer (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     array("code" => 0, "data" => null, "message" => "Success")
             //
@@ -4237,17 +4661,19 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal $transfers made on an account
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account025_margin_transfer_history
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account024_contract_transfer_history
              * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch $transfers for
              * @param {int} [$limit] the maximum number of  $transfers structures to retrieve
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
              */
             Async\await($this->load_markets());
             $currency = null;
             $request = array(
                 'page' => 1,
-                'limit' => $limit,
+                // 'limit' => $limit,
                 // 'asset' => 'USDT',
                 // 'start_time' => $since,
                 // 'end_time' => 1515806440,
@@ -4258,16 +4684,25 @@ class coinex extends Exchange {
                 $request['page'] = $page;
             }
             if ($code !== null) {
-                $currency = $this->safe_currency_code($code);
+                $currency = $this->currency($code);
                 $request['asset'] = $currency['id'];
             }
             if ($since !== null) {
                 $request['start_time'] = $since;
             }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            } else {
+                $request['limit'] = 100;
+            }
             $params = $this->omit($params, 'page');
             $defaultType = $this->safe_string($this->options, 'defaultType');
-            $method = ($defaultType === 'margin') ? 'privateGetMarginTransferHistory' : 'privateGetContractTransferHistory';
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($defaultType === 'margin') {
+                $response = Async\await($this->privateGetMarginTransferHistory (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetContractTransferHistory (array_merge($request, $params)));
+            }
             //
             // Swap
             //
@@ -4322,10 +4757,11 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account026_withdraw_list
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             $request = array();
@@ -4389,10 +4825,11 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account009_deposit_list
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             $request = array();
@@ -4490,8 +4927,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the rate of interest to borrow a currency for margin trading
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
              * @param {string} $symbol unified $symbol of the $market to fetch the borrow rate for
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure isolated borrow rate structure~
              */
             Async\await($this->load_markets());
@@ -4527,17 +4965,12 @@ class coinex extends Exchange {
 
     public function fetch_isolated_borrow_rates($params = array ()) {
         return Async\async(function () use ($params) {
-            //
-            // @method
-            // @name coinex#fetchIsolatedBorrowRates
-            // @description fetch the borrow interest $rates of all currencies
-            // @param {object} [$params] extra parameters specific to the coinex api endpoint
-            // <<<<<<< HEAD
-            // @returns {object} a list of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~
-            // =======
-            // @returns {object} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure isolated borrow rate structures}
-            // >>>>>>> 3215552206edf1cda1ae63d2063535e19973dbe5
-            //
+            /**
+             * fetch the borrow interest $rates of all currencies
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure isolated borrow rate structures}
+             */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetMarginConfig ($params));
             //
@@ -4670,7 +5103,7 @@ class coinex extends Exchange {
              * @param {string} $symbol unified $market $symbol, required for coinex
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
@@ -4708,7 +5141,7 @@ class coinex extends Exchange {
              * @param {string} $symbol unified $market $symbol, required for coinex
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->loan_id] extra parameter that is not required
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
@@ -4769,7 +5202,7 @@ class coinex extends Exchange {
              * fetch deposit and withdraw fees
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
              * @param {string[]|null} $codes list of unified currency $codes
-             * @param {array} [$params] extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
              */
             Async\await($this->load_markets());

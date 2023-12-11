@@ -65,10 +65,14 @@ interface Exchange {
     v3PrivateGetBrokerageTransactionSummary (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageProductBook (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageBestBidAsk (params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokerageConvertTradeTradeId (params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokerageTime (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrders (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersBatchCancel (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEdit (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEditPreview (params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostBrokerageConvertQuote (params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostBrokerageConvertTradeTradeId (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

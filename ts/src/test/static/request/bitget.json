@@ -414,6 +414,15 @@
                   "BTC/USDT"
                 ]
             }
+        ],
+        "closeAllPositions": [
+            {
+                "description": "Close linear USDT positions",
+                "method": "closeAllPositions",
+                "url": "https://api.bitget.com/api/mix/v1/order/close-all-positions",
+                "input": [],
+                "output": "{\"productType\":\"umcbl\"}"
+            }
         ]
     }
 }

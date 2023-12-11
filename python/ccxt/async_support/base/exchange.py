@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.62'
+__version__ = '4.1.84'
 
 # -----------------------------------------------------------------------------
 
@@ -123,15 +123,20 @@ class Exchange(BaseExchange):
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
-        request_headers = self.prepare_request_headers(headers)
+
         # ##### PROXY & HEADERS #####
-        final_proxy = None  # set default
-        final_session = None
-        proxyUrl, httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
-        if proxyUrl:
+        request_headers = self.prepare_request_headers(headers)
+        self.last_request_headers = request_headers
+        # proxy-url
+        proxyUrl = self.check_proxy_url_settings(url, method, headers, body)
+        if proxyUrl is not None:
             request_headers.update({'Origin': self.origin})
             url = proxyUrl + url
-        elif httpProxy:
+        # proxy agents
+        final_proxy = None  # set default
+        final_session = None
+        httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
+        if httpProxy:
             final_proxy = httpProxy
         elif httpsProxy:
             final_proxy = httpsProxy
@@ -140,6 +145,7 @@ class Exchange(BaseExchange):
                 raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+            self.open()  # ensure `asyncio_loop` is set
             connector = ProxyConnector.from_url(
                 socksProxy,
                 # extra args copied from self.open()
@@ -153,14 +159,18 @@ class Exchange(BaseExchange):
         elif self.aiohttp_proxy:
             final_proxy = self.aiohttp_proxy
 
+        proxyAgentSet = final_proxy is not None or socksProxy is not None
+        self.checkConflictingProxies(proxyAgentSet, proxyUrl)
+
         # avoid old proxies mixing
         if (self.aiohttp_proxy is not None) and (proxyUrl is not None or httpProxy is not None or httpsProxy is not None or socksProxy is not None):
             raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
-        # ######## end of proxies ########
 
+        # log
         if self.verbose:
             self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
         self.logger.debug("%s %s, Request: %s %s", method, url, headers, body)
+        # end of proxies & headers
 
         request_body = body
         encoded_body = body.encode() if body else None
@@ -355,7 +365,20 @@ class Exchange(BaseExchange):
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
+        self.set_client_session_proxy(url)
         return self.clients[url]
+
+    def set_client_session_proxy(self, url):
+        final_proxy = None  # set default
+        httpProxy, httpsProxy = self.check_ws_proxy_settings()
+        if httpProxy:
+            final_proxy = httpProxy
+        elif httpsProxy:
+            final_proxy = httpsProxy
+        if (final_proxy):
+            self.clients[url].proxy = final_proxy
+        else:
+            self.clients[url].proxy = None
 
     def delay(self, timeout, method, *args):
         return self.asyncio_loop.call_later(timeout / 1000, self.spawn, method, *args)
@@ -367,6 +390,8 @@ class Exchange(BaseExchange):
         return {}
 
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
+        # base exchange self.open starts the aiohttp Session in an async context
+        self.open()
         backoff_delay = 0
         client = self.client(url)
         if subscribe_hash is None and message_hash in client.futures:
@@ -378,8 +403,6 @@ class Exchange(BaseExchange):
         if not subscribed:
             client.subscriptions[subscribe_hash] = subscription or True
 
-        # base exchange self.open starts the aiohttp Session in an async context
-        self.open()
         connected = client.connected if client.connected.done() \
             else asyncio.ensure_future(client.connect(self.session, backoff_delay))
 
@@ -723,7 +746,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' watchPositions() is not supported yet')
 
     async def watch_position_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
-        return self.watchPositions(symbols, since, limit, params)
+        return await self.watchPositions(symbols, since, limit, params)
 
     async def fetch_positions_for_symbol(self, symbol: str, params={}):
         """
@@ -861,6 +884,43 @@ class Exchange(BaseExchange):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
+    async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost, params={}):
+        """
+        create a market order by providing the symbol, side and cost
+        :param str symbol: unified symbol of the market to create an order in
+        :param str side: 'buy' or 'sell'
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if self.options['createMarketOrderWithCost'] or (self.options['createMarketBuyOrderWithCost'] and self.options['createMarketSellOrderWithCost']):
+            return await self.create_order(symbol, 'market', side, cost, 1, params)
+        raise NotSupported(self.id + ' createMarketOrderWithCost() is not supported yet')
+
+    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if self.options['createMarketBuyOrderRequiresPrice'] or self.options['createMarketBuyOrderWithCost']:
+            return await self.create_order(symbol, 'market', 'buy', cost, 1, params)
+        raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is not supported yet')
+
+    async def create_market_sell_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        create a market sell order by providing the symbol and cost
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if self.options['createMarketSellOrderRequiresPrice'] or self.options['createMarketSellOrderWithCost']:
+            return await self.create_order(symbol, 'market', 'sell', cost, 1, params)
+        raise NotSupported(self.id + ' createMarketSellOrderWithCost() is not supported yet')
+
     async def create_orders(self, orders: List[OrderRequest], params={}):
         raise NotSupported(self.id + ' createOrders() is not supported yet')
 
@@ -930,15 +990,15 @@ class Exchange(BaseExchange):
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')
 
-    async def fetch_deposits(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_deposits(self, code: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchDeposits() is not supported yet')
 
-    async def fetch_withdrawals(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_withdrawals(self, code: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchWithdrawals() is not supported yet')
 
     async def fetch_open_interest(self, symbol: str, params={}):
@@ -949,6 +1009,12 @@ class Exchange(BaseExchange):
 
     async def fetch_funding_history(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
+
+    async def close_position(self, symbol: str, side: OrderSide = None, params={}):
+        raise NotSupported(self.id + ' closePositions() is not supported yet')
+
+    async def close_all_positions(self, params={}):
+        raise NotSupported(self.id + ' closeAllPositions() is not supported yet')
 
     async def fetch_deposit_address(self, code: str, params={}):
         if self.has['fetchDepositAddresses']:
@@ -1061,7 +1127,7 @@ class Exchange(BaseExchange):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchMarkOHLCV']:
@@ -1079,7 +1145,7 @@ class Exchange(BaseExchange):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
          * @returns {} A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchIndexOHLCV']:
@@ -1097,7 +1163,7 @@ class Exchange(BaseExchange):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchPremiumIndexOHLCV']:
@@ -1115,7 +1181,7 @@ class Exchange(BaseExchange):
         :param str code: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if self.has['fetchDepositsWithdrawals']:
@@ -1258,6 +1324,9 @@ class Exchange(BaseExchange):
                 last = self.safe_value(response, responseLength - 1)
                 cursorValue = self.safe_value(last['info'], cursorReceived)
                 if cursorValue is None:
+                    break
+                lastTimestamp = self.safe_integer(last, 'timestamp')
+                if lastTimestamp is not None and lastTimestamp < since:
                     break
             except Exception as e:
                 errors += 1

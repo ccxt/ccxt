@@ -193,6 +193,12 @@ python path/to/example.py # substitute for actual filename here
 
 [ByBit API Tutorial with CCXT: Functions Explained](https://medium.com/@yussf_26476/bybit-api-tutorial-with-ccxt-functions-explained-a7e1b4579b4a) – An article @ Medium explaining trading functions from CCXT for Bybit.
 
+[How to work with CCXT in Python](https://zetcode.com/python/ccxt/) – An article showing how to work with cryptocurrency exchange library (CCXT) in Python.
+
+[CryptoCurrency eXchange Trading library - CCXT](https://barbotine.medium.com/crypto-currency-exchange-trading-library-ccxt-34ed66ebede8) – An overview of CCXT.
+
+[https://python.plainenglish.io/cryptocurrency-trading-with-python-5f655d06a4bd](Cryptocurrency Trading with Python) – How to trade cryptocurrencies with CCXT in Python.
+
 [비트코인 해외 거래소 API - 바이낸스 CCXT설치](https://www.youtube.com/watch?v=7dMGbjwZwlU) – Using CCXT to trade with Binance API, a video overview of CCXT in Korean.
 
 [ccxt_라이브러리](https://www.youtube.com/watch?v=ifkJ5FtMpKY) – A quick short demo of CCXT on YouTube.
@@ -261,6 +267,8 @@ https://www.youtube.com/watch?v=K-EZ9QXezZM
 [Algorithmic Trading - Aula 4](https://www.youtube.com/watch?v=BkKebXrhMGY) – A video introduction to algorithmic trading with CCXT from Curso Algo Trading in Portuguese language.
 
 [Лучшая криптотрейдинг библиотека?](http://medium.com/@vladthelittleone/лучшая-криптотрейдинг-библиотека-67e308f96c1f) – An article in Russian on setting up CCXT to connect and trade with crypto exchanges.
+
+[Как использовать CCXT и Python для работы с криптовалютами](https://sky.pro/media/kak-ispolzovat-python-dlya-raboty-s-kriptovalyutami/) – An article in Russian explaining how to trade cryptocurrencies using CCXT in Python.
 
 [Open source бот для торгов на Binance](https://habr.com/ru/articles/737236/) – A russian article on building an open source trading bot with CCXT.
 

@@ -50,10 +50,12 @@ class alpaca extends Exchange {
                 'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
-                'fetchClosedOrders' => false,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => false,
                 'fetchDepositAddressesByNetwork' => false,
@@ -71,12 +73,12 @@ class alpaca extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => true,
                 'fetchPositions' => false,
                 'fetchStatus' => false,
                 'fetchTicker' => false,
                 'fetchTickers' => false,
-                'fetchTime' => false,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
@@ -266,43 +268,92 @@ class alpaca extends Exchange {
         ));
     }
 
+    public function fetch_time($params = array ()) {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches the current integer $timestamp in milliseconds from the exchange server
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int} the current integer $timestamp in milliseconds from the exchange server
+             */
+            $response = Async\await($this->traderPrivateGetV2Clock ($params));
+            //
+            //     {
+            //         $timestamp => '2023-11-22T08:07:57.654738097-05:00',
+            //         is_open => false,
+            //         next_open => '2023-11-22T09:30:00-05:00',
+            //         next_close => '2023-11-22T16:00:00-05:00'
+            //     }
+            //
+            $timestamp = $this->safe_string($response, 'timestamp');
+            $localTime = mb_substr($timestamp, 0, 23 - 0);
+            $jetlagStrStart = strlen($timestamp) - 6;
+            $jetlagStrEnd = strlen($timestamp) - 3;
+            $jetlag = mb_substr($timestamp, $jetlagStrStart, $jetlagStrEnd - $jetlagStrStart);
+            $iso = $this->parse8601($localTime) - $this->parse_to_numeric($jetlag) * 3600 * 1000;
+            return $iso;
+        }) ();
+    }
+
     public function fetch_markets($params = array ()) {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for alpaca
+             * @see https://docs.alpaca.markets/reference/get-v2-$assets
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
              * @return {array[]} an array of objects representing market data
              */
             $request = array(
                 'asset_class' => 'crypto',
-                'tradeable' => true,
+                'status' => 'active',
             );
             $assets = Async\await($this->traderPrivateGetV2Assets (array_merge($request, $params)));
             //
-            //    array(
-            //        {
-            //           "id":"a3ba8ac0-166d-460b-b17a-1f035622dd47",
-            //           "class":"crypto",
-            //           "exchange":"FTXU",
-            //           "symbol":"DOGEUSD",
-            //           "name":"Dogecoin",
-            //           "status":"active",
-            //           "tradable":true,
-            //           "marginable":false,
-            //           "shortable":false,
-            //           "easy_to_borrow":false,
-            //           "fractionable":true,
-            //           "min_order_size":"1",
-            //           "min_trade_increment":"1",
-            //           "price_increment":"0.0000005"
-            //        }
-            //    )
+            //     array(
+            //         {
+            //             "id" => "c150e086-1e75-44e6-9c2c-093bb1e93139",
+            //             "class" => "crypto",
+            //             "exchange" => "CRYPTO",
+            //             "symbol" => "BTC/USDT",
+            //             "name" => "Bitcoin / USD Tether",
+            //             "status" => "active",
+            //             "tradable" => true,
+            //             "marginable" => false,
+            //             "maintenance_margin_requirement" => 100,
+            //             "shortable" => false,
+            //             "easy_to_borrow" => false,
+            //             "fractionable" => true,
+            //             "attributes" => array(),
+            //             "min_order_size" => "0.000026873",
+            //             "min_trade_increment" => "0.000000001",
+            //             "price_increment" => "1"
+            //         }
+            //     )
             //
             return $this->parse_markets($assets);
         }) ();
     }
 
     public function parse_market($asset): array {
+        //
+        //     {
+        //         "id" => "c150e086-1e75-44e6-9c2c-093bb1e93139",
+        //         "class" => "crypto",
+        //         "exchange" => "CRYPTO",
+        //         "symbol" => "BTC/USDT",
+        //         "name" => "Bitcoin / USD Tether",
+        //         "status" => "active",
+        //         "tradable" => true,
+        //         "marginable" => false,
+        //         "maintenance_margin_requirement" => 100,
+        //         "shortable" => false,
+        //         "easy_to_borrow" => false,
+        //         "fractionable" => true,
+        //         "attributes" => array(),
+        //         "min_order_size" => "0.000026873",
+        //         "min_trade_increment" => "0.000000001",
+        //         "price_increment" => "1"
+        //     }
+        //
         $marketId = $this->safe_string($asset, 'symbol');
         $parts = explode('/', $marketId);
         $baseId = $this->safe_string($parts, 0);
@@ -375,7 +426,7 @@ class alpaca extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the alpaca api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->loc] crypto location, default => us
              * @param {string} [$params->method] $method, default => marketPublicGetV1beta3CryptoLocTrades
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
@@ -443,21 +494,15 @@ class alpaca extends Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
-            //
-            // @method
-            // @name alpaca#fetchOrderBook
-            // @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-            // @see https://docs.alpaca.markets/reference/cryptolatestorderbooks
-            // @param {string} $symbol unified $symbol of the $market to fetch the order book for
-            // @param {int} [$limit] the maximum amount of order book entries to return
-            // @param {object} [$params] extra parameters specific to the alpaca api endpoint
-            // <<<<<<< HEAD
-            // @param {string} [$params->loc] crypto location, default => us
-            // @returns {object} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
-            // =======
-            // @returns {object} A dictionary of ~@link https://docs.ccxt.com/#/?$id=order-book-structure order book structures~ indexed by $market symbols
-            // >>>>>>> f68b1b599ee41469fefa424f0efc9b6891549278
-            //
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://docs.alpaca.markets/reference/cryptolatestorderbooks
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->loc] crypto location, default => us
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+            */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $id = $market['id'];
@@ -633,12 +678,13 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
+             * @see https://docs.alpaca.markets/reference/postorder
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market', 'limit' or 'stop_limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the alpaca api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
@@ -721,9 +767,10 @@ class alpaca extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://docs.alpaca.markets/reference/deleteorderbyorderid
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
-             * @param {array} [$params] extra parameters specific to the alpaca api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $request = array(
@@ -740,12 +787,32 @@ class alpaca extends Exchange {
         }) ();
     }
 
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * cancel all open orders in a market
+             * @see https://docs.alpaca.markets/reference/deleteallorders
+             * @param {string} $symbol alpaca cancelAllOrders cannot setting $symbol, it will cancel all open orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->traderPrivateDeleteV2Orders ($params));
+            if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+                return $this->parse_orders($response, null);
+            } else {
+                return $response;
+            }
+        }) ();
+    }
+
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
+             * @see https://docs.alpaca.markets/reference/getorderbyorderid
              * @param {string} $symbol unified $symbol of the $market the $order was made in
-             * @param {array} [$params] extra parameters specific to the alpaca api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -759,23 +826,118 @@ class alpaca extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * fetch all unfilled currently open $orders
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch open $orders for
-             * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the alpaca api endpoint
+             * fetches information on multiple orders made by the user
+             * @see https://docs.alpaca.markets/reference/getallorders
+             * @param {string} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch orders for
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
+            $request = array(
+                'status' => 'all',
+            );
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
+                $request['symbols'] = $market['id'];
             }
-            $orders = Async\await($this->traderPrivateGetV2Orders ($params));
-            return $this->parse_orders($orders, $market, $since, $limit);
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $params = $this->omit($params, 'until');
+                $request['endTime'] = $until;
+            }
+            if ($since !== null) {
+                $request['after'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->traderPrivateGetV2Orders (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //           "id" => "cbaf12d7-69b8-49c0-a31b-b46af35c755c",
+            //           "client_order_id" => "ccxt_b36156ae6fd44d098ac9c179bab33efd",
+            //           "created_at" => "2023-11-17T04:21:42.234579Z",
+            //           "updated_at" => "2023-11-17T04:22:34.442765Z",
+            //           "submitted_at" => "2023-11-17T04:21:42.233357Z",
+            //           "filled_at" => null,
+            //           "expired_at" => null,
+            //           "canceled_at" => "2023-11-17T04:22:34.399019Z",
+            //           "failed_at" => null,
+            //           "replaced_at" => null,
+            //           "replaced_by" => null,
+            //           "replaces" => null,
+            //           "asset_id" => "77c6f47f-0939-4b23-b41e-47b4469c4bc8",
+            //           "symbol" => "LTC/USDT",
+            //           "asset_class" => "crypto",
+            //           "notional" => null,
+            //           "qty" => "0.001",
+            //           "filled_qty" => "0",
+            //           "filled_avg_price" => null,
+            //           "order_class" => "",
+            //           "order_type" => "limit",
+            //           "type" => "limit",
+            //           "side" => "sell",
+            //           "time_in_force" => "gtc",
+            //           "limit_price" => "1000",
+            //           "stop_price" => null,
+            //           "status" => "canceled",
+            //           "extended_hours" => false,
+            //           "legs" => null,
+            //           "trail_percent" => null,
+            //           "trail_price" => null,
+            //           "hwm" => null,
+            //           "subtag" => null,
+            //           "source" => "access_key"
+            //         }
+            //     )
+            //
+            return $this->parse_orders($response, $market, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @see https://docs.alpaca.markets/reference/getallorders
+             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch orders for
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            $request = array(
+                'status' => 'open',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+        }) ();
+    }
+
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed orders made by the user
+             * @see https://docs.alpaca.markets/reference/getallorders
+             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch orders for
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            $request = array(
+                'status' => 'closed',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
         }) ();
     }
 
@@ -832,9 +994,11 @@ class alpaca extends Exchange {
             );
         }
         $orderType = $this->safe_string($order, 'order_type');
-        if (mb_strpos($orderType, 'limit') !== false) {
-            // might be limit or stop-limit
-            $orderType = 'limit';
+        if ($orderType !== null) {
+            if (mb_strpos($orderType, 'limit') !== false) {
+                // might be limit or stop-limit
+                $orderType = 'limit';
+            }
         }
         $datetime = $this->safe_string($order, 'submitted_at');
         $timestamp = $this->parse8601($datetime);
