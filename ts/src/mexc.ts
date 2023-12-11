@@ -2408,14 +2408,14 @@ export default class mexc extends Exchange {
                 request['orderId'] = id;
             }
             const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', params);
-            let method = 'spotPrivateGetOrder';
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest (this.id + ' fetchOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
-                method = 'spotPrivateGetMarginOrder';
+                data = await this.spotPrivateGetMarginOrder (this.extend (request, query));
+            } else {
+                data = await this.spotPrivateGetOrder (this.extend (request, query));
             }
-            data = await this[method] (this.extend (request, query));
             //
             // spot
             //

@@ -157,6 +157,26 @@
                 ]
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "Spot order",
+                "method": "fetchOrder",
+                "url": "https://api.mexc.com/api/v3/order?symbol=LTCUSDT&orderId=129402018493145088&timestamp=1699458295321&recvWindow=5000&signature=5abde0d1bc718a8528ef3fb60023353897cefabdbd0ccb10f583eabe675f2b7c",
+                "input": [
+                    "129402018493145088",
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap order",
+                "method": "fetchOrder",
+                "url": "https://contract.mexc.com/api/v1/private/order/get/129402018493145088?symbol=LTC_USDT",
+                "input": [
+                    "129402018493145088",
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",
