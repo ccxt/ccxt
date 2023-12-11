@@ -375,6 +375,8 @@ class Exchange(BaseExchange):
             final_proxy = httpProxy
         elif httpsProxy:
             final_proxy = httpsProxy
+        elif socksProxy:
+            final_proxy = socksProxy
         if (final_proxy):
             self.clients[url].proxy = final_proxy
         else:
