@@ -175,8 +175,8 @@ function isNullValue (value) {
     return value === null;
 }
 
-async function close (exchange) {
-    // stub
+async function close (exchange: Exchange) {
+    await exchange.close ();
 }
 
 // *********************************
