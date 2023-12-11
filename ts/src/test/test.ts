@@ -438,6 +438,7 @@ export default class testMainClass extends baseMainTestClass {
             tests['fetchFundingRate'] = [ symbol ];
             tests['fetchFundingRateHistory'] = [ symbol ];
             tests['fetchIndexOHLCV'] = [ symbol ];
+            tests['fetchLiquidations'] = [ symbol ];
             tests['fetchMarkOHLCV'] = [ symbol ];
             tests['fetchPremiumIndexOHLCV'] = [ symbol ];
         }
@@ -785,6 +786,7 @@ export default class testMainClass extends baseMainTestClass {
             tests['fetchOpenInterestHistory'] = [ symbol ];
             tests['fetchFundingRateHistory'] = [ symbol ];
             tests['fetchFundingHistory'] = [ symbol ];
+            tests['fetchMyLiquidations'] = [ symbol ];
         }
         const combinedPublicPrivateTests = exchange.deepExtend (this.publicTests, tests);
         const testNames = Object.keys (combinedPublicPrivateTests);
