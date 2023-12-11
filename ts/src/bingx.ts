@@ -2397,7 +2397,7 @@ export default class bingx extends Exchange {
             request['symbol'] = market['id'];
         }
         let response = undefined;
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
             response = await this.spotV1PrivateGetTradeOpenOrders (this.extend (request, query));
         } else {
