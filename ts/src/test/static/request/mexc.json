@@ -72,6 +72,35 @@
                     "cost": 8
                   }
                 ]
+            },
+            {
+                "description": "Swap limit sell",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/order/submit",
+                "input": [
+                  "ADA/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  0.6
+                ],
+                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":1,\"openType\":2,\"price\":0.6,\"side\":3}"
+            },
+            {
+                "description": "Swap limit sell - stop order",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/planorder/place",
+                "input": [
+                  "ADA/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  0.6,
+                  {
+                    "triggerPrice": 0.7
+                  }
+                ],
+                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":1,\"openType\":2,\"triggerPrice\":\"0.7\",\"triggerType\":1,\"executeCycle\":1,\"trend\":1,\"orderType\":1,\"price\":0.6,\"side\":3}"
             }
         ],
         "createOrders": [

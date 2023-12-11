@@ -2121,6 +2121,7 @@ export default class mexc extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2272,17 +2273,6 @@ export default class mexc extends Exchange {
             // 'trend': 1, // Required for trigger order 1: latest price, 2: fair price, 3: index price
             // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         };
-        let method = 'contractPrivatePostOrderSubmit';
-        const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
-        if (stopPrice) {
-            method = 'contractPrivatePostPlanorderPlace';
-            request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
-            request['triggerType'] = this.safeInteger (params, 'triggerType', 1);
-            request['executeCycle'] = this.safeInteger (params, 'executeCycle', 1);
-            request['trend'] = this.safeInteger (params, 'trend', 1);
-            request['orderType'] = this.safeInteger (params, 'orderType', 1);
-        }
         if ((type !== 5) && (type !== 6) && (type !== 'market')) {
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
@@ -2302,8 +2292,19 @@ export default class mexc extends Exchange {
         if (clientOrderId !== undefined) {
             request['externalOid'] = clientOrderId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'externalOid', 'postOnly' ]);
-        const response = await this[method] (this.extend (request, params));
+        const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        params = this.omit (params, [ 'clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice' ]);
+        let response = undefined;
+        if (stopPrice) {
+            request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['triggerType'] = this.safeInteger (params, 'triggerType', 1);
+            request['executeCycle'] = this.safeInteger (params, 'executeCycle', 1);
+            request['trend'] = this.safeInteger (params, 'trend', 1);
+            request['orderType'] = this.safeInteger (params, 'orderType', 1);
+            response = await this.contractPrivatePostPlanorderPlace (this.extend (request, params));
+        } else {
+            response = await this.contractPrivatePostOrderSubmit (this.extend (request, params));
+        }
         //
         // Swap
         //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
