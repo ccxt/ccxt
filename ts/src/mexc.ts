@@ -1413,7 +1413,16 @@ export default class mexc extends Exchange {
             }
             let method = this.safeString (this.options, 'fetchTradesMethod', 'spotPublicGetAggTrades');
             method = this.safeString (params, 'method', method); // AggTrades, HistoricalTrades, Trades
-            trades = await this[method] (this.extend (request, params));
+            params = this.omit (params, [ 'method' ]);
+            if (method === 'spotPublicGetAggTrades') {
+                trades = await this.spotPublicGetAggTrades (this.extend (request, params));
+            } else if (method === 'spotPublicGetHistoricalTrades') {
+                trades = await this.spotPublicGetHistoricalTrades (this.extend (request, params));
+            } else if (method === 'spotPublicGetTrades') {
+                trades = await this.spotPublicGetTrades (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' fetchTrades() not support this method');
+            }
             //
             //     /trades, /historicalTrades
             //

@@ -278,6 +278,50 @@
                     "USDT"
                 ]
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades - spot",
+                "method": "fetchTrades",
+                "url": "https://api.mexc.com/api/v3/aggTrades?symbol=LTCUSDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch trades - spot",
+                "method": "fetchTrades",
+                "url": "https://api.mexc.com/api/v3/historicalTrades?symbol=LTCUSDT",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "method": "spotPublicGetHistoricalTrades"
+                    }
+                ]
+            },
+            {
+                "description": "fetch trades - spot",
+                "method": "fetchTrades",
+                "url": "https://api.mexc.com/api/v3/trades?symbol=LTCUSDT",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "method": "spotPublicGetTrades"
+                    }
+                ]
+            },
+            {
+                "description": "fetch trades - swap",
+                "method": "fetchTrades",
+                "url": "https://api.mexc.com/api/v1/contract/deals/LTC_USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
