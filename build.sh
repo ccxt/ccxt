@@ -95,6 +95,8 @@ for file in "${y[@]}"; do
 done
 
 WS_EXCHANGES+=('ascendex')
+WS_EXCHANGES+=('bitget')
+WS_EXCHANGES+=('binance')
 
 ### BUILD SPECIFIC EXCHANGES ###
 # faster version of pre-transpile (without bundle and atomic linting)
