@@ -1724,12 +1724,16 @@ export default class mexc extends Exchange {
             }
             const priceType = this.safeString (params, 'price', 'default');
             params = this.omit (params, 'price');
-            const method = this.getSupportedMapping (priceType, {
-                'default': 'contractPublicGetKlineSymbol',
-                'index': 'contractPublicGetKlineIndexPriceSymbol',
-                'mark': 'contractPublicGetKlineFairPriceSymbol',
-            });
-            const response = await this[method] (this.extend (request, params));
+            let response = undefined;
+            if (priceType === 'default') {
+                response = await this.contractPublicGetKlineSymbol (this.extend (request, params));
+            } else if (priceType === 'index') {
+                response = await this.contractPublicGetKlineIndexPriceSymbol (this.extend (request, params));
+            } else if (priceType === 'mark') {
+                response = await this.contractPublicGetKlineFairPriceSymbol (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' fetchOHLCV() not support this price type, [default, index, mark]');
+            }
             //
             //     {
             //         "success":true,

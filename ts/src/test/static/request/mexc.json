@@ -322,6 +322,54 @@
                     "LTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV - spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.mexc.com/api/v3/klines?symbol=LTCUSDT&interval=1m",
+                "input": [
+                    "LTC/USDT",
+                    "1m"
+                ]
+            },
+            {
+                "description": "fetch OHLCV - swap default",
+                "method": "fetchOHLCV",
+                "url": "https://api.mexc.com/api/v1/contract/kline/LTC_USDT?interval=Min1",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "1m"
+                ]
+            },
+            {
+                "description": "fetch OHLCV - swap index",
+                "method": "fetchOHLCV",
+                "url": "https://api.mexc.com/api/v1/contract/kline/index_price/LTC_USDT?interval=Min1",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "price": "index"
+                    }
+                ]
+            },
+            {
+                "description": "fetch OHLCV - swap mark",
+                "method": "fetchOHLCV",
+                "url": "https://api.mexc.com/api/v1/contract/kline/fair_price/LTC_USDT?interval=Min1",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "price": "mark"
+                    }
+                ]
+            }
         ]
     }
 }
