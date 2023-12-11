@@ -266,6 +266,17 @@
                         "type": "swap"
                     }
                 ]
+            },
+            {
+                "description": "Fetch margin Balance",
+                "method": "fetchBalance",
+                "url": "https://contract.mexc.com/api/v3/margin/isolated/account?symbols=LTCUSDT&timestamp=1702286807873&recvWindow=5000&signature=2b21c126e2146b3f9edbde3fde5a8a60a8c192af9087b4d5eb8997bdc7bbbe5f",
+                "input": [
+                    {
+                        "type": "margin",
+                        "symbol": "LTC/USDT"
+                    }
+                ]
             }
         ],
         "fetchPositions": [

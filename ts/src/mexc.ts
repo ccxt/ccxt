@@ -3611,13 +3611,10 @@ export default class mexc extends Exchange {
         let marketType = undefined;
         const request = {};
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPrivateGetAccount',
-            'swap': 'contractPrivateGetAccountAssets',
-            'margin': 'spotPrivateGetMarginIsolatedAccount',
-        });
         const marginMode = this.safeString (params, 'marginMode');
         const isMargin = this.safeValue (params, 'margin', false);
+        params = this.omit (params, [ 'margin', 'marginMode' ]);
+        let response = undefined;
         if ((marginMode !== undefined) || (isMargin) || (marketType === 'margin')) {
             let parsedSymbols = undefined;
             const symbol = this.safeString (params, 'symbol');
@@ -3631,12 +3628,17 @@ export default class mexc extends Exchange {
                 parsedSymbols = market['id'];
             }
             this.checkRequiredArgument ('fetchBalance', parsedSymbols, 'symbol or symbols');
-            method = 'spotPrivateGetMarginIsolatedAccount';
             marketType = 'margin';
             request['symbols'] = parsedSymbols;
+            params = this.omit (params, [ 'symbol', 'symbols' ]);
+            response = await this.spotPrivateGetMarginIsolatedAccount (this.extend (request, params));
+        } else if (marketType === 'spot') {
+            response = await this.spotPrivateGetAccount (this.extend (request, params));
+        } else if (marketType === 'swap') {
+            response = await this.contractPrivateGetAccountAssets (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchBalance() not support this method');
         }
-        params = this.omit (params, [ 'margin', 'marginMode', 'symbol', 'symbols' ]);
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
