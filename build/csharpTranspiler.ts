@@ -32,6 +32,7 @@ if (platform === 'win32') {
 
 const GLOBAL_WRAPPER_FILE = './c#/ccxt/base/Exchange.Wrappers.cs';
 const EXCHANGE_WRAPPER_FOLDER = './c#/ccxt/wrappers/'
+const EXCHANGE_WS_WRAPPER_FOLDER = './c#/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FILE = './c#/ccxt/base/Exchange.Errors.cs';
 const BASE_METHODS_FILE = './c#/ccxt/base/Exchange.BaseMethods.cs';
 const EXCHANGES_FOLDER = './c#/ccxt/exchanges/';
@@ -436,7 +437,8 @@ class NewTranspiler {
             'loadMarketsHelper',
             'createNetworksByIdObject',
             'setProperty',
-            'setProxyAgents'
+            'setProxyAgents',
+            'watch'
         ] // improve this later
         const isBlackListed = blacklistMethods.includes(methodName);
         const startsWithAllowedPrefix = allowedPrefixes.some(prefix => methodName.startsWith(prefix));
@@ -543,15 +545,16 @@ class NewTranspiler {
         return res;
     }
 
-    createCSharpWrappers(exchange:string, path: string, wrappers) {
+    createCSharpWrappers(exchange:string, path: string, wrappers, ws = false) {
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper)).filter(wrapper => wrapper !== '').join('\n');
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
+        const exchangeName = ws ? exchange + 'Ws' : exchange;
         const file = [
             'namespace ccxt;',
             '',
             this.createGeneratedHeader().join('\n'),
-            `public partial class ${exchange}`,
+            `public partial class ${exchangeName}`,
             '{',
             wrappersIndented,
             '}',
@@ -769,16 +772,25 @@ class NewTranspiler {
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[csharp] Transpiling [', exchanges.join(', '), ']');
         const transpiledFiles =  allFilesPath.map(file => this.transpiler.transpileCSharpByPath(file));
-        
-        for (let i = 0; i < transpiledFiles.length; i++) {
-            const transpiled = transpiledFiles[i];
-            const exchangeName = exchanges[i].replace('.ts','');
-            const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '.cs';
-            this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
-            // transpiledFiles.forEach((transpiled, idx) => this.createCSharpWrappers(exchanges[idx], EXCHANGE_WRAPPER_FOLDER + exchanges[idx] + '.cs', transpiled.methodsTypes))
 
+        if (!ws) {
+            for (let i = 0; i < transpiledFiles.length; i++) {
+                const transpiled = transpiledFiles[i];
+                const exchangeName = exchanges[i].replace('.ts','');
+                const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '.cs';
+                this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
+            }
+        } else {
+            //
+            for (let i = 0; i < transpiledFiles.length; i++) {
+                const transpiled = transpiledFiles[i];
+                const exchangeName = exchanges[i].replace('.ts','');
+                const path = EXCHANGE_WS_WRAPPER_FOLDER + exchangeName + '.cs';
+                this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
+            }
         }
-        exchanges.map ((file, idx) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force))
+
+        exchanges.map ((file, idx) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws))
 
         const classes = {}
 
