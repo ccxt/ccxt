@@ -143,13 +143,15 @@ async function importTestFile (filePath) {
 }
 
 async function setTestFiles (holderClass, properties) {
-    const pathRestOrWs = isWsTests ? DIR_NAME + '/../pro/test/' : DIR_NAME;
+    const path = isWsTests ? DIR_NAME + '/../pro/test/' : DIR_NAME;
     // exchange tests
     const finalPropList = properties.concat ([ proxyTestFileName ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
-        const filePathWoExt = pathRestOrWs + '/Exchange/test.' + name;
+        const filePathWoExt = path + '/Exchange/test.' + name;
+        console.log ('filePathWoExt', filePathWoExt); // debug
         if (ioFileExists (filePathWoExt + '.' + ext)) {
+            console.log ('file exists:', filePathWoExt); // debug
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             holderClass.testFiles[name] = await importTestFile (filePathWoExt);
         }
@@ -158,7 +160,7 @@ async function setTestFiles (holderClass, properties) {
     const errorHierarchyKeys = Object.keys (errorsHierarchy);
     for (let i = 0; i < errorHierarchyKeys.length; i++) {
         const name = errorHierarchyKeys[i];
-        const filePathWoExt = pathRestOrWs + '/base/errors/test.' + name;
+        const filePathWoExt = path + '/base/errors/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             holderClass.testFiles[name] = await importTestFile (filePathWoExt);
