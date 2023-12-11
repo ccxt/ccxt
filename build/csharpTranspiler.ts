@@ -177,7 +177,8 @@ class NewTranspiler {
                 sees.push(link);
             });
         }
-        const paramRegex = /@param\s{(\w+)}\s\[(\w+)\]\s(.+)/g;
+        // const paramRegex = /@param\s{(\w+)}\s\[(\w+)\]\s(.+)/g; // @param\s{(\w+)}\s\[((\w+(.\w+)?))\]\s(.+)
+        const paramRegex = /@param\s{(\w+)}\s\[(\w+\.?\w+?)]\s(.+)/g;
         const params = [] as any;
         let paramMatch;
         while ((paramMatch = paramRegex.exec(comment)) !== null) {
