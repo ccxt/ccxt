@@ -949,6 +949,29 @@ export default class Exchange {
         return chosenAgent;
     }
 
+    async loadHttpProxyAgent () {
+        // for `http://` protocol proxy-urls, we need to load `http` module only on first call
+        if (!this.httpAgent) {
+            const httpModule = await import (/* webpackIgnore: true */'node:http')
+            this.httpAgent = new httpModule.Agent ();
+        }
+        return this.httpAgent;
+    }
+
+    checkIfHttpAgentNeeded (url) {
+        if (isNode) {
+            // only for non-ssl proxy
+            if (url.substring(0, 5) === 'ws://') {
+                if (this.httpAgent === undefined) {
+                    throw new NotSupported (this.id + ' to use proxy with non-ssl ws:// urls, at first run  `await exchange.loadHttpProxyAgent()` method');
+                }
+                return this.httpAgent;
+            }
+        }
+        return undefined;
+    }
+
+
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
 
         // load node-http(s) modules only on first call
@@ -957,6 +980,9 @@ export default class Exchange {
                 this.nodeHttpModuleLoaded = true;
                 const httpsModule = await import (/* webpackIgnore: true */'node:https')
                 this.httpsAgent = new httpsModule.Agent ({ keepAlive: true });
+                if (this.safeValue (this.options, 'nodeLoadHttpModule')) {
+                    await this.loadHttpProxyAgent ();
+                }
             }
         }
 
@@ -964,18 +990,16 @@ export default class Exchange {
         headers = this.extend (this.headers, headers);
         // proxy-url
         const proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
-        let isHttpAgentNeeded = false;
+        let httpProxyAgent = false;
         if (proxyUrl !== undefined) {
-            // in node we need to set header to *
+            // part only for node-js
             if (isNode) {
+                // in node we need to set header to *
                 headers = this.extend ({ 'Origin': this.origin }, headers);
-                if (proxyUrl.substring(0, 5) !== 'https') {
-                    // for `http://` protocol proxy-urls, we need to load `http` module only on first call
-                    if (!this.httpAgent) {
-                        const httpModule = await import (/* webpackIgnore: true */'node:http')
-                        this.httpAgent = new httpModule.Agent ();
-                    }
-                    isHttpAgentNeeded = true;
+                // only for http proxy
+                if (proxyUrl.substring(0, 5) === 'http:') {
+                    await this.loadHttpProxyAgent ();
+                    httpProxyAgent = this.httpAgent;
                 }
             }
             url = proxyUrl + url;
@@ -1027,9 +1051,9 @@ export default class Exchange {
             params['agent'] = this.agent;
         }
         // override agent, if needed
-        if (isHttpAgentNeeded) {
-            // if proxyUrl is being used, so we don't overwrite `this.agent` itself
-            params['agent'] = this.httpAgent;
+        if (httpProxyAgent) {
+            // if proxyUrl is being used, then specifically in nodejs, we need http module, not https
+            params['agent'] = httpProxyAgent;
         } else if (chosenAgent) {
             // if http(s)Proxy is being used
             params['agent'] = chosenAgent;
@@ -1254,7 +1278,9 @@ export default class Exchange {
             // proxy agents
             const [ httpProxy, httpsProxy, socksProxy ] = this.checkWsProxySettings ();
             const chosenAgent = this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
-            const finalAgent = chosenAgent ? chosenAgent : this.agent;
+            // part only for node-js
+            const httpProxyAgent = this.checkIfHttpAgentNeeded (url);
+            const finalAgent = chosenAgent ? chosenAgent : (httpProxyAgent ? httpProxyAgent : this.agent);
             //
             const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
