@@ -866,7 +866,7 @@ export default class huobijp extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit = 1000, params = {}): Promise<Trade[]> {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = 1000, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name huobijp#fetchTrades
@@ -946,7 +946,7 @@ export default class huobijp extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 1000, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = 1000, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name huobijp#fetchOHLCV

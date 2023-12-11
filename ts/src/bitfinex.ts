@@ -993,7 +993,7 @@ export default class bitfinex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit = 50, params = {}): Promise<Trade[]> {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = 50, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitfinex#fetchTrades
