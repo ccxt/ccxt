@@ -103,35 +103,20 @@ class NewTranspiler {
         }
     }
 
-    createCommentSummary(summary:string) {
-        return `/// Summary:
-///    ${summary}
-///`
+    createSee(link: string) {
+        return `/// See <see href="${link}"/>  <br/>`
     }
 
-    createCommentParams(params: any[]) {
-        //tbd
-        // Parameters:
-        //   value:
-        //     The 16-bit signed integer to convert.
-        //
-        let comment = `
-/// Parameters:
-`
-    for (const param of params) {
-        comment+=`
-///    ${param.name} ${param.type} ${param.description}`
-    }
-    return comment;
+    createParam(param) {
+        return`/// <item>
+    /// <term>${param.name}</term>
+    /// <description>
+    /// ${param.type} : ${param.description}
+    /// </description>
+    /// </item>`
     }
 
-    createCommentReturn(returnType: string, desc: string) {
-        return `/// Returns:
-///    ${returnType} ${desc}
-///`
-    }
-
-    transformTSCommentIntoCSharp(name: string, desc: string, sees: string[], params : string[], returnType:string, returnDesc: string) {
+    createCsharpCommentTemplate(name: string, desc: string, see: string[], params : string[], returnType:string, returnDesc: string) {
         //
         // Summary:
         //     Converts the value of the specified 16-bit signed integer to an equivalent 64-bit
@@ -143,12 +128,21 @@ class NewTranspiler {
         //
         // Returns:
         //     A 64-bit signed integer that is equivalent to value
-        return [
-            '',
-            this.createCommentSummary(desc),
-            this.createCommentParams(params),
-            this.createCommentReturn(returnType, returnDesc)
-        ].join("\n")
+        return `
+    /// <summary>
+    /// ${desc}
+    /// </summary>
+    /// <remarks>
+    ${see.map( l => this.createSee(l)).join("\n    ")}
+    /// <list type="table">
+    ${params.map( p => this.createParam(p)).join("\n    ")}
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>${returnType}</term> ${returnDesc}.</returns>`
+    }
+
+    transformTSCommentIntoCSharp(name: string, desc: string, sees: string[], params : string[], returnType:string, returnDesc: string) {
+        return this.createCsharpCommentTemplate(name, desc, sees, params, returnType, returnDesc);
     }
 
     transformLeadingComment(comment) {
@@ -163,7 +157,7 @@ class NewTranspiler {
         //  * @param {object} [params] extra parameters specific to the exchange API endpoint
         //  * @returns {int} the current integer timestamp in milliseconds from the exchange server
         //  */
-        return comment;
+        // return comment;
         const commentNameRegex = /@name\s(\w+)#(\w+)/;
         const nameMatches = comment.match(commentNameRegex);
         const exchangeName = nameMatches ? nameMatches[1] : undefined;
@@ -174,6 +168,15 @@ class NewTranspiler {
         const commentDescriptionRegex = /@description\s(.+)/;
         const descriptionMatches = comment.match(commentDescriptionRegex);
         const description = descriptionMatches ? descriptionMatches[1] : undefined;
+        const seeRegex = /@see\s(.+)/g;
+        const seeMatches = comment.match(seeRegex);
+        const sees: string[] = [];
+        if (seeMatches) {
+            seeMatches.forEach(match => {
+                const [, link] = match.split(' ');
+                sees.push(link);
+            });
+        }
         const paramRegex = /@param\s{(\w+)}\s\[(\w+)\]\s(.+)/g;
         const params = [] as any;
         let paramMatch;
@@ -189,15 +192,14 @@ class NewTranspiler {
         if (!exchangeData) {
             exchangeData = csharpComments[exchangeName] = {}
         }
-        let exchangeMethods = csharpComments[exchangeName][methodName];
+        let exchangeMethods = csharpComments[exchangeName];
         if (!exchangeMethods) {
             exchangeMethods = {}
         }
-        const transformedComment = this.transformTSCommentIntoCSharp(methodName, description, params,params, returnType, returnDescription);
+        const transformedComment = this.transformTSCommentIntoCSharp(methodName, description, sees,params, returnType, returnDescription);
         exchangeMethods[methodName] = transformedComment;
         csharpComments[exchangeName] = exchangeMethods
-    
-        return transformedComment;
+        return comment;
     }
 
     setupTranspiler() {
@@ -451,7 +453,7 @@ class NewTranspiler {
         return '    '.repeat(level);
     }
 
-    createWrapper (methodWrapper) {
+    createWrapper (exchangeName, methodWrapper) {
         const isAsync = methodWrapper.async;
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName)) {
@@ -466,6 +468,10 @@ class NewTranspiler {
 
         const one = this.inden(1);
         const two = this.inden(2);
+        const methodDoc = [] as any[];
+        if (csharpComments[exchangeName] && csharpComments[exchangeName][methodName]) {
+            methodDoc.push(csharpComments[exchangeName][methodName]);
+        }
         const method = [
             `${one}public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized}(${stringArgs})`,
             `${one}{`,
@@ -474,7 +480,7 @@ class NewTranspiler {
             `${two}${this.createReturnStatement(unwrappedType)}`,
             `${one}}`
         ];
-        return method.filter(e => !!e).join('\n')
+        return methodDoc.concat(method).filter(e => !!e).join('\n')
     }
 
     createExchangesWrappers(): string[] {
@@ -490,7 +496,7 @@ class NewTranspiler {
     }
 
     createCSharpWrappers(exchange:string, path: string, wrappers) {
-        const wrappersIndented = wrappers.map(wrapper => this.createWrapper(wrapper)).filter(wrapper => wrapper !== '').join('\n');
+        const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper)).filter(wrapper => wrapper !== '').join('\n');
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
         const file = [
