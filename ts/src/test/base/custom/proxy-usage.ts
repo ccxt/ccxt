@@ -1,5 +1,5 @@
 
-import { pro } from '../../../../../js/ccxt.js';
+import { pro } from '../../../../ccxt.js'; // import from TS dir
 
 // AUTO-TRANSPILE //
 
