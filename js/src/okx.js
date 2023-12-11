@@ -1061,14 +1061,7 @@ export default class okx extends Exchange {
             'commonCurrencies': {
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
                 'AE': 'AET',
-                'BOX': 'DefiBox',
-                'HOT': 'Hydro Protocol',
-                'HSR': 'HC',
-                'MAG': 'Maggie',
-                'SBTC': 'Super Bitcoin',
-                'TRADE': 'Unitrade',
-                'YOYO': 'YOYOW',
-                'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
+                'WIN': 'WINTOKEN', // https://github.com/ccxt/ccxt/issues/5701
             },
         });
     }
@@ -3094,6 +3087,7 @@ export default class okx extends Exchange {
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.trigger] whether the order is a stop/trigger order
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
@@ -3108,7 +3102,7 @@ export default class okx extends Exchange {
         let method = this.safeString(params, 'method', defaultMethod);
         const clientOrderIds = this.parseIds(this.safeValue2(params, 'clOrdId', 'clientOrderId'));
         const algoIds = this.parseIds(this.safeValue(params, 'algoId'));
-        const stop = this.safeValue(params, 'stop');
+        const stop = this.safeValue2(params, 'stop', 'trigger');
         if (stop) {
             method = 'privatePostTradeCancelAlgos';
         }

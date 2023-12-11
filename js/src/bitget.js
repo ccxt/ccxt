@@ -5456,6 +5456,14 @@ export default class bitget extends Exchange {
         //       "utime": "1689300238205"
         //     }
         //
+        // closeAllPositions
+        //
+        //    {
+        //        "symbol": "XRPUSDT_UMCBL",
+        //        "orderId": "1111861847410757635",
+        //        "clientOid": "1111861847410757637"
+        //    }
+        //
         const marketId = this.safeString(position, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
@@ -7006,8 +7014,6 @@ export default class bitget extends Exchange {
             'info': info,
         };
     }
-<<<<<<< HEAD
-=======
     async closeAllPositions(params = {}) {
         /**
          * @method
@@ -7069,7 +7075,6 @@ export default class bitget extends Exchange {
         const orderInfo = this.safeValue(data, 'orderInfo', []);
         return this.parsePositions(orderInfo, undefined, params);
     }
->>>>>>> 3da8111d40408139d79f75ff72ab797be3be0acf
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
