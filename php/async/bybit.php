@@ -5753,8 +5753,10 @@ class bybit extends Exchange {
                 } elseif ($symbolsLength === 1) {
                     $symbol = $symbols[0];
                 }
+                $symbols = $this->market_symbols($symbols);
             } elseif ($symbols !== null) {
                 $symbol = $symbols;
+                $symbols = array( $this->symbol($symbol) );
             }
             Async\await($this->load_markets());
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
@@ -5764,14 +5766,12 @@ class bybit extends Exchange {
             $isUsdcSettled = false;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
+                $symbol = $market['symbol'];
                 $request['symbol'] = $market['id'];
                 $isUsdcSettled = $market['settle'] === 'USDC';
             }
             $type = null;
             list($type, $params) = $this->get_bybit_type('fetchPositions', $market, $params);
-            if ($type === 'spot') {
-                throw new NotSupported($this->id . ' fetchPositions() not support spot market');
-            }
             if ($type === 'linear' || $type === 'inverse') {
                 $baseCoin = $this->safe_string($params, 'baseCoin');
                 if ($type === 'linear') {
