@@ -6018,8 +6018,7 @@ In some specific cases you may want a proxy, when:
 However, beware that each added intermediary might add some latency to requests.
 
 ### Supported proxy types
-CCXT supports the following proxy types (note, each of them also have [callback support](#
-using-proxy-callbacks)):
+CCXT supports the following proxy types (note, each of them also have [callback support](#using-proxy-callbacks)):
 
 #### proxyUrl
 
