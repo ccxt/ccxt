@@ -2900,14 +2900,14 @@ export default class mexc extends Exchange {
             } else {
                 requestInner['orderId'] = id;
             }
-            let method = 'spotPrivateDeleteOrder';
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest (this.id + ' cancelOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
-                method = 'spotPrivateDeleteMarginOrder';
+                data = await this.spotPrivateDeleteMarginOrder (this.extend (requestInner, query));
+            } else {
+                data = await this.spotPrivateDeleteOrder (this.extend (requestInner, query));
             }
-            data = await this[method] (this.extend (requestInner, query));
             //
             // spot
             //
@@ -2946,7 +2946,14 @@ export default class mexc extends Exchange {
             // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
             let method = this.safeString (this.options, 'cancelOrder', 'contractPrivatePostOrderCancel'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = this.safeString (query, 'method', method);
-            const response = await this[method] ([ id ]); // the request cannot be changed or extended. This is the only way to send.
+            let response = undefined;
+            if (method === 'contractPrivatePostOrderCancel') {
+                response = await this.contractPrivatePostOrderCancel ([ id ]); // the request cannot be changed or extended. This is the only way to send.
+            } else if (method === 'contractPrivatePostPlanorderCancel') {
+                response = await this.contractPrivatePostPlanorderCancel ([ id ]); // the request cannot be changed or extended. This is the only way to send.
+            } else {
+                throw new NotSupported (this.id + ' cancelOrder() not support this method');
+            }
             //
             //     {
             //         "success": true,
