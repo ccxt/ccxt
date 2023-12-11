@@ -4203,8 +4203,8 @@ export default class Exchange {
             return markets[0];
         }
         let symbolForLog = symbol;
-        if (typeof symbol !== 'string') {
-            symbolForLog = this.json (symbol);
+        if (typeof symbolForLog !== 'string') {
+            symbolForLog = this.json (symbolForLog);
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbolForLog);
     }
