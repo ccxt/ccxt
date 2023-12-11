@@ -4202,7 +4202,11 @@ export default class Exchange {
             }
             return markets[0];
         }
-        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+        let symbolForLog = symbol;
+        if (typeof symbol !== 'string') {
+            symbolForLog = this.json (symbol);
+        }
+        throw new BadSymbol (this.id + ' does not have market symbol ' + symbolForLog);
     }
 
     handleWithdrawTagAndParams (tag, params): any {
