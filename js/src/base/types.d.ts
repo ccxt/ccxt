@@ -153,11 +153,7 @@ export interface Transaction {
     amount: Num;
     currency: Str;
     status: 'pending' | 'ok' | string;
-<<<<<<< HEAD
-    updated?: number;
-=======
     updated: Int;
->>>>>>> 5a483c50bd8a5c4ae57e5d31a9de8caed1148cc1
     fee: Fee;
     network: Str;
     comment: Str;

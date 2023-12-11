@@ -48,7 +48,12 @@ class mexc(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': None,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,
                 'createReduceOnlyOrder': True,
@@ -159,9 +164,9 @@ class mexc(Exchange, ImplicitAPI):
                         'get': {
                             'ping': 1,
                             'time': 1,
-                            'exchangeInfo': 1,
+                            'exchangeInfo': 10,
                             'depth': 1,
-                            'trades': 1,
+                            'trades': 5,
                             'historicalTrades': 1,
                             'aggTrades': 1,
                             'klines': 1,
@@ -174,17 +179,18 @@ class mexc(Exchange, ImplicitAPI):
                     },
                     'private': {
                         'get': {
-                            'order': 1,
-                            'openOrders': 1,
-                            'allOrders': 1,
+                            'order': 2,
+                            'openOrders': 3,
+                            'allOrders': 10,
                             'account': 10,
-                            'myTrades': 1,
+                            'myTrades': 10,
                             'sub-account/list': 1,
                             'sub-account/apiKey': 1,
-                            'capital/config/getall': 1,
+                            'capital/config/getall': 10,
                             'capital/deposit/hisrec': 1,
                             'capital/withdraw/history': 1,
-                            'capital/deposit/address': 1,
+                            'capital/withdraw/address': 10,
+                            'capital/deposit/address': 10,
                             'capital/transfer': 1,
                             'capital/transfer/tranId': 1,
                             'capital/transfer/internal': 1,
@@ -228,7 +234,7 @@ class mexc(Exchange, ImplicitAPI):
                             'capital/transfer/internal': 1,
                             'capital/deposit/address': 1,
                             'capital/sub-account/universalTransfer': 1,
-                            'capital/convert': 1,
+                            'capital/convert': 10,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                         },
@@ -1984,9 +1990,28 @@ class mexc(Exchange, ImplicitAPI):
             tickers = [tickers]
         return self.parse_tickers(tickers, symbols)
 
+    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -2013,12 +2038,15 @@ class mexc(Exchange, ImplicitAPI):
             'type': type.upper(),
         }
         if orderSide == 'BUY' and type == 'market':
-            quoteOrderQty = self.safe_number(params, 'quoteOrderQty')
-            if quoteOrderQty is not None:
-                amount = quoteOrderQty
-            elif self.options['createMarketBuyOrderRequiresPrice']:
+            createMarketBuyOrderRequiresPrice = True
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            cost = self.safe_number_2(params, 'cost', 'quoteOrderQty')
+            params = self.omit(params, 'cost')
+            if cost is not None:
+                amount = cost
+            elif createMarketBuyOrderRequiresPrice:
                 if price is None:
-                    raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                 else:
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)

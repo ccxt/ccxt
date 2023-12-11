@@ -355,6 +355,8 @@ class Exchange {
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
+                'closeAllPositions': undefined,
+                'closePosition': undefined,
                 'createDepositAddress': undefined,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
@@ -3697,6 +3699,12 @@ class Exchange {
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchFundingHistory() is not supported yet');
+    }
+    async closePosition(symbol, side = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' closePositions() is not supported yet');
+    }
+    async closeAllPositions(params = {}) {
+        throw new errors.NotSupported(this.id + ' closeAllPositions() is not supported yet');
     }
     parseLastPrice(price, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseLastPrice() is not supported yet');

@@ -30,6 +30,8 @@ export default class bithumb extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
@@ -962,11 +964,11 @@ export default class bithumb extends Exchange {
         return await this.privatePostTradeCancel (this.extend (request, params));
     }
 
-    cancelUnifiedOrder (order, params = {}) {
+    async cancelUnifiedOrder (order, params = {}) {
         const request = {
             'side': order['side'],
         };
-        return this.cancelOrder (order['id'], order['symbol'], this.extend (request, params));
+        return await this.cancelOrder (order['id'], order['symbol'], this.extend (request, params));
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {

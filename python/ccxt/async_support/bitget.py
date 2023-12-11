@@ -3733,6 +3733,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'isolated' or 'cross' for spot margin trading
+        :param str [params.planType]: *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -4084,6 +4085,7 @@ class bitget(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.isPlan]: *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -4302,6 +4304,7 @@ class bitget(Exchange, ImplicitAPI):
         :param int [limit]: the max number of closed orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
+        :param str [params.isPlan]: *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -4338,6 +4341,7 @@ class bitget(Exchange, ImplicitAPI):
         :param int [limit]: the max number of canceled orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
+        :param str [params.isPlan]: *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -6534,6 +6538,62 @@ class bitget(Exchange, ImplicitAPI):
             'info': info,
         }
 
+<<<<<<< HEAD
+=======
+    async def close_all_positions(self, params={}) -> List[Position]:
+        """
+        closes open positions for a market
+        :see: https://bitgetlimited.github.io/apidoc/en/mix/#close-all-position
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.subType]: 'linear' or 'inverse'
+        :param str [params.settle]: *required and only valid when params.subType == "linear"* 'USDT' or 'USDC'
+        :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        subType = None
+        settle = None
+        subType, params = self.handle_sub_type_and_params('closeAllPositions', None, params)
+        settle = self.safe_string(params, 'settle', 'USDT')
+        params = self.omit(params, ['settle'])
+        productType = self.safe_string(params, 'productType')
+        request = {}
+        if productType is None:
+            sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+            localProductType = None
+            if subType == 'inverse':
+                localProductType = 'dmcbl'
+            else:
+                if settle == 'USDT':
+                    localProductType = 'umcbl'
+                elif settle == 'USDC':
+                    localProductType = 'cmcbl'
+            if sandboxMode:
+                localProductType = 's' + localProductType
+            request['productType'] = localProductType
+        response = await self.privateMixPostMixV1OrderCloseAllPositions(self.extend(request, params))
+        #
+        #    {
+        #        "code": "00000",
+        #        "msg": "success",
+        #        "requestTime": 1700814442466,
+        #        "data": {
+        #            "orderInfo": [
+        #                {
+        #                    "symbol": "XRPUSDT_UMCBL",
+        #                    "orderId": "1111861847410757635",
+        #                    "clientOid": "1111861847410757637"
+        #                },
+        #            ],
+        #            "failure": [],
+        #            "result": True
+        #        }
+        #    }
+        #
+        data = self.safe_value(response, 'data', {})
+        orderInfo = self.safe_value(data, 'orderInfo', [])
+        return self.parse_positions(orderInfo, None, params)
+
+>>>>>>> 3da8111d40408139d79f75ff72ab797be3be0acf
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
             return None  # fallback to default error handler

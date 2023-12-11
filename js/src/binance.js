@@ -41,6 +41,8 @@ export default class binance extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createOrders': true,
@@ -877,6 +879,7 @@ export default class binance extends Exchange {
                         'uiKlines': 0.4,
                         'ticker/24hr': { 'cost': 0.4, 'noSymbol': 16 },
                         'ticker': { 'cost': 0.4, 'noSymbol': 16 },
+                        'ticker/tradingDay': 0.8,
                         'ticker/price': { 'cost': 0.4, 'noSymbol': 0.8 },
                         'ticker/bookTicker': { 'cost': 0.4, 'noSymbol': 0.8 },
                         'exchangeInfo': 4,
@@ -905,6 +908,7 @@ export default class binance extends Exchange {
                         'rateLimit/order': 8,
                         'myPreventedMatches': 4,
                         'myAllocations': 4,
+                        'account/commission': 4,
                     },
                     'post': {
                         'order/oco': 0.2,
@@ -2450,7 +2454,7 @@ export default class binance extends Exchange {
         account['debt'] = Precise.stringAdd(debt, interest);
         return account;
     }
-    parseBalanceCustom(response, type = undefined, marginMode = undefined) {
+    parseBalance(response, type = undefined, marginMode = undefined) {
         const result = {
             'info': response,
         };
@@ -2792,7 +2796,7 @@ export default class binance extends Exchange {
         //       }
         //     ]
         //
-        return this.parseBalanceCustom(response, type, marginMode);
+        return this.parseBalance(response, type, marginMode);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -8603,7 +8607,7 @@ export default class binance extends Exchange {
                     extendedParams = this.omit(extendedParams, ['orderidlist', 'origclientorderidlist']);
                     query = this.rawencode(extendedParams);
                     const orderidlistLength = orderidlist.length;
-                    const origclientorderidlistLength = orderidlist.length;
+                    const origclientorderidlistLength = origclientorderidlist.length;
                     if (orderidlistLength > 0) {
                         query = query + '&' + 'orderidlist=[' + orderidlist.join(',') + ']';
                     }
@@ -8757,7 +8761,7 @@ export default class binance extends Exchange {
         }
         return this.safeValue(config, 'cost', 1);
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
+    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
         const response = await this.fetch2(path, api, method, params, headers, body, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api === 'private') {

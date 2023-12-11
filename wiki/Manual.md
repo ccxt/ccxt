@@ -142,7 +142,7 @@ The CCXT library currently supports the following 94 cryptocurrency exchange mar
 | [![kucoinfutures](https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg)](https://futures.kucoin.com/?rcode=E5wkqe)                                            | kucoinfutures      | [KuCoin Futures](https://futures.kucoin.com/?rcode=E5wkqe)                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.kucoin.com/futures)                                                    | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![kuna](https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg)](https://kuna.io?r=kunaid-gvfihe8az7o4)                                                        | kuna               | [Kuna](https://kuna.io?r=kunaid-gvfihe8az7o4)                                                         | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://kuna.io/documents/api)                                                      |                                                                                                                             |                                                                              |
 | [![latoken](https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg)](https://latoken.com/invite?r=mvgp2djk)                                                      | latoken            | [Latoken](https://latoken.com/invite?r=mvgp2djk)                                                      | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.latoken.com)                                                            |                                                                                                                             |                                                                              |
-| [![lbank](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)](https://www.lbank.info/invitevip?icode=7QCY)                                                  | lbank              | [LBank](https://www.lbank.info/invitevip?icode=7QCY)                                                  | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.lbank.info/en-US/docs/index.html)                                       |                                                                                                                             |                                                                              |
+| [![lbank](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)](https://www.lbank.com/login/?icode=7QCY)                                                      | lbank              | [LBank](https://www.lbank.com/login/?icode=7QCY)                                                      | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.lbank.com/en-US/docs/index.html)                                        |                                                                                                                             |                                                                              |
 | [![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)](https://www.luno.com/invite/44893A)                                                            | luno               | [luno](https://www.luno.com/invite/44893A)                                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.luno.com/en/api)                                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![lykke](https://user-images.githubusercontent.com/1294454/155840500-1ea4fdf0-47c0-4daa-9597-c6c1cd51b9ec.jpg)](https://www.lykke.com)                                                                       | lykke              | [Lykke](https://www.lykke.com)                                                                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://hft-apiv2.lykke.com/swagger/ui/index.html)                                  |                                                                                                                             |                                                                              |
 | [![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)](https://www.mercadobitcoin.com.br)                                                          | mercado            | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)                                                  | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.mercadobitcoin.com.br/api-doc)                                          |                                                                                                                             |                                                                              |
@@ -3272,6 +3272,7 @@ Returns
 *option only*
 
 Use the `fetchGreeks` method to get the public greeks and implied volatility of an options trading pair from the exchange.
+The greeks measure how factors like the underlying assets price, time to expiration, volatility, and interest rates, affect the price of an options contract.
 
 ```javascript
 fetchGreeks (symbol, params = {})
@@ -3293,21 +3294,21 @@ Returns
     'symbol': 'BTC/USD:BTC-240927-40000-C',     // unified CCXT market symbol
     'timestamp': 1699593511632,                 // unix timestamp in milliseconds
     'datetime': '2023-11-10T05:18:31.632Z',     // ISO8601 datetime with milliseconds
-    'delta': 0.59833,                           // measures the change in the options price due to the change in the underlying price
-    'gamma': 0.00002,                           // measures the rate of change in the options delta over time
-    'theta': -13.4441,                          // measures the rate of decline in the price of an option over time
-    'vega': 142.30124,                          // measures the amount that an options price changes with a 1% change in the implied volatility
-    'rho': 131.82621,                           // measures the change in an options price per 1% change in interest rates
+    'delta': 0.59833,                           // measures the rate of change in the options price per $1 change in the underlying assets price
+    'gamma': 0.00002,                           // measures the rate of change in the delta per $1 change in the underlying assets price
+    'theta': -13.4441,                          // measures the dollar amount that an options price will decline per day
+    'vega': 142.30124,                          // measures the dollar amount that an options price changes with a 1% change in the implied volatility
+    'rho': 131.82621,                           // measures the dollar amount that an options price changes with a 1% change in interest rates
     'bidSize': 2.2,                             // the options bid amount
     'askSize': 9,                               // the options ask amount
-    'bidImpliedVolatility': 60.06,              // the implied volatility of the bid
-    'askImpliedVolatility': 61.85,              // the implied volatility of the ask
-    'markImpliedVolatility': 60.86,             // the implied volatility of the mark
+    'bidImpliedVolatility': 60.06,              // the expected percentage price change of the underlying asset, over the remaining life of the option, calculated using the bid price
+    'askImpliedVolatility': 61.85,              // the expected percentage price change of the underlying asset, over the remaining life of the option, calculated using the ask price
+    'markImpliedVolatility': 60.86,             // the expected percentage price change of the underlying asset, over the remaining life of the option, calculated using the mark price
     'bidPrice': 0.214,                          // the bid price of the option
     'askPrice': 0.2205,                         // the ask price of the option
     'markPrice': 0.2169,                        // the mark price of the option
     'lastPrice': 0.215,                         // the last price of the option
-    'underlyingPrice': 39165.86,                // the price of the underlying asset
+    'underlyingPrice': 39165.86,                // the current market price of the underlying asset
     'info': { ... },                            // the original decoded JSON as is
 }
 ```
@@ -5906,6 +5907,45 @@ As the price of the underlying index changes so does the unrealisedPnl and as a 
 It is recommended to use the `maintenanceMargin` and `initialMargin` instead of the `maintenanceMarginPercentage` and `initialMarginPercentage` since these tend to be more accurate. The maintenanceMargin might be calculated from other factors outside of the maintenanceMarginPercentage including the funding rate and taker fees, for example on [kucoin](https://futures.kucoin.com/contract/detail).
 
 An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
+
+#### Closing Positions
+
+*contract only*
+
+To quickly close open positions with a market order, use
+
+- closePosition (symbol)               // for a single market
+- closeAllPositions (symbol)           // for all positions
+
+```typescript
+closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order>
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **side** *optional* a string literal for the direction of your order. Some exchanges require it.
+  **Unified sides:**
+  - `buy` give quote currency and receive base currency; for example, buying `BTC/USD` means that you will receive bitcoins for your dollars.
+  - `sell` give base currency and receive quote currency; for example, buying `BTC/USD` means that you will receive dollars for your bitcoins.
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An [order structure](#order-structure)
+
+```typescript
+closeAllPositions (params = {}): Promise<Position[]>
+```
+
+Parameters
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A list of [order structures](#order-structure)
+
+
 
 #### Liquidation Price
 

@@ -30,6 +30,8 @@ export default class independentreserve extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -542,7 +544,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit = 50, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = 50, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchMyTrades

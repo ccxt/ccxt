@@ -429,7 +429,7 @@ class cex extends \ccxt\async\cex {
              * @see https://docs.cex.io/#ws-api-get-balance
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the cex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());

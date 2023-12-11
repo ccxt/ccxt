@@ -33,6 +33,8 @@ export default class bitso extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
@@ -916,7 +918,7 @@ export default class bitso extends Exchange {
         return result;
     }
 
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit = 25, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = 25, params = {}) {
         /**
          * @method
          * @name bitso#fetchMyTrades
@@ -1126,7 +1128,7 @@ export default class bitso extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit = 25, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 25, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitso#fetchOpenOrders

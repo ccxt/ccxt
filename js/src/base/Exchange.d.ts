@@ -13,7 +13,6 @@ export default class Exchange {
     options: {
         [key: string]: any;
     };
-    throttleProp: any;
     api: any;
     proxy: any;
     proxyUrl: string;
@@ -292,6 +291,8 @@ export default class Exchange {
             cancelAllOrders: any;
             cancelOrder: boolean;
             cancelOrders: any;
+            closeAllPositions: any;
+            closePosition: any;
             createDepositAddress: any;
             createLimitOrder: boolean;
             createMarketOrder: boolean;
@@ -551,22 +552,17 @@ export default class Exchange {
     handleDelta(bookside: any, delta: any): void;
     getCacheIndex(orderbook: any, deltas: any): number;
     findTimeframe(timeframe: any, timeframes?: any): string;
-<<<<<<< HEAD
-    checkProxySettings(url: any, method: any, headers: any, body: any): string[];
-    findMessageHashes(futures: any, element: string): string[];
-=======
     checkProxyUrlSettings(url?: any, method?: any, headers?: any, body?: any): any;
     checkProxySettings(url?: any, method?: any, headers?: any, body?: any): any[];
     checkWsProxySettings(): any[];
     checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
     findMessageHashes(client: any, element: string): string[];
->>>>>>> 0bff216672d877c75121b22d80f832d835197263
     filterByLimit(array: object[], limit?: Int, key?: IndexType): any;
     filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
     filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string, tail?: boolean): any;
     setSandboxMode(enabled: any): void;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {};
-    fetchAccounts(params?: {}): Promise<{}>;
+    fetchAccounts(params?: {}): Promise<any>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -580,28 +576,10 @@ export default class Exchange {
     fetchMarginMode(symbol?: string, params?: {}): Promise<MarginMode>;
     fetchRestOrderBookSafe(symbol: any, limit?: any, params?: {}): Promise<OrderBook>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-<<<<<<< HEAD
-    fetchTime(params?: {}): Promise<number>;
-<<<<<<< HEAD
-    fetchTradingLimits(symbols?: string[], params?: {}): Promise<{}>;
-=======
-=======
     fetchTime(params?: {}): Promise<Int>;
->>>>>>> 70395cb0413e73ff1da77986f9ac28605f10aa91
     fetchTradingLimits(symbols?: string[], params?: {}): Promise<any>;
     parseMarket(market: any): Market;
     parseMarkets(markets: any): Market[];
-<<<<<<< HEAD
->>>>>>> 5a483c50bd8a5c4ae57e5d31a9de8caed1148cc1
-    parseTicker(ticker: object, market?: any): Ticker;
-    parseDepositAddress(depositAddress: any, currency?: any): {};
-    parseTrade(trade: object, market?: any): Trade;
-    parseTransaction(transaction: any, currency?: any): Transaction;
-    parseTransfer(transfer: any, currency?: any): {};
-    parseAccount(account: any): {};
-    parseLedgerEntry(item: any, currency?: any): {};
-    parseOrder(order: any, market?: any): Order;
-=======
     parseTicker(ticker: object, market?: Market): Ticker;
     parseDepositAddress(depositAddress: any, currency?: Currency): void;
     parseTrade(trade: object, market?: Market): Trade;
@@ -610,13 +588,8 @@ export default class Exchange {
     parseAccount(account: any): void;
     parseLedgerEntry(item: any, currency?: Currency): void;
     parseOrder(order: any, market?: Market): Order;
-<<<<<<< HEAD
->>>>>>> 055794d8789e08535c7d6feb0b1c77db77c1f0ea
-    fetchBorrowRates(params?: {}): Promise<any>;
-=======
     fetchCrossBorrowRates(params?: {}): Promise<any>;
     fetchIsolatedBorrowRates(params?: {}): Promise<any>;
->>>>>>> 70395cb0413e73ff1da77986f9ac28605f10aa91
     parseMarketLeverageTiers(info: any, market?: Market): void;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<any>;
     parsePosition(position: any, market?: Market): void;
@@ -627,13 +600,10 @@ export default class Exchange {
     parseWsOrderTrade(trade: any, market?: Market): Trade;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
     createDepositAddress(code: string, params?: {}): Promise<DepositAddressResponse>;
-    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<{}>;
-    fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
-    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
-    signIn(params?: {}): Promise<{}>;
+    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     parseToInt(number: any): number;
     parseToNumeric(number: any): number;
     isRoundNumber(value: any): boolean;
@@ -749,11 +719,6 @@ export default class Exchange {
     fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchBidsAsks(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
-    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
-    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRate[]>;
-    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
-    fetchLedgerEntry(id: string, code?: string, params?: {}): Promise<LedgerEntry>;
     parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType): number[];
     safeCurrency(currencyId: Str, currency?: Currency): CurrencyInterface;
     safeMarket(marketId: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
@@ -768,12 +733,12 @@ export default class Exchange {
     fetchUsedBalance(params?: {}): Promise<Balance>;
     fetchTotalBalance(params?: {}): Promise<Balance>;
     fetchStatus(params?: {}): Promise<any>;
-    fetchFundingFee(code: string, params?: {}): Promise<{}>;
-    fetchFundingFees(codes?: string[], params?: {}): Promise<{}>;
-    fetchTransactionFee(code: string, params?: {}): Promise<{}>;
-    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<Dictionary<DepositWithdrawFeeNetwork>>;
-    fetchDepositWithdrawFee(code: string, params?: {}): Promise<DepositWithdrawFeeNetwork>;
+    fetchFundingFee(code: string, params?: {}): Promise<any>;
+    fetchFundingFees(codes?: string[], params?: {}): Promise<any>;
+    fetchTransactionFee(code: string, params?: {}): Promise<any>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
+    fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
     getSupportedMapping(key: any, mapping?: {}): any;
     fetchCrossBorrowRate(code: string, params?: {}): Promise<any>;
     fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<any>;
@@ -827,6 +792,8 @@ export default class Exchange {
     fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
+    closeAllPositions(params?: {}): Promise<Position[]>;
     parseLastPrice(price: any, market?: Market): any;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     account(): Account;
@@ -869,15 +836,9 @@ export default class Exchange {
     parseDepositAddresses(addresses: any, codes?: string[], indexed?: boolean, params?: {}): {};
     parseBorrowInterests(response: any, market?: Market): any[];
     parseFundingRateHistories(response: any, market?: any, since?: Int, limit?: Int): FundingRateHistory[];
-<<<<<<< HEAD
-    safeSymbol(marketId: any, market?: any, delimiter?: any, marketType?: any): any;
-    parseFundingRate(contract: string, market?: any): any;
-    parseFundingRates(response: any, market?: any): any;
-=======
     safeSymbol(marketId: Str, market?: Market, delimiter?: Str, marketType?: Str): string;
     parseFundingRate(contract: string, market?: Market): void;
     parseFundingRates(response: any, market?: Market): {};
->>>>>>> 055794d8789e08535c7d6feb0b1c77db77c1f0ea
     isTriggerOrder(params: any): any[];
     isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: any, params?: {}): boolean;
     handlePostOnly(isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params?: any): any[];

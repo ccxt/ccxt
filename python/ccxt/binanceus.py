@@ -52,6 +52,8 @@ class binanceus(binance, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'borrowMargin': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createReduceOnlyOrder': False,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRate': False,

@@ -54,6 +54,7 @@ class gate extends Exchange {
                         'spot' => 'https://api.gateio.ws/api/v4',
                         'options' => 'https://api.gateio.ws/api/v4',
                         'subAccounts' => 'https://api.gateio.ws/api/v4',
+                        'portfolio' => 'https://api.gateio.ws/api/v4',
                         'rebate' => 'https://api.gateio.ws/api/v4',
                         'earn' => 'https://api.gateio.ws/api/v4',
                         'account' => 'https://api.gateio.ws/api/v4',
@@ -491,10 +492,13 @@ class gate extends Exchange {
                     ),
                     'earn' => array(
                         'get' => array(
+                            'uni/currencies' => 20 / 15,
+                            'uni/currencies/{currency}' => 20 / 15,
                             'uni/lends' => 20 / 15,
                             'uni/lend_records' => 20 / 15,
                             'uni/interests/{currency}' => 20 / 15,
                             'uni/interest_records' => 20 / 15,
+                            'uni/interest_status/{currency}' => 20 / 15,
                         ),
                         'post' => array(
                             'uni/lends' => 20 / 15,
@@ -551,6 +555,7 @@ class gate extends Exchange {
                 '15m' => '15m',
                 '30m' => '30m',
                 '1h' => '1h',
+                '2h' => '2h',
                 '4h' => '4h',
                 '8h' => '8h',
                 '1d' => '1d',

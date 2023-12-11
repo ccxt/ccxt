@@ -48,6 +48,8 @@ class binanceus extends binance {
                 'option': false,
                 'addMargin': false,
                 'borrowMargin': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createReduceOnlyOrder': false,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,

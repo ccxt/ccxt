@@ -1326,7 +1326,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTrades (trades, market, undefined, limit);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 100, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = 100, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitfinex2#fetchOHLCV

@@ -27,7 +27,6 @@ import totp from './functions/totp.js';
  */
 export default class Exchange {
     constructor(userConfig = {}) {
-        this.throttleProp = undefined;
         this.api = undefined;
         this.userAgent = undefined;
         this.user_agent = undefined;
@@ -350,6 +349,8 @@ export default class Exchange {
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
+                'closeAllPositions': undefined,
+                'closePosition': undefined,
                 'createDepositAddress': undefined,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
@@ -881,7 +882,7 @@ export default class Exchange {
         const markets = await this.fetchMarkets(params);
         return this.setMarkets(markets, currencies);
     }
-    async loadMarkets(reload = false, params = {}) {
+    loadMarkets(reload = false, params = {}) {
         // this method is async, it returns a promise
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
             this.reloadingMarkets = true;
@@ -895,14 +896,14 @@ export default class Exchange {
         }
         return this.marketsLoading;
     }
-    async fetchCurrencies(params = {}) {
+    fetchCurrencies(params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
         return new Promise((resolve, reject) => resolve(this.currencies));
     }
-    async fetchMarkets(params = {}) {
+    fetchMarkets(params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -1367,9 +1368,9 @@ export default class Exchange {
             throw new ExchangeError(this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
     }
-    findMessageHashes(futures, element) {
+    findMessageHashes(client, element) {
         const result = [];
-        const messageHashes = Object.keys(futures);
+        const messageHashes = Object.keys(client.futures);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             if (messageHash.indexOf(element) >= 0) {
@@ -1610,15 +1611,6 @@ export default class Exchange {
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' setLeverage() is not supported yet');
-    }
-    async fetchOpenInterestHistory(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported(this.id + ' fetchOpenInterestHistory() is not supported yet');
-    }
-    async fetchOpenInterest(symbol, params = {}) {
-        throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
-    }
-    async signIn(params = {}) {
-        throw new NotSupported(this.id + ' signIn() is not supported yet');
     }
     parseToInt(number) {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
@@ -3217,33 +3209,12 @@ export default class Exchange {
     async fetchBidsAsks(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchBidsAsks() is not supported yet');
     }
-    async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported(this.id + ' fetchBorrowInterest() is not supported yet');
-    }
-    async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
-        throw new NotSupported(this.id + ' fetchOrderBooks() is not supported yet');
-    }
-    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported(this.id + ' fetchFundingRateHistory() is not supported yet');
-    }
-    async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported(this.id + ' fetchLedger() is not supported yet');
-    }
-    async fetchLedgerEntry(id, code = undefined, params = {}) {
-        throw new NotSupported(this.id + ' fetchLedgerEntry() is not supported yet');
-    }
     parseBidAsk(bidask, priceKey = 0, amountKey = 1) {
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
         return [price, amount];
     }
     safeCurrency(currencyId, currency = undefined) {
-        if (currencyId === undefined && currency === undefined) {
-            return {
-                'id': undefined,
-                'code': undefined,
-            };
-        }
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
@@ -3509,9 +3480,6 @@ export default class Exchange {
         return this.handleOptionAndParams(params, methodName, 'marginMode', defaultValue);
     }
     throwExactlyMatchedException(exact, string, message) {
-        if (string === undefined) {
-            return;
-        }
         if (string in exact) {
             throw new exact[string](message);
         }
@@ -3727,6 +3695,12 @@ export default class Exchange {
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchFundingHistory() is not supported yet');
+    }
+    async closePosition(symbol, side = undefined, params = {}) {
+        throw new NotSupported(this.id + ' closePositions() is not supported yet');
+    }
+    async closeAllPositions(params = {}) {
+        throw new NotSupported(this.id + ' closeAllPositions() is not supported yet');
     }
     parseLastPrice(price, market = undefined) {
         throw new NotSupported(this.id + ' parseLastPrice() is not supported yet');

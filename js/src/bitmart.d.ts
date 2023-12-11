@@ -35,15 +35,6 @@ export default class bitmart extends Exchange {
         };
         networks: {};
     };
-<<<<<<< HEAD
-    fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-=======
     fetchDepositWithdrawFee(code: string, params?: {}): Promise<{
         info: any;
         withdraw: {
@@ -62,12 +53,7 @@ export default class bitmart extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-<<<<<<< HEAD
->>>>>>> 1a5931741ea069834b52aa71871d9b8ccba70afe
-    parseOHLCV(ohlcv: any, market?: any): OHLCV;
-=======
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
->>>>>>> 055794d8789e08535c7d6feb0b1c77db77c1f0ea
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

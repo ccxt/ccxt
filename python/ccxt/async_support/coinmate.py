@@ -36,6 +36,8 @@ class coinmate(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,

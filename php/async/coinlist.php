@@ -37,6 +37,8 @@ class coinlist extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,

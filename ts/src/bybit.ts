@@ -37,6 +37,8 @@ export default class bybit extends Exchange {
                 'borrowCrossMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
@@ -344,6 +346,8 @@ export default class bybit extends Exchange {
                         'v5/lending/account': 5,
                         // broker
                         'v5/broker/earning-record': 5,
+                        'v5/broker/earnings-info': 5,
+                        'v5/broker/account-info': 5,
                     },
                     'post': {
                         // Legacy option USDC
@@ -444,6 +448,7 @@ export default class bybit extends Exchange {
                         'v5/position/confirm-pending-mmr': 5,
                         // account
                         'v5/account/upgrade-to-uta': 5,
+                        'v5/account/quick-repayment': 5,
                         'v5/account/set-margin-mode': 5,
                         'v5/account/set-hedging-mode': 5,
                         'v5/account/mmp-modify': 5,
@@ -2092,8 +2097,9 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const parsedSymbols = [];
+        let parsedSymbols = undefined;
         if (symbols !== undefined) {
+            parsedSymbols = [];
             const marketTypeInfo = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
             const defaultType = marketTypeInfo[0]; // don't omit here
             // we can't use marketSymbols here due to the conflicing ids between markets
@@ -3019,7 +3025,7 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] wallet type, ['spot', 'swap', 'fund']
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -5717,8 +5723,10 @@ export default class bybit extends Exchange {
             } else if (symbolsLength === 1) {
                 symbol = symbols[0];
             }
+            symbols = this.marketSymbols (symbols);
         } else if (symbols !== undefined) {
             symbol = symbols;
+            symbols = [ this.symbol (symbol) ];
         }
         await this.loadMarkets ();
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
@@ -5728,14 +5736,12 @@ export default class bybit extends Exchange {
         let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
             request['symbol'] = market['id'];
             isUsdcSettled = market['settle'] === 'USDC';
         }
         let type = undefined;
         [ type, params ] = this.getBybitType ('fetchPositions', market, params);
-        if (type === 'spot') {
-            throw new NotSupported (this.id + ' fetchPositions() not support spot market');
-        }
         if (type === 'linear' || type === 'inverse') {
             const baseCoin = this.safeString (params, 'baseCoin');
             if (type === 'linear') {

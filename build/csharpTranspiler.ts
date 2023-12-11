@@ -30,7 +30,8 @@ if (platform === 'win32') {
     }
 }
 
-const WRAPPER_FILE = './c#/ccxt/base/Exchange.Wrappers.cs';
+const GLOBAL_WRAPPER_FILE = './c#/ccxt/base/Exchange.Wrappers.cs';
+const EXCHANGE_WRAPPER_FOLDER = './c#/ccxt/wrappers/'
 const ERRORS_FILE = './c#/ccxt/base/Exchange.Errors.cs';
 const BASE_METHODS_FILE = './c#/ccxt/base/Exchange.BaseMethods.cs';
 const EXCHANGES_FOLDER = './c#/ccxt/exchanges/';
@@ -41,9 +42,11 @@ const BASE_TESTS_FILE =  './c#/tests/Generated/TestMethods.cs';
 const EXCHANGE_BASE_FOLDER = './c#/tests/Generated/Exchange/Base/';
 const EXCHANGE_GENERATED_FOLDER = './c#/tests/Generated/Exchange/';
 
+const csharpComments ={};
+
 class NewTranspiler {
 
-    transpiler;
+    transpiler: Transpiler;
     pythonStandardLibraries;
     oldTranspiler = new OldTranspiler();
 
@@ -142,9 +145,110 @@ class NewTranspiler {
         }
     }
 
+    createSee(link: string) {
+        return `/// See <see href="${link}"/>  <br/>`
+    }
+
+    createParam(param) {
+        return`/// <item>
+    /// <term>${param.name}</term>
+    /// <description>
+    /// ${param.type} : ${param.description}
+    /// </description>
+    /// </item>`
+    }
+
+    createCsharpCommentTemplate(name: string, desc: string, see: string[], params : string[], returnType:string, returnDesc: string) {
+        //
+        // Summary:
+        //     Converts the value of the specified 16-bit signed integer to an equivalent 64-bit
+        //     signed integer.
+        //
+        // Parameters:
+        //   value:
+        //     The 16-bit signed integer to convert.
+        //
+        // Returns:
+        //     A 64-bit signed integer that is equivalent to value
+        return `
+    /// <summary>
+    /// ${desc}
+    /// </summary>
+    /// <remarks>
+    ${see.map( l => this.createSee(l)).join("\n    ")}
+    /// <list type="table">
+    ${params.map( p => this.createParam(p)).join("\n    ")}
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>${returnType}</term> ${returnDesc}.</returns>`
+    }
+
+    transformTSCommentIntoCSharp(name: string, desc: string, sees: string[], params : string[], returnType:string, returnDesc: string) {
+        return this.createCsharpCommentTemplate(name, desc, sees, params, returnType, returnDesc);
+    }
+
+    transformLeadingComment(comment) {
+        // parse comment
+        // /**
+        //  * @method
+        //  * @name binance#fetchTime
+        //  * @description fetches the current integer timestamp in milliseconds from the exchange server
+        //  * @see https://binance-docs.github.io/apidocs/spot/en/#check-server-time       // spot
+        //  * @see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    // swap
+        //  * @see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   // future
+        //  * @param {object} [params] extra parameters specific to the exchange API endpoint
+        //  * @returns {int} the current integer timestamp in milliseconds from the exchange server
+        //  */
+        // return comment;
+        const commentNameRegex = /@name\s(\w+)#(\w+)/;
+        const nameMatches = comment.match(commentNameRegex);
+        const exchangeName = nameMatches ? nameMatches[1] : undefined;
+        if (!exchangeName) {
+            return comment;
+        }
+        const methodName = nameMatches[2];
+        const commentDescriptionRegex = /@description\s(.+)/;
+        const descriptionMatches = comment.match(commentDescriptionRegex);
+        const description = descriptionMatches ? descriptionMatches[1] : undefined;
+        const seeRegex = /@see\s(.+)/g;
+        const seeMatches = comment.match(seeRegex);
+        const sees: string[] = [];
+        if (seeMatches) {
+            seeMatches.forEach(match => {
+                const [, link] = match.split(' ');
+                sees.push(link);
+            });
+        }
+        // const paramRegex = /@param\s{(\w+)}\s\[(\w+)\]\s(.+)/g; // @param\s{(\w+)}\s\[((\w+(.\w+)?))\]\s(.+)
+        const paramRegex = /@param\s{(\w+)}\s\[(\w+\.?\w+?)]\s(.+)/g;
+        const params = [] as any;
+        let paramMatch;
+        while ((paramMatch = paramRegex.exec(comment)) !== null) {
+            const [, type, name, description] = paramMatch;
+            params.push({type, name, description});
+        }
+        const returnRegex = /@returns\s{(\w+)}\s(.+)/;
+        const returnMatch = comment.match(returnRegex);
+        const returnType = returnMatch ? returnMatch[1] : undefined;
+        const returnDescription =  returnMatch && returnMatch.length > 1 ? returnMatch[2]: undefined;
+        let exchangeData = csharpComments[exchangeName];
+        if (!exchangeData) {
+            exchangeData = csharpComments[exchangeName] = {}
+        }
+        let exchangeMethods = csharpComments[exchangeName];
+        if (!exchangeMethods) {
+            exchangeMethods = {}
+        }
+        const transformedComment = this.transformTSCommentIntoCSharp(methodName, description, sees,params, returnType, returnDescription);
+        exchangeMethods[methodName] = transformedComment;
+        csharpComments[exchangeName] = exchangeMethods
+        return comment;
+    }
+
     setupTranspiler() {
         this.transpiler = new Transpiler (this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
+        this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
     }
 
     createGeneratedHeader() {
@@ -175,7 +279,7 @@ class NewTranspiler {
     }
 
     isStringType(type: string) {
-        return (type === 'string') || (type === 'StringLiteral') || (type === 'StringLiteralType') || (type.startsWith('"') && type.endsWith('"')) || (type.startsWith("'") && type.endsWith("'"))
+        return (type === 'Str') || (type === 'string') || (type === 'StringLiteral') || (type === 'StringLiteralType') || (type.startsWith('"') && type.endsWith('"')) || (type.startsWith("'") && type.endsWith("'"))
     }
 
     isNumberType(type: string) {
@@ -183,14 +287,14 @@ class NewTranspiler {
     }
 
     isIntegerType(type: string) {
-        return type !== undefined && type.toLowerCase() === 'int';
+        return type !== undefined && (type.toLowerCase() === 'int') ;
     }
 
     isBooleanType(type: string) {
         return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType')
     }
 
-    convertJavascriptTypeToCsharpType(type: string): string | undefined {
+    convertJavascriptTypeToCsharpType(type: string, isReturn = false): string | undefined {
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
         let isList = false;
@@ -220,6 +324,9 @@ class NewTranspiler {
         }
 
         if (this.isObject(wrappedType)) {
+            if (isReturn) {
+                return addTaskIfNeeded('Dictionary<string, object>');
+            }
             return addTaskIfNeeded('object');
         }
         if (this.isDictionary(wrappedType)) {
@@ -236,6 +343,9 @@ class NewTranspiler {
         }
         if (this.isIntegerType(wrappedType)) {
             return addTaskIfNeeded('Int64');
+        }
+        if (wrappedType === 'Strings') {
+            return addTaskIfNeeded('List<String>')
         }
         if (csharpReplacements[wrappedType] !== undefined) {
             return addTaskIfNeeded(csharpReplacements[wrappedType]);
@@ -349,7 +459,11 @@ class NewTranspiler {
         const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';
         let returnStatement = "";
         if (unwrappedType.startsWith('List<')) {
-            returnStatement = `return ((List<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
+            if (unwrappedType === 'List<Dictionary<string, object>>') {
+                returnStatement = `return ((List<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();`
+            } else {
+                returnStatement = `return ((List<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
+            }
         } else if (unwrappedType.startsWith('Dictionary<string,') && unwrappedType !== 'Dictionary<string, object>' && !unwrappedType.startsWith('Dictionary')) {
             const type = this.unwrapDictionaryIfNeeded(unwrappedType);
             const returnParts = [
@@ -372,7 +486,8 @@ class NewTranspiler {
         const res: string[] = [];
 
         rawParameters.forEach(param => {
-            const isOptional =  param.optional || param.initializer !== undefined;
+            const isOptional =  param.optional || param.initializer === 'undefined';
+            // const isOptional =  param.optional || param.initializer !== undefined;
             if (isOptional && (this.isIntegerType(param.type) || this.isNumberType(param.type))) {
                 const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
                 res.push(decl);
@@ -386,14 +501,14 @@ class NewTranspiler {
         return '    '.repeat(level);
     }
 
-    createWrapper (methodWrapper) {
+    createWrapper (exchangeName, methodWrapper) {
         const isAsync = methodWrapper.async;
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName)) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
         }
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
-        const returnType = this.convertJavascriptTypeToCsharpType(methodWrapper.returnType);
+        const returnType = this.convertJavascriptTypeToCsharpType(methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         const args = methodWrapper.parameters.map(param => this.convertJavascriptParamToCsharpParam(param));
         const stringArgs = args.filter(arg => arg !== undefined).join(', ');
@@ -401,6 +516,10 @@ class NewTranspiler {
 
         const one = this.inden(1);
         const two = this.inden(2);
+        const methodDoc = [] as any[];
+        if (csharpComments[exchangeName] && csharpComments[exchangeName][methodName]) {
+            methodDoc.push(csharpComments[exchangeName][methodName]);
+        }
         const method = [
             `${one}public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized}(${stringArgs})`,
             `${one}{`,
@@ -409,7 +528,7 @@ class NewTranspiler {
             `${two}${this.createReturnStatement(unwrappedType)}`,
             `${one}}`
         ];
-        return method.filter(e => !!e).join('\n')
+        return methodDoc.concat(method).filter(e => !!e).join('\n')
     }
 
     createExchangesWrappers(): string[] {
@@ -424,22 +543,23 @@ class NewTranspiler {
         return res;
     }
 
-    createCSharpWrappers(wrappers) {
-        const wrappersIndented = wrappers.map(wrapper => this.createWrapper(wrapper)).filter(wrapper => wrapper !== '').join('\n');
-        const classes = this.createExchangesWrappers().filter(e=> !!e).join('\n');
+    createCSharpWrappers(exchange:string, path: string, wrappers) {
+        const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper)).filter(wrapper => wrapper !== '').join('\n');
+        const shouldCreateClassWrappers = exchange === 'Exchange';
+        const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
         const file = [
             'namespace ccxt;',
             '',
             this.createGeneratedHeader().join('\n'),
-            'public partial class Exchange',
+            `public partial class ${exchange}`,
             '{',
             wrappersIndented,
             '}',
             classes
         ].join('\n')
-        log.magenta ('→', (WRAPPER_FILE as any).yellow)
+        log.magenta ('→', (path as any).yellow)
 
-        overwriteFile (WRAPPER_FILE, file);
+        overwriteFile (path, file);
     }
 
     transpileErrorHierarchy () {
@@ -518,10 +638,10 @@ class NewTranspiler {
 
         // to c#
         const baseFile = this.transpiler.transpileCSharpByPath(baseExchangeFile);
-        let baseClass = baseFile.content;
+        let baseClass = baseFile.content as any;// remove this later
 
         // create wrappers with specific types
-        this.createCSharpWrappers(baseFile.methodsTypes)
+        this.createCSharpWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes)
 
 
         // custom transformations needed for c#
@@ -562,7 +682,7 @@ class NewTranspiler {
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(exchanges.ws), true )
     }
 
-    async transpileEverything (force = false, child = false) {
+    async transpileEverything (force = false, child = false, baseOnly = false) {
 
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
             , csharpFolder = EXCHANGES_FOLDER
@@ -578,7 +698,9 @@ class NewTranspiler {
         }
         const options = { csharpFolder, exchanges }
 
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+        if (!baseOnly) {
+            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+        }
 
         if (transpilingSingleExchange) {
             return;
@@ -588,6 +710,10 @@ class NewTranspiler {
         }
 
         this.transpileBaseMethods (exchangeBase)
+
+        if (baseOnly) {
+            return;
+        }
 
 
         this.transpileTests()
@@ -643,7 +769,16 @@ class NewTranspiler {
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[csharp] Transpiling [', exchanges.join(', '), ']');
         const transpiledFiles =  allFilesPath.map(file => this.transpiler.transpileCSharpByPath(file));
-        exchanges.map ((file, idx) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws))
+        
+        for (let i = 0; i < transpiledFiles.length; i++) {
+            const transpiled = transpiledFiles[i];
+            const exchangeName = exchanges[i].replace('.ts','');
+            const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '.cs';
+            this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
+            // transpiledFiles.forEach((transpiled, idx) => this.createCSharpWrappers(exchanges[idx], EXCHANGE_WRAPPER_FOLDER + exchanges[idx] + '.cs', transpiled.methodsTypes))
+
+        }
+        exchanges.map ((file, idx) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force))
 
         const classes = {}
 
@@ -1082,6 +1217,7 @@ class NewTranspiler {
 
 if (isMainEntry(import.meta.url)) {
     const ws = process.argv.includes ('--ws')
+    const baseOnly = process.argv.includes ('--base')
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const force = process.argv.includes ('--force')
     const child = process.argv.includes ('--child')
@@ -1097,6 +1233,6 @@ if (isMainEntry(import.meta.url)) {
     } else if (multiprocess) {
         parallelizeTranspiling (exchangeIds)
     } else {
-        await transpiler.transpileEverything (force, child)
+        await transpiler.transpileEverything (force, child, baseOnly)
     }
 }

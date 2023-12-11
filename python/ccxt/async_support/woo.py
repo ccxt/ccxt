@@ -42,6 +42,8 @@ class woo(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
                 'createMarketOrder': False,
                 'createOrder': True,
@@ -206,6 +208,11 @@ class woo(Exchange, ImplicitAPI):
                     },
                 },
                 'v3': {
+                    'public': {
+                        'get': {
+                            'insuranceFund': 3,
+                        },
+                    },
                     'private': {
                         'get': {
                             'algo/order/{oid}': 1,

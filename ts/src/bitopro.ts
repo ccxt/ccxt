@@ -33,6 +33,8 @@ export default class bitopro extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
@@ -1269,11 +1271,11 @@ export default class bitopro extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const request = {
             'statusKind': 'OPEN',
         };
-        return this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {

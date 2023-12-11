@@ -57,42 +57,16 @@ export default class coinbase extends Exchange {
     fetchMarketsV3(params?: {}): Promise<any[]>;
     fetchCurrenciesFromCache(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    fetchTickersV2(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    fetchTickersV3(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickerV2(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickerV3(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    parseBalanceCustom(response: any, params?: {}): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-=======
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
-=======
-    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
->>>>>>> 949cdbc9d756a3212f9e26d536832701560bbd31
-    fetchTickersV2(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
-    fetchTickersV3(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
-=======
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTickersV2(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     fetchTickersV3(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
->>>>>>> 055794d8789e08535c7d6feb0b1c77db77c1f0ea
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickerV2(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickerV3(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: any, market?: Market): Ticker;
     parseBalance(response: any, params?: {}): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-<<<<<<< HEAD
->>>>>>> 1a5931741ea069834b52aa71871d9b8ccba70afe
-    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-=======
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
->>>>>>> 5a483c50bd8a5c4ae57e5d31a9de8caed1148cc1
     parseLedgerEntryStatus(status: any): string;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: Currency): {
@@ -119,6 +93,7 @@ export default class coinbase extends Exchange {
     prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<{
         account_id: string;
     }>;
+    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     parseOrder(order: any, market?: Market): Order;
     parseOrderStatus(status: any): string;

@@ -456,7 +456,7 @@ class binance(ccxt.async_support.binance):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True, True)
@@ -1500,18 +1500,24 @@ class binance(ccxt.async_support.binance):
         url = self.urls['api']['ws']['ws']
         requestId = self.request_id(url)
         messageHash = str(requestId)
+        sor = self.safe_value_2(params, 'sor', 'SOR', False)
+        params = self.omit(params, 'sor', 'SOR')
         payload = self.createOrderRequest(symbol, type, side, amount, price, params)
         returnRateLimits = False
         returnRateLimits, params = self.handle_option_and_params(params, 'createOrderWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
+        test = self.safe_value(params, 'test', False)
+        params = self.omit(params, 'test')
         message = {
             'id': messageHash,
             'method': 'order.place',
             'params': self.sign_params(self.extend(payload, params)),
         }
-        test = self.safe_value(params, 'test', False)
         if test:
-            message['method'] = 'order.test'
+            if sor:
+                message['method'] = 'sor.order.test'
+            else:
+                message['method'] = 'order.test'
         subscription = {
             'method': self.handle_order_ws,
         }

@@ -81,133 +81,14 @@ export default class exmo extends Exchange {
         info: any;
     }>;
     getMarketFromTrades(trades: any): any;
-<<<<<<< HEAD
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        type: string;
-        currency: any;
-        network: string;
-        amount: number;
-        status: string;
-        timestamp: number;
-        datetime: string;
-        address: any;
-        addressFrom: any;
-        addressTo: any;
-        tag: any;
-        tagFrom: any;
-        tagTo: any;
-        updated: number;
-        comment: any;
-        fee: {
-            currency: any;
-            cost: any;
-            rate: any;
-        };
-    }>;
-    parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: string;
-        txid: string;
-        type: string;
-        currency: any;
-        network: string;
-        amount: number;
-        status: string;
-        timestamp: number;
-        datetime: string;
-        address: any;
-        addressFrom: any;
-        addressTo: any;
-        tag: any;
-        tagFrom: any;
-        tagTo: any;
-        updated: number;
-        comment: any;
-        fee: {
-            currency: any;
-            cost: any;
-            rate: any;
-        };
-    };
-    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        type: string;
-        currency: any;
-        network: string;
-        amount: number;
-        status: string;
-        timestamp: number;
-        datetime: string;
-        address: any;
-        addressFrom: any;
-        addressTo: any;
-        tag: any;
-        tagFrom: any;
-        tagTo: any;
-        updated: number;
-        comment: any;
-        fee: {
-            currency: any;
-            cost: any;
-            rate: any;
-        };
-    }>;
-    fetchDeposit(id?: any, code?: string, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        type: string;
-        currency: any;
-        network: string;
-        amount: number;
-        status: string;
-        timestamp: number;
-        datetime: string;
-        address: any;
-        addressFrom: any;
-        addressTo: any;
-        tag: any;
-        tagFrom: any;
-        tagTo: any;
-        updated: number;
-        comment: any;
-        fee: {
-            currency: any;
-            cost: any;
-            rate: any;
-        };
-    }>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-=======
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: any): string;
-<<<<<<< HEAD
-    parseTransaction(transaction: any, currency?: any): Transaction;
-<<<<<<< HEAD
-    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<Transaction>;
-    fetchDeposit(id?: any, code?: string, params?: {}): Promise<Transaction>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
->>>>>>> 1a5931741ea069834b52aa71871d9b8ccba70afe
-=======
-=======
     parseTransaction(transaction: any, currency?: Currency): Transaction;
->>>>>>> 055794d8789e08535c7d6feb0b1c77db77c1f0ea
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
     fetchDeposit(id?: any, code?: Str, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
->>>>>>> 5a483c50bd8a5c4ae57e5d31a9de8caed1148cc1
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

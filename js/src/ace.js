@@ -34,6 +34,8 @@ export default class ace extends Exchange {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
@@ -1049,9 +1051,8 @@ export default class ace extends Exchange {
         const feedback = this.id + ' ' + body;
         const status = this.safeNumber(response, 'status', 200);
         if (status > 200) {
-            const statusStr = status.toString();
-            this.throwExactlyMatchedException(this.exceptions['exact'], statusStr, feedback);
-            this.throwBroadlyMatchedException(this.exceptions['broad'], statusStr, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], status, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], status, feedback);
         }
         return undefined;
     }

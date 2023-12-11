@@ -189,25 +189,12 @@ export default class okx extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     }>;
-<<<<<<< HEAD
-    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
-    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    setPositionMode(hedged: any, symbol?: string, params?: {}): Promise<any>;
-    setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
-    fetchBorrowRates(params?: {}): Promise<any>;
-=======
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
     setPositionMode(hedged: any, symbol?: Str, params?: {}): Promise<any>;
     setMarginMode(marginMode: any, symbol?: Str, params?: {}): Promise<any>;
-<<<<<<< HEAD
-    fetchBorrowRates(params?: {}): Promise<{}>;
->>>>>>> 5a483c50bd8a5c4ae57e5d31a9de8caed1148cc1
-    fetchBorrowRate(code: string, params?: {}): Promise<{
-=======
     fetchCrossBorrowRates(params?: {}): Promise<any[]>;
     fetchCrossBorrowRate(code: string, params?: {}): Promise<{
->>>>>>> 70395cb0413e73ff1da77986f9ac28605f10aa91
         currency: string;
         rate: number;
         period: number;
@@ -338,5 +325,6 @@ export default class okx extends Exchange {
         underlyingPrice: any;
         info: any;
     };
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

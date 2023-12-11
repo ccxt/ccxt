@@ -2290,11 +2290,7 @@ export default class exmo extends Exchange {
             'type': type,
             'currency': code,
             'network': this.safeString(transaction, 'provider'),
-<<<<<<< HEAD
-            'amount': this.parseNumber(amount),
-=======
             'amount': this.parseNumber(amountString),
->>>>>>> 1a5931741ea069834b52aa71871d9b8ccba70afe
             'status': this.parseTransactionStatus(this.safeStringLower(transaction, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

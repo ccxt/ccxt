@@ -467,6 +467,8 @@ export default class Exchange {
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
+                'closeAllPositions': undefined,
+                'closePosition': undefined,
                 'createDepositAddress': undefined,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
@@ -4155,6 +4157,18 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchFundingHistory() is not supported yet');
     }
 
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        throw new NotSupported (this.id + ' closePositions() is not supported yet');
+    }
+
+    async closeAllPositions (params = {}): Promise<Position[]> {
+        throw new NotSupported (this.id + ' closeAllPositions() is not supported yet');
+    }
+
+    async fetchL3OrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        throw new BadRequest (this.id + ' fetchL3OrderBook() is not supported yet');
+    }
+
     parseLastPrice (price, market: Market = undefined): any {
         throw new NotSupported (this.id + ' parseLastPrice() is not supported yet');
     }
@@ -4223,7 +4237,7 @@ export default class Exchange {
     }
 
     handleWithdrawTagAndParams (tag, params): any {
-        if (typeof tag === 'object') {
+        if ((tag !== undefined) && (typeof tag === 'object')) {
             params = this.extend (tag, params);
             tag = undefined;
         }

@@ -1,0 +1,43 @@
+{
+    "exchange": "upbit",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api.upbit.com/v1/market/all",
+                "input": []
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw usdt",
+                "method": "withdraw",
+                "url": "https://api.upbit.com/v1/withdraws/coin",
+                "input": [
+                    "USDT",
+                    1,
+                    "1234",
+                    null,
+                    {
+                        "network": "TRX"
+                    }
+                ],
+                "output": "{\"amount\":1,\"net_type\":\"TRX\",\"address\":\"1234\",\"currency\":\"USDT\"}"
+            },
+            {
+                "description": "withdraw krw",
+                "method": "withdraw",
+                "url": "https://api.upbit.com/v1/withdraws/krw",
+                "input": [
+                    "KRW",
+                    1,
+                    "1234"
+                ],
+                "output": "{\"amount\":1}"
+            }
+        ]
+    }
+}

@@ -1660,6 +1660,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function public_get_ticker($params = array()) {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 16));
     }
+    public function public_get_ticker_tradingday($params = array()) {
+        return $this->request('ticker/tradingDay', 'public', 'GET', $params, null, null, array("cost" => 0.8));
+    }
     public function public_get_ticker_price($params = array()) {
         return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 0.8));
     }
@@ -1713,6 +1716,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function private_get_myallocations($params = array()) {
         return $this->request('myAllocations', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_account_commission($params = array()) {
+        return $this->request('account/commission', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_post_order_oco($params = array()) {
         return $this->request('order/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
@@ -3643,6 +3649,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function publicGetTicker($params = array()) {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 16));
     }
+    public function publicGetTickerTradingDay($params = array()) {
+        return $this->request('ticker/tradingDay', 'public', 'GET', $params, null, null, array("cost" => 0.8));
+    }
     public function publicGetTickerPrice($params = array()) {
         return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 0.8));
     }
@@ -3696,6 +3705,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function privateGetMyAllocations($params = array()) {
         return $this->request('myAllocations', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetAccountCommission($params = array()) {
+        return $this->request('account/commission', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privatePostOrderOco($params = array()) {
         return $this->request('order/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));

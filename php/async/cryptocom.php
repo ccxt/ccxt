@@ -40,6 +40,8 @@ class cryptocom extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => true,
                 'createOrder' => true,
                 'createOrders' => true,
                 'fetchAccounts' => true,
@@ -94,7 +96,7 @@ class cryptocom extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
-                'fetchTransfers' => true,
+                'fetchTransfers' => false,
                 'fetchUnderlyingAssets' => false,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
@@ -103,7 +105,7 @@ class cryptocom extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
-                'transfer' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -210,6 +212,9 @@ class cryptocom extends Exchange {
                             'private/get-currency-networks' => 10 / 3,
                             'private/get-deposit-history' => 10 / 3,
                             'private/get-deposit-address' => 10 / 3,
+                            'private/export/create-export-request' => 10 / 3,
+                            'private/export/get-export-requests' => 10 / 3,
+                            'private/export/download-export-output' => 10 / 3,
                             'private/get-account-summary' => 10 / 3,
                             'private/create-order' => 2 / 3,
                             'private/cancel-order' => 2 / 3,
@@ -228,6 +233,7 @@ class cryptocom extends Exchange {
                             'private/otc/accept-quote' => 100,
                             'private/otc/get-quote-history' => 10 / 3,
                             'private/otc/get-trade-history' => 10 / 3,
+                            'private/otc/create-order' => 10 / 3,
                         ),
                     ),
                 ),
@@ -1847,190 +1853,6 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
-            /**
-             * transfer $currency internally between wallets on the same account
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount amount to transfer
-             * @param {string} $fromAccount account to transfer from
-             * @param {string} $toAccount account to transfer to
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
-             */
-            Async\await($this->load_markets());
-            $currency = $this->currency($code);
-            $fromAccount = strtolower($fromAccount);
-            $toAccount = strtolower($toAccount);
-            $accountsById = $this->safe_value($this->options, 'accountsById', array());
-            $fromId = $this->safe_string($accountsById, $fromAccount, $fromAccount);
-            $toId = $this->safe_string($accountsById, $toAccount, $toAccount);
-            $request = array(
-                'currency' => $currency['id'],
-                'amount' => floatval($amount),
-                'from' => $fromId,
-                'to' => $toId,
-            );
-            $method = 'v2PrivatePostPrivateDerivTransfer';
-            if (($fromAccount === 'margin') || ($toAccount === 'margin')) {
-                $method = 'v2PrivatePostPrivateMarginTransfer';
-            }
-            $response = Async\await($this->$method (array_merge($request, $params)));
-            //
-            //     {
-            //         "id" => 11,
-            //         "method" => "private/deriv/transfer",
-            //         "code" => 0
-            //     }
-            //
-            return $this->parse_transfer($response, $currency);
-        }) ();
-    }
-
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch a history of internal transfers made on an account
-             * @param {string} $code unified $currency $code of the $currency transferred
-             * @param {int} [$since] the earliest time in ms to fetch transfers for
-             * @param {int} [$limit] the maximum number of  transfers structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structures~
-             */
-            if (!(is_array($params) && array_key_exists('direction', $params))) {
-                throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a direction param to be either "IN" or "OUT"');
-            }
-            Async\await($this->load_markets());
-            $currency = null;
-            $request = array(
-                'direction' => 'OUT',
-            );
-            if ($code !== null) {
-                $currency = $this->currency($code);
-                $request['currency'] = $currency['id'];
-            }
-            if ($since !== null) {
-                $request['start_ts'] = $since;
-            }
-            if ($limit !== null) {
-                $request['page_size'] = $limit;
-            }
-            $method = 'v2PrivatePostPrivateDerivGetTransferHistory';
-            list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('fetchTransfers', $params);
-            if ($marginMode !== null) {
-                $method = 'v2PrivatePostPrivateMarginGetTransferHistory';
-            }
-            $response = Async\await($this->$method (array_merge($request, $query)));
-            //
-            //     {
-            //       "id" => "1641032709328",
-            //       "method" => "private/deriv/get-$transfer-history",
-            //       "code" => "0",
-            //       "result" => {
-            //         "transfer_list" => array(
-            //           {
-            //             "direction" => "IN",
-            //             "time" => "1641025185223",
-            //             "amount" => "109.56",
-            //             "status" => "COMPLETED",
-            //             "information" => "From Spot Wallet",
-            //             "currency" => "USDC"
-            //           }
-            //         )
-            //       }
-            //     }
-            //
-            $transfer = array();
-            $transfer[] = array(
-                'response' => $response,
-            );
-            return $this->parse_transfers($transfer, $currency, $since, $limit, $params);
-        }) ();
-    }
-
-    public function parse_transfer_status($status) {
-        $statuses = array(
-            'COMPLETED' => 'ok',
-            'PROCESSING' => 'pending',
-        );
-        return $this->safe_string($statuses, $status, $status);
-    }
-
-    public function parse_transfer($transfer, ?array $currency = null) {
-        //
-        //   {
-        //     "response" => {
-        //       "id" => "1641032709328",
-        //       "method" => "private/deriv/get-$transfer-history",
-        //       "code" => "0",
-        //       "result" => {
-        //         "transfer_list" => array(
-        //           {
-        //             "direction" => "IN",
-        //             "time" => "1641025185223",
-        //             "amount" => "109.56",
-        //             "status" => "COMPLETED",
-        //             "information" => "From Spot Wallet",
-        //             "currency" => "USDC"
-        //           }
-        //         )
-        //       }
-        //     }
-        //   }
-        //
-        $response = $this->safe_value($transfer, 'response', array());
-        $result = $this->safe_value($response, 'result', array());
-        $transferList = $this->safe_value($result, 'transfer_list', array());
-        $timestamp = null;
-        $amount = null;
-        $code = null;
-        $information = null;
-        $status = null;
-        for ($i = 0; $i < count($transferList); $i++) {
-            $entry = $transferList[$i];
-            $timestamp = $this->safe_integer($entry, 'time');
-            $amount = $this->safe_number($entry, 'amount');
-            $currencyId = $this->safe_string($entry, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $information = $this->safe_string($entry, 'information');
-            $rawStatus = $this->safe_string($entry, 'status');
-            $status = $this->parse_transfer_status($rawStatus);
-        }
-        $fromAccount = null;
-        $toAccount = null;
-        if ($information !== null) {
-            $parts = explode(' ', $information);
-            $direction = $this->safe_string_lower($parts, 0);
-            $method = $this->safe_string($response, 'method');
-            if ($direction === 'from') {
-                $fromAccount = $this->safe_string_lower($parts, 1);
-                if ($method === 'private/margin/get-$transfer-history') {
-                    $toAccount = 'margin';
-                } else {
-                    $toAccount = 'derivative';
-                }
-            } elseif ($direction === 'to') {
-                $toAccount = $this->safe_string_lower($parts, 1);
-                if ($method === 'private/margin/get-$transfer-history') {
-                    $fromAccount = 'margin';
-                } else {
-                    $fromAccount = 'derivative';
-                }
-            }
-        }
-        return array(
-            'info' => $transferList,
-            'id' => $this->safe_string($response, 'id'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'currency' => $code,
-            'amount' => $amount,
-            'fromAccount' => $fromAccount,
-            'toAccount' => $toAccount,
-            'status' => $status,
-        );
-    }
-
     public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker
@@ -3078,6 +2900,52 @@ class cryptocom extends Exchange {
             }
         }
         return $returnString;
+    }
+
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $side, $params) {
+            /**
+             * closes open positions for a $market
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
+             * @param {string} $symbol Unified CCXT $market $symbol
+             * @param {string} [marginMode] not used by cryptocom.closePositions
+             * @param {string} [$side] not used by cryptocom.closePositions
+             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} [$params->type] LIMIT or MARKET
+             * @param {number} [$params->price] for limit orders only
+             * @return {array[]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument_name' => $market['id'],
+                'type' => 'MARKET',
+            );
+            $type = $this->safe_string_upper($params, 'type');
+            $price = $this->safe_string($params, 'price');
+            if ($type !== null) {
+                $request['type'] = $type;
+            }
+            if ($price !== null) {
+                $request['price'] = $this->price_to_precision($market['symbol'], $price);
+            }
+            $response = Async\await($this->v1PrivatePostPrivateClosePosition (array_merge($request, $params)));
+            //
+            //    {
+            //        "id" : 1700830813298,
+            //        "method" : "private/close-position",
+            //        "code" : 0,
+            //        "result" : {
+            //            "client_oid" : "179a909d-5614-655b-0d0e-9e85c9a25c85",
+            //            "order_id" : "6142909897021751347"
+            //        }
+            //    }
+            //
+            $result = $this->safe_value($response, 'result');
+            return $this->parse_order($result, $market);
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

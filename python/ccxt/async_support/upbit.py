@@ -1622,6 +1622,7 @@ class upbit(Exchange, ImplicitAPI):
 
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
+        :see: https://docs.upbit.com/reference/디지털자산-출금하기
         :see: https://docs.upbit.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0
         make a withdrawal
         :param str code: unified currency code
@@ -1632,29 +1633,28 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
         request = {
             'amount': amount,
         }
-        method = 'privatePostWithdraws'
+        response = None
         if code != 'KRW':
+            self.check_address(address)
             # 2023-05-23 Change to required parameters for digital assets
             network = self.safe_string_upper_2(params, 'network', 'net_type')
             if network is None:
                 raise ArgumentsRequired(self.id + ' withdraw() requires a network argument')
             params = self.omit(params, ['network'])
             request['net_type'] = network
-            method += 'Coin'
             request['currency'] = currency['id']
             request['address'] = address
             if tag is not None:
                 request['secondary_address'] = tag
             params = self.omit(params, 'network')
+            response = await self.privatePostWithdrawsCoin(self.extend(request, params))
         else:
-            method += 'Krw'
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privatePostWithdrawsKrw(self.extend(request, params))
         #
         #     {
         #         "type": "withdraw",

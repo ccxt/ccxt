@@ -55,7 +55,7 @@ export default class bigone extends Exchange {
         id: any;
         timestamp: any;
         datetime: any;
-        currency: any;
+        currency: number;
         amount: any;
         fromAccount: any;
         toAccount: any;
@@ -66,7 +66,7 @@ export default class bigone extends Exchange {
         id: any;
         timestamp: any;
         datetime: any;
-        currency: any;
+        currency: number;
         amount: any;
         fromAccount: any;
         toAccount: any;

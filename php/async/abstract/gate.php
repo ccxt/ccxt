@@ -652,6 +652,12 @@ abstract class gate extends \ccxt\async\Exchange {
     public function private_options_delete_orders_order_id($params = array()) {
         return $this->request('orders/{order_id}', array('private', 'options'), 'DELETE', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function private_earn_get_uni_currencies($params = array()) {
+        return $this->request('uni/currencies', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_earn_get_uni_currencies_currency($params = array()) {
+        return $this->request('uni/currencies/{currency}', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function private_earn_get_uni_lends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -663,6 +669,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function private_earn_get_uni_interest_records($params = array()) {
         return $this->request('uni/interest_records', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_earn_get_uni_interest_status_currency($params = array()) {
+        return $this->request('uni/interest_status/{currency}', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function private_earn_post_uni_lends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
@@ -1372,6 +1381,12 @@ abstract class gate extends \ccxt\async\Exchange {
     public function privateOptionsDeleteOrdersOrderId($params = array()) {
         return $this->request('orders/{order_id}', array('private', 'options'), 'DELETE', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function privateEarnGetUniCurrencies($params = array()) {
+        return $this->request('uni/currencies', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateEarnGetUniCurrenciesCurrency($params = array()) {
+        return $this->request('uni/currencies/{currency}', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function privateEarnGetUniLends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -1383,6 +1398,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function privateEarnGetUniInterestRecords($params = array()) {
         return $this->request('uni/interest_records', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateEarnGetUniInterestStatusCurrency($params = array()) {
+        return $this->request('uni/interest_status/{currency}', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privateEarnPostUniLends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
