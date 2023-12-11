@@ -427,14 +427,22 @@ class probit extends Exchange {
                 }
                 $precision = $this->parse_precision($this->safe_string($network, 'precision'));
                 $withdrawFee = $this->safe_value($network, 'withdrawal_fee', array());
-                $networkfee = $this->safe_value($withdrawFee, 0, array());
+                $networkFee = $this->safe_value($withdrawFee, 0, array());
+                for ($k = 0; $k < count($withdrawFee); $k++) {
+                    $withdrawPlatform = $withdrawFee[$k];
+                    $feeCurrencyId = $this->safe_string($withdrawPlatform, 'currency_id');
+                    if ($feeCurrencyId === $id) {
+                        $networkFee = $withdrawPlatform;
+                        break;
+                    }
+                }
                 $networkList[$networkCode] = array(
                     'id' => $networkId,
                     'network' => $networkCode,
                     'active' => $currentActive,
                     'deposit' => $currentDeposit,
                     'withdraw' => $currentWithdraw,
-                    'fee' => $this->safe_number($networkfee, 'amount'),
+                    'fee' => $this->safe_number($networkFee, 'amount'),
                     'precision' => $this->parse_number($precision),
                     'limits' => array(
                         'withdraw' => array(

@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/currencycom.js';
-import { BadSymbol, ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest } from './base/errors.js';
+import { BadSymbol, ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1576,7 +1576,19 @@ export default class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateGetV2Deposits') {
+            response = await this.privateGetV2Deposits(this.extend(request, params));
+        }
+        else if (method === 'privateGetV2Withdrawals') {
+            response = await this.privateGetV2Withdrawals(this.extend(request, params));
+        }
+        else if (method === 'privateGetV2Transactions') {
+            response = await this.privateGetV2Transactions(this.extend(request, params));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchTransactionsByMethod() not support this method');
+        }
         //
         //    [
         //        {

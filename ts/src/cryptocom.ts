@@ -34,6 +34,8 @@ export default class cryptocom extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': true,
                 'createOrder': true,
                 'createOrders': true,
                 'fetchAccounts': true,
@@ -204,6 +206,9 @@ export default class cryptocom extends Exchange {
                             'private/get-currency-networks': 10 / 3,
                             'private/get-deposit-history': 10 / 3,
                             'private/get-deposit-address': 10 / 3,
+                            'private/export/create-export-request': 10 / 3,
+                            'private/export/get-export-requests': 10 / 3,
+                            'private/export/download-export-output': 10 / 3,
                             'private/get-account-summary': 10 / 3,
                             'private/create-order': 2 / 3,
                             'private/cancel-order': 2 / 3,
@@ -222,6 +227,7 @@ export default class cryptocom extends Exchange {
                             'private/otc/accept-quote': 100,
                             'private/otc/get-quote-history': 10 / 3,
                             'private/otc/get-trade-history': 10 / 3,
+                            'private/otc/create-order': 10 / 3,
                         },
                     },
                 },
@@ -2889,6 +2895,52 @@ export default class cryptocom extends Exchange {
             }
         }
         return returnString;
+    }
+
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name cryptocom#closePositions
+         * @description closes open positions for a market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} [marginMode] not used by cryptocom.closePositions
+         * @param {string} [side] not used by cryptocom.closePositions
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.type] LIMIT or MARKET
+         * @param {number} [params.price] for limit orders only
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_name': market['id'],
+            'type': 'MARKET',
+        };
+        const type = this.safeStringUpper (params, 'type');
+        const price = this.safeString (params, 'price');
+        if (type !== undefined) {
+            request['type'] = type;
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (market['symbol'], price);
+        }
+        const response = await this.v1PrivatePostPrivateClosePosition (this.extend (request, params));
+        //
+        //    {
+        //        "id" : 1700830813298,
+        //        "method" : "private/close-position",
+        //        "code" : 0,
+        //        "result" : {
+        //            "client_oid" : "179a909d-5614-655b-0d0e-9e85c9a25c85",
+        //            "order_id" : "6142909897021751347"
+        //        }
+        //    }
+        //
+        const result = this.safeValue (response, 'result');
+        return this.parseOrder (result, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

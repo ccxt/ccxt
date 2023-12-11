@@ -792,7 +792,7 @@ export default class Exchange {
     fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
-    closePosition(symbol: string, side?: OrderSide, marginMode?: string, params?: {}): Promise<Order>;
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     closeAllPositions(params?: {}): Promise<Position[]>;
     parseLastPrice(price: any, market?: Market): any;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
