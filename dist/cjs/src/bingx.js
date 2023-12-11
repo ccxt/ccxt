@@ -1223,35 +1223,6 @@ class bingx extends bingx$1 {
         else {
             response = await this.swapV2PublicGetQuoteTicker(this.extend(request, params));
         }
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //          "symbol": "BTC-USDT",
-        //          "priceChange": "52.5",
-        //          "priceChangePercent": "0.31",
-        //          "lastPrice": "16880.5",
-        //          "lastQty": "2.2238",
-        //          "highPrice": "16897.5",
-        //          "lowPrice": "16726.0",
-        //          "volume": "245870.1692",
-        //          "quoteVolume": "4151395117.73",
-        //          "openPrice": "16832.0",
-        //          "openTime": 1672026667803,
-        //          "closeTime": 1672026648425,
-        //  added some time ago:
-        //          "firstId": 12345,
-        //          "lastId": 12349,
-        //          "count": 5,
-        //  added 2023-11-10:
-        //          "bidPrice": 16726.0,
-        //          "bidQty": 0.05,
-        //          "askPrice": 16726.0,
-        //          "askQty": 0.05,
-        //        }
-        //    }
-        //
         const data = this.safeValue(response, 'data');
         const ticker = this.safeValue(data, 0, data);
         return this.parseTicker(ticker, market);
@@ -1282,37 +1253,6 @@ class bingx extends bingx$1 {
         else {
             response = await this.swapV2PublicGetQuoteTicker(params);
         }
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": [
-        //            {
-        //                "symbol": "BTC-USDT",
-        //                "priceChange": "52.5",
-        //                "priceChangePercent": "0.31",
-        //                "lastPrice": "16880.5",
-        //                "lastQty": "2.2238",
-        //                "highPrice": "16897.5",
-        //                "lowPrice": "16726.0",
-        //                "volume": "245870.1692",
-        //                "quoteVolume": "4151395117.73",
-        //                "openPrice": "16832.0",
-        //                "openTime": 1672026667803,
-        //                "closeTime": 1672026648425,
-        //  added some time ago:
-        //                "firstId": 12345,
-        //                "lastId": 12349,
-        //                "count": 5,
-        //  added 2023-11-10:
-        //                "bidPrice": 16726.0,
-        //                "bidQty": 0.05,
-        //                "askPrice": 16726.0,
-        //                "askQty": 0.05,
-        //            },
-        //        ]
-        //    }
-        //
         const tickers = this.safeValue(response, 'data');
         return this.parseTickers(tickers, symbols);
     }
@@ -1329,10 +1269,6 @@ class bingx extends bingx$1 {
         //        "quoteVolume": "30288466.44",
         //        "openTime": "1693081020762",
         //        "closeTime": "1693167420762",
-        //  added some time ago:
-        //        "firstId": 12345,
-        //        "lastId": 12349,
-        //        "count": 5,
         //  added 2023-11-10:
         //        "bidPrice": 16726.0,
         //        "bidQty": 0.05,
@@ -1344,9 +1280,9 @@ class bingx extends bingx$1 {
         //    {
         //        "symbol": "BTC-USDT",
         //        "priceChange": "52.5",
-        //        "priceChangePercent": "0.31",
+        //        "priceChangePercent": "0.31%", // they started to add the percent sign in value
         //        "lastPrice": "16880.5",
-        //        "lastQty": "2.2238",
+        //        "lastQty": "2.2238",          // only present in swap!
         //        "highPrice": "16897.5",
         //        "lowPrice": "16726.0",
         //        "volume": "245870.1692",
@@ -1354,10 +1290,6 @@ class bingx extends bingx$1 {
         //        "openPrice": "16832.0",
         //        "openTime": 1672026667803,
         //        "closeTime": 1672026648425,
-        //  added some time ago:
-        //        "firstId": 12345,
-        //        "lastId": 12349,
-        //        "count": 5,
         //  added 2023-11-10:
         //        "bidPrice": 16726.0,
         //        "bidQty": 0.05,
@@ -1367,7 +1299,10 @@ class bingx extends bingx$1 {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const change = this.safeString(ticker, 'priceChange');
-        const type = (change === undefined) ? 'spot' : 'swap';
+        const lastQty = this.safeString(ticker, 'lastQty');
+        // in spot markets, lastQty is not present
+        // it's (bad, but) the only way we can check the tickers origin
+        const type = (lastQty === undefined) ? 'spot' : 'swap';
         const symbol = this.safeSymbol(marketId, market, undefined, type);
         const open = this.safeString(ticker, 'openPrice');
         const high = this.safeString(ticker, 'highPrice');
@@ -1375,7 +1310,10 @@ class bingx extends bingx$1 {
         const close = this.safeString(ticker, 'lastPrice');
         const quoteVolume = this.safeString(ticker, 'quoteVolume');
         const baseVolume = this.safeString(ticker, 'volume');
-        const percentage = this.safeString(ticker, 'priceChangePercent');
+        let percentage = this.safeString(ticker, 'priceChangePercent');
+        if (percentage !== undefined) {
+            percentage = percentage.replace('%', '');
+        }
         const ts = this.safeInteger(ticker, 'closeTime');
         const datetime = this.iso8601(ts);
         const bid = this.safeString(ticker, 'bidPrice');
@@ -2074,6 +2012,9 @@ class bingx extends bingx$1 {
         const positionSide = this.safeString2(order, 'positionSide', 'ps');
         const marketType = (positionSide === undefined) ? 'spot' : 'swap';
         const marketId = this.safeString2(order, 'symbol', 's');
+        if (market === undefined) {
+            market = this.safeMarket(marketId, undefined, undefined, marketType);
+        }
         const symbol = this.safeSymbol(marketId, market, '-', marketType);
         const orderId = this.safeString2(order, 'orderId', 'i');
         const side = this.safeStringLower2(order, 'side', 'S');
@@ -2439,16 +2380,15 @@ class bingx extends bingx$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
-        }
         await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-        };
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
         let response = undefined;
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchOrder', market, params);
+        const [marketType, query] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
             response = await this.spotV1PrivateGetTradeOpenOrders(this.extend(request, query));
         }
@@ -2971,7 +2911,8 @@ class bingx extends bingx$1 {
     }
     parseTransactionStatus(status) {
         const statuses = {
-            '0': 'ok',
+            '0': 'pending',
+            '1': 'ok',
             '10': 'pending',
             '20': 'rejected',
             '30': 'ok',
@@ -3430,7 +3371,7 @@ class bingx extends bingx$1 {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#close-all-position
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.recvWindow] request valid time window value
-         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');

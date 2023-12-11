@@ -57,6 +57,8 @@ class okx(Exchange, ImplicitAPI):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': False,
+                'closePosition': True,
                 'createDepositAddress': False,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketSellOrderWithCost': True,
@@ -311,6 +313,7 @@ class okx(Exchange, ImplicitAPI):
                         'asset/convert/currencies': 5 / 3,
                         'asset/convert/currency-pair': 5 / 3,
                         'asset/convert/history': 5 / 3,
+                        'asset/monthly-statement': 2,
                         # account
                         'account/balance': 2,
                         'account/positions': 2,
@@ -444,6 +447,7 @@ class okx(Exchange, ImplicitAPI):
                         'asset/convert-dust-assets': 10,
                         'asset/convert/estimate-quote': 1,
                         'asset/convert/trade': 1,
+                        'asset/monthly-statement': 1,
                         # account
                         'account/set-position-mode': 4,
                         'account/set-leverage': 1,
@@ -2958,7 +2962,11 @@ class okx(Exchange, ImplicitAPI):
                     'instId': market['id'],
                     'clOrdId': clientOrderIds[i],
                 })
-        response = await getattr(self, method)(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+        response = None
+        if method == 'privatePostTradeCancelAlgos':
+            response = await self.privatePostTradeCancelAlgos(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+        else:
+            response = await self.privatePostTradeCancelBatchOrders(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
         #
         #     {
         #         "code": "0",
@@ -3239,7 +3247,11 @@ class okx(Exchange, ImplicitAPI):
             else:
                 request['ordId'] = id
         query = self.omit(params, ['method', 'clOrdId', 'clientOrderId', 'stop'])
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if method == 'privateGetTradeOrderAlgo':
+            response = await self.privateGetTradeOrderAlgo(self.extend(request, query))
+        else:
+            response = await self.privateGetTradeOrder(self.extend(request, query))
         #
         # Spot and Swap
         #
@@ -3390,7 +3402,11 @@ class okx(Exchange, ImplicitAPI):
                 if ordType is None:
                     raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"')
         query = self.omit(params, ['method', 'stop'])
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if method == 'privateGetTradeOrdersAlgoPending':
+            response = await self.privateGetTradeOrdersAlgoPending(self.extend(request, query))
+        else:
+            response = await self.privateGetTradeOrdersPending(self.extend(request, query))
         #
         #     {
         #         "code": "0",
@@ -3551,7 +3567,11 @@ class okx(Exchange, ImplicitAPI):
                 request['end'] = until
                 query = self.omit(query, ['until', 'till'])
         send = self.omit(query, ['method', 'stop', 'ordType'])
-        response = await getattr(self, method)(self.extend(request, send))
+        response = None
+        if method == 'privateGetTradeOrdersAlgoHistory':
+            response = await self.privateGetTradeOrdersAlgoHistory(self.extend(request, send))
+        else:
+            response = await self.privateGetTradeOrdersHistory(self.extend(request, send))
         #
         #     {
         #         "code": "0",
@@ -3717,7 +3737,11 @@ class okx(Exchange, ImplicitAPI):
                 query = self.omit(query, ['until', 'till'])
             request['state'] = 'filled'
         send = self.omit(query, ['method', 'stop'])
-        response = await getattr(self, method)(self.extend(request, send))
+        response = None
+        if method == 'privateGetTradeOrdersAlgoHistory':
+            response = await self.privateGetTradeOrdersAlgoHistory(self.extend(request, send))
+        else:
+            response = await self.privateGetTradeOrdersHistory(self.extend(request, send))
         #
         #     {
         #         "code": "0",
@@ -3954,7 +3978,13 @@ class okx(Exchange, ImplicitAPI):
             currency = self.currency(code)
             request['ccy'] = currency['id']
         request, params = self.handle_until_option('end', request, params)
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if method == 'privateGetAccountBillsArchive':
+            response = await self.privateGetAccountBillsArchive(self.extend(request, query))
+        elif method == 'privateGetAssetBills':
+            response = await self.privateGetAssetBills(self.extend(request, query))
+        else:
+            response = await self.privateGetAccountBills(self.extend(request, query))
         #
         # privateGetAccountBills, privateGetAccountBillsArchive
         #
@@ -4807,7 +4837,11 @@ class okx(Exchange, ImplicitAPI):
                 request['instId'] = ','.join(marketIds)
         fetchPositionsOptions = self.safe_value(self.options, 'fetchPositions', {})
         method = self.safe_string(fetchPositionsOptions, 'method', 'privateGetAccountPositions')
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetAccountPositionsHistory':
+            response = await self.privateGetAccountPositionsHistory(self.extend(request, params))
+        else:
+            response = await self.privateGetAccountPositions(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -6665,6 +6699,66 @@ class okx(Exchange, ImplicitAPI):
             'underlyingPrice': None,
             'info': greeks,
         }
+
+    async def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+        """
+        closes open positions for a market
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
+        :param str symbol: Unified CCXT market symbol
+        :param str [side]: 'buy' or 'sell', leave in net mode
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.clientOrderId]: a unique identifier for the order
+        :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross
+        :param str [params.code]: *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param boolean [params.autoCxl]: whether any pending orders for closing out needs to be automatically canceled when close position via a market order. False or True, the default is False
+        :param str [params.tag]: order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
+        :returns [dict]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        code = self.safe_string(params, 'code')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('closePosition', params, 'cross')
+        request = {
+            'instId': market['id'],
+            'mgnMode': marginMode,
+        }
+        if side is not None:
+            if (side == 'buy'):
+                request['posSide'] = 'long'
+            elif side == 'sell':
+                request['posSide'] = 'short'
+            else:
+                request['posSide'] = side
+        if clientOrderId is not None:
+            request['clOrdId'] = clientOrderId
+        if code is not None:
+            currency = self.currency(code)
+            request['ccy'] = currency['id']
+        response = await self.privatePostTradeClosePosition(self.extend(request, params))
+        #
+        #    {
+        #        "code": "1",
+        #        "data": [
+        #            {
+        #                "clOrdId":"e847386590ce4dBCe903bbc394dc88bf",
+        #                "ordId":"",
+        #                "sCode":"51000",
+        #                "sMsg":"Parameter posSide error ",
+        #                "tag":"e847386590ce4dBC"
+        #            }
+        #        ],
+        #        "inTime": "1701877077101064",
+        #        "msg": "All operations failed",
+        #        "outTime": "1701877077102579"
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        order = self.safe_value(data, 0)
+        return self.parse_order(order, market)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

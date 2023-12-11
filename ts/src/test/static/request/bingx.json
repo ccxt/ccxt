@@ -338,6 +338,32 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Spot open orders without symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/openOrders?timestamp=1699458294086&signature=53513e8b347e982ae257694c54b06333af66b702884d7db3036b1c8c60c219e7",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Swap open orders without symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/openOrders?timestamp=1699458294373&signature=0386bcc46ee9b65c4a2b770c9eb8bbdeec387ea6230d8456d37a4c0c103979e0",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ]
             }
         ],
         "fetchClosedOrders": [

@@ -48,6 +48,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': False,
+                'closePosition': True,
                 'createOrder': True,
                 'createOrders': True,
                 'fetchAccounts': True,
@@ -218,6 +220,9 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/get-currency-networks': 10 / 3,
                             'private/get-deposit-history': 10 / 3,
                             'private/get-deposit-address': 10 / 3,
+                            'private/export/create-export-request': 10 / 3,
+                            'private/export/get-export-requests': 10 / 3,
+                            'private/export/download-export-output': 10 / 3,
                             'private/get-account-summary': 10 / 3,
                             'private/create-order': 2 / 3,
                             'private/cancel-order': 2 / 3,
@@ -236,6 +241,7 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/otc/accept-quote': 100,
                             'private/otc/get-quote-history': 10 / 3,
                             'private/otc/get-trade-history': 10 / 3,
+                            'private/otc/create-order': 10 / 3,
                         },
                     },
                 },
@@ -2678,6 +2684,47 @@ class cryptocom(Exchange, ImplicitAPI):
             else:
                 returnString += str(value)
         return returnString
+
+    async def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+        """
+        closes open positions for a market
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
+        :param str symbol: Unified CCXT market symbol
+        :param str [marginMode]: not used by cryptocom.closePositions
+        :param str [side]: not used by cryptocom.closePositions
+        :param dict [params]: extra parameters specific to the okx api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param str [params.type]: LIMIT or MARKET
+        :param number [params.price]: for limit orders only
+        :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instrument_name': market['id'],
+            'type': 'MARKET',
+        }
+        type = self.safe_string_upper(params, 'type')
+        price = self.safe_string(params, 'price')
+        if type is not None:
+            request['type'] = type
+        if price is not None:
+            request['price'] = self.price_to_precision(market['symbol'], price)
+        response = await self.v1PrivatePostPrivateClosePosition(self.extend(request, params))
+        #
+        #    {
+        #        "id" : 1700830813298,
+        #        "method" : "private/close-position",
+        #        "code" : 0,
+        #        "result" : {
+        #            "client_oid" : "179a909d-5614-655b-0d0e-9e85c9a25c85",
+        #            "order_id" : "6142909897021751347"
+        #        }
+        #    }
+        #
+        result = self.safe_value(response, 'result')
+        return self.parse_order(result, market)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         type = self.safe_string(api, 0)

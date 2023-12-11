@@ -637,6 +637,37 @@
             "output": "[{\"algoId\":\"639637720528322560\",\"instId\":\"LTC-USDT-SWAP\"},{\"algoId\":\"635260475386888192\",\"instId\":\"LTC-USDT-SWAP\"}]"
           }
         ],
+        "closePosition": [
+          {
+            "description": "Closing positiion in net mode",
+            "method": "closePosition",
+            "url": "https://www.okx.com/api/v5/trade/close-position",
+            "input": [
+              "ADA/USDT:USDT"
+            ],
+            "output": "{\"instId\":\"ADA-USDT-SWAP\",\"mgnMode\":\"cross\"}"
+          },
+          {
+            "description": "Closing a short position in dual mode",
+            "method": "closePosition",
+            "url": "https://www.okx.com/api/v5/trade/close-position",
+            "input": [
+              "ADA/USDT:USDT",
+              "sell"
+            ],
+            "output": "{\"instId\":\"ADA-USDT-SWAP\",\"mgnMode\":\"cross\",\"posSide\":\"short\"}"
+          },
+          {
+            "description": "closing a long position in dual mode",
+            "method": "closePosition",
+            "url": "https://www.okx.com/api/v5/trade/close-position",
+            "input": [
+              "ADA/USDT:USDT",
+              "buy"
+            ],
+            "output": "{\"instId\":\"ADA-USDT-SWAP\",\"mgnMode\":\"cross\",\"posSide\":\"long\"}"
+          }
+        ],
         "fetchMyTrades": [
           {
             "description": "Spot fetch my trades with no arguments",
@@ -736,6 +767,42 @@
             "method": "fetchCrossBorrowRates",
             "url": "https://www.okx.com/api/v5/account/interest-rate",
             "input": []
+          }
+        ],
+        "fetchLedger": [
+          {
+            "description": "Fetch Ledger",
+            "method": "fetchLedger",
+            "url": "https://www.okx.com/api/v5/account/bills?instType=SPOT&ccy=USDT",
+            "input": [
+              "USDT"
+            ]
+          },
+          {
+            "description": "Fetch Ledger",
+            "method": "fetchLedger",
+            "url": "https://www.okx.com/api/v5/account/bills-archive?instType=SPOT&ccy=USDT",
+            "input": [
+              "USDT",
+              null,
+              null,
+              {
+                "method": "privateGetAccountBillsArchive"
+              }
+            ]
+          },
+          {
+            "description": "Fetch Ledger",
+            "method": "fetchLedger",
+            "url": "https://www.okx.com/api/v5/asset/bills?instType=SPOT&ccy=USDT",
+            "input": [
+              "USDT",
+              null,
+              null,
+              {
+                "method": "privateGetAssetBills"
+              }
+            ]
           }
         ]
     }

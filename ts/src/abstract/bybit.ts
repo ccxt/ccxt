@@ -176,6 +176,8 @@ interface Exchange {
     privateGetV5LendingHistoryOrder (params?: {}): Promise<implicitReturnType>;
     privateGetV5LendingAccount (params?: {}): Promise<implicitReturnType>;
     privateGetV5BrokerEarningRecord (params?: {}): Promise<implicitReturnType>;
+    privateGetV5BrokerEarningsInfo (params?: {}): Promise<implicitReturnType>;
+    privateGetV5BrokerAccountInfo (params?: {}): Promise<implicitReturnType>;
     privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (params?: {}): Promise<implicitReturnType>;
     privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder (params?: {}): Promise<implicitReturnType>;
     privatePostOptionUsdcOpenapiPrivateV1CancelOrder (params?: {}): Promise<implicitReturnType>;
@@ -263,6 +265,7 @@ interface Exchange {
     privatePostV5PositionAddMargin (params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionConfirmPendingMmr (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountUpgradeToUta (params?: {}): Promise<implicitReturnType>;
+    privatePostV5AccountQuickRepayment (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountSetMarginMode (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountSetHedgingMode (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountMmpModify (params?: {}): Promise<implicitReturnType>;

@@ -40,6 +40,9 @@ export default class htx extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': undefined,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': false,
@@ -3340,14 +3343,16 @@ export default class htx extends Exchange {
         //                 "margin_mode": "cross",
         //                 "margin_account": "USDT",
         //                 "margin_asset": "USDT",
-        //                 "margin_balance": 200.000000000000000000,
-        //                 "margin_static": 200.000000000000000000,
-        //                 "margin_position": 0,
-        //                 "margin_frozen": 0,
-        //                 "profit_real": 0E-18,
-        //                 "profit_unreal": 0,
-        //                 "withdraw_available": 2E+2,
-        //                 "risk_rate": null,
+        //                 "margin_balance": 49.874186030200000000,
+        //                 "money_in": 50,
+        //                 "money_out": 0,
+        //                 "margin_static": 49.872786030200000000,
+        //                 "margin_position": 6.180000000000000000,
+        //                 "margin_frozen": 6.000000000000000000,
+        //                 "profit_unreal": 0.001400000000000000,
+        //                 "withdraw_available": 37.6927860302,
+        //                 "risk_rate": 271.984050521072796934,
+        //                 "new_risk_rate": 0.001858676950514399,
         //                 "contract_detail": [
         //                     {
         //                         "symbol": "MANA",
@@ -3449,8 +3454,8 @@ export default class htx extends Exchange {
                 }
             } else {
                 const account = this.account ();
-                account['free'] = this.safeString (first, 'margin_balance', 'margin_available');
-                account['used'] = this.safeString (first, 'margin_frozen');
+                account['free'] = this.safeString (first, 'withdraw_available');
+                account['total'] = this.safeString (first, 'margin_balance');
                 const currencyId = this.safeString2 (first, 'margin_asset', 'symbol');
                 const code = this.safeCurrencyCode (currencyId);
                 result[code] = account;
@@ -4775,6 +4780,26 @@ export default class htx extends Exchange {
         }, market);
     }
 
+    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+        /**
+         * @method
+         * @name htx#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4ee16-7773-11ed-9966-0242ac110003
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+    }
+
     async createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -4788,6 +4813,7 @@ export default class htx extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
+         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
          * @returns {object} request to be sent to the exchange
          */
         await this.loadMarkets ();
@@ -4856,9 +4882,16 @@ export default class htx extends Exchange {
             request['source'] = 'c2c-margin-api';
         }
         if ((orderType === 'market') && (side === 'buy')) {
-            if (this.options['createMarketBuyOrderRequiresPrice']) {
+            let quoteAmount = undefined;
+            let createMarketBuyOrderRequiresPrice = true;
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber (params, 'cost');
+            params = this.omit (params, 'cost');
+            if (cost !== undefined) {
+                quoteAmount = this.amountToPrecision (symbol, cost);
+            } else if (createMarketBuyOrderRequiresPrice) {
                 if (price === undefined) {
-                    throw new InvalidOrder (this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
+                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 } else {
                     // despite that cost = amount * price is in quote currency and should have quote precision
                     // the exchange API requires the cost supplied in 'amount' to be of base precision
@@ -4868,11 +4901,12 @@ export default class htx extends Exchange {
                     // we use amountToPrecision here because the exchange requires cost in base precision
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
-                    request['amount'] = this.costToPrecision (symbol, Precise.stringMul (amountString, priceString));
+                    quoteAmount = this.amountToPrecision (symbol, Precise.stringMul (amountString, priceString));
                 }
             } else {
-                request['amount'] = this.costToPrecision (symbol, amount);
+                quoteAmount = this.amountToPrecision (symbol, amount);
             }
+            request['amount'] = quoteAmount;
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
@@ -5001,6 +5035,7 @@ export default class htx extends Exchange {
          * @param {bool} [params.postOnly] *contract only* true or false
          * @param {int} [params.leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
          * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();

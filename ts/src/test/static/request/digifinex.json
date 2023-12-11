@@ -57,6 +57,51 @@
                   }
                 ],
                 "output": "{\"instrument_id\":\"LTCUSDTPERP\",\"type\":3,\"order_type\":14,\"size\":1}"
+            },
+            {
+                "description": "Spot market buy with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://openapi.digifinex.com/v3/spot/order/new",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "buy",
+                  2,
+                  null,
+                  {
+                    "createMarketBuyOrderRequiresPrice": false
+                  }
+                ],
+                "output": "amount=2&market=spot&symbol=BTC_USDT&type=buy_market"
+            },
+            {
+                "description": "Spot market buy using the cost param",
+                "method": "createOrder",
+                "url": "https://openapi.digifinex.com/v3/spot/order/new",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "buy",
+                  null,
+                  null,
+                  {
+                    "cost": 2
+                  }
+                ],
+                "output": "amount=2&market=spot&symbol=BTC_USDT&type=buy_market"
+            },
+            {
+                "description": "Spot market sell order",
+                "method": "createOrder",
+                "url": "https://openapi.digifinex.com/v3/spot/order/new",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "sell",
+                  0.00012,
+                  null
+                ],
+                "output": "amount=0.00012&market=spot&symbol=BTC_USDT&type=sell_market"
             }
         ],
         "createOrders": [
@@ -137,6 +182,18 @@
                   ]
                 ],
                 "output": "[{\"instrument_id\":\"BTCUSDTPERP\",\"type\":1,\"price\":\"25000\",\"order_type\":0,\"size\":1},{\"instrument_id\":\"BTCUSDTPERP\",\"type\":1,\"price\":\"27000\",\"order_type\":0,\"size\":1}]"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "Spot create a market buy order using the cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://openapi.digifinex.com/v3/spot/order/new",
+                "input": [
+                  "BTC/USDT",
+                  2
+                ],
+                "output": "amount=2&market=spot&symbol=BTC_USDT&type=buy_market"
             }
         ],
         "fetchOrders": [

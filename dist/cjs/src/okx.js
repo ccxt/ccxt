@@ -34,6 +34,8 @@ class okx extends okx$1 {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': true,
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketSellOrderWithCost': true,
@@ -288,6 +290,7 @@ class okx extends okx$1 {
                         'asset/convert/currencies': 5 / 3,
                         'asset/convert/currency-pair': 5 / 3,
                         'asset/convert/history': 5 / 3,
+                        'asset/monthly-statement': 2,
                         // account
                         'account/balance': 2,
                         'account/positions': 2,
@@ -421,6 +424,7 @@ class okx extends okx$1 {
                         'asset/convert-dust-assets': 10,
                         'asset/convert/estimate-quote': 1,
                         'asset/convert/trade': 1,
+                        'asset/monthly-statement': 1,
                         // account
                         'account/set-position-mode': 4,
                         'account/set-leverage': 1,
@@ -3138,7 +3142,13 @@ class okx extends okx$1 {
                 });
             }
         }
-        const response = await this[method](request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        let response = undefined;
+        if (method === 'privatePostTradeCancelAlgos') {
+            response = await this.privatePostTradeCancelAlgos(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        }
+        else {
+            response = await this.privatePostTradeCancelBatchOrders(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        }
         //
         //     {
         //         "code": "0",
@@ -3437,7 +3447,13 @@ class okx extends okx$1 {
             }
         }
         const query = this.omit(params, ['method', 'clOrdId', 'clientOrderId', 'stop']);
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (method === 'privateGetTradeOrderAlgo') {
+            response = await this.privateGetTradeOrderAlgo(this.extend(request, query));
+        }
+        else {
+            response = await this.privateGetTradeOrder(this.extend(request, query));
+        }
         //
         // Spot and Swap
         //
@@ -3596,7 +3612,13 @@ class okx extends okx$1 {
             }
         }
         const query = this.omit(params, ['method', 'stop']);
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoPending') {
+            response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, query));
+        }
+        else {
+            response = await this.privateGetTradeOrdersPending(this.extend(request, query));
+        }
         //
         //     {
         //         "code": "0",
@@ -3768,7 +3790,13 @@ class okx extends okx$1 {
             }
         }
         const send = this.omit(query, ['method', 'stop', 'ordType']);
-        const response = await this[method](this.extend(request, send));
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoHistory') {
+            response = await this.privateGetTradeOrdersAlgoHistory(this.extend(request, send));
+        }
+        else {
+            response = await this.privateGetTradeOrdersHistory(this.extend(request, send));
+        }
         //
         //     {
         //         "code": "0",
@@ -3945,7 +3973,13 @@ class okx extends okx$1 {
             request['state'] = 'filled';
         }
         const send = this.omit(query, ['method', 'stop']);
-        const response = await this[method](this.extend(request, send));
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoHistory') {
+            response = await this.privateGetTradeOrdersAlgoHistory(this.extend(request, send));
+        }
+        else {
+            response = await this.privateGetTradeOrdersHistory(this.extend(request, send));
+        }
         //
         //     {
         //         "code": "0",
@@ -4198,7 +4232,16 @@ class okx extends okx$1 {
             request['ccy'] = currency['id'];
         }
         [request, params] = this.handleUntilOption('end', request, params);
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (method === 'privateGetAccountBillsArchive') {
+            response = await this.privateGetAccountBillsArchive(this.extend(request, query));
+        }
+        else if (method === 'privateGetAssetBills') {
+            response = await this.privateGetAssetBills(this.extend(request, query));
+        }
+        else {
+            response = await this.privateGetAccountBills(this.extend(request, query));
+        }
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -5110,7 +5153,13 @@ class okx extends okx$1 {
         }
         const fetchPositionsOptions = this.safeValue(this.options, 'fetchPositions', {});
         const method = this.safeString(fetchPositionsOptions, 'method', 'privateGetAccountPositions');
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateGetAccountPositionsHistory') {
+            response = await this.privateGetAccountPositionsHistory(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetAccountPositions(this.extend(request, params));
+        }
         //
         //     {
         //         "code": "0",
@@ -7122,6 +7171,74 @@ class okx extends okx$1 {
             'underlyingPrice': undefined,
             'info': greeks,
         };
+    }
+    async closePosition(symbol, side = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#closePosition
+         * @description closes open positions for a market
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.clientOrderId] a unique identifier for the order
+         * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
+         * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
+         * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
+         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        const code = this.safeString(params, 'code');
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('closePosition', params, 'cross');
+        const request = {
+            'instId': market['id'],
+            'mgnMode': marginMode,
+        };
+        if (side !== undefined) {
+            if ((side === 'buy')) {
+                request['posSide'] = 'long';
+            }
+            else if (side === 'sell') {
+                request['posSide'] = 'short';
+            }
+            else {
+                request['posSide'] = side;
+            }
+        }
+        if (clientOrderId !== undefined) {
+            request['clOrdId'] = clientOrderId;
+        }
+        if (code !== undefined) {
+            const currency = this.currency(code);
+            request['ccy'] = currency['id'];
+        }
+        const response = await this.privatePostTradeClosePosition(this.extend(request, params));
+        //
+        //    {
+        //        "code": "1",
+        //        "data": [
+        //            {
+        //                "clOrdId":"e847386590ce4dBCe903bbc394dc88bf",
+        //                "ordId":"",
+        //                "sCode":"51000",
+        //                "sMsg":"Parameter posSide error ",
+        //                "tag":"e847386590ce4dBC"
+        //            }
+        //        ],
+        //        "inTime": "1701877077101064",
+        //        "msg": "All operations failed",
+        //        "outTime": "1701877077102579"
+        //    }
+        //
+        const data = this.safeValue(response, 'data');
+        const order = this.safeValue(data, 0);
+        return this.parseOrder(order, market);
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {

@@ -8392,7 +8392,7 @@ class binance extends Exchange {
                     $extendedParams = $this->omit($extendedParams, array( 'orderidlist', 'origclientorderidlist' ));
                     $query = $this->rawencode($extendedParams);
                     $orderidlistLength = count($orderidlist);
-                    $origclientorderidlistLength = count($orderidlist);
+                    $origclientorderidlistLength = count($origclientorderidlist);
                     if ($orderidlistLength > 0) {
                         $query = $query . '&' . 'orderidlist=[' . implode(',', $orderidlist) . ']';
                     }
