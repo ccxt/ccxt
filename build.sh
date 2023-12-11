@@ -41,7 +41,7 @@ function run_tests {
   if [ -z "$ws_pid" ]; then
     if [ -z "$ws_args" ] || { [ -n "$ws_args" ] && [ "$ws_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node run-tests --ws --js --python-async --php-async $ws_args &
+      node run-tests-ws --js --python-async --php-async $ws_args &
       local ws_pid=$!
     fi
   fi
@@ -101,22 +101,22 @@ if [[ "$IS_TRAVIS" != "TRUE" ]]; then
   git fetch --depth=1 --no-tags
 fi
 
-# diff=$(git diff origin/master --name-only)
-# # temporarily remove the below scripts from diff
-# diff=$(echo "$diff" | sed -e "s/^build\.sh//")
-# diff=$(echo "$diff" | sed -e "s/^skip\-tests\.json//")
-# diff=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//") #remove static tests and markets
-# # diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
-# # diff=$(echo "$diff" | sed -e "s/^package\-lock\.json//")
-# # diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
-# #echo $diff
+diff=$(git diff origin/master --name-only)
+# temporarily remove the below scripts from diff
+diff=$(echo "$diff" | sed -e "s/^build\.sh//")
+diff=$(echo "$diff" | sed -e "s/^skip\-tests\.json//")
+diff=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//") #remove static tests and markets
+# diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
+# diff=$(echo "$diff" | sed -e "s/^package\-lock\.json//")
+# diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
+#echo $diff
 
-# critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
-# if [[ "$diff" =~ $critical_pattern ]]; then
-#   echo "$msgPrefix Important changes detected - doing full build & test"
-#   echo "$diff"
-#   build_and_test_all
-# fi
+critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
+if [[ "$diff" =~ $critical_pattern ]]; then
+  echo "$msgPrefix Important changes detected - doing full build & test"
+  echo "$diff"
+  build_and_test_all
+fi
 
 echo "$msgPrefix Unimportant changes detected - build & test only specific exchange(s)"
 readarray -t y <<<"$diff"
@@ -135,9 +135,6 @@ for file in "${y[@]}"; do
   fi
 done
 
-WS_EXCHANGES+=('bitget')
-WS_EXCHANGES+=('ascendex')
-WS_EXCHANGES+=('binance')
 
 ### BUILD SPECIFIC EXCHANGES ###
 # faster version of pre-transpile (without bundle and atomic linting)
@@ -145,6 +142,30 @@ npm run export-exchanges && npm run tsBuild && npm run emitAPI
 
 # check return types
 npm run validate-types ${REST_EXCHANGES[*]}
+
+echo "$msgPrefix REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[*]}"
+PYTHON_FILES=()
+for exchange in "${REST_EXCHANGES[@]}"; do
+  npm run eslint "ts/src/$exchange.ts"
+  node build/transpile.js $exchange --force --child
+  PYTHON_FILES+=("python/ccxt/$exchange.py")
+  PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
+done
+echo "$msgPrefix WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[*]}"
+for exchange in "${WS_EXCHANGES[@]}"; do
+  npm run eslint "ts/src/pro/$exchange.ts"
+  node build/transpileWS.js $exchange --force --child
+  PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
+done
+# faster version of post-transpile
+npm run check-php-syntax
+
+# only run the python linter if exchange related files are changed
+if [ ${#PYTHON_FILES[@]} -gt 0 ]; then
+  echo "$msgPrefix Linting python files: ${PYTHON_FILES[*]}"
+  ruff "${PYTHON_FILES[@]}"
+fi
+
 
 ### RUN SPECIFIC TESTS (ONLY IN TRAVIS) ###
 if [[ "$IS_TRAVIS" != "TRUE" ]]; then
