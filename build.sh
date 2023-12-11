@@ -94,22 +94,17 @@ for file in "${y[@]}"; do
   fi
 done
 
-WS_EXCHANGES+=('bitget')
+WS_EXCHANGES+=('ascendex')
 
 ### BUILD SPECIFIC EXCHANGES ###
 # faster version of pre-transpile (without bundle and atomic linting)
-npm run export-exchanges && npm run tsBuild && npm run emitAPI
+npm run export-exchanges && npm run emitAPI
 
 # check return types
 # npm run validate-types ${REST_EXCHANGES[*]}
 
 
-echo "$msgPrefix WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[*]}"
-for exchange in "${WS_EXCHANGES[@]}"; do
-  npm run eslint "ts/src/pro/$exchange.ts"
-  node build/transpileWS.js $exchange --force --child
-  # PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
-done
+
 # faster version of post-transpile
 # npm run check-php-syntax
 
@@ -119,15 +114,6 @@ if [ ${#PYTHON_FILES[@]} -gt 0 ]; then
   # ruff "${PYTHON_FILES[@]}"
 fi
 
-
-### RUN SPECIFIC TESTS (ONLY IN TRAVIS) ###
-if [[ "$IS_TRAVIS" != "TRUE" ]]; then
-  exit
-fi
-if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
-  echo "$msgPrefix no exchanges to test, exiting"
-  exit
-fi
 
 # run base tests (base js,py,php, brokerId and static-tests)
 # npm run test-base
