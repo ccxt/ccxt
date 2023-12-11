@@ -2023,6 +2023,9 @@ export default class bingx extends Exchange {
         const positionSide = this.safeString2 (order, 'positionSide', 'ps');
         const marketType = (positionSide === undefined) ? 'spot' : 'swap';
         const marketId = this.safeString2 (order, 'symbol', 's');
+        if (market === undefined) {
+            market = this.safeMarket (marketId, undefined, undefined, marketType);
+        }
         const symbol = this.safeSymbol (marketId, market, '-', marketType);
         const orderId = this.safeString2 (order, 'orderId', 'i');
         const side = this.safeStringLower2 (order, 'side', 'S');
