@@ -279,7 +279,7 @@ export default class bitmart extends bitmartRest {
         if (type === 'swap') {
             throw new NotSupported (this.id + ' watchTicker() does not support ' + type + ' markets. Use watchTickers() instead');
         }
-        return await this.subscribe ('ticker', symbol, params);
+        return await this.subscribe ('ticker', symbol, type, params);
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}) {
