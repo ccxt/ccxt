@@ -4237,7 +4237,7 @@ export default class Exchange {
     }
 
     handleWithdrawTagAndParams (tag, params): any {
-        if (typeof tag === 'object') {
+        if ((tag !== undefined) && (typeof tag === 'object')) {
             params = this.extend (tag, params);
             tag = undefined;
         }
