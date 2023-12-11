@@ -1623,7 +1623,8 @@ export default class Exchange {
         const usedProxies = [];
         let wsProxy = undefined;
         let wssProxy = undefined;
-        // wsProxy
+        let wsSocksProxy = undefined;
+        // ws proxy
         if (this.wsProxy !== undefined) {
             usedProxies.push ('wsProxy');
             wsProxy = this.wsProxy;
@@ -1632,7 +1633,7 @@ export default class Exchange {
             usedProxies.push ('ws_proxy');
             wsProxy = this.ws_proxy;
         }
-        // wsProxy
+        // wss proxy
         if (this.wssProxy !== undefined) {
             usedProxies.push ('wssProxy');
             wssProxy = this.wssProxy;
@@ -1641,13 +1642,22 @@ export default class Exchange {
             usedProxies.push ('wss_proxy');
             wssProxy = this.wss_proxy;
         }
+        // socks wsSocksProxy
+        if (this.socksProxy !== undefined) {
+            usedProxies.push ('wsSocksProxy');
+            wsSocksProxy = this.wsSocksProxy;
+        }
+        if (this.ws_socks_proxy !== undefined) {
+            usedProxies.push ('ws_socks_proxy');
+            wsSocksProxy = this.ws_socks_proxy;
+        }
         // check
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join (',');
-            throw new ExchangeError (this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy');
+            throw new ExchangeError (this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, socksProxy');
         }
-        return [ wsProxy, wssProxy ];
+        return [ wsProxy, wssProxy, wsSocksProxy ];
     }
 
     checkConflictingProxies (proxyAgentSet, proxyUrlSet) {
