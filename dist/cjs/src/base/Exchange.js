@@ -3706,6 +3706,9 @@ class Exchange {
     async closeAllPositions(params = {}) {
         throw new errors.NotSupported(this.id + ' closeAllPositions() is not supported yet');
     }
+    async fetchL3OrderBook(symbol, limit = undefined, params = {}) {
+        throw new errors.BadRequest(this.id + ' fetchL3OrderBook() is not supported yet');
+    }
     parseLastPrice(price, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseLastPrice() is not supported yet');
     }

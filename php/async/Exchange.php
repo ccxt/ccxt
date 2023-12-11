@@ -3029,6 +3029,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' closeAllPositions() is not supported yet');
     }
 
+    public function fetch_l3_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+        throw new BadRequest($this->id . ' fetchL3OrderBook() is not supported yet');
+    }
+
     public function parse_last_price($price, ?array $market = null) {
         throw new NotSupported($this->id . ' parseLastPrice() is not supported yet');
     }

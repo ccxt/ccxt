@@ -1016,6 +1016,9 @@ class Exchange(BaseExchange):
     async def close_all_positions(self, params={}):
         raise NotSupported(self.id + ' closeAllPositions() is not supported yet')
 
+    async def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
+        raise BadRequest(self.id + ' fetchL3OrderBook() is not supported yet')
+
     async def fetch_deposit_address(self, code: str, params={}):
         if self.has['fetchDepositAddresses']:
             depositAddresses = await self.fetchDepositAddresses([code], params)
