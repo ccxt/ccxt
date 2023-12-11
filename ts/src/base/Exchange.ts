@@ -1665,7 +1665,7 @@ export default class Exchange {
             usedProxies.push ('wss_proxy');
             wssProxy = this.wss_proxy;
         }
-        // socks wsSocksProxy
+        // ws socks proxy
         if (this.wsSocksProxy !== undefined) {
             usedProxies.push ('wsSocksProxy');
             wsSocksProxy = this.wsSocksProxy;
