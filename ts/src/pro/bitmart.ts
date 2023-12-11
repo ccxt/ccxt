@@ -1249,13 +1249,17 @@ export default class bitmart extends bitmartRest {
                 const orderbookSide = this.safeValue (orderbook, side);
                 orderbookSide.store (price, amount);
             }
+            const bidsLength = orderbook['bids'].length;
+            const asksLength = orderbook['asks'].length;
+            if ((bidsLength === 0) || (asksLength === 0)) {
+                return;
+            }
             const timestamp = this.safeInteger (data, 'ms_t');
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
             const messageHash = table;
             client.resolve (orderbook, messageHash);
         }
-        return message;
     }
 
     async authenticate (type, params = {}) {
