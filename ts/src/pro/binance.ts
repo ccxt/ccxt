@@ -168,9 +168,11 @@ export default class binance extends binanceRest {
                 }
             }
         }
-        let type = market['type'];
+        let type;
         if (market['contract']) {
             type = market['linear'] ? 'future' : 'delivery';
+        } else {
+            type = market['type'];
         }
         //
         // notice the differences between trading futures and spot trading
@@ -244,9 +246,11 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
-        let type = firstMarket['type'];
+        let type;
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
+        } else {
+            type = firstMarket['type'];
         }
         const name = 'depth';
         const messageHash = 'multipleOrderbook::' + symbols.join (',');
@@ -509,9 +513,11 @@ export default class binance extends binanceRest {
         const options = this.safeValue (this.options, 'watchTradesForSymbols', {});
         const name = this.safeString (options, 'name', 'trade');
         const firstMarket = this.market (symbols[0]);
-        let type = firstMarket['type'];
+        let type;
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
+        } else {
+            type = firstMarket['type'];
         }
         const subParams = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -557,9 +563,11 @@ export default class binance extends binanceRest {
         const options = this.safeValue (this.options, 'watchTrades', {});
         const name = this.safeString (options, 'name', 'trade');
         const messageHash = market['lowercaseId'] + '@' + name;
-        let type = market['type'];
+        let type;
         if (market['contract']) {
             type = market['linear'] ? 'future' : 'delivery';
+        } else {
+            type = market['type'];
         }
         const query = this.omit (params, 'type');
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
@@ -793,9 +801,11 @@ export default class binance extends binanceRest {
         }
         params = this.omit (params, 'name');
         const messageHash = marketId + '@' + name + '_' + interval;
-        let type = market['type'];
+        let type;
         if (market['contract']) {
             type = market['linear'] ? 'future' : 'delivery';
+        } else {
+            type = market['type'];
         }
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
@@ -833,9 +843,11 @@ export default class binance extends binanceRest {
         const name = this.safeString (params, 'name', nameOption);
         params = this.omit (params, 'name');
         const firstMarket = this.market (symbolsAndTimeframes[0][0]);
-        let type = firstMarket['type'];
+        let type;
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
+        } else {
+            type = firstMarket['type'];
         }
         const subParams = [];
         const hashes = [];
@@ -954,9 +966,11 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['lowercaseId'];
-        let type = market['type'];
+        let type;
         if (market['contract']) {
             type = market['linear'] ? 'future' : 'delivery';
+        } else {
+            type = market['type'];
         }
         const options = this.safeValue (this.options, 'watchTicker', {});
         let name = this.safeString (options, 'name', 'ticker');
