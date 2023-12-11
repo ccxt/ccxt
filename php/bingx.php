@@ -3323,7 +3323,7 @@ class bingx extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#close-all-$position
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @param {string} [$params->recvWindow] $request valid time window value
-         * @return {[array]} ~@link https://docs.ccxt.com/#/?id=$position-structure A list of $position structures~
+         * @return {array[]} ~@link https://docs.ccxt.com/#/?id=$position-structure A list of $position structures~
          */
         $this->load_markets();
         $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');

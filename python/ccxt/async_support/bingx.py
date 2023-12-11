@@ -3172,7 +3172,7 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#close-all-position
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.recvWindow]: request valid time window value
-        :returns [dict]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')

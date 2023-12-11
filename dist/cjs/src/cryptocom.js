@@ -2904,7 +2904,7 @@ class cryptocom extends cryptocom$1 {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.type] LIMIT or MARKET
          * @param {number} [params.price] for limit orders only
-         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
