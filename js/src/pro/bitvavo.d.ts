@@ -1,5 +1,5 @@
 import bitvavoRest from '../bitvavo.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitvavo extends bitvavoRest {
     describe(): any;
@@ -19,8 +19,8 @@ export default class bitvavo extends bitvavoRest {
     handleOrderBookSnapshot(client: Client, message: any): any;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     handleOrderBookSubscriptions(client: Client, message: any, marketIds: any): void;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;

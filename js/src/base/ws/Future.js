@@ -13,11 +13,15 @@ export function createFuture() {
     });
     p.resolve = function _resolve() {
         // eslint-disable-next-line prefer-rest-params
-        resolve.apply(this, arguments);
+        setTimeout(() => {
+            resolve.apply(this, arguments);
+        });
     };
     p.reject = function _reject() {
         // eslint-disable-next-line prefer-rest-params
-        reject.apply(this, arguments);
+        setTimeout(() => {
+            reject.apply(this, arguments);
+        });
     };
     return p;
 }

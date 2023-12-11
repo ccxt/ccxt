@@ -37,3 +37,7 @@ __pycache__
 *.log
 *.un~
 *.pyc
+
+# docs
+wiki/spec.md
+wiki/examples/**/*.md

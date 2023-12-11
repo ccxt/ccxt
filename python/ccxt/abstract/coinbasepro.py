@@ -12,6 +12,7 @@ class ImplicitAPI:
     public_get_products_id_trades = publicGetProductsIdTrades = Entry('products/{id}/trades', 'public', 'GET', {})
     public_get_time = publicGetTime = Entry('time', 'public', 'GET', {})
     public_get_products_spark_lines = publicGetProductsSparkLines = Entry('products/spark-lines', 'public', 'GET', {})
+    private_get_address_book = privateGetAddressBook = Entry('address-book', 'private', 'GET', {})
     private_get_accounts = privateGetAccounts = Entry('accounts', 'private', 'GET', {})
     private_get_accounts_id = privateGetAccountsId = Entry('accounts/{id}', 'private', 'GET', {})
     private_get_accounts_id_holds = privateGetAccountsIdHolds = Entry('accounts/{id}/holds', 'private', 'GET', {})

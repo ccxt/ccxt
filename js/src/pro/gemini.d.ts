@@ -1,5 +1,5 @@
 import geminiRest from '../gemini.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class gemini extends geminiRest {
     describe(): any;
@@ -12,7 +12,7 @@ export default class gemini extends geminiRest {
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;
     handleL2Updates(client: Client, message: any): void;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleHeartbeat(client: Client, message: any): any;
     handleSubscription(client: Client, message: any): any;
     handleOrder(client: Client, message: any): void;

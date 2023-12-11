@@ -39,7 +39,7 @@ def test_deposit_withdrawal(exchange, skipped_properties, method, entry, request
     }
     empty_allowed_for = ['address', 'addressTo', 'addressFrom', 'tag', 'tagTo', 'tagFrom']  # below we still do assertion for to/from
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
-    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry, now)
+    test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, now)
     test_shared_methods.assert_currency_code(exchange, skipped_properties, method, entry, entry['currency'], requested_code)
     #
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'status', ['ok', 'pending', 'failed', 'rejected', 'canceled'])

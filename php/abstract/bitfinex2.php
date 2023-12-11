@@ -169,6 +169,9 @@ abstract class bitfinex2 extends \ccxt\Exchange {
     public function public_get_status_deriv($params = array()) {
         return $this->request('status/deriv', 'public', 'GET', $params, null, null, array("cost" => 2.66));
     }
+    public function public_get_status_deriv_symbol_hist($params = array()) {
+        return $this->request('status/deriv/{symbol}/hist', 'public', 'GET', $params, null, null, array("cost" => 2.66));
+    }
     public function public_get_liquidations_hist($params = array()) {
         return $this->request('liquidations/hist', 'public', 'GET', $params, null, null, array("cost" => 80));
     }
@@ -570,6 +573,9 @@ abstract class bitfinex2 extends \ccxt\Exchange {
     }
     public function publicGetStatusDeriv($params = array()) {
         return $this->request('status/deriv', 'public', 'GET', $params, null, null, array("cost" => 2.66));
+    }
+    public function publicGetStatusDerivSymbolHist($params = array()) {
+        return $this->request('status/deriv/{symbol}/hist', 'public', 'GET', $params, null, null, array("cost" => 2.66));
     }
     public function publicGetLiquidationsHist($params = array()) {
         return $this->request('liquidations/hist', 'public', 'GET', $params, null, null, array("cost" => 80));

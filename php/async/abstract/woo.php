@@ -142,6 +142,9 @@ abstract class woo extends \ccxt\async\Exchange {
     public function v2_private_get_client_holding($params = array()) {
         return $this->request('client/holding', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v3_public_get_insurancefund($params = array()) {
+        return $this->request('insuranceFund', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function v3_private_get_algo_order_oid($params = array()) {
         return $this->request('algo/order/{oid}', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -160,8 +163,32 @@ abstract class woo extends \ccxt\async\Exchange {
     public function v3_private_get_buypower($params = array()) {
         return $this->request('buypower', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v3_private_get_referrals($params = array()) {
+        return $this->request('referrals', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 60));
+    }
+    public function v3_private_get_referral_rewards($params = array()) {
+        return $this->request('referral_rewards', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 60));
+    }
+    public function v3_private_get_convert_exchangeinfo($params = array()) {
+        return $this->request('convert/exchangeInfo', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v3_private_get_convert_assetinfo($params = array()) {
+        return $this->request('convert/assetInfo', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v3_private_get_convert_rfq($params = array()) {
+        return $this->request('convert/rfq', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 60));
+    }
+    public function v3_private_get_convert_trade($params = array()) {
+        return $this->request('convert/trade', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v3_private_get_convert_trades($params = array()) {
+        return $this->request('convert/trades', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v3_private_post_algo_order($params = array()) {
         return $this->request('algo/order', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function v3_private_post_convert_rft($params = array()) {
+        return $this->request('convert/rft', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 60));
     }
     public function v3_private_put_order_oid($params = array()) {
         return $this->request('order/{oid}', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 2));
@@ -322,6 +349,9 @@ abstract class woo extends \ccxt\async\Exchange {
     public function v2PrivateGetClientHolding($params = array()) {
         return $this->request('client/holding', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v3PublicGetInsuranceFund($params = array()) {
+        return $this->request('insuranceFund', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function v3PrivateGetAlgoOrderOid($params = array()) {
         return $this->request('algo/order/{oid}', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -340,8 +370,32 @@ abstract class woo extends \ccxt\async\Exchange {
     public function v3PrivateGetBuypower($params = array()) {
         return $this->request('buypower', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v3PrivateGetReferrals($params = array()) {
+        return $this->request('referrals', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 60));
+    }
+    public function v3PrivateGetReferralRewards($params = array()) {
+        return $this->request('referral_rewards', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 60));
+    }
+    public function v3PrivateGetConvertExchangeInfo($params = array()) {
+        return $this->request('convert/exchangeInfo', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v3PrivateGetConvertAssetInfo($params = array()) {
+        return $this->request('convert/assetInfo', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v3PrivateGetConvertRfq($params = array()) {
+        return $this->request('convert/rfq', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 60));
+    }
+    public function v3PrivateGetConvertTrade($params = array()) {
+        return $this->request('convert/trade', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v3PrivateGetConvertTrades($params = array()) {
+        return $this->request('convert/trades', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v3PrivatePostAlgoOrder($params = array()) {
         return $this->request('algo/order', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function v3PrivatePostConvertRft($params = array()) {
+        return $this->request('convert/rft', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 60));
     }
     public function v3PrivatePutOrderOid($params = array()) {
         return $this->request('order/{oid}', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 2));

@@ -12,6 +12,15 @@ class bitvavo extends bitvavo$1 {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'cancelOrderWs': false,
+                'cancelOrdersWs': false,
+                'cancelAllOrdersWs': false,
+                'fetchTradesWs': false,
+                'fetchBalanceWs': false,
                 'watchOrderBook': true,
                 'watchTrades': true,
                 'watchTicker': true,
@@ -56,7 +65,7 @@ class bitvavo extends bitvavo$1 {
          * @name bitvavo#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.watchPublic('ticker24h', symbol, params);
@@ -64,21 +73,21 @@ class bitvavo extends bitvavo$1 {
     handleTicker(client, message) {
         //
         //     {
-        //         event: 'ticker24h',
-        //         data: [
+        //         "event": "ticker24h",
+        //         "data": [
         //             {
-        //                 market: 'ETH-EUR',
-        //                 open: '193.5',
-        //                 high: '202.72',
-        //                 low: '192.46',
-        //                 last: '199.01',
-        //                 volume: '3587.05020246',
-        //                 volumeQuote: '708030.17',
-        //                 bid: '199.56',
-        //                 bidSize: '4.14730803',
-        //                 ask: '199.57',
-        //                 askSize: '6.13642074',
-        //                 timestamp: 1590770885217
+        //                 "market": "ETH-EUR",
+        //                 "open": "193.5",
+        //                 "high": "202.72",
+        //                 "low": "192.46",
+        //                 "last": "199.01",
+        //                 "volume": "3587.05020246",
+        //                 "volumeQuote": "708030.17",
+        //                 "bid": "199.56",
+        //                 "bidSize": "4.14730803",
+        //                 "ask": "199.57",
+        //                 "askSize": "6.13642074",
+        //                 "timestamp": 1590770885217
         //             }
         //         ]
         //     }
@@ -105,8 +114,8 @@ class bitvavo extends bitvavo$1 {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -119,13 +128,13 @@ class bitvavo extends bitvavo$1 {
     handleTrade(client, message) {
         //
         //     {
-        //         event: 'trade',
-        //         timestamp: 1590779594547,
-        //         market: 'ETH-EUR',
-        //         id: '450c3298-f082-4461-9e2c-a0262cc7cc2e',
-        //         amount: '0.05026233',
-        //         price: '198.46',
-        //         side: 'buy'
+        //         "event": "trade",
+        //         "timestamp": 1590779594547,
+        //         "market": "ETH-EUR",
+        //         "id": "450c3298-f082-4461-9e2c-a0262cc7cc2e",
+        //         "amount": "0.05026233",
+        //         "price": "198.46",
+        //         "side": "buy"
         //     }
         //
         const marketId = this.safeString(message, 'market');
@@ -152,7 +161,7 @@ class bitvavo extends bitvavo$1 {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -183,17 +192,17 @@ class bitvavo extends bitvavo$1 {
     handleOHLCV(client, message) {
         //
         //     {
-        //         event: 'candle',
-        //         market: 'BTC-EUR',
-        //         interval: '1m',
-        //         candle: [
+        //         "event": "candle",
+        //         "market": "BTC-EUR",
+        //         "interval": "1m",
+        //         "candle": [
         //             [
         //                 1590797160000,
-        //                 '8480.9',
-        //                 '8480.9',
-        //                 '8480.9',
-        //                 '8480.9',
-        //                 '0.01038628'
+        //                 "8480.9",
+        //                 "8480.9",
+        //                 "8480.9",
+        //                 "8480.9",
+        //                 "0.01038628"
         //             ]
         //         ]
         //     }
@@ -228,7 +237,7 @@ class bitvavo extends bitvavo$1 {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -274,14 +283,14 @@ class bitvavo extends bitvavo$1 {
     handleOrderBookMessage(client, message, orderbook) {
         //
         //     {
-        //         event: 'book',
-        //         market: 'BTC-EUR',
-        //         nonce: 36947383,
-        //         bids: [
-        //             [ '8477.8', '0' ]
+        //         "event": "book",
+        //         "market": "BTC-EUR",
+        //         "nonce": 36947383,
+        //         "bids": [
+        //             [ "8477.8", "0" ]
         //         ],
-        //         asks: [
-        //             [ '8550.9', '0' ]
+        //         "asks": [
+        //             [ "8550.9", "0" ]
         //         ]
         //     }
         //
@@ -296,15 +305,15 @@ class bitvavo extends bitvavo$1 {
     handleOrderBook(client, message) {
         //
         //     {
-        //         event: 'book',
-        //         market: 'BTC-EUR',
-        //         nonce: 36729561,
-        //         bids: [
-        //             [ '8513.3', '0' ],
-        //             [ '8518.8', '0.64236203' ],
-        //             [ '8513.6', '0.32435481' ],
+        //         "event": "book",
+        //         "market": "BTC-EUR",
+        //         "nonce": 36729561,
+        //         "bids": [
+        //             [ "8513.3", "0" ],
+        //             [ '8518.8', "0.64236203" ],
+        //             [ '8513.6', "0.32435481" ],
         //         ],
-        //         asks: []
+        //         "asks": []
         //     }
         //
         const event = this.safeString(message, 'event');
@@ -350,19 +359,19 @@ class bitvavo extends bitvavo$1 {
     handleOrderBookSnapshot(client, message) {
         //
         //     {
-        //         action: 'getBook',
-        //         response: {
-        //             market: 'BTC-EUR',
-        //             nonce: 36946120,
-        //             bids: [
-        //                 [ '8494.9', '0.24399521' ],
-        //                 [ '8494.8', '0.34884085' ],
-        //                 [ '8493.9', '0.14535128' ],
+        //         "action": "getBook",
+        //         "response": {
+        //             "market": "BTC-EUR",
+        //             "nonce": 36946120,
+        //             "bids": [
+        //                 [ '8494.9', "0.24399521" ],
+        //                 [ '8494.8', "0.34884085" ],
+        //                 [ '8493.9', "0.14535128" ],
         //             ],
-        //             asks: [
-        //                 [ '8495', '0.46982463' ],
-        //                 [ '8495.1', '0.12178267' ],
-        //                 [ '8496.2', '0.21924143' ],
+        //             "asks": [
+        //                 [ "8495", "0.46982463" ],
+        //                 [ '8495.1', "0.12178267" ],
+        //                 [ '8496.2', "0.21924143" ],
         //             ]
         //         }
         //     }
@@ -382,8 +391,8 @@ class bitvavo extends bitvavo$1 {
         // unroll the accumulated deltas
         const messages = orderbook.cache;
         for (let i = 0; i < messages.length; i++) {
-            const message = messages[i];
-            this.handleOrderBookMessage(client, message, orderbook);
+            const messageItem = messages[i];
+            this.handleOrderBookMessage(client, messageItem, orderbook);
         }
         this.orderbooks[symbol] = orderbook;
         client.resolve(orderbook, messageHash);
@@ -418,12 +427,12 @@ class bitvavo extends bitvavo$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' watchOrders requires a symbol argument');
+            throw new errors.ArgumentsRequired(this.id + ' watchOrders() requires a symbol argument');
         }
         await this.loadMarkets();
         await this.authenticate();
@@ -456,11 +465,11 @@ class bitvavo extends bitvavo$1 {
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=ortradeder-structure
          */
         if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' watchMyTrades requires a symbol argument');
+            throw new errors.ArgumentsRequired(this.id + ' watchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets();
         await this.authenticate();
@@ -488,23 +497,23 @@ class bitvavo extends bitvavo$1 {
     handleOrder(client, message) {
         //
         //     {
-        //         event: 'order',
-        //         orderId: 'f0e5180f-9497-4d05-9dc2-7056e8a2de9b',
-        //         market: 'ETH-EUR',
-        //         created: 1590948500319,
-        //         updated: 1590948500319,
-        //         status: 'new',
-        //         side: 'sell',
-        //         orderType: 'limit',
-        //         amount: '0.1',
-        //         amountRemaining: '0.1',
-        //         price: '300',
-        //         onHold: '0.1',
-        //         onHoldCurrency: 'ETH',
-        //         selfTradePrevention: 'decrementAndCancel',
-        //         visible: true,
-        //         timeInForce: 'GTC',
-        //         postOnly: false
+        //         "event": "order",
+        //         "orderId": "f0e5180f-9497-4d05-9dc2-7056e8a2de9b",
+        //         "market": "ETH-EUR",
+        //         "created": 1590948500319,
+        //         "updated": 1590948500319,
+        //         "status": "new",
+        //         "side": "sell",
+        //         "orderType": "limit",
+        //         "amount": "0.1",
+        //         "amountRemaining": "0.1",
+        //         "price": "300",
+        //         "onHold": "0.1",
+        //         "onHoldCurrency": "ETH",
+        //         "selfTradePrevention": "decrementAndCancel",
+        //         "visible": true,
+        //         "timeInForce": "GTC",
+        //         "postOnly": false
         //     }
         //
         const marketId = this.safeString(message, 'market');
@@ -523,17 +532,17 @@ class bitvavo extends bitvavo$1 {
     handleMyTrade(client, message) {
         //
         //     {
-        //         event: 'fill',
-        //         timestamp: 1590964470132,
-        //         market: 'ETH-EUR',
-        //         orderId: '85d082e1-eda4-4209-9580-248281a29a9a',
-        //         fillId: '861d2da5-aa93-475c-8d9a-dce431bd4211',
-        //         side: 'sell',
-        //         amount: '0.1',
-        //         price: '211.46',
-        //         taker: true,
-        //         fee: '0.056',
-        //         feeCurrency: 'EUR'
+        //         "event": "fill",
+        //         "timestamp": 1590964470132,
+        //         "market": "ETH-EUR",
+        //         "orderId": "85d082e1-eda4-4209-9580-248281a29a9a",
+        //         "fillId": "861d2da5-aa93-475c-8d9a-dce431bd4211",
+        //         "side": "sell",
+        //         "amount": "0.1",
+        //         "price": "211.46",
+        //         "taker": true,
+        //         "fee": "0.056",
+        //         "feeCurrency": "EUR"
         //     }
         //
         const marketId = this.safeString(message, 'market');
@@ -552,9 +561,9 @@ class bitvavo extends bitvavo$1 {
     handleSubscriptionStatus(client, message) {
         //
         //     {
-        //         event: 'subscribed',
-        //         subscriptions: {
-        //             book: [ 'BTC-EUR' ]
+        //         "event": "subscribed",
+        //         "subscriptions": {
+        //             "book": [ "BTC-EUR" ]
         //         }
         //     }
         //
@@ -599,8 +608,8 @@ class bitvavo extends bitvavo$1 {
     handleAuthenticationMessage(client, message) {
         //
         //     {
-        //         event: 'authenticate',
-        //         authenticated: true
+        //         "event": "authenticate",
+        //         "authenticated": true
         //     }
         //
         const messageHash = 'authenticated';
@@ -621,46 +630,46 @@ class bitvavo extends bitvavo$1 {
     handleMessage(client, message) {
         //
         //     {
-        //         event: 'subscribed',
-        //         subscriptions: {
-        //             book: [ 'BTC-EUR' ]
+        //         "event": "subscribed",
+        //         "subscriptions": {
+        //             "book": [ "BTC-EUR" ]
         //         }
         //     }
         //
         //
         //     {
-        //         event: 'book',
-        //         market: 'BTC-EUR',
-        //         nonce: 36729561,
-        //         bids: [
-        //             [ '8513.3', '0' ],
-        //             [ '8518.8', '0.64236203' ],
-        //             [ '8513.6', '0.32435481' ],
+        //         "event": "book",
+        //         "market": "BTC-EUR",
+        //         "nonce": 36729561,
+        //         "bids": [
+        //             [ "8513.3", "0" ],
+        //             [ '8518.8', "0.64236203" ],
+        //             [ '8513.6', "0.32435481" ],
         //         ],
-        //         asks: []
+        //         "asks": []
         //     }
         //
         //     {
-        //         action: 'getBook',
-        //         response: {
-        //             market: 'BTC-EUR',
-        //             nonce: 36946120,
-        //             bids: [
-        //                 [ '8494.9', '0.24399521' ],
-        //                 [ '8494.8', '0.34884085' ],
-        //                 [ '8493.9', '0.14535128' ],
+        //         "action": "getBook",
+        //         "response": {
+        //             "market": "BTC-EUR",
+        //             "nonce": 36946120,
+        //             "bids": [
+        //                 [ '8494.9', "0.24399521" ],
+        //                 [ '8494.8', "0.34884085" ],
+        //                 [ '8493.9', "0.14535128" ],
         //             ],
-        //             asks: [
-        //                 [ '8495', '0.46982463' ],
-        //                 [ '8495.1', '0.12178267' ],
-        //                 [ '8496.2', '0.21924143' ],
+        //             "asks": [
+        //                 [ "8495", "0.46982463" ],
+        //                 [ '8495.1', "0.12178267" ],
+        //                 [ '8496.2', "0.21924143" ],
         //             ]
         //         }
         //     }
         //
         //     {
-        //         event: 'authenticate',
-        //         authenticated: true
+        //         "event": "authenticate",
+        //         "authenticated": true
         //     }
         //
         const methods = {

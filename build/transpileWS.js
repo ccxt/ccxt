@@ -106,6 +106,12 @@ class CCXTProTranspiler extends Transpiler {
             const arrayCacheImport = 'from ccxt.async_support.base.ws.cache import ' + uniqueArrayCacheClasses.join (', ')
             imports.push (arrayCacheImport)
         }
+        const orderBookClasses = bodyAsString.match(/\s(Asks|Bids)\(.*\)/g)
+        if (orderBookClasses) {
+            const uniqueOrderBookClasses = unique (orderBookClasses.map(match => match.replace(/\(.*\)/, '').trim())).sort ()
+            const orderBookSideImport = 'from ccxt.async_support.base.ws.order_book_side import ' + uniqueOrderBookClasses.join (', ')
+            imports.push (orderBookSideImport)
+        }
         return [
             "# -*- coding: utf-8 -*-",
             "",
@@ -169,7 +175,7 @@ class CCXTProTranspiler extends Transpiler {
         const phpFile = './php/pro/test/Cache.php'
         const pyImports = [
             '',
-            'from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402',
+            'from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402',
             '',
         ].join ('\n')
         this.transpileTest (jsFile, pyFile, phpFile, pyImports)

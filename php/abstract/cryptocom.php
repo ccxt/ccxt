@@ -160,6 +160,15 @@ abstract class cryptocom extends \ccxt\Exchange {
     public function v2_private_post_private_get_deposit_address($params = array()) {
         return $this->request('private/get-deposit-address', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
+    public function v2_private_post_private_export_create_export_request($params = array()) {
+        return $this->request('private/export/create-export-request', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v2_private_post_private_export_get_export_requests($params = array()) {
+        return $this->request('private/export/get-export-requests', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v2_private_post_private_export_download_export_output($params = array()) {
+        return $this->request('private/export/download-export-output', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
     public function v2_private_post_private_get_account_summary($params = array()) {
         return $this->request('private/get-account-summary', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
@@ -187,66 +196,6 @@ abstract class cryptocom extends \ccxt\Exchange {
     public function v2_private_post_private_get_trades($params = array()) {
         return $this->request('private/get-trades', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 100));
     }
-    public function v2_private_post_private_margin_get_user_config($params = array()) {
-        return $this->request('private/margin/get-user-config', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2_private_post_private_margin_get_account_summary($params = array()) {
-        return $this->request('private/margin/get-account-summary', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2_private_post_private_margin_transfer($params = array()) {
-        return $this->request('private/margin/transfer', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2_private_post_private_margin_borrow($params = array()) {
-        return $this->request('private/margin/borrow', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2_private_post_private_margin_repay($params = array()) {
-        return $this->request('private/margin/repay', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2_private_post_private_margin_get_transfer_history($params = array()) {
-        return $this->request('private/margin/get-transfer-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2_private_post_private_margin_get_borrow_history($params = array()) {
-        return $this->request('private/margin/get-borrow-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2_private_post_private_margin_get_interest_history($params = array()) {
-        return $this->request('private/margin/get-interest-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2_private_post_private_margin_get_repay_history($params = array()) {
-        return $this->request('private/margin/get-repay-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2_private_post_private_margin_get_liquidation_history($params = array()) {
-        return $this->request('private/margin/get-liquidation-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2_private_post_private_margin_get_liquidation_orders($params = array()) {
-        return $this->request('private/margin/get-liquidation-orders', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2_private_post_private_margin_create_order($params = array()) {
-        return $this->request('private/margin/create-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 0.6666666666666666));
-    }
-    public function v2_private_post_private_margin_cancel_order($params = array()) {
-        return $this->request('private/margin/cancel-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 0.6666666666666666));
-    }
-    public function v2_private_post_private_margin_cancel_all_orders($params = array()) {
-        return $this->request('private/margin/cancel-all-orders', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 0.6666666666666666));
-    }
-    public function v2_private_post_private_margin_get_order_history($params = array()) {
-        return $this->request('private/margin/get-order-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2_private_post_private_margin_get_open_orders($params = array()) {
-        return $this->request('private/margin/get-open-orders', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2_private_post_private_margin_get_order_detail($params = array()) {
-        return $this->request('private/margin/get-order-detail', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 0.3333333333333333));
-    }
-    public function v2_private_post_private_margin_get_trades($params = array()) {
-        return $this->request('private/margin/get-trades', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 100));
-    }
-    public function v2_private_post_private_deriv_transfer($params = array()) {
-        return $this->request('private/deriv/transfer', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2_private_post_private_deriv_get_transfer_history($params = array()) {
-        return $this->request('private/deriv/get-transfer-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
     public function v2_private_post_private_get_accounts($params = array()) {
         return $this->request('private/get-accounts', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
@@ -273,6 +222,9 @@ abstract class cryptocom extends \ccxt\Exchange {
     }
     public function v2_private_post_private_otc_get_trade_history($params = array()) {
         return $this->request('private/otc/get-trade-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v2_private_post_private_otc_create_order($params = array()) {
+        return $this->request('private/otc/create-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
     public function derivatives_public_get_public_auth($params = array()) {
         return $this->request('public/auth', array('derivatives', 'public'), 'GET', $params, null, null, array("cost" => 3.3333333333333335));
@@ -517,6 +469,15 @@ abstract class cryptocom extends \ccxt\Exchange {
     public function v2PrivatePostPrivateGetDepositAddress($params = array()) {
         return $this->request('private/get-deposit-address', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
+    public function v2PrivatePostPrivateExportCreateExportRequest($params = array()) {
+        return $this->request('private/export/create-export-request', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v2PrivatePostPrivateExportGetExportRequests($params = array()) {
+        return $this->request('private/export/get-export-requests', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v2PrivatePostPrivateExportDownloadExportOutput($params = array()) {
+        return $this->request('private/export/download-export-output', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
     public function v2PrivatePostPrivateGetAccountSummary($params = array()) {
         return $this->request('private/get-account-summary', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
@@ -544,66 +505,6 @@ abstract class cryptocom extends \ccxt\Exchange {
     public function v2PrivatePostPrivateGetTrades($params = array()) {
         return $this->request('private/get-trades', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 100));
     }
-    public function v2PrivatePostPrivateMarginGetUserConfig($params = array()) {
-        return $this->request('private/margin/get-user-config', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2PrivatePostPrivateMarginGetAccountSummary($params = array()) {
-        return $this->request('private/margin/get-account-summary', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2PrivatePostPrivateMarginTransfer($params = array()) {
-        return $this->request('private/margin/transfer', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2PrivatePostPrivateMarginBorrow($params = array()) {
-        return $this->request('private/margin/borrow', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2PrivatePostPrivateMarginRepay($params = array()) {
-        return $this->request('private/margin/repay', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2PrivatePostPrivateMarginGetTransferHistory($params = array()) {
-        return $this->request('private/margin/get-transfer-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2PrivatePostPrivateMarginGetBorrowHistory($params = array()) {
-        return $this->request('private/margin/get-borrow-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2PrivatePostPrivateMarginGetInterestHistory($params = array()) {
-        return $this->request('private/margin/get-interest-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2PrivatePostPrivateMarginGetRepayHistory($params = array()) {
-        return $this->request('private/margin/get-repay-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2PrivatePostPrivateMarginGetLiquidationHistory($params = array()) {
-        return $this->request('private/margin/get-liquidation-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2PrivatePostPrivateMarginGetLiquidationOrders($params = array()) {
-        return $this->request('private/margin/get-liquidation-orders', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2PrivatePostPrivateMarginCreateOrder($params = array()) {
-        return $this->request('private/margin/create-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 0.6666666666666666));
-    }
-    public function v2PrivatePostPrivateMarginCancelOrder($params = array()) {
-        return $this->request('private/margin/cancel-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 0.6666666666666666));
-    }
-    public function v2PrivatePostPrivateMarginCancelAllOrders($params = array()) {
-        return $this->request('private/margin/cancel-all-orders', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 0.6666666666666666));
-    }
-    public function v2PrivatePostPrivateMarginGetOrderHistory($params = array()) {
-        return $this->request('private/margin/get-order-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2PrivatePostPrivateMarginGetOpenOrders($params = array()) {
-        return $this->request('private/margin/get-open-orders', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2PrivatePostPrivateMarginGetOrderDetail($params = array()) {
-        return $this->request('private/margin/get-order-detail', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 0.3333333333333333));
-    }
-    public function v2PrivatePostPrivateMarginGetTrades($params = array()) {
-        return $this->request('private/margin/get-trades', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 100));
-    }
-    public function v2PrivatePostPrivateDerivTransfer($params = array()) {
-        return $this->request('private/deriv/transfer', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
-    public function v2PrivatePostPrivateDerivGetTransferHistory($params = array()) {
-        return $this->request('private/deriv/get-transfer-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
-    }
     public function v2PrivatePostPrivateGetAccounts($params = array()) {
         return $this->request('private/get-accounts', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
@@ -630,6 +531,9 @@ abstract class cryptocom extends \ccxt\Exchange {
     }
     public function v2PrivatePostPrivateOtcGetTradeHistory($params = array()) {
         return $this->request('private/otc/get-trade-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v2PrivatePostPrivateOtcCreateOrder($params = array()) {
+        return $this->request('private/otc/create-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
     public function derivativesPublicGetPublicAuth($params = array()) {
         return $this->request('public/auth', array('derivatives', 'public'), 'GET', $params, null, null, array("cost" => 3.3333333333333335));

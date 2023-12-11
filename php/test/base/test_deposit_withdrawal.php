@@ -33,7 +33,7 @@ function test_deposit_withdrawal($exchange, $skipped_properties, $method, $entry
     );
     $empty_allowed_for = ['address', 'addressTo', 'addressFrom', 'tag', 'tagTo', 'tagFrom']; // below we still do assertion for to/from
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
-    assert_timestamp($exchange, $skipped_properties, $method, $entry, $now);
+    assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now);
     assert_currency_code($exchange, $skipped_properties, $method, $entry, $entry['currency'], $requested_code);
     //
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'status', ['ok', 'pending', 'failed', 'rejected', 'canceled']);

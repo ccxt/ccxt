@@ -19,6 +19,7 @@ async def test_watch_trades(exchange, symbol):
         'coinflex',  # too illiquid
         'woo',
         'independentreserve',  # too illiquid
+        'bingx',  # side is undefined
     ]
 
     skipped_properties = {}
