@@ -41,7 +41,7 @@ function run_tests {
   if [ -z "$ws_pid" ]; then
     if [ -z "$ws_args" ] || { [ -n "$ws_args" ] && [ "$ws_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node run-tests-ws --js --python-async --php-async $ws_args &
+      node run-tests --ws --js --python-async --php-async $ws_args &
       local ws_pid=$!
     fi
   fi
