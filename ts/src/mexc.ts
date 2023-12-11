@@ -3033,14 +3033,15 @@ export default class mexc extends Exchange {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument on spot');
             }
             request['symbol'] = market['id'];
-            let method = 'spotPrivateDeleteOpenOrders';
+            let response = undefined;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest (this.id + ' cancelAllOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
-                method = 'spotPrivateDeleteMarginOpenOrders';
+                response = await this.spotPrivateDeleteMarginOpenOrders (this.extend (request, query));
+            } else {
+                response = await this.spotPrivateDeleteOpenOrders (this.extend (request, query));
             }
-            const response = await this[method] (this.extend (request, query));
             //
             // spot
             //
@@ -3086,7 +3087,12 @@ export default class mexc extends Exchange {
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             let method = this.safeString (this.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
             method = this.safeString (query, 'method', method);
-            const response = await this[method] (this.extend (request, query));
+            let response = undefined;
+            if (method === 'contractPrivatePostOrderCancelAll') {
+                response = await this.contractPrivatePostOrderCancelAll (this.extend (request, query));
+            } else if (method === 'contractPrivatePostPlanorderCancelAll') {
+                response = await this.contractPrivatePostPlanorderCancelAll (this.extend (request, query));
+            }
             //
             //     {
             //         "success": true,
