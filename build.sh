@@ -41,9 +41,7 @@ function run_tests {
   if [ -z "$ws_pid" ]; then
     if [ -z "$ws_args" ] || { [ -n "$ws_args" ] && [ "$ws_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-	  echo "WS ARGS"
-	  # echo $ws_args
-      node run-tests --ws --js $ws_args --info &
+      node run-tests-ws --js --python-async --php-async $ws_args &
       local ws_pid=$!
     fi
   fi
@@ -56,8 +54,45 @@ function run_tests {
     wait $ws_pid
   fi
 }
- 
 
+build_and_test_all () {
+  npm run force-build
+  if [ "$IS_TRAVIS" = "TRUE" ]; then
+    merged_pull_request="$(git show --format="%s" -s HEAD | sed -nE 's/Merge pull request #([0-9]{5}).+$/\1/p')"
+    echo "DEBUG: $merged_pull_request" # for debugging
+    if [ -n "$merged_pull_request" ]; then
+      echo "Travis is building merge commit #$merged_pull_request"
+      # run every 3 merged pull requests
+      if [ $(("${merged_pull_request:0-1}" % 3)) -eq 0 ]; then
+        # update pyenv
+        (cd "$(pyenv root)" && git pull -q origin master)
+        # install python interpreters
+        pyenv install -s 3.7.17
+        pyenv install -s 3.8.18
+        pyenv install -s 3.9.18
+        pyenv install -s 3.10.13
+        pyenv install -s 3.11.6
+        pyenv global 3.7 3.8 3.9 3.10 3.11
+        cd python
+        if ! tox run-parallel; then
+          exit 1
+        fi
+        cd ..
+      fi
+    fi
+    npm run test-base
+    npm run test-base-ws
+    run_tests
+  fi
+  exit
+}
+
+### CHECK IF THIS IS A PR ###
+# for appveyor, when PR is from fork, APPVEYOR_REPO_BRANCH is "master" and "APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" is branch name. if PR is from same repo, only APPVEYOR_REPO_BRANCH is set (and it is branch name)
+if { [ "$IS_TRAVIS" = "TRUE" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; } || { [ "$IS_TRAVIS" != "TRUE" ] && [ -z "$APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" ]; }; then
+  echo "$msgPrefix This is a master commit (not a PR), will build everything"
+  build_and_test_all
+fi
 
 ##### DETECT CHANGES #####
 # in appveyor, there is no origin/master locally, so we need to fetch it.
@@ -76,6 +111,12 @@ diff=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//") #remove static 
 # diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
 #echo $diff
 
+critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
+if [[ "$diff" =~ $critical_pattern ]]; then
+  echo "$msgPrefix Important changes detected - doing full build & test"
+  echo "$diff"
+  build_and_test_all
+fi
 
 echo "$msgPrefix Unimportant changes detected - build & test only specific exchange(s)"
 readarray -t y <<<"$diff"
@@ -94,31 +135,49 @@ for file in "${y[@]}"; do
   fi
 done
 
-WS_EXCHANGES+=('ascendex')
-WS_EXCHANGES+=('bitget')
-WS_EXCHANGES+=('binance')
 
 ### BUILD SPECIFIC EXCHANGES ###
 # faster version of pre-transpile (without bundle and atomic linting)
-npm run export-exchanges && npm run emitAPI
+npm run export-exchanges && npm run tsBuild && npm run emitAPI
 
 # check return types
-# npm run validate-types ${REST_EXCHANGES[*]}
+npm run validate-types ${REST_EXCHANGES[*]}
 
-
-
+echo "$msgPrefix REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[*]}"
+PYTHON_FILES=()
+for exchange in "${REST_EXCHANGES[@]}"; do
+  npm run eslint "ts/src/$exchange.ts"
+  node build/transpile.js $exchange --force --child
+  PYTHON_FILES+=("python/ccxt/$exchange.py")
+  PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
+done
+echo "$msgPrefix WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[*]}"
+for exchange in "${WS_EXCHANGES[@]}"; do
+  npm run eslint "ts/src/pro/$exchange.ts"
+  node build/transpileWS.js $exchange --force --child
+  PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
+done
 # faster version of post-transpile
-# npm run check-php-syntax
+npm run check-php-syntax
 
 # only run the python linter if exchange related files are changed
 if [ ${#PYTHON_FILES[@]} -gt 0 ]; then
   echo "$msgPrefix Linting python files: ${PYTHON_FILES[*]}"
-  # ruff "${PYTHON_FILES[@]}"
+  ruff "${PYTHON_FILES[@]}"
 fi
 
 
+### RUN SPECIFIC TESTS (ONLY IN TRAVIS) ###
+if [[ "$IS_TRAVIS" != "TRUE" ]]; then
+  exit
+fi
+if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
+  echo "$msgPrefix no exchanges to test, exiting"
+  exit
+fi
+
 # run base tests (base js,py,php, brokerId and static-tests)
-# npm run test-base
+npm run test-base
 
 # rest_args=${REST_EXCHANGES[*]} || "skip"
 rest_args=$(IFS=" " ; echo "${REST_EXCHANGES[*]}") || "skip"
