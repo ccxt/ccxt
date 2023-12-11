@@ -980,9 +980,6 @@ export default class Exchange {
                 this.nodeHttpModuleLoaded = true;
                 const httpsModule = await import (/* webpackIgnore: true */'node:https')
                 this.httpsAgent = new httpsModule.Agent ({ keepAlive: true });
-                if (this.safeValue (this.options, 'nodeLoadHttpModule')) {
-                    await this.loadHttpProxyAgent ();
-                }
             }
         }
 
