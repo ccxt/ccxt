@@ -25,7 +25,7 @@ async function example_socksProxy () {
 
 async function example_webSockets () {
     const myEx = new ccxt.pro.kucoin ();
-    myEx.httpProxy = 'http://5.75.153.75:8002'; // even though you are using WebSockets, you might also need to set up HTTP proxy for the exchange's basic REST request
+    myEx.httpProxy = 'http://5.75.153.75:8002'; // even though you are using WebSockets, you might also need to set up proxy for the exchange's REST requests
     myEx.wsProxy = 'http://5.75.153.75:8002'; // "wsProxy" or "wssProxy" or "wsSocksProxy" (depending on your proxy protocol)
     await myEx.loadMarkets ();
     while (true) {
