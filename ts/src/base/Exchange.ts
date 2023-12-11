@@ -1643,7 +1643,7 @@ export default class Exchange {
             wssProxy = this.wss_proxy;
         }
         // socks wsSocksProxy
-        if (this.socksProxy !== undefined) {
+        if (this.wsSocksProxy !== undefined) {
             usedProxies.push ('wsSocksProxy');
             wsSocksProxy = this.wsSocksProxy;
         }
