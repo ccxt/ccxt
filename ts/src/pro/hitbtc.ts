@@ -5,7 +5,7 @@ import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, OHLCV, OrderSide, OrderType, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { Str, Trade } from '../base/types';
+import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 
@@ -182,7 +182,7 @@ export default class hitbtc extends hitbtcRest {
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name hitbtc#watchOrderBook
@@ -290,7 +290,7 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name hitbtc#watchTicker
@@ -485,7 +485,7 @@ export default class hitbtc extends hitbtcRest {
         }, market);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name hitbtc#watchTrades
@@ -616,7 +616,7 @@ export default class hitbtc extends hitbtcRest {
         }, market);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name hitbtc#watchOHLCV
@@ -730,7 +730,7 @@ export default class hitbtc extends hitbtcRest {
         ];
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name hitbtc#watchOrders
@@ -974,7 +974,7 @@ export default class hitbtc extends hitbtcRest {
         }, market);
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name hitbtc#watchBalance
@@ -1004,7 +1004,7 @@ export default class hitbtc extends hitbtcRest {
         return await this.subscribePrivate (name, undefined, this.extend (request, params));
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name hitbtc#createOrder
@@ -1043,7 +1043,7 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name hitbtc#cancelOrderWs
@@ -1110,7 +1110,7 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name hitbtc#fetchOpenOrdersWs
