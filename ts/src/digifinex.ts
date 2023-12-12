@@ -2725,8 +2725,12 @@ export default class digifinex extends Exchange {
         if (limit !== undefined) {
             request['size'] = Math.min (500, limit);
         }
-        const method = (type === 'deposit') ? 'privateSpotGetDepositHistory' : 'privateSpotGetWithdrawHistory';
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (type === 'deposit') {
+            response = await this.privateSpotGetDepositHistory (this.extend (request, params));
+        } else {
+            response = await this.privateSpotGetWithdrawHistory (this.extend (request, params));
+        }
         //
         //     {
         //         "code": 200,
