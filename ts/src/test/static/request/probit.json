@@ -56,7 +56,7 @@
                     "createMarketBuyOrderRequiresPrice": false
                   }
                 ],
-                "output": "{\"market_id\":\"BTC-USDT\",\"type\":\"market\",\"side\":\"buy\",\"time_in_force\":\"ioc\",\"cost\":\"8\"}"
+                "output": "{\"market_id\":\"BTC-USDT\",\"type\":\"market\",\"side\":\"buy\",\"time_in_force\":\"ioc\",\"cost\":\"10\"}"
             },
             {
                 "description": "Spot market buy order using the cost param",
@@ -72,7 +72,7 @@
                     "cost": 10
                   }
                 ],
-                "output": "{\"market_id\":\"BTC-USDT\",\"type\":\"market\",\"side\":\"buy\",\"time_in_force\":\"ioc\",\"cost\":\"8\"}"
+                "output": "{\"market_id\":\"BTC-USDT\",\"type\":\"market\",\"side\":\"buy\",\"time_in_force\":\"ioc\",\"cost\":\"10\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -84,7 +84,7 @@
                   "BTC/USDT",
                   10
                 ],
-                "output": "{\"market_id\":\"BTC-USDT\",\"type\":\"market\",\"side\":\"buy\",\"time_in_force\":\"ioc\",\"cost\":\"8\"}"
+                "output": "{\"market_id\":\"BTC-USDT\",\"type\":\"market\",\"side\":\"buy\",\"time_in_force\":\"ioc\",\"cost\":\"10\"}"
               }
         ]
     }
