@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.81'
+__version__ = '4.1.85'
 
 # -----------------------------------------------------------------------------
 
@@ -171,6 +171,8 @@ class Exchange(object):
     ws_proxy = None
     wssProxy = None
     wss_proxy = None
+    wsSocksProxy = None
+    ws_socks_proxy = None
     #
     userAgents = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -1675,13 +1677,6 @@ class Exchange(object):
 
     def set_property(self, obj, property, value):
         setattr(obj, property, value)
-
-    def set_exchange_property (self, propertyName, value):
-        # support both: camelCase & snake_case
-        setattr(self, propertyName, value)
-        snakeCasedPropertyName = self.un_camel_case(propertyName)
-        if (snakeCasedPropertyName != propertyName):
-            setattr(self, snakeCasedPropertyName, value)
 
     def un_camel_case(self, str):
         return re.sub('(?!^)([A-Z]+)', r'_\1', str).lower()
@@ -3854,11 +3849,14 @@ class Exchange(object):
     def fetch_funding_history(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
 
-    def close_position(self, symbol: str, side: OrderSide = None, marginMode: str = None, params={}):
+    def close_position(self, symbol: str, side: OrderSide = None, params={}):
         raise NotSupported(self.id + ' closePositions() is not supported yet')
 
     def close_all_positions(self, params={}):
         raise NotSupported(self.id + ' closeAllPositions() is not supported yet')
+
+    def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
+        raise BadRequest(self.id + ' fetchL3OrderBook() is not supported yet')
 
     def parse_last_price(self, price, market: Market = None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
