@@ -831,7 +831,7 @@ export default class digifinex extends Exchange {
         } else if (marketType === 'swap') {
             response = await this.privateSwapGetAccountBalance (query);
         } else {
-            throw new NotSupported (this.id + ' fetchBalance() not support this method');
+            throw new NotSupported (this.id + ' fetchBalance() not support this market type');
         }
         //
         // spot and margin
@@ -1877,7 +1877,7 @@ export default class digifinex extends Exchange {
         } else if (marketType === 'swap') {
             response = await this.privateSwapPostTradeCancelOrder (this.extend (request, query));
         } else {
-            throw new NotSupported (this.id + ' cancelOrder() not support this method');
+            throw new NotSupported (this.id + ' cancelOrder() not support this market type');
         }
         //
         // spot and margin
@@ -2147,7 +2147,7 @@ export default class digifinex extends Exchange {
         } else if (marketType === 'swap') {
             response = await this.privateSwapGetTradeOpenOrders (this.extend (request, query));
         } else {
-            throw new NotSupported (this.id + ' fetchOpenOrders() not support this method');
+            throw new NotSupported (this.id + ' fetchOpenOrders() not support this market type');
         }
         //
         // spot and margin
@@ -2252,7 +2252,7 @@ export default class digifinex extends Exchange {
         } else if (marketType === 'swap') {
             response = await this.privateSwapGetTradeHistoryOrders (this.extend (request, query));
         } else {
-            throw new NotSupported (this.id + ' fetchOrders() not support this method');
+            throw new NotSupported (this.id + ' fetchOrders() not support this market type');
         }
         //
         // spot and margin
@@ -2348,7 +2348,7 @@ export default class digifinex extends Exchange {
         } else if (marketType === 'swap') {
             response = await this.privateSwapGetTradeOrderInfo (this.extend (request, query));
         } else {
-            throw new NotSupported (this.id + ' fetchOrder() not support this method');
+            throw new NotSupported (this.id + ' fetchOrder() not support this market type');
         }
         //
         // spot and margin
@@ -2454,7 +2454,7 @@ export default class digifinex extends Exchange {
         } else if (marketType === 'swap') {
             response = await this.privateSwapGetTradeHistoryTrades (this.extend (request, query));
         } else {
-            throw new NotSupported (this.id + ' fetchMyTrades() not support this method');
+            throw new NotSupported (this.id + ' fetchMyTrades() not support this market type');
         }
         //
         // spot and margin
@@ -2605,7 +2605,7 @@ export default class digifinex extends Exchange {
         } else if (marketType === 'swap') {
             response = await this.privateSwapGetAccountFinanceRecord (this.extend (request, query));
         } else {
-            throw new NotSupported (this.id + ' fetchLedger() not support this method');
+            throw new NotSupported (this.id + ' fetchLedger() not support this market type');
         }
         //
         // spot and margin
@@ -3382,12 +3382,14 @@ export default class digifinex extends Exchange {
             const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
             request[marketIdRequest] = market['id'];
         }
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotGetMarginPositions',
-            'margin': 'privateSpotGetMarginPositions',
-            'swap': 'privateSwapGetAccountPositions',
-        });
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (marketType === 'spot' || marketType === 'margin') {
+            response = await this.privateSpotGetMarginPositions (this.extend (request, query));
+        } else if (marketType === 'swap') {
+            response = await this.privateSwapGetAccountPositions (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' fetchPositions() not support this market type');
+        }
         //
         // swap
         //
