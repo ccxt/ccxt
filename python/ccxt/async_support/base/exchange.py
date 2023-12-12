@@ -426,12 +426,7 @@ class Exchange(BaseExchange):
                 asyncio.ensure_future(send_message())
 
         if missing_subscriptions:
-            try:
-                connected.add_done_callback(after)
-            except Exception as e:
-                for subscribe_hash in missing_subscriptions:
-                    del client.subscriptions[subscribe_hash]
-                future.reject(e)
+            connected.add_done_callback(after)
 
         return future
 
@@ -468,11 +463,7 @@ class Exchange(BaseExchange):
                 asyncio.ensure_future(send_message())
 
         if not subscribed:
-            try:
-                connected.add_done_callback(after)
-            except Exception as e:
-                del client.subscriptions[subscribe_hash]
-                future.reject(e)
+            connected.add_done_callback(after)
 
         return future
 
