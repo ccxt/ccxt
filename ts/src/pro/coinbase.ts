@@ -4,7 +4,7 @@ import coinbaseRest from '../coinbase.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Ticker, Int, Trade, OrderBook, Order } from '../base/types.js'
+import { Ticker, Int, Trade, OrderBook, Order } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
