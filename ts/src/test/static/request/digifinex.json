@@ -365,6 +365,14 @@
                 "url": "https://openapi.digifinex.com/v3/margin/assets",
                 "input": []
             }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch markets",
+                "method": "fetchMarkets",
+                "url": "https://openapi.digifinex.com/swap/v2/public/instruments",
+                "input": []
+            }
         ]
     }
 }
