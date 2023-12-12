@@ -12,7 +12,7 @@ import { Balances, Dictionary, Int, Market, OHLCV, Order, OrderBook, OrderSide, 
 
 /**
  * @class oceanex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class oceanex extends Exchange {
     describe () {

@@ -12,7 +12,7 @@ import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str,
 
 /**
  * @class coinbase
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinbase extends Exchange {
     describe () {

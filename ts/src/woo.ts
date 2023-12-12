@@ -12,7 +12,7 @@ import { Balances, Bool, Currency, FundingRateHistory, Int, Market, MarketType, 
 
 /**
  * @class woo
- * @extends Exchange
+ * @augments Exchange
  */
 export default class woo extends Exchange {
     describe () {

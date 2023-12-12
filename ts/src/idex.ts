@@ -15,7 +15,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class idex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class idex extends Exchange {
     describe () {

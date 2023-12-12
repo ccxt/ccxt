@@ -12,7 +12,7 @@ import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, S
 
 /**
  * @class btcturk
- * @extends Exchange
+ * @augments Exchange
  */
 export default class btcturk extends Exchange {
     describe () {

@@ -14,7 +14,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class lbank2
- * @extends Exchange
+ * @augments Exchange
  */
 export default class lbank extends Exchange {
     describe () {

@@ -11,7 +11,7 @@ import { Int, OrderSide, OrderType, OHLCV, Order, Trade, Balances, Str, Transact
 
 /**
  * @class bittrex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bittrex extends Exchange {
     describe () {

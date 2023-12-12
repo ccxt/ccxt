@@ -11,7 +11,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class mercado
- * @extends Exchange
+ * @augments Exchange
  */
 export default class mercado extends Exchange {
     describe () {

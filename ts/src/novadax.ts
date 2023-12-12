@@ -12,7 +12,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class novadax
- * @extends Exchange
+ * @augments Exchange
  */
 export default class novadax extends Exchange {
     describe () {

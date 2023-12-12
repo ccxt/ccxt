@@ -966,10 +966,12 @@ class bithumb extends Exchange {
     }
 
     public function cancel_unified_order($order, $params = array ()) {
-        $request = array(
-            'side' => $order['side'],
-        );
-        return $this->cancel_order($order['id'], $order['symbol'], array_merge($request, $params));
+        return Async\async(function () use ($order, $params) {
+            $request = array(
+                'side' => $order['side'],
+            );
+            return Async\await($this->cancel_order($order['id'], $order['symbol'], array_merge($request, $params)));
+        }) ();
     }
 
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {

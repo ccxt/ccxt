@@ -108,6 +108,16 @@
                 "url": "https://api.binance.com/api/v3/ticker/24hr",
                 "input": []
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.binance.com/api/v3/trades?symbol=LTCUSDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
         ]
     }
 }

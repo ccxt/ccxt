@@ -11,7 +11,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class bitpanda
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitpanda extends Exchange {
     describe () {

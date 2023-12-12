@@ -33,6 +33,7 @@ export default class coinex extends Exchange {
             // 20 per 2 seconds => 10 per second => weight = 40
             'rateLimit': 2.5,
             'pro': true,
+            'certified': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
