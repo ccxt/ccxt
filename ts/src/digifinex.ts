@@ -821,17 +821,18 @@ export default class digifinex extends Exchange {
         await this.loadMarkets ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotGetSpotAssets',
-            'margin': 'privateSpotGetMarginAssets',
-            'swap': 'privateSwapGetAccountBalance',
-        });
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        if (marginMode !== undefined) {
-            method = 'privateSpotGetMarginAssets';
+        let response = undefined;
+        if (marginMode !== undefined || marketType === 'margin') {
             marketType = 'margin';
+            response = await this.privateSpotGetMarginAssets (query);
+        } else if (marketType === 'spot') {
+            response = await this.privateSpotGetSpotAssets (query);
+        } else if (marketType === 'swap') {
+            response = await this.privateSwapGetAccountBalance (query);
+        } else {
+            throw new NotSupported (this.id + ' fetchBalance() not support this method');
         }
-        const response = await this[method] (query);
         //
         // spot and margin
         //
