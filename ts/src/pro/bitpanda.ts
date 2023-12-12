@@ -4,7 +4,7 @@
 import bitpandaRest from '../bitpanda.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int, Str, Strings, OrderBook, Order, Trade, Ticker } from '../base/types.js';
+import { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -167,7 +167,7 @@ export default class bitpanda extends bitpandaRest {
         return await this.watchMultiple (messageHash, request, subscriptionHash, [ symbol ], params);
     }
 
-    async watchTickers (symbols: Strings = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitpanda#watchTickers
@@ -1048,7 +1048,7 @@ export default class bitpanda extends bitpandaRest {
         this.balance = this.safeBalance (this.balance);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitpanda#watchOHLCV

@@ -209,7 +209,7 @@ export default class mexc extends mexcRest {
         return await this.watch (url, messageHash, message, channel);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name mexc3#watchOHLCV

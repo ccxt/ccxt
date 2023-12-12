@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, Re
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { md5 } from '../static_dependencies/noble-hashes/md5.js';
-import { Int, Str, Strings, OrderBook, Order, Trade, Ticker } from '../base/types.js';
+import { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -419,10 +419,11 @@ export default class coinex extends coinexRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        return await this.watchTickers ([ symbol ], params);
+        const tickers = await this.watchTickers ([ symbol ], params);
+        return this.safeValue (tickers, symbol);
     }
 
-    async watchTickers (symbols: Strings = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name coinex#watchTickers
@@ -536,7 +537,7 @@ export default class coinex extends coinexRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name coinex#watchOHLCV
