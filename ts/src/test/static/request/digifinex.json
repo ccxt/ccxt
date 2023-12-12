@@ -214,6 +214,26 @@
                 ]
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "Spot order",
+                "method": "fetchOrder",
+                "url": "https://openapi.digifinex.com/v3/spot/order?market=spot&order_id=1699457638000",
+                "input": [
+                    "1699457638000",
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap order",
+                "method": "fetchOrder",
+                "url": "https://openapi.digifinex.com/swap/v2/trade/order_info?instrument_id=LTCUSDTPERP&order_id=1699457638000",
+                "input": [
+                    "1699457638000",
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",
