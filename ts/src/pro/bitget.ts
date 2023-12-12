@@ -165,20 +165,20 @@ export default class bitget extends bitgetRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const market = this.market (symbols[0]);
         const instType = market['spot'] ? 'sp' : 'mc';
-        const messageHash = 'tickers::' + symbols.join (',');
-        const marketIds = this.marketIds (symbols);
-        const topics = [ ];
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const marketInner = this.market (marketId);
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const marketInner = this.market (symbol);
             const args = {
                 'instType': instType,
                 'channel': 'ticker',
                 'instId': this.getWsMarketId (marketInner),
             };
             topics.push (args);
+            messageHashes.push ('ticker:' + symbol);
         }
-        const tickers = await this.watchPublicMultiple (messageHash, topics, params);
+        const tickers = await this.watchPublicMultiple (messageHashes, topics, params);
         if (this.newUpdates) {
             return tickers;
         }
@@ -212,18 +212,6 @@ export default class bitget extends bitgetRest {
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
-        // watchTickers part
-        const messageHashes = this.findMessageHashes (client, 'tickers::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHashTicker = messageHashes[i];
-            const parts = messageHashTicker.split ('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            if (this.inArray (symbol, symbols)) {
-                client.resolve (ticker, messageHashTicker);
-            }
-        }
-        return message;
     }
 
     parseWsTicker (message, market = undefined) {
@@ -329,23 +317,8 @@ export default class bitget extends bitgetRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const timeframes = this.safeValue (this.options, 'timeframes');
-        const interval = this.safeString (timeframes, timeframe);
-        const messageHash = 'candles:' + timeframe + ':' + symbol;
-        const instType = market['spot'] ? 'sp' : 'mc';
-        const args = {
-            'instType': instType,
-            'channel': 'candle' + interval,
-            'instId': this.getWsMarketId (market),
-        };
-        const ohlcv = await this.watchPublic (messageHash, args, params);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const symbolTimeFrame = [ symbol, timeframe ];
+        return await this.watchOHLCVForSymbols ([ symbolTimeFrame ], since, limit, params);
     }
 
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -361,7 +334,7 @@ export default class bitget extends bitgetRest {
          */
         await this.loadMarkets ();
         const topics = [];
-        const hashes = [];
+        const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             const currentSymbol = this.safeString (data, 0);
@@ -375,15 +348,11 @@ export default class bitget extends bitgetRest {
                 'instId': this.getWsMarketId (market),
             };
             topics.push (args);
-            hashes.push (currentSymbol + '#' + currentSymbol);
+            messageHashes.push ('candles:' + interval + ':' + market['symbol']);
         }
-        const messageHash = 'multipleOHLCV::' + hashes.join (',');
-        const [ symbol, timeframe, stored ] = await this.watchPublicMultiple (messageHash, topics, params);
-        if (this.newUpdates) {
-            limit = stored.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
-        return this.createOHLCVObject (symbol, timeframe, filtered);
+        // todo: return the symbol in the structure somewhere
+        const ohlcv = await this.watchPublicMultiple (messageHashes, topics, params);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -437,7 +406,6 @@ export default class bitget extends bitgetRest {
         }
         const messageHash = 'candles:' + timeframe + ':' + symbol;
         client.resolve (stored, messageHash);
-        this.resolveMultipleOHLCV (client, 'multipleOHLCV::', symbol, timeframe, stored);
     }
 
     parseWsOHLCV (ohlcv, market = undefined): OHLCV {
@@ -471,28 +439,7 @@ export default class bitget extends bitgetRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'orderbook' + ':' + symbol;
-        const instType = market['spot'] ? 'sp' : 'mc';
-        let channel = 'books';
-        let incrementalFeed = true;
-        if ((limit === 1) || (limit === 5) || (limit === 15)) {
-            channel += limit.toString ();
-            incrementalFeed = false;
-        }
-        const args = {
-            'instType': instType,
-            'channel': channel,
-            'instId': this.getWsMarketId (market),
-        };
-        const orderbook = await this.watchPublic (messageHash, args, params);
-        if (incrementalFeed) {
-            return orderbook.limit ();
-        } else {
-            return orderbook;
-        }
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}) {
@@ -514,8 +461,10 @@ export default class bitget extends bitgetRest {
             incrementalFeed = false;
         }
         const topics = [];
+        const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
+            const symbol = symbols[i];
+            const market = this.market (symbol);
             const instType = market['spot'] ? 'sp' : 'mc';
             const args = {
                 'instType': instType,
@@ -523,9 +472,9 @@ export default class bitget extends bitgetRest {
                 'instId': this.getWsMarketId (market),
             };
             topics.push (args);
+            messageHashes.push ('orderbook:' + symbol);
         }
-        const messageHash = 'multipleOrderbooks::' + symbols.join (',');
-        const orderbook = await this.watchPublicMultiple (messageHash, topics, params);
+        const orderbook = await this.watchPublicMultiple (messageHashes, topics, params);
         if (incrementalFeed) {
             return orderbook.limit ();
         } else {
@@ -617,7 +566,6 @@ export default class bitget extends bitgetRest {
         }
         this.orderbooks[symbol] = storedOrderBook;
         client.resolve (storedOrderBook, messageHash);
-        this.resolvePromiseIfMessagehashMatches (client, 'multipleOrderbooks::', symbol, storedOrderBook);
     }
 
     handleDelta (bookside, delta) {
@@ -647,21 +595,7 @@ export default class bitget extends bitgetRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trade:' + symbol;
-        const instType = market['spot'] ? 'sp' : 'mc';
-        const args = {
-            'instType': instType,
-            'channel': 'trade',
-            'instId': this.getWsMarketId (market),
-        };
-        const trades = await this.watchPublic (messageHash, args, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -682,8 +616,10 @@ export default class bitget extends bitgetRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const topics = [];
+        const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
+            const symbol = symbols[i];
+            const market = this.market (symbol);
             const instType = market['spot'] ? 'sp' : 'mc';
             const args = {
                 'instType': instType,
@@ -691,9 +627,9 @@ export default class bitget extends bitgetRest {
                 'instId': this.getWsMarketId (market),
             };
             topics.push (args);
+            messageHashes.push ('trade:' + symbol);
         }
-        const messageHash = 'multipleTrades::' + symbols.join (',');
-        const trades = await this.watchPublicMultiple (messageHash, topics, params);
+        const trades = await this.watchPublicMultiple (messageHashes, topics, params);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -737,7 +673,6 @@ export default class bitget extends bitgetRest {
         }
         const messageHash = 'trade:' + symbol;
         client.resolve (stored, messageHash);
-        this.resolvePromiseIfMessagehashMatches (client, 'multipleTrades::', symbol, stored);
     }
 
     parseWsTrade (trade, market = undefined) {
@@ -1527,14 +1462,14 @@ export default class bitget extends bitgetRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPublicMultiple (messageHash, argsArray, params = {}) {
+    async watchPublicMultiple (messageHashes, argsArray, params = {}) {
         const url = this.urls['api']['ws'];
         const request = {
             'op': 'subscribe',
             'args': argsArray,
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
     async authenticate (params = {}) {
