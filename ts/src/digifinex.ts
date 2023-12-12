@@ -1053,15 +1053,15 @@ export default class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'publicSpotGetTicker';
         const request = {};
+        let response = undefined;
         if (market['swap']) {
-            method = 'publicSwapGetPublicTicker';
             request['instrument_id'] = market['id'];
+            response = await this.publicSwapGetPublicTicker (this.extend (request, params));
         } else {
             request['symbol'] = market['id'];
+            response = await this.publicSpotGetTicker (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //

@@ -425,6 +425,24 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker - spot",
+                "method": "fetchTicker",
+                "url": "https://openapi.digifinex.com/v3/ticker?symbol=LTC_USDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch ticker - swap",
+                "method": "fetchTicker",
+                "url": "https://openapi.digifinex.com/swap/v2/public/ticker?instrument_id=LTCUSDTPERP",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
