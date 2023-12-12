@@ -3,7 +3,7 @@
 
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { ExchangeError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, Trade } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -155,23 +155,6 @@ export default class binance extends binanceRest {
         // valid <levels> are 5, 10, or 20
         //
         // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (limit !== undefined) {
-            if (market['contract']) {
-                if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500) && (limit !== 1000)) {
-                    throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000');
-                }
-            } else {
-                if (limit > 5000) {
-                    throw new ExchangeError (this.id + ' watchOrderBook limit argument must be less than or equal to 5000');
-                }
-            }
-        }
-        let type = market['type'];
-        if (market['contract']) {
-            type = market['linear'] ? 'future' : 'delivery';
-        }
         //
         // notice the differences between trading futures and spot trading
         // the algorithms use different urls in step 1
@@ -781,7 +764,6 @@ export default class binance extends binanceRest {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         const subParams = [];
-        const hashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             const symbolString = data[0];

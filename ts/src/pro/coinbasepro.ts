@@ -7,7 +7,6 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, Ticker, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { req } from '../static_dependencies/proxies/agent-base';
 
 //  ---------------------------------------------------------------------------
 
@@ -86,17 +85,16 @@ export default class coinbasepro extends coinbaseproRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async subscribeMultiple (name, symbols = [], params = {}) {
+    async subscribeMultiple (name, symbols = [], messageHashStart = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         symbols = this.marketSymbols (symbols);
-        const messageHashes = [];
+        const messageHash = messageHashStart + symbols.join (',');
         const productIds = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             market = this.market (symbol);
             productIds.push (market['id']);
-            messageHashes.push (name + ':' + symbol);
         }
         let url = this.urls['api']['ws'];
         if ('signature' in params) {
@@ -111,7 +109,7 @@ export default class coinbasepro extends coinbaseproRest {
             ],
         };
         const request = this.extend (subscribe, params);
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async watchTicker (symbol: string, params = {}) {
@@ -144,7 +142,8 @@ export default class coinbasepro extends coinbaseproRest {
             throw new BadSymbol (this.id + ' watchTickers requires a non-empty symbols array');
         }
         const channel = 'ticker';
-        const newTickers = await this.subscribeMultiple (channel, symbols, params);
+        const messageHash = 'tickers::';
+        const newTickers = await this.subscribeMultiple (channel, symbols, messageHash, params);
         if (this.newUpdates) {
             return newTickers;
         }
@@ -162,7 +161,14 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
+        const name = 'matches';
+        const trades = await this.subscribe (name, symbol, name, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -183,7 +189,8 @@ export default class coinbasepro extends coinbaseproRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const name = 'matches';
-        const trades = await this.subscribeMultiple (name, symbols, params);
+        const messageHash = 'multipleTrades::';
+        const trades = await this.subscribeMultiple (name, symbols, messageHash, params);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -232,14 +239,40 @@ export default class coinbasepro extends coinbaseproRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         await this.loadMarkets ();
         const name = 'user';
+        const messageHash = 'multipleMyTrades::';
         const authentication = this.authenticate ();
-        const trades = await this.subscribeMultiple (name, symbols, this.extend (params, authentication));
+        const trades = await this.subscribeMultiple (name, symbols, messageHash, this.extend (params, authentication));
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async watchOrdersForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#watchOrdersForSymbols
+         * @description watches information on multiple orders made by the user
+         * @param {string[]} symbols unified symbol of the market to fetch orders for
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const name = 'user';
+        const messageHash = 'multipleOrders::';
+        const authentication = this.authenticate ();
+        const orders = await this.subscribeMultiple (name, symbols, messageHash, this.extend (params, authentication));
+        if (this.newUpdates) {
+            const first = this.safeValue (orders, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = orders.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -278,7 +311,31 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+        const name = 'level2';
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = name + ':' + market['id'];
+        const url = this.urls['api']['ws'];
+        const subscribe = {
+            'type': 'subscribe',
+            'product_ids': [
+                market['id'],
+            ],
+            'channels': [
+                name,
+            ],
+        };
+        const request = this.extend (subscribe, params);
+        const subscription = {
+            'messageHash': messageHash,
+            'symbol': symbol,
+            'marketId': market['id'],
+            'limit': limit,
+        };
+        const authentication = this.authenticate ();
+        const orderbook = await this.watch (url, messageHash, this.extend (request, authentication), messageHash, subscription);
+        return orderbook.limit ();
     }
 
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}) {
@@ -295,15 +352,11 @@ export default class coinbasepro extends coinbaseproRest {
         if (symbolsLength === 0) {
             throw new BadRequest (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        const name = 'level2_batch';
+        const name = 'level2';
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            messageHashes.push ('orderbook:' + symbol);
-        }
         const marketIds = this.marketIds (symbols);
+        const messageHash = 'multipleOrderbooks' + '::' + symbols.join (',');
         const url = this.urls['api']['ws'];
         const subscribe = {
             'type': 'subscribe',
@@ -313,7 +366,14 @@ export default class coinbasepro extends coinbaseproRest {
             ],
         };
         const request = this.extend (subscribe, params);
-        const orderbook = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const subscription = {
+            'messageHash': messageHash,
+            'symbols': symbols,
+            'marketIds': marketIds,
+            'limit': limit,
+        };
+        const authentication = this.authenticate ();
+        const orderbook = await this.watch (url, messageHash, this.extend (request, authentication), messageHash, subscription);
         return orderbook.limit ();
     }
 
@@ -333,21 +393,25 @@ export default class coinbasepro extends coinbaseproRest {
         //     }
         //
         const marketId = this.safeString (message, 'product_id');
-        const symbol = this.safeSymbol (marketId);
-        const trade = this.parseWsTrade (message);
-        // the exchange sends type = 'match'
-        // but requires 'matches' upon subscribing
-        // therefore we resolve 'matches' here instead of 'match'
-        const type = 'matches';
-        const messageHash = type + ':' + symbol;
-        let tradesArray = this.safeValue (this.trades, symbol);
-        if (tradesArray === undefined) {
-            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            tradesArray = new ArrayCache (tradesLimit);
-            this.trades[symbol] = tradesArray;
+        if (marketId !== undefined) {
+            const trade = this.parseWsTrade (message);
+            const symbol = trade['symbol'];
+            // the exchange sends type = 'match'
+            // but requires 'matches' upon subscribing
+            // therefore we resolve 'matches' here instead of 'match'
+            const type = 'matches';
+            const messageHash = type + ':' + marketId;
+            let tradesArray = this.safeValue (this.trades, symbol);
+            if (tradesArray === undefined) {
+                const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                tradesArray = new ArrayCache (tradesLimit);
+                this.trades[symbol] = tradesArray;
+            }
+            tradesArray.append (trade);
+            client.resolve (tradesArray, messageHash);
+            this.resolvePromiseIfMessagehashMatches (client, 'multipleTrades::', symbol, tradesArray);
         }
-        tradesArray.append (trade);
-        client.resolve (tradesArray, messageHash);
+        return message;
     }
 
     handleMyTrade (client: Client, message) {
@@ -365,6 +429,7 @@ export default class coinbasepro extends coinbaseproRest {
             }
             tradesArray.append (trade);
             client.resolve (tradesArray, messageHash);
+            this.resolvePromiseIfMessagehashMatches (client, 'multipleMyTrades::', symbol, tradesArray);
         }
         return message;
     }
@@ -566,6 +631,7 @@ export default class coinbasepro extends coinbaseproRest {
                 const parsed = this.parseWsOrder (message);
                 orders.append (parsed);
                 client.resolve (orders, messageHash);
+                this.resolvePromiseIfMessagehashMatches (client, 'multipleOrders::', symbol, orders);
             } else {
                 const sequence = this.safeInteger (message, 'sequence');
                 const previousInfo = this.safeValue (previousOrder, 'info', {});
@@ -608,6 +674,7 @@ export default class coinbasepro extends coinbaseproRest {
                         // update the newUpdates count
                         orders.append (previousOrder);
                         client.resolve (orders, messageHash);
+                        this.resolvePromiseIfMessagehashMatches (client, 'multipleOrders::', symbol, orders);
                     } else if ((type === 'received') || (type === 'done')) {
                         const info = this.extend (previousOrder['info'], message);
                         const order = this.parseWsOrder (info);
@@ -622,6 +689,7 @@ export default class coinbasepro extends coinbaseproRest {
                         // update the newUpdates count
                         orders.append (previousOrder);
                         client.resolve (orders, messageHash);
+                        this.resolvePromiseIfMessagehashMatches (client, 'multipleOrders::', symbol, orders);
                     }
                 }
             }
@@ -816,7 +884,8 @@ export default class coinbasepro extends coinbaseproRest {
         const marketId = this.safeString (message, 'product_id');
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
-        const messageHash = 'orderbook:' + symbol;
+        const name = 'level2';
+        const messageHash = name + ':' + marketId;
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         if (type === 'snapshot') {
@@ -828,6 +897,7 @@ export default class coinbasepro extends coinbaseproRest {
             orderbook['datetime'] = undefined;
             orderbook['symbol'] = symbol;
             client.resolve (orderbook, messageHash);
+            this.resolvePromiseIfMessagehashMatches (client, 'multipleOrderbooks::', symbol, orderbook);
         } else if (type === 'l2update') {
             const orderbook = this.orderbooks[symbol];
             const timestamp = this.parse8601 (this.safeString (message, 'time'));
@@ -848,6 +918,7 @@ export default class coinbasepro extends coinbaseproRest {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
             client.resolve (orderbook, messageHash);
+            this.resolvePromiseIfMessagehashMatches (client, 'multipleOrderbooks::', symbol, orderbook);
         }
     }
 
