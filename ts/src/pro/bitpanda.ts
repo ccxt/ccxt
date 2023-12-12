@@ -4,7 +4,7 @@
 import bitpandaRest from '../bitpanda.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int, Str, Strings } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -79,7 +79,7 @@ export default class bitpanda extends bitpandaRest {
         });
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitpanda#watchBalance
@@ -140,7 +140,7 @@ export default class bitpanda extends bitpandaRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitpanda#watchTicker
@@ -167,7 +167,7 @@ export default class bitpanda extends bitpandaRest {
         return await this.watchMultiple (messageHash, request, subscriptionHash, [ symbol ], params);
     }
 
-    async watchTickers (symbols: Strings = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitpanda#watchTickers
@@ -266,7 +266,7 @@ export default class bitpanda extends bitpandaRest {
         }, market);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitpanda#watchMyTrades
@@ -311,7 +311,7 @@ export default class bitpanda extends bitpandaRest {
         return trades;
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitpanda#watchOrderBook
@@ -428,7 +428,7 @@ export default class bitpanda extends bitpandaRest {
         }
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitpanda#watchOrders
@@ -1048,7 +1048,7 @@ export default class bitpanda extends bitpandaRest {
         this.balance = this.safeBalance (this.balance);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitpanda#watchOHLCV

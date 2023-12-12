@@ -2,7 +2,7 @@ import Exchange from './abstract/cex.js';
 import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 /**
  * @class cex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class cex extends Exchange {
     describe(): any;

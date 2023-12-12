@@ -6,11 +6,11 @@ import { Precise } from './base/Precise.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
 
 /**
  * @class cryptocom
- * @extends Exchange
+ * @augments Exchange
  */
 export default class cryptocom extends Exchange {
     describe () {
@@ -30,7 +30,6 @@ export default class cryptocom extends Exchange {
                 'future': true,
                 'option': true,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -95,7 +94,6 @@ export default class cryptocom extends Exchange {
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'repayMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -1160,7 +1158,7 @@ export default class cryptocom extends Exchange {
          * @description create a list of trade orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2224,7 +2222,7 @@ export default class cryptocom extends Exchange {
          * @method
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {array} the marginMode in lowercase
+         * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeValue (params, 'margin', false);

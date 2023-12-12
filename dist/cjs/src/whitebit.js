@@ -10,7 +10,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class whitebit
- * @extends Exchange
+ * @augments Exchange
  */
 class whitebit extends whitebit$1 {
     describe() {

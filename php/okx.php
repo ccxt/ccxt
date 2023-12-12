@@ -2827,7 +2827,7 @@ class okx extends Exchange {
         /**
          * create a list of trade $orders
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-$orders
-         * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -3358,7 +3358,7 @@ class okx extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra and exchange specific parameters
          * @return ~@link https://docs.ccxt.com/#/?$id=$order-structure an $order structure~
-        */
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
@@ -7085,7 +7085,7 @@ class okx extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {boolean} [$params->autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a $market $order-> false or true, the default is false
          * @param {string} [$params->tag] $order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-         * @return {[array]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+         * @return {array[]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);

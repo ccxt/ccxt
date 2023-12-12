@@ -15,7 +15,7 @@ import { rsa } from './base/functions/rsa.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class lbank2
- * @extends Exchange
+ * @augments Exchange
  */
 export default class lbank extends Exchange {
     describe() {

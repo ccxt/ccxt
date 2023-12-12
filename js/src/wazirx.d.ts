@@ -2,7 +2,7 @@ import Exchange from './abstract/wazirx.js';
 import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 /**
  * @class wazirx
- * @extends Exchange
+ * @augments Exchange
  */
 export default class wazirx extends Exchange {
     describe(): any;

@@ -11,7 +11,7 @@ import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 /**
  * @class coinsph
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinsph extends Exchange {
     describe() {

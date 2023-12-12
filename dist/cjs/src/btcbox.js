@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class btcbox
- * @extends Exchange
+ * @augments Exchange
  */
 class btcbox extends btcbox$1 {
     describe() {

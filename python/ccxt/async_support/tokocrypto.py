@@ -1011,15 +1011,19 @@ class tokocrypto(Exchange, ImplicitAPI):
             responseInner = self.publicGetOpenV1MarketTrades(self.extend(request, params))
             data = self.safe_value(responseInner, 'data', {})
             return self.parse_trades(data, market, since, limit)
+        if limit is not None:
+            request['limit'] = limit  # default = 500, maximum = 1000
         defaultMethod = 'binanceGetTrades'
         method = self.safe_string(self.options, 'fetchTradesMethod', defaultMethod)
+        response = None
         if (method == 'binanceGetAggTrades') and (since is not None):
             request['startTime'] = since
             # https://github.com/ccxt/ccxt/issues/6400
             # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
             request['endTime'] = self.sum(since, 3600000)
-        if limit is not None:
-            request['limit'] = limit  # default = 500, maximum = 1000
+            response = await self.binanceGetAggTrades(self.extend(request, params))
+        else:
+            response = await self.binanceGetTrades(self.extend(request, params))
         #
         # Caveats:
         # - default limit(500) applies only if no other parameters set, trades up
@@ -1029,7 +1033,6 @@ class tokocrypto(Exchange, ImplicitAPI):
         # - 'tradeId' accepted and returned by self method is "aggregate" trade id
         #   which is different from actual trade id
         # - setting both fromId and time window results in error
-        response = await getattr(self, method)(self.extend(request, params))
         #
         # aggregate trades
         #

@@ -2722,7 +2722,7 @@ class okx(Exchange, ImplicitAPI):
         """
         create a list of trade orders
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -3218,7 +3218,7 @@ class okx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param dict [params]: extra and exchange specific parameters
         :returns: `an order structure <https://docs.ccxt.com/#/?id=order-structure>`
-       """
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
@@ -6713,7 +6713,7 @@ class okx(Exchange, ImplicitAPI):
          * EXCHANGE SPECIFIC PARAMETERS
         :param boolean [params.autoCxl]: whether any pending orders for closing out needs to be automatically canceled when close position via a market order. False or True, the default is False
         :param str [params.tag]: order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-        :returns [dict]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         market = self.market(symbol)

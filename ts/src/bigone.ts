@@ -6,14 +6,14 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class bigone
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bigone extends Exchange {
     describe () {

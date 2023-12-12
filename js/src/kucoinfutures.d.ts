@@ -21,7 +21,6 @@ export default class kucoinfutures extends kucoin {
         network: string;
     }>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<void>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;

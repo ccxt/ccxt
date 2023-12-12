@@ -102,8 +102,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         Connects to a websocket channel
         :param str name: name of the channel
         :param str[] symbols: CCXT market symbols
-        :param Object [params]: extra parameters specific to the krakenfutures api
-        :returns Object: data from the websocket stream
+        :param dict [params]: extra parameters specific to the krakenfutures api
+        :returns dict: data from the websocket stream
         """
         await self.load_markets()
         url = self.urls['api']['ws']
@@ -132,8 +132,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         Connects to a websocket channel
         :param str name: name of the channel
         :param str[] symbols: CCXT market symbols
-        :param Object [params]: extra parameters specific to the krakenfutures api
-        :returns Object: data from the websocket stream
+        :param dict [params]: extra parameters specific to the krakenfutures api
+        :returns dict: data from the websocket stream
         """
         await self.load_markets()
         await self.authenticate()

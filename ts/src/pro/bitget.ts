@@ -5,14 +5,14 @@ import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, Inval
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Str, Strings } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class bitget
- * @extends Exchange
+ * @augments Exchange
  * @description watching delivery future markets is not yet implemented (perpertual future / swap is implemented)
  */
 
@@ -130,7 +130,7 @@ export default class bitget extends bitgetRest {
         return marketId;
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitget#watchTicker
@@ -152,7 +152,7 @@ export default class bitget extends bitgetRest {
         return await this.watchPublic (messageHash, args, params);
     }
 
-    async watchTickers (symbols: Strings = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitget#watchTickers
@@ -317,7 +317,7 @@ export default class bitget extends bitgetRest {
         }, market);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitget#watchOHLCV
@@ -461,7 +461,7 @@ export default class bitget extends bitgetRest {
         ];
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitget#watchOrderBook
@@ -495,7 +495,7 @@ export default class bitget extends bitgetRest {
         }
     }
 
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}) {
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitget#watchOrderBookForSymbols
@@ -634,7 +634,7 @@ export default class bitget extends bitgetRest {
         }
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitget#watchTrades
@@ -664,7 +664,7 @@ export default class bitget extends bitgetRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitget#watchTradesForSymbols
@@ -773,7 +773,7 @@ export default class bitget extends bitgetRest {
         }, market);
     }
 
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name bitget#watchPositions
@@ -954,7 +954,7 @@ export default class bitget extends bitgetRest {
         });
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitget#watchOrders
@@ -1281,7 +1281,7 @@ export default class bitget extends bitgetRest {
         return this.safeString (statuses, status, status);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitget#watchMyTrades
@@ -1438,7 +1438,7 @@ export default class bitget extends bitgetRest {
         }, market);
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitget#watchBalance

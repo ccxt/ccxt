@@ -968,6 +968,7 @@ class Transpiler {
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'Trade': /-> (?:List\[)?Trade/,
+            'Order': /-> (?:List\[)?Order\]?:/,
             'Transaction': /-> (?:List\[)?Transaction/,
         }
         const matches = []

@@ -14,7 +14,7 @@ import { Precise } from './base/Precise.js';
 // ---------------------------------------------------------------------------
 /**
  * @class kuna
- * @extends Exchange
+ * @augments Exchange
  * @description Use the public-key as your apiKey
  */
 export default class kuna extends Exchange {

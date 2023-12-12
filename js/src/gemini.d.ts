@@ -2,7 +2,7 @@ import Exchange from './abstract/gemini.js';
 import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class gemini
- * @extends Exchange
+ * @augments Exchange
  */
 export default class gemini extends Exchange {
     describe(): any;

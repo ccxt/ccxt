@@ -2,7 +2,7 @@ import Exchange from './abstract/independentreserve.js';
 import { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 /**
  * @class independentreserve
- * @extends Exchange
+ * @augments Exchange
  */
 export default class independentreserve extends Exchange {
     describe(): any;

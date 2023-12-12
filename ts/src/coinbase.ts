@@ -6,13 +6,13 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
 /**
  * @class coinbase
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinbase extends Exchange {
     describe () {

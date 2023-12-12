@@ -130,9 +130,9 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         :param str name: name of the channel and suscriptionHash
         :param bool isPrivate: True for the authenticated url, False for the public url
         :param str symbol: is required for all public channels, not required for private channels(except position)
-        :param Object subscription: subscription parameters
-        :param Object [params]: extra parameters specific to the poloniex api
-        :returns Object: data from the websocket stream
+        :param dict subscription: subscription parameters
+        :param dict [params]: extra parameters specific to the poloniex api
+        :returns dict: data from the websocket stream
         """
         url = await self.negotiate(isPrivate)
         if symbol is not None:

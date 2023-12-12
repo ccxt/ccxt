@@ -7,7 +7,7 @@ var number = require('./base/functions/number.js');
 
 /**
  * @class timex
- * @extends Exchange
+ * @augments Exchange
  */
 class timex extends timex$1 {
     describe() {

@@ -2,7 +2,7 @@ import Exchange from './abstract/bitflyer.js';
 import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class bitflyer
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitflyer extends Exchange {
     describe(): any;

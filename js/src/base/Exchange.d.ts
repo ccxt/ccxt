@@ -41,6 +41,8 @@ export default class Exchange {
     ws_proxy: string;
     wssProxy: string;
     wss_proxy: string;
+    wsSocksProxy: string;
+    ws_socks_proxy: string;
     userAgents: any;
     headers: any;
     origin: string;
@@ -513,6 +515,8 @@ export default class Exchange {
     proxyModulesLoaded: boolean;
     loadProxyModules(): Promise<void>;
     setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
+    loadHttpProxyAgent(): Promise<any>;
+    getHttpAgentIfNeeded(url: any): any;
     fetch(url: any, method?: string, headers?: any, body?: any): Promise<any>;
     parseJson(jsonString: any): any;
     getResponseHeaders(response: any): {};
@@ -794,6 +798,7 @@ export default class Exchange {
     fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     closeAllPositions(params?: {}): Promise<Position[]>;
+    fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseLastPrice(price: any, market?: Market): any;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     account(): Account;

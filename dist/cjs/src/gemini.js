@@ -10,7 +10,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class gemini
- * @extends Exchange
+ * @augments Exchange
  */
 class gemini extends gemini$1 {
     describe() {

@@ -2,7 +2,7 @@ import Exchange from './abstract/novadax.js';
 import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class novadax
- * @extends Exchange
+ * @augments Exchange
  */
 export default class novadax extends Exchange {
     describe(): any;

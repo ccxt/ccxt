@@ -16,7 +16,7 @@ import { ecdsa } from './base/functions/crypto.js';
 // ---------------------------------------------------------------------------
 /**
  * @class idex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class idex extends Exchange {
     describe() {
