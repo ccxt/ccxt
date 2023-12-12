@@ -136,7 +136,8 @@
                 "taker": "not provided",
                 "maker": "not provided",
                 "info":"null"
-            }
+            },
+            "fetchOrderBook": "returning 0 volumes"
         }
     },
     "tokocrypto": {
