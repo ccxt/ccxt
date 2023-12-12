@@ -322,6 +322,7 @@ export default class probit extends Exchange {
             'precision': {
                 'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_precision'))),
                 'price': this.safeNumber (market, 'price_increment'),
+                'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'cost_precision'))),
             },
             'limits': {
                 'leverage': {
