@@ -10,7 +10,7 @@ import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Ord
 
 /**
  * @class bitfinex2
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitfinex2 extends Exchange {
     describe () {

@@ -12,7 +12,7 @@ import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook,
 
 /**
  * @class bitmex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitmex extends Exchange {
     describe () {

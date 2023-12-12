@@ -12,7 +12,7 @@ import { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transact
 
 /**
  * @class bitmart
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitmart extends Exchange {
     describe () {

@@ -12,7 +12,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class bithumb
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bithumb extends Exchange {
     describe () {

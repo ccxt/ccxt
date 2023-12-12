@@ -12,7 +12,7 @@ import { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Tic
 
 /**
  * @class btcbox
- * @extends Exchange
+ * @augments Exchange
  */
 export default class btcbox extends Exchange {
     describe () {

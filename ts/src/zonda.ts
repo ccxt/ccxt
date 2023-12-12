@@ -12,7 +12,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class zonda
- * @extends Exchange
+ * @augments Exchange
  */
 export default class zonda extends Exchange {
     describe () {

@@ -4747,8 +4747,8 @@ export default class Exchange {
         /**
          * @ignore
          * @method
-         * * Must add timeInForce to this.options to use this method
-         * @return {string} returns the exchange specific value for timeInForce
+         * Must add timeInForce to this.options to use this method
+         * @returns {string} returns the exchange specific value for timeInForce
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce'); // supported values GTC, IOC, PO
         if (timeInForce !== undefined) {
@@ -4765,7 +4765,7 @@ export default class Exchange {
         /**
          * @ignore
          * @method
-         * * Must add accountsByType to this.options to use this method
+         * Must add accountsByType to this.options to use this method
          * @param {string} account key for account name in this.options['accountsByType']
          * @returns the exchange specific account name or the isolated margin id for transfers
          */

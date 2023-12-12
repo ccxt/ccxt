@@ -11,7 +11,7 @@ import { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Tic
 
 /**
  * @class independentreserve
- * @extends Exchange
+ * @augments Exchange
  */
 export default class independentreserve extends Exchange {
     describe () {

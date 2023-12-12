@@ -11,7 +11,7 @@ import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType
 
 /**
  * @class luno
- * @extends Exchange
+ * @augments Exchange
  */
 export default class luno extends Exchange {
     describe () {

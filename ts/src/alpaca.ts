@@ -8,7 +8,7 @@ import { Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade 
 //  ---------------------------------------------------------------------------xs
 /**
  * @class alpaca
- * @extends Exchange
+ * @augments Exchange
  */
 export default class alpaca extends Exchange {
     describe () {
@@ -500,7 +500,7 @@ export default class alpaca extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.loc] crypto location, default: us
          * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
-        */
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const id = market['id'];

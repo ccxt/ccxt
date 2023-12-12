@@ -11,7 +11,7 @@ import { Balances, FundingHistory, Int, Market, OHLCV, Order, OrderBook, OrderSi
 
 /**
  * @class poloniexfutures
- * @extends Exchange
+ * @augments Exchange
  */
 export default class poloniexfutures extends Exchange {
     describe () {

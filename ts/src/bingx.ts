@@ -1826,7 +1826,7 @@ export default class bingx extends Exchange {
          * @description create a list of trade orders
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Batch%20Placing%20Orders
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
