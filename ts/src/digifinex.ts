@@ -890,18 +890,17 @@ export default class digifinex extends Exchange {
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         const request = {};
-        let method = undefined;
-        if (marketType === 'swap') {
-            method = 'publicSwapGetPublicDepth';
-            request['instrument_id'] = market['id'];
-        } else {
-            method = 'publicSpotGetOrderBook';
-            request['symbol'] = market['id'];
-        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (marketType === 'swap') {
+            request['instrument_id'] = market['id'];
+            response = await this.publicSwapGetPublicDepth (this.extend (request, query));
+        } else {
+            request['symbol'] = market['id'];
+            response = await this.publicSpotGetOrderBook (this.extend (request, query));
+        }
         //
         // spot
         //

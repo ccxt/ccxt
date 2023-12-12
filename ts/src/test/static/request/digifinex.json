@@ -383,6 +383,24 @@
                 "url": "https://openapi.digifinex.com/swap/v2/public/instruments",
                 "input": []
             }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch orderbook - spot",
+                "method": "fetchOrderBook",
+                "url": "https://openapi.digifinex.com/v3/order_book?symbol=LTC_USDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch orderbook - swap",
+                "method": "fetchOrderBook",
+                "url": "https://openapi.digifinex.com/swap/v2/public/depth?instrument_id=LTCUSDTPERP",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
