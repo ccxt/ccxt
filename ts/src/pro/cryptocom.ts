@@ -85,7 +85,7 @@ export default class cryptocom extends cryptocomRest {
         return orderbook.limit ();
     }
 
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}) {
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name cryptocom#watchOrderBook

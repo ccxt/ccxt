@@ -338,7 +338,7 @@ export default class coinbasepro extends coinbaseproRest {
         return orderbook.limit ();
     }
 
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}) {
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name coinbasepro#watchOrderBookForSymbols

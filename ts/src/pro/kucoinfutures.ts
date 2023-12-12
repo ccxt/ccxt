@@ -500,7 +500,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return orderbook.limit ();
     }
 
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}) {
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name kucoinfutures#watchOrderBookForSymbols

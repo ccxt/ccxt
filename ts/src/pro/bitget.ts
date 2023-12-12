@@ -495,7 +495,7 @@ export default class bitget extends bitgetRest {
         }
     }
 
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}) {
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitget#watchOrderBookForSymbols
