@@ -2576,16 +2576,7 @@ export default class digifinex extends Exchange {
         const request = {};
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotGetSpotFinancelog',
-            'margin': 'privateSpotGetMarginFinancelog',
-            'swap': 'privateSwapGetAccountFinanceRecord',
-        });
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchLedger', params);
-        if (marginMode !== undefined) {
-            method = 'privateSpotGetMarginFinancelog';
-            marketType = 'margin';
-        }
         if (marketType === 'swap') {
             if (since !== undefined) {
                 request['start_timestamp'] = since;
@@ -2605,7 +2596,17 @@ export default class digifinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (marginMode !== undefined || marketType === 'margin') {
+            marketType = 'margin';
+            response = await this.privateSpotGetMarginFinancelog (this.extend (request, query));
+        } else if (marketType === 'spot') {
+            response = await this.privateSpotGetSpotFinancelog (this.extend (request, query));
+        } else if (marketType === 'swap') {
+            response = await this.privateSwapGetAccountFinanceRecord (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' fetchLedger() not support this method');
+        }
         //
         // spot and margin
         //

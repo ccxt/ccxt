@@ -366,6 +366,19 @@
                 "input": [
                     "USDT"
                 ]
+            },
+            {
+                "description": "fetch USDT ledger",
+                "method": "fetchLedger",
+                "url": "https://openapi.digifinex.com/swap/v2/account/finance_record?currency=USDT",
+                "input": [
+                    "USDT",
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ]
             }
         ],
         "fetchDepositAddress": [
