@@ -150,7 +150,7 @@ export default class coinmetro extends Exchange {
                         'assets': 1,
                         'markets': 1,
                         'exchange/book/{pair}': 1,
-                        'exchange/bookUpdates/:pair/:from': 1,
+                        'exchange/bookUpdates/{pair}/{from}': 1,
                     },
                 },
                 'private': {
@@ -281,8 +281,10 @@ export default class coinmetro extends Exchange {
          */
         const response = await this.publicGetMarkets (params);
         // todo: check
-        if (this.safeValue (this, 'currenciesHelper') === undefined) {
-            this['currenciesHelper'] = await this.fetchCurrencies ();
+        if (this.safeValue (this, 'currencyIdsList') === undefined) {
+            const currencies = await this.fetchCurrencies ();
+            const currenciesById = this.indexBy (currencies, 'id');
+            this['currencyIdsList'] = Object.keys (currenciesById);
         }
         //
         //     [
@@ -368,19 +370,25 @@ export default class coinmetro extends Exchange {
     }
 
     parseMarketId (marketId) {
-        const result = {};
-        const currencies = this.safeValue (this, 'currenciesHelper', {});
-        const currencyCodes = Object.keys (currencies);
-        for (let i = 0; i < currencyCodes.length; i++) {
-            const currencyCode = currencyCodes[i];
-            const currency = currencies[currencyCode];
-            const currencyId = currency['id'];
-            const index = marketId.indexOf (currencyId);
-            if (index !== -1) {
-                if (index === 0) {
-                    result['baseId'] = currencyId;
-                } else {
-                    result['quoteId'] = currencyId;
+        const result = {
+            'baseId': undefined,
+            'quoteId': undefined,
+        };
+        const currencyIds = this.safeValue (this, 'currencyIdsList', []);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const entryIndex = marketId.indexOf (currencyId);
+            if (entryIndex !== -1) {
+                const restId = marketId.replace (currencyId, '');
+                if (this.inArray (restId, currencyIds)) {
+                    if (entryIndex === 0) {
+                        result['baseId'] = currencyId;
+                        result['quoteId'] = restId;
+                    } else {
+                        result['baseId'] = restId;
+                        result['quoteId'] = currencyId;
+                    }
+                    break;
                 }
             }
         }
@@ -620,6 +628,7 @@ export default class coinmetro extends Exchange {
     }
 
     parseBidsAsks (rawBidsAsks) {
+        // overriding Exchange.parseBidsAsks
         const prices = Object.keys (rawBidsAsks);
         const result = [];
         for (let i = 0; i < prices.length; i++) {
@@ -636,7 +645,9 @@ export default class coinmetro extends Exchange {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode (request);
-        url += '?' + query;
+        if (query) {
+            url += '?' + query;
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
