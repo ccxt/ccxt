@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, NotSupported } from './base/errors.js';
-import { Int, OHLCV, OrderSide, OrderType } from './base/types.js';
+import { Balances, FundingRateHistory, Int, OHLCV, OpenInterest, Order, OrderSide, OrderType, Position, Tickers, Trade } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1907,7 +1907,7 @@ export default class huobi extends Exchange {
         return ticker;
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name huobi#fetchTickers
@@ -2476,7 +2476,7 @@ export default class huobi extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit = 1000, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit = 1000, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name huobi#fetchTrades
@@ -3002,7 +3002,7 @@ export default class huobi extends Exchange {
         return this.safeValue (uniqueNetworkIds, ecid, ecid);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name huobi#fetchBalance
@@ -3848,7 +3848,7 @@ export default class huobi extends Exchange {
         return await this.fetchContractOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name huobi#fetchOrders
@@ -3881,7 +3881,7 @@ export default class huobi extends Exchange {
         return response;
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name huobi#fetchClosedOrders
@@ -4182,7 +4182,7 @@ export default class huobi extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // spot
         //
@@ -4561,7 +4561,7 @@ export default class huobi extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name huobi#createOrder
@@ -5952,7 +5952,7 @@ export default class huobi extends Exchange {
         return rates;
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
         /**
          * @method
          * @name huobi#fetchFundingRateHistory
@@ -6845,7 +6845,7 @@ export default class huobi extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    async fetchPosition (symbol: string, params = {}) {
+    async fetchPosition (symbol: string, params = {}): Promise<Position> {
         /**
          * @method
          * @name huobi#fetchPosition
@@ -7478,7 +7478,7 @@ export default class huobi extends Exchange {
         return this.parseOpenInterests (tick, market, since, limit);
     }
 
-    async fetchOpenInterest (symbol: string, params = {}) {
+    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
         /**
          * @method
          * @name huobi#fetchOpenInterest
