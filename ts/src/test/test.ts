@@ -143,7 +143,7 @@ async function importTestFile (filePath) {
 }
 
 async function setTestFiles (holderClass, properties) {
-    const path = isWsTests ? DIR_NAME + '/../pro/test/' : DIR_NAME;
+    const path = isWsTests ? DIR_NAME + '../pro/test' : DIR_NAME;
     // exchange tests
     const finalPropList = properties.concat ([ proxyTestFileName ]);
     for (let i = 0; i < finalPropList.length; i++) {
