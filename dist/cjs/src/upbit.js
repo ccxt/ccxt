@@ -12,7 +12,7 @@ var rsa = require('./base/functions/rsa.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class upbit
- * @extends Exchange
+ * @augments Exchange
  */
 class upbit extends upbit$1 {
     describe() {

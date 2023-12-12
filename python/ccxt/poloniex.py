@@ -1209,18 +1209,18 @@ class poloniex(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-       create a trade order
-       :see: https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
-       :see: https://docs.poloniex.com/#authenticated-endpoints-smart-orders-create-order  # trigger orders
-       :param str symbol: unified symbol of the market to create an order in
-       :param str type: 'market' or 'limit'
-       :param str side: 'buy' or 'sell'
-       :param float amount: how much of currency you want to trade in units of base currency
-       :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-       :param dict [params]: extra parameters specific to the exchange API endpoint
-       :param float [params.triggerPrice]: *spot only* The price at which a trigger order is triggered at
-       :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-       """
+        create a trade order
+        :see: https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
+        :see: https://docs.poloniex.com/#authenticated-endpoints-smart-orders-create-order  # trigger orders
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.triggerPrice]: *spot only* The price at which a trigger order is triggered at
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
@@ -1280,19 +1280,19 @@ class poloniex(Exchange, ImplicitAPI):
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
-       edit a trade order
-       :see: https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
-       :see: https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-replace-order
-       :param str id: order id
-       :param str symbol: unified symbol of the market to create an order in
-       :param str type: 'market' or 'limit'
-       :param str side: 'buy' or 'sell'
-       :param float [amount]: how much of the currency you want to trade in units of the base currency
-       :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-       :param dict [params]: extra parameters specific to the exchange API endpoint
-       :param float [params.triggerPrice]: The price at which a trigger order is triggered at
-       :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-       """
+        edit a trade order
+        :see: https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
+        :see: https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-replace-order
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float [amount]: how much of the currency you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
@@ -1358,14 +1358,14 @@ class poloniex(Exchange, ImplicitAPI):
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
-       cancel all open orders
-       :see: https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
-       :see: https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-all-orders  # trigger orders
-       :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-       :param dict [params]: extra parameters specific to the exchange API endpoint
-       :param boolean [params.trigger]: True if canceling trigger orders
-       :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
-       """
+        cancel all open orders
+        :see: https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
+        :see: https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-all-orders  # trigger orders
+        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: True if canceling trigger orders
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         self.load_markets()
         request = {
             # 'accountTypes': 'SPOT',
@@ -1405,15 +1405,15 @@ class poloniex(Exchange, ImplicitAPI):
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
-       fetch an order by it's id
-       :see: https://docs.poloniex.com/#authenticated-endpoints-orders-order-details
-       :see: https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  # trigger orders
-       :param str id: order id
-       :param str symbol: unified market symbol, default is None
-       :param dict [params]: extra parameters specific to the exchange API endpoint
-       :param boolean [params.trigger]: True if fetching a trigger order
-       :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-       """
+        fetch an order by it's id
+        :see: https://docs.poloniex.com/#authenticated-endpoints-orders-order-details
+        :see: https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  # trigger orders
+        :param str id: order id
+        :param str symbol: unified market symbol, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: True if fetching a trigger order
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         self.load_markets()
         id = str(id)
         request = {

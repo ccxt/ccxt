@@ -12,7 +12,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 // ---------------------------------------------------------------------------
 /**
  * @class blockchaincom
- * @extends Exchange
+ * @augments Exchange
  */
 export default class blockchaincom extends Exchange {
     describe() {

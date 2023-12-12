@@ -131,9 +131,9 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {string} name name of the channel and suscriptionHash
          * @param {bool} isPrivate true for the authenticated url, false for the public url
          * @param {string} symbol is required for all public channels, not required for private channels (except position)
-         * @param {Object} subscription subscription parameters
-         * @param {Object} [params] extra parameters specific to the poloniex api
-         * @returns {Object} data from the websocket stream
+         * @param {object} subscription subscription parameters
+         * @param {object} [params] extra parameters specific to the poloniex api
+         * @returns {object} data from the websocket stream
          */
         const url = await this.negotiate(isPrivate);
         if (symbol !== undefined) {

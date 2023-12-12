@@ -11,7 +11,7 @@ var totp = require('./base/functions/totp.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class deribit
- * @extends Exchange
+ * @augments Exchange
  */
 class deribit extends deribit$1 {
     describe() {

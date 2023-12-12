@@ -3,7 +3,7 @@ import { Precise } from './base/Precise.js';
 import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class wavesexchange
- * @extends Exchange
+ * @augments Exchange
  */
 export default class wavesexchange extends Exchange {
     describe(): any;

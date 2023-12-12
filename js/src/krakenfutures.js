@@ -14,7 +14,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class krakenfutures
- * @extends Exchange
+ * @augments Exchange
  */
 export default class krakenfutures extends Exchange {
     describe() {
@@ -672,7 +672,7 @@ export default class krakenfutures extends Exchange {
          * @method
          * @name krakenfutures#fetchTrades
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history
-         * @descriptions Fetch a history of filled trades that this account has made
+         * @description Fetch a history of filled trades that this account has made
          * @param {string} symbol Unified CCXT market symbol
          * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
          * @param {int} [limit] Total number of trades, cannot exceed 100
@@ -944,7 +944,7 @@ export default class krakenfutures extends Exchange {
          * @name krakenfutures#createOrders
          * @description create a list of trade orders
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();

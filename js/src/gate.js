@@ -12,7 +12,7 @@ import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, Perm
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 /**
  * @class gate
- * @extends Exchange
+ * @augments Exchange
  */
 export default class gate extends Exchange {
     describe() {

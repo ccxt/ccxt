@@ -491,7 +491,7 @@ class alpaca extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->loc] crypto location, default => us
          * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
-        */
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $id = $market['id'];

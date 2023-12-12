@@ -9,7 +9,7 @@ var number = require('./base/functions/number.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class luno
- * @extends Exchange
+ * @augments Exchange
  */
 class luno extends luno$1 {
     describe() {

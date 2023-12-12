@@ -138,9 +138,9 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
              * @param {string} $name name of the channel and suscriptionHash
              * @param {bool} $isPrivate true for the authenticated $url, false for the public $url
              * @param {string} $symbol is required for all public channels, not required for private channels (except position)
-             * @param {Object} $subscription subscription parameters
-             * @param {Object} [$params] extra parameters specific to the poloniex api
-             * @return {Object} data from the websocket stream
+             * @param {array} $subscription subscription parameters
+             * @param {array} [$params] extra parameters specific to the poloniex api
+             * @return {array} data from the websocket stream
              */
             $url = Async\await($this->negotiate($isPrivate));
             if ($symbol !== null) {

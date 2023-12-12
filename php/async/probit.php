@@ -35,7 +35,10 @@ class probit extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
+                'createMarketBuyOrderWithCost' => true,
                 'createMarketOrder' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -324,6 +327,7 @@ class probit extends Exchange {
             'precision' => array(
                 'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_precision'))),
                 'price' => $this->safe_number($market, 'price_increment'),
+                'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'cost_precision'))),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -1211,14 +1215,15 @@ class probit extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
-             * @see https://docs-en.probit.com/reference/order-1
              * create a trade $order
+             * @see https://docs-en.probit.com/reference/order-1
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} $amount how much you want to trade in units of the base currency
              * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -1236,30 +1241,32 @@ class probit extends Exchange {
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
             }
-            $costToPrecision = null;
+            $quoteAmount = null;
             if ($type === 'limit') {
                 $request['limit_price'] = $this->price_to_precision($symbol, $price);
                 $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             } elseif ($type === 'market') {
                 // for $market buy it requires the $amount of quote currency to spend
                 if ($side === 'buy') {
-                    $cost = $this->safe_number($params, 'cost');
-                    $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                    if ($createMarketBuyOrderRequiresPrice) {
-                        if ($price !== null) {
-                            if ($cost === null) {
-                                $amountString = $this->number_to_string($amount);
-                                $priceString = $this->number_to_string($price);
-                                $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                            }
-                        } elseif ($cost === null) {
-                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false and supply the total $cost value in the "amount" argument or in the "cost" extra parameter (the exchange-specific behaviour)');
+                    $createMarketBuyOrderRequiresPrice = true;
+                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    $cost = $this->safe_string($params, 'cost');
+                    $params = $this->omit($params, 'cost');
+                    if ($cost !== null) {
+                        $quoteAmount = $this->cost_to_precision($symbol, $cost);
+                    } elseif ($createMarketBuyOrderRequiresPrice) {
+                        if ($price === null) {
+                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                        } else {
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $costRequest = Precise::string_mul($amountString, $priceString);
+                            $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                         }
                     } else {
-                        $cost = ($cost === null) ? $amount : $cost;
+                        $quoteAmount = $this->cost_to_precision($symbol, $amount);
                     }
-                    $costToPrecision = $this->cost_to_precision($symbol, $cost);
-                    $request['cost'] = $costToPrecision;
+                    $request['cost'] = $quoteAmount;
                 } else {
                     $request['quantity'] = $this->amount_to_precision($symbol, $amount);
                 }
@@ -1293,7 +1300,7 @@ class probit extends Exchange {
             // returned by the exchange on $market buys
             if (($type === 'market') && ($side === 'buy')) {
                 $order['amount'] = null;
-                $order['cost'] = $this->parse_number($costToPrecision);
+                $order['cost'] = $this->parse_number($quoteAmount);
                 $order['remaining'] = null;
             }
             return $order;

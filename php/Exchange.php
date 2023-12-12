@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.85';
+$version = '4.1.86';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.85';
+    const VERSION = '4.1.86';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2291,7 +2291,8 @@ class Exchange {
         $usedProxies = array();
         $wsProxy = null;
         $wssProxy = null;
-        // $wsProxy
+        $wsSocksProxy = null;
+        // ws proxy
         if ($this->wsProxy !== null) {
             $usedProxies[] = 'wsProxy';
             $wsProxy = $this->wsProxy;
@@ -2300,7 +2301,7 @@ class Exchange {
             $usedProxies[] = 'ws_proxy';
             $wsProxy = $this->ws_proxy;
         }
-        // $wsProxy
+        // wss proxy
         if ($this->wssProxy !== null) {
             $usedProxies[] = 'wssProxy';
             $wssProxy = $this->wssProxy;
@@ -2309,13 +2310,22 @@ class Exchange {
             $usedProxies[] = 'wss_proxy';
             $wssProxy = $this->wss_proxy;
         }
+        // ws socks proxy
+        if ($this->wsSocksProxy !== null) {
+            $usedProxies[] = 'wsSocksProxy';
+            $wsSocksProxy = $this->wsSocksProxy;
+        }
+        if ($this->ws_socks_proxy !== null) {
+            $usedProxies[] = 'ws_socks_proxy';
+            $wsSocksProxy = $this->ws_socks_proxy;
+        }
         // check
         $length = count($usedProxies);
         if ($length > 1) {
             $joinedProxyNames = implode(',', $usedProxies);
-            throw new ExchangeError($this->id . ' you have multiple conflicting settings (' . $joinedProxyNames . '), please use only one from => $wsProxy, wssProxy');
+            throw new ExchangeError($this->id . ' you have multiple conflicting settings (' . $joinedProxyNames . '), please use only one from => $wsProxy, $wssProxy, socksProxy');
         }
-        return array( $wsProxy, $wssProxy );
+        return array( $wsProxy, $wssProxy, $wsSocksProxy );
     }
 
     public function check_conflicting_proxies($proxyAgentSet, $proxyUrlSet) {
@@ -5392,7 +5402,7 @@ class Exchange {
     public function handle_time_in_force($params = array ()) {
         /**
          * @ignore
-         * * Must add $timeInForce to $this->options to use this method
+         * Must add $timeInForce to $this->options to use this method
          * @return {string} returns the exchange specific value for $timeInForce
          */
         $timeInForce = $this->safe_string_upper($params, 'timeInForce'); // supported values GTC, IOC, PO
@@ -5409,7 +5419,7 @@ class Exchange {
     public function convert_type_to_account($account) {
         /**
          * @ignore
-         * * Must add $accountsByType to $this->options to use this method
+         * Must add $accountsByType to $this->options to use this method
          * @param {string} $account key for $account name in $this->options['accountsByType']
          * @return the exchange specific $account name or the isolated margin id for transfers
          */

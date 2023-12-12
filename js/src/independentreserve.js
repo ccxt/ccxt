@@ -12,7 +12,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class independentreserve
- * @extends Exchange
+ * @augments Exchange
  */
 export default class independentreserve extends Exchange {
     describe() {
