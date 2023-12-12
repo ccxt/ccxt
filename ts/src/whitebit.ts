@@ -12,7 +12,7 @@ import { Balances, Bool, Currency, Int, Market, MarketType, OHLCV, Order, OrderB
 
 /**
  * @class whitebit
- * @extends Exchange
+ * @augments Exchange
  */
 export default class whitebit extends Exchange {
     describe () {

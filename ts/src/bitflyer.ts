@@ -12,7 +12,7 @@ import { Precise } from './base/Precise.js';
 
 /**
  * @class bitflyer
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitflyer extends Exchange {
     describe () {

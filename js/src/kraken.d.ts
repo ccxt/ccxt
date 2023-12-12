@@ -2,7 +2,7 @@ import Exchange from './abstract/kraken.js';
 import { Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
 /**
  * @class kraken
- * @extends Exchange
+ * @augments Exchange
  */
 export default class kraken extends Exchange {
     describe(): any;

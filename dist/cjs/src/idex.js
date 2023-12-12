@@ -13,7 +13,7 @@ var crypto = require('./base/functions/crypto.js');
 // ---------------------------------------------------------------------------
 /**
  * @class idex
- * @extends Exchange
+ * @augments Exchange
  */
 class idex extends idex$1 {
     describe() {

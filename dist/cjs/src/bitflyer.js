@@ -10,7 +10,7 @@ var Precise = require('./base/Precise.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bitflyer
- * @extends Exchange
+ * @augments Exchange
  */
 class bitflyer extends bitflyer$1 {
     describe() {

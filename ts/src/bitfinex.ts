@@ -12,7 +12,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class bitfinex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitfinex extends Exchange {
     describe () {

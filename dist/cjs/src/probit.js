@@ -9,7 +9,7 @@ var number = require('./base/functions/number.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class probit
- * @extends Exchange
+ * @augments Exchange
  */
 class probit extends probit$1 {
     describe() {
@@ -28,7 +28,10 @@ class probit extends probit$1 {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'createMarketBuyOrderWithCost': true,
                 'createMarketOrder': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -315,6 +318,7 @@ class probit extends probit$1 {
             'precision': {
                 'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantity_precision'))),
                 'price': this.safeNumber(market, 'price_increment'),
+                'cost': this.parseNumber(this.parsePrecision(this.safeString(market, 'cost_precision'))),
             },
             'limits': {
                 'leverage': {
@@ -1187,14 +1191,15 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#createOrder
-         * @see https://docs-en.probit.com/reference/order-1
          * @description create a trade order
+         * @see https://docs-en.probit.com/reference/order-1
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1212,7 +1217,7 @@ class probit extends probit$1 {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        let costToPrecision = undefined;
+        let quoteAmount = undefined;
         if (type === 'limit') {
             request['limit_price'] = this.priceToPrecision(symbol, price);
             request['quantity'] = this.amountToPrecision(symbol, amount);
@@ -1220,25 +1225,28 @@ class probit extends probit$1 {
         else if (type === 'market') {
             // for market buy it requires the amount of quote currency to spend
             if (side === 'buy') {
-                let cost = this.safeNumber(params, 'cost');
-                const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
-                if (createMarketBuyOrderRequiresPrice) {
-                    if (price !== undefined) {
-                        if (cost === undefined) {
-                            const amountString = this.numberToString(amount);
-                            const priceString = this.numberToString(price);
-                            cost = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
-                        }
+                let createMarketBuyOrderRequiresPrice = true;
+                [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeString(params, 'cost');
+                params = this.omit(params, 'cost');
+                if (cost !== undefined) {
+                    quoteAmount = this.costToPrecision(symbol, cost);
+                }
+                else if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     }
-                    else if (cost === undefined) {
-                        throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false and supply the total cost value in the "amount" argument or in the "cost" extra parameter (the exchange-specific behaviour)');
+                    else {
+                        const amountString = this.numberToString(amount);
+                        const priceString = this.numberToString(price);
+                        const costRequest = Precise["default"].stringMul(amountString, priceString);
+                        quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
                 }
                 else {
-                    cost = (cost === undefined) ? amount : cost;
+                    quoteAmount = this.costToPrecision(symbol, amount);
                 }
-                costToPrecision = this.costToPrecision(symbol, cost);
-                request['cost'] = costToPrecision;
+                request['cost'] = quoteAmount;
             }
             else {
                 request['quantity'] = this.amountToPrecision(symbol, amount);
@@ -1273,7 +1281,7 @@ class probit extends probit$1 {
         // returned by the exchange on market buys
         if ((type === 'market') && (side === 'buy')) {
             order['amount'] = undefined;
-            order['cost'] = this.parseNumber(costToPrecision);
+            order['cost'] = this.parseNumber(quoteAmount);
             order['remaining'] = undefined;
         }
         return order;

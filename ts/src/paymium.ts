@@ -12,7 +12,7 @@ import { Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, 
 
 /**
  * @class paymium
- * @extends Exchange
+ * @augments Exchange
  */
 export default class paymium extends Exchange {
     describe () {

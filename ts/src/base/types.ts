@@ -64,6 +64,7 @@ export interface MarketInterface {
     precision: {
         amount: Num
         price: Num
+        cost?: Num
     };
     limits: {
         amount?: MinMax,

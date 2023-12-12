@@ -11,7 +11,7 @@ var Precise = require('./base/Precise.js');
 // ---------------------------------------------------------------------------
 /**
  * @class kuna
- * @extends Exchange
+ * @augments Exchange
  * @description Use the public-key as your apiKey
  */
 class kuna extends kuna$1 {

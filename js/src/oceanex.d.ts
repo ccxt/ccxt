@@ -2,7 +2,7 @@ import Exchange from './abstract/oceanex.js';
 import { Balances, Dictionary, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 /**
  * @class oceanex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class oceanex extends Exchange {
     describe(): any;

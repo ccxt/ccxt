@@ -9,7 +9,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class indodax
- * @extends Exchange
+ * @augments Exchange
  */
 class indodax extends indodax$1 {
     describe() {

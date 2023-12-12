@@ -13,7 +13,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
 /**
  * @class coinbasepro
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinbasepro extends Exchange {
     describe() {

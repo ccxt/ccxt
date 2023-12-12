@@ -212,7 +212,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {string} [$params->stpMode] self-trade prevention, defaults to expire_taker, none => enable self-trade; expire_taker => taker order will be canceled when self-trade happens
              * @param {string} [$params->slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
-            */
+             */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $market = $this->market($symbol);
