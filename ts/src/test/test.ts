@@ -143,15 +143,13 @@ async function importTestFile (filePath) {
 }
 
 async function setTestFiles (holderClass, properties) {
-    const path = isWsTests ? DIR_NAME + '../pro/test' : DIR_NAME;
+    const path = isWsTests ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
     const finalPropList = properties.concat ([ proxyTestFileName ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
-        const filePathWoExt = path + '/Exchange/test.' + name;
-        console.log ('filePathWoExt', filePathWoExt); // debug
+        const filePathWoExt = path + 'Exchange/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
-            console.log ('file exists:', filePathWoExt); // debug
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             holderClass.testFiles[name] = await importTestFile (filePathWoExt);
         }
