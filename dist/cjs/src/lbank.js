@@ -12,7 +12,7 @@ var rsa = require('./base/functions/rsa.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class lbank2
- * @extends Exchange
+ * @augments Exchange
  */
 class lbank extends lbank$1 {
     describe() {

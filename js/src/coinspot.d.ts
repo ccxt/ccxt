@@ -2,7 +2,7 @@ import Exchange from './abstract/coinspot.js';
 import { Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 /**
  * @class coinspot
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinspot extends Exchange {
     describe(): any;

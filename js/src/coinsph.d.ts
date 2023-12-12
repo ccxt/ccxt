@@ -2,7 +2,7 @@ import Exchange from './abstract/coinsph.js';
 import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class coinsph
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinsph extends Exchange {
     describe(): any;

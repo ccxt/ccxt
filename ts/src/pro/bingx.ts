@@ -4,7 +4,7 @@
 import bingxRest from '../bingx.js';
 import { BadRequest, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, OHLCV, Str, OrderBook, Order, Trade, Balances } from '../base/types.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------

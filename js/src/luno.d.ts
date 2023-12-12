@@ -2,7 +2,7 @@ import Exchange from './abstract/luno.js';
 import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 /**
  * @class luno
- * @extends Exchange
+ * @augments Exchange
  */
 export default class luno extends Exchange {
     describe(): any;

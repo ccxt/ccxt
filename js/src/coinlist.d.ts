@@ -2,7 +2,7 @@ import Exchange from './abstract/coinlist.js';
 import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class coinlist
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinlist extends Exchange {
     describe(): any;

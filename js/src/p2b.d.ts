@@ -3,7 +3,7 @@ import Exchange from './abstract/p2b.js';
 import { Int, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers } from './base/types.js';
 /**
  * @class p2b
- * @extends Exchange
+ * @augments Exchange
  */
 export default class p2b extends Exchange {
     describe(): any;

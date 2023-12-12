@@ -2,7 +2,7 @@ import Exchange from './abstract/bittrex.js';
 import { Int, OrderSide, OrderType, OHLCV, Order, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency } from './base/types.js';
 /**
  * @class bittrex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bittrex extends Exchange {
     describe(): any;

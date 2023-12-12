@@ -11,7 +11,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 /**
  * @class wazirx
- * @extends Exchange
+ * @augments Exchange
  */
 export default class wazirx extends Exchange {
     describe() {

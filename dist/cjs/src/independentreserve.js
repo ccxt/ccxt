@@ -9,7 +9,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class independentreserve
- * @extends Exchange
+ * @augments Exchange
  */
 class independentreserve extends independentreserve$1 {
     describe() {

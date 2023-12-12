@@ -4182,7 +4182,7 @@ class binance(Exchange, ImplicitAPI):
         """
         *contract only* create a list of trade orders
         :see: https://binance-docs.github.io/apidocs/futures/en/#place-multiple-orders-trade
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()

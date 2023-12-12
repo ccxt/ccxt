@@ -10,7 +10,7 @@ var md5 = require('./static_dependencies/noble-hashes/md5.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class novadax
- * @extends Exchange
+ * @augments Exchange
  */
 class novadax extends novadax$1 {
     describe() {

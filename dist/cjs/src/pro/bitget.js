@@ -10,7 +10,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bitget
- * @extends Exchange
+ * @augments Exchange
  * @description watching delivery future markets is not yet implemented (perpertual future / swap is implemented)
  */
 class bitget extends bitget$1 {

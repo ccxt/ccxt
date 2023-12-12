@@ -2,7 +2,7 @@ import Exchange from './abstract/bitstamp.js';
 import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class bitstamp
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitstamp extends Exchange {
     describe(): any;

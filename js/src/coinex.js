@@ -14,7 +14,7 @@ import { md5 } from './static_dependencies/noble-hashes/md5.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class coinex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinex extends Exchange {
     describe() {
@@ -2274,7 +2274,7 @@ export default class coinex extends Exchange {
          * @name coinex#createOrders
          * @description create a list of trade orders (all orders should be of the same symbol)
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade002_batch_limit_orders
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

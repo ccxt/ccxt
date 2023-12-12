@@ -9,7 +9,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class gate
- * @extends Exchange
+ * @augments Exchange
  */
 class gate extends gate$1 {
     describe() {

@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import { Int, Str, Trade, OrderBook, Order, Ticker } from '../base/types.js';
+import type { Int, Str, Trade, OrderBook, Order, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------

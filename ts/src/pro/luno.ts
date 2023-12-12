@@ -2,7 +2,7 @@
 
 import lunoRest from '../luno.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import { Int, Trade, OrderBook } from '../base/types.js';
+import type { Int, Trade, OrderBook } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------

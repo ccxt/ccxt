@@ -10,7 +10,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 // ---------------------------------------------------------------------------
 /**
  * @class yobit
- * @extends Exchange
+ * @augments Exchange
  */
 class yobit extends yobit$1 {
     describe() {

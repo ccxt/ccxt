@@ -10,7 +10,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bitbns
- * @extends Exchange
+ * @augments Exchange
  */
 class bitbns extends bitbns$1 {
     describe() {

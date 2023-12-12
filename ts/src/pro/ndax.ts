@@ -3,7 +3,7 @@
 
 import ndaxRest from '../ndax.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import { Int, OrderBook, Trade, Ticker, OHLCV } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------

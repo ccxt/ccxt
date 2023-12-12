@@ -5,7 +5,7 @@
 import probitRest from '../probit.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
