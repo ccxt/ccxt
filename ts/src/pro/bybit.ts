@@ -493,7 +493,6 @@ export default class bybit extends bybitRest {
         }
         const messageHash = 'kline' + ':' + timeframeId + ':' + symbol;
         client.resolve (stored, messageHash);
-        this.resolveMultipleOHLCV (client, 'multipleOHLCV::', symbol, timeframe, stored);
     }
 
     parseWsOHLCV (ohlcv, market = undefined): OHLCV {
