@@ -5,7 +5,7 @@ import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import { Int } from '../base/types.js';
+import type { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------

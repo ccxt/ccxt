@@ -5,7 +5,7 @@ import exmoRest from '../exmo.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import { Int, Str } from '../base/types.js';
+import type { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------

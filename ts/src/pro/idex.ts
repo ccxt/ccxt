@@ -5,7 +5,7 @@ import idexRest from '../idex.js';
 import { InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { Int, Str } from '../base/types.js';
+import type { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
