@@ -13,7 +13,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
 /**
  * @class woo
- * @extends Exchange
+ * @augments Exchange
  */
 export default class woo extends Exchange {
     describe() {
@@ -204,6 +204,11 @@ export default class woo extends Exchange {
                     },
                 },
                 'v3': {
+                    'public': {
+                        'get': {
+                            'insuranceFund': 3,
+                        },
+                    },
                     'private': {
                         'get': {
                             'algo/order/{oid}': 1,

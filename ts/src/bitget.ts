@@ -12,7 +12,7 @@ import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Ord
 
 /**
  * @class bitget
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitget extends Exchange {
     describe () {
@@ -37,11 +37,11 @@ export default class bitget extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': true,
+                'closePosition': false,
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': false,
-                'closeAllPositions': true,
-                'closePosition': false,
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -3708,7 +3708,7 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#batch-order
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-order
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-order
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -3914,6 +3914,7 @@ export default class bitget extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
+         * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -4300,6 +4301,7 @@ export default class bitget extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -4539,6 +4541,7 @@ export default class bitget extends Exchange {
          * @param {int} [limit] the max number of closed orders to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -4582,6 +4585,7 @@ export default class bitget extends Exchange {
          * @param {int} [limit] the max number of canceled orders to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -5938,7 +5942,6 @@ export default class bitget extends Exchange {
          * @param {string} symbol not used by bitget setPositionMode ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} response from the exchange
-         *
          */
         await this.loadMarkets ();
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
@@ -6994,7 +6997,7 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.subType] 'linear' or 'inverse'
          * @param {string} [params.settle] *required and only valid when params.subType === "linear"* 'USDT' or 'USDC'
-         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         let subType = undefined;

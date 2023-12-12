@@ -2211,7 +2211,7 @@ class kraken(Exchange, ImplicitAPI):
         :param dict [params.end]: End timestamp, withdrawals created strictly after will be not be included in the response
         :param boolean [params.paginate]:  default False, when True will automatically paginate by calling self endpoint multiple times
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
-       """
+        """
         self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')

@@ -84,7 +84,7 @@ trait ClientTrait {
         });
     }
 
-    private function checkProxyClient($client, $url) {
+    private function checkProxyClient($client) {
         [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_ws_proxy_settings();
         $connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
         if ($connector) {

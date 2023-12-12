@@ -13,7 +13,7 @@ import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitget
- * @extends Exchange
+ * @augments Exchange
  * @description watching delivery future markets is not yet implemented (perpertual future / swap is implemented)
  */
 export default class bitget extends bitgetRest {
@@ -664,7 +664,7 @@ export default class bitget extends bitgetRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {

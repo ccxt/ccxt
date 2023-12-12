@@ -9,7 +9,7 @@ var number = require('./base/functions/number.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bitpanda
- * @extends Exchange
+ * @augments Exchange
  */
 class bitpanda extends bitpanda$1 {
     describe() {

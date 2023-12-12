@@ -201,7 +201,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param str [params.stpMode]: self-trade prevention, defaults to expire_taker, none: enable self-trade; expire_taker: taker order will be canceled when self-trade happens
         :param str [params.slippageTolerance]: used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-       """
+        """
         await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)

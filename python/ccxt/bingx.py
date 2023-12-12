@@ -44,7 +44,7 @@ class bingx(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'closeAllPosition': True,
+                'closeAllPositions': True,
                 'closePosition': False,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': True,
@@ -1187,35 +1187,6 @@ class bingx(Exchange, ImplicitAPI):
             response = self.spotV1PublicGetTicker24hr(self.extend(request, params))
         else:
             response = self.swapV2PublicGetQuoteTicker(self.extend(request, params))
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #          "symbol": "BTC-USDT",
-        #          "priceChange": "52.5",
-        #          "priceChangePercent": "0.31",
-        #          "lastPrice": "16880.5",
-        #          "lastQty": "2.2238",
-        #          "highPrice": "16897.5",
-        #          "lowPrice": "16726.0",
-        #          "volume": "245870.1692",
-        #          "quoteVolume": "4151395117.73",
-        #          "openPrice": "16832.0",
-        #          "openTime": 1672026667803,
-        #          "closeTime": 1672026648425,
-        #  added some time ago:
-        #          "firstId": 12345,
-        #          "lastId": 12349,
-        #          "count": 5,
-        #  added 2023-11-10:
-        #          "bidPrice": 16726.0,
-        #          "bidQty": 0.05,
-        #          "askPrice": 16726.0,
-        #          "askQty": 0.05,
-        #        }
-        #    }
-        #
         data = self.safe_value(response, 'data')
         ticker = self.safe_value(data, 0, data)
         return self.parse_ticker(ticker, market)
@@ -1241,37 +1212,6 @@ class bingx(Exchange, ImplicitAPI):
             response = self.spotV1PublicGetTicker24hr(params)
         else:
             response = self.swapV2PublicGetQuoteTicker(params)
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": [
-        #            {
-        #                "symbol": "BTC-USDT",
-        #                "priceChange": "52.5",
-        #                "priceChangePercent": "0.31",
-        #                "lastPrice": "16880.5",
-        #                "lastQty": "2.2238",
-        #                "highPrice": "16897.5",
-        #                "lowPrice": "16726.0",
-        #                "volume": "245870.1692",
-        #                "quoteVolume": "4151395117.73",
-        #                "openPrice": "16832.0",
-        #                "openTime": 1672026667803,
-        #                "closeTime": 1672026648425,
-        #  added some time ago:
-        #                "firstId": 12345,
-        #                "lastId": 12349,
-        #                "count": 5,
-        #  added 2023-11-10:
-        #                "bidPrice": 16726.0,
-        #                "bidQty": 0.05,
-        #                "askPrice": 16726.0,
-        #                "askQty": 0.05,
-        #            },
-        #        ]
-        #    }
-        #
         tickers = self.safe_value(response, 'data')
         return self.parse_tickers(tickers, symbols)
 
@@ -1288,10 +1228,6 @@ class bingx(Exchange, ImplicitAPI):
         #        "quoteVolume": "30288466.44",
         #        "openTime": "1693081020762",
         #        "closeTime": "1693167420762",
-        #  added some time ago:
-        #        "firstId": 12345,
-        #        "lastId": 12349,
-        #        "count": 5,
         #  added 2023-11-10:
         #        "bidPrice": 16726.0,
         #        "bidQty": 0.05,
@@ -1303,9 +1239,9 @@ class bingx(Exchange, ImplicitAPI):
         #    {
         #        "symbol": "BTC-USDT",
         #        "priceChange": "52.5",
-        #        "priceChangePercent": "0.31",
+        #        "priceChangePercent": "0.31%",  # they started to add the percent sign in value
         #        "lastPrice": "16880.5",
-        #        "lastQty": "2.2238",
+        #        "lastQty": "2.2238",          # only present in swap!
         #        "highPrice": "16897.5",
         #        "lowPrice": "16726.0",
         #        "volume": "245870.1692",
@@ -1313,10 +1249,6 @@ class bingx(Exchange, ImplicitAPI):
         #        "openPrice": "16832.0",
         #        "openTime": 1672026667803,
         #        "closeTime": 1672026648425,
-        #  added some time ago:
-        #        "firstId": 12345,
-        #        "lastId": 12349,
-        #        "count": 5,
         #  added 2023-11-10:
         #        "bidPrice": 16726.0,
         #        "bidQty": 0.05,
@@ -1326,7 +1258,10 @@ class bingx(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         change = self.safe_string(ticker, 'priceChange')
-        type = 'spot' if (change is None) else 'swap'
+        lastQty = self.safe_string(ticker, 'lastQty')
+        # in spot markets, lastQty is not present
+        # it's(bad, but) the only way we can check the tickers origin
+        type = 'spot' if (lastQty is None) else 'swap'
         symbol = self.safe_symbol(marketId, market, None, type)
         open = self.safe_string(ticker, 'openPrice')
         high = self.safe_string(ticker, 'highPrice')
@@ -1335,6 +1270,8 @@ class bingx(Exchange, ImplicitAPI):
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         baseVolume = self.safe_string(ticker, 'volume')
         percentage = self.safe_string(ticker, 'priceChangePercent')
+        if percentage is not None:
+            percentage = percentage.replace('%', '')
         ts = self.safe_integer(ticker, 'closeTime')
         datetime = self.iso8601(ts)
         bid = self.safe_string(ticker, 'bidPrice')
@@ -1784,7 +1721,7 @@ class bingx(Exchange, ImplicitAPI):
         create a list of trade orders
         :see: https://bingx-api.github.io/docs/#/spot/trade-api.html#Batch%20Placing%20Orders
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1975,6 +1912,8 @@ class bingx(Exchange, ImplicitAPI):
         positionSide = self.safe_string_2(order, 'positionSide', 'ps')
         marketType = 'spot' if (positionSide is None) else 'swap'
         marketId = self.safe_string_2(order, 'symbol', 's')
+        if market is None:
+            market = self.safe_market(marketId, None, None, marketType)
         symbol = self.safe_symbol(marketId, market, '-', marketType)
         orderId = self.safe_string_2(order, 'orderId', 'i')
         side = self.safe_string_lower_2(order, 'side', 'S')
@@ -2313,15 +2252,14 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
         response = None
-        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
+        marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         if marketType == 'spot':
             response = self.spotV1PrivateGetTradeOpenOrders(self.extend(request, query))
         else:
@@ -2815,7 +2753,8 @@ class bingx(Exchange, ImplicitAPI):
 
     def parse_transaction_status(self, status):
         statuses = {
-            '0': 'ok',
+            '0': 'pending',
+            '1': 'ok',
             '10': 'pending',
             '20': 'rejected',
             '30': 'ok',
@@ -3233,7 +3172,7 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#close-all-position
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.recvWindow]: request valid time window value
-        :returns [dict]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')

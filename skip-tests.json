@@ -77,7 +77,8 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            }
+            },
+            "fetchStatus": "private endpoints"
         }
     },
     "binancecoinm": {
@@ -135,6 +136,10 @@
                 "taker": "not provided",
                 "maker": "not provided",
                 "info":"null"
+            },
+            "fetchOrderBook": {
+                "bid":"sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540",
+                "ask":"same"
             }
         }
     },

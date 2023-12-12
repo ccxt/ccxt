@@ -1007,16 +1007,20 @@ class tokocrypto extends Exchange {
             $data = $this->safe_value($responseInner, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default = 500, maximum = 1000
+        }
         $defaultMethod = 'binanceGetTrades';
         $method = $this->safe_string($this->options, 'fetchTradesMethod', $defaultMethod);
+        $response = null;
         if (($method === 'binanceGetAggTrades') && ($since !== null)) {
             $request['startTime'] = $since;
             // https://github.com/ccxt/ccxt/issues/6400
             // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
             $request['endTime'] = $this->sum($since, 3600000);
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default = 500, maximum = 1000
+            $response = $this->binanceGetAggTrades (array_merge($request, $params));
+        } else {
+            $response = $this->binanceGetTrades (array_merge($request, $params));
         }
         //
         // Caveats:
@@ -1027,7 +1031,6 @@ class tokocrypto extends Exchange {
         // - 'tradeId' accepted and returned by this $method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
-        $response = $this->$method (array_merge($request, $params));
         //
         // aggregate trades
         //

@@ -12,7 +12,7 @@ import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType
 
 /**
  * @class coinmate
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinmate extends Exchange {
     describe () {

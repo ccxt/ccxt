@@ -9,7 +9,7 @@ var number = require('./base/functions/number.js');
 // ---------------------------------------------------------------------------
 /**
  * @class blockchaincom
- * @extends Exchange
+ * @augments Exchange
  */
 class blockchaincom extends blockchaincom$1 {
     describe() {

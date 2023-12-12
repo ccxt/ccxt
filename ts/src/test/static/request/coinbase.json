@@ -3,6 +3,15 @@
     "skipKeys": ["client_order_id"],
     "outputType": "json",
     "methods": {
+        "fetchTime": [
+            {
+                "description": "fetch time",
+                "method": "fetchTime",
+                "url": "https://api.coinbase.com/v2/time",
+                "input": [
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot limit buy",

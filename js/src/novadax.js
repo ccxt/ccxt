@@ -13,7 +13,7 @@ import { md5 } from './static_dependencies/noble-hashes/md5.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class novadax
- * @extends Exchange
+ * @augments Exchange
  */
 export default class novadax extends Exchange {
     describe() {

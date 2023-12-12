@@ -697,7 +697,7 @@ class mexc(ccxt.async_support.mexc):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :params string|None params.type: the type of orders to retrieve, can be 'spot' or 'margin'
+        :param str|None params['type']: the type of orders to retrieve, can be 'spot' or 'margin'
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()

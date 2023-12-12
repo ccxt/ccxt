@@ -12,7 +12,7 @@ import { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, 
 
 /**
  * @class exmo
- * @extends Exchange
+ * @augments Exchange
  */
 export default class exmo extends Exchange {
     describe () {

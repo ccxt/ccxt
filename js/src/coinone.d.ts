@@ -2,7 +2,7 @@ import Exchange from './abstract/coinone.js';
 import { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 /**
  * @class coinone
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinone extends Exchange {
     describe(): any;

@@ -13,7 +13,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class coinone
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinone extends Exchange {
     describe() {

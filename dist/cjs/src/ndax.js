@@ -11,7 +11,7 @@ var totp = require('./base/functions/totp.js');
 // ---------------------------------------------------------------------------
 /**
  * @class ndax
- * @extends Exchange
+ * @augments Exchange
  */
 class ndax extends ndax$1 {
     describe() {

@@ -31,6 +31,8 @@ class cryptocom extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => true,
                 'createOrder' => true,
                 'createOrders' => true,
                 'fetchAccounts' => true,
@@ -201,6 +203,9 @@ class cryptocom extends Exchange {
                             'private/get-currency-networks' => 10 / 3,
                             'private/get-deposit-history' => 10 / 3,
                             'private/get-deposit-address' => 10 / 3,
+                            'private/export/create-export-request' => 10 / 3,
+                            'private/export/get-export-requests' => 10 / 3,
+                            'private/export/download-export-output' => 10 / 3,
                             'private/get-account-summary' => 10 / 3,
                             'private/create-order' => 2 / 3,
                             'private/cancel-order' => 2 / 3,
@@ -219,6 +224,7 @@ class cryptocom extends Exchange {
                             'private/otc/accept-quote' => 100,
                             'private/otc/get-quote-history' => 10 / 3,
                             'private/otc/get-trade-history' => 10 / 3,
+                            'private/otc/create-order' => 10 / 3,
                         ),
                     ),
                 ),
@@ -1129,7 +1135,7 @@ class cryptocom extends Exchange {
          * create a list of trade $orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
-         * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -2172,7 +2178,7 @@ class cryptocom extends Exchange {
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} the $marginMode in lowercase
+         * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);
@@ -2829,6 +2835,50 @@ class cryptocom extends Exchange {
             }
         }
         return $returnString;
+    }
+
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): array {
+        /**
+         * closes open positions for a $market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {string} [marginMode] not used by cryptocom.closePositions
+         * @param {string} [$side] not used by cryptocom.closePositions
+         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [$params->type] LIMIT or MARKET
+         * @param {number} [$params->price] for limit orders only
+         * @return {array[]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'instrument_name' => $market['id'],
+            'type' => 'MARKET',
+        );
+        $type = $this->safe_string_upper($params, 'type');
+        $price = $this->safe_string($params, 'price');
+        if ($type !== null) {
+            $request['type'] = $type;
+        }
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($market['symbol'], $price);
+        }
+        $response = $this->v1PrivatePostPrivateClosePosition (array_merge($request, $params));
+        //
+        //    {
+        //        "id" : 1700830813298,
+        //        "method" : "private/close-position",
+        //        "code" : 0,
+        //        "result" : {
+        //            "client_oid" : "179a909d-5614-655b-0d0e-9e85c9a25c85",
+        //            "order_id" : "6142909897021751347"
+        //        }
+        //    }
+        //
+        $result = $this->safe_value($response, 'result');
+        return $this->parse_order($result, $market);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

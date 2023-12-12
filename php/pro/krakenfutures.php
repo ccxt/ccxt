@@ -103,10 +103,10 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             /**
              * @ignore
              * Connects to a websocket channel
-             * @param ~'strval'~ $name name of the channel
+             * @param {string} $name name of the channel
              * @param {string[]} $symbols CCXT $market $symbols
-             * @param {Object} [$params] extra parameters specific to the krakenfutures api
-             * @return {Object} data from the websocket stream
+             * @param {array} [$params] extra parameters specific to the krakenfutures api
+             * @return {array} data from the websocket stream
              */
             Async\await($this->load_markets());
             $url = $this->urls['api']['ws'];
@@ -139,10 +139,10 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             /**
              * @ignore
              * Connects to a websocket channel
-             * @param ~'strval'~ $name name of the channel
+             * @param {string} $name name of the channel
              * @param {string[]} symbols CCXT market symbols
-             * @param {Object} [$params] extra parameters specific to the krakenfutures api
-             * @return {Object} data from the websocket stream
+             * @param {array} [$params] extra parameters specific to the krakenfutures api
+             * @return {array} data from the websocket stream
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());

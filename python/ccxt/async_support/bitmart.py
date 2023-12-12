@@ -1308,48 +1308,58 @@ class bitmart(Exchange, ImplicitAPI):
         #
         # public fetchTrades spot( amount = count * price )
         #
-        #     {
-        #          "amount": "818.94",
-        #          "order_time": "1637601839035",    # ETH/USDT
-        #          "price": "4221.99",
-        #          "count": "0.19397",
-        #          "type": "buy"
-        #      }
+        #    {
+        #        "amount": "818.94",
+        #        "order_time": "1637601839035",    # ETH/USDT
+        #        "price": "4221.99",
+        #        "count": "0.19397",
+        #        "type": "buy"
+        #    }
         #
         # spot: fetchMyTrades
         #
-        #     {
-        #         "tradeId":"182342999769370687",
-        #         "orderId":"183270218784142990",
-        #         "clientOrderId":"183270218784142990",
-        #         "symbol":"ADA_USDT",
-        #         "side":"buy",
-        #         "orderMode":"spot",
-        #         "type":"market",
-        #         "price":"0.245948",
-        #         "size":"20.71",
-        #         "notional":"5.09358308",
-        #         "fee":"0.00509358",
-        #         "feeCoinName":"USDT",
-        #         "tradeRole":"taker",
-        #         "createTime":1695658457836,
-        #     }
+        #    {
+        #        "tradeId":"182342999769370687",
+        #        "orderId":"183270218784142990",
+        #        "clientOrderId":"183270218784142990",
+        #        "symbol":"ADA_USDT",
+        #        "side":"buy",
+        #        "orderMode":"spot",
+        #        "type":"market",
+        #        "price":"0.245948",
+        #        "size":"20.71",
+        #        "notional":"5.09358308",
+        #        "fee":"0.00509358",
+        #        "feeCoinName":"USDT",
+        #        "tradeRole":"taker",
+        #        "createTime":1695658457836,
+        #    }
         #
         # swap: fetchMyTrades
         #
-        #     {
-        #         "order_id": "230930336848609",
-        #         "trade_id": "6212604014",
-        #         "symbol": "BTCUSDT",
-        #         "side": 3,
-        #         "price": "26910.4",
-        #         "vol": "1",
-        #         "exec_type": "Taker",
-        #         "profit": False,
-        #         "create_time": 1695961596692,
-        #         "realised_profit": "-0.0003",
-        #         "paid_fees": "0.01614624"
-        #     }
+        #    {
+        #        "order_id": "230930336848609",
+        #        "trade_id": "6212604014",
+        #        "symbol": "BTCUSDT",
+        #        "side": 3,
+        #        "price": "26910.4",
+        #        "vol": "1",
+        #        "exec_type": "Taker",
+        #        "profit": False,
+        #        "create_time": 1695961596692,
+        #        "realised_profit": "-0.0003",
+        #        "paid_fees": "0.01614624"
+        #    }
+        #
+        # ws swap
+        #
+        #    {
+        #        'fee': '-0.000044502',
+        #        'feeCcy': 'USDT',
+        #        'fillPrice': '74.17',
+        #        'fillQty': '1',
+        #        'lastTradeID': 6802340762
+        #    }
         #
         timestamp = self.safe_integer_n(trade, ['order_time', 'createTime', 'create_time'])
         isPublicTrade = ('order_time' in trade)
@@ -1362,7 +1372,7 @@ class bitmart(Exchange, ImplicitAPI):
             cost = self.safe_string(trade, 'amount')
             side = self.safe_string(trade, 'type')
         else:
-            amount = self.safe_string_2(trade, 'size', 'vol')
+            amount = self.safe_string_n(trade, ['size', 'vol', 'fillQty'])
             cost = self.safe_string(trade, 'notional')
             type = self.safe_string(trade, 'type')
             side = self.parse_order_side(self.safe_string(trade, 'side'))
@@ -1381,14 +1391,14 @@ class bitmart(Exchange, ImplicitAPI):
             }
         return self.safe_trade({
             'info': trade,
-            'id': self.safe_string_2(trade, 'tradeId', 'trade_id'),
+            'id': self.safe_string_n(trade, ['tradeId', 'trade_id', 'lastTradeID']),
             'order': self.safe_string_2(trade, 'orderId', 'order_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': type,
             'side': side,
-            'price': self.safe_string(trade, 'price'),
+            'price': self.safe_string_2(trade, 'price', 'fillPrice'),
             'amount': amount,
             'cost': cost,
             'takerOrMaker': self.safe_string_lower_2(trade, 'tradeRole', 'exec_type'),
@@ -1439,38 +1449,45 @@ class bitmart(Exchange, ImplicitAPI):
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         # spot
-        #
-        #     [
-        #         "1699512060",  # timestamp
-        #         "36746.49",  # open
-        #         "36758.71",  # high
-        #         "36736.13",  # low
-        #         "36755.99",  # close
-        #         "2.83965",  # base volume
-        #         "104353.57"  # quote volume
-        #     ]
+        #    [
+        #        "1699512060",  # timestamp
+        #        "36746.49",  # open
+        #        "36758.71",  # high
+        #        "36736.13",  # low
+        #        "36755.99",  # close
+        #        "2.83965",  # base volume
+        #        "104353.57"  # quote volume
+        #    ]
         #
         # swap
-        #
-        #     {
-        #         "low_price": "20090.3",
-        #         "high_price": "20095.5",
-        #         "open_price": "20092.6",
-        #         "close_price": "20091.4",
-        #         "volume": "8748",
-        #         "timestamp": 1665002281
-        #     }
+        #    {
+        #        "low_price": "20090.3",
+        #        "high_price": "20095.5",
+        #        "open_price": "20092.6",
+        #        "close_price": "20091.4",
+        #        "volume": "8748",
+        #        "timestamp": 1665002281
+        #    }
         #
         # ws
+        #    [
+        #        1631056350,  # timestamp
+        #        "46532.83",  # open
+        #        "46555.71",  # high
+        #        "46511.41",  # low
+        #        "46555.71",  # close
+        #        "0.25",  # volume
+        #    ]
         #
-        #     [
-        #         1631056350,  # timestamp
-        #         "46532.83",  # open
-        #         "46555.71",  # high
-        #         "46511.41",  # low
-        #         "46555.71",  # close
-        #         "0.25",  # volume
-        #     ]
+        # ws swap
+        #    {
+        #        "symbol":"BTCUSDT",
+        #        "o":"146.24",
+        #        "h":"146.24",
+        #        "l":"146.24",
+        #        "c":"146.24",
+        #        "v":"146"
+        #    }
         #
         if isinstance(ohlcv, list):
             return [
@@ -1483,12 +1500,12 @@ class bitmart(Exchange, ImplicitAPI):
             ]
         else:
             return [
-                self.safe_timestamp(ohlcv, 'timestamp'),
-                self.safe_number(ohlcv, 'open_price'),
-                self.safe_number(ohlcv, 'high_price'),
-                self.safe_number(ohlcv, 'low_price'),
-                self.safe_number(ohlcv, 'close_price'),
-                self.safe_number(ohlcv, 'volume'),
+                self.safe_timestamp_2(ohlcv, 'timestamp', 'ts'),
+                self.safe_number_2(ohlcv, 'open_price', 'o'),
+                self.safe_number_2(ohlcv, 'high_price', 'h'),
+                self.safe_number_2(ohlcv, 'low_price', 'l'),
+                self.safe_number_2(ohlcv, 'close_price', 'c'),
+                self.safe_number_2(ohlcv, 'volume', 'v'),
             ]
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -3129,19 +3146,13 @@ class bitmart(Exchange, ImplicitAPI):
         }
 
     async def fetch_isolated_borrow_rate(self, symbol: str, params={}):
-        #
-        # @method
-        # @name bitmart#fetchIsolatedBorrowRate
-        # @description fetch the rate of interest to borrow a currency for margin trading
-        # @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
-        # @param {string} symbol unified symbol of the market to fetch the borrow rate for
-        # @param {object} [params] extra parameters specific to the exchange API endpoint
-        # <<<<<<< HEAD
-        # @returns {object} a `borrow rate structure <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
-        # =====
-        # @returns {object} an `isolated borrow rate structure <https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure>`
-        # >>>>>>> 3215552206edf1cda1ae63d2063535e19973dbe5
-        #
+        """
+        fetch the rate of interest to borrow a currency for margin trading
+        :see: https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
+        :param str symbol: unified symbol of the market to fetch the borrow rate for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `isolated borrow rate structure <https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {

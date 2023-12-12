@@ -2,7 +2,7 @@ import Exchange from './abstract/okcoin.js';
 import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class okcoin
- * @extends Exchange
+ * @augments Exchange
  */
 export default class okcoin extends Exchange {
     describe(): any;

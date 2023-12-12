@@ -11,7 +11,7 @@ import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, S
 
 /**
  * @class bitforex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitforex extends Exchange {
     describe () {

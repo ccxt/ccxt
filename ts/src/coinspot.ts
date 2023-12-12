@@ -12,7 +12,7 @@ import { Precise } from './base/Precise.js';
 
 /**
  * @class coinspot
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinspot extends Exchange {
     describe () {

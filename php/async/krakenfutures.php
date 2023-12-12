@@ -673,7 +673,7 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-trade-$history
-             * @descriptions Fetch a $history of filled trades that this account has made
+             * Fetch a $history of filled trades that this account has made
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {int} [$since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with $params->until
              * @param {int} [$limit] Total number of trades, cannot exceed 100
@@ -942,7 +942,7 @@ class krakenfutures extends Exchange {
             /**
              * create a list of trade $orders
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
-             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());

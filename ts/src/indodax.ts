@@ -11,7 +11,7 @@ import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType
 
 /**
  * @class indodax
- * @extends Exchange
+ * @augments Exchange
  */
 export default class indodax extends Exchange {
     describe () {

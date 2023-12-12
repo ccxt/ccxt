@@ -12,7 +12,7 @@ import { Balances, Bool, Currency, FundingRateHistory, Int, Market, MarketType, 
 
 /**
  * @class woo
- * @extends Exchange
+ * @augments Exchange
  */
 export default class woo extends Exchange {
     describe () {
@@ -203,6 +203,11 @@ export default class woo extends Exchange {
                     },
                 },
                 'v3': {
+                    'public': {
+                        'get': {
+                            'insuranceFund': 3,
+                        },
+                    },
                     'private': {
                         'get': {
                             'algo/order/{oid}': 1,

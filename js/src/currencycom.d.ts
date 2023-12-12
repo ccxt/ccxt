@@ -2,7 +2,7 @@ import Exchange from './abstract/currencycom.js';
 import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class currencycom
- * @extends Exchange
+ * @augments Exchange
  */
 export default class currencycom extends Exchange {
     describe(): any;
