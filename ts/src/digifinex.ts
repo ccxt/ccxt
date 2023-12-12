@@ -1493,15 +1493,15 @@ export default class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'publicSpotGetKline';
         const request = {};
+        let response = undefined;
         if (market['swap']) {
-            method = 'publicSwapGetPublicCandles';
             request['instrument_id'] = market['id'];
             request['granularity'] = timeframe;
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
+            response = await this.publicSwapGetPublicCandles (this.extend (request, params));
         } else {
             request['symbol'] = market['id'];
             request['period'] = this.safeString (this.timeframes, timeframe, timeframe);
@@ -1517,8 +1517,8 @@ export default class digifinex extends Exchange {
                 const duration = this.parseTimeframe (timeframe);
                 request['start_time'] = this.sum (endTime, -limit * duration);
             }
+            response = await this.publicSpotGetKline (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
