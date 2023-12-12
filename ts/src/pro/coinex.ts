@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, Re
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { md5 } from '../static_dependencies/noble-hashes/md5.js';
-import { Int, Str, Strings } from '../base/types.js';
+import type { Int, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------

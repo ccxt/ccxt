@@ -4,7 +4,7 @@
 import huobijpRest from '../huobijp.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import type { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
