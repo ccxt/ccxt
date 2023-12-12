@@ -21,6 +21,7 @@ public partial class binanceWs : binance
                 { "watchOrderBook", true },
                 { "watchOrderBookForSymbols", true },
                 { "watchOrders", true },
+                { "watchOrdersForSymbols", true },
                 { "watchPositions", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
@@ -48,8 +49,8 @@ public partial class binanceWs : binance
                 } },
                 { "api", new Dictionary<string, object>() {
                     { "ws", new Dictionary<string, object>() {
-                        { "spot", "wss://stream.binance.com:9443/ws" },
-                        { "margin", "wss://stream.binance.com:9443/ws" },
+                        { "spot", "wss://stream.binance.com/ws" },
+                        { "margin", "wss://stream.binance.com/ws" },
                         { "future", "wss://fstream.binance.com/ws" },
                         { "delivery", "wss://dstream.binance.com/ws" },
                         { "ws", "wss://ws-api.binance.com:443/ws-api/v3" },
@@ -546,7 +547,7 @@ public partial class binanceWs : binance
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1444,21 +1445,25 @@ public partial class binanceWs : binance
             return;
         }
         object method = "publicPutUserDataStream";
+        object request = new Dictionary<string, object>() {};
+        object symbol = this.safeString(parameters, "symbol");
+        object sendParams = this.omit(parameters, new List<object>() {"type", "symbol"});
         if (isTrue(isEqual(type, "future")))
         {
             method = "fapiPrivatePutListenKey";
         } else if (isTrue(isEqual(type, "delivery")))
         {
             method = "dapiPrivatePutListenKey";
-        } else if (isTrue(isEqual(type, "margin")))
+        } else
         {
-            method = "sapiPutUserDataStream";
+            ((Dictionary<string, object>)request)["listenKey"] = listenKey;
+            if (isTrue(isEqual(type, "margin")))
+            {
+                ((Dictionary<string, object>)request)["symbol"] = symbol;
+                method = "sapiPutUserDataStream";
+            }
         }
-        object request = new Dictionary<string, object>() {
-            { "listenKey", listenKey },
-        };
         object time = this.milliseconds();
-        object sendParams = this.omit(parameters, "type");
         try
         {
             await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, sendParams) }));
@@ -1826,21 +1831,30 @@ public partial class binanceWs : binance
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "ws");
         object requestId = this.requestId(url);
         object messageHash = ((object)requestId).ToString();
+        object sor = this.safeValue2(parameters, "sor", "SOR", false);
+        parameters = this.omit(parameters, "sor", "SOR");
         object payload = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object returnRateLimits = false;
         var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "createOrderWs", "returnRateLimits", false);
         returnRateLimits = ((List<object>)returnRateLimitsparametersVariable)[0];
         parameters = ((List<object>)returnRateLimitsparametersVariable)[1];
         ((Dictionary<string, object>)payload)["returnRateLimits"] = returnRateLimits;
+        object test = this.safeValue(parameters, "test", false);
+        parameters = this.omit(parameters, "test");
         object message = new Dictionary<string, object>() {
             { "id", messageHash },
             { "method", "order.place" },
             { "params", this.signParams(this.extend(payload, parameters)) },
         };
-        object test = this.safeValue(parameters, "test", false);
         if (isTrue(test))
         {
-            ((Dictionary<string, object>)message)["method"] = "order.test";
+            if (isTrue(sor))
+            {
+                ((Dictionary<string, object>)message)["method"] = "sor.order.test";
+            } else
+            {
+                ((Dictionary<string, object>)message)["method"] = "order.test";
+            }
         }
         object subscription = new Dictionary<string, object>() {
             { "method", this.handleOrderWs },
@@ -2290,6 +2304,7 @@ public partial class binanceWs : binance
         /**
         * @method
         * @name binance#watchOrders
+        * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
         * @description watches information on multiple orders made by the user
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
@@ -2305,13 +2320,8 @@ public partial class binanceWs : binance
         {
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
-            messageHash = add(messageHash, add(":", symbol));
-            parameters = this.extend(parameters, new Dictionary<string, object>() {
-                { "type", getValue(market, "type") },
-                { "symbol", symbol },
-            }); // needed inside authenticate for isolated margin
+            messageHash = add(messageHash, add("::", symbol));
         }
-        await this.authenticate(parameters);
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
         type = ((List<object>)typeparametersVariable)[0];
@@ -2327,6 +2337,11 @@ public partial class binanceWs : binance
         {
             type = "delivery";
         }
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "type", type },
+            { "symbol", symbol },
+        }); // needed inside authenticate for isolated margin
+        await this.authenticate(parameters);
         object urlType = type;
         if (isTrue(isEqual(type, "margin")))
         {
@@ -2337,12 +2352,80 @@ public partial class binanceWs : binance
         this.setBalanceCache(client as WebSocketClient, type);
         this.setPositionsCache(client as WebSocketClient, type);
         object message = null;
-        object orders = await this.watch(url, messageHash, message, type);
+        object newOrder = await this.watch(url, messageHash, message, type);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+            return newOrder;
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(this.orders, symbol, since, limit, true);
+    }
+
+    public async override Task<object> watchOrdersForSymbols(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#watchOrdersForSymbols
+        * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+        * @description watches information on multiple orders made by the user
+        * @param {string[]} symbols unified symbol of the market to fetch orders for
+        * @param {int} [since] the earliest time in ms to fetch orders for
+        * @param {int} [limit] the maximum number of trade structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("authenticate", parameters);
+        marginMode = ((List<object>)marginModeparametersVariable)[0];
+        parameters = ((List<object>)marginModeparametersVariable)[1];
+        object isIsolatedMargin = (isEqual(marginMode, "isolated"));
+        if (isTrue(isIsolatedMargin))
+        {
+            throw new NotSupported ((string)add(this.id, " watchOrdersForSymbols does not support isolated margin markets, use watchOrders instead")) ;
+        }
+        await this.loadMarkets();
+        object type = null;
+        object market = this.getMarketFromSymbols(symbols);
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchOrdersForSymbols", market, parameters);
+        type = ((List<object>)typeparametersVariable)[0];
+        parameters = ((List<object>)typeparametersVariable)[1];
+        symbols = this.marketSymbols(symbols, type, true, true, true);
+        object messageHash = "orders";
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            messageHash = add(add(messageHash, "::"), String.Join(",", ((List<object>)symbols).ToArray()));
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("watchOrdersForSymbols", market, parameters);
+        subType = ((List<object>)subTypeparametersVariable)[0];
+        parameters = ((List<object>)subTypeparametersVariable)[1];
+        if (isTrue(this.isLinear(type, subType)))
+        {
+            type = "future";
+        } else if (isTrue(this.isInverse(type, subType)))
+        {
+            type = "delivery";
+        }
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "type", type },
+        });
+        await this.authenticate(parameters);
+        object urlType = type;
+        if (isTrue(isEqual(type, "margin")))
+        {
+            urlType = "spot"; // spot-margin shares the same stream as regular spot
+        }
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/"), getValue(getValue(this.options, type), "listenKey"));
+        var client = this.client(url);
+        this.setBalanceCache(client as WebSocketClient, type);
+        this.setPositionsCache(client as WebSocketClient, type);
+        object message = null;
+        object newOrders = await this.watch(url, messageHash, message, type);
+        if (isTrue(this.newUpdates))
+        {
+            return newOrders;
+        }
+        return this.filterBySymbolsSinceLimit(this.orders, symbols, since, limit, true);
     }
 
     public override object parseWsOrder(object order, object market = null)
@@ -2655,6 +2738,10 @@ public partial class binanceWs : binance
 
     public virtual void setPositionsCache(WebSocketClient client, object type, object symbols = null)
     {
+        if (isTrue(isEqual(type, "spot")))
+        {
+            return;
+        }
         if (isTrue(isEqual(this.positions, null)))
         {
             this.positions = new Dictionary<string, object>() {};
@@ -3049,7 +3136,6 @@ public partial class binanceWs : binance
 
     public virtual void handleOrder(WebSocketClient client, object message)
     {
-        object messageHash = "orders";
         object parsed = this.parseWsOrder(message);
         object symbol = this.safeString(parsed, "symbol");
         object orderId = this.safeString(parsed, "id");
@@ -3084,9 +3170,8 @@ public partial class binanceWs : binance
                 }
             }
             callDynamically(cachedOrders, "append", new object[] {parsed});
-            callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
-            object messageHashSymbol = add(add(messageHash, ":"), symbol);
-            callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHashSymbol});
+            this.resolvePromiseIfMessagehashMatches(client as WebSocketClient, "orders::", symbol, parsed);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, "orders"});
         }
     }
 
