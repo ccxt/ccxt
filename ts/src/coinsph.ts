@@ -7,7 +7,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class coinsph
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinsph extends Exchange {
     describe () {

@@ -7,7 +7,7 @@ import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, Or
 
 /**
  * @class hitbtc
- * @extends Exchange
+ * @augments Exchange
  */
 export default class hitbtc extends Exchange {
     describe () {
@@ -3524,7 +3524,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {array} the marginMode in lowercase
+         * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeValue (params, 'margin', false);

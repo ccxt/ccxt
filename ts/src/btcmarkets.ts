@@ -12,7 +12,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class btcmarkets
- * @extends Exchange
+ * @augments Exchange
  */
 export default class btcmarkets extends Exchange {
     describe () {

@@ -3703,6 +3703,9 @@ export default class Exchange {
     async closeAllPositions(params = {}) {
         throw new NotSupported(this.id + ' closeAllPositions() is not supported yet');
     }
+    async fetchL3OrderBook(symbol, limit = undefined, params = {}) {
+        throw new BadRequest(this.id + ' fetchL3OrderBook() is not supported yet');
+    }
     parseLastPrice(price, market = undefined) {
         throw new NotSupported(this.id + ' parseLastPrice() is not supported yet');
     }

@@ -12,7 +12,7 @@ import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType
 
 /**
  * @class bit2c
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bit2c extends Exchange {
     describe () {

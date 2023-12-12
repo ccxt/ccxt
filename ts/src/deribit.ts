@@ -13,7 +13,7 @@ import { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Marke
 
 /**
  * @class deribit
- * @extends Exchange
+ * @augments Exchange
  */
 export default class deribit extends Exchange {
     describe () {

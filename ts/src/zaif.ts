@@ -12,7 +12,7 @@ import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType
 
 /**
  * @class zaif
- * @extends Exchange
+ * @augments Exchange
  */
 export default class zaif extends Exchange {
     describe () {

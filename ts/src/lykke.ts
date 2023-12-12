@@ -11,7 +11,7 @@ import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType
 
 /**
  * @class lykke
- * @extends Exchange
+ * @augments Exchange
  */
 export default class lykke extends Exchange {
     describe () {

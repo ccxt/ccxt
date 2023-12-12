@@ -12,7 +12,7 @@ import { Balances, Dictionary, Int, Market, Order, OrderBook, OrderSide, OrderTy
 
 /**
  * @class yobit
- * @extends Exchange
+ * @augments Exchange
  */
 export default class yobit extends Exchange {
     describe () {

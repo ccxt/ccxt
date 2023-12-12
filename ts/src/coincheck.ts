@@ -11,7 +11,7 @@ import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType
 
 /**
  * @class coincheck
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coincheck extends Exchange {
     describe () {

@@ -43,6 +43,7 @@ class coinex(Exchange, ImplicitAPI):
             # 20 per 2 seconds => 10 per second => weight = 40
             'rateLimit': 2.5,
             'pro': True,
+            'certified': True,
             'has': {
                 'CORS': None,
                 'spot': True,

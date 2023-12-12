@@ -7,7 +7,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class coinlist
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinlist extends Exchange {
     describe () {

@@ -5742,9 +5742,11 @@ class bybit extends bybit$1 {
             else if (symbolsLength === 1) {
                 symbol = symbols[0];
             }
+            symbols = this.marketSymbols(symbols);
         }
         else if (symbols !== undefined) {
             symbol = symbols;
+            symbols = [this.symbol(symbol)];
         }
         await this.loadMarkets();
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
@@ -5754,14 +5756,12 @@ class bybit extends bybit$1 {
         let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market(symbol);
+            symbol = market['symbol'];
             request['symbol'] = market['id'];
             isUsdcSettled = market['settle'] === 'USDC';
         }
         let type = undefined;
         [type, params] = this.getBybitType('fetchPositions', market, params);
-        if (type === 'spot') {
-            throw new errors.NotSupported(this.id + ' fetchPositions() not support spot market');
-        }
         if (type === 'linear' || type === 'inverse') {
             const baseCoin = this.safeString(params, 'baseCoin');
             if (type === 'linear') {

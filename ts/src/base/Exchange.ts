@@ -241,8 +241,10 @@ export default class Exchange {
     user_agent: { 'User-Agent': string } | false = undefined;
     userAgent: { 'User-Agent': string } | false = undefined;
     ws_proxy: string;
+    ws_socks_proxy: string;
     wsProxy: string;
     wss_proxy: string;
+    wsSocksProxy: string;
     wssProxy: string;
     //
     userAgents: any = {
@@ -1005,6 +1007,29 @@ export default class Exchange {
         return chosenAgent;
     }
 
+    async loadHttpProxyAgent () {
+        // for `http://` protocol proxy-urls, we need to load `http` module only on first call
+        if (!this.httpAgent) {
+            const httpModule = await import (/* webpackIgnore: true */'node:http')
+            this.httpAgent = new httpModule.Agent ();
+        }
+        return this.httpAgent;
+    }
+
+    getHttpAgentIfNeeded (url) {
+        if (isNode) {
+            // only for non-ssl proxy
+            if (url.substring(0, 5) === 'ws://') {
+                if (this.httpAgent === undefined) {
+                    throw new NotSupported (this.id + ' to use proxy with non-ssl ws:// urls, at first run  `await exchange.loadHttpProxyAgent()` method');
+                }
+                return this.httpAgent;
+            }
+        }
+        return undefined;
+    }
+
+
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
 
         // load node-http(s) modules only on first call
@@ -1020,18 +1045,16 @@ export default class Exchange {
         headers = this.extend (this.headers, headers);
         // proxy-url
         const proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
-        let isHttpAgentNeeded = false;
+        let httpProxyAgent = false;
         if (proxyUrl !== undefined) {
-            // in node we need to set header to *
+            // part only for node-js
             if (isNode) {
+                // in node we need to set header to *
                 headers = this.extend ({ 'Origin': this.origin }, headers);
-                if (proxyUrl.substring(0, 5) !== 'https') {
-                    // for `http://` protocol proxy-urls, we need to load `http` module only on first call
-                    if (!this.httpAgent) {
-                        const httpModule = await import (/* webpackIgnore: true */'node:http')
-                        this.httpAgent = new httpModule.Agent ();
-                    }
-                    isHttpAgentNeeded = true;
+                // only for http proxy
+                if (proxyUrl.substring(0, 5) === 'http:') {
+                    await this.loadHttpProxyAgent ();
+                    httpProxyAgent = this.httpAgent;
                 }
             }
             url = proxyUrl + url;
@@ -1083,9 +1106,9 @@ export default class Exchange {
             params['agent'] = this.agent;
         }
         // override agent, if needed
-        if (isHttpAgentNeeded) {
-            // if proxyUrl is being used, so we don't overwrite `this.agent` itself
-            params['agent'] = this.httpAgent;
+        if (httpProxyAgent) {
+            // if proxyUrl is being used, then specifically in nodejs, we need http module, not https
+            params['agent'] = httpProxyAgent;
         } else if (chosenAgent) {
             // if http(s)Proxy is being used
             params['agent'] = chosenAgent;
@@ -1311,7 +1334,9 @@ export default class Exchange {
             // proxy agents
             const [ httpProxy, httpsProxy, socksProxy ] = this.checkWsProxySettings ();
             const chosenAgent = this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
-            const finalAgent = chosenAgent ? chosenAgent : this.agent;
+            // part only for node-js
+            const httpProxyAgent = this.getHttpAgentIfNeeded (url);
+            const finalAgent = chosenAgent ? chosenAgent : (httpProxyAgent ? httpProxyAgent : this.agent);
             //
             const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
@@ -1679,7 +1704,8 @@ export default class Exchange {
         const usedProxies = [];
         let wsProxy = undefined;
         let wssProxy = undefined;
-        // wsProxy
+        let wsSocksProxy = undefined;
+        // ws proxy
         if (this.wsProxy !== undefined) {
             usedProxies.push ('wsProxy');
             wsProxy = this.wsProxy;
@@ -1688,7 +1714,7 @@ export default class Exchange {
             usedProxies.push ('ws_proxy');
             wsProxy = this.ws_proxy;
         }
-        // wsProxy
+        // wss proxy
         if (this.wssProxy !== undefined) {
             usedProxies.push ('wssProxy');
             wssProxy = this.wssProxy;
@@ -1697,13 +1723,22 @@ export default class Exchange {
             usedProxies.push ('wss_proxy');
             wssProxy = this.wss_proxy;
         }
+        // ws socks proxy
+        if (this.wsSocksProxy !== undefined) {
+            usedProxies.push ('wsSocksProxy');
+            wsSocksProxy = this.wsSocksProxy;
+        }
+        if (this.ws_socks_proxy !== undefined) {
+            usedProxies.push ('ws_socks_proxy');
+            wsSocksProxy = this.ws_socks_proxy;
+        }
         // check
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join (',');
-            throw new ExchangeError (this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy');
+            throw new ExchangeError (this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, socksProxy');
         }
-        return [ wsProxy, wssProxy ];
+        return [ wsProxy, wssProxy, wsSocksProxy ];
     }
 
     checkConflictingProxies (proxyAgentSet, proxyUrlSet) {
@@ -4196,6 +4231,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' closeAllPositions() is not supported yet');
     }
 
+    async fetchL3OrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        throw new BadRequest (this.id + ' fetchL3OrderBook() is not supported yet');
+    }
+
     parseLastPrice (price, market: Market = undefined): any {
         throw new NotSupported (this.id + ' parseLastPrice() is not supported yet');
     }
@@ -4801,8 +4840,8 @@ export default class Exchange {
         /**
          * @ignore
          * @method
-         * * Must add timeInForce to this.options to use this method
-         * @return {string} returns the exchange specific value for timeInForce
+         * Must add timeInForce to this.options to use this method
+         * @returns {string} returns the exchange specific value for timeInForce
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce'); // supported values GTC, IOC, PO
         if (timeInForce !== undefined) {
@@ -4819,7 +4858,7 @@ export default class Exchange {
         /**
          * @ignore
          * @method
-         * * Must add accountsByType to this.options to use this method
+         * Must add accountsByType to this.options to use this method
          * @param {string} account key for account name in this.options['accountsByType']
          * @returns the exchange specific account name or the isolated margin id for transfers
          */

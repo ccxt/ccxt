@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.83'
+__version__ = '4.1.85'
 
 # -----------------------------------------------------------------------------
 
@@ -370,11 +370,13 @@ class Exchange(BaseExchange):
 
     def set_client_session_proxy(self, url):
         final_proxy = None  # set default
-        httpProxy, httpsProxy = self.check_ws_proxy_settings()
+        httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
         if httpProxy:
             final_proxy = httpProxy
         elif httpsProxy:
             final_proxy = httpsProxy
+        elif socksProxy:
+            final_proxy = socksProxy
         if (final_proxy):
             self.clients[url].proxy = final_proxy
         else:
@@ -1015,6 +1017,9 @@ class Exchange(BaseExchange):
 
     async def close_all_positions(self, params={}):
         raise NotSupported(self.id + ' closeAllPositions() is not supported yet')
+
+    async def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
+        raise BadRequest(self.id + ' fetchL3OrderBook() is not supported yet')
 
     async def fetch_deposit_address(self, code: str, params={}):
         if self.has['fetchDepositAddresses']:
