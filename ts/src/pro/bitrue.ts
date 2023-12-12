@@ -2,7 +2,7 @@
 
 import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, Str, OrderBook, Order, Trade, Ticker } from '../base/types.js';
+import { Int, Str, OrderBook, Order } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
