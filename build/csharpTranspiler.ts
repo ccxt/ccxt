@@ -438,7 +438,8 @@ class NewTranspiler {
             'createNetworksByIdObject',
             'setProperty',
             'setProxyAgents',
-            'watch'
+            'watch',
+            'setPositionsCache'
         ] // improve this later
         const isBlackListed = blacklistMethods.includes(methodName);
         const startsWithAllowedPrefix = allowedPrefixes.some(prefix => methodName.startsWith(prefix));
