@@ -401,6 +401,30 @@
                     "LTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers - spot",
+                "method": "fetchTickers",
+                "url": "https://openapi.digifinex.com/v3/ticker",
+                "input": [
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch tickers - swap",
+                "method": "fetchTickers",
+                "url": "https://openapi.digifinex.com/swap/v2/public/tickers",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
         ]
     }
 }
