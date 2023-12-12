@@ -710,10 +710,6 @@ export default class kucoinfutures extends kucoin {
         return orderbook;
     }
 
-    async fetchL3OrderBook (symbol: string, limit: Int = undefined, params = {}) {
-        throw new BadRequest (this.id + ' fetchL3OrderBook() is not supported yet');
-    }
-
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
