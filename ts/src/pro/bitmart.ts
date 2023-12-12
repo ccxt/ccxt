@@ -5,7 +5,7 @@ import bitmartRest from '../bitmart.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV } from '../base/types.js';
+import { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Asks, Bids } from '../base/ws/OrderBookSide.js';
 
@@ -606,7 +606,7 @@ export default class bitmart extends bitmartRest {
         return this.safeString (sides, sideId, sideId);
     }
 
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name bitmart#watchPositions
