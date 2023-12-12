@@ -958,7 +958,7 @@ export default class Exchange {
         return this.httpAgent;
     }
 
-    checkIfHttpAgentNeeded (url) {
+    getHttpAgentIfNeeded (url) {
         if (isNode) {
             // only for non-ssl proxy
             if (url.substring(0, 5) === 'ws://') {
@@ -1276,7 +1276,7 @@ export default class Exchange {
             const [ httpProxy, httpsProxy, socksProxy ] = this.checkWsProxySettings ();
             const chosenAgent = this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
             // part only for node-js
-            const httpProxyAgent = this.checkIfHttpAgentNeeded (url);
+            const httpProxyAgent = this.getHttpAgentIfNeeded (url);
             const finalAgent = chosenAgent ? chosenAgent : (httpProxyAgent ? httpProxyAgent : this.agent);
             //
             const options = this.deepExtend (this.streaming, {
