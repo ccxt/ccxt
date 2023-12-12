@@ -100,6 +100,8 @@ class Exchange {
     public $ws_proxy = null;
     public $wssProxy = null;
     public $wss_proxy = null;
+    public $wsSocksProxy = null;
+    public $ws_socks_proxy = null;
     //
     public $userAgents = array(
         'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',

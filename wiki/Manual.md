@@ -512,7 +512,7 @@ Below is a detailed description of each of the base exchange properties:
 
 - `precisionMode`: The exchange decimal precision counting mode, read more about [Precision And Limits](#precision-and-limits)
 
-- For proxies - `proxyUrl`, `httpUrl`, `httpsUrl`, `socksProxy`: An url of specific proxy. Read details in [Proxy](#proxy) section.
+- For proxies - `proxyUrl`, `httpUrl`, `httpsUrl`, `socksProxy`, `wsProxy`, `wssProxy`, `wsSocksProxy` : An url of specific proxy. Read details in [Proxy](#proxy) section.
 
 See this section on [Overriding exchange properties](#overriding-exchange-properties-upon-instantiation).
 
@@ -6018,8 +6018,7 @@ In some specific cases you may want a proxy, when:
 However, beware that each added intermediary might add some latency to requests.
 
 ### Supported proxy types
-CCXT supports the following proxy types (note, each of them also have [callback support](#
-using-proxy-callbacks)):
+CCXT supports the following proxy types (note, each of them also have [callback support](#using-proxy-callbacks)):
 
 #### proxyUrl
 
@@ -6036,7 +6035,7 @@ while 'YOUR_PROXY_URL' could be like (use the slash accordingly):
 
 So requests will be made to i.e. `https://cors-anywhere.herokuapp.com/https://exchange.xyz/api/endpoint`. ( You can also have a small proxy script running on your device/webserver to use it in `.proxyUrl` -  "sample-local-proxy-server" in [examples folder](https://github.com/ccxt/ccxt/tree/master/examples)).
 
-This approach works **only for REST** requests, but not for websocket connections. ((_How to test if your proxy works_)[#test-if-your-proxy-works])
+This approach works **only for REST** requests, but not for websocket connections. ((_How to test if your proxy works_))[#test-if-your-proxy-works]
 
 #### httpProxy and httpsProxy
 To set a real http(s) proxy for your scripts, you need to have an access to a remote [http or https proxy](https://stackoverflow.com/q/10440690/2377343), so calls will be made directly to the target exchange, tunneled through your proxy server:
@@ -6051,15 +6050,17 @@ ex.httpProxy = 'http://1.2.3.4:8080/';
 ex.wsProxy   = 'http://1.2.3.4:8080/';
 ```
 So, both connections (HTTP & WS) would go through proxies.
-((_How to test if your proxy works_)[#test-if-your-proxy-works])
+((_How to test if your proxy works_))[#test-if-your-proxy-works]
 
 
 #### socksProxy
 You can also use [socks proxy](https://www.google.com/search?q=what+is+socks+proxy) with the following format:
 ```
+// from protocols: socks, socks5, socks5h
 ex.socksProxy = 'socks5://1.2.3.4:8080/';
+ex.wsSocksProxy = 'socks://1.2.3.4:8080/';
 ```
-This approach works for websocket connections too. ((_How to test if your proxy works_)[#test-if-your-proxy-works])
+((_How to test if your proxy works_))[#test-if-your-proxy-works]
 
 #### Test if your proxy works
 After setting any of the above listed proxy properties in your ccxt snippet, you can test whether it works by pinging some IP echoing websites - check a "proxy-usage" file in [examples](https://github.com/ccxt/ccxt/blob/master/examples/).

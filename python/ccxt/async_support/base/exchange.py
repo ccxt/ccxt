@@ -370,11 +370,13 @@ class Exchange(BaseExchange):
 
     def set_client_session_proxy(self, url):
         final_proxy = None  # set default
-        httpProxy, httpsProxy = self.check_ws_proxy_settings()
+        httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
         if httpProxy:
             final_proxy = httpProxy
         elif httpsProxy:
             final_proxy = httpsProxy
+        elif socksProxy:
+            final_proxy = socksProxy
         if (final_proxy):
             self.clients[url].proxy = final_proxy
         else:
