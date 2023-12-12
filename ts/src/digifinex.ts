@@ -12,7 +12,7 @@ import { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderReque
 
 /**
  * @class digifinex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class digifinex extends Exchange {
     describe () {
@@ -1622,7 +1622,7 @@ export default class digifinex extends Exchange {
          * @description create a list of trade orders (all orders should be of the same symbol)
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-multiple-order
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchorder
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -3927,7 +3927,7 @@ export default class digifinex extends Exchange {
          * @method
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {array} the marginMode in lowercase
+         * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeValue (params, 'margin', false);

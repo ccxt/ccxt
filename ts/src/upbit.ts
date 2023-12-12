@@ -14,7 +14,7 @@ import { Balances, Currency, Dictionary, Int, Market, OHLCV, Order, OrderBook, O
 
 /**
  * @class upbit
- * @extends Exchange
+ * @augments Exchange
  */
 export default class upbit extends Exchange {
     describe () {

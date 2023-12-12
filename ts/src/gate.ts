@@ -9,7 +9,7 @@ import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenIntere
 
 /**
  * @class gate
- * @extends Exchange
+ * @augments Exchange
  */
 export default class gate extends Exchange {
     describe () {

@@ -12,7 +12,7 @@ import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Bal
 
 /**
  * @class huobi
- * @extends Exchange
+ * @augments Exchange
  */
 export default class htx extends Exchange {
     describe () {
@@ -5168,7 +5168,7 @@ export default class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-orders
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-orders
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-orders
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

@@ -11,7 +11,7 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
 
 /**
  * @class bitbank
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitbank extends Exchange {
     describe () {

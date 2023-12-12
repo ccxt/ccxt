@@ -11,7 +11,7 @@ import { Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Tr
 
 /**
  * @class bl3p
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bl3p extends Exchange {
     describe () {

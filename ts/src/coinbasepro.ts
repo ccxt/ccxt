@@ -12,7 +12,7 @@ import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transact
 
 /**
  * @class coinbasepro
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinbasepro extends Exchange {
     describe () {

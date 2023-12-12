@@ -12,7 +12,7 @@ import { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order,
 
 /**
  * @class delta
- * @extends Exchange
+ * @augments Exchange
  */
 export default class delta extends Exchange {
     describe () {

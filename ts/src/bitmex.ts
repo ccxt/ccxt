@@ -12,7 +12,7 @@ import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook,
 
 /**
  * @class bitmex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitmex extends Exchange {
     describe () {
@@ -2265,7 +2265,7 @@ export default class bitmex extends Exchange {
         const datetime = this.safeString (position, 'timestamp');
         const crossMargin = this.safeValue (position, 'crossMargin');
         const marginMode = (crossMargin === true) ? 'cross' : 'isolated';
-        const notionalString = Precise.stringAbs (this.safeString (position, 'foreignNotional', 'homeNotional'));
+        const notionalString = Precise.stringAbs (this.safeString2 (position, 'foreignNotional', 'homeNotional'));
         const settleCurrencyCode = this.safeString (market, 'settle');
         const maintenanceMargin = this.convertToRealAmount (settleCurrencyCode, this.safeString (position, 'maintMargin'));
         const unrealisedPnl = this.convertToRealAmount (settleCurrencyCode, this.safeString (position, 'unrealisedPnl'));

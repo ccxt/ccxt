@@ -1334,48 +1334,58 @@ class bitmart extends bitmart$1 {
         //
         // public fetchTrades spot ( amount = count * price )
         //
-        //     {
-        //          "amount": "818.94",
-        //          "order_time": "1637601839035",    // ETH/USDT
-        //          "price": "4221.99",
-        //          "count": "0.19397",
-        //          "type": "buy"
-        //      }
+        //    {
+        //        "amount": "818.94",
+        //        "order_time": "1637601839035",    // ETH/USDT
+        //        "price": "4221.99",
+        //        "count": "0.19397",
+        //        "type": "buy"
+        //    }
         //
         // spot: fetchMyTrades
         //
-        //     {
-        //         "tradeId":"182342999769370687",
-        //         "orderId":"183270218784142990",
-        //         "clientOrderId":"183270218784142990",
-        //         "symbol":"ADA_USDT",
-        //         "side":"buy",
-        //         "orderMode":"spot",
-        //         "type":"market",
-        //         "price":"0.245948",
-        //         "size":"20.71",
-        //         "notional":"5.09358308",
-        //         "fee":"0.00509358",
-        //         "feeCoinName":"USDT",
-        //         "tradeRole":"taker",
-        //         "createTime":1695658457836,
-        //     }
+        //    {
+        //        "tradeId":"182342999769370687",
+        //        "orderId":"183270218784142990",
+        //        "clientOrderId":"183270218784142990",
+        //        "symbol":"ADA_USDT",
+        //        "side":"buy",
+        //        "orderMode":"spot",
+        //        "type":"market",
+        //        "price":"0.245948",
+        //        "size":"20.71",
+        //        "notional":"5.09358308",
+        //        "fee":"0.00509358",
+        //        "feeCoinName":"USDT",
+        //        "tradeRole":"taker",
+        //        "createTime":1695658457836,
+        //    }
         //
         // swap: fetchMyTrades
         //
-        //     {
-        //         "order_id": "230930336848609",
-        //         "trade_id": "6212604014",
-        //         "symbol": "BTCUSDT",
-        //         "side": 3,
-        //         "price": "26910.4",
-        //         "vol": "1",
-        //         "exec_type": "Taker",
-        //         "profit": false,
-        //         "create_time": 1695961596692,
-        //         "realised_profit": "-0.0003",
-        //         "paid_fees": "0.01614624"
-        //     }
+        //    {
+        //        "order_id": "230930336848609",
+        //        "trade_id": "6212604014",
+        //        "symbol": "BTCUSDT",
+        //        "side": 3,
+        //        "price": "26910.4",
+        //        "vol": "1",
+        //        "exec_type": "Taker",
+        //        "profit": false,
+        //        "create_time": 1695961596692,
+        //        "realised_profit": "-0.0003",
+        //        "paid_fees": "0.01614624"
+        //    }
+        //
+        // ws swap
+        //
+        //    {
+        //        'fee': '-0.000044502',
+        //        'feeCcy': 'USDT',
+        //        'fillPrice': '74.17',
+        //        'fillQty': '1',
+        //        'lastTradeID': 6802340762
+        //    }
         //
         const timestamp = this.safeIntegerN(trade, ['order_time', 'createTime', 'create_time']);
         const isPublicTrade = ('order_time' in trade);
@@ -1389,7 +1399,7 @@ class bitmart extends bitmart$1 {
             side = this.safeString(trade, 'type');
         }
         else {
-            amount = this.safeString2(trade, 'size', 'vol');
+            amount = this.safeStringN(trade, ['size', 'vol', 'fillQty']);
             cost = this.safeString(trade, 'notional');
             type = this.safeString(trade, 'type');
             side = this.parseOrderSide(this.safeString(trade, 'side'));
@@ -1411,14 +1421,14 @@ class bitmart extends bitmart$1 {
         }
         return this.safeTrade({
             'info': trade,
-            'id': this.safeString2(trade, 'tradeId', 'trade_id'),
+            'id': this.safeStringN(trade, ['tradeId', 'trade_id', 'lastTradeID']),
             'order': this.safeString2(trade, 'orderId', 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': type,
             'side': side,
-            'price': this.safeString(trade, 'price'),
+            'price': this.safeString2(trade, 'price', 'fillPrice'),
             'amount': amount,
             'cost': cost,
             'takerOrMaker': this.safeStringLower2(trade, 'tradeRole', 'exec_type'),
@@ -1472,38 +1482,45 @@ class bitmart extends bitmart$1 {
     parseOHLCV(ohlcv, market = undefined) {
         //
         // spot
-        //
-        //     [
-        //         "1699512060", // timestamp
-        //         "36746.49", // open
-        //         "36758.71", // high
-        //         "36736.13", // low
-        //         "36755.99", // close
-        //         "2.83965", // base volume
-        //         "104353.57" // quote volume
-        //     ]
+        //    [
+        //        "1699512060", // timestamp
+        //        "36746.49", // open
+        //        "36758.71", // high
+        //        "36736.13", // low
+        //        "36755.99", // close
+        //        "2.83965", // base volume
+        //        "104353.57" // quote volume
+        //    ]
         //
         // swap
-        //
-        //     {
-        //         "low_price": "20090.3",
-        //         "high_price": "20095.5",
-        //         "open_price": "20092.6",
-        //         "close_price": "20091.4",
-        //         "volume": "8748",
-        //         "timestamp": 1665002281
-        //     }
+        //    {
+        //        "low_price": "20090.3",
+        //        "high_price": "20095.5",
+        //        "open_price": "20092.6",
+        //        "close_price": "20091.4",
+        //        "volume": "8748",
+        //        "timestamp": 1665002281
+        //    }
         //
         // ws
+        //    [
+        //        1631056350, // timestamp
+        //        "46532.83", // open
+        //        "46555.71", // high
+        //        "46511.41", // low
+        //        "46555.71", // close
+        //        "0.25", // volume
+        //    ]
         //
-        //     [
-        //         1631056350, // timestamp
-        //         "46532.83", // open
-        //         "46555.71", // high
-        //         "46511.41", // low
-        //         "46555.71", // close
-        //         "0.25", // volume
-        //     ]
+        // ws swap
+        //    {
+        //        "symbol":"BTCUSDT",
+        //        "o":"146.24",
+        //        "h":"146.24",
+        //        "l":"146.24",
+        //        "c":"146.24",
+        //        "v":"146"
+        //    }
         //
         if (Array.isArray(ohlcv)) {
             return [
@@ -1517,12 +1534,12 @@ class bitmart extends bitmart$1 {
         }
         else {
             return [
-                this.safeTimestamp(ohlcv, 'timestamp'),
-                this.safeNumber(ohlcv, 'open_price'),
-                this.safeNumber(ohlcv, 'high_price'),
-                this.safeNumber(ohlcv, 'low_price'),
-                this.safeNumber(ohlcv, 'close_price'),
-                this.safeNumber(ohlcv, 'volume'),
+                this.safeTimestamp2(ohlcv, 'timestamp', 'ts'),
+                this.safeNumber2(ohlcv, 'open_price', 'o'),
+                this.safeNumber2(ohlcv, 'high_price', 'h'),
+                this.safeNumber2(ohlcv, 'low_price', 'l'),
+                this.safeNumber2(ohlcv, 'close_price', 'c'),
+                this.safeNumber2(ohlcv, 'volume', 'v'),
             ];
         }
     }

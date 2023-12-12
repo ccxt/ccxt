@@ -13,7 +13,7 @@ import { Precise } from './base/Precise.js';
 
 /**
  * @class bigone
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bigone extends Exchange {
     describe () {
