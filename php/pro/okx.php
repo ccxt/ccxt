@@ -174,7 +174,7 @@ class okx extends \ccxt\async\okx {
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
@@ -194,8 +194,8 @@ class okx extends \ccxt\async\okx {
              * @param {string} symbol unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             $symbolsLength = count($symbols);
             if ($symbolsLength === 0) {
@@ -272,7 +272,7 @@ class okx extends \ccxt\async\okx {
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-$channel
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
@@ -290,7 +290,7 @@ class okx extends \ccxt\async\okx {
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-$channel
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
@@ -367,7 +367,7 @@ class okx extends \ccxt\async\okx {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -429,7 +429,7 @@ class okx extends \ccxt\async\okx {
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $options = $this->safe_value($this->options, 'watchOrderBook', array());
@@ -471,7 +471,7 @@ class okx extends \ccxt\async\okx {
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
              */
             Async\await($this->load_markets());
@@ -750,7 +750,7 @@ class okx extends \ccxt\async\okx {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -846,7 +846,7 @@ class okx extends \ccxt\async\okx {
              * @param {string} [$symbol] unified $market $symbol of the $market trades were made in
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->stop] true if fetching trigger or conditional trades
              * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
@@ -887,7 +887,7 @@ class okx extends \ccxt\async\okx {
              * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-$channel
              * watch all open positions
              * @param {string[]|null} $symbols list of unified market $symbols
-             * @param {array} $params extra parameters specific to the okx api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             if ($this->is_empty($symbols)) {
@@ -1010,7 +1010,7 @@ class okx extends \ccxt\async\okx {
              * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->stop] true if fetching trigger or conditional $orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -1231,7 +1231,7 @@ class okx extends \ccxt\async\okx {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} $params->test test order, default false
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -1303,7 +1303,7 @@ class okx extends \ccxt\async\okx {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
              * @param {float|null} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1329,7 +1329,7 @@ class okx extends \ccxt\async\okx {
              * cancel multiple orders
              * @param {string} $id order $id
              * @param {string} $symbol unified market $symbol, default is null
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clOrdId] client order $id
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=order-structure order structures~
              */
@@ -1366,7 +1366,7 @@ class okx extends \ccxt\async\okx {
              * cancel multiple orders
              * @param {string[]} $ids order $ids
              * @param {string} $symbol unified market $symbol, default is null
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $idsLength = count($ids);
@@ -1403,7 +1403,7 @@ class okx extends \ccxt\async\okx {
              * @see https://docs.okx.com/websockets/#message-cancelAll
              * cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {

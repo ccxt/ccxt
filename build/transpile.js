@@ -92,6 +92,7 @@ class Transpiler {
             [ /\.parseAccounts\s/g, '.parse_accounts' ],
             [ /\.parseAccount\s/g, '.parse_account' ],
             [ /\.parseBalance\s/g, '.parse_balance'],
+            [ /\.parseWsBalance\s/g, '.parse_ws_balance'],
             [ /\.parseBorrowInterest\s/g, '.parse_borrow_interest'],
             [ /\.parseFundingRateHistories\s/g, '.parse_funding_rate_histories'],
             [ /\.parseFundingRateHistory\s/g, '.parse_funding_rate_history'],
@@ -108,7 +109,10 @@ class Transpiler {
             [ /\.parseLedger\s/g, '.parse_ledger'],
             [ /\.parseTickers\s/g, '.parse_tickers'],
             [ /\.parseTicker\s/g, '.parse_ticker'],
+            [ /\.parseWsTicker\s/g, '.parse_ws_ticker'],
             [ /\.parseTimeframe\s/g, '.parse_timeframe'],
+            [ /\.parseTimeInForce\s/g, '.parse_time_in_force'],
+            [ /\.parseWsTimeInForce\s/g, '.parse_ws_time_in_force'],
             [ /\.parseTradesData\s/g, '.parse_trades_data'],
             [ /\.parseTrades\s/g, '.parse_trades'],
             [ /\.parseTrade\s/g, '.parse_trade'],
@@ -137,6 +141,7 @@ class Transpiler {
             [ /\.parsePositionRisk\s/g, '.parse_position_risk' ],
             [ /\.parsePositions\s/g, '.parse_positions' ],
             [ /\.parsePosition\s/g, '.parse_position' ],
+            [ /\.parseWsPosition\s/g, '.parse_ws_position' ],
             [ /\.parseIncome\s/g, '.parse_income' ],
             [ /\.parseIncomes\s/g, '.parse_incomes' ],
             [ /\.parseFundingRates\s/g, '.parse_funding_rates' ],
@@ -222,9 +227,23 @@ class Transpiler {
             [ /\.editOrder\s/g, '.edit_order'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             [ /\.throwExceptionOnError\s/g, '.throw_exception_on_error'],
+            [ /\.handleAuthenticate\s/g, '.handle_authenticate'],
+            [ /\.handleBalance\s/g, '.handle_balance'],
             [ /\.handleErrors\s/g, '.handle_errors'],
+            [ /\.handleErrorMessage\s/g, '.handle_error_message'],
             [ /\.handleDeltas\s/g, '.handle_deltas'],
             [ /\.handleDelta\s/g, '.handle_delta'],
+            [ /\.handleMessage\s/g, '.handle_message'],
+            [ /\.handleMyTrade\s/g, '.handle_my_trade'],
+            [ /\.handleOHLCV\s/g, '.handle_ohlcv'],
+            [ /\.handleOrder\s/g, '.handle_order'],
+            [ /\.handleOrderBook\s/g, '.handle_order_book'],
+            [ /\.handlePing\s/g, '.handle_ping'],
+            [ /\.handlePosition\s/g, '.handle_position'],
+            [ /\.handlePositions\s/g, '.handle_positions'],
+            [ /\.handleSubscription\s/g, '.handle_subscription'],
+            [ /\.handleTicker\s/g, '.handle_ticker'],
+            [ /\.handleTrades\s/g, '.handle_trades'],
             [ /\.handleWithdrawTagAndParams\s/g, '.handle_withdraw_tag_and_params'],
             [ /\.checkRequiredCredentials\s/g, '.check_required_credentials'],
             [ /\.checkRequiredDependencies\s/g, '.check_required_dependencies'],
@@ -299,6 +318,8 @@ class Transpiler {
             [ /\.stringToCharsArray\s/g, '.string_to_chars_array'],
             [ /\.handleUntilOption\s/g, '.handle_until_option'],
             [ /\.parseToNumeric\s/g, '.parse_to_numeric'],
+            [ /\.checkConflictingProxies\s/g, '.check_conflicting_proxies'],
+            [ /\.parseMarket\s/g, '.parse_market'],
             [ /\.isRoundNumber\s/g, '.is_round_number'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
@@ -936,6 +957,7 @@ class Transpiler {
             'OrderRequest': /: (?:List\[)?OrderRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
+            'Position': /-> (?:List\[)?Position/,
             'IndexType': /: IndexType/,
             'FundingHistory': /\[FundingHistory/,
             'Num': /: Num =/,
@@ -1607,7 +1629,11 @@ class Transpiler {
                     variable = variable.replace (/\?$/, '')
                     const type = secondPart[0].trim ()
                     const phpType = phpTypes[type] ?? type
-                    const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
+                    let resolveType = (phpType.match (phpArrayRegex)  && phpType !== 'object[]')? 'array' : phpType // in PHP arrays are not compatible with ArrayCache, so removing this type for now;
+                    if (resolveType === 'object[]') {
+                        resolveType = 'mixed'; // in PHP objects are not compatible with ArrayCache, so removing this type for now;
+                    }
+                    // const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
                     const ignore = (resolveType === 'mixed' || resolveType[0] === '?' )
                     return (nullable && !ignore ? '?' : '') + resolveType + ' $' + variable + endpart
                 }
@@ -2545,9 +2571,7 @@ class Transpiler {
             pyAsync: [
                 "import asyncio",
                 "import ccxt.async_support as ccxt  # noqa: E402",
-                "",
-                "",
-                "",
+                ""
             ],
             pyPro: [
                 "import asyncio",
@@ -2619,6 +2643,8 @@ class Transpiler {
                         [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\async\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
                         // cases like: exchange = new ccxt.pro['huobi' or varname] ()
                         [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\\async\\pro\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\pro\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
+                        // fix cases like: async\pro->kucoin
+                        [ /async\\pro->/g, 'pro\\' ],
                     ];
                     return this.regexAll (body, regexes);
                 };
@@ -2628,7 +2654,8 @@ class Transpiler {
                 finalBodies.phpAsync = fixPhp (phpAsyncBody);
 
                 // specifically in python (not needed in other langs), we need add `await .close()` inside matching methods
-                for (const funcName of allDetectedFunctionNames) {
+                for (const funcNameInit of allDetectedFunctionNames) {
+                    const funcName = unCamelCase (funcNameInit)
                     // match function bodies
                     const funcBodyRegex = new RegExp ('(?=def ' + funcName + '\\()(.*?)(?=\\n\\w)', 'gs');
                     // inside functions, find exchange initiations
@@ -2652,8 +2679,18 @@ class Transpiler {
                     finalBodies.pyAsync = finalBodies.pyAsync.replace (new RegExp ('await ' + funcName + '\\((.*?)\\)', 'g'), function(wholeMatch, innerMatch){ return '\nasyncio.run(' + wholeMatch.replace('await ','').trim() + ')';})
                 }
 
+                let finalPyHeaders = undefined;
+                if (isCcxtPro) {
+                    finalPyHeaders = fileHeaders.pyPro ;
+                } else {
+                    // these are cases when transpliation happens of not specific PRO file, i.e. "example" snippets, where just "new ccxt.pro" appears
+                    if (tsContent.match ('new ccxt.pro')){
+                        finalPyHeaders += 'import ccxt.pro  # noqa: E402' + '\n'
+                    }
+                    finalPyHeaders += '\n\n'
+                }
                 // write files
-                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + (isCcxtPro ? fileHeaders.pyPro : fileHeaders.pyAsync) + finalBodies.pyAsync)
+                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + finalPyHeaders + finalBodies.pyAsync)
                 overwriteFile (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }
         }

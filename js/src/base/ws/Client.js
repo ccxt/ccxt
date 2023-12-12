@@ -199,6 +199,7 @@ export default class Client {
         this.reset(this.error);
         this.onErrorCallback(this, this.error);
     }
+    /* eslint-disable no-shadow */
     onClose(event) {
         if (this.verbose) {
             this.log(new Date(), 'onClose', event);
@@ -226,6 +227,7 @@ export default class Client {
         message = (typeof message === 'string') ? message : JSON.stringify(message);
         const future = createFuture();
         if (isNode) {
+            /* eslint-disable no-inner-declarations */
             function onSendComplete(error) {
                 if (error) {
                     future.reject(error);
@@ -250,23 +252,20 @@ export default class Client {
         // MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
         let message = messageEvent.data;
         let arrayBuffer;
-        if (this.gunzip || this.inflate) {
-            if (typeof message === 'string') {
-                arrayBuffer = utf8.decode(message);
+        if (typeof message !== 'string') {
+            if (this.gunzip || this.inflate) {
+                arrayBuffer = new Uint8Array(message.buffer.slice(message.byteOffset, message.byteOffset + message.byteLength));
+                if (this.gunzip) {
+                    arrayBuffer = gunzipSync(arrayBuffer);
+                }
+                else if (this.inflate) {
+                    arrayBuffer = inflateSync(arrayBuffer);
+                }
+                message = utf8.encode(arrayBuffer);
             }
             else {
-                arrayBuffer = new Uint8Array(message.buffer.slice(message.byteOffset, message.byteOffset + message.byteLength));
+                message = message.toString();
             }
-            if (this.gunzip) {
-                arrayBuffer = gunzipSync(arrayBuffer);
-            }
-            else if (this.inflate) {
-                arrayBuffer = inflateSync(arrayBuffer);
-            }
-            message = utf8.encode(arrayBuffer);
-        }
-        if (typeof message !== 'string') {
-            message = message.toString();
         }
         try {
             if (isJsonEncodedObject(message)) {

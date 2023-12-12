@@ -1057,6 +1057,9 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapiv2_get_sub_account_futures_account($params = array()) {
         return $this->request('sub-account/futures/account', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiv2_get_sub_account_futures_accountsummary($params = array()) {
+        return $this->request('sub-account/futures/accountSummary', 'sapiV2', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function sapiv2_get_sub_account_futures_positionrisk($params = array()) {
         return $this->request('sub-account/futures/positionRisk', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -1657,6 +1660,9 @@ abstract class binanceus extends \ccxt\async\binance {
     public function public_get_ticker($params = array()) {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 16));
     }
+    public function public_get_ticker_tradingday($params = array()) {
+        return $this->request('ticker/tradingDay', 'public', 'GET', $params, null, null, array("cost" => 0.8));
+    }
     public function public_get_ticker_price($params = array()) {
         return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 0.8));
     }
@@ -1710,6 +1716,9 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function private_get_myallocations($params = array()) {
         return $this->request('myAllocations', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_account_commission($params = array()) {
+        return $this->request('account/commission', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_post_order_oco($params = array()) {
         return $this->request('order/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
@@ -1885,8 +1894,8 @@ abstract class binanceus extends \ccxt\async\binance {
     public function papi_get_cm_account($params = array()) {
         return $this->request('cm/account', 'papi', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function papi_get_portfolio_repay_futures_switch($params = array()) {
-        return $this->request('portfolio/repay-futures-switch', 'papi', 'GET', $params, null, null, array("cost" => 3));
+    public function papi_get_repay_futures_switch($params = array()) {
+        return $this->request('repay-futures-switch', 'papi', 'GET', $params, null, null, array("cost" => 3));
     }
     public function papi_get_um_adlquantile($params = array()) {
         return $this->request('um/adlQuantile', 'papi', 'GET', $params, null, null, array("cost" => 5));
@@ -1936,11 +1945,11 @@ abstract class binanceus extends \ccxt\async\binance {
     public function papi_post_bnb_transfer($params = array()) {
         return $this->request('bnb-transfer', 'papi', 'POST', $params, null, null, array("cost" => 0.6667));
     }
-    public function papi_post_portfolio_repay_futures_switch($params = array()) {
-        return $this->request('portfolio/repay-futures-switch', 'papi', 'POST', $params, null, null, array("cost" => 150));
+    public function papi_post_repay_futures_switch($params = array()) {
+        return $this->request('repay-futures-switch', 'papi', 'POST', $params, null, null, array("cost" => 150));
     }
-    public function papi_post_portfolio_repay_futures_negative_balance($params = array()) {
-        return $this->request('portfolio/repay-futures-negative-balance', 'papi', 'POST', $params, null, null, array("cost" => 150));
+    public function papi_post_repay_futures_negative_balance($params = array()) {
+        return $this->request('repay-futures-negative-balance', 'papi', 'POST', $params, null, null, array("cost" => 150));
     }
     public function papi_post_listenkey($params = array()) {
         return $this->request('listenKey', 'papi', 'POST', $params, null, null, array("cost" => 1));
@@ -3037,6 +3046,9 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapiV2GetSubAccountFuturesAccount($params = array()) {
         return $this->request('sub-account/futures/account', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiV2GetSubAccountFuturesAccountSummary($params = array()) {
+        return $this->request('sub-account/futures/accountSummary', 'sapiV2', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function sapiV2GetSubAccountFuturesPositionRisk($params = array()) {
         return $this->request('sub-account/futures/positionRisk', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -3637,6 +3649,9 @@ abstract class binanceus extends \ccxt\async\binance {
     public function publicGetTicker($params = array()) {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 16));
     }
+    public function publicGetTickerTradingDay($params = array()) {
+        return $this->request('ticker/tradingDay', 'public', 'GET', $params, null, null, array("cost" => 0.8));
+    }
     public function publicGetTickerPrice($params = array()) {
         return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 0.8));
     }
@@ -3690,6 +3705,9 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function privateGetMyAllocations($params = array()) {
         return $this->request('myAllocations', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetAccountCommission($params = array()) {
+        return $this->request('account/commission', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privatePostOrderOco($params = array()) {
         return $this->request('order/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
@@ -3865,8 +3883,8 @@ abstract class binanceus extends \ccxt\async\binance {
     public function papiGetCmAccount($params = array()) {
         return $this->request('cm/account', 'papi', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function papiGetPortfolioRepayFuturesSwitch($params = array()) {
-        return $this->request('portfolio/repay-futures-switch', 'papi', 'GET', $params, null, null, array("cost" => 3));
+    public function papiGetRepayFuturesSwitch($params = array()) {
+        return $this->request('repay-futures-switch', 'papi', 'GET', $params, null, null, array("cost" => 3));
     }
     public function papiGetUmAdlQuantile($params = array()) {
         return $this->request('um/adlQuantile', 'papi', 'GET', $params, null, null, array("cost" => 5));
@@ -3916,11 +3934,11 @@ abstract class binanceus extends \ccxt\async\binance {
     public function papiPostBnbTransfer($params = array()) {
         return $this->request('bnb-transfer', 'papi', 'POST', $params, null, null, array("cost" => 0.6667));
     }
-    public function papiPostPortfolioRepayFuturesSwitch($params = array()) {
-        return $this->request('portfolio/repay-futures-switch', 'papi', 'POST', $params, null, null, array("cost" => 150));
+    public function papiPostRepayFuturesSwitch($params = array()) {
+        return $this->request('repay-futures-switch', 'papi', 'POST', $params, null, null, array("cost" => 150));
     }
-    public function papiPostPortfolioRepayFuturesNegativeBalance($params = array()) {
-        return $this->request('portfolio/repay-futures-negative-balance', 'papi', 'POST', $params, null, null, array("cost" => 150));
+    public function papiPostRepayFuturesNegativeBalance($params = array()) {
+        return $this->request('repay-futures-negative-balance', 'papi', 'POST', $params, null, null, array("cost" => 150));
     }
     public function papiPostListenKey($params = array()) {
         return $this->request('listenKey', 'papi', 'POST', $params, null, null, array("cost" => 1));

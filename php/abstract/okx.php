@@ -199,6 +199,24 @@ abstract class okx extends \ccxt\Exchange {
     public function public_get_finance_sfp_dcd_products($params = array()) {
         return $this->request('finance/sfp/dcd/products', 'public', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
     }
+    public function public_get_copytrading_public_lead_traders($params = array()) {
+        return $this->request('copytrading/public-lead-traders', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_copytrading_public_weekly_pnl($params = array()) {
+        return $this->request('copytrading/public-weekly-pnl', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_copytrading_public_stats($params = array()) {
+        return $this->request('copytrading/public-stats', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_copytrading_public_preference_currency($params = array()) {
+        return $this->request('copytrading/public-preference-currency', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_copytrading_public_current_subpositions($params = array()) {
+        return $this->request('copytrading/public-current-subpositions', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_copytrading_public_subpositions_history($params = array()) {
+        return $this->request('copytrading/public-subpositions-history', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function private_get_rfq_counterparties($params = array()) {
         return $this->request('rfq/counterparties', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -312,6 +330,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_get_asset_convert_history($params = array()) {
         return $this->request('asset/convert/history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function private_get_asset_monthly_statement($params = array()) {
+        return $this->request('asset/monthly-statement', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_get_account_balance($params = array()) {
         return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 2));
@@ -485,22 +506,34 @@ abstract class okx extends \ccxt\Exchange {
         return $this->request('finance/staking-defi/eth/purchase-redeem-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
     public function private_get_copytrading_current_subpositions($params = array()) {
-        return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 4));
+        return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_copytrading_subpositions_history($params = array()) {
-        return $this->request('copytrading/subpositions-history', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/subpositions-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_copytrading_instruments($params = array()) {
-        return $this->request('copytrading/instruments', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/instruments', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_get_copytrading_profit_sharing_details($params = array()) {
-        return $this->request('copytrading/profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_get_copytrading_total_profit_sharing($params = array()) {
-        return $this->request('copytrading/total-profit-sharing', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/total-profit-sharing', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_get_copytrading_unrealized_profit_sharing_details($params = array()) {
-        return $this->request('copytrading/unrealized-profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/unrealized-profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_copytrading_copy_settings($params = array()) {
+        return $this->request('copytrading/copy-settings', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_copytrading_batch_leverage_info($params = array()) {
+        return $this->request('copytrading/batch-leverage-info', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_copytrading_current_lead_traders($params = array()) {
+        return $this->request('copytrading/current-lead-traders', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_copytrading_lead_traders_history($params = array()) {
+        return $this->request('copytrading/lead-traders-history', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_get_broker_nd_info($params = array()) {
         return $this->request('broker/nd/info', 'private', 'GET', $params, null, null, array("cost" => 10));
@@ -658,6 +691,9 @@ abstract class okx extends \ccxt\Exchange {
     public function private_post_asset_convert_trade($params = array()) {
         return $this->request('asset/convert/trade', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_asset_monthly_statement($params = array()) {
+        return $this->request('asset/monthly-statement', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_account_set_position_mode($params = array()) {
         return $this->request('account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
@@ -773,13 +809,25 @@ abstract class okx extends \ccxt\Exchange {
         return $this->request('finance/staking-defi/eth/redeem', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_post_copytrading_algo_order($params = array()) {
-        return $this->request('copytrading/algo-order', 'private', 'POST', $params, null, null, array("cost" => 20));
+        return $this->request('copytrading/algo-order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_copytrading_close_subposition($params = array()) {
-        return $this->request('copytrading/close-subposition', 'private', 'POST', $params, null, null, array("cost" => 4));
+        return $this->request('copytrading/close-subposition', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_copytrading_set_instruments($params = array()) {
-        return $this->request('copytrading/set-instruments', 'private', 'POST', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/set-instruments', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_post_copytrading_first_copy_settings($params = array()) {
+        return $this->request('copytrading/first-copy-settings', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_post_copytrading_amend_copy_settings($params = array()) {
+        return $this->request('copytrading/amend-copy-settings', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_post_copytrading_stop_copy_trading($params = array()) {
+        return $this->request('copytrading/stop-copy-trading', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_post_copytrading_batch_set_leverage($params = array()) {
+        return $this->request('copytrading/batch-set-leverage', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
     public function private_post_broker_nd_create_subaccount($params = array()) {
         return $this->request('broker/nd/create-subaccount', 'private', 'POST', $params, null, null, array("cost" => 0.25));
@@ -1018,6 +1066,24 @@ abstract class okx extends \ccxt\Exchange {
     public function publicGetFinanceSfpDcdProducts($params = array()) {
         return $this->request('finance/sfp/dcd/products', 'public', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
     }
+    public function publicGetCopytradingPublicLeadTraders($params = array()) {
+        return $this->request('copytrading/public-lead-traders', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetCopytradingPublicWeeklyPnl($params = array()) {
+        return $this->request('copytrading/public-weekly-pnl', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetCopytradingPublicStats($params = array()) {
+        return $this->request('copytrading/public-stats', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetCopytradingPublicPreferenceCurrency($params = array()) {
+        return $this->request('copytrading/public-preference-currency', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetCopytradingPublicCurrentSubpositions($params = array()) {
+        return $this->request('copytrading/public-current-subpositions', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetCopytradingPublicSubpositionsHistory($params = array()) {
+        return $this->request('copytrading/public-subpositions-history', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function privateGetRfqCounterparties($params = array()) {
         return $this->request('rfq/counterparties', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -1131,6 +1197,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privateGetAssetConvertHistory($params = array()) {
         return $this->request('asset/convert/history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function privateGetAssetMonthlyStatement($params = array()) {
+        return $this->request('asset/monthly-statement', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateGetAccountBalance($params = array()) {
         return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 2));
@@ -1304,22 +1373,34 @@ abstract class okx extends \ccxt\Exchange {
         return $this->request('finance/staking-defi/eth/purchase-redeem-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
     public function privateGetCopytradingCurrentSubpositions($params = array()) {
-        return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 4));
+        return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetCopytradingSubpositionsHistory($params = array()) {
-        return $this->request('copytrading/subpositions-history', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/subpositions-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetCopytradingInstruments($params = array()) {
-        return $this->request('copytrading/instruments', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/instruments', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetCopytradingProfitSharingDetails($params = array()) {
-        return $this->request('copytrading/profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetCopytradingTotalProfitSharing($params = array()) {
-        return $this->request('copytrading/total-profit-sharing', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/total-profit-sharing', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetCopytradingUnrealizedProfitSharingDetails($params = array()) {
-        return $this->request('copytrading/unrealized-profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/unrealized-profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetCopytradingCopySettings($params = array()) {
+        return $this->request('copytrading/copy-settings', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetCopytradingBatchLeverageInfo($params = array()) {
+        return $this->request('copytrading/batch-leverage-info', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetCopytradingCurrentLeadTraders($params = array()) {
+        return $this->request('copytrading/current-lead-traders', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetCopytradingLeadTradersHistory($params = array()) {
+        return $this->request('copytrading/lead-traders-history', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetBrokerNdInfo($params = array()) {
         return $this->request('broker/nd/info', 'private', 'GET', $params, null, null, array("cost" => 10));
@@ -1477,6 +1558,9 @@ abstract class okx extends \ccxt\Exchange {
     public function privatePostAssetConvertTrade($params = array()) {
         return $this->request('asset/convert/trade', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostAssetMonthlyStatement($params = array()) {
+        return $this->request('asset/monthly-statement', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function privatePostAccountSetPositionMode($params = array()) {
         return $this->request('account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
@@ -1592,13 +1676,25 @@ abstract class okx extends \ccxt\Exchange {
         return $this->request('finance/staking-defi/eth/redeem', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostCopytradingAlgoOrder($params = array()) {
-        return $this->request('copytrading/algo-order', 'private', 'POST', $params, null, null, array("cost" => 20));
+        return $this->request('copytrading/algo-order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostCopytradingCloseSubposition($params = array()) {
-        return $this->request('copytrading/close-subposition', 'private', 'POST', $params, null, null, array("cost" => 4));
+        return $this->request('copytrading/close-subposition', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostCopytradingSetInstruments($params = array()) {
-        return $this->request('copytrading/set-instruments', 'private', 'POST', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/set-instruments', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostCopytradingFirstCopySettings($params = array()) {
+        return $this->request('copytrading/first-copy-settings', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostCopytradingAmendCopySettings($params = array()) {
+        return $this->request('copytrading/amend-copy-settings', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostCopytradingStopCopyTrading($params = array()) {
+        return $this->request('copytrading/stop-copy-trading', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostCopytradingBatchSetLeverage($params = array()) {
+        return $this->request('copytrading/batch-set-leverage', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
     public function privatePostBrokerNdCreateSubaccount($params = array()) {
         return $this->request('broker/nd/create-subaccount', 'private', 'POST', $params, null, null, array("cost" => 0.25));

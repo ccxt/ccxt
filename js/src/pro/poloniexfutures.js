@@ -233,7 +233,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://futures-docs.poloniex.com/#get-real-time-symbol-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -250,7 +250,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
@@ -272,7 +272,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @see https://futures-docs.poloniex.com/#level-2-market-data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] not used by poloniexfutures watchOrderBook
-         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.method] the method to use. Defaults to /contractMarket/level2 can also be /contractMarket/level3v2 to receive the raw stream of orders
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
@@ -303,7 +303,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {string} symbol filter by unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.method] the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -327,7 +327,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @name poloniexfutures#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://futures-docs.poloniex.com/#account-balance-events
-         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();

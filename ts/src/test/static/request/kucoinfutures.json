@@ -84,6 +84,17 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Cancel swap stop orders",
+                "method": "cancelAllOrders",
+                "url": "https://api-futures.kucoin.com/api/v1/stopOrders?symbol=LTCUSDTM",
+                "input": [
+                    "LTC/USDT:USDT",
+                    {
+                        "stop": true
+                    }
+                ]
             }
         ],
         "fetchBalance": [
@@ -153,6 +164,54 @@
                 "url": "https://api-futures.kucoin.com/api/v1/deposit-address?currency=USDT",
                 "input": [
                     "USDT"
+                ]
+            }
+        ],
+        "fetchOrdersByStatus": [
+            {
+                "description": "Fetch open swap orders",
+                "method": "fetchOrdersByStatus",
+                "url": "https://api-futures.kucoin.com/api/v1/orders?status=active&symbol=LTCUSDTM",
+                "input": [
+                    "open",
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch open swap stop orders",
+                "method": "fetchOrdersByStatus",
+                "url": "https://api-futures.kucoin.com/api/v1/stopOrders?symbol=LTCUSDTM&startAt=1",
+                "input": [
+                    "open",
+                    "LTC/USDT:USDT",
+                    1,
+                    100,
+                    {
+                        "stop": true
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch order by order id",
+                "method": "fetchOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders/1234567890",
+                "input": [
+                    "1234567890",
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch order by client order id",
+                "method": "fetchOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders/?clientOid=2234567890",
+                "input": [
+                    "",
+                    "LTC/USDT:USDT",
+                    {
+                        "clientOid": "2234567890"
+                    }
                 ]
             }
         ]

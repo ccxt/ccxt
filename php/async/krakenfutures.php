@@ -89,7 +89,7 @@ class krakenfutures extends Exchange {
                 ),
                 'www' => 'https://futures.kraken.com/',
                 'doc' => array(
-                    'https://support.kraken.com/hc/en-us/categories/360001806372-Futures-API',
+                    'https://docs.futures.kraken.com/#introduction',
                 ),
                 'fees' => 'https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures',
                 'referral' => null,
@@ -466,10 +466,10 @@ class krakenfutures extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-$tickers
              * @param {string[]} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
@@ -591,7 +591,7 @@ class krakenfutures extends Exchange {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of $candles to fetch
-             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
@@ -1051,7 +1051,7 @@ class krakenfutures extends Exchange {
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
              * @param {string[]} $ids order $ids
              * @param {string} [$symbol] unified market $symbol
-             * @param {array} [$params] extra parameters specific to the bingx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {string[]} [$params->clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
@@ -1546,7 +1546,7 @@ class krakenfutures extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] *not used by the  api* the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
@@ -1809,7 +1809,7 @@ class krakenfutures extends Exchange {
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-$tickers
              * fetch the current funding rates
              * @param {string[]} $symbols unified $market $symbols
-             * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
              */
             Async\await($this->load_markets());
@@ -2048,7 +2048,7 @@ class krakenfutures extends Exchange {
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
              * @param {string[]|null} $symbols list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
@@ -2245,25 +2245,25 @@ class krakenfutures extends Exchange {
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $method = 'privatePostTransfer';
-            $request = array(
-                'amount' => $amount,
-            );
             if ($fromAccount === 'spot') {
                 throw new BadRequest($this->id . ' $transfer does not yet support transfers from spot');
             }
+            $request = array(
+                'amount' => $amount,
+            );
+            $response = null;
             if ($toAccount === 'spot') {
                 if ($this->parse_account($fromAccount) !== 'cash') {
                     throw new BadRequest($this->id . ' $transfer cannot $transfer from ' . $fromAccount . ' to ' . $toAccount);
                 }
-                $method = 'privatePostWithdrawal';
                 $request['currency'] = $currency['id'];
+                $response = Async\await($this->privatePostWithdrawal (array_merge($request, $params)));
             } else {
                 $request['fromAccount'] = $this->parse_account($fromAccount);
                 $request['toAccount'] = $this->parse_account($toAccount);
                 $request['unit'] = $currency['id'];
+                $response = Async\await($this->privatePostTransfer (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //    {
             //        "result" => "success",
@@ -2286,7 +2286,7 @@ class krakenfutures extends Exchange {
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-$leverage-setting-for-a-market
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified market $symbol
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from the exchange
              */
             if ($symbol === null) {
@@ -2310,7 +2310,7 @@ class krakenfutures extends Exchange {
              * fetch the set leverage for a market
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
              * @param {string} $symbol unified market $symbol
-             * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
              */
             if ($symbol === null) {

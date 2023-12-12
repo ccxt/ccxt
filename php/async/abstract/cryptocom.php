@@ -160,6 +160,15 @@ abstract class cryptocom extends \ccxt\async\Exchange {
     public function v2_private_post_private_get_deposit_address($params = array()) {
         return $this->request('private/get-deposit-address', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
+    public function v2_private_post_private_export_create_export_request($params = array()) {
+        return $this->request('private/export/create-export-request', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v2_private_post_private_export_get_export_requests($params = array()) {
+        return $this->request('private/export/get-export-requests', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v2_private_post_private_export_download_export_output($params = array()) {
+        return $this->request('private/export/download-export-output', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
     public function v2_private_post_private_get_account_summary($params = array()) {
         return $this->request('private/get-account-summary', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
@@ -213,6 +222,9 @@ abstract class cryptocom extends \ccxt\async\Exchange {
     }
     public function v2_private_post_private_otc_get_trade_history($params = array()) {
         return $this->request('private/otc/get-trade-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v2_private_post_private_otc_create_order($params = array()) {
+        return $this->request('private/otc/create-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
     public function derivatives_public_get_public_auth($params = array()) {
         return $this->request('public/auth', array('derivatives', 'public'), 'GET', $params, null, null, array("cost" => 3.3333333333333335));
@@ -457,6 +469,15 @@ abstract class cryptocom extends \ccxt\async\Exchange {
     public function v2PrivatePostPrivateGetDepositAddress($params = array()) {
         return $this->request('private/get-deposit-address', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
+    public function v2PrivatePostPrivateExportCreateExportRequest($params = array()) {
+        return $this->request('private/export/create-export-request', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v2PrivatePostPrivateExportGetExportRequests($params = array()) {
+        return $this->request('private/export/get-export-requests', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v2PrivatePostPrivateExportDownloadExportOutput($params = array()) {
+        return $this->request('private/export/download-export-output', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
     public function v2PrivatePostPrivateGetAccountSummary($params = array()) {
         return $this->request('private/get-account-summary', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
@@ -510,6 +531,9 @@ abstract class cryptocom extends \ccxt\async\Exchange {
     }
     public function v2PrivatePostPrivateOtcGetTradeHistory($params = array()) {
         return $this->request('private/otc/get-trade-history', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v2PrivatePostPrivateOtcCreateOrder($params = array()) {
+        return $this->request('private/otc/create-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
     public function derivativesPublicGetPublicAuth($params = array()) {
         return $this->request('public/auth', array('derivatives', 'public'), 'GET', $params, null, null, array("cost" => 3.3333333333333335));

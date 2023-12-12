@@ -60,7 +60,7 @@ class probit extends \ccxt\async\probit {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://docs-en.probit.com/reference/balance-1
-             * @param {array} [$params] extra parameters specific to the probit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->authenticate($params));
@@ -130,7 +130,7 @@ class probit extends \ccxt\async\probit {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @see https://docs-en.probit.com/reference/marketdata
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the probit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->interval] Unit time to synchronize market information (ms). Available units => 100, 500
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
@@ -177,7 +177,7 @@ class probit extends \ccxt\async\probit {
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the probit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->interval] Unit time to synchronize market information (ms). Available units => 100, 500
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
@@ -240,7 +240,7 @@ class probit extends \ccxt\async\probit {
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the probit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
@@ -323,7 +323,7 @@ class probit extends \ccxt\async\probit {
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {int} [$since] timestamp in ms of the earliest order to watch
              * @param {int} [$limit] the maximum amount of $orders to watch
-             * @param {array} [$params] extra parameters specific to the aax api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->channel] choose what $channel to use. Can open_order or order_history.
              * @return {array} An ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -411,7 +411,7 @@ class probit extends \ccxt\async\probit {
              * @see https://docs-en.probit.com/reference/marketdata
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the probit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $filter = null;

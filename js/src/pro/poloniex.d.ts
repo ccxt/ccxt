@@ -1,10 +1,16 @@
 import poloniexRest from '../poloniex.js';
-import { Int, OHLCV, Str, Strings } from '../base/types.js';
+import { Int, OHLCV, OrderSide, OrderType, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class poloniex extends poloniexRest {
     describe(): any;
     authenticate(params?: {}): Promise<any>;
     subscribe(name: string, messageHash: string, isPrivate: boolean, symbols?: Strings, params?: {}): Promise<any>;
+    tradeRequest(name: string, params?: {}): Promise<any>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<any>;
+    cancelOrderWs(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelOrdersWs(ids: string[], symbol?: string, params?: {}): Promise<any>;
+    cancelAllOrdersWs(symbol?: string, params?: {}): Promise<any>;
+    handleOrderRequest(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     watchTickers(symbols?: any, params?: {}): Promise<any>;
@@ -26,6 +32,7 @@ export default class poloniex extends poloniexRest {
     handleBalance(client: Client, message: any): void;
     parseWsBalance(response: any): import("../base/types.js").Balances;
     handleMyTrades(client: Client, parsedTrade: any): void;
+    handlePong(client: Client): void;
     handleMessage(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): boolean;
     handleAuthenticate(client: Client, message: any): any;

@@ -33,6 +33,8 @@ export default class p2b extends Exchange {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createMarketOrder': false,
                 'createOrder': true,
@@ -237,7 +239,7 @@ export default class p2b extends Exchange {
          * @name p2b#fetchMarkets
          * @description retrieves data on all markets for bigone
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets (params);
@@ -338,10 +340,10 @@ export default class p2b extends Exchange {
         /**
          * @method
          * @name p2b#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -382,7 +384,7 @@ export default class p2b extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -488,7 +490,7 @@ export default class p2b extends Exchange {
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the p2bfutures api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
@@ -542,7 +544,7 @@ export default class p2b extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] 1-100, default=50
-         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          *
          * @param {int} params.lastId order id
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
@@ -662,7 +664,7 @@ export default class p2b extends Exchange {
          * @param {string} timeframe 1m, 1h, or 1d
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] 1-500, default=50
-         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          *
          * @param {int} [params.offset] default=0, with this value the last candles are returned
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -732,7 +734,7 @@ export default class p2b extends Exchange {
          * @name p2b#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
-         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
@@ -801,7 +803,7 @@ export default class p2b extends Exchange {
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -850,7 +852,7 @@ export default class p2b extends Exchange {
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#cancel-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -898,7 +900,7 @@ export default class p2b extends Exchange {
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.offset] 0-10000, default=0
@@ -955,7 +957,7 @@ export default class p2b extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] 1-100, default=50
-         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.offset] 0-10000, default=0
@@ -1007,7 +1009,7 @@ export default class p2b extends Exchange {
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for, default = params["until"] - 86400000
          * @param {int} [limit] 1-100, default=50
-         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for, default = current timestamp or since + 86400000
          *
          * EXCHANGE SPECIFIC PARAMETERS
@@ -1083,7 +1085,7 @@ export default class p2b extends Exchange {
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for, default = params["until"] - 86400000
          * @param {int} [limit] 1-100, default=50
-         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for, default = current timestamp or since + 86400000
          *
          * EXCHANGE SPECIFIC PARAMETERS

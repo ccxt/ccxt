@@ -40,6 +40,8 @@ class kucoin extends Exchange {
                 'borrowIsolatedMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createOrders' => true,
@@ -838,7 +840,7 @@ class kucoin extends Exchange {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
              * @see https://docs.kucoin.com/#server-time
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
             $response = Async\await($this->publicGetTimestamp ($params));
@@ -858,7 +860,7 @@ class kucoin extends Exchange {
             /**
              * the latest known information on the availability of the exchange API
              * @see https://docs.kucoin.com/#service-$status
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
              */
             $response = Async\await($this->publicGetStatus ($params));
@@ -889,7 +891,7 @@ class kucoin extends Exchange {
              * retrieves $data on all markets for kucoin
              * @see https://docs.kucoin.com/#get-symbols-list-deprecated
              * @see https://docs.kucoin.com/#get-all-$tickers
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market $data
              */
             $response = Async\await($this->publicGetSymbols ($params));
@@ -1030,7 +1032,7 @@ class kucoin extends Exchange {
             /**
              * fetches all available currencies on an exchange
              * @see https://docs.kucoin.com/#get-currencies
-             * @param {array} $params extra parameters specific to the kucoin api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
             $promises = array();
@@ -1190,7 +1192,7 @@ class kucoin extends Exchange {
             /**
              * fetch all the accounts associated with a profile
              * @see https://docs.kucoin.com/#list-accounts
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$account-structure $account structures~ indexed by the $account $type
              */
             $response = Async\await($this->privateGetAccounts ($params));
@@ -1243,7 +1245,7 @@ class kucoin extends Exchange {
              * *DEPRECATED* please use fetchDepositWithdrawFee instead
              * @see https://docs.kucoin.com/#get-withdrawal-quotas
              * @param {string} $code unified $currency $code
-             * @param {array} $params extra parameters specific to the kucoin api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
@@ -1274,7 +1276,7 @@ class kucoin extends Exchange {
              * fetch the fee for deposits and withdrawals
              * @see https://docs.kucoin.com/#get-withdrawal-quotas
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] The chain of $currency-> This only apply for multi-chain $currency, and there is no need for single chain $currency; you can query the chain through the $response of the GET /api/v2/currencies/{$currency} interface
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
@@ -1473,10 +1475,10 @@ class kucoin extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              * @see https://docs.kucoin.com/#get-all-$tickers
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
@@ -1532,7 +1534,7 @@ class kucoin extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @see https://docs.kucoin.com/#get-24hr-stats
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
@@ -1599,7 +1601,7 @@ class kucoin extends Exchange {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
@@ -1654,7 +1656,7 @@ class kucoin extends Exchange {
              * @see https://docs.kucoin.com/#create-deposit-address
              * create a $currency deposit address
              * @param {string} $code unified $currency $code of the $currency for the deposit address
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] the blockchain network name
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
@@ -1683,7 +1685,7 @@ class kucoin extends Exchange {
              * fetch the deposit address for a $currency associated with this account
              * @see https://docs.kucoin.com/#get-deposit-addresses-v2
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] the blockchain network name
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
@@ -1743,7 +1745,7 @@ class kucoin extends Exchange {
              * @see https://docs.kucoin.com/#get-deposit-addresses-v2
              * fetch the deposit address for a $currency associated with this account
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~
              */
             Async\await($this->load_markets());
@@ -1786,7 +1788,7 @@ class kucoin extends Exchange {
              * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -1877,7 +1879,7 @@ class kucoin extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount the $amount of currency to trade
              * @param {float} [$price] *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
-             * @param {array} [$params]  Extra parameters specific to the exchange API endpoint
+             * @param {array} [$params]  extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
              * @param {string} [$params->marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
              * @param {string} [$params->timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
@@ -1953,7 +1955,7 @@ class kucoin extends Exchange {
              * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-$orders
              * @see https://www.kucoin.com/docs/rest/spot-trading/spot-$hf-trade-pro-account/place-multiple-$hf-$orders
              * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
-             * @param {array} [$params]  Extra parameters specific to the exchange API endpoint
+             * @param {array} [$params]  extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->hf] false, // true for $hf $orders
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -2107,7 +2109,7 @@ class kucoin extends Exchange {
              * @param {string} $side not used
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the gate api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] client order $id, defaults to $id if not passed
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -2154,7 +2156,7 @@ class kucoin extends Exchange {
              * @see https://docs.kucoin.com/spot-hf/#cancel-order-by-clientoid
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->stop] True if cancelling a $stop order
              * @param {bool} [$params->hf] false, // true for $hf order
              * @return Response from the exchange
@@ -2204,7 +2206,7 @@ class kucoin extends Exchange {
              * @see https://docs.kucoin.com/spot#cancel-orders
              * @see https://docs.kucoin.com/spot-hf/#cancel-all-$hf-orders-by-$symbol
              * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->stop] *invalid for isolated margin* true if cancelling all $stop orders
              * @param {string} [$params->marginMode] 'cross' or 'isolated'
              * @param {string} [$params->orderIds] *$stop orders only* Comma seperated order IDs
@@ -2368,7 +2370,7 @@ class kucoin extends Exchange {
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->till] end time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit, market, limit_stop or market_stop
@@ -2399,7 +2401,7 @@ class kucoin extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->till] end time in ms
              * @param {bool} [$params->stop] true if fetching stop orders
              * @param {string} [$params->side] buy or sell
@@ -2685,7 +2687,7 @@ class kucoin extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades to retrieve
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             $request = array(
@@ -2704,7 +2706,7 @@ class kucoin extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {bool} [$params->hf] false, // true for $hf order
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -2810,7 +2812,7 @@ class kucoin extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
@@ -2982,7 +2984,7 @@ class kucoin extends Exchange {
              * fetch the trading fees for a $market
              * @see https://docs.kucoin.com/#actual-fee-rate-of-the-trading-pair
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
@@ -3026,7 +3028,7 @@ class kucoin extends Exchange {
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
@@ -3204,7 +3206,7 @@ class kucoin extends Exchange {
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
@@ -3288,7 +3290,7 @@ class kucoin extends Exchange {
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
@@ -3381,9 +3383,9 @@ class kucoin extends Exchange {
              * $query for $balance and get the amount of funds available for trading or funds locked in orders
              * @see https://docs.kucoin.com/#list-$accounts
              * @see https://docs.kucoin.com/#$query-$isolated-margin-$account-info
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {array} [$params->marginMode] 'cross' or 'isolated', margin $type for fetching margin $balance
-             * @param {array} [$params->type] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params->type] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
              */
             Async\await($this->load_markets());
@@ -3529,7 +3531,7 @@ class kucoin extends Exchange {
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
             Async\await($this->load_markets());
@@ -3813,7 +3815,7 @@ class kucoin extends Exchange {
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entrys to return, default is null
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
@@ -3947,7 +3949,7 @@ class kucoin extends Exchange {
              * @param {string} $symbol unified market $symbol, required for isolated margin
              * @param {int} [$since] the earliest time in ms to fetch borrrow interest for
              * @param {int} [$limit] the maximum number of structures to retrieve
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' default is 'cross'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=borrow-interest-structure borrow interest structures~
              */
@@ -4121,7 +4123,7 @@ class kucoin extends Exchange {
              * @see https://docs.kucoin.com/#1-margin-borrowing
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoints
+             * @param {array} [$params] extra parameters specific to the exchange API endpoints
              * @param {string} [$params->timeInForce] either IOC or FOK
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
@@ -4158,7 +4160,7 @@ class kucoin extends Exchange {
              * @param {string} $symbol unified $market $symbol, required for isolated margin
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoints
+             * @param {array} [$params] extra parameters specific to the exchange API endpoints
              * @param {string} [$params->timeInForce] either IOC or FOK
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
@@ -4197,7 +4199,7 @@ class kucoin extends Exchange {
              * @see https://docs.kucoin.com/#2-repayment
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoints
+             * @param {array} [$params] extra parameters specific to the exchange API endpoints
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
@@ -4232,7 +4234,7 @@ class kucoin extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoints
+             * @param {array} [$params] extra parameters specific to the exchange API endpoints
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
@@ -4288,7 +4290,7 @@ class kucoin extends Exchange {
              * fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
              * @see https://docs.kucoin.com/#get-currencies
              * @param {string[]|null} $codes list of unified currency $codes
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
             Async\await($this->load_markets());

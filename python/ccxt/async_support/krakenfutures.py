@@ -101,7 +101,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 },
                 'www': 'https://futures.kraken.com/',
                 'doc': [
-                    'https://support.kraken.com/hc/en-us/categories/360001806372-Futures-API',
+                    'https://docs.futures.kraken.com/#introduction',
                 ],
                 'fees': 'https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures',
                 'referral': None,
@@ -464,10 +464,10 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
         :param str[] symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the krakenfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -583,7 +583,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
@@ -998,7 +998,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
-        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param str[] [params.clientOrderIds]: max length 10 e.g. ["my_id_1","my_id_2"]
@@ -1452,7 +1452,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: *not used by the  api* the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
-        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
@@ -1700,7 +1700,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
         fetch the current funding rates
         :param str[] symbols: unified market symbols
-        :param dict [params]: extra parameters specific to the krakenfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         await self.load_markets()
@@ -1919,7 +1919,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the krakenfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         await self.load_markets()
@@ -2103,22 +2103,22 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        method = 'privatePostTransfer'
+        if fromAccount == 'spot':
+            raise BadRequest(self.id + ' transfer does not yet support transfers from spot')
         request = {
             'amount': amount,
         }
-        if fromAccount == 'spot':
-            raise BadRequest(self.id + ' transfer does not yet support transfers from spot')
+        response = None
         if toAccount == 'spot':
             if self.parse_account(fromAccount) != 'cash':
                 raise BadRequest(self.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount)
-            method = 'privatePostWithdrawal'
             request['currency'] = currency['id']
+            response = await self.privatePostWithdrawal(self.extend(request, params))
         else:
             request['fromAccount'] = self.parse_account(fromAccount)
             request['toAccount'] = self.parse_account(toAccount)
             request['unit'] = currency['id']
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privatePostTransfer(self.extend(request, params))
         #
         #    {
         #        "result": "success",
@@ -2138,7 +2138,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the delta api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -2158,7 +2158,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         fetch the set leverage for a market
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the krakenfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
         """
         if symbol is None:

@@ -50,7 +50,7 @@ class wazirx(ccxt.async_support.wazirx):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :see: https://docs.wazirx.com/#account-update
-        :param dict [params]: extra parameters specific to the wazirx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
@@ -167,7 +167,7 @@ class wazirx(ccxt.async_support.wazirx):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.wazirx.com/#all-market-tickers-stream
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the wazirx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -188,7 +188,7 @@ class wazirx(ccxt.async_support.wazirx):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :see: https://docs.wazirx.com/#all-market-tickers-stream
         :param str[] symbols: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the wazirx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -285,7 +285,7 @@ class wazirx(ccxt.async_support.wazirx):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the wazirx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
@@ -346,7 +346,7 @@ class wazirx(ccxt.async_support.wazirx):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the wazirx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
@@ -374,7 +374,7 @@ class wazirx(ccxt.async_support.wazirx):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the wazirx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -457,7 +457,7 @@ class wazirx(ccxt.async_support.wazirx):
         :see: https://docs.wazirx.com/#depth-stream
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the wazirx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()

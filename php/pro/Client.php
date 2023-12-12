@@ -62,6 +62,8 @@ class Client {
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;
+    public $default_connector = null;
+
 
     // ------------------------------------------------------------------------
 
@@ -133,8 +135,12 @@ class Client {
                     $value;
         }
 
+        $this->default_connector = new React\Socket\Connector();
         $this->connected = new Future();
-        $connector = new React\Socket\Connector();
+        $this->set_ws_connector($this->default_connector);
+    }
+
+    public function set_ws_connector($connector = null) {
         if ($this->noOriginHeader) {
             $this->connector = new NoOriginHeaderConnector(Loop::get(), $connector);
         } else {
@@ -244,7 +250,7 @@ class Client {
     }
 
     public function on_message(Message $message) {
-        if (!ctype_print((string)$message)) { // only decompress if the message is a binary
+        if (preg_match('~[^\x20-\x7E\t\r\n]~', $message) > 0) { // only decompress if the message is a binary
             if ($this->gunzip) {
                 $message = \ccxt\pro\gunzip($message);
             } else if ($this->inflate) {
