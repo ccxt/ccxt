@@ -2121,16 +2121,7 @@ export default class digifinex extends Exchange {
         }
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotGetSpotOrderCurrent',
-            'margin': 'privateSpotGetMarginOrderCurrent',
-            'swap': 'privateSwapGetTradeOpenOrders',
-        });
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
-        if (marginMode !== undefined) {
-            method = 'privateSpotGetMarginOrderCurrent';
-            marketType = 'margin';
-        }
         const request = {};
         const swap = (marketType === 'swap');
         if (swap) {
@@ -2147,7 +2138,17 @@ export default class digifinex extends Exchange {
             const marketIdRequest = swap ? 'instrument_id' : 'symbol';
             request[marketIdRequest] = market['id'];
         }
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (marginMode !== undefined || marketType === 'margin') {
+            marketType = 'margin';
+            response = await this.privateSpotGetMarginOrderCurrent (this.extend (request, query));
+        } else if (marketType === 'spot') {
+            response = await this.privateSpotGetSpotOrderCurrent (this.extend (request, query));
+        } else if (marketType === 'swap') {
+            response = await this.privateSwapGetTradeOpenOrders (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' fetchOpenOrders() not support this method');
+        }
         //
         // spot and margin
         //
