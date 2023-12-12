@@ -675,7 +675,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (this.balance, messageHashRequest);
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name cryptocom#createOrderWs
@@ -717,7 +717,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (order, messageHash);
     }
 
-    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name cryptocom#cancelOrder

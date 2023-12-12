@@ -1043,7 +1043,7 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name hitbtc#cancelOrderWs
@@ -1110,7 +1110,7 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name hitbtc#fetchOpenOrdersWs

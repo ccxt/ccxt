@@ -185,7 +185,7 @@ export default class poloniex extends poloniexRest {
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name poloniex#createOrderWs
