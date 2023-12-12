@@ -2423,8 +2423,7 @@ If `since` is not specified the `fetchOHLCV` method will return the time range a
 
 ### Notes On Latency
 
-Typically, exchanges construct "secondary data" (OHLCV bars, tickers, etc) from the realtime "first-hand data" (trades, orderbook ...). However, some exchanges might have imperfect engine, and their constructed OHLCV bars might have some imperfections too, because it takes some time for the exchange hardware to collect the first-hand data and generate the secondary statistical data from it, so the OHLCV bars might not be calculated & generated at exactly end of the minute cycle ( **:00), but few seconds later. 
-Some quality exchange might have minimal latency, while lower quality exchanges might have noticeable delays.
+Typically, exchanges construct "secondary data" (OHLCV bars, tickers, etc) from the realtime "first-hand data" (trades, orderbook ...). However, some exchanges might have imperfect engine, and their constructed OHLCV bars might have some imperfections too, because it takes some time for the exchange hardware to collect the first-hand data and generate the secondary statistical data from it, so the OHLCV bars might not be calculated & generated at exactly end of the minute cycle ( **:00), but few seconds later (quality exchange might have minimal latency, but lower quality exchanges might have noticeable delays).
 
 If there are users who are not willing to tolerate such discrepancy, then they have a way to manually construct OHLCV data with CCXT - you have to aggregate the public "trades" and generate OHLCV bars from them using `build_ohlcvc` helper method - please take a look into "build-ohlcv-bars" file inside [examples folder](https://github.com/ccxt/ccxt/tree/master/examples). You can obtain trades using REST polling `fetchTrades` or WebSockets `watchTrades` (WebSocket is preffered approach because of the lower latency and performance)
 
