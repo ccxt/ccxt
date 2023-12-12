@@ -13,9 +13,6 @@
 	"engines": {
 		"node": ">=15.0.0"
 	},
-	"publishConfig": {
-		"registry": "https://registry.npmjs.com"
-	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/ccxt/ccxt.git"
@@ -113,7 +110,8 @@
 		"id-tests-js": "node js/src/test/test.js --idTests",
 		"id-tests-py": "python python/ccxt/test/test_async.py --idTests",
 		"id-tests-php": "php php/test/test_async.php --idTests",
-		"id-tests": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php"
+		"id-tests": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php",
+		"test-cede": "npm run tsBuild; node ./js/src/test/cede/test.cede.js"
 	},
 	"types": "./js/ccxt.d.ts",
 	"devDependencies": {
