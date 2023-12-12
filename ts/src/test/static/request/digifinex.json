@@ -328,6 +328,24 @@
                 ]
             }
         ],
+        "fetchPosition": [
+            {
+                "description": "Fetch spot position",
+                "method": "fetchPosition",
+                "url": "https://openapi.digifinex.com/v3/margin/positions?symbol=LTC_USDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch linear position",
+                "method": "fetchPosition",
+                "url": "https://openapi.digifinex.com/swap/v2/account/positions?instrument_id=LTCUSDTPERP",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
         "setLeverage": [
             {
                 "description": "Set linear leverage",

@@ -3472,14 +3472,16 @@ export default class digifinex extends Exchange {
         if (marginMode !== undefined) {
             marketType = 'margin';
         }
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotGetMarginPositions',
-            'margin': 'privateSpotGetMarginPositions',
-            'swap': 'privateSwapGetAccountPositions',
-        });
         const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
         request[marketIdRequest] = market['id'];
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (marketType === 'spot' || marketType === 'margin') {
+            response = await this.privateSpotGetMarginPositions (this.extend (request, query));
+        } else if (marketType === 'swap') {
+            response = await this.privateSwapGetAccountPositions (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' fetchPosition() not support this market type');
+        }
         //
         // swap
         //
