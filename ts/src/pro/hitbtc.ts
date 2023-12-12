@@ -182,7 +182,7 @@ export default class hitbtc extends hitbtcRest {
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name hitbtc#watchOrderBook
@@ -290,7 +290,7 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name hitbtc#watchTicker
@@ -485,7 +485,7 @@ export default class hitbtc extends hitbtcRest {
         }, market);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name hitbtc#watchTrades
@@ -730,7 +730,7 @@ export default class hitbtc extends hitbtcRest {
         ];
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name hitbtc#watchOrders
