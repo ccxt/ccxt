@@ -9,6 +9,16 @@
                 "method": "fetchDeposits",
                 "url": "https://api.bitvavo.com/v2/depositHistory",
                 "input": []
+            },
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchDeposits",
+                "url": "https://api.bitvavo.com/v2/depositHistory?symbol=USDT&limit=2",
+                "input": [
+                  "USDT",
+                  null,
+                  2
+                ]
             }
         ],
         "fetchWithdrawals": [
@@ -108,6 +118,16 @@
                 ]
             }
         ],
+        "fetchOrders": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchOrders",
+                "url": "https://api.bitvavo.com/v2/orders?market=BTC-EUR",
+                "input": [
+                  "BTC/EUR"
+                ]
+            }
+        ],
         "cancelAllOrders": [
             {
                 "description": "Cancel all orders",
@@ -124,6 +144,16 @@
                 "input": [
                   "BTC/EUR"
                 ]
+            },
+            {
+                "description": "fetch my trades limit 2",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitvavo.com/v2/trades?market=BTC-EUR&start=0&limit=2",
+                "input": [
+                  "BTC/EUR",
+                  0,
+                  2
+                ]
             }
         ],
         "fetchOpenOrders": [
@@ -132,6 +162,19 @@
                 "method": "fetchOpenOrders",
                 "url": "https://api.bitvavo.com/v2/ordersOpen",
                 "input": []
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitvavo.com/v2/BTC-EUR/candles?interval=1m&limit=5",
+                "input": [
+                  "BTC/EUR",
+                  "1m",
+                  null,
+                  5
+                ]
             }
         ]
     }

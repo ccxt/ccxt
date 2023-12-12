@@ -936,7 +936,7 @@ export default class bitvavo extends Exchange {
         ];
     }
 
-    fetchOHLCVRequest (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    fetchOHLCVRequest (symbol: Str, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         const market = this.market (symbol);
         let request = {
             'market': market['id'],
@@ -961,7 +961,7 @@ export default class bitvavo extends Exchange {
         return this.extend (request, params);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: Str, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitvavo#fetchOHLCV
@@ -978,12 +978,12 @@ export default class bitvavo extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = this.fetchOHLCVRequest (symbol, timeframe, since, limit, params);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1440) as OHLCV[];
         }
+        const request = this.fetchOHLCVRequest (symbol, timeframe, since, limit, params);
         const response = await this.publicGetMarketCandles (request);
         //
         //     [
@@ -1069,7 +1069,7 @@ export default class bitvavo extends Exchange {
         };
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
@@ -1132,7 +1132,7 @@ export default class bitvavo extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: Str, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#createOrder
@@ -1245,11 +1245,11 @@ export default class bitvavo extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, params);
-        const response = await this.privatePutOrder (this.extend (request, params));
+        const response = await this.privatePutOrder (request);
         return this.parseOrder (response, market);
     }
 
-    cancelOrderRequest (id: string, symbol: string = undefined, params = {}) {
+    cancelOrderRequest (id: Str, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -1368,9 +1368,9 @@ export default class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    fetchOrdersRequest (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    fetchOrdersRequest (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const market = this.market (symbol);
-        const request = {
+        let request = {
             'market': market['id'],
             // "limit": 500,
             // "start": since,
@@ -1384,10 +1384,11 @@ export default class bitvavo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
+        [ request, params ] = this.handleUntilOption ('end', request, params);
         return this.extend (request, params);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitvavo#fetchOrders
@@ -1411,9 +1412,8 @@ export default class bitvavo extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params) as Order[];
         }
         const market = this.market (symbol);
-        let request = this.fetchOrdersRequest (symbol, since, limit, params);
-        [ request, params ] = this.handleUntilOption ('end', request, params);
-        const response = await this.privateGetOrders (this.extend (request, params));
+        const request = this.fetchOrdersRequest (symbol, since, limit, params);
+        const response = await this.privateGetOrders (request);
         //
         //     [
         //         {
@@ -1637,9 +1637,9 @@ export default class bitvavo extends Exchange {
         }, market);
     }
 
-    fetchMyTradesRequest (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    fetchMyTradesRequest (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const market = this.market (symbol);
-        const request = {
+        let request = {
             'market': market['id'],
             // "limit": 500,
             // "start": since,
@@ -1653,10 +1653,11 @@ export default class bitvavo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
+        [ request, params ] = this.handleUntilOption ('end', request, params);
         return this.extend (request, params);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitvavo#fetchMyTrades
@@ -1680,9 +1681,8 @@ export default class bitvavo extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
         const market = this.market (symbol);
-        let request = this.fetchMyTradesRequest (symbol, since, limit, params);
-        [ request, params ] = this.handleUntilOption ('end', request, params);
-        const response = await this.privateGetTrades (this.extend (request, params));
+        const request = this.fetchMyTradesRequest (symbol, since, limit, params);
+        const response = await this.privateGetTrades (request);
         //
         //     [
         //         {
@@ -1703,7 +1703,7 @@ export default class bitvavo extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    withdrawRequest (code: string, amount, address, tag = undefined, params = {}) {
+    withdrawRequest (code: Str, amount, address, tag = undefined, params = {}) {
         const currency = this.currency (code);
         const request = {
             'symbol': currency['id'],
@@ -1735,7 +1735,7 @@ export default class bitvavo extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = this.withdrawRequest (code, amount, address, tag, params);
-        const response = await this.privatePostWithdrawal (this.extend (request, params));
+        const response = await this.privatePostWithdrawal (request);
         //
         //     {
         //         "success": true,
@@ -1746,7 +1746,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    fetchWithdrawalsRequest (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    fetchWithdrawalsRequest (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const request = {
             // 'symbol': currency['id'],
             // 'limit': 500, // default 500, max 1000
@@ -1767,7 +1767,7 @@ export default class bitvavo extends Exchange {
         return this.extend (request, params);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitvavo#fetchWithdrawals
@@ -1800,7 +1800,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    fetchDepositsRequest (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    fetchDepositsRequest (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const request = {
             // 'symbol': currency['id'],
             // 'limit': 500, // default 500, max 1000
@@ -1821,7 +1821,7 @@ export default class bitvavo extends Exchange {
         return this.extend (request, params);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitvavo#fetchDeposits
