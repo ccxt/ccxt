@@ -1004,7 +1004,7 @@ export default class hitbtc extends hitbtcRest {
         return await this.subscribePrivate (name, undefined, this.extend (request, params));
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name hitbtc#createOrder

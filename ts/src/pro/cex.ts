@@ -420,7 +420,7 @@ export default class cex extends cexRest {
         }, market);
     }
 
-    async fetchBalanceWs (params = {}) {
+    async fetchBalanceWs (params = {}): Promise<Balances> {
         /**
          * @method
          * @name cex#fetchBalanceWs
@@ -440,7 +440,7 @@ export default class cex extends cexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name cex#watchOrders
