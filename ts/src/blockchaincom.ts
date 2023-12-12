@@ -9,7 +9,7 @@ import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType
 
 /**
  * @class blockchaincom
- * @extends Exchange
+ * @augments Exchange
  */
 export default class blockchaincom extends Exchange {
     describe () {

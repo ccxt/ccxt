@@ -903,11 +903,11 @@ class bithumb(Exchange, ImplicitAPI):
         }
         return await self.privatePostTradeCancel(self.extend(request, params))
 
-    def cancel_unified_order(self, order, params={}):
+    async def cancel_unified_order(self, order, params={}):
         request = {
             'side': order['side'],
         }
-        return self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
+        return await self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
 
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """

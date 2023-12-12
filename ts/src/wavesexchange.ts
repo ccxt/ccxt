@@ -12,7 +12,7 @@ import { DECIMAL_PLACES } from './base/functions/number.js';
 
 /**
  * @class wavesexchange
- * @extends Exchange
+ * @augments Exchange
  */
 export default class wavesexchange extends Exchange {
     describe () {

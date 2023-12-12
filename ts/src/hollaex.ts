@@ -12,7 +12,7 @@ import { Balances, Currency, Dictionary, Int, Market, OHLCV, Order, OrderBook, O
 
 /**
  * @class hollaex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class hollaex extends Exchange {
     describe () {

@@ -3700,11 +3700,14 @@ class Exchange {
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchFundingHistory() is not supported yet');
     }
-    async closePosition(symbol, side = undefined, marginMode = undefined, params = {}) {
+    async closePosition(symbol, side = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' closePositions() is not supported yet');
     }
     async closeAllPositions(params = {}) {
         throw new errors.NotSupported(this.id + ' closeAllPositions() is not supported yet');
+    }
+    async fetchL3OrderBook(symbol, limit = undefined, params = {}) {
+        throw new errors.BadRequest(this.id + ' fetchL3OrderBook() is not supported yet');
     }
     parseLastPrice(price, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseLastPrice() is not supported yet');

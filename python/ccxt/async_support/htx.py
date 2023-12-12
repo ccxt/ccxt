@@ -57,6 +57,9 @@ class htx(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createDepositAddress': None,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,
                 'createReduceOnlyOrder': False,
@@ -3193,14 +3196,16 @@ class htx(Exchange, ImplicitAPI):
         #                 "margin_mode": "cross",
         #                 "margin_account": "USDT",
         #                 "margin_asset": "USDT",
-        #                 "margin_balance": 200.000000000000000000,
-        #                 "margin_static": 200.000000000000000000,
-        #                 "margin_position": 0,
-        #                 "margin_frozen": 0,
-        #                 "profit_real": 0E-18,
-        #                 "profit_unreal": 0,
-        #                 "withdraw_available": 2E+2,
-        #                 "risk_rate": null,
+        #                 "margin_balance": 49.874186030200000000,
+        #                 "money_in": 50,
+        #                 "money_out": 0,
+        #                 "margin_static": 49.872786030200000000,
+        #                 "margin_position": 6.180000000000000000,
+        #                 "margin_frozen": 6.000000000000000000,
+        #                 "profit_unreal": 0.001400000000000000,
+        #                 "withdraw_available": 37.6927860302,
+        #                 "risk_rate": 271.984050521072796934,
+        #                 "new_risk_rate": 0.001858676950514399,
         #                 "contract_detail": [
         #                     {
         #                         "symbol": "MANA",
@@ -3293,8 +3298,8 @@ class htx(Exchange, ImplicitAPI):
                         result[symbol] = self.safe_balance(accountsByCode)
             else:
                 account = self.account()
-                account['free'] = self.safe_string(first, 'margin_balance', 'margin_available')
-                account['used'] = self.safe_string(first, 'margin_frozen')
+                account['free'] = self.safe_string(first, 'withdraw_available')
+                account['total'] = self.safe_string(first, 'margin_balance')
                 currencyId = self.safe_string_2(first, 'margin_asset', 'symbol')
                 code = self.safe_currency_code(currencyId)
                 result[code] = account
@@ -4534,6 +4539,22 @@ class htx(Exchange, ImplicitAPI):
             'trades': trades,
         }, market)
 
+    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4ee16-7773-11ed-9966-0242ac110003
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+
     async def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
          * @ignore
@@ -4545,6 +4566,7 @@ class htx(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
+        :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders
         :returns dict: request to be sent to the exchange
         """
         await self.load_markets()
@@ -4606,9 +4628,16 @@ class htx(Exchange, ImplicitAPI):
         elif marginMode == 'c2c':
             request['source'] = 'c2c-margin-api'
         if (orderType == 'market') and (side == 'buy'):
-            if self.options['createMarketBuyOrderRequiresPrice']:
+            quoteAmount = None
+            createMarketBuyOrderRequiresPrice = True
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            cost = self.safe_number(params, 'cost')
+            params = self.omit(params, 'cost')
+            if cost is not None:
+                quoteAmount = self.amount_to_precision(symbol, cost)
+            elif createMarketBuyOrderRequiresPrice:
                 if price is None:
-                    raise InvalidOrder(self.id + " market buy order requires price argument to calculate cost(total amount of quote currency to spend for buying, amount * price). To switch off self warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = False. Make sure you know what you're doing.")
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                 else:
                     # despite that cost = amount * price is in quote currency and should have quote precision
                     # the exchange API requires the cost supplied in 'amount' to be of base precision
@@ -4618,9 +4647,10 @@ class htx(Exchange, ImplicitAPI):
                     # we use amountToPrecision here because the exchange requires cost in base precision
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
-                    request['amount'] = self.cost_to_precision(symbol, Precise.string_mul(amountString, priceString))
+                    quoteAmount = self.amount_to_precision(symbol, Precise.string_mul(amountString, priceString))
             else:
-                request['amount'] = self.cost_to_precision(symbol, amount)
+                quoteAmount = self.amount_to_precision(symbol, amount)
+            request['amount'] = quoteAmount
         else:
             request['amount'] = self.amount_to_precision(symbol, amount)
         limitOrderTypes = self.safe_value(options, 'limitOrderTypes', {})
@@ -4730,6 +4760,7 @@ class htx(Exchange, ImplicitAPI):
         :param bool [params.postOnly]: *contract only* True or False
         :param int [params.leverRate]: *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()

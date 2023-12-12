@@ -10,6 +10,7 @@ use ccxt\async\abstract\currencycom as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
+use ccxt\NotSupported;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
 use React\Async;
@@ -1603,7 +1604,16 @@ class currencycom extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($method === 'privateGetV2Deposits') {
+                $response = Async\await($this->privateGetV2Deposits (array_merge($request, $params)));
+            } elseif ($method === 'privateGetV2Withdrawals') {
+                $response = Async\await($this->privateGetV2Withdrawals (array_merge($request, $params)));
+            } elseif ($method === 'privateGetV2Transactions') {
+                $response = Async\await($this->privateGetV2Transactions (array_merge($request, $params)));
+            } else {
+                throw new NotSupported($this->id . ' fetchTransactionsByMethod() not support this method');
+            }
             //
             //    array(
             //        array(
