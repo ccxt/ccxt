@@ -485,6 +485,28 @@
                     5
                 ]
             }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order - spot",
+                "method": "cancelOrder",
+                "url": "https://openapi.digifinex.com/v3/spot/order/cancel",
+                "input": [
+                    "1699457638000",
+                    "LTC/USDT"
+                ],
+                "output": "market=spot&order_id=1699457638000"
+            },
+            {
+                "description": "cancel order - swap",
+                "method": "cancelOrder",
+                "url": "https://openapi.digifinex.com/swap/v2/trade/cancel_order",
+                "input": [
+                    "1699457638000",
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"order_id\":\"1699457638000\",\"instrument_id\":\"LTCUSDTPERP\"}"
+            }
         ]
     }
 }

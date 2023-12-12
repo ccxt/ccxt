@@ -1853,19 +1853,9 @@ export default class digifinex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        id = id.toString ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotPostSpotOrderCancel',
-            'margin': 'privateSpotPostMarginOrderCancel',
-            'swap': 'privateSwapPostTradeCancelOrder',
-        });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', params);
-        if (marginMode !== undefined) {
-            method = 'privateSpotPostMarginOrderCancel';
-            marketType = 'margin';
-        }
-        id = id.toString ();
         const request = {
             'order_id': id,
         };
@@ -1877,7 +1867,18 @@ export default class digifinex extends Exchange {
         } else {
             request['market'] = marketType;
         }
-        const response = await this[method] (this.extend (request, query));
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', params);
+        let response = undefined;
+        if (marginMode !== undefined || marketType === 'margin') {
+            marketType = 'margin';
+            response = await this.privateSpotPostMarginOrderCancel (this.extend (request, query));
+        } else if (marketType === 'spot') {
+            response = await this.privateSpotPostSpotOrderCancel (this.extend (request, query));
+        } else if (marketType === 'swap') {
+            response = await this.privateSwapPostTradeCancelOrder (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' cancelOrder() not support this method');
+        }
         //
         // spot and margin
         //
