@@ -1388,18 +1388,18 @@ export default class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'publicSpotGetTrades';
         const request = {};
-        if (market['swap']) {
-            method = 'publicSwapGetPublicTrades';
-            request['instrument_id'] = market['id'];
-        } else {
-            request['symbol'] = market['id'];
-        }
         if (limit !== undefined) {
             request['limit'] = market['swap'] ? Math.min (limit, 100) : limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['swap']) {
+            request['instrument_id'] = market['id'];
+            response = await this.publicSwapGetPublicTrades (this.extend (request, params));
+        } else {
+            request['symbol'] = market['id'];
+            response = await this.publicSpotGetTrades (this.extend (request, params));
+        }
         //
         // spot
         //

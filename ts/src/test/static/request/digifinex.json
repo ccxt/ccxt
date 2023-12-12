@@ -443,6 +443,24 @@
                     "LTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades - spot",
+                "method": "fetchTrades",
+                "url": "https://openapi.digifinex.com/v3/trades?symbol=LTC_USDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch trades - swap",
+                "method": "fetchTrades",
+                "url": "https://openapi.digifinex.com/swap/v2/public/trades?instrument_id=LTCUSDTPERP",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
