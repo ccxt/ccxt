@@ -4,7 +4,7 @@
 import bitpandaRest from '../bitpanda.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int, Str, Strings } from '../base/types.js';
+import { Int, Str, Strings, OrderBook, Order, Trade, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------

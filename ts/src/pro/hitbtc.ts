@@ -5,7 +5,7 @@ import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Int, OHLCV, OrderSide, OrderType, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { Str, Trade } from '../base/types';
+import { Str, OrderBook, Order, Trade, Ticker } from '../base/types';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 
