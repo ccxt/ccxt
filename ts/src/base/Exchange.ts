@@ -1022,7 +1022,7 @@ export default class Exchange {
         headers = this.setHeaders (headers);
         // log
         if (this.verbose) {
-            // this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
+            this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
         }
         // end of proxies & headers
 
