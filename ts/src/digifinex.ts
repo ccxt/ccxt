@@ -2340,7 +2340,7 @@ export default class digifinex extends Exchange {
             request['market'] = marketType;
         }
         let response = undefined;
-        if (marginMode !== undefined) {
+        if ((marginMode !== undefined) || (marketType === 'margin')) {
             marketType = 'margin';
             response = await this.privateSpotGetMarginOrder (this.extend (request, query));
         } else if (marketType === 'spot') {
