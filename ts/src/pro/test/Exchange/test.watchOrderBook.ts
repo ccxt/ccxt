@@ -18,6 +18,8 @@ async function testWatchOrderBook (exchange, skippedProperties, symbol) {
             now = exchange.milliseconds ();
             continue;
         }
+        // temp fix for php 'Pro\OrderBook' object, to turn it into array
+        response['timestamp'] = exchange.safeValue(response,'timestamp');
         response = fixPhpObjectArray (exchange, response);
         assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
         now = exchange.milliseconds ();
