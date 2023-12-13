@@ -38,6 +38,32 @@
                 "output": "{\"id\":\"1698774364019\",\"method\":\"private/create-order\",\"params\":{\"instrument_name\":\"BTCUSD-PERP\",\"side\":\"SELL\",\"quantity\":\"0.1\",\"broker_id\":\"CCXT\",\"type\":\"MARKET\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"ee43b073165ccc2af6d783d0515658b4c45b241229c1369673c8bdef62764162\",\"nonce\":\"1698774364019\"}"
             }
         ],
+        "createOrders": [
+            {
+                "description": "create spot orders",
+                "method": "createOrders",
+                "url": "https://api.crypto.com/exchange/v1/private/create-order-list",
+                "input": [
+                  [
+                    {
+                      "symbol": "LTC/USDT",
+                      "amount": 0.1,
+                      "side": "buy",
+                      "type": "limit",
+                      "price": 60
+                    },
+                    {
+                      "symbol": "LTC/USDT",
+                      "amount": 0.11,
+                      "side": "buy",
+                      "type": "limit",
+                      "price": 61
+                    }
+                  ]
+                ],
+                "output": "{\"id\":\"1702484106341\",\"method\":\"private/create-order-list\",\"params\":{\"contingency_type\":\"LIST\",\"order_list\":[{\"instrument_name\":\"LTC_USDT\",\"side\":\"BUY\",\"price\":\"60\",\"broker_id\":\"CCXT\",\"type\":\"LIMIT\",\"quantity\":\"0.1\"},{\"instrument_name\":\"LTC_USDT\",\"side\":\"BUY\",\"price\":\"61\",\"broker_id\":\"CCXT\",\"type\":\"LIMIT\",\"quantity\":\"0.11\"}]},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"2af32b11570d391ff83bfc0619fa1ed4589e70cb39dd4b9c11da5d228d203ef0\",\"nonce\":\"1702484106341\"}"
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "Spot orders",
