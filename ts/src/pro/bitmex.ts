@@ -529,7 +529,6 @@ export default class bitmex extends bitmexRest {
                 stored.append (trades[j]);
             }
             client.resolve (stored, messageHash);
-            this.resolvePromiseIfMessagehashMatches (client, 'multipleTrades::', symbol, stored);
         }
     }
 
