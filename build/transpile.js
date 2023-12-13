@@ -2525,8 +2525,10 @@ class Transpiler {
             test.phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
             test.pythonPreambleAsync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderAsync.join ('\n') + '\n\n';
 
-            this.modifyCustomFiles (test);
-
+            this.modifyCustomFilesHeaders (test);
+            if (isWs) {
+                phpSync = phpSync.replace ('namespace ccxt\\pro', 'namespace ccxt');
+            }
             test.phpFileSyncContent = test.phpPreambleSync + phpSync;
             test.pyFileSyncContent = test.pythonPreambleSync + pythonSync;
             test.phpFileAsyncContent = test.phpPreambleAsync + phpAsync;
@@ -2546,7 +2548,7 @@ class Transpiler {
     }
 
     // placeholder for override (ws transpiler)
-    modifyCustomFiles (test) { }
+    modifyCustomFilesHeaders (test) { }
 
     // ============================================================================
 
