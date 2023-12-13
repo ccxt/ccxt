@@ -242,7 +242,7 @@ if (isMainEntry(import.meta.url)) { // called directly like `node module`
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     const child = process.argv.includes ('--child')
     if (!child && !multiprocess) {
-        log.bright.green ({ force })
+        log.bright.green ('isForceTranspile', force)
     }
     if (test) {
         transpiler.transpileWsTests ()
