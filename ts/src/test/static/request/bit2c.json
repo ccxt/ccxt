@@ -1,0 +1,17 @@
+{
+    "exchange": "bit2c",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://bit2c.co.il/Exchanges/BtcNis/trades.json",
+                "input": [
+                    "BTC/NIS"
+                ]
+            }
+        ]
+    }
+}
