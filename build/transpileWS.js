@@ -192,6 +192,10 @@ class CCXTProTranspiler extends Transpiler {
             // php head
             test.phpPreambleSync = this.getPHPPreamble(true, 4, true);
         }
+        // remove pro namespace from ws WATCH tests, as they "import" non-pro test methods (like "test_trade" etc) 
+        // causing namespace problems which is harder to solve through transpiler
+        // so let's just namespace tests under `ccxt` namespace only
+        test.phpPreambleAsync = test.phpPreambleAsync.replace ('namespace ccxt\\pro', 'namespace ccxt');
     }
 
     // -----------------------------------------------------------------------
