@@ -387,35 +387,22 @@ class gate extends \ccxt\async\gate {
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent $trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $marketId = $market['id'];
-            $messageType = $this->get_type_by_market($market);
-            $channel = $messageType . '.trades';
-            $messageHash = 'trades:' . $symbol;
-            $url = $this->get_url_by_market($market);
-            $payload = array( $marketId );
-            $trades = Async\await($this->subscribe_public($url, $messageHash, $payload, $channel, $params));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
         }) ();
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
-             * get the list of most recent $trades for a particular symbol
-             * @param {string} symbol unified symbol of the $market to fetch $trades for
+             * get the list of most recent $trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -427,9 +414,13 @@ class gate extends \ccxt\async\gate {
             $market = $this->market($symbols[0]);
             $messageType = $this->get_type_by_market($market);
             $channel = $messageType . '.trades';
-            $messageHash = 'multipleTrades::' . implode(',', $symbols);
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $messageHashes[] = 'trades:' . $symbol;
+            }
             $url = $this->get_url_by_market($market);
-            $trades = Async\await($this->subscribe_public($url, $messageHash, $marketIds, $channel, $params));
+            $trades = Async\await($this->subscribe_public_multiple($url, $messageHashes, $marketIds, $channel, $params));
             if ($this->newUpdates) {
                 $first = $this->safe_value($trades, 0);
                 $tradeSymbol = $this->safe_string($first, 'symbol');
@@ -473,7 +464,6 @@ class gate extends \ccxt\async\gate {
             $cachedTrades->append ($trade);
             $hash = 'trades:' . $symbol;
             $client->resolve ($cachedTrades, $hash);
-            $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $cachedTrades);
         }
     }
 
@@ -1293,6 +1283,22 @@ class gate extends \ccxt\async\gate {
             }
             $message = array_merge($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+        }) ();
+    }
+
+    public function subscribe_public_multiple($url, $messageHashes, $payload, $channel, $params = array ()) {
+        return Async\async(function () use ($url, $messageHashes, $payload, $channel, $params) {
+            $requestId = $this->request_id();
+            $time = $this->seconds();
+            $request = array(
+                'id' => $requestId,
+                'time' => $time,
+                'channel' => $channel,
+                'event' => 'subscribe',
+                'payload' => $payload,
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
         }) ();
     }
 

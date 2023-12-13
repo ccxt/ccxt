@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.1.86';
+const version = '4.1.87';
 
 (Exchange as any).ccxtVersion = version
 
@@ -84,6 +84,7 @@ import btcturk from  './src/btcturk.js'
 import bybit from  './src/bybit.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
+import coinbasepro from  './src/coinbasepro.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
 import coinlist from  './src/coinlist.js'
@@ -168,6 +169,7 @@ import blockchaincomPro from  './src/pro/blockchaincom.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
+import coinbaseproPro from  './src/pro/coinbasepro.js'
 import coinexPro from  './src/pro/coinex.js'
 import cryptocomPro from  './src/pro/cryptocom.js'
 import currencycomPro from  './src/pro/currencycom.js'
@@ -240,6 +242,7 @@ const exchanges = {
     'bybit':                  bybit,
     'cex':                    cex,
     'coinbase':               coinbase,
+    'coinbasepro':            coinbasepro,
     'coincheck':              coincheck,
     'coinex':                 coinex,
     'coinlist':               coinlist,
@@ -324,6 +327,7 @@ const pro = {
     'bybit':                  bybitPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
+    'coinbasepro':            coinbaseproPro,
     'coinex':                 coinexPro,
     'cryptocom':              cryptocomPro,
     'currencycom':            currencycomPro,
@@ -474,6 +478,7 @@ export {
     bybit,
     cex,
     coinbase,
+    coinbasepro,
     coincheck,
     coinex,
     coinlist,
@@ -531,7 +536,7 @@ export {
     woo,
     yobit,
     zaif,
-    zonda,
+    zonda,    
 }
 
 export default ccxt;

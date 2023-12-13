@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.86'
+__version__ = '4.1.87'
 
 # -----------------------------------------------------------------------------
 
@@ -391,6 +391,45 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + '.handle_message() not implemented yet')
         return {}
 
+    def watch_multiple(self, url, message_hashes, message=None, subscribe_hashes=None, subscription=None):
+        # base exchange self.open starts the aiohttp Session in an async context
+        self.open()
+        backoff_delay = 0
+        client = self.client(url)
+
+        future = Future.race([client.future(message_hash) for message_hash in message_hashes])
+
+        missing_subscriptions = []
+        if subscribe_hashes is not None:
+            for subscribe_hash in subscribe_hashes:
+                if subscribe_hash not in client.subscriptions:
+                    missing_subscriptions.append(subscribe_hash)
+                    client.subscriptions[subscribe_hash] = subscription or True
+
+        connected = client.connected if client.connected.done() \
+            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+
+        def after(fut):
+            # todo: decouple signing from subscriptions
+            options = self.safe_value(self.options, 'ws')
+            cost = self.safe_value(options, 'cost', 1)
+            if message:
+                async def send_message():
+                    if self.enableRateLimit:
+                        await client.throttle(cost)
+                    try:
+                        await client.send(message)
+                    except ConnectionError as e:
+                        for subscribe_hash in missing_subscriptions:
+                            del client.subscriptions[subscribe_hash]
+                        future.reject(e)
+                asyncio.ensure_future(send_message())
+
+        if missing_subscriptions:
+            connected.add_done_callback(after)
+
+        return future
+
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
@@ -424,11 +463,7 @@ class Exchange(BaseExchange):
                 asyncio.ensure_future(send_message())
 
         if not subscribed:
-            try:
-                connected.add_done_callback(after)
-            except Exception as e:
-                del client.subscriptions[subscribe_hash]
-                future.reject(e)
+            connected.add_done_callback(after)
 
         return future
 

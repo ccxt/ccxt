@@ -37,5 +37,6 @@ export default class gate extends gateRest {
     getMarketTypeByUrl(url: string): any;
     requestId(): any;
     subscribePublic(url: any, messageHash: any, payload: any, channel: any, params?: {}, subscription?: any): Promise<any>;
+    subscribePublicMultiple(url: any, messageHashes: any, payload: any, channel: any, params?: {}): Promise<any>;
     subscribePrivate(url: any, messageHash: any, payload: any, channel: any, params: any, requiresUid?: boolean): Promise<any>;
 }

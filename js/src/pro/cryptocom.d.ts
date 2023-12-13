@@ -29,7 +29,7 @@ export default class cryptocom extends cryptocomRest {
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;
     handleCancelAllOrders(client: Client, message: any): void;
     watchPublic(messageHash: any, params?: {}): Promise<any>;
-    watchPublicMultiple(messageHash: any, topics: any, params?: {}): Promise<any>;
+    watchPublicMultiple(messageHashes: any, topics: any, params?: {}): Promise<any>;
     watchPrivateRequest(nonce: any, params?: {}): Promise<any>;
     watchPrivateSubscribe(messageHash: any, params?: {}): Promise<any>;
     handleErrorMessage(client: Client, message: any): boolean;

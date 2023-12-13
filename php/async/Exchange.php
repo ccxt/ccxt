@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.86';
+$version = '4.1.87';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.86';
+    const VERSION = '4.1.87';
 
     public $browser;
     public $marketsLoading = null;
@@ -501,7 +501,7 @@ class Exchange extends \ccxt\Exchange {
         $length = count($usedProxies);
         if ($length > 1) {
             $joinedProxyNames = implode(',', $usedProxies);
-            throw new ExchangeError($this->id . ' you have multiple conflicting settings (' . $joinedProxyNames . '), please use only one from => $wsProxy, $wssProxy, socksProxy');
+            throw new ExchangeError($this->id . ' you have multiple conflicting settings (' . $joinedProxyNames . '), please use only one from => $wsProxy, $wssProxy, wsSocksProxy');
         }
         return array( $wsProxy, $wssProxy, $wsSocksProxy );
     }
@@ -3890,33 +3890,6 @@ class Exchange extends \ccxt\Exchange {
          * Typed wrapper for filterByArray that returns a dictionary of tickers
          */
         return $this->filter_by_array($objects, $key, $values, $indexed);
-    }
-
-    public function resolve_promise_if_messagehash_matches($client, string $prefix, string $symbol, $data) {
-        $messageHashes = $this->findMessageHashes ($client, $prefix);
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
-            $parts = explode('::', $messageHash);
-            $symbolsString = $parts[1];
-            $symbols = explode(',', $symbolsString);
-            if ($this->in_array($symbol, $symbols)) {
-                $client->resolve ($data, $messageHash);
-            }
-        }
-    }
-
-    public function resolve_multiple_ohlcv($client, string $prefix, string $symbol, string $timeframe, $data) {
-        $messageHashes = $this->findMessageHashes ($client, 'multipleOHLCV::');
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
-            $parts = explode('::', $messageHash);
-            $symbolsAndTimeframes = $parts[1];
-            $splitted = explode(',', $symbolsAndTimeframes);
-            $id = $symbol . '#' . $timeframe;
-            if ($this->in_array($id, $splitted)) {
-                $client->resolve (array( $symbol, $timeframe, $data ), $messageHash);
-            }
-        }
     }
 
     public function create_ohlcv_object(string $symbol, string $timeframe, $data) {

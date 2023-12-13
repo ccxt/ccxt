@@ -161,7 +161,7 @@ class bitpanda(ccxt.async_support.bitpanda):
                 },
             ],
         }
-        return await self.watch_multiple(messageHash, request, subscriptionHash, [symbol], params)
+        return await self.watch_many(messageHash, request, subscriptionHash, [symbol], params)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -186,7 +186,7 @@ class bitpanda(ccxt.async_support.bitpanda):
                 },
             ],
         }
-        tickers = await self.watch_multiple(messageHash, request, subscriptionHash, symbols, params)
+        tickers = await self.watch_many(messageHash, request, subscriptionHash, symbols, params)
         return self.filter_by_array(tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):
@@ -320,7 +320,7 @@ class bitpanda(ccxt.async_support.bitpanda):
                 },
             ],
         }
-        orderbook = await self.watch_multiple(messageHash, request, subscriptionHash, [symbol], params)
+        orderbook = await self.watch_many(messageHash, request, subscriptionHash, [symbol], params)
         return orderbook.limit()
 
     def handle_order_book(self, client: Client, message):
@@ -1232,7 +1232,7 @@ class bitpanda(ccxt.async_support.bitpanda):
             future.resolve(True)
         return message
 
-    async def watch_multiple(self, messageHash, request, subscriptionHash, symbols: Strings = [], params={}):
+    async def watch_many(self, messageHash, request, subscriptionHash, symbols: Strings = [], params={}):
         marketIds = []
         numSymbols = len(symbols)
         if numSymbols == 0:

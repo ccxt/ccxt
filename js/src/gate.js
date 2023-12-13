@@ -590,12 +590,8 @@ export default class gate extends Exchange {
                     'expiration': 86400, // for conditional orders
                 },
                 'networks': {
-                    'ALGORAND': 'ALGO',
-                    'ARBITRUM_NOVA': 'ARBNOVA',
-                    'ARBITRUM_ONE': 'ARBEVM',
-                    'AVALANCHE_C': 'AVAX_C',
+                    'AVAXC': 'AVAX_C',
                     'BEP20': 'BSC',
-                    'CHILIZ': 'CHZ',
                     'EOS': 'EOS',
                     'ERC20': 'ETH',
                     'GATECHAIN': 'GTEVM',
@@ -605,29 +601,7 @@ export default class gate extends Exchange {
                     'OKC': 'OKT',
                     'OPTIMISM': 'OPETH',
                     'POLKADOT': 'DOTSM',
-                    'POLYGON': 'MATIC',
-                    'SOLANA': 'SOL',
                     'TRC20': 'TRX',
-                },
-                'networksById': {
-                    'ALGO': 'ALGORAND',
-                    'ARBEVM': 'ARBITRUM_ONE',
-                    'ARBNOVA': 'ARBITRUM_NOVA',
-                    'AVAX_C': 'AVALANCHE_C',
-                    'BSC': 'BEP20',
-                    'CHZ': 'CHILIZ',
-                    'DOTSM': 'POLKADOT',
-                    'EOS': 'EOS',
-                    'ETH': 'ERC20',
-                    'GTEVM': 'GATECHAIN',
-                    'HT': 'HRC20',
-                    'KSMSM': 'KUSAMA',
-                    'MATIC': 'POLYGON',
-                    'NEAR': 'NEAR',
-                    'OKT': 'OKC',
-                    'OPETH': 'OPTIMISM',
-                    'SOL': 'SOLANA',
-                    'TRX': 'TRC20',
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
@@ -1927,10 +1901,13 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] unified network code (not used directly by gate.io but used by ccxt to filter the response)
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
+        const rawNetwork = this.safeStringUpper(params, 'network');
+        params = this.omit(params, 'network');
         const request = {
             'currency': currency['id'],
         };
@@ -1952,20 +1929,41 @@ export default class gate extends Exchange {
         //
         const currencyId = this.safeString(response, 'currency');
         code = this.safeCurrencyCode(currencyId);
-        const addressField = this.safeString(response, 'address');
+        const networkId = this.networkCodeToId(rawNetwork, code);
+        let network = undefined;
         let tag = undefined;
         let address = undefined;
-        if (addressField !== undefined) {
-            if (addressField.indexOf('New address is being generated for you, please wait') >= 0) {
-                throw new BadResponse(this.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.');
+        if (networkId !== undefined) {
+            const addresses = this.safeValue(response, 'multichain_addresses');
+            for (let i = 0; i < addresses.length; i++) {
+                const entry = addresses[i];
+                const entryNetwork = this.safeString(entry, 'chain');
+                if (networkId === entryNetwork) {
+                    const obtainFailed = this.safeInteger(entry, 'obtain_failed');
+                    if (obtainFailed) {
+                        break;
+                    }
+                    address = this.safeString(entry, 'address');
+                    tag = this.safeString(entry, 'payment_id');
+                    network = this.networkIdToCode(networkId, code);
+                    break;
+                }
             }
-            if (addressField.indexOf(' ') >= 0) {
-                const splitted = addressField.split(' ');
-                address = splitted[0];
-                tag = splitted[1];
-            }
-            else {
-                address = addressField;
+        }
+        else {
+            const addressField = this.safeString(response, 'address');
+            if (addressField !== undefined) {
+                if (addressField.indexOf('New address is being generated for you, please wait') >= 0) {
+                    throw new BadResponse(this.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.');
+                }
+                if (addressField.indexOf(' ') >= 0) {
+                    const splitted = addressField.split(' ');
+                    address = splitted[0];
+                    tag = splitted[1];
+                }
+                else {
+                    address = addressField;
+                }
             }
         }
         this.checkAddress(address);
@@ -1975,7 +1973,7 @@ export default class gate extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': undefined,
+            'network': network,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -5741,216 +5739,6 @@ export default class gate extends Exchange {
             floor = cap;
         }
         return tiers;
-    }
-    async repayMargin(code, amount, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name gate#repayMargin
-         * @description repay borrowed margin and interest
-         * @see https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
-         * @see https://www.gate.io/docs/apiv4/en/#repay-a-loan
-         * @param {string} code unified currency code of the currency to repay
-         * @param {float} amount the amount to repay
-         * @param {string} symbol unified market symbol, required for isolated margin
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
-         * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-         */
-        let marginMode = undefined;
-        [marginMode, params] = this.handleOptionAndParams(params, 'repayMargin', 'marginMode');
-        this.checkRequiredArgument('repayMargin', marginMode, 'marginMode', ['cross', 'isolated']);
-        this.checkRequiredMarginArgument('repayMargin', symbol, marginMode);
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
-            'currency': currency['id'].toUpperCase(),
-            'amount': this.currencyToPrecision(code, amount),
-        };
-        let response = undefined;
-        if ((marginMode === 'cross') && (symbol === undefined)) {
-            response = await this.privateMarginPostCrossRepayments(this.extend(request, params));
-        }
-        else if ((marginMode === 'isolated') || (symbol !== undefined)) {
-            if (symbol === undefined) {
-                throw new BadRequest(this.id + ' repayMargin() requires a symbol argument for isolated margin');
-            }
-            const market = this.market(symbol);
-            request['currency_pair'] = market['id'];
-            request['type'] = 'repay';
-            response = await this.privateMarginPostUniLoans(this.extend(request, params));
-        }
-        //
-        // Cross
-        //
-        //     [
-        //         {
-        //             "id": "17",
-        //             "create_time": 1620381696159,
-        //             "update_time": 1620381696159,
-        //             "currency": "EOS",
-        //             "amount": "110.553635",
-        //             "text": "web",
-        //             "status": 2,
-        //             "repaid": "110.506649705159",
-        //             "repaid_interest": "0.046985294841",
-        //             "unpaid_interest": "0.0000074393366667"
-        //         }
-        //     ]
-        //
-        // Isolated
-        //
-        //     {
-        //         "id": "34267567",
-        //         "create_time": "1656394778",
-        //         "expire_time": "1657258778",
-        //         "status": "finished",
-        //         "side": "borrow",
-        //         "currency": "USDT",
-        //         "rate": "0.0002",
-        //         "amount": "100",
-        //         "days": 10,
-        //         "auto_renew": false,
-        //         "currency_pair": "LTC_USDT",
-        //         "left": "0",
-        //         "repaid": "100",
-        //         "paid_interest": "0.003333333333",
-        //         "unpaid_interest": "0"
-        //     }
-        //
-        if (marginMode === 'cross') {
-            response = response[0];
-        }
-        return this.parseMarginLoan(response, currency);
-    }
-    async borrowMargin(code, amount, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name gate#borrowMargin
-         * @description create a loan to borrow margin
-         * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
-         * @see https://www.gate.io/docs/developers/apiv4/en/#marginuni
-         * @param {string} code unified currency code of the currency to borrow
-         * @param {float} amount the amount to borrow
-         * @param {string} symbol unified market symbol, required for isolated margin
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-         */
-        let marginMode = undefined;
-        [marginMode, params] = this.handleOptionAndParams(params, 'borrowMargin', 'marginMode');
-        this.checkRequiredArgument('borrowMargin', marginMode, 'marginMode', ['cross', 'isolated']);
-        this.checkRequiredMarginArgument('borrowMargin', symbol, marginMode);
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
-            'currency': currency['id'].toUpperCase(),
-            'amount': this.currencyToPrecision(code, amount),
-        };
-        let response = undefined;
-        if ((marginMode === 'cross') && (symbol === undefined)) {
-            response = await this.privateMarginPostCrossLoans(this.extend(request, params));
-        }
-        else if ((marginMode === 'isolated') || (symbol !== undefined)) {
-            if (symbol === undefined) {
-                throw new BadRequest(this.id + ' borrowMargin() requires a symbol argument for isolated margin');
-            }
-            const market = this.market(symbol);
-            request['currency_pair'] = market['id'];
-            request['type'] = 'borrow';
-            response = await this.privateMarginPostUniLoans(this.extend(request, params));
-        }
-        //
-        // Cross
-        //
-        //     {
-        //         "id": "17",
-        //         "create_time": 1620381696159,
-        //         "update_time": 1620381696159,
-        //         "currency": "EOS",
-        //         "amount": "110.553635",
-        //         "text": "web",
-        //         "status": 2,
-        //         "repaid": "110.506649705159",
-        //         "repaid_interest": "0.046985294841",
-        //         "unpaid_interest": "0.0000074393366667"
-        //     }
-        //
-        // Isolated
-        //
-        //     {
-        //         "id": "34267567",
-        //         "create_time": "1656394778",
-        //         "expire_time": "1657258778",
-        //         "status": "loaned",
-        //         "side": "borrow",
-        //         "currency": "USDT",
-        //         "rate": "0.0002",
-        //         "amount": "100",
-        //         "days": 10,
-        //         "auto_renew": false,
-        //         "currency_pair": "LTC_USDT",
-        //         "left": "0",
-        //         "repaid": "0",
-        //         "paid_interest": "0",
-        //         "unpaid_interest": "0.003333333333"
-        //     }
-        //
-        return this.parseMarginLoan(response, currency);
-    }
-    parseMarginLoan(info, currency = undefined) {
-        //
-        // Cross
-        //
-        //     {
-        //         "id": "17",
-        //         "create_time": 1620381696159,
-        //         "update_time": 1620381696159,
-        //         "currency": "EOS",
-        //         "amount": "110.553635",
-        //         "text": "web",
-        //         "status": 2,
-        //         "repaid": "110.506649705159",
-        //         "repaid_interest": "0.046985294841",
-        //         "unpaid_interest": "0.0000074393366667"
-        //     }
-        //
-        // Isolated
-        //
-        //     {
-        //         "id": "34267567",
-        //         "create_time": "1656394778",
-        //         "expire_time": "1657258778",
-        //         "status": "loaned",
-        //         "side": "borrow",
-        //         "currency": "USDT",
-        //         "rate": "0.0002",
-        //         "amount": "100",
-        //         "days": 10,
-        //         "auto_renew": false,
-        //         "currency_pair": "LTC_USDT",
-        //         "left": "0",
-        //         "repaid": "0",
-        //         "paid_interest": "0",
-        //         "unpaid_interest": "0.003333333333"
-        //     }
-        //
-        const marginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        let timestamp = this.safeInteger(info, 'create_time');
-        if (marginMode === 'isolated') {
-            timestamp = this.safeTimestamp(info, 'create_time');
-        }
-        const currencyId = this.safeString(info, 'currency');
-        const marketId = this.safeString(info, 'currency_pair');
-        return {
-            'id': this.safeInteger(info, 'id'),
-            'currency': this.safeCurrencyCode(currencyId, currency),
-            'amount': this.safeNumber(info, 'amount'),
-            'symbol': this.safeSymbol(marketId, undefined, '_', 'margin'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'info': info,
-        };
     }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
