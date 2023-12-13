@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 // ----------------------------------------------------------------------------
 /**
  * @class coinbasepro
- * @extends Exchange
+ * @augments Exchange
  */
 class coinbasepro extends coinbasepro$1 {
     describe() {

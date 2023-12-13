@@ -5,13 +5,13 @@ import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class tokocrypto
- * @extends Exchange
+ * @augments Exchange
  */
 export default class tokocrypto extends Exchange {
     describe () {
@@ -103,7 +103,6 @@ export default class tokocrypto extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
-                'repayMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -1019,16 +1018,20 @@ export default class tokocrypto extends Exchange {
             const data = this.safeValue (responseInner, 'data', {});
             return this.parseTrades (data, market, since, limit);
         }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default = 500, maximum = 1000
+        }
         const defaultMethod = 'binanceGetTrades';
         const method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
+        let response = undefined;
         if ((method === 'binanceGetAggTrades') && (since !== undefined)) {
             request['startTime'] = since;
             // https://github.com/ccxt/ccxt/issues/6400
             // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
             request['endTime'] = this.sum (since, 3600000);
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default = 500, maximum = 1000
+            response = await this.binanceGetAggTrades (this.extend (request, params));
+        } else {
+            response = await this.binanceGetTrades (this.extend (request, params));
         }
         //
         // Caveats:
@@ -1039,7 +1042,6 @@ export default class tokocrypto extends Exchange {
         // - 'tradeId' accepted and returned by this method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
-        const response = await this[method] (this.extend (request, params));
         //
         // aggregate trades
         //

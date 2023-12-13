@@ -142,10 +142,10 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks,  Str, Num, MarketInterface, CurrencyInterface, Account} from './types.js';
+import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks,  Str, Num, MarketInterface, CurrencyInterface, Account} from './types.js';
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks } from './types.js'
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks } from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
@@ -189,6 +189,8 @@ export default class Exchange {
     ws_proxy: string;
     wssProxy: string;
     wss_proxy: string;
+    wsSocksProxy: string;
+    ws_socks_proxy: string;
     //
     userAgents: any = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -951,6 +953,29 @@ export default class Exchange {
         return chosenAgent;
     }
 
+    async loadHttpProxyAgent () {
+        // for `http://` protocol proxy-urls, we need to load `http` module only on first call
+        if (!this.httpAgent) {
+            const httpModule = await import (/* webpackIgnore: true */'node:http')
+            this.httpAgent = new httpModule.Agent ();
+        }
+        return this.httpAgent;
+    }
+
+    getHttpAgentIfNeeded (url) {
+        if (isNode) {
+            // only for non-ssl proxy
+            if (url.substring(0, 5) === 'ws://') {
+                if (this.httpAgent === undefined) {
+                    throw new NotSupported (this.id + ' to use proxy with non-ssl ws:// urls, at first run  `await exchange.loadHttpProxyAgent()` method');
+                }
+                return this.httpAgent;
+            }
+        }
+        return undefined;
+    }
+
+
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
 
         // load node-http(s) modules only on first call
@@ -966,18 +991,16 @@ export default class Exchange {
         headers = this.extend (this.headers, headers);
         // proxy-url
         const proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
-        let isHttpAgentNeeded = false;
+        let httpProxyAgent = false;
         if (proxyUrl !== undefined) {
-            // in node we need to set header to *
+            // part only for node-js
             if (isNode) {
+                // in node we need to set header to *
                 headers = this.extend ({ 'Origin': this.origin }, headers);
-                if (proxyUrl.substring(0, 5) !== 'https') {
-                    // for `http://` protocol proxy-urls, we need to load `http` module only on first call
-                    if (!this.httpAgent) {
-                        const httpModule = await import (/* webpackIgnore: true */'node:http')
-                        this.httpAgent = new httpModule.Agent ();
-                    }
-                    isHttpAgentNeeded = true;
+                // only for http proxy
+                if (proxyUrl.substring(0, 5) === 'http:') {
+                    await this.loadHttpProxyAgent ();
+                    httpProxyAgent = this.httpAgent;
                 }
             }
             url = proxyUrl + url;
@@ -1029,9 +1052,9 @@ export default class Exchange {
             params['agent'] = this.agent;
         }
         // override agent, if needed
-        if (isHttpAgentNeeded) {
-            // if proxyUrl is being used, so we don't overwrite `this.agent` itself
-            params['agent'] = this.httpAgent;
+        if (httpProxyAgent) {
+            // if proxyUrl is being used, then specifically in nodejs, we need http module, not https
+            params['agent'] = httpProxyAgent;
         } else if (chosenAgent) {
             // if http(s)Proxy is being used
             params['agent'] = chosenAgent;
@@ -1256,7 +1279,9 @@ export default class Exchange {
             // proxy agents
             const [ httpProxy, httpsProxy, socksProxy ] = this.checkWsProxySettings ();
             const chosenAgent = this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
-            const finalAgent = chosenAgent ? chosenAgent : this.agent;
+            // part only for node-js
+            const httpProxyAgent = this.getHttpAgentIfNeeded (url);
+            const finalAgent = chosenAgent ? chosenAgent : (httpProxyAgent ? httpProxyAgent : this.agent);
             //
             const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
@@ -1625,7 +1650,8 @@ export default class Exchange {
         const usedProxies = [];
         let wsProxy = undefined;
         let wssProxy = undefined;
-        // wsProxy
+        let wsSocksProxy = undefined;
+        // ws proxy
         if (this.wsProxy !== undefined) {
             usedProxies.push ('wsProxy');
             wsProxy = this.wsProxy;
@@ -1634,7 +1660,7 @@ export default class Exchange {
             usedProxies.push ('ws_proxy');
             wsProxy = this.ws_proxy;
         }
-        // wsProxy
+        // wss proxy
         if (this.wssProxy !== undefined) {
             usedProxies.push ('wssProxy');
             wssProxy = this.wssProxy;
@@ -1643,13 +1669,22 @@ export default class Exchange {
             usedProxies.push ('wss_proxy');
             wssProxy = this.wss_proxy;
         }
+        // ws socks proxy
+        if (this.wsSocksProxy !== undefined) {
+            usedProxies.push ('wsSocksProxy');
+            wsSocksProxy = this.wsSocksProxy;
+        }
+        if (this.ws_socks_proxy !== undefined) {
+            usedProxies.push ('ws_socks_proxy');
+            wsSocksProxy = this.ws_socks_proxy;
+        }
         // check
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join (',');
-            throw new ExchangeError (this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy');
+            throw new ExchangeError (this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy');
         }
-        return [ wsProxy, wssProxy ];
+        return [ wsProxy, wssProxy, wsSocksProxy ];
     }
 
     checkConflictingProxies (proxyAgentSet, proxyUrlSet) {
@@ -4774,8 +4809,8 @@ export default class Exchange {
         /**
          * @ignore
          * @method
-         * * Must add timeInForce to this.options to use this method
-         * @return {string} returns the exchange specific value for timeInForce
+         * Must add timeInForce to this.options to use this method
+         * @returns {string} returns the exchange specific value for timeInForce
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce'); // supported values GTC, IOC, PO
         if (timeInForce !== undefined) {
@@ -4792,7 +4827,7 @@ export default class Exchange {
         /**
          * @ignore
          * @method
-         * * Must add accountsByType to this.options to use this method
+         * Must add accountsByType to this.options to use this method
          * @param {string} account key for account name in this.options['accountsByType']
          * @returns the exchange specific account name or the isolated margin id for transfers
          */

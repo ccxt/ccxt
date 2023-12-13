@@ -3665,7 +3665,7 @@ class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#batch-order
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-order
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-order
-         * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -5847,7 +5847,6 @@ class bitget extends Exchange {
          * @param {string} $symbol not used by bitget setPositionMode ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} $response from the exchange
-         *
          */
         $this->load_markets();
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);

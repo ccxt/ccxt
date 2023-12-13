@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.84'
+__version__ = '4.1.87'
 
 # -----------------------------------------------------------------------------
 
@@ -171,6 +171,8 @@ class Exchange(object):
     ws_proxy = None
     wssProxy = None
     wss_proxy = None
+    wsSocksProxy = None
+    ws_socks_proxy = None
     #
     userAgents = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -1822,26 +1824,34 @@ class Exchange(object):
         usedProxies = []
         wsProxy = None
         wssProxy = None
-        # wsProxy
+        wsSocksProxy = None
+        # ws proxy
         if self.wsProxy is not None:
             usedProxies.append('wsProxy')
             wsProxy = self.wsProxy
         if self.ws_proxy is not None:
             usedProxies.append('ws_proxy')
             wsProxy = self.ws_proxy
-        # wsProxy
+        # wss proxy
         if self.wssProxy is not None:
             usedProxies.append('wssProxy')
             wssProxy = self.wssProxy
         if self.wss_proxy is not None:
             usedProxies.append('wss_proxy')
             wssProxy = self.wss_proxy
+        # ws socks proxy
+        if self.wsSocksProxy is not None:
+            usedProxies.append('wsSocksProxy')
+            wsSocksProxy = self.wsSocksProxy
+        if self.ws_socks_proxy is not None:
+            usedProxies.append('ws_socks_proxy')
+            wsSocksProxy = self.ws_socks_proxy
         # check
         length = len(usedProxies)
         if length > 1:
             joinedProxyNames = ','.join(usedProxies)
-            raise ExchangeError(self.id + ' you have multiple conflicting settings(' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy')
-        return [wsProxy, wssProxy]
+            raise ExchangeError(self.id + ' you have multiple conflicting settings(' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy')
+        return [wsProxy, wssProxy, wsSocksProxy]
 
     def check_conflicting_proxies(self, proxyAgentSet, proxyUrlSet):
         if proxyAgentSet and proxyUrlSet:
@@ -3853,6 +3863,9 @@ class Exchange(object):
     def close_all_positions(self, params={}):
         raise NotSupported(self.id + ' closeAllPositions() is not supported yet')
 
+    def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
+        raise BadRequest(self.id + ' fetchL3OrderBook() is not supported yet')
+
     def parse_last_price(self, price, market: Market = None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
 
@@ -4336,8 +4349,8 @@ class Exchange(object):
     def handle_time_in_force(self, params={}):
         """
          * @ignore
-         * * Must add timeInForce to self.options to use self method
-        :return string returns: the exchange specific value for timeInForce
+         * Must add timeInForce to self.options to use self method
+        :returns str: returns the exchange specific value for timeInForce
         """
         timeInForce = self.safe_string_upper(params, 'timeInForce')  # supported values GTC, IOC, PO
         if timeInForce is not None:
@@ -4350,7 +4363,7 @@ class Exchange(object):
     def convert_type_to_account(self, account):
         """
          * @ignore
-         * * Must add accountsByType to self.options to use self method
+         * Must add accountsByType to self.options to use self method
         :param str account: key for account name in self.options['accountsByType']
         :returns: the exchange specific account name or the isolated margin id for transfers
         """

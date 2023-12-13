@@ -1,8 +1,8 @@
 import Exchange from './abstract/alpaca.js';
-import { Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade } from './base/types.js';
+import type { Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade } from './base/types.js';
 /**
  * @class alpaca
- * @extends Exchange
+ * @augments Exchange
  */
 export default class alpaca extends Exchange {
     describe(): any;

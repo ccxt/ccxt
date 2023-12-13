@@ -10,7 +10,7 @@ var number = require('./base/functions/number.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class wavesexchange
- * @extends Exchange
+ * @augments Exchange
  */
 class wavesexchange extends wavesexchange$1 {
     describe() {

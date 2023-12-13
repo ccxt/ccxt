@@ -14,7 +14,7 @@ import totp from './base/functions/totp.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class deribit
- * @extends Exchange
+ * @augments Exchange
  */
 export default class deribit extends Exchange {
     describe() {

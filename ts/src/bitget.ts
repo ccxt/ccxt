@@ -6,13 +6,13 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, TransferEntry } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class bitget
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitget extends Exchange {
     describe () {
@@ -3708,7 +3708,7 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#batch-order
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-order
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-order
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -5942,7 +5942,6 @@ export default class bitget extends Exchange {
          * @param {string} symbol not used by bitget setPositionMode ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} response from the exchange
-         *
          */
         await this.loadMarkets ();
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);

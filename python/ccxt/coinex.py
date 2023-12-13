@@ -42,6 +42,7 @@ class coinex(Exchange, ImplicitAPI):
             # 20 per 2 seconds => 10 per second => weight = 40
             'rateLimit': 2.5,
             'pro': True,
+            'certified': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -2141,7 +2142,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         create a list of trade orders(all orders should be of the same symbol)
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade002_batch_limit_orders
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """

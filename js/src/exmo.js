@@ -13,7 +13,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class exmo
- * @extends Exchange
+ * @augments Exchange
  */
 export default class exmo extends Exchange {
     describe() {

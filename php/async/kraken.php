@@ -2393,7 +2393,7 @@ class kraken extends Exchange {
              * @param {array} [$params->end] End timestamp, withdrawals created strictly after will be not be included in the $response
              * @param {boolean} [$params->paginate]  default false, when true will automatically $paginate by calling this endpoint multiple times
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
-            */
+             */
             Async\await($this->load_markets());
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');

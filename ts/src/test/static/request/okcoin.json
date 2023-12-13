@@ -40,6 +40,46 @@
                 "url": "https://www.okcoin.com/api/v5/asset/withdrawal-history",
                 "input": []
             }
+        ],
+        "createOrder": [
+            {
+                "description": "create Order",
+                "method": "createOrder",
+                "url": "https://www.okcoin.com/api/v5/trade/batch-orders",
+                "input": [
+                    "BTC/USD",
+                    "market",
+                    "buy",
+                    1
+                ],
+                "output": "[{\"instId\":\"BTC-USD\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"1\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\"}]"
+            },
+            {
+                "description": "create Order",
+                "method": "createOrder",
+                "url": "https://www.okcoin.com/api/v5/trade/order-algo",
+                "input": [
+                    "BTC/USD",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "triggerPrice": 40000
+                    }
+                ],
+                "output": "{\"instId\":\"BTC-USD\",\"side\":\"buy\",\"ordType\":\"trigger\",\"sz\":\"1\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"triggerPx\":\"40000\",\"orderPx\":\"-1\"}"
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch Ledger",
+                "method": "fetchLedger",
+                "url": "https://www.okcoin.com/api/v5/account/bills?ccy=USDT",
+                "input": [
+                    "USDT"
+                ]
+            }
         ]
     }
 }
