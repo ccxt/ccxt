@@ -317,8 +317,23 @@ export default class bitget extends bitgetRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        const symbolTimeFrame = [ symbol, timeframe ];
-        return await this.watchOHLCVForSymbols ([ symbolTimeFrame ], since, limit, params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const timeframes = this.safeValue (this.options, 'timeframes');
+        const interval = this.safeString (timeframes, timeframe);
+        const messageHash = 'candles:' + timeframe + ':' + symbol;
+        const instType = market['spot'] ? 'sp' : 'mc';
+        const args = {
+            'instType': instType,
+            'channel': 'candle' + interval,
+            'instId': this.getWsMarketId (market),
+        };
+        const ohlcv = await this.watchPublic (messageHash, args, params);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client: Client, message) {
