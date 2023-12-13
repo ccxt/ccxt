@@ -351,7 +351,12 @@ export default class bit2c extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 100000
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'public_get_exchanges_pair_trades') {
+            response = await this.publicGetExchangesPairTrades (this.extend (request, params));
+        } else {
+            response = await this.publicGetExchangesPairLasttrades (this.extend (request, params));
+        }
         //
         //     [
         //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
@@ -440,7 +445,7 @@ export default class bit2c extends Exchange {
             request['Price'] = price;
             const amountString = this.numberToString (amount);
             const priceString = this.numberToString (price);
-            request['Total'] = this.parseNumber (Precise.stringMul (amountString, priceString));
+            request['Total'] = this.parseToNumeric (Precise.stringMul (amountString, priceString));
             request['IsBid'] = (side === 'buy');
         }
         const response = await this[method] (this.extend (request, params));
