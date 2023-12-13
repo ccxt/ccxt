@@ -353,19 +353,19 @@ export default class testMainClass extends baseMainTestClass {
         const isLoadMarkets = (methodName === 'loadMarkets');
         const methodNameInTest = getTestName (methodName);
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
-        if (!isPublic && (methodNameInTest in this.checkedPublicTests) && (methodName !== 'fetchCurrencies')) {
+        if (!isPublic && (methodName in this.checkedPublicTests) && (methodName !== 'fetchCurrencies')) {
             return;
         }
         let skipMessage = undefined;
         const isProxyTest = methodName === this.proxyTestFileName;
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
-        if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (methodNameInTest, this.onlySpecificTests))) {
+        if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests))) {
             skipMessage = '[INFO:IGNORED_TEST]';
         } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
             skipMessage = '[INFO:SKIPPED_TEST]';
-        } else if (!(methodNameInTest in this.testFiles)) {
+        } else if (!(methodName in this.testFiles)) {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
         }
         // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
@@ -374,19 +374,19 @@ export default class testMainClass extends baseMainTestClass {
         }
         if (skipMessage) {
             if (this.info) {
-                dump (this.addPadding (skipMessage, 25), this.exchangeHint (exchange), methodNameInTest);
+                dump (this.addPadding (skipMessage, 25), this.exchangeHint (exchange), methodName);
             }
             return;
         }
         if (this.info) {
             const argsStringified = '(' + args.join (',') + ')';
-            dump (this.addPadding ('[INFO:TESTING]', 25), this.exchangeHint (exchange), methodNameInTest, argsStringified);
+            dump (this.addPadding ('[INFO:TESTING]', 25), this.exchangeHint (exchange), methodName, argsStringified);
         }
         const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, {});
-        await callMethod (this.testFiles, methodNameInTest, exchange, skippedProperties, args);
+        await callMethod (this.testFiles, methodName, exchange, skippedProperties, args);
         // if it was passed successfully, add to the list of successfull tests
         if (isPublic) {
-            this.checkedPublicTests[methodNameInTest] = true;
+            this.checkedPublicTests[methodName] = true;
         }
     }
 
