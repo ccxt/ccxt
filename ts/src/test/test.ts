@@ -351,13 +351,13 @@ export default class testMainClass extends baseMainTestClass {
 
     async testMethod (methodName, exchange, args, isPublic) {
         const isLoadMarkets = (methodName === 'loadMarkets');
-        const methodNameInTest = getTestName (methodName);
+        const isFetchCurrencies = (methodName === 'fetchCurrencies');
+        const isProxyTest = (methodName === this.proxyTestFileName);
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
-        if (!isPublic && (methodName in this.checkedPublicTests) && (methodName !== 'fetchCurrencies')) {
+        if (!isPublic && (methodName in this.checkedPublicTests) && !isFetchCurrencies) {
             return;
         }
         let skipMessage = undefined;
-        const isProxyTest = methodName === this.proxyTestFileName;
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
         if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests))) {
             skipMessage = '[INFO:IGNORED_TEST]';
