@@ -1,5 +1,7 @@
 <?php
 
+namespace ccxt;
+
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 ini_set('memory_limit', '512M');
@@ -122,8 +124,7 @@ function io_dir_read($path) {
 
 
 function call_method($testFiles, $methodName, $exchange, $skippedProperties, $args) {
-    $isWs = str_starts_with($methodName, 'watch');
-    $methodNameWithNameSpace = '\\ccxt\\' . ($isWs ? 'pro\\':'') . $testFiles[$methodName];
+    $methodNameWithNameSpace = '\\ccxt\\' . $testFiles[$methodName];
     return call_user_func($methodNameWithNameSpace, $exchange, $skippedProperties, ... $args);
 }
 
