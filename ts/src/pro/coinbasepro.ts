@@ -5,7 +5,7 @@ import coinbaseproRest from '../coinbasepro.js';
 import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Ticker, Str, Strings } from '../base/types.js';
+import type { Int, Ticker, Str, Strings, OrderBook, Trade, Order } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -113,7 +113,7 @@ export default class coinbasepro extends coinbaseproRest {
         return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name coinbasepro#watchTicker
@@ -151,7 +151,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinbasepro#watchTrades
@@ -172,7 +172,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinbase#watchTradesForSymbols
@@ -199,7 +199,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinbasepro#watchMyTrades
@@ -225,7 +225,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchMyTradesForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTradesForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinbasepro#watchMyTradesForSymbols
@@ -250,7 +250,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrdersForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrdersForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbasepro#watchOrdersForSymbols
@@ -275,7 +275,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbasepro#watchOrders
@@ -301,7 +301,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}) {
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name coinbasepro#watchOrderBookForSymbols
@@ -344,7 +344,7 @@ export default class coinbasepro extends coinbaseproRest {
         return orderbook.limit ();
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name coinbasepro#watchOrderBook
