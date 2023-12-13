@@ -1678,6 +1678,13 @@ class Exchange(object):
     def set_property(self, obj, property, value):
         setattr(obj, property, value)
 
+    def set_exchange_property (self, propertyName, value):
+        # support both: camelCase & snake_case
+        setattr(self, propertyName, value)
+        snakeCasedPropertyName = self.un_camel_case(propertyName)
+        if (snakeCasedPropertyName != propertyName):
+            setattr(self, snakeCasedPropertyName, value)
+
     def un_camel_case(self, str):
         return re.sub('(?!^)([A-Z]+)', r'_\1', str).lower()
 
