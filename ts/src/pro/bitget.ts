@@ -321,40 +321,6 @@ export default class bitget extends bitgetRest {
         return await this.watchOHLCVForSymbols ([ symbolTimeFrame ], since, limit, params);
     }
 
-    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitget#watchOHLCVForSymbols
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        await this.loadMarkets ();
-        const topics = [];
-        const messageHashes = [];
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = symbolsAndTimeframes[i];
-            const currentSymbol = this.safeString (data, 0);
-            const currentTimeframe = this.safeString (data, 1);
-            const market = this.market (currentSymbol);
-            const interval = this.safeString (this.options['timeframes'], currentTimeframe);
-            const instType = market['spot'] ? 'sp' : 'mc';
-            const args = {
-                'instType': instType,
-                'channel': 'candle' + interval,
-                'instId': this.getWsMarketId (market),
-            };
-            topics.push (args);
-            messageHashes.push ('candles:' + interval + ':' + market['symbol']);
-        }
-        // todo: return the symbol in the structure somewhere
-        const ohlcv = await this.watchPublicMultiple (messageHashes, topics, params);
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
-    }
-
     handleOHLCV (client: Client, message) {
         //
         //   {
