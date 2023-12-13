@@ -120,8 +120,11 @@ function io_dir_read($path) {
     return $cleanFiles;
 }
 
+
 function call_method($testFiles, $methodName, $exchange, $skippedProperties, $args) {
-    return $testFiles[$methodName]($exchange, $skippedProperties, ... $args);
+    $isWs = str_starts_with($methodName, 'watch');
+    $methodNameWithNameSpace = '\\ccxt\\' . ($isWs ? 'pro\\':'') . $testFiles[$methodName];
+    return call_user_func($methodNameWithNameSpace, $exchange, $skippedProperties, ... $args);
 }
 
 function call_overriden_method($exchange, $methodName, $args) {
