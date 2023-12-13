@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/okcoin.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, NetworkError, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, AccountNotEnabled, BadSymbol, RateLimitExceeded, NotSupported } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, NetworkError, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, AccountNotEnabled, BadSymbol, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -2814,7 +2814,14 @@ export default class okcoin extends Exchange {
             request['ccy'] = currency['id'];
         }
         [ request, params ] = this.handleUntilOption ('end', request, params);
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'privateGetAccountBillsArchive') {
+            response = await this.privateGetAccountBillsArchive (this.extend (request, params));
+        } else if (method === 'privateGetAssetBills') {
+            response = await this.privateGetAssetBills (this.extend (request, params));
+        } else {
+            response = await this.privateGetAccountBills (this.extend (request, params));
+        }
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
