@@ -1939,7 +1939,7 @@ export default class gate extends Exchange {
         //
         const currencyId = this.safeString (response, 'currency');
         code = this.safeCurrencyCode (currencyId);
-        const networkId = this.networkCodeToId(rawNetwork, code)
+        const networkId = this.networkCodeToId (rawNetwork, code);
         let network = undefined;
         let tag = undefined;
         let address = undefined;
