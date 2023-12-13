@@ -477,6 +477,14 @@
                 "url": "https://api.huobi.pro/v1/common/timestamp",
                 "input": []
             }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetch Markets",
+                "method": "fetchMarkets",
+                "url": "https://api.huobi.pro/swap-api/v1/swap_contract_info",
+                "input": []
+            }
         ]
     }
 }

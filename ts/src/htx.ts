@@ -1627,7 +1627,6 @@ export default class htx extends Exchange {
     }
 
     async fetchMarketsByTypeAndSubType (type, subType, params = {}) {
-        let method = 'spotPublicGetV1CommonSymbols';
         const query = this.omit (params, [ 'type', 'subType' ]);
         const spot = (type === 'spot');
         const contract = (type !== 'spot');
@@ -1636,23 +1635,26 @@ export default class htx extends Exchange {
         let linear = undefined;
         let inverse = undefined;
         const request = {};
+        let response = undefined;
         if (contract) {
             linear = (subType === 'linear');
             inverse = (subType === 'inverse');
             if (linear) {
-                method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
                 if (future) {
                     request['business_type'] = 'futures';
                 }
+                response = await this.contractPublicGetLinearSwapApiV1SwapContractInfo (this.extend (request, query));
             } else if (inverse) {
                 if (future) {
-                    method = 'contractPublicGetApiV1ContractContractInfo';
+                    response = await this.contractPublicGetApiV1ContractContractInfo (this.extend (request, query));
                 } else if (swap) {
-                    method = 'contractPublicGetSwapApiV1SwapContractInfo';
+                    response = await this.contractPublicGetSwapApiV1SwapContractInfo (this.extend (request, query));
                 }
             }
         }
-        const response = await this[method] (this.extend (request, query));
+        if (response === undefined) {
+            response = await this.spotPublicGetV1CommonSymbols (this.extend (request, query));
+        }
         //
         // spot
         //
