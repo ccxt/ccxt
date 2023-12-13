@@ -2324,7 +2324,7 @@ export default class bitmart extends Exchange {
             reduceOnly = true;
             request['activation_price'] = this.priceToPrecision (symbol, price);
             request['activation_price_type'] = this.safeInteger (params, 'activation_price_type', 1);
-            request['callback_rate'] = this.safeString (params, 'callback_rate', "1");
+            request['callback_rate'] = this.safeString (params, 'callback_rate', '1');
         }
         if (side === 'buy') {
             if (reduceOnly) {
