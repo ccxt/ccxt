@@ -85,7 +85,6 @@ from ccxt.async_support.bitpanda import bitpanda                                
 from ccxt.async_support.bitrue import bitrue                                    # noqa: F401
 from ccxt.async_support.bitso import bitso                                      # noqa: F401
 from ccxt.async_support.bitstamp import bitstamp                                # noqa: F401
-from ccxt.async_support.bittrex import bittrex                                  # noqa: F401
 from ccxt.async_support.bitvavo import bitvavo                                  # noqa: F401
 from ccxt.async_support.bl3p import bl3p                                        # noqa: F401
 from ccxt.async_support.blockchaincom import blockchaincom                      # noqa: F401
@@ -186,7 +185,6 @@ exchanges = [
     'bitrue',
     'bitso',
     'bitstamp',
-    'bittrex',
     'bitvavo',
     'bl3p',
     'blockchaincom',
