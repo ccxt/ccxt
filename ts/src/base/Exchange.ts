@@ -1465,6 +1465,15 @@ export default class Exchange {
         obj[property] = defaultValue;
     }
 
+    setExchangeProperty (propertyName, value) {
+        // support both: camelCase & snake_case
+        this[propertyName] = value;
+        const snakeCasedPropertyName = this.unCamelCase (propertyName);
+        if (snakeCasedPropertyName !== propertyName) {
+            this[snakeCasedPropertyName] = value;
+        }
+    }
+
     axolotl(payload, hexKey, ed25519) {
         return axolotl(payload, hexKey, ed25519);
     }
