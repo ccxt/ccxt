@@ -1,16 +1,6 @@
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Globalization;
-using System.Net;
 
 namespace ccxt;
 
-using dict = Dictionary<string, object>;
-using System.Net.WebSockets;
-using System.Data;
-using System.Runtime.InteropServices;
-using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
 
 public partial class Exchange
@@ -45,7 +35,25 @@ public partial class Exchange
         {
             return tcs.Task.GetAwaiter();
         }
+
+        public static Future race(params Future[] futures)
+        {
+            var future = new Future();
+            foreach (var f in futures)
+            {
+                f.task.ContinueWith((task) =>
+                {
+                    if (task.IsCompleted)
+                    {
+                        future.resolve(task.Result);
+                    }
+                    else
+                    {
+                        future.reject(task.Exception);
+                    }
+                });
+            }
+            return future;
+        }
     }
-
-
 }

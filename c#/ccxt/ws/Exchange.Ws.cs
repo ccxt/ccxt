@@ -148,6 +148,7 @@ public partial class Exchange
                 catch (Exception ex)
                 {
                     client.subscriptions.Remove(subscribeHash);
+                    future.reject(ex);
                     // future.SetException(ex); check this out
                 }
 
@@ -155,6 +156,56 @@ public partial class Exchange
         }
 
         return await future;
-        // return future;
+    }
+
+    public async Task<object> watchMultiple(object url2, object messageHashes2, object message = null, object subscribeHashes2 = null, object subscription = null)
+    {
+        var url = url2.ToString();
+        var messageHash = messageHashes2 as List<string>;
+        var subscribeHashes = subscribeHashes2 as List<string>;
+
+        var client = this.client(url);
+
+
+        var future = Future.race(subscribeHashes.Select(subHash => client.future(subHash)).ToArray());
+
+        var missingSubscriptions = new List<string>();
+
+        if (subscribeHashes != null)
+        {
+            foreach (var subscribeHash in subscribeHashes)
+            {
+                var clientSubscription = (subscribeHash != null && client.subscriptions.ContainsKey(subscribeHash)) ? client.subscriptions[subscribeHash] : null;
+
+                if (clientSubscription == null)
+                {
+                    client.subscriptions[subscribeHash] = subscription ?? true;
+                    missingSubscriptions.Add(subscribeHash);
+                }
+            }
+        }
+
+        var connected = client.connect(0);
+
+        if (subscribeHashes == null || missingSubscriptions.Count > 0)
+        {
+            await connected;
+            if (message != null) {
+                try
+                {
+                    await client.send(message);
+                }
+                catch (Exception ex)
+                {
+                    foreach (var subscribeHash in missingSubscriptions)
+                    {
+                        client.subscriptions.Remove(subscribeHash);
+                    }
+                    future.reject(ex); // check this out
+                }
+            }
+        }
+
+        return await future;
     }
 }
