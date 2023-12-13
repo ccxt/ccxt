@@ -353,9 +353,9 @@ export default class bit2c extends Exchange {
         }
         let response = undefined;
         if (method === 'public_get_exchanges_pair_trades') {
-            response = await this.publicGetExchangesPairTrades(this.extend(request, params));
+            response = await this.publicGetExchangesPairTrades (this.extend (request, params));
         } else {
-            response = await this.publicGetExchangesPairLasttrades(this.extend(request, params));
+            response = await this.publicGetExchangesPairLasttrades (this.extend (request, params));
         }
         //
         //     [
