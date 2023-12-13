@@ -1678,7 +1678,7 @@ export default class Exchange {
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join (',');
-            throw new ExchangeError (this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, socksProxy');
+            throw new ExchangeError (this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy');
         }
         return [ wsProxy, wssProxy, wsSocksProxy ];
     }
