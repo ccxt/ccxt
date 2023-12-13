@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinmetro.js';
-import { ArgumentsRequired } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 // import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -164,6 +164,12 @@ export default class coinmetro extends Exchange {
                     'put': {
                     },
                 },
+            },
+            'requiredCredentials': {
+                'apiKey': false,
+                'secret': false,
+                'login': true,
+                'password': true,
             },
             'fees': {
                 // todo: add swap and margin
@@ -654,6 +660,10 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privateGetUsersBalances (params);
+        return this.parseBalance (response);
+    }
+
+    parseBalance (response): Balances {
         //
         //     {
         //         "USDC": {
@@ -677,7 +687,23 @@ export default class coinmetro extends Exchange {
         //         }
         //     }
         //
-        return this.safeBalance (response);
+        const timestamp = this.milliseconds ();
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const balances = this.omit (response, [ 'TOTAL', 'REF' ]);
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            const currency = this.safeValue (balances, currencyId, {});
+            account['total'] = this.safeString (currency, currencyId);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -743,8 +769,8 @@ export default class coinmetro extends Exchange {
          */
         this.checkRequiredCredentials ();
         const request = {
-            'login': this.apiKey,
-            'password': this.secret,
+            'login': this.login,
+            'password': this.password,
         };
         const response = await this.privatePostJwt (this.extend (request, params));
         //
@@ -753,7 +779,7 @@ export default class coinmetro extends Exchange {
         //         "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjNTJkMWEyZTFkMWM5MjhkNWRkZWZlNSIsInVzZXJuYW1lIjoic29tZUBtYWlsLmNvbSIsImV4cCI6MTU3MDM4MDU3MTU1NCwiaWF0IjoxNTY3Nzg4NTcxfQ.2A5PbS8Oo7ZDGfNlhNEs43gHfmj0OyCHM2sbGFBbi1Y",
         //     }
         //
-        this.options['accessToken'] = this.safeString (response, 'token');
+        this['token'] = this.safeString (response, 'token');
         return response;
     }
 
@@ -772,8 +798,12 @@ export default class coinmetro extends Exchange {
                     headers['X-OTP'] = this.twofa;
                 }
             } else {
-                const accessToken = this.safeValue (this.options, 'accessToken');
-                headers['Authorization'] = 'Bearer ' + accessToken;
+                const token = this.safeValue (this, 'token');
+                if (token !== undefined) {
+                    headers['Authorization'] = 'Bearer ' + token;
+                } else {
+                    throw new AuthenticationError (this.id + ' access token required, call signIn() method');
+                }
             }
             if ((method === 'POST') || (method === 'PUT')) {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
