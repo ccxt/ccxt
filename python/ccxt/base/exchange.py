@@ -4532,27 +4532,6 @@ class Exchange(object):
         """
         return self.filter_by_array(objects, key, values, indexed)
 
-    def resolve_promise_if_messagehash_matches(self, client, prefix: str, symbol: str, data):
-        messageHashes = self.findMessageHashes(client, prefix)
-        for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
-            parts = messageHash.split('::')
-            symbolsString = parts[1]
-            symbols = symbolsString.split(',')
-            if self.in_array(symbol, symbols):
-                client.resolve(data, messageHash)
-
-    def resolve_multiple_ohlcv(self, client, prefix: str, symbol: str, timeframe: str, data):
-        messageHashes = self.findMessageHashes(client, 'multipleOHLCV::')
-        for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
-            parts = messageHash.split('::')
-            symbolsAndTimeframes = parts[1]
-            splitted = symbolsAndTimeframes.split(',')
-            id = symbol + '#' + timeframe
-            if self.in_array(id, splitted):
-                client.resolve([symbol, timeframe, data], messageHash)
-
     def create_ohlcv_object(self, symbol: str, timeframe: str, data):
         res = {}
         res[symbol] = {}

@@ -1276,16 +1276,22 @@ class okcoin extends Exchange {
         if (($requestOrdType === 'trigger') || ($requestOrdType === 'conditional') || ($type === 'oco') || ($type === 'move_order_stop') || ($type === 'iceberg') || ($type === 'twap')) {
             $method = 'privatePostTradeOrderAlgo';
         }
-        if (($method !== 'privatePostTradeOrder') && ($method !== 'privatePostTradeOrderAlgo') && ($method !== 'privatePostTradeBatchOrders')) {
-            throw new ExchangeError($this->id . ' createOrder() $this->options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo');
-        }
         if ($method === 'privatePostTradeBatchOrders') {
             // keep the $request body the same
             // submit a single $order in an array to the batch $order endpoint
             // because it has a lower ratelimit
             $request = array( $request );
         }
-        $response = $this->$method ($request);
+        $response = null;
+        if ($method === 'privatePostTradeOrder') {
+            $response = $this->privatePostTradeOrder ($request);
+        } elseif ($method === 'privatePostTradeOrderAlgo') {
+            $response = $this->privatePostTradeOrderAlgo ($request);
+        } elseif ($method === 'privatePostTradeBatchOrders') {
+            $response = $this->privatePostTradeBatchOrders ($request);
+        } else {
+            throw new ExchangeError($this->id . ' createOrder() $this->options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo');
+        }
         $data = $this->safe_value($response, 'data', array());
         $first = $this->safe_value($data, 0);
         $order = $this->parse_order($first, $market);
@@ -2753,7 +2759,14 @@ class okcoin extends Exchange {
             $request['ccy'] = $currency['id'];
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($method === 'privateGetAccountBillsArchive') {
+            $response = $this->privateGetAccountBillsArchive (array_merge($request, $params));
+        } elseif ($method === 'privateGetAssetBills') {
+            $response = $this->privateGetAssetBills (array_merge($request, $params));
+        } else {
+            $response = $this->privateGetAccountBills (array_merge($request, $params));
+        }
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //

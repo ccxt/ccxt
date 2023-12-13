@@ -1,5 +1,5 @@
 import coinbaseproRest from '../coinbasepro.js';
-import type { Int, Ticker, Str, Strings, Trade, Order, OrderBook } from '../base/types.js';
+import type { Int, Ticker, Str, Strings, OrderBook, Trade, Order } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinbasepro extends coinbaseproRest {
     describe(): any;
@@ -19,8 +19,8 @@ export default class coinbasepro extends coinbaseproRest {
     watchMyTradesForSymbols(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOrdersForSymbols(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleTrade(client: Client, message: any): any;
     handleMyTrade(client: Client, message: any): any;
     parseWsTrade(trade: any, market?: any): Trade;

@@ -157,19 +157,19 @@ class bitget(ccxt.async_support.bitget):
         symbols = self.market_symbols(symbols, None, False)
         market = self.market(symbols[0])
         instType = 'sp' if market['spot'] else 'mc'
-        messageHash = 'tickers::' + ','.join(symbols)
-        marketIds = self.market_ids(symbols)
         topics = []
-        for i in range(0, len(marketIds)):
-            marketId = marketIds[i]
-            marketInner = self.market(marketId)
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            marketInner = self.market(symbol)
             args = {
                 'instType': instType,
                 'channel': 'ticker',
                 'instId': self.get_ws_market_id(marketInner),
             }
             topics.append(args)
-        tickers = await self.watch_public_multiple(messageHash, topics, params)
+            messageHashes.append('ticker:' + symbol)
+        tickers = await self.watch_public_multiple(messageHashes, topics, params)
         if self.newUpdates:
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -201,16 +201,6 @@ class bitget(ccxt.async_support.bitget):
         self.tickers[symbol] = ticker
         messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
-        # watchTickers part
-        messageHashes = self.find_message_hashes(client, 'tickers::')
-        for i in range(0, len(messageHashes)):
-            messageHashTicker = messageHashes[i]
-            parts = messageHashTicker.split('::')
-            symbolsString = parts[1]
-            symbols = symbolsString.split(',')
-            if self.in_array(symbol, symbols):
-                client.resolve(ticker, messageHashTicker)
-        return message
 
     def parse_ws_ticker(self, message, market=None):
         #
@@ -329,39 +319,6 @@ class bitget(ccxt.async_support.bitget):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
-        """
-        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-        :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A list of candles ordered, open, high, low, close, volume
-        """
-        await self.load_markets()
-        topics = []
-        hashes = []
-        for i in range(0, len(symbolsAndTimeframes)):
-            data = symbolsAndTimeframes[i]
-            currentSymbol = self.safe_string(data, 0)
-            currentTimeframe = self.safe_string(data, 1)
-            market = self.market(currentSymbol)
-            interval = self.safe_string(self.options['timeframes'], currentTimeframe)
-            instType = 'sp' if market['spot'] else 'mc'
-            args = {
-                'instType': instType,
-                'channel': 'candle' + interval,
-                'instId': self.get_ws_market_id(market),
-            }
-            topics.append(args)
-            hashes.append(currentSymbol + '#' + currentSymbol)
-        messageHash = 'multipleOHLCV::' + ','.join(hashes)
-        symbol, timeframe, stored = await self.watch_public_multiple(messageHash, topics, params)
-        if self.newUpdates:
-            limit = stored.getLimit(symbol, limit)
-        filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
-        return self.create_ohlcv_object(symbol, timeframe, filtered)
-
     def handle_ohlcv(self, client: Client, message):
         #
         #   {
@@ -411,7 +368,6 @@ class bitget(ccxt.async_support.bitget):
             stored.append(parsed)
         messageHash = 'candles:' + timeframe + ':' + symbol
         client.resolve(stored, messageHash)
-        self.resolve_multiple_ohlcv(client, 'multipleOHLCV::', symbol, timeframe, stored)
 
     def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
@@ -441,26 +397,7 @@ class bitget(ccxt.async_support.bitget):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
-        market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'orderbook' + ':' + symbol
-        instType = 'sp' if market['spot'] else 'mc'
-        channel = 'books'
-        incrementalFeed = True
-        if (limit == 1) or (limit == 5) or (limit == 15):
-            channel += str(limit)
-            incrementalFeed = False
-        args = {
-            'instType': instType,
-            'channel': channel,
-            'instId': self.get_ws_market_id(market),
-        }
-        orderbook = await self.watch_public(messageHash, args, params)
-        if incrementalFeed:
-            return orderbook.limit()
-        else:
-            return orderbook
+        return await self.watch_order_book_for_symbols([symbol], limit, params)
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
@@ -478,8 +415,10 @@ class bitget(ccxt.async_support.bitget):
             channel += str(limit)
             incrementalFeed = False
         topics = []
+        messageHashes = []
         for i in range(0, len(symbols)):
-            market = self.market(symbols[i])
+            symbol = symbols[i]
+            market = self.market(symbol)
             instType = 'sp' if market['spot'] else 'mc'
             args = {
                 'instType': instType,
@@ -487,8 +426,8 @@ class bitget(ccxt.async_support.bitget):
                 'instId': self.get_ws_market_id(market),
             }
             topics.append(args)
-        messageHash = 'multipleOrderbooks::' + ','.join(symbols)
-        orderbook = await self.watch_public_multiple(messageHash, topics, params)
+            messageHashes.append('orderbook:' + symbol)
+        orderbook = await self.watch_public_multiple(messageHashes, topics, params)
         if incrementalFeed:
             return orderbook.limit()
         else:
@@ -571,7 +510,6 @@ class bitget(ccxt.async_support.bitget):
             storedOrderBook = self.parse_order_book(rawOrderBook, symbol, timestamp)
         self.orderbooks[symbol] = storedOrderBook
         client.resolve(storedOrderBook, messageHash)
-        self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbooks::', symbol, storedOrderBook)
 
     def handle_delta(self, bookside, delta):
         bidAsk = self.parse_bid_ask(delta, 0, 1)
@@ -595,20 +533,7 @@ class bitget(ccxt.async_support.bitget):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
-        await self.load_markets()
-        market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'trade:' + symbol
-        instType = 'sp' if market['spot'] else 'mc'
-        args = {
-            'instType': instType,
-            'channel': 'trade',
-            'instId': self.get_ws_market_id(market),
-        }
-        trades = await self.watch_public(messageHash, args, params)
-        if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -625,8 +550,10 @@ class bitget(ccxt.async_support.bitget):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         topics = []
+        messageHashes = []
         for i in range(0, len(symbols)):
-            market = self.market(symbols[i])
+            symbol = symbols[i]
+            market = self.market(symbol)
             instType = 'sp' if market['spot'] else 'mc'
             args = {
                 'instType': instType,
@@ -634,8 +561,8 @@ class bitget(ccxt.async_support.bitget):
                 'instId': self.get_ws_market_id(market),
             }
             topics.append(args)
-        messageHash = 'multipleTrades::' + ','.join(symbols)
-        trades = await self.watch_public_multiple(messageHash, topics, params)
+            messageHashes.append('trade:' + symbol)
+        trades = await self.watch_public_multiple(messageHashes, topics, params)
         if self.newUpdates:
             first = self.safe_value(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
@@ -675,7 +602,6 @@ class bitget(ccxt.async_support.bitget):
             stored.append(parsed)
         messageHash = 'trade:' + symbol
         client.resolve(stored, messageHash)
-        self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, stored)
 
     def parse_ws_trade(self, trade, market=None):
         #
@@ -1413,14 +1339,14 @@ class bitget(ccxt.async_support.bitget):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def watch_public_multiple(self, messageHash, argsArray, params={}):
+    async def watch_public_multiple(self, messageHashes, argsArray, params={}):
         url = self.urls['api']['ws']
         request = {
             'op': 'subscribe',
             'args': argsArray,
         }
         message = self.extend(request, params)
-        return await self.watch(url, messageHash, message, messageHash)
+        return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
     async def authenticate(self, params={}):
         self.check_required_credentials()

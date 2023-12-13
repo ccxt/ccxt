@@ -311,9 +311,6 @@ class bitmart extends \ccxt\async\bitmart {
                 $type = 'futures';
             }
             $messageHash = 'tickers';
-            if ($symbols !== null) {
-                $messageHash .= '::' . implode(',', $symbols);
-            }
             $request = array(
                 'action' => 'subscribe',
                 'args' => array( 'futures/ticker' ),
@@ -448,12 +445,14 @@ class bitmart extends \ccxt\async\bitmart {
                 $symbols[$symbol] = true;
             }
         }
-        $newOrderSymbols = is_array($symbols) ? array_keys($symbols) : array();
-        for ($i = 0; $i < count($newOrderSymbols); $i++) {
-            $symbol = $newOrderSymbols[$i];
-            $this->resolve_promise_if_messagehash_matches($client, 'orders::', $symbol, $newOrders);
+        $messageHash = 'orders';
+        $symbolKeys = is_array($symbols) ? array_keys($symbols) : array();
+        for ($i = 0; $i < count($symbolKeys); $i++) {
+            $symbol = $symbolKeys[$i];
+            $symbolSpecificMessageHash = $messageHash . ':' . $symbol;
+            $client->resolve ($newOrders, $symbolSpecificMessageHash);
         }
-        $client->resolve ($newOrders, 'orders');
+        $client->resolve ($newOrders, $messageHash);
     }
 
     public function parse_ws_order($order, ?array $market = null) {
@@ -919,7 +918,6 @@ class bitmart extends \ccxt\async\bitmart {
             $symbol = $this->safe_string($ticker, 'symbol');
             $this->tickers[$symbol] = $ticker;
             $client->resolve ($ticker, 'tickers');
-            $this->resolve_promise_if_messagehash_matches($client, 'tickers::', $symbol, $ticker);
         }
         return $message;
     }

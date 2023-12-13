@@ -31,6 +31,6 @@ export default class bitpanda extends bitpandaRest {
     handleMessage(client: Client, message: any): any;
     handlePricePointUpdates(client: Client, message: any): any;
     handleAuthenticationMessage(client: Client, message: any): any;
-    watchMultiple(messageHash: any, request: any, subscriptionHash: any, symbols?: Strings, params?: {}): Promise<any>;
+    watchMany(messageHash: any, request: any, subscriptionHash: any, symbols?: Strings, params?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;
 }

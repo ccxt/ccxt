@@ -280,8 +280,6 @@ class bitmart(ccxt.async_support.bitmart):
         if type == 'swap':
             type = 'futures'
         messageHash = 'tickers'
-        if symbols is not None:
-            messageHash += '::' + ','.join(symbols)
         request = {
             'action': 'subscribe',
             'args': ['futures/ticker'],
@@ -402,11 +400,13 @@ class bitmart(ccxt.async_support.bitmart):
                 newOrders.append(order)
                 symbol = order['symbol']
                 symbols[symbol] = True
-        newOrderSymbols = list(symbols.keys())
-        for i in range(0, len(newOrderSymbols)):
-            symbol = newOrderSymbols[i]
-            self.resolve_promise_if_messagehash_matches(client, 'orders::', symbol, newOrders)
-        client.resolve(newOrders, 'orders')
+        messageHash = 'orders'
+        symbolKeys = list(symbols.keys())
+        for i in range(0, len(symbolKeys)):
+            symbol = symbolKeys[i]
+            symbolSpecificMessageHash = messageHash + ':' + symbol
+            client.resolve(newOrders, symbolSpecificMessageHash)
+        client.resolve(newOrders, messageHash)
 
     def parse_ws_order(self, order, market: Market = None):
         #
@@ -845,7 +845,6 @@ class bitmart(ccxt.async_support.bitmart):
             symbol = self.safe_string(ticker, 'symbol')
             self.tickers[symbol] = ticker
             client.resolve(ticker, 'tickers')
-            self.resolve_promise_if_messagehash_matches(client, 'tickers::', symbol, ticker)
         return message
 
     def parse_ws_swap_ticker(self, ticker, market: Market = None):

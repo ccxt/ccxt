@@ -77,11 +77,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
-        market = self.market(symbol)
-        messageHash = 'book' + '.' + market['id']
-        orderbook = await self.watch_public(messageHash, params)
-        return orderbook.limit()
+        return await self.watch_order_book_for_symbols([symbol], limit, params)
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
@@ -98,10 +94,9 @@ class cryptocom(ccxt.async_support.cryptocom):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            currentMessageHash = 'book' + '.' + market['id']
-            topics.append(currentMessageHash)
-        messageHash = 'multipleOrderbooks::' + ','.join(symbols)
-        orderbook = await self.watch_public_multiple(messageHash, topics, params)
+            currentTopic = 'book' + '.' + market['id']
+            topics.append(currentTopic)
+        orderbook = await self.watch_public_multiple(topics, topics, params)
         return orderbook.limit()
 
     def handle_order_book_snapshot(self, client: Client, message):
@@ -142,7 +137,6 @@ class cryptocom(ccxt.async_support.cryptocom):
         orderbook.reset(snapshot)
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
-        self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbooks::', symbol, orderbook)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -154,14 +148,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
-        await self.load_markets()
-        market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'trade' + '.' + market['id']
-        trades = await self.watch_public(messageHash, params)
-        if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -179,10 +166,9 @@ class cryptocom(ccxt.async_support.cryptocom):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            currentMessageHash = 'trade' + '.' + market['id']
-            topics.append(currentMessageHash)
-        messageHash = 'multipleTrades::' + ','.join(symbols)
-        trades = await self.watch_public_multiple(messageHash, topics, params)
+            currentTopic = 'trade' + '.' + market['id']
+            topics.append(currentTopic)
+        trades = await self.watch_public_multiple(topics, topics, params)
         if self.newUpdates:
             first = self.safe_value(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
@@ -232,7 +218,6 @@ class cryptocom(ccxt.async_support.cryptocom):
         channelReplaced = channel.replace('.' + marketId, '')
         client.resolve(stored, symbolSpecificMessageHash)
         client.resolve(stored, channelReplaced)
-        self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, stored)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -708,7 +693,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def watch_public_multiple(self, messageHash, topics, params={}):
+    async def watch_public_multiple(self, messageHashes, topics, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
         request = {
@@ -719,7 +704,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             'nonce': id,
         }
         message = self.extend(request, params)
-        return await self.watch(url, messageHash, message, messageHash)
+        return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
     async def watch_private_request(self, nonce, params={}):
         await self.authenticate()

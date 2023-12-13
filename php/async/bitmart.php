@@ -2087,7 +2087,7 @@ class bitmart extends Exchange {
         //        "updateTime" : 1681701559408
         //    }
         //
-        // swap => fetchOrder, fetchOpenOrders
+        // swap => fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "order_id" => "230935812485489",
@@ -2103,7 +2103,10 @@ class bitmart extends Exchange {
         //         "deal_avg_price" => "0",
         //         "deal_size" => "0",
         //         "create_time" => 1695702258629,
-        //         "update_time" => 1695702258642
+        //         "update_time" => 1695702258642,
+        //         "activation_price_type" => 0,
+        //         "activation_price" => "",
+        //         "callback_rate" => ""
         //     }
         //
         $id = null;
@@ -2133,6 +2136,7 @@ class bitmart extends Exchange {
         if ($priceString === 'market price') {
             $priceString = null;
         }
+        $trailingStopActivationPrice = $this->safe_number($order, 'activation_price');
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $this->safe_string($order, 'client_order_id'),
@@ -2146,8 +2150,8 @@ class bitmart extends Exchange {
             'postOnly' => $postOnly,
             'side' => $this->parse_order_side($this->safe_string($order, 'side')),
             'price' => $this->omit_zero($priceString),
-            'stopPrice' => null,
-            'triggerPrice' => null,
+            'stopPrice' => $trailingStopActivationPrice,
+            'triggerPrice' => $trailingStopActivationPrice,
             'amount' => $this->omit_zero($this->safe_string($order, 'size')),
             'cost' => $this->safe_string_2($order, 'filled_notional', 'filledNotional'),
             'average' => $this->safe_string_n($order, array( 'price_avg', 'priceAvg', 'deal_avg_price' )),
@@ -2223,7 +2227,7 @@ class bitmart extends Exchange {
              * @see https://developer-pro.bitmart.com/en/spot/#place-margin-$order
              * @see https://developer-pro.bitmart.com/en/futures/#submit-$order-signed
              * @param {string} $symbol unified $symbol of the $market to create an $order in
-             * @param {string} $type 'market' or 'limit'
+             * @param {string} $type 'market', 'limit' or 'trailing' for swap markets only
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
@@ -2278,10 +2282,11 @@ class bitmart extends Exchange {
 
     public function create_swap_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
+         * @ignore
          * create a trade order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
+         * @param {string} $type 'market', 'limit' or 'trailing'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
@@ -2289,7 +2294,9 @@ class bitmart extends Exchange {
          * @param {int} [$params->leverage] $leverage level
          * @param {boolean} [$params->reduceOnly] *swap only* reduce only
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'
-         *  @param {string} [$params->clientOrderId] client order id of the order
+         * @param {string} [$params->clientOrderId] client order id of the order
+         * @param {int} [$params->activation_price_type] *swap trailing order only* 1 => last $price, 2 => fair $price, default is 1
+         * @param {string} [$params->callback_rate] *swap trailing order only* min 0.1, max 5 where 1 is 1%, default is "1"
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $market = $this->market($symbol);
@@ -2320,10 +2327,15 @@ class bitmart extends Exchange {
         }
         if ($isLimitOrder) {
             $request['price'] = $this->price_to_precision($symbol, $price);
+        } elseif ($type === 'trailing') {
+            $reduceOnly = true;
+            $request['activation_price'] = $this->price_to_precision($symbol, $price);
+            $request['activation_price_type'] = $this->safe_integer($params, 'activation_price_type', 1);
+            $request['callback_rate'] = $this->safe_string($params, 'callback_rate', '1');
         }
         if ($side === 'buy') {
             if ($reduceOnly) {
-                $request['side'] = 2; // sell close long
+                $request['side'] = 2; // buy close short
             } else {
                 $request['side'] = 1; // buy open long
             }
@@ -2350,6 +2362,7 @@ class bitmart extends Exchange {
 
     public function create_spot_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
+         * @ignore
          * create a spot order $request
          * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
          * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
@@ -2628,6 +2641,7 @@ class bitmart extends Exchange {
              * @param {int} [$params->until] *spot* the latest time in ms to fetch orders for
              * @param {string} [$params->type] *swap* order $type, 'limit' or 'market'
              * @param {string} [$params->order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
+             * @param {string} [$params->orderType] *swap only* 'limit', 'market', or 'trailing'
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -2659,6 +2673,11 @@ class bitmart extends Exchange {
                 }
                 $response = Async\await($this->privatePostSpotV4QueryOpenOrders (array_merge($request, $params)));
             } elseif ($type === 'swap') {
+                $orderType = $this->safe_string($params, 'orderType');
+                $params = $this->omit($params, 'orderType');
+                if ($orderType !== null) {
+                    $request['type'] = $orderType;
+                }
                 $response = Async\await($this->privateGetContractPrivateGetOpenOrders (array_merge($request, $params)));
             } else {
                 throw new NotSupported($this->id . ' fetchOpenOrders() does not support ' . $type . ' orders, only spot and swap orders are accepted');
@@ -2801,6 +2820,7 @@ class bitmart extends Exchange {
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] *spot* fetch the order by client order $id instead of order $id
+             * @param {string} [$params->orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -2825,6 +2845,11 @@ class bitmart extends Exchange {
             } elseif ($type === 'swap') {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+                }
+                $orderType = $this->safe_string($params, 'orderType');
+                $params = $this->omit($params, 'orderType');
+                if ($orderType !== null) {
+                    $request['type'] = $orderType;
                 }
                 $request['symbol'] = $market['id'];
                 $request['order_id'] = $id;
