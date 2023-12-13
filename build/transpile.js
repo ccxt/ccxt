@@ -2525,10 +2525,8 @@ class Transpiler {
             test.phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
             test.pythonPreambleAsync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderAsync.join ('\n') + '\n\n';
 
-            this.modifyCustomFilesHeaders (test);
-            if (isWs) {
-                phpSync = phpSync.replace ('namespace ccxt\\pro', 'namespace ccxt');
-            }
+            this.modifyCustomFilesHeaders (test); // hook for ws transpiler
+
             test.phpFileSyncContent = test.phpPreambleSync + phpSync;
             test.pyFileSyncContent = test.pythonPreambleSync + pythonSync;
             test.phpFileAsyncContent = test.phpPreambleAsync + phpAsync;
