@@ -1911,10 +1911,13 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] unified network code (not used directly by gate.io but used by ccxt to filter the response)
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const rawNetwork = this.safeStringUpper (params, 'network');
+        params = this.omit (params, 'network');
         const request = {
             'currency': currency['id'],
         };
@@ -1936,9 +1939,7 @@ export default class gate extends Exchange {
         //
         const currencyId = this.safeString (response, 'currency');
         code = this.safeCurrencyCode (currencyId);
-        const networks = this.safeValue (this.options, 'networks', {});
-        const rawNetwork = this.safeStringUpper (params, 'network');
-        const networkId = this.safeString (networks, rawNetwork, rawNetwork);
+        const networkId = this.networkCodeToId(rawNetwork, code)
         let network = undefined;
         let tag = undefined;
         let address = undefined;
@@ -1954,7 +1955,7 @@ export default class gate extends Exchange {
                     }
                     address = this.safeString (entry, 'address');
                     tag = this.safeString (entry, 'payment_id');
-                    network = this.networkIdToCode (networkId);
+                    network = this.networkIdToCode (networkId, code);
                     break;
                 }
             }
