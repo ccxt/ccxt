@@ -469,6 +469,14 @@
                 "url": "https://status.huobigroup.com/api/v2/summary.json",
                 "input": []
             }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetch Time",
+                "method": "fetchTime",
+                "url": "https://api.huobi.pro/v1/common/timestamp",
+                "input": []
+            }
         ]
     }
 }

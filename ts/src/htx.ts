@@ -1447,11 +1447,12 @@ export default class htx extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let type = this.safeString (options, 'type', defaultType);
         type = this.safeString (params, 'type', type);
-        let method = 'spotPublicGetV1CommonTimestamp';
+        let response = undefined;
         if ((type === 'future') || (type === 'swap')) {
-            method = 'contractPublicGetApiV1Timestamp';
+            response = await this.contractPublicGetApiV1Timestamp (params);
+        } else {
+            response = await this.spotPublicGetV1CommonTimestamp (params);
         }
-        const response = await this[method] (params);
         //
         // spot
         //
