@@ -587,12 +587,8 @@ export default class gate extends Exchange {
                     'expiration': 86400, // for conditional orders
                 },
                 'networks': {
-                    'ALGORAND': 'ALGO',
-                    'ARBITRUM_NOVA': 'ARBNOVA',
-                    'ARBITRUM_ONE': 'ARBEVM',
-                    'AVALANCHE_C': 'AVAX_C',
+                    'AVAXC': 'AVAX_C',
                     'BEP20': 'BSC',
-                    'CHILIZ': 'CHZ',
                     'EOS': 'EOS',
                     'ERC20': 'ETH',
                     'GATECHAIN': 'GTEVM',
@@ -602,8 +598,6 @@ export default class gate extends Exchange {
                     'OKC': 'OKT',
                     'OPTIMISM': 'OPETH',
                     'POLKADOT': 'DOTSM',
-                    'POLYGON': 'MATIC',
-                    'SOLANA': 'SOL',
                     'TRC20': 'TRX',
                 },
                 'timeInForce': {
@@ -951,18 +945,6 @@ export default class gate extends Exchange {
             return this.createExpiredOptionMarket (marketId);
         }
         return super.safeMarket (marketId, market, delimiter, marketType);
-    }
-
-    safeNetwork (networkId) {
-        const networksById = {
-            'BSC': 'BEP20',
-            'ETH': 'ERC20',
-            'HT': 'HRC20',
-            'KSMSM': 'KUSAMA',
-            'OPETH': 'OPTIMISM',
-            'TRX': 'TRC20',
-        };
-        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchMarkets (params = {}) {
@@ -1972,7 +1954,7 @@ export default class gate extends Exchange {
                     }
                     address = this.safeString (entry, 'address');
                     tag = this.safeString (entry, 'payment_id');
-                    network = this.safeNetwork (networkId);
+                    network = this.networkIdToCode (networkId);
                     break;
                 }
             }
