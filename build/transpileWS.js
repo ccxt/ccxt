@@ -177,7 +177,7 @@ class CCXTProTranspiler extends Transpiler {
     }
 
 
-    modifyCustomFiles (test) {
+    modifyCustomFilesHeaders (test) {
         const isWsCache = test.tsFile.includes('pro/test/base/test.Cache.ts');
         const isWsOrderBook = test.tsFile.includes('pro/test/base/test.OrderBook.ts');
         if (isWsCache){
