@@ -415,7 +415,7 @@ class NewTranspiler {
         return `${paramType}${op} ${safeName}`
     }
 
-    shouldCreateWrapper(methodName: string): boolean {
+    shouldCreateWrapper(methodName: string, isWs = false): boolean {
         const allowedPrefixes = [
             'fetch',
             'create',
@@ -429,6 +429,9 @@ class NewTranspiler {
             'watch',
             // 'load',
         ];
+        // const allowedPrefixesWs = [
+        //     ''
+        // ]
         const blacklistMethods = [
             'fetch',
             'setSandBoxMode',
@@ -439,8 +442,18 @@ class NewTranspiler {
             'setProperty',
             'setProxyAgents',
             'watch',
-            'setPositionsCache'
+            'watchMultipleSubscription',
+            'watchMultiple',
+            'watchPrivate',
+            'watchPublic',
+            'setPositionsCache',
+            'setPositionCache'
         ] // improve this later
+        if (isWs) {
+            if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
+                return false;
+            }
+        }
         const isBlackListed = blacklistMethods.includes(methodName);
         const startsWithAllowedPrefix = allowedPrefixes.some(prefix => methodName.startsWith(prefix));
         return !isBlackListed && startsWithAllowedPrefix;
@@ -504,10 +517,10 @@ class NewTranspiler {
         return '    '.repeat(level);
     }
 
-    createWrapper (exchangeName, methodWrapper) {
+    createWrapper (exchangeName, methodWrapper, isWs = false) {
         const isAsync = methodWrapper.async;
         const methodName = methodWrapper.name;
-        if (!this.shouldCreateWrapper(methodName)) {
+        if (!this.shouldCreateWrapper(methodName, isWs)) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
         }
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
@@ -547,7 +560,7 @@ class NewTranspiler {
     }
 
     createCSharpWrappers(exchange:string, path: string, wrappers, ws = false) {
-        const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper)).filter(wrapper => wrapper !== '').join('\n');
+        const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
         const exchangeName = ws ? exchange + 'Ws' : exchange;
