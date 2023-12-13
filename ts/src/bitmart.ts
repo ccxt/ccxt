@@ -2273,25 +2273,6 @@ export default class bitmart extends Exchange {
     }
 
     createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitmart#createSwapOrderRequest
-         * @description create a trade order
-         * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market', 'limit' or 'trailing'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.leverage] leverage level
-         * @param {boolean} [params.reduceOnly] *swap only* reduce only
-         * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
-         * @param {string} [params.clientOrderId] client order id of the order
-         * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
-         * @param {string} [params.callback_rate] *swap trailing order only* min 0.1, max 5 where 1 is 1%, default is "1"
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
@@ -2354,21 +2335,6 @@ export default class bitmart extends Exchange {
     }
 
     createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitmart#createSpotOrderRequest
-         * @description create a spot order request
-         * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
-         * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] 'cross' or 'isolated'
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
