@@ -225,14 +225,14 @@ function set_test_files ($holderClass, $properties) {
     return Async\async (function() use ($holderClass, $properties){
         $finalPropList = array_merge ($properties, [proxyTestFileName]);
         for ($i = 0; $i < count($finalPropList); $i++) {
-            $name = $finalPropList[$i];
-            $name_snake_case = convert_to_snake_case($name);
+            $methodName = $finalPropList[$i];
+            $name_snake_case = convert_to_snake_case($methodName);
             $dir_to_test = isWsTests ? dirname(__DIR__) . '/pro/test/Exchange/' : __DIR__ . '/' . (is_synchronous ? 'sync' : 'async') .'/';
             $test_method_name = 'test_'. $name_snake_case;
             $test_file = $dir_to_test . $test_method_name . '.' . ext;
             if (io_file_exists ($test_file)) {
                 include_once $test_file;
-                $holderClass->test_files[$name_snake_case] = $test_method_name;
+                $holderClass->test_files[$methodName] = $test_method_name;
             }
         }
     })();
