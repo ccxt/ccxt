@@ -16,6 +16,9 @@ interface Exchange {
     publicGetMarkets (params?: {}): Promise<implicitReturnType>;
     publicGetExchangeBookPair (params?: {}): Promise<implicitReturnType>;
     publicGetExchangeBookUpdatesPairFrom (params?: {}): Promise<implicitReturnType>;
+    privateGetUsersBalances (params?: {}): Promise<implicitReturnType>;
+    privateGetUsersWalletsHistorySince (params?: {}): Promise<implicitReturnType>;
+    privatePostJwt (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
