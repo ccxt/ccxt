@@ -171,7 +171,7 @@ class NewTranspiler {
         //
         // Returns:
         //     A 64-bit signed integer that is equivalent to value
-        return `
+        const comment = `
     /// <summary>
     /// ${desc}
     /// </summary>
@@ -182,6 +182,8 @@ class NewTranspiler {
     /// </list>
     /// </remarks>
     /// <returns> <term>${returnType}</term> ${returnDesc}.</returns>`
+    const commentWithoutEmptyLines = comment.replace(/^\s*[\r\n]/gm, "");
+    return commentWithoutEmptyLines;
     }
 
     transformTSCommentIntoCSharp(name: string, desc: string, sees: string[], params : string[], returnType:string, returnDesc: string) {
@@ -221,14 +223,14 @@ class NewTranspiler {
             });
         }
         // const paramRegex = /@param\s{(\w+)}\s\[(\w+)\]\s(.+)/g; // @param\s{(\w+)}\s\[((\w+(.\w+)?))\]\s(.+)
-        const paramRegex = /@param\s{(\w+)}\s\[(\w+\.?\w+?)]\s(.+)/g;
+        const paramRegex = /@param\s{(\w+[?]?)}\s\[(\w+\.?\w+?)]\s(.+)/g;
         const params = [] as any;
         let paramMatch;
         while ((paramMatch = paramRegex.exec(comment)) !== null) {
             const [, type, name, description] = paramMatch;
             params.push({type, name, description});
         }
-        const returnRegex = /@returns\s{(\w+)}\s(.+)/;
+        const returnRegex = /@returns\s{(\w+[?]?)}\s(.+)/;
         const returnMatch = comment.match(returnRegex);
         const returnType = returnMatch ? returnMatch[1] : undefined;
         const returnDescription =  returnMatch && returnMatch.length > 1 ? returnMatch[2]: undefined;
