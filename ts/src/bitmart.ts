@@ -2276,6 +2276,7 @@ export default class bitmart extends Exchange {
         /**
          * @method
          * @name bitmart#createSwapOrderRequest
+         * @ignore
          * @description create a trade order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
@@ -2357,6 +2358,7 @@ export default class bitmart extends Exchange {
         /**
          * @method
          * @name bitmart#createSpotOrderRequest
+         * @ignore
          * @description create a spot order request
          * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
          * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
