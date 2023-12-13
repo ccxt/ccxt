@@ -95,7 +95,7 @@ export default class coinbasepro extends coinbaseproRest {
             const symbol = symbols[i];
             market = this.market (symbol);
             productIds.push (market['id']);
-            messageHashes.push (messageHashStart + market['id']);
+            messageHashes.push (messageHashStart + ':' + market['id']);
         }
         let url = this.urls['api']['ws'];
         if ('signature' in params) {
