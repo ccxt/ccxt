@@ -18,12 +18,22 @@ async function testWatchOrderBook (exchange, skippedProperties, symbol) {
             now = exchange.milliseconds ();
             continue;
         }
-        // temp fix for php 'Pro\OrderBook' object, to turn it into array
-        response['timestamp'] = exchange.safeValue(response,'timestamp');
+        response = fixPhpObjectArray (exchange, response);
         assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
         now = exchange.milliseconds ();
         testOrderBook (exchange, skippedProperties, method, response, symbol);
     }
 }
+
+function fixPhpObjectArray (exchange, response) {
+    // temp fix for php 'Pro\OrderBook' object, to turn it into array
+    const existingJqMode = exchange.getProperty (exchange, 'quoteJsonNumbers');
+    exchange.setExchangeProperty ('quoteJsonNumbers', false);
+    const result = exchange.parseJson (exchange.json (response));
+    exchange.setExchangeProperty ('quoteJsonNumbers', existingJqMode);
+    return result;
+}
+
+
 
 export default testWatchOrderBook;
