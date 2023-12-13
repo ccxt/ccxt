@@ -6,7 +6,7 @@ import { ArgumentsRequired } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 // import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, Market, OHLCV, OrderBook, Trade } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, OrderBook, Str, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ export default class coinmetro extends Exchange {
                 'deposit': false,
                 'editOrder': false,
                 'fetchAccounts': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
@@ -116,7 +116,7 @@ export default class coinmetro extends Exchange {
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'signIn': false,
+                'signIn': true,
                 'transfer': false,
                 'withdraw': false,
                 'ws': false,
@@ -155,8 +155,11 @@ export default class coinmetro extends Exchange {
                 },
                 'private': {
                     'get': {
+                        'users/balances': 1,
+                        'users/wallets/history/{since}': 1,
                     },
                     'post': {
+                        'jwt': 1,
                     },
                     'put': {
                     },
@@ -640,12 +643,119 @@ export default class coinmetro extends Exchange {
         return result;
     }
 
+    async signIn (params = {}) {
+        /**
+         * @method
+         * @name coinmetro#signIn
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#1d422cd5-03ad-4abe-a1f7-30a18bac9645
+         * @description sign in, must be called prior to using other authenticated methods
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns response from exchange
+         */
+        this.checkRequiredCredentials ();
+        const request = {
+            'login': this.apiKey,
+            'password': this.secret,
+        };
+        const response = await this.privatePostJwt (this.extend (request, params));
+        //
+        //     {
+        //         "userId": "5c52d1a2e1d1c928d5ddefe5",
+        //         "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjNTJkMWEyZTFkMWM5MjhkNWRkZWZlNSIsInVzZXJuYW1lIjoic29tZUBtYWlsLmNvbSIsImV4cCI6MTU3MDM4MDU3MTU1NCwiaWF0IjoxNTY3Nzg4NTcxfQ.2A5PbS8Oo7ZDGfNlhNEs43gHfmj0OyCHM2sbGFBbi1Y",
+        //     }
+        //
+        this.options['accessToken'] = this.safeString (response, 'token');
+        return response;
+    }
+
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name coinmetro#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#698ae067-43dd-4e19-a0ac-d9ba91381816
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetUsersBalances (params);
+        return this.safeBalance (response);
+    }
+
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmetro#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4e7831f7-a0e7-4c3e-9336-1d0e5dcb15cf
+         * @param {string} code unified currency code, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int} [limit] max number of ledger entrys to return (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         */
+        const request = {};
+        if (since !== undefined) {
+            request['since'] = since;
+        } else {
+            request['since'] = '';
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const response = await this.privateGetUsersWalletsHistorySince (this.extend (request, params));
+        //
+        //
+        const ledger = this.safeValue (response, 'transactions', []);
+        return this.parseLedger (ledger, currency, since, limit);
+    }
+
+    parseLedgerEntry (item, currency: Currency = undefined) {
+        //
+        //
+        return {
+            'info': item,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'direction': undefined,
+            'account': undefined,
+            'referenceId': undefined,
+            'referenceAccount': undefined,
+            'type': undefined,
+            'currency': undefined,
+            'amount': undefined,
+            'before': undefined,
+            'after': undefined,
+            'status': undefined,
+            'fee': undefined,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode (request);
-        if (query) {
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            headers = {};
+            if (url === 'https://api.coinmetro.com/jwt') {
+                headers['X-Device-Id'] = 'bypass';
+                if (this.twofa !== undefined) {
+                    headers['X-OTP'] = this.twofa;
+                }
+            } else {
+                const accessToken = this.safeValue (this.options, 'accessToken');
+                headers['Authorization'] = accessToken;
+            }
+            if ((method === 'POST') || (method === 'PUT')) {
+                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                body = this.urlencode (request);
+            }
+        } else if (query.length !== 0) {
             url += '?' + query;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
