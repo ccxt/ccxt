@@ -10,7 +10,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class zaif
- * @extends Exchange
+ * @augments Exchange
  */
 class zaif extends zaif$1 {
     describe() {

@@ -3665,6 +3665,7 @@ class binance(Exchange, ImplicitAPI):
 
     def edit_spot_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
+         * @ignore
         edit a trade order
         :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
         :param str id: cancel order id
@@ -4181,7 +4182,7 @@ class binance(Exchange, ImplicitAPI):
         """
         *contract only* create a list of trade orders
         :see: https://binance-docs.github.io/apidocs/futures/en/#place-multiple-orders-trade
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -7938,7 +7939,7 @@ class binance(Exchange, ImplicitAPI):
                     extendedParams = self.omit(extendedParams, ['orderidlist', 'origclientorderidlist'])
                     query = self.rawencode(extendedParams)
                     orderidlistLength = len(orderidlist)
-                    origclientorderidlistLength = len(orderidlist)
+                    origclientorderidlistLength = len(origclientorderidlist)
                     if orderidlistLength > 0:
                         query = query + '&' + 'orderidlist=[' + ','.join(orderidlist) + ']'
                     if origclientorderidlistLength > 0:

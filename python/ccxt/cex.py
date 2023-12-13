@@ -45,6 +45,9 @@ class cex(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'cancelOrders': False,
                 'createDepositAddress': False,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
@@ -728,27 +731,39 @@ class cex(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        # for market buy it requires the amount of quote currency to spend
-        if (type == 'market') and (side == 'buy'):
-            if self.options['createMarketBuyOrderRequiresPrice']:
-                if price is None:
-                    raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
-                else:
-                    amountString = self.number_to_string(amount)
-                    priceString = self.number_to_string(price)
-                    baseAmount = Precise.string_mul(amountString, priceString)
-                    amount = self.parse_number(baseAmount)
         self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
             'type': side,
-            'amount': amount,
         }
+        # for market buy it requires the amount of quote currency to spend
+        if (type == 'market') and (side == 'buy'):
+            quoteAmount = None
+            createMarketBuyOrderRequiresPrice = True
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            cost = self.safe_string(params, 'cost')
+            params = self.omit(params, 'cost')
+            if cost is not None:
+                quoteAmount = self.cost_to_precision(symbol, cost)
+            elif createMarketBuyOrderRequiresPrice:
+                if price is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                else:
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    costRequest = Precise.string_mul(amountString, priceString)
+                    quoteAmount = self.cost_to_precision(symbol, costRequest)
+            else:
+                quoteAmount = self.cost_to_precision(symbol, amount)
+            request['amount'] = quoteAmount
+        else:
+            request['amount'] = self.amount_to_precision(symbol, amount)
         if type == 'limit':
-            request['price'] = price
+            request['price'] = self.number_to_string(price)
         else:
             request['order_type'] = type
         response = self.privatePostPlaceOrderPair(self.extend(request, params))

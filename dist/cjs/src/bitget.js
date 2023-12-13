@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bitget
- * @extends Exchange
+ * @augments Exchange
  */
 class bitget extends bitget$1 {
     describe() {
@@ -3727,7 +3727,7 @@ class bitget extends bitget$1 {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#batch-order
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-order
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-order
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -5981,7 +5981,6 @@ class bitget extends bitget$1 {
          * @param {string} symbol not used by bitget setPositionMode ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} response from the exchange
-         *
          */
         await this.loadMarkets();
         const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
@@ -7020,7 +7019,7 @@ class bitget extends bitget$1 {
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.subType] 'linear' or 'inverse'
          * @param {string} [params.settle] *required and only valid when params.subType === "linear"* 'USDT' or 'USDC'
-         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         let subType = undefined;

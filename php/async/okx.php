@@ -38,10 +38,11 @@ class okx extends Exchange {
                 'future' => true,
                 'option' => true,
                 'addMargin' => true,
-                'borrowMargin' => true,
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => true,
                 'createDepositAddress' => false,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketSellOrderWithCost' => true,
@@ -2866,7 +2867,7 @@ class okx extends Exchange {
             /**
              * create a list of trade $orders
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-$orders
-             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -3137,7 +3138,12 @@ class okx extends Exchange {
                     );
                 }
             }
-            $response = Async\await($this->$method ($request)); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            $response = null;
+            if ($method === 'privatePostTradeCancelAlgos') {
+                $response = Async\await($this->privatePostTradeCancelAlgos ($request)); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            } else {
+                $response = Async\await($this->privatePostTradeCancelBatchOrders ($request)); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            }
             //
             //     {
             //         "code" => "0",
@@ -3401,7 +3407,7 @@ class okx extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra and exchange specific parameters
              * @return ~@link https://docs.ccxt.com/#/?$id=$order-structure an $order structure~
-            */
+             */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
             }
@@ -3433,7 +3439,12 @@ class okx extends Exchange {
                 }
             }
             $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId', 'stop' ));
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($method === 'privateGetTradeOrderAlgo') {
+                $response = Async\await($this->privateGetTradeOrderAlgo (array_merge($request, $query)));
+            } else {
+                $response = Async\await($this->privateGetTradeOrder (array_merge($request, $query)));
+            }
             //
             // Spot and Swap
             //
@@ -3593,7 +3604,12 @@ class okx extends Exchange {
                 }
             }
             $query = $this->omit($params, array( 'method', 'stop' ));
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($method === 'privateGetTradeOrdersAlgoPending') {
+                $response = Async\await($this->privateGetTradeOrdersAlgoPending (array_merge($request, $query)));
+            } else {
+                $response = Async\await($this->privateGetTradeOrdersPending (array_merge($request, $query)));
+            }
             //
             //     {
             //         "code" => "0",
@@ -3765,7 +3781,12 @@ class okx extends Exchange {
                 }
             }
             $send = $this->omit($query, array( 'method', 'stop', 'ordType' ));
-            $response = Async\await($this->$method (array_merge($request, $send)));
+            $response = null;
+            if ($method === 'privateGetTradeOrdersAlgoHistory') {
+                $response = Async\await($this->privateGetTradeOrdersAlgoHistory (array_merge($request, $send)));
+            } else {
+                $response = Async\await($this->privateGetTradeOrdersHistory (array_merge($request, $send)));
+            }
             //
             //     {
             //         "code" => "0",
@@ -3942,7 +3963,12 @@ class okx extends Exchange {
                 $request['state'] = 'filled';
             }
             $send = $this->omit($query, array( 'method', 'stop' ));
-            $response = Async\await($this->$method (array_merge($request, $send)));
+            $response = null;
+            if ($method === 'privateGetTradeOrdersAlgoHistory') {
+                $response = Async\await($this->privateGetTradeOrdersAlgoHistory (array_merge($request, $send)));
+            } else {
+                $response = Async\await($this->privateGetTradeOrdersHistory (array_merge($request, $send)));
+            }
             //
             //     {
             //         "code" => "0",
@@ -4198,7 +4224,14 @@ class okx extends Exchange {
                 $request['ccy'] = $currency['id'];
             }
             list($request, $params) = $this->handle_until_option('end', $request, $params);
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($method === 'privateGetAccountBillsArchive') {
+                $response = Async\await($this->privateGetAccountBillsArchive (array_merge($request, $query)));
+            } elseif ($method === 'privateGetAssetBills') {
+                $response = Async\await($this->privateGetAssetBills (array_merge($request, $query)));
+            } else {
+                $response = Async\await($this->privateGetAccountBills (array_merge($request, $query)));
+            }
             //
             // privateGetAccountBills, privateGetAccountBillsArchive
             //
@@ -5121,7 +5154,12 @@ class okx extends Exchange {
             }
             $fetchPositionsOptions = $this->safe_value($this->options, 'fetchPositions', array());
             $method = $this->safe_string($fetchPositionsOptions, 'method', 'privateGetAccountPositions');
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($method === 'privateGetAccountPositionsHistory') {
+                $response = Async\await($this->privateGetAccountPositionsHistory (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetAccountPositions (array_merge($request, $params)));
+            }
             //
             //     {
             //         "code" => "0",
@@ -7165,6 +7203,73 @@ class okx extends Exchange {
             'underlyingPrice' => null,
             'info' => $greeks,
         );
+    }
+
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $side, $params) {
+            /**
+             * closes open positions for a $market
+             * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-close-positions
+             * @param {string} $symbol Unified CCXT $market $symbol
+             * @param {string} [$side] 'buy' or 'sell', leave in net mode
+             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {string} [$params->clientOrderId] a unique identifier for the $order
+             * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross;
+             * @param {string} [$params->code] *required in the case of closing cross MARGIN position for Single-$currency margin* margin $currency
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {boolean} [$params->autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a $market $order-> false or true, the default is false
+             * @param {string} [$params->tag] $order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
+             * @return {array[]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            $code = $this->safe_string($params, 'code');
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('closePosition', $params, 'cross');
+            $request = array(
+                'instId' => $market['id'],
+                'mgnMode' => $marginMode,
+            );
+            if ($side !== null) {
+                if (($side === 'buy')) {
+                    $request['posSide'] = 'long';
+                } elseif ($side === 'sell') {
+                    $request['posSide'] = 'short';
+                } else {
+                    $request['posSide'] = $side;
+                }
+            }
+            if ($clientOrderId !== null) {
+                $request['clOrdId'] = $clientOrderId;
+            }
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['ccy'] = $currency['id'];
+            }
+            $response = Async\await($this->privatePostTradeClosePosition (array_merge($request, $params)));
+            //
+            //    {
+            //        "code" => "1",
+            //        "data" => array(
+            //            {
+            //                "clOrdId":"e847386590ce4dBCe903bbc394dc88bf",
+            //                "ordId":"",
+            //                "sCode":"51000",
+            //                "sMsg":"Parameter posSide error ",
+            //                "tag":"e847386590ce4dBC"
+            //            }
+            //        ),
+            //        "inTime" => "1701877077101064",
+            //        "msg" => "All operations failed",
+            //        "outTime" => "1701877077102579"
+            //    }
+            //
+            $data = $this->safe_value($response, 'data');
+            $order = $this->safe_value($data, 0);
+            return $this->parse_order($order, $market);
+        }) ();
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

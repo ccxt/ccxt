@@ -13,7 +13,7 @@ var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class binance
- * @extends Exchange
+ * @augments Exchange
  */
 class binance extends binance$1 {
     describe() {
@@ -3823,6 +3823,7 @@ class binance extends binance$1 {
         /**
          * @method
          * @name binance#editSpotOrder
+         * @ignore
          * @description edit a trade order
          * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
          * @param {string} id cancel order id
@@ -4393,7 +4394,7 @@ class binance extends binance$1 {
          * @name binance#createOrders
          * @description *contract only* create a list of trade orders
          * @see https://binance-docs.github.io/apidocs/futures/en/#place-multiple-orders-trade
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -8604,7 +8605,7 @@ class binance extends binance$1 {
                     extendedParams = this.omit(extendedParams, ['orderidlist', 'origclientorderidlist']);
                     query = this.rawencode(extendedParams);
                     const orderidlistLength = orderidlist.length;
-                    const origclientorderidlistLength = orderidlist.length;
+                    const origclientorderidlistLength = origclientorderidlist.length;
                     if (orderidlistLength > 0) {
                         query = query + '&' + 'orderidlist=[' + orderidlist.join(',') + ']';
                     }

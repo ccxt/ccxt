@@ -10,6 +10,7 @@ use ccxt\async\abstract\novadax as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
+use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -36,6 +37,9 @@ class novadax extends Exchange {
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
@@ -740,9 +744,10 @@ class novadax extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} $amount how much you want to trade in units of the base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->cost] for spot $market buy orders, the quote quantity that can be used alternative for the $amount
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -752,11 +757,11 @@ class novadax extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
                 'side' => $uppercaseSide, // or SELL
-                // 'amount' => $this->amount_to_precision($symbol, $amount),
+                // "amount" => $this->amount_to_precision($symbol, $amount),
                 // "price" => "1234.5678", // required for LIMIT and STOP orders
-                // 'operator' => '' // for stop orders, can be found in order introduction
-                // 'stopPrice' => $this->price_to_precision($symbol, $stopPrice),
-                // 'accountId' => '...', // subaccount id, optional
+                // "operator" => "" // for stop orders, can be found in order introduction
+                // "stopPrice" => $this->price_to_precision($symbol, $stopPrice),
+                // "accountId" => "...", // subaccount id, optional
             );
             $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
             if ($stopPrice === null) {
@@ -781,20 +786,26 @@ class novadax extends Exchange {
                 if ($uppercaseSide === 'SELL') {
                     $request['amount'] = $this->amount_to_precision($symbol, $amount);
                 } elseif ($uppercaseSide === 'BUY') {
-                    $value = $this->safe_number($params, 'value');
-                    $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                    if ($createMarketBuyOrderRequiresPrice) {
-                        if ($price !== null) {
-                            if ($value === null) {
-                                $value = $amount * $price;
-                            }
-                        } elseif ($value === null) {
-                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost $value in the 'amount' argument or in the 'value' extra parameter (the exchange-specific behaviour)");
+                    $quoteAmount = null;
+                    $createMarketBuyOrderRequiresPrice = true;
+                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    $cost = $this->safe_number_2($params, 'cost', 'value');
+                    $params = $this->omit($params, 'cost');
+                    if ($cost !== null) {
+                        $quoteAmount = $this->cost_to_precision($symbol, $cost);
+                    } elseif ($createMarketBuyOrderRequiresPrice) {
+                        if ($price === null) {
+                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                        } else {
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $costRequest = Precise::string_mul($amountString, $priceString);
+                            $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                         }
                     } else {
-                        $value = ($value === null) ? $amount : $value;
+                        $quoteAmount = $this->cost_to_precision($symbol, $amount);
                     }
-                    $request['value'] = $this->cost_to_precision($symbol, $value);
+                    $request['value'] = $quoteAmount;
                 }
             }
             $request['type'] = $uppercaseType;

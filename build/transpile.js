@@ -321,6 +321,7 @@ class Transpiler {
             [ /\.checkConflictingProxies\s/g, '.check_conflicting_proxies'],
             [ /\.parseMarket\s/g, '.parse_market'],
             [ /\.isRoundNumber\s/g, '.is_round_number'],
+            [ /\.watchMultiple\s/g, '.watch_multiple'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -968,6 +969,7 @@ class Transpiler {
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'Trade': /-> (?:List\[)?Trade/,
+            'Order': /-> (?:List\[)?Order\]?:/,
             'Transaction': /-> (?:List\[)?Transaction/,
         }
         const matches = []

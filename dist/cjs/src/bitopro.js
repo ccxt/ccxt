@@ -10,7 +10,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bitopro
- * @extends Exchange
+ * @augments Exchange
  */
 class bitopro extends bitopro$1 {
     describe() {
@@ -1253,11 +1253,11 @@ class bitopro extends bitopro$1 {
         //
         return this.parseOrders(orders, market, since, limit);
     }
-    fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
             'statusKind': 'OPEN',
         };
-        return this.fetchOrders(symbol, since, limit, this.extend(request, params));
+        return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

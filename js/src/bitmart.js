@@ -13,7 +13,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitmart
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitmart extends Exchange {
     describe() {
@@ -1337,48 +1337,58 @@ export default class bitmart extends Exchange {
         //
         // public fetchTrades spot ( amount = count * price )
         //
-        //     {
-        //          "amount": "818.94",
-        //          "order_time": "1637601839035",    // ETH/USDT
-        //          "price": "4221.99",
-        //          "count": "0.19397",
-        //          "type": "buy"
-        //      }
+        //    {
+        //        "amount": "818.94",
+        //        "order_time": "1637601839035",    // ETH/USDT
+        //        "price": "4221.99",
+        //        "count": "0.19397",
+        //        "type": "buy"
+        //    }
         //
         // spot: fetchMyTrades
         //
-        //     {
-        //         "tradeId":"182342999769370687",
-        //         "orderId":"183270218784142990",
-        //         "clientOrderId":"183270218784142990",
-        //         "symbol":"ADA_USDT",
-        //         "side":"buy",
-        //         "orderMode":"spot",
-        //         "type":"market",
-        //         "price":"0.245948",
-        //         "size":"20.71",
-        //         "notional":"5.09358308",
-        //         "fee":"0.00509358",
-        //         "feeCoinName":"USDT",
-        //         "tradeRole":"taker",
-        //         "createTime":1695658457836,
-        //     }
+        //    {
+        //        "tradeId":"182342999769370687",
+        //        "orderId":"183270218784142990",
+        //        "clientOrderId":"183270218784142990",
+        //        "symbol":"ADA_USDT",
+        //        "side":"buy",
+        //        "orderMode":"spot",
+        //        "type":"market",
+        //        "price":"0.245948",
+        //        "size":"20.71",
+        //        "notional":"5.09358308",
+        //        "fee":"0.00509358",
+        //        "feeCoinName":"USDT",
+        //        "tradeRole":"taker",
+        //        "createTime":1695658457836,
+        //    }
         //
         // swap: fetchMyTrades
         //
-        //     {
-        //         "order_id": "230930336848609",
-        //         "trade_id": "6212604014",
-        //         "symbol": "BTCUSDT",
-        //         "side": 3,
-        //         "price": "26910.4",
-        //         "vol": "1",
-        //         "exec_type": "Taker",
-        //         "profit": false,
-        //         "create_time": 1695961596692,
-        //         "realised_profit": "-0.0003",
-        //         "paid_fees": "0.01614624"
-        //     }
+        //    {
+        //        "order_id": "230930336848609",
+        //        "trade_id": "6212604014",
+        //        "symbol": "BTCUSDT",
+        //        "side": 3,
+        //        "price": "26910.4",
+        //        "vol": "1",
+        //        "exec_type": "Taker",
+        //        "profit": false,
+        //        "create_time": 1695961596692,
+        //        "realised_profit": "-0.0003",
+        //        "paid_fees": "0.01614624"
+        //    }
+        //
+        // ws swap
+        //
+        //    {
+        //        'fee': '-0.000044502',
+        //        'feeCcy': 'USDT',
+        //        'fillPrice': '74.17',
+        //        'fillQty': '1',
+        //        'lastTradeID': 6802340762
+        //    }
         //
         const timestamp = this.safeIntegerN(trade, ['order_time', 'createTime', 'create_time']);
         const isPublicTrade = ('order_time' in trade);
@@ -1392,7 +1402,7 @@ export default class bitmart extends Exchange {
             side = this.safeString(trade, 'type');
         }
         else {
-            amount = this.safeString2(trade, 'size', 'vol');
+            amount = this.safeStringN(trade, ['size', 'vol', 'fillQty']);
             cost = this.safeString(trade, 'notional');
             type = this.safeString(trade, 'type');
             side = this.parseOrderSide(this.safeString(trade, 'side'));
@@ -1414,14 +1424,14 @@ export default class bitmart extends Exchange {
         }
         return this.safeTrade({
             'info': trade,
-            'id': this.safeString2(trade, 'tradeId', 'trade_id'),
+            'id': this.safeStringN(trade, ['tradeId', 'trade_id', 'lastTradeID']),
             'order': this.safeString2(trade, 'orderId', 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': type,
             'side': side,
-            'price': this.safeString(trade, 'price'),
+            'price': this.safeString2(trade, 'price', 'fillPrice'),
             'amount': amount,
             'cost': cost,
             'takerOrMaker': this.safeStringLower2(trade, 'tradeRole', 'exec_type'),
@@ -1475,38 +1485,45 @@ export default class bitmart extends Exchange {
     parseOHLCV(ohlcv, market = undefined) {
         //
         // spot
-        //
-        //     [
-        //         "1699512060", // timestamp
-        //         "36746.49", // open
-        //         "36758.71", // high
-        //         "36736.13", // low
-        //         "36755.99", // close
-        //         "2.83965", // base volume
-        //         "104353.57" // quote volume
-        //     ]
+        //    [
+        //        "1699512060", // timestamp
+        //        "36746.49", // open
+        //        "36758.71", // high
+        //        "36736.13", // low
+        //        "36755.99", // close
+        //        "2.83965", // base volume
+        //        "104353.57" // quote volume
+        //    ]
         //
         // swap
-        //
-        //     {
-        //         "low_price": "20090.3",
-        //         "high_price": "20095.5",
-        //         "open_price": "20092.6",
-        //         "close_price": "20091.4",
-        //         "volume": "8748",
-        //         "timestamp": 1665002281
-        //     }
+        //    {
+        //        "low_price": "20090.3",
+        //        "high_price": "20095.5",
+        //        "open_price": "20092.6",
+        //        "close_price": "20091.4",
+        //        "volume": "8748",
+        //        "timestamp": 1665002281
+        //    }
         //
         // ws
+        //    [
+        //        1631056350, // timestamp
+        //        "46532.83", // open
+        //        "46555.71", // high
+        //        "46511.41", // low
+        //        "46555.71", // close
+        //        "0.25", // volume
+        //    ]
         //
-        //     [
-        //         1631056350, // timestamp
-        //         "46532.83", // open
-        //         "46555.71", // high
-        //         "46511.41", // low
-        //         "46555.71", // close
-        //         "0.25", // volume
-        //     ]
+        // ws swap
+        //    {
+        //        "symbol":"BTCUSDT",
+        //        "o":"146.24",
+        //        "h":"146.24",
+        //        "l":"146.24",
+        //        "c":"146.24",
+        //        "v":"146"
+        //    }
         //
         if (Array.isArray(ohlcv)) {
             return [
@@ -1520,12 +1537,12 @@ export default class bitmart extends Exchange {
         }
         else {
             return [
-                this.safeTimestamp(ohlcv, 'timestamp'),
-                this.safeNumber(ohlcv, 'open_price'),
-                this.safeNumber(ohlcv, 'high_price'),
-                this.safeNumber(ohlcv, 'low_price'),
-                this.safeNumber(ohlcv, 'close_price'),
-                this.safeNumber(ohlcv, 'volume'),
+                this.safeTimestamp2(ohlcv, 'timestamp', 'ts'),
+                this.safeNumber2(ohlcv, 'open_price', 'o'),
+                this.safeNumber2(ohlcv, 'high_price', 'h'),
+                this.safeNumber2(ohlcv, 'low_price', 'l'),
+                this.safeNumber2(ohlcv, 'close_price', 'c'),
+                this.safeNumber2(ohlcv, 'volume', 'v'),
             ];
         }
     }
@@ -2062,7 +2079,7 @@ export default class bitmart extends Exchange {
         //        "updateTime" : 1681701559408
         //    }
         //
-        // swap: fetchOrder, fetchOpenOrders
+        // swap: fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "order_id": "230935812485489",
@@ -2078,7 +2095,10 @@ export default class bitmart extends Exchange {
         //         "deal_avg_price": "0",
         //         "deal_size": "0",
         //         "create_time": 1695702258629,
-        //         "update_time": 1695702258642
+        //         "update_time": 1695702258642,
+        //         "activation_price_type": 0,
+        //         "activation_price": "",
+        //         "callback_rate": ""
         //     }
         //
         let id = undefined;
@@ -2108,6 +2128,7 @@ export default class bitmart extends Exchange {
         if (priceString === 'market price') {
             priceString = undefined;
         }
+        const trailingStopActivationPrice = this.safeNumber(order, 'activation_price');
         return this.safeOrder({
             'id': id,
             'clientOrderId': this.safeString(order, 'client_order_id'),
@@ -2121,8 +2142,8 @@ export default class bitmart extends Exchange {
             'postOnly': postOnly,
             'side': this.parseOrderSide(this.safeString(order, 'side')),
             'price': this.omitZero(priceString),
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': trailingStopActivationPrice,
+            'triggerPrice': trailingStopActivationPrice,
             'amount': this.omitZero(this.safeString(order, 'size')),
             'cost': this.safeString2(order, 'filled_notional', 'filledNotional'),
             'average': this.safeStringN(order, ['price_avg', 'priceAvg', 'deal_avg_price']),
@@ -2195,7 +2216,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -2252,10 +2273,11 @@ export default class bitmart extends Exchange {
         /**
          * @method
          * @name bitmart#createSwapOrderRequest
+         * @ignore
          * @description create a trade order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type 'market', 'limit' or 'trailing'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -2263,7 +2285,9 @@ export default class bitmart extends Exchange {
          * @param {int} [params.leverage] leverage level
          * @param {boolean} [params.reduceOnly] *swap only* reduce only
          * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
-         *  @param {string} [params.clientOrderId] client order id of the order
+         * @param {string} [params.clientOrderId] client order id of the order
+         * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
+         * @param {string} [params.callback_rate] *swap trailing order only* min 0.1, max 5 where 1 is 1%, default is "1"
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const market = this.market(symbol);
@@ -2276,7 +2300,7 @@ export default class bitmart extends Exchange {
         const mode = this.safeInteger(params, 'mode'); // only for swap
         const isMarketOrder = type === 'market';
         let postOnly = undefined;
-        const reduceOnly = this.safeValue(params, 'reduceOnly');
+        let reduceOnly = this.safeValue(params, 'reduceOnly');
         const isExchangeSpecificPo = (mode === 4);
         [postOnly, params] = this.handlePostOnly(isMarketOrder, isExchangeSpecificPo, params);
         params = this.omit(params, ['timeInForce', 'postOnly', 'reduceOnly']);
@@ -2297,9 +2321,15 @@ export default class bitmart extends Exchange {
         if (isLimitOrder) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
+        else if (type === 'trailing') {
+            reduceOnly = true;
+            request['activation_price'] = this.priceToPrecision(symbol, price);
+            request['activation_price_type'] = this.safeInteger(params, 'activation_price_type', 1);
+            request['callback_rate'] = this.safeString(params, 'callback_rate', '1');
+        }
         if (side === 'buy') {
             if (reduceOnly) {
-                request['side'] = 2; // sell close long
+                request['side'] = 2; // buy close short
             }
             else {
                 request['side'] = 1; // buy open long
@@ -2330,6 +2360,7 @@ export default class bitmart extends Exchange {
         /**
          * @method
          * @name bitmart#createSpotOrderRequest
+         * @ignore
          * @description create a spot order request
          * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
          * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
@@ -2615,6 +2646,7 @@ export default class bitmart extends Exchange {
          * @param {int} [params.until] *spot* the latest time in ms to fetch orders for
          * @param {string} [params.type] *swap* order type, 'limit' or 'market'
          * @param {string} [params.order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
+         * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2647,6 +2679,11 @@ export default class bitmart extends Exchange {
             response = await this.privatePostSpotV4QueryOpenOrders(this.extend(request, params));
         }
         else if (type === 'swap') {
+            const orderType = this.safeString(params, 'orderType');
+            params = this.omit(params, 'orderType');
+            if (orderType !== undefined) {
+                request['type'] = orderType;
+            }
             response = await this.privateGetContractPrivateGetOpenOrders(this.extend(request, params));
         }
         else {
@@ -2788,6 +2825,7 @@ export default class bitmart extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] *spot* fetch the order by client order id instead of order id
+         * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2814,6 +2852,11 @@ export default class bitmart extends Exchange {
         else if (type === 'swap') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
+            }
+            const orderType = this.safeString(params, 'orderType');
+            params = this.omit(params, 'orderType');
+            if (orderType !== undefined) {
+                request['type'] = orderType;
             }
             request['symbol'] = market['id'];
             request['order_id'] = id;

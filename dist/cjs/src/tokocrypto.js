@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class tokocrypto
- * @extends Exchange
+ * @augments Exchange
  */
 class tokocrypto extends tokocrypto$1 {
     describe() {
@@ -102,7 +102,6 @@ class tokocrypto extends tokocrypto$1 {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
-                'repayMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -1015,16 +1014,21 @@ class tokocrypto extends tokocrypto$1 {
             const data = this.safeValue(responseInner, 'data', {});
             return this.parseTrades(data, market, since, limit);
         }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default = 500, maximum = 1000
+        }
         const defaultMethod = 'binanceGetTrades';
         const method = this.safeString(this.options, 'fetchTradesMethod', defaultMethod);
+        let response = undefined;
         if ((method === 'binanceGetAggTrades') && (since !== undefined)) {
             request['startTime'] = since;
             // https://github.com/ccxt/ccxt/issues/6400
             // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
             request['endTime'] = this.sum(since, 3600000);
+            response = await this.binanceGetAggTrades(this.extend(request, params));
         }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default = 500, maximum = 1000
+        else {
+            response = await this.binanceGetTrades(this.extend(request, params));
         }
         //
         // Caveats:
@@ -1035,7 +1039,6 @@ class tokocrypto extends tokocrypto$1 {
         // - 'tradeId' accepted and returned by this method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
-        const response = await this[method](this.extend(request, params));
         //
         // aggregate trades
         //

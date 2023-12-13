@@ -1593,7 +1593,7 @@ class ascendex(Exchange, ImplicitAPI):
         create a list of trade orders
         :see: https://ascendex.github.io/ascendex-pro-api/#place-batch-orders
         :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#place-batch-orders
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :param bool [params.postOnly]: True or False

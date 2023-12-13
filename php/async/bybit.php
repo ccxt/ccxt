@@ -453,6 +453,7 @@ class bybit extends Exchange {
                         'v5/position/confirm-pending-mmr' => 5,
                         // account
                         'v5/account/upgrade-to-uta' => 5,
+                        'v5/account/quick-repayment' => 5,
                         'v5/account/set-margin-mode' => 5,
                         'v5/account/set-hedging-mode' => 5,
                         'v5/account/mmp-modify' => 5,
@@ -2110,8 +2111,9 @@ class bybit extends Exchange {
              */
             Async\await($this->load_markets());
             $market = null;
-            $parsedSymbols = array();
+            $parsedSymbols = null;
             if ($symbols !== null) {
+                $parsedSymbols = array();
                 $marketTypeInfo = $this->handle_market_type_and_params('fetchTickers', null, $params);
                 $defaultType = $marketTypeInfo[0]; // don't omit here
                 // we can't use marketSymbols here due to the conflicing ids between markets
@@ -3037,7 +3039,7 @@ class bybit extends Exchange {
              * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] wallet $type, ['spot', 'swap', 'fund']
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -3681,7 +3683,7 @@ class bybit extends Exchange {
             /**
              * create a list of trade $orders
              * @see https://bybit-exchange.github.io/docs/v5/order/batch-place
-             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -4725,7 +4727,6 @@ class bybit extends Exchange {
              * @param {int} [$limit] the maximum number of trades to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
-             *
              */
             $request = array();
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'orderLinkId');
@@ -5016,12 +5017,11 @@ class bybit extends Exchange {
              * @param {int} [$limit] the maximum number of deposits structures to retrieve, default = 50, max = 50
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch deposits for, default = 30 days after $since
-             *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {string} [$params->cursor] used for pagination
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
-            */
+             */
             Async\await($this->load_markets());
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
@@ -5751,8 +5751,10 @@ class bybit extends Exchange {
                 } elseif ($symbolsLength === 1) {
                     $symbol = $symbols[0];
                 }
+                $symbols = $this->market_symbols($symbols);
             } elseif ($symbols !== null) {
                 $symbol = $symbols;
+                $symbols = array( $this->symbol($symbol) );
             }
             Async\await($this->load_markets());
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
@@ -5762,14 +5764,12 @@ class bybit extends Exchange {
             $isUsdcSettled = false;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
+                $symbol = $market['symbol'];
                 $request['symbol'] = $market['id'];
                 $isUsdcSettled = $market['settle'] === 'USDC';
             }
             $type = null;
             list($type, $params) = $this->get_bybit_type('fetchPositions', $market, $params);
-            if ($type === 'spot') {
-                throw new NotSupported($this->id . ' fetchPositions() not support spot market');
-            }
             if ($type === 'linear' || $type === 'inverse') {
                 $baseCoin = $this->safe_string($params, 'baseCoin');
                 if ($type === 'linear') {

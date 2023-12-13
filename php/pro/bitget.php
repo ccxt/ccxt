@@ -13,6 +13,7 @@ use ccxt\InvalidNonce;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitget extends \ccxt\async\bitget {
 
@@ -129,7 +130,7 @@ class bitget extends \ccxt\async\bitget {
         return $marketId;
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -151,11 +152,11 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
+             * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
@@ -163,20 +164,20 @@ class bitget extends \ccxt\async\bitget {
             $symbols = $this->market_symbols($symbols, null, false);
             $market = $this->market($symbols[0]);
             $instType = $market['spot'] ? 'sp' : 'mc';
-            $messageHash = 'tickers::' . implode(',', $symbols);
-            $marketIds = $this->market_ids($symbols);
-            $topics = [ ];
-            for ($i = 0; $i < count($marketIds); $i++) {
-                $marketId = $marketIds[$i];
-                $marketInner = $this->market($marketId);
+            $topics = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $marketInner = $this->market($symbol);
                 $args = array(
                     'instType' => $instType,
                     'channel' => 'ticker',
                     'instId' => $this->get_ws_market_id($marketInner),
                 );
                 $topics[] = $args;
+                $messageHashes[] = 'ticker:' . $symbol;
             }
-            $tickers = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
+            $tickers = Async\await($this->watch_public_multiple($messageHashes, $topics, $params));
             if ($this->newUpdates) {
                 return $tickers;
             }
@@ -211,18 +212,6 @@ class bitget extends \ccxt\async\bitget {
         $this->tickers[$symbol] = $ticker;
         $messageHash = 'ticker:' . $symbol;
         $client->resolve ($ticker, $messageHash);
-        // watchTickers part
-        $messageHashes = $this->find_message_hashes($client, 'tickers::');
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHashTicker = $messageHashes[$i];
-            $parts = explode('::', $messageHashTicker);
-            $symbolsString = $parts[1];
-            $symbols = explode(',', $symbolsString);
-            if ($this->in_array($symbol, $symbols)) {
-                $client->resolve ($ticker, $messageHashTicker);
-            }
-        }
-        return $message;
     }
 
     public function parse_ws_ticker($message, $market = null) {
@@ -316,7 +305,7 @@ class bitget extends \ccxt\async\bitget {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -344,44 +333,6 @@ class bitget extends \ccxt\async\bitget {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
-    }
-
-    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
-            /**
-             * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A list of candles ordered, open, high, low, close, volume
-             */
-            Async\await($this->load_markets());
-            $topics = array();
-            $hashes = array();
-            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                $data = $symbolsAndTimeframes[$i];
-                $currentSymbol = $this->safe_string($data, 0);
-                $currentTimeframe = $this->safe_string($data, 1);
-                $market = $this->market($currentSymbol);
-                $interval = $this->safe_string($this->options['timeframes'], $currentTimeframe);
-                $instType = $market['spot'] ? 'sp' : 'mc';
-                $args = array(
-                    'instType' => $instType,
-                    'channel' => 'candle' . $interval,
-                    'instId' => $this->get_ws_market_id($market),
-                );
-                $topics[] = $args;
-                $hashes[] = $currentSymbol . '#' . $currentSymbol;
-            }
-            $messageHash = 'multipleOHLCV::' . implode(',', $hashes);
-            list($symbol, $timeframe, $stored) = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
-            if ($this->newUpdates) {
-                $limit = $stored->getLimit ($symbol, $limit);
-            }
-            $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
-            return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
         }) ();
     }
 
@@ -436,7 +387,6 @@ class bitget extends \ccxt\async\bitget {
         }
         $messageHash = 'candles:' . $timeframe . ':' . $symbol;
         $client->resolve ($stored, $messageHash);
-        $this->resolve_multiple_ohlcv($client, 'multipleOHLCV::', $symbol, $timeframe, $stored);
     }
 
     public function parse_ws_ohlcv($ohlcv, $market = null): array {
@@ -460,41 +410,20 @@ class bitget extends \ccxt\async\bitget {
         );
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'orderbook' . ':' . $symbol;
-            $instType = $market['spot'] ? 'sp' : 'mc';
-            $channel = 'books';
-            $incrementalFeed = true;
-            if (($limit === 1) || ($limit === 5) || ($limit === 15)) {
-                $channel .= (string) $limit;
-                $incrementalFeed = false;
-            }
-            $args = array(
-                'instType' => $instType,
-                'channel' => $channel,
-                'instId' => $this->get_ws_market_id($market),
-            );
-            $orderbook = Async\await($this->watch_public($messageHash, $args, $params));
-            if ($incrementalFeed) {
-                return $orderbook->limit ();
-            } else {
-                return $orderbook;
-            }
+            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
         }) ();
     }
 
-    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -512,8 +441,10 @@ class bitget extends \ccxt\async\bitget {
                 $incrementalFeed = false;
             }
             $topics = array();
+            $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
-                $market = $this->market($symbols[$i]);
+                $symbol = $symbols[$i];
+                $market = $this->market($symbol);
                 $instType = $market['spot'] ? 'sp' : 'mc';
                 $args = array(
                     'instType' => $instType,
@@ -521,9 +452,9 @@ class bitget extends \ccxt\async\bitget {
                     'instId' => $this->get_ws_market_id($market),
                 );
                 $topics[] = $args;
+                $messageHashes[] = 'orderbook:' . $symbol;
             }
-            $messageHash = 'multipleOrderbooks::' . implode(',', $symbols);
-            $orderbook = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
+            $orderbook = Async\await($this->watch_public_multiple($messageHashes, $topics, $params));
             if ($incrementalFeed) {
                 return $orderbook->limit ();
             } else {
@@ -616,7 +547,6 @@ class bitget extends \ccxt\async\bitget {
         }
         $this->orderbooks[$symbol] = $storedOrderBook;
         $client->resolve ($storedOrderBook, $messageHash);
-        $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbooks::', $symbol, $storedOrderBook);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -633,45 +563,31 @@ class bitget extends \ccxt\async\bitget {
         }
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * get the list of most recent trades for a particular $symbol
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#trades-channel
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#trades-channel
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
+        }) ();
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
              * get the list of most recent $trades for a particular $symbol
-             * @see https://bitgetlimited.github.io/apidoc/en/spot/#$trades-channel
-             * @see https://bitgetlimited.github.io/apidoc/en/mix/#$trades-channel
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
-             */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'trade:' . $symbol;
-            $instType = $market['spot'] ? 'sp' : 'mc';
-            $args = array(
-                'instType' => $instType,
-                'channel' => 'trade',
-                'instId' => $this->get_ws_market_id($market),
-            );
-            $trades = Async\await($this->watch_public($messageHash, $args, $params));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
-    }
-
-    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a particular symbol
-             * @param {string} symbol unified symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             $symbolsLength = count($symbols);
             if ($symbolsLength === 0) {
@@ -680,8 +596,10 @@ class bitget extends \ccxt\async\bitget {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $topics = array();
+            $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
-                $market = $this->market($symbols[$i]);
+                $symbol = $symbols[$i];
+                $market = $this->market($symbol);
                 $instType = $market['spot'] ? 'sp' : 'mc';
                 $args = array(
                     'instType' => $instType,
@@ -689,9 +607,9 @@ class bitget extends \ccxt\async\bitget {
                     'instId' => $this->get_ws_market_id($market),
                 );
                 $topics[] = $args;
+                $messageHashes[] = 'trade:' . $symbol;
             }
-            $messageHash = 'multipleTrades::' . implode(',', $symbols);
-            $trades = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
+            $trades = Async\await($this->watch_public_multiple($messageHashes, $topics, $params));
             if ($this->newUpdates) {
                 $first = $this->safe_value($trades, 0);
                 $tradeSymbol = $this->safe_string($first, 'symbol');
@@ -736,7 +654,6 @@ class bitget extends \ccxt\async\bitget {
         }
         $messageHash = 'trade:' . $symbol;
         $client->resolve ($stored, $messageHash);
-        $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $stored);
     }
 
     public function parse_ws_trade($trade, $market = null) {
@@ -772,7 +689,7 @@ class bitget extends \ccxt\async\bitget {
         ), $market);
     }
 
-    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watch all open positions
@@ -953,7 +870,7 @@ class bitget extends \ccxt\async\bitget {
         ));
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://bitgetlimited.github.io/apidoc/en/spot/#order-$channel
@@ -1280,7 +1197,7 @@ class bitget extends \ccxt\async\bitget {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches $trades made by the user
@@ -1437,7 +1354,7 @@ class bitget extends \ccxt\async\bitget {
         ), $market);
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -1528,15 +1445,15 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
-    public function watch_public_multiple($messageHash, $argsArray, $params = array ()) {
-        return Async\async(function () use ($messageHash, $argsArray, $params) {
+    public function watch_public_multiple($messageHashes, $argsArray, $params = array ()) {
+        return Async\async(function () use ($messageHashes, $argsArray, $params) {
             $url = $this->urls['api']['ws'];
             $request = array(
                 'op' => 'subscribe',
                 'args' => $argsArray,
             );
             $message = array_merge($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+            return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
         }) ();
     }
 

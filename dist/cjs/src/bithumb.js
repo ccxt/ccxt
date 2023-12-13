@@ -10,7 +10,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bithumb
- * @extends Exchange
+ * @augments Exchange
  */
 class bithumb extends bithumb$1 {
     describe() {
@@ -945,11 +945,11 @@ class bithumb extends bithumb$1 {
         };
         return await this.privatePostTradeCancel(this.extend(request, params));
     }
-    cancelUnifiedOrder(order, params = {}) {
+    async cancelUnifiedOrder(order, params = {}) {
         const request = {
             'side': order['side'],
         };
-        return this.cancelOrder(order['id'], order['symbol'], this.extend(request, params));
+        return await this.cancelOrder(order['id'], order['symbol'], this.extend(request, params));
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**

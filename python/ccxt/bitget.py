@@ -3553,7 +3553,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#batch-order
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-order
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-order
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -5571,7 +5571,6 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: not used by bitget setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
-         *
         """
         self.load_markets()
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
@@ -6554,7 +6553,7 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.subType]: 'linear' or 'inverse'
         :param str [params.settle]: *required and only valid when params.subType == "linear"* 'USDT' or 'USDC'
-        :returns [dict]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         subType = None

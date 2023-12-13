@@ -3760,6 +3760,7 @@ class binance extends Exchange {
 
     public function edit_spot_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
+         * @ignore
          * edit a trade order
          * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
          * @param {string} $id cancel order $id
@@ -4314,7 +4315,7 @@ class binance extends Exchange {
         /**
          * *contract only* create a list of trade $orders
          * @see https://binance-docs.github.io/apidocs/futures/en/#place-multiple-$orders-trade
-         * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -8392,7 +8393,7 @@ class binance extends Exchange {
                     $extendedParams = $this->omit($extendedParams, array( 'orderidlist', 'origclientorderidlist' ));
                     $query = $this->rawencode($extendedParams);
                     $orderidlistLength = count($orderidlist);
-                    $origclientorderidlistLength = count($orderidlist);
+                    $origclientorderidlistLength = count($origclientorderidlist);
                     if ($orderidlistLength > 0) {
                         $query = $query . '&' . 'orderidlist=[' . implode(',', $orderidlist) . ']';
                     }

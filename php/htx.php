@@ -35,6 +35,9 @@ class htx extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createDepositAddress' => null,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createReduceOnlyOrder' => false,
@@ -3309,14 +3312,16 @@ class htx extends Exchange {
         //                 "margin_mode" => "cross",
         //                 "margin_account" => "USDT",
         //                 "margin_asset" => "USDT",
-        //                 "margin_balance" => 200.000000000000000000,
-        //                 "margin_static" => 200.000000000000000000,
-        //                 "margin_position" => 0,
-        //                 "margin_frozen" => 0,
-        //                 "profit_real" => 0E-18,
-        //                 "profit_unreal" => 0,
-        //                 "withdraw_available" => 2E+2,
-        //                 "risk_rate" => null,
+        //                 "margin_balance" => 49.874186030200000000,
+        //                 "money_in" => 50,
+        //                 "money_out" => 0,
+        //                 "margin_static" => 49.872786030200000000,
+        //                 "margin_position" => 6.180000000000000000,
+        //                 "margin_frozen" => 6.000000000000000000,
+        //                 "profit_unreal" => 0.001400000000000000,
+        //                 "withdraw_available" => 37.6927860302,
+        //                 "risk_rate" => 271.984050521072796934,
+        //                 "new_risk_rate" => 0.001858676950514399,
         //                 "contract_detail" => array(
         //                     array(
         //                         "symbol" => "MANA",
@@ -3418,8 +3423,8 @@ class htx extends Exchange {
                 }
             } else {
                 $account = $this->account();
-                $account['free'] = $this->safe_string($first, 'margin_balance', 'margin_available');
-                $account['used'] = $this->safe_string($first, 'margin_frozen');
+                $account['free'] = $this->safe_string($first, 'withdraw_available');
+                $account['total'] = $this->safe_string($first, 'margin_balance');
                 $currencyId = $this->safe_string_2($first, 'margin_asset', 'symbol');
                 $code = $this->safe_currency_code($currencyId);
                 $result[$code] = $account;
@@ -4736,6 +4741,24 @@ class htx extends Exchange {
         ), $market);
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * create a $market buy order by providing the $symbol and $cost
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4ee16-7773-11ed-9966-0242ac110003
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        $params['createMarketBuyOrderRequiresPrice'] = false;
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+    }
+
     public function create_spot_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * @ignore
@@ -4747,6 +4770,7 @@ class htx extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
+         * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
          * @return {array} $request to be sent to the exchange
          */
         $this->load_markets();
@@ -4760,7 +4784,7 @@ class htx extends Exchange {
             'account-id' => $accountId,
             'symbol' => $market['id'],
             // 'type' => $side . '-' . $type, // buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
-            // 'amount' => $this->amount_to_precision($symbol, $amount), // for buy $market orders it's the order cost
+            // 'amount' => $this->amount_to_precision($symbol, $amount), // for buy $market orders it's the order $cost
             // 'price' => $this->price_to_precision($symbol, $price),
             // 'source' => 'spot-api', // optional, spot-api, margin-api = isolated margin, super-margin-api = cross margin, c2c-margin-api
             // 'client-order-id' => $clientOrderId, // optional, max 64 chars, must be unique within 8 hours
@@ -4815,23 +4839,31 @@ class htx extends Exchange {
             $request['source'] = 'c2c-margin-api';
         }
         if (($orderType === 'market') && ($side === 'buy')) {
-            if ($this->options['createMarketBuyOrderRequiresPrice']) {
+            $quoteAmount = null;
+            $createMarketBuyOrderRequiresPrice = true;
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            $cost = $this->safe_number($params, 'cost');
+            $params = $this->omit($params, 'cost');
+            if ($cost !== null) {
+                $quoteAmount = $this->amount_to_precision($symbol, $cost);
+            } elseif ($createMarketBuyOrderRequiresPrice) {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . " $market buy order requires $price argument to calculate cost (total $amount of quote currency to spend for buying, $amount * $price). To switch off this warning exception and specify cost in the $amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
                 } else {
-                    // despite that cost = $amount * $price is in quote currency and should have quote precision
-                    // the exchange API requires the cost supplied in 'amount' to be of base precision
+                    // despite that $cost = $amount * $price is in quote currency and should have quote precision
+                    // the exchange API requires the $cost supplied in 'amount' to be of base precision
                     // more about it here:
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
-                    // we use amountToPrecision here because the exchange requires cost in base precision
+                    // we use amountToPrecision here because the exchange requires $cost in base precision
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
-                    $request['amount'] = $this->cost_to_precision($symbol, Precise::string_mul($amountString, $priceString));
+                    $quoteAmount = $this->amount_to_precision($symbol, Precise::string_mul($amountString, $priceString));
                 }
             } else {
-                $request['amount'] = $this->cost_to_precision($symbol, $amount);
+                $quoteAmount = $this->amount_to_precision($symbol, $amount);
             }
+            $request['amount'] = $quoteAmount;
         } else {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
         }
@@ -4956,6 +4988,7 @@ class htx extends Exchange {
          * @param {bool} [$params->postOnly] *contract only* true or false
          * @param {int} [$params->leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
          * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -5086,7 +5119,7 @@ class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-$orders
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-$orders
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-$orders
-         * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
