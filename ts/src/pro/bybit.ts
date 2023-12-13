@@ -402,47 +402,6 @@ export default class bybit extends bybitRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#watchOHLCVForSymbols
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
-         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        await this.loadMarkets ();
-        const topics = [];
-        const hashes = [];
-        let firstSymbol = undefined;
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = symbolsAndTimeframes[i];
-            let symbolString = this.safeString (data, 0);
-            const timeframeString = this.safeString (data, 1);
-            const market = this.market (symbolString);
-            symbolString = market['symbol'];
-            if (i === 0) {
-                firstSymbol = market['symbol'];
-            }
-            const timeframeId = this.safeString (this.timeframes, timeframeString, timeframeString);
-            const topic = 'kline.' + timeframeId + '.' + market['id'];
-            topics.push (topic);
-            hashes.push (symbolString + '#' + timeframeString);
-        }
-        const messageHash = 'multipleOHLCV::' + hashes.join (',');
-        const url = this.getUrlByMarketType (firstSymbol, false, params);
-        const [ symbol, timeframe, stored ] = await this.watchTopics (url, messageHash, topics, params);
-        if (this.newUpdates) {
-            limit = stored.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
-        return this.createOHLCVObject (symbol, timeframe, filtered);
-    }
-
     handleOHLCV (client: Client, message) {
         //
         //     {
