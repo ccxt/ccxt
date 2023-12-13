@@ -6,13 +6,13 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class bitget
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitget extends Exchange {
     describe () {
@@ -37,11 +37,11 @@ export default class bitget extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': true,
+                'closePosition': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
-                'closeAllPositions': true,
-                'closePosition': false,
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': false,
@@ -2571,10 +2571,20 @@ export default class bitget extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
         const close = this.safeString (ticker, 'lastPr');
         const timestamp = this.safeInteger (ticker, 'ts');
         const change = this.safeString (ticker, 'change24h');
+        const open24 = this.safeString (ticker, 'open24');
+        const open = this.safeString (ticker, 'open');
+        let symbol: string;
+        let openValue: string;
+        if (open === undefined) {
+            symbol = this.safeSymbol (marketId, market, undefined, 'contract');
+            openValue = open24;
+        } else {
+            symbol = this.safeSymbol (marketId, market, undefined, 'spot');
+            openValue = open;
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -2586,7 +2596,7 @@ export default class bitget extends Exchange {
             'ask': this.safeString (ticker, 'askPr'),
             'askVolume': this.safeString (ticker, 'askSz'),
             'vwap': undefined,
-            'open': this.safeString2 (ticker, 'open', 'open24h'),
+            'open': openValue,
             'close': close,
             'last': close,
             'previousClose': undefined,
@@ -2727,9 +2737,6 @@ export default class bitget extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let response = undefined;
         if (type === 'spot') {
-            if (symbols !== undefined) {
-                request['symbol'] = market['id'];
-            }
             response = await this.publicSpotGetV2SpotMarketTickers (this.extend (request, params));
         } else {
             let productType = undefined;
@@ -2891,7 +2898,6 @@ export default class bitget extends Exchange {
         if (feeStructure !== undefined) {
             const currencyCode = this.safeCurrencyCode (this.safeString (feeStructure, 'feeCoin'));
             fee = {
-                'code': currencyCode, // kept here for backward-compatibility, but will be removed soon
                 'currency': currencyCode,
                 'cost': Precise.stringNeg (this.safeString (feeStructure, 'totalFee')),
             };
@@ -4216,7 +4222,7 @@ export default class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/contract/trade/Batch-Order
          * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Order
          * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Order
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -7928,7 +7934,7 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.subType] 'linear' or 'inverse'
          * @param {string} [params.settle] *required and only valid when params.subType === "linear"* 'USDT' or 'USDC'
-         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         let subType = undefined;
