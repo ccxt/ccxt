@@ -643,31 +643,6 @@ export default class coinmetro extends Exchange {
         return result;
     }
 
-    async signIn (params = {}) {
-        /**
-         * @method
-         * @name coinmetro#signIn
-         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#1d422cd5-03ad-4abe-a1f7-30a18bac9645
-         * @description sign in, must be called prior to using other authenticated methods
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns response from exchange
-         */
-        this.checkRequiredCredentials ();
-        const request = {
-            'login': this.apiKey,
-            'password': this.secret,
-        };
-        const response = await this.privatePostJwt (this.extend (request, params));
-        //
-        //     {
-        //         "userId": "5c52d1a2e1d1c928d5ddefe5",
-        //         "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjNTJkMWEyZTFkMWM5MjhkNWRkZWZlNSIsInVzZXJuYW1lIjoic29tZUBtYWlsLmNvbSIsImV4cCI6MTU3MDM4MDU3MTU1NCwiaWF0IjoxNTY3Nzg4NTcxfQ.2A5PbS8Oo7ZDGfNlhNEs43gHfmj0OyCHM2sbGFBbi1Y",
-        //     }
-        //
-        this.options['accessToken'] = this.safeString (response, 'token');
-        return response;
-    }
-
     async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
@@ -679,6 +654,29 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privateGetUsersBalances (params);
+        //
+        //     {
+        //         "USDC": {
+        //             "USDC": 99,
+        //             "EUR": 91.16,
+        //             "BTC": 0.002334
+        //         },
+        //         "XCM": {
+        //             "XCM": 0,
+        //             "EUR": 0,
+        //             "BTC": 0
+        //         },
+        //         "TOTAL": {
+        //             "EUR": 91.16,
+        //             "BTC": 0.002334
+        //         },
+        //         "REF": {
+        //             "XCM": 0,
+        //             "EUR": 0,
+        //             "BTC": 0
+        //         }
+        //     }
+        //
         return this.safeBalance (response);
     }
 
@@ -734,6 +732,31 @@ export default class coinmetro extends Exchange {
         };
     }
 
+    async signIn (params = {}) {
+        /**
+         * @method
+         * @name coinmetro#signIn
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#1d422cd5-03ad-4abe-a1f7-30a18bac9645
+         * @description sign in, must be called prior to using other authenticated methods
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns response from exchange
+         */
+        this.checkRequiredCredentials ();
+        const request = {
+            'login': this.apiKey,
+            'password': this.secret,
+        };
+        const response = await this.privatePostJwt (this.extend (request, params));
+        //
+        //     {
+        //         "userId": "5c52d1a2e1d1c928d5ddefe5",
+        //         "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjNTJkMWEyZTFkMWM5MjhkNWRkZWZlNSIsInVzZXJuYW1lIjoic29tZUBtYWlsLmNvbSIsImV4cCI6MTU3MDM4MDU3MTU1NCwiaWF0IjoxNTY3Nzg4NTcxfQ.2A5PbS8Oo7ZDGfNlhNEs43gHfmj0OyCHM2sbGFBbi1Y",
+        //     }
+        //
+        this.options['accessToken'] = this.safeString (response, 'token');
+        return response;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
@@ -743,13 +766,14 @@ export default class coinmetro extends Exchange {
             this.checkRequiredCredentials ();
             headers = {};
             if (url === 'https://api.coinmetro.com/jwt') {
+                // if signIn
                 headers['X-Device-Id'] = 'bypass';
                 if (this.twofa !== undefined) {
                     headers['X-OTP'] = this.twofa;
                 }
             } else {
                 const accessToken = this.safeValue (this.options, 'accessToken');
-                headers['Authorization'] = accessToken;
+                headers['Authorization'] = 'Bearer ' + accessToken;
             }
             if ((method === 'POST') || (method === 'PUT')) {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
