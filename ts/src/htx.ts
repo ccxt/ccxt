@@ -1227,26 +1227,28 @@ export default class htx extends Exchange {
         await this.loadMarkets ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
-        let method = 'statusPublicSpotGetApiV2SummaryJson';
+        let response = undefined;
         if (marketType !== 'spot') {
             const subType = this.safeString (params, 'subType', this.options['defaultSubType']);
             if (marketType === 'swap') {
                 if (subType === 'linear') {
-                    method = 'statusPublicSwapLinearGetApiV2SummaryJson';
+                    response = await this.statusPublicSwapLinearGetApiV2SummaryJson ();
                 } else if (subType === 'inverse') {
-                    method = 'statusPublicSwapInverseGetApiV2SummaryJson';
+                    response = await this.statusPublicSwapInverseGetApiV2SummaryJson ();
                 }
             } else if (marketType === 'future') {
                 if (subType === 'linear') {
-                    method = 'statusPublicFutureLinearGetApiV2SummaryJson';
+                    response = await this.statusPublicFutureLinearGetApiV2SummaryJson ();
                 } else if (subType === 'inverse') {
-                    method = 'statusPublicFutureInverseGetApiV2SummaryJson';
+                    response = await this.statusPublicFutureInverseGetApiV2SummaryJson ();
                 }
             } else if (marketType === 'contract') {
-                method = 'contractPublicGetHeartbeat';
+                response = await this.contractPublicGetHeartbeat ();
             }
         }
-        const response = await this[method] ();
+        if (response === undefined) {
+            response = await this.statusPublicSpotGetApiV2SummaryJson ();
+        }
         //
         // statusPublicSpotGetApiV2SummaryJson, statusPublicSwapInverseGetApiV2SummaryJson, statusPublicFutureLinearGetApiV2SummaryJson, statusPublicFutureInverseGetApiV2SummaryJson
         //
@@ -1411,7 +1413,7 @@ export default class htx extends Exchange {
         let status = undefined;
         let updated = undefined;
         let url = undefined;
-        if (method === 'contractPublicGetHeartbeat') {
+        if (marketType === 'contract') {
             const statusRaw = this.safeString (response, 'status');
             status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
             updated = this.safeString (response, 'ts');
