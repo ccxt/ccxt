@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitpanda extends \ccxt\async\bitpanda {
 
@@ -81,7 +82,7 @@ class bitpanda extends \ccxt\async\bitpanda {
         ));
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://developers.bitpanda.com/exchange/#account-history-channel
@@ -142,7 +143,7 @@ class bitpanda extends \ccxt\async\bitpanda {
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://developers.bitpanda.com/exchange/#$market-ticker-channel
@@ -169,7 +170,7 @@ class bitpanda extends \ccxt\async\bitpanda {
         }) ();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
@@ -268,7 +269,7 @@ class bitpanda extends \ccxt\async\bitpanda {
         ), $market);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://developers.bitpanda.com/exchange/#account-history-channel
@@ -313,7 +314,7 @@ class bitpanda extends \ccxt\async\bitpanda {
         }) ();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://developers.bitpanda.com/exchange/#$market-ticker-channel
@@ -430,7 +431,7 @@ class bitpanda extends \ccxt\async\bitpanda {
         }
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://developers.bitpanda.com/exchange/#account-history-channel
@@ -1050,7 +1051,7 @@ class bitpanda extends \ccxt\async\bitpanda {
         $this->balance = $this->safe_balance($this->balance);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://developers.bitpanda.com/exchange/#candlesticks-channel

@@ -445,7 +445,7 @@ export default class bit2c extends Exchange {
             request['Price'] = price;
             const amountString = this.numberToString (amount);
             const priceString = this.numberToString (price);
-            request['Total'] = this.parseNumber (Precise.stringMul (amountString, priceString));
+            request['Total'] = this.parseToNumeric (Precise.stringMul (amountString, priceString));
             request['IsBid'] = (side === 'buy');
         }
         const response = await this[method] (this.extend (request, params));
