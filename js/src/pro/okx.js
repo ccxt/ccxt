@@ -168,13 +168,7 @@ export default class okx extends okxRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets();
-        symbol = this.symbol(symbol);
-        const trades = await this.subscribe('public', 'trades', 'trades', symbol, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
-        }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         /**
@@ -195,8 +189,11 @@ export default class okx extends okxRest {
         symbols = this.marketSymbols(symbols);
         const channel = 'trades';
         const topics = [];
+        const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
-            const marketId = this.marketId(symbols[i]);
+            const symbol = symbols[i];
+            messageHashes.push(channel + ':' + symbol);
+            const marketId = this.marketId(symbol);
             const topic = {
                 'channel': channel,
                 'instId': marketId,
@@ -207,9 +204,8 @@ export default class okx extends okxRest {
             'op': 'subscribe',
             'args': topics,
         };
-        const messageHash = 'multipleTrades::' + symbols.join(',');
         const url = this.getUrl(channel, 'public');
-        const trades = await this.watch(url, messageHash, request, messageHash);
+        const trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const first = this.safeValue(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
@@ -235,13 +231,13 @@ export default class okx extends okxRest {
         //
         const arg = this.safeValue(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
+        const marketId = this.safeString(arg, 'instId');
+        const symbol = this.safeSymbol(marketId);
         const data = this.safeValue(message, 'data', []);
         const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade(data[i]);
-            const symbol = trade['symbol'];
-            const marketId = this.safeString(trade['info'], 'instId');
-            const messageHash = channel + ':' + marketId;
+            const messageHash = channel + ':' + symbol;
             let stored = this.safeValue(this.trades, symbol);
             if (stored === undefined) {
                 stored = new ArrayCache(tradesLimit);
@@ -249,9 +245,7 @@ export default class okx extends okxRest {
             }
             stored.append(trade);
             client.resolve(stored, messageHash);
-            this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, stored);
         }
-        return message;
     }
     async watchTicker(symbol, params = {}) {
         /**
@@ -415,7 +409,6 @@ export default class okx extends okxRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        const options = this.safeValue(this.options, 'watchOrderBook', {});
         //
         // bbo-tbt
         // 1. Newly added channel that sends tick-by-tick Level 1 data
@@ -439,12 +432,7 @@ export default class okx extends okxRest {
         // 2. Public depth channel, verification not required
         // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
         //
-        const depth = this.safeString(options, 'depth', 'books');
-        if ((depth === 'books-l2-tbt') || (depth === 'books50-l2-tbt')) {
-            await this.authenticate({ 'access': 'public' });
-        }
-        const orderbook = await this.subscribe('public', depth, depth, symbol, params);
-        return orderbook.limit();
+        return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         /**
@@ -464,8 +452,11 @@ export default class okx extends okxRest {
             await this.authenticate({ 'access': 'public' });
         }
         const topics = [];
+        const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
-            const marketId = this.marketId(symbols[i]);
+            const symbol = symbols[i];
+            messageHashes.push(depth + ':' + symbol);
+            const marketId = this.marketId(symbol);
             const topic = {
                 'channel': depth,
                 'instId': marketId,
@@ -477,8 +468,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl(depth, 'public');
-        const messageHash = 'multipleOrderbooks::' + symbols.join(',');
-        const orderbook = await this.watch(url, messageHash, request, messageHash);
+        const orderbook = await this.watchMultiple(url, messageHashes, request, messageHashes);
         return orderbook.limit();
     }
     handleDelta(bookside, delta) {
@@ -651,7 +641,7 @@ export default class okx extends okxRest {
             'books50-l2-tbt': 50,
         };
         const limit = this.safeInteger(depths, channel);
-        const messageHash = channel + ':' + marketId;
+        const messageHash = channel + ':' + symbol;
         if (action === 'snapshot') {
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
@@ -660,7 +650,6 @@ export default class okx extends okxRest {
                 orderbook['symbol'] = symbol;
                 this.handleOrderBookMessage(client, update, orderbook, messageHash);
                 client.resolve(orderbook, messageHash);
-                this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbooks::', symbol, orderbook);
             }
         }
         else if (action === 'update') {
@@ -670,7 +659,6 @@ export default class okx extends okxRest {
                     const update = data[i];
                     this.handleOrderBookMessage(client, update, orderbook, messageHash);
                     client.resolve(orderbook, messageHash);
-                    this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbooks::', symbol, orderbook);
                 }
             }
         }
@@ -686,7 +674,6 @@ export default class okx extends okxRest {
                 const snapshot = this.parseOrderBook(update, symbol, timestamp, 'bids', 'asks', 0, 1);
                 orderbook.reset(snapshot);
                 client.resolve(orderbook, messageHash);
-                this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbooks::', symbol, orderbook);
             }
         }
         return message;

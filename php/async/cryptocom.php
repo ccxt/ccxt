@@ -133,7 +133,10 @@ class cryptocom extends Exchange {
                     'derivatives' => 'https://deriv-api.crypto.com/v1',
                 ),
                 'www' => 'https://crypto.com/',
-                'referral' => 'https://crypto.com/exch/5835vstech',
+                'referral' => array(
+                    'url' => 'https://crypto.com/exch/kdacthrnxt',
+                    'discount' => 0.15,
+                ),
                 'doc' => array(
                     'https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html',
                     'https://exchange-docs.crypto.com/spot/index.html',

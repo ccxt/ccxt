@@ -7,6 +7,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     negotiateHelper(privateChannel: any, params?: {}): Promise<string>;
     requestId(): any;
     subscribe(url: any, messageHash: any, subscriptionHash: any, subscription: any, params?: {}): Promise<any>;
+    subscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, subscription: any, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     handleTicker(client: Client, message: any): any;
     watchPosition(symbol?: Str, params?: {}): Promise<Position>;
@@ -24,7 +25,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     handleOrderBook(client: Client, message: any): void;
     getCacheIndex(orderbook: any, cache: any): any;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
-    handleSubscriptionStatus(client: Client, message: any): any;
+    handleSubscriptionStatus(client: Client, message: any): void;
     handleSystemStatus(client: Client, message: any): any;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseWsOrderStatus(status: any): string;

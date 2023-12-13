@@ -585,12 +585,8 @@ class gate extends Exchange {
                     'expiration' => 86400, // for conditional orders
                 ),
                 'networks' => array(
-                    'ALGORAND' => 'ALGO',
-                    'ARBITRUM_NOVA' => 'ARBNOVA',
-                    'ARBITRUM_ONE' => 'ARBEVM',
-                    'AVALANCHE_C' => 'AVAX_C',
+                    'AVAXC' => 'AVAX_C',
                     'BEP20' => 'BSC',
-                    'CHILIZ' => 'CHZ',
                     'EOS' => 'EOS',
                     'ERC20' => 'ETH',
                     'GATECHAIN' => 'GTEVM',
@@ -600,29 +596,7 @@ class gate extends Exchange {
                     'OKC' => 'OKT',
                     'OPTIMISM' => 'OPETH',
                     'POLKADOT' => 'DOTSM',
-                    'POLYGON' => 'MATIC',
-                    'SOLANA' => 'SOL',
                     'TRC20' => 'TRX',
-                ),
-                'networksById' => array(
-                    'ALGO' => 'ALGORAND',
-                    'ARBEVM' => 'ARBITRUM_ONE',
-                    'ARBNOVA' => 'ARBITRUM_NOVA',
-                    'AVAX_C' => 'AVALANCHE_C',
-                    'BSC' => 'BEP20',
-                    'CHZ' => 'CHILIZ',
-                    'DOTSM' => 'POLKADOT',
-                    'EOS' => 'EOS',
-                    'ETH' => 'ERC20',
-                    'GTEVM' => 'GATECHAIN',
-                    'HT' => 'HRC20',
-                    'KSMSM' => 'KUSAMA',
-                    'MATIC' => 'POLYGON',
-                    'NEAR' => 'NEAR',
-                    'OKT' => 'OKC',
-                    'OPETH' => 'OPTIMISM',
-                    'SOL' => 'SOLANA',
-                    'TRX' => 'TRC20',
                 ),
                 'timeInForce' => array(
                     'GTC' => 'gtc',
@@ -1917,10 +1891,13 @@ class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#generate-$currency-deposit-$address
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] unified $network $code (not used directly by gate.io but used by ccxt to filter the $response)
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
+        $rawNetwork = $this->safe_string_upper($params, 'network');
+        $params = $this->omit($params, 'network');
         $request = array(
             'currency' => $currency['id'],
         );
@@ -1942,19 +1919,39 @@ class gate extends Exchange {
         //
         $currencyId = $this->safe_string($response, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $addressField = $this->safe_string($response, 'address');
+        $networkId = $this->network_code_to_id($rawNetwork, $code);
+        $network = null;
         $tag = null;
         $address = null;
-        if ($addressField !== null) {
-            if (mb_strpos($addressField, 'New $address is being generated for you, please wait') !== false) {
-                throw new BadResponse($this->id . ' ' . 'New $address is being generated for you, please wait a few seconds and try again to get the $address->');
+        if ($networkId !== null) {
+            $addresses = $this->safe_value($response, 'multichain_addresses');
+            for ($i = 0; $i < count($addresses); $i++) {
+                $entry = $addresses[$i];
+                $entryNetwork = $this->safe_string($entry, 'chain');
+                if ($networkId === $entryNetwork) {
+                    $obtainFailed = $this->safe_integer($entry, 'obtain_failed');
+                    if ($obtainFailed) {
+                        break;
+                    }
+                    $address = $this->safe_string($entry, 'address');
+                    $tag = $this->safe_string($entry, 'payment_id');
+                    $network = $this->network_id_to_code($networkId, $code);
+                    break;
+                }
             }
-            if (mb_strpos($addressField, ' ') !== false) {
-                $splitted = explode(' ', $addressField);
-                $address = $splitted[0];
-                $tag = $splitted[1];
-            } else {
-                $address = $addressField;
+        } else {
+            $addressField = $this->safe_string($response, 'address');
+            if ($addressField !== null) {
+                if (mb_strpos($addressField, 'New $address is being generated for you, please wait') !== false) {
+                    throw new BadResponse($this->id . ' ' . 'New $address is being generated for you, please wait a few seconds and try again to get the $address->');
+                }
+                if (mb_strpos($addressField, ' ') !== false) {
+                    $splitted = explode(' ', $addressField);
+                    $address = $splitted[0];
+                    $tag = $splitted[1];
+                } else {
+                    $address = $addressField;
+                }
             }
         }
         $this->check_address($address);
@@ -1964,7 +1961,7 @@ class gate extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
+            'network' => $network,
         );
     }
 

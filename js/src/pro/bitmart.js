@@ -300,10 +300,7 @@ export default class bitmart extends bitmartRest {
         if (type === 'swap') {
             type = 'futures';
         }
-        let messageHash = 'tickers';
-        if (symbols !== undefined) {
-            messageHash += '::' + symbols.join(',');
-        }
+        const messageHash = 'tickers';
         const request = {
             'action': 'subscribe',
             'args': ['futures/ticker'],
@@ -436,12 +433,14 @@ export default class bitmart extends bitmartRest {
                 symbols[symbol] = true;
             }
         }
-        const newOrderSymbols = Object.keys(symbols);
-        for (let i = 0; i < newOrderSymbols.length; i++) {
-            const symbol = newOrderSymbols[i];
-            this.resolvePromiseIfMessagehashMatches(client, 'orders::', symbol, newOrders);
+        const messageHash = 'orders';
+        const symbolKeys = Object.keys(symbols);
+        for (let i = 0; i < symbolKeys.length; i++) {
+            const symbol = symbolKeys[i];
+            const symbolSpecificMessageHash = messageHash + ':' + symbol;
+            client.resolve(newOrders, symbolSpecificMessageHash);
         }
-        client.resolve(newOrders, 'orders');
+        client.resolve(newOrders, messageHash);
     }
     parseWsOrder(order, market = undefined) {
         //
@@ -900,7 +899,6 @@ export default class bitmart extends bitmartRest {
             const symbol = this.safeString(ticker, 'symbol');
             this.tickers[symbol] = ticker;
             client.resolve(ticker, 'tickers');
-            this.resolvePromiseIfMessagehashMatches(client, 'tickers::', symbol, ticker);
         }
         return message;
     }

@@ -605,12 +605,8 @@ class gate(Exchange, ImplicitAPI):
                     'expiration': 86400,  # for conditional orders
                 },
                 'networks': {
-                    'ALGORAND': 'ALGO',
-                    'ARBITRUM_NOVA': 'ARBNOVA',
-                    'ARBITRUM_ONE': 'ARBEVM',
-                    'AVALANCHE_C': 'AVAX_C',
+                    'AVAXC': 'AVAX_C',
                     'BEP20': 'BSC',
-                    'CHILIZ': 'CHZ',
                     'EOS': 'EOS',
                     'ERC20': 'ETH',
                     'GATECHAIN': 'GTEVM',
@@ -620,29 +616,7 @@ class gate(Exchange, ImplicitAPI):
                     'OKC': 'OKT',
                     'OPTIMISM': 'OPETH',
                     'POLKADOT': 'DOTSM',
-                    'POLYGON': 'MATIC',
-                    'SOLANA': 'SOL',
                     'TRC20': 'TRX',
-                },
-                'networksById': {
-                    'ALGO': 'ALGORAND',
-                    'ARBEVM': 'ARBITRUM_ONE',
-                    'ARBNOVA': 'ARBITRUM_NOVA',
-                    'AVAX_C': 'AVALANCHE_C',
-                    'BSC': 'BEP20',
-                    'CHZ': 'CHILIZ',
-                    'DOTSM': 'POLKADOT',
-                    'EOS': 'EOS',
-                    'ETH': 'ERC20',
-                    'GTEVM': 'GATECHAIN',
-                    'HT': 'HRC20',
-                    'KSMSM': 'KUSAMA',
-                    'MATIC': 'POLYGON',
-                    'NEAR': 'NEAR',
-                    'OKT': 'OKC',
-                    'OPETH': 'OPTIMISM',
-                    'SOL': 'SOLANA',
-                    'TRX': 'TRC20',
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
@@ -1879,10 +1853,13 @@ class gate(Exchange, ImplicitAPI):
         :see: https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: unified network code(not used directly by gate.io but used by ccxt to filter the response)
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
+        rawNetwork = self.safe_string_upper(params, 'network')
+        params = self.omit(params, 'network')
         request = {
             'currency': currency['id'],
         }
@@ -1904,18 +1881,34 @@ class gate(Exchange, ImplicitAPI):
         #
         currencyId = self.safe_string(response, 'currency')
         code = self.safe_currency_code(currencyId)
-        addressField = self.safe_string(response, 'address')
+        networkId = self.network_code_to_id(rawNetwork, code)
+        network = None
         tag = None
         address = None
-        if addressField is not None:
-            if addressField.find('New address is being generated for you, please wait') >= 0:
-                raise BadResponse(self.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.')
-            if addressField.find(' ') >= 0:
-                splitted = addressField.split(' ')
-                address = splitted[0]
-                tag = splitted[1]
-            else:
-                address = addressField
+        if networkId is not None:
+            addresses = self.safe_value(response, 'multichain_addresses')
+            for i in range(0, len(addresses)):
+                entry = addresses[i]
+                entryNetwork = self.safe_string(entry, 'chain')
+                if networkId == entryNetwork:
+                    obtainFailed = self.safe_integer(entry, 'obtain_failed')
+                    if obtainFailed:
+                        break
+                    address = self.safe_string(entry, 'address')
+                    tag = self.safe_string(entry, 'payment_id')
+                    network = self.network_id_to_code(networkId, code)
+                    break
+        else:
+            addressField = self.safe_string(response, 'address')
+            if addressField is not None:
+                if addressField.find('New address is being generated for you, please wait') >= 0:
+                    raise BadResponse(self.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.')
+                if addressField.find(' ') >= 0:
+                    splitted = addressField.split(' ')
+                    address = splitted[0]
+                    tag = splitted[1]
+                else:
+                    address = addressField
         self.check_address(address)
         return {
             'info': response,
@@ -1923,7 +1916,7 @@ class gate(Exchange, ImplicitAPI):
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': None,
+            'network': network,
         }
 
     def fetch_trading_fee(self, symbol: str, params={}):

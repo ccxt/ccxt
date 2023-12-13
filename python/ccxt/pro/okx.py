@@ -167,12 +167,7 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
-        await self.load_markets()
-        symbol = self.symbol(symbol)
-        trades = await self.subscribe('public', 'trades', 'trades', symbol, params)
-        if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -190,8 +185,11 @@ class okx(ccxt.async_support.okx):
         symbols = self.market_symbols(symbols)
         channel = 'trades'
         topics = []
+        messageHashes = []
         for i in range(0, len(symbols)):
-            marketId = self.market_id(symbols[i])
+            symbol = symbols[i]
+            messageHashes.append(channel + ':' + symbol)
+            marketId = self.market_id(symbol)
             topic = {
                 'channel': channel,
                 'instId': marketId,
@@ -201,9 +199,8 @@ class okx(ccxt.async_support.okx):
             'op': 'subscribe',
             'args': topics,
         }
-        messageHash = 'multipleTrades::' + ','.join(symbols)
         url = self.get_url(channel, 'public')
-        trades = await self.watch(url, messageHash, request, messageHash)
+        trades = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
             first = self.safe_value(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
@@ -228,21 +225,19 @@ class okx(ccxt.async_support.okx):
         #
         arg = self.safe_value(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
+        marketId = self.safe_string(arg, 'instId')
+        symbol = self.safe_symbol(marketId)
         data = self.safe_value(message, 'data', [])
         tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
         for i in range(0, len(data)):
             trade = self.parse_trade(data[i])
-            symbol = trade['symbol']
-            marketId = self.safe_string(trade['info'], 'instId')
-            messageHash = channel + ':' + marketId
+            messageHash = channel + ':' + symbol
             stored = self.safe_value(self.trades, symbol)
             if stored is None:
                 stored = ArrayCache(tradesLimit)
                 self.trades[symbol] = stored
             stored.append(trade)
             client.resolve(stored, messageHash)
-            self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, stored)
-        return message
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -390,7 +385,6 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
-        options = self.safe_value(self.options, 'watchOrderBook', {})
         #
         # bbo-tbt
         # 1. Newly added channel that sends tick-by-tick Level 1 data
@@ -414,11 +408,7 @@ class okx(ccxt.async_support.okx):
         # 2. Public depth channel, verification not required
         # 3. Data feeds will be delivered every 100ms(vs. every 200ms now)
         #
-        depth = self.safe_string(options, 'depth', 'books')
-        if (depth == 'books-l2-tbt') or (depth == 'books50-l2-tbt'):
-            await self.authenticate({'access': 'public'})
-        orderbook = await self.subscribe('public', depth, depth, symbol, params)
-        return orderbook.limit()
+        return await self.watch_order_book_for_symbols([symbol], limit, params)
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
@@ -435,8 +425,11 @@ class okx(ccxt.async_support.okx):
         if (depth == 'books-l2-tbt') or (depth == 'books50-l2-tbt'):
             await self.authenticate({'access': 'public'})
         topics = []
+        messageHashes = []
         for i in range(0, len(symbols)):
-            marketId = self.market_id(symbols[i])
+            symbol = symbols[i]
+            messageHashes.append(depth + ':' + symbol)
+            marketId = self.market_id(symbol)
             topic = {
                 'channel': depth,
                 'instId': marketId,
@@ -447,8 +440,7 @@ class okx(ccxt.async_support.okx):
             'args': topics,
         }
         url = self.get_url(depth, 'public')
-        messageHash = 'multipleOrderbooks::' + ','.join(symbols)
-        orderbook = await self.watch(url, messageHash, request, messageHash)
+        orderbook = await self.watch_multiple(url, messageHashes, request, messageHashes)
         return orderbook.limit()
 
     def handle_delta(self, bookside, delta):
@@ -615,7 +607,7 @@ class okx(ccxt.async_support.okx):
             'books50-l2-tbt': 50,
         }
         limit = self.safe_integer(depths, channel)
-        messageHash = channel + ':' + marketId
+        messageHash = channel + ':' + symbol
         if action == 'snapshot':
             for i in range(0, len(data)):
                 update = data[i]
@@ -624,7 +616,6 @@ class okx(ccxt.async_support.okx):
                 orderbook['symbol'] = symbol
                 self.handle_order_book_message(client, update, orderbook, messageHash)
                 client.resolve(orderbook, messageHash)
-                self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbooks::', symbol, orderbook)
         elif action == 'update':
             if symbol in self.orderbooks:
                 orderbook = self.orderbooks[symbol]
@@ -632,7 +623,6 @@ class okx(ccxt.async_support.okx):
                     update = data[i]
                     self.handle_order_book_message(client, update, orderbook, messageHash)
                     client.resolve(orderbook, messageHash)
-                    self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbooks::', symbol, orderbook)
         elif (channel == 'books5') or (channel == 'bbo-tbt'):
             orderbook = self.safe_value(self.orderbooks, symbol)
             if orderbook is None:
@@ -644,7 +634,6 @@ class okx(ccxt.async_support.okx):
                 snapshot = self.parse_order_book(update, symbol, timestamp, 'bids', 'asks', 0, 1)
                 orderbook.reset(snapshot)
                 client.resolve(orderbook, messageHash)
-                self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbooks::', symbol, orderbook)
         return message
 
     async def authenticate(self, params={}):

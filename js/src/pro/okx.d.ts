@@ -8,7 +8,7 @@ export default class okx extends okxRest {
     subscribe(access: any, messageHash: any, channel: any, symbol: any, params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrades(client: Client, message: any): any;
+    handleTrades(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): any;

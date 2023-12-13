@@ -3760,6 +3760,7 @@ class binance extends Exchange {
 
     public function edit_spot_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
+         * @ignore
          * edit a trade order
          * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
          * @param {string} $id cancel order $id

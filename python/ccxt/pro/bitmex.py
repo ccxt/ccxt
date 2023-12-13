@@ -522,7 +522,6 @@ class bitmex(ccxt.async_support.bitmex):
             for j in range(0, len(trades)):
                 stored.append(trades[j])
             client.resolve(stored, messageHash)
-            self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, stored)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -1105,27 +1104,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
-        table = None
-        if limit is None:
-            table = self.safe_string(self.options, 'watchOrderBookLevel', 'orderBookL2')
-        elif limit == 25:
-            table = 'orderBookL2_25'
-        elif limit == 10:
-            table = 'orderBookL10'
-        else:
-            raise ExchangeError(self.id + ' watchOrderBook limit argument must be None(L2), 25(L2) or 10(L3)')
-        await self.load_markets()
-        market = self.market(symbol)
-        messageHash = table + ':' + market['id']
-        url = self.urls['api']['ws']
-        request = {
-            'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
-        }
-        orderbook = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
-        return orderbook.limit()
+        return await self.watch_order_book_for_symbols([symbol], limit, params)
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
@@ -1147,18 +1126,20 @@ class bitmex(ccxt.async_support.bitmex):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         topics = []
+        messageHashes = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            currentMessageHash = table + ':' + market['id']
-            topics.append(currentMessageHash)
-        messageHash = 'multipleOrderbook::' + ','.join(symbols)
+            topic = table + ':' + market['id']
+            topics.append(topic)
+            messageHash = table + ':' + symbol
+            messageHashes.append(messageHash)
         url = self.urls['api']['ws']
         request = {
             'op': 'subscribe',
             'args': topics,
         }
-        orderbook = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        orderbook = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), topics)
         return orderbook.limit()
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -1371,9 +1352,8 @@ class bitmex(ccxt.async_support.bitmex):
                 datetime = self.safe_string(data[i], 'timestamp')
                 orderbook['timestamp'] = self.parse8601(datetime)
                 orderbook['datetime'] = datetime
-            messageHash = table + ':' + marketId
+            messageHash = table + ':' + symbol
             client.resolve(orderbook, messageHash)
-            self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbook::', symbol, orderbook)
         else:
             numUpdatesByMarketId = {}
             for i in range(0, len(data)):
@@ -1397,12 +1377,11 @@ class bitmex(ccxt.async_support.bitmex):
             marketIds = list(numUpdatesByMarketId.keys())
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
-                messageHash = table + ':' + marketId
                 market = self.safe_market(marketId)
                 symbol = market['symbol']
+                messageHash = table + ':' + symbol
                 orderbook = self.orderbooks[symbol]
                 client.resolve(orderbook, messageHash)
-                self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbook::', symbol, orderbook)
 
     def handle_system_status(self, client: Client, message):
         #

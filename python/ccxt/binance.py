@@ -3665,6 +3665,7 @@ class binance(Exchange, ImplicitAPI):
 
     def edit_spot_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
+         * @ignore
         edit a trade order
         :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
         :param str id: cancel order id
