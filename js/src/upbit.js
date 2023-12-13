@@ -36,7 +36,10 @@ export default class upbit extends Exchange {
                 'option': false,
                 'cancelOrder': true,
                 'createDepositAddress': true,
+                'createMarketBuyOrderWithCost': true,
                 'createMarketOrder': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
@@ -1023,29 +1026,19 @@ export default class upbit extends Exchange {
         /**
          * @method
          * @name upbit#createOrder
-         * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
          * @description create a trade order
+         * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] for market buy orders, the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (type === 'market') {
-            // for market buy it requires the amount of quote currency to spend
-            if (side === 'buy') {
-                if (this.options['createMarketBuyOrderRequiresPrice']) {
-                    if (price === undefined) {
-                        throw new InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
-                    }
-                    else {
-                        amount = amount * price;
-                    }
-                }
-            }
-        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
         let orderSide = undefined;
         if (side === 'buy') {
             orderSide = 'bid';
@@ -1056,26 +1049,43 @@ export default class upbit extends Exchange {
         else {
             throw new InvalidOrder(this.id + ' createOrder() allows buy or sell side only!');
         }
-        await this.loadMarkets();
-        const market = this.market(symbol);
         const request = {
             'market': market['id'],
             'side': orderSide,
         };
         if (type === 'limit') {
-            request['volume'] = this.amountToPrecision(symbol, amount);
             request['price'] = this.priceToPrecision(symbol, price);
-            request['ord_type'] = type;
         }
-        else if (type === 'market') {
-            if (side === 'buy') {
-                request['ord_type'] = 'price';
-                request['price'] = this.priceToPrecision(symbol, amount);
+        if ((type === 'market') && (side === 'buy')) {
+            // for market buy it requires the amount of quote currency to spend
+            let quoteAmount = undefined;
+            let createMarketBuyOrderRequiresPrice = true;
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber(params, 'cost');
+            params = this.omit(params, 'cost');
+            if (cost !== undefined) {
+                quoteAmount = this.costToPrecision(symbol, cost);
             }
-            else if (side === 'sell') {
-                request['ord_type'] = type;
-                request['volume'] = this.amountToPrecision(symbol, amount);
+            else if (createMarketBuyOrderRequiresPrice) {
+                if (price === undefined) {
+                    throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
+                }
+                else {
+                    const amountString = this.numberToString(amount);
+                    const priceString = this.numberToString(price);
+                    const costRequest = Precise.stringMul(amountString, priceString);
+                    quoteAmount = this.costToPrecision(symbol, costRequest);
+                }
             }
+            else {
+                quoteAmount = this.costToPrecision(symbol, amount);
+            }
+            request['ord_type'] = 'price';
+            request['price'] = quoteAmount;
+        }
+        else {
+            request['ord_type'] = type;
+            request['volume'] = this.amountToPrecision(symbol, amount);
         }
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'identifier');
         if (clientOrderId !== undefined) {

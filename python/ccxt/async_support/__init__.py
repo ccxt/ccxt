@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.86'
+__version__ = '4.1.87'
 
 # -----------------------------------------------------------------------------
 
@@ -95,8 +95,6 @@ from ccxt.async_support.btcturk import btcturk                                  
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
-from ccxt.async_support.coinbaseprime import coinbaseprime                      # noqa: F401
-from ccxt.async_support.coinbasepro import coinbasepro                          # noqa: F401
 from ccxt.async_support.coincheck import coincheck                              # noqa: F401
 from ccxt.async_support.coinex import coinex                                    # noqa: F401
 from ccxt.async_support.coinlist import coinlist                                # noqa: F401
@@ -195,8 +193,6 @@ exchanges = [
     'bybit',
     'cex',
     'coinbase',
-    'coinbaseprime',
-    'coinbasepro',
     'coincheck',
     'coinex',
     'coinlist',
