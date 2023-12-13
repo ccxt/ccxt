@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.86';
+$version = '4.1.87';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.86';
+    const VERSION = '4.1.87';
 
     public $browser;
     public $marketsLoading = null;
@@ -501,7 +501,7 @@ class Exchange extends \ccxt\Exchange {
         $length = count($usedProxies);
         if ($length > 1) {
             $joinedProxyNames = implode(',', $usedProxies);
-            throw new ExchangeError($this->id . ' you have multiple conflicting settings (' . $joinedProxyNames . '), please use only one from => $wsProxy, $wssProxy, socksProxy');
+            throw new ExchangeError($this->id . ' you have multiple conflicting settings (' . $joinedProxyNames . '), please use only one from => $wsProxy, $wssProxy, wsSocksProxy');
         }
         return array( $wsProxy, $wssProxy, $wsSocksProxy );
     }

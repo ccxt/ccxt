@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.1.86';
+const version = '4.1.87';
 
 (Exchange as any).ccxtVersion = version
 
@@ -531,7 +531,7 @@ export {
     woo,
     yobit,
     zaif,
-    zonda,
+    zonda,    
 }
 
 export default ccxt;

@@ -3,6 +3,7 @@
 
 import Exchange from './abstract/novadax.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired, AccountNotEnabled } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
@@ -36,6 +37,9 @@ export default class novadax extends Exchange {
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -741,9 +745,10 @@ export default class novadax extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -753,11 +758,11 @@ export default class novadax extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': uppercaseSide, // or SELL
-            // 'amount': this.amountToPrecision (symbol, amount),
+            // "amount": this.amountToPrecision (symbol, amount),
             // "price": "1234.5678", // required for LIMIT and STOP orders
-            // 'operator': '' // for stop orders, can be found in order introduction
-            // 'stopPrice': this.priceToPrecision (symbol, stopPrice),
-            // 'accountId': '...', // subaccount id, optional
+            // "operator": "" // for stop orders, can be found in order introduction
+            // "stopPrice": this.priceToPrecision (symbol, stopPrice),
+            // "accountId": "...", // subaccount id, optional
         };
         const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         if (stopPrice === undefined) {
@@ -782,20 +787,26 @@ export default class novadax extends Exchange {
             if (uppercaseSide === 'SELL') {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             } else if (uppercaseSide === 'BUY') {
-                let value = this.safeNumber (params, 'value');
-                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
-                if (createMarketBuyOrderRequiresPrice) {
-                    if (price !== undefined) {
-                        if (value === undefined) {
-                            value = amount * price;
-                        }
-                    } else if (value === undefined) {
-                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'value' extra parameter (the exchange-specific behaviour)");
+                let quoteAmount = undefined;
+                let createMarketBuyOrderRequiresPrice = true;
+                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber2 (params, 'cost', 'value');
+                params = this.omit (params, 'cost');
+                if (cost !== undefined) {
+                    quoteAmount = this.costToPrecision (symbol, cost);
+                } else if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
+                    } else {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const costRequest = Precise.stringMul (amountString, priceString);
+                        quoteAmount = this.costToPrecision (symbol, costRequest);
                     }
                 } else {
-                    value = (value === undefined) ? amount : value;
+                    quoteAmount = this.costToPrecision (symbol, amount);
                 }
-                request['value'] = this.costToPrecision (symbol, value);
+                request['value'] = quoteAmount;
             }
         }
         request['type'] = uppercaseType;

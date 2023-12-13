@@ -587,12 +587,8 @@ export default class gate extends Exchange {
                     'expiration': 86400, // for conditional orders
                 },
                 'networks': {
-                    'ALGORAND': 'ALGO',
-                    'ARBITRUM_NOVA': 'ARBNOVA',
-                    'ARBITRUM_ONE': 'ARBEVM',
-                    'AVALANCHE_C': 'AVAX_C',
+                    'AVAXC': 'AVAX_C',
                     'BEP20': 'BSC',
-                    'CHILIZ': 'CHZ',
                     'EOS': 'EOS',
                     'ERC20': 'ETH',
                     'GATECHAIN': 'GTEVM',
@@ -602,29 +598,7 @@ export default class gate extends Exchange {
                     'OKC': 'OKT',
                     'OPTIMISM': 'OPETH',
                     'POLKADOT': 'DOTSM',
-                    'POLYGON': 'MATIC',
-                    'SOLANA': 'SOL',
                     'TRC20': 'TRX',
-                },
-                'networksById': {
-                    'ALGO': 'ALGORAND',
-                    'ARBEVM': 'ARBITRUM_ONE',
-                    'ARBNOVA': 'ARBITRUM_NOVA',
-                    'AVAX_C': 'AVALANCHE_C',
-                    'BSC': 'BEP20',
-                    'CHZ': 'CHILIZ',
-                    'DOTSM': 'POLKADOT',
-                    'EOS': 'EOS',
-                    'ETH': 'ERC20',
-                    'GTEVM': 'GATECHAIN',
-                    'HT': 'HRC20',
-                    'KSMSM': 'KUSAMA',
-                    'MATIC': 'POLYGON',
-                    'NEAR': 'NEAR',
-                    'OKT': 'OKC',
-                    'OPETH': 'OPTIMISM',
-                    'SOL': 'SOLANA',
-                    'TRX': 'TRC20',
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
@@ -1937,10 +1911,13 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] unified network code (not used directly by gate.io but used by ccxt to filter the response)
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const rawNetwork = this.safeStringUpper (params, 'network');
+        params = this.omit (params, 'network');
         const request = {
             'currency': currency['id'],
         };
@@ -1962,19 +1939,39 @@ export default class gate extends Exchange {
         //
         const currencyId = this.safeString (response, 'currency');
         code = this.safeCurrencyCode (currencyId);
-        const addressField = this.safeString (response, 'address');
+        const networkId = this.networkCodeToId (rawNetwork, code);
+        let network = undefined;
         let tag = undefined;
         let address = undefined;
-        if (addressField !== undefined) {
-            if (addressField.indexOf ('New address is being generated for you, please wait') >= 0) {
-                throw new BadResponse (this.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.');
+        if (networkId !== undefined) {
+            const addresses = this.safeValue (response, 'multichain_addresses');
+            for (let i = 0; i < addresses.length; i++) {
+                const entry = addresses[i];
+                const entryNetwork = this.safeString (entry, 'chain');
+                if (networkId === entryNetwork) {
+                    const obtainFailed = this.safeInteger (entry, 'obtain_failed');
+                    if (obtainFailed) {
+                        break;
+                    }
+                    address = this.safeString (entry, 'address');
+                    tag = this.safeString (entry, 'payment_id');
+                    network = this.networkIdToCode (networkId, code);
+                    break;
+                }
             }
-            if (addressField.indexOf (' ') >= 0) {
-                const splitted = addressField.split (' ');
-                address = splitted[0];
-                tag = splitted[1];
-            } else {
-                address = addressField;
+        } else {
+            const addressField = this.safeString (response, 'address');
+            if (addressField !== undefined) {
+                if (addressField.indexOf ('New address is being generated for you, please wait') >= 0) {
+                    throw new BadResponse (this.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.');
+                }
+                if (addressField.indexOf (' ') >= 0) {
+                    const splitted = addressField.split (' ');
+                    address = splitted[0];
+                    tag = splitted[1];
+                } else {
+                    address = addressField;
+                }
             }
         }
         this.checkAddress (address);
@@ -1984,7 +1981,7 @@ export default class gate extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': undefined,
+            'network': network,
         };
     }
 
