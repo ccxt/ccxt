@@ -2302,7 +2302,7 @@ export default class bitmart extends Exchange {
         const mode = this.safeInteger (params, 'mode'); // only for swap
         const isMarketOrder = type === 'market';
         let postOnly = undefined;
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        let reduceOnly = this.safeValue (params, 'reduceOnly');
         const isExchangeSpecificPo = (mode === 4);
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, isExchangeSpecificPo, params);
         params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly' ]);
@@ -2321,6 +2321,7 @@ export default class bitmart extends Exchange {
         if (isLimitOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
         } else if (type === 'trailing') {
+            reduceOnly = true;
             request['activation_price'] = this.priceToPrecision (symbol, price);
             request['activation_price_type'] = this.safeInteger (params, 'activation_price_type', 1);
             request['callback_rate'] = this.safeString (params, 'callback_rate', "1");
