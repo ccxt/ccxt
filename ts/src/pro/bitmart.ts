@@ -142,7 +142,7 @@ export default class bitmart extends bitmartRest {
 
     setBalanceCache (client: Client, type) {
         if (type in client.subscriptions) {
-            return undefined;
+            return;
         }
         const options = this.safeValue (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.handleOptionAndParams (options, 'watchBalance', 'fetchBalanceSnapshot', true);
