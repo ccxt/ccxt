@@ -7,16 +7,18 @@ async function testWatchBalance (exchange, skippedProperties, code) {
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
+        let response = undefined;
         try {
-            const response = await exchange[method] ();
-            testBalance (exchange, skippedProperties, method, response);
-            now = exchange.milliseconds ();
+            response = await exchange[method] ();
         } catch (e) {
-            if (testSharedMethods.isTemporaryFailure (e)) {
+            if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
             now = exchange.milliseconds ();
+            continue;
         }
+        testBalance (exchange, skippedProperties, method, response);
+        now = exchange.milliseconds ();
     }
 }
 

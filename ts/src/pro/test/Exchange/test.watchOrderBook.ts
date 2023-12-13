@@ -8,18 +8,20 @@ async function testWatchOrderBook (exchange, skippedProperties, symbol) {
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
+        let response = undefined;
         try {
-            let response = await exchange[method] (symbol);
-            response = fixPhpObjectArray (exchange, response);
-            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
-            now = exchange.milliseconds ();
-            testOrderBook (exchange, skippedProperties, method, response, symbol);
+            response = await exchange[method] (symbol);
         } catch (e) {
-            if (testSharedMethods.isTemporaryFailure (e)) {
+            if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
             now = exchange.milliseconds ();
+            continue;
         }
+        response = fixPhpObjectArray (exchange, response);
+        assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
+        now = exchange.milliseconds ();
+        testOrderBook (exchange, skippedProperties, method, response, symbol);
     }
 }
 

@@ -18,19 +18,21 @@ async function testWatchOHLCV (exchange, skippedProperties, symbol) {
     const duration = exchange.parseTimeframe (chosenTimeframeKey);
     const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
     while (now < ends) {
+        let response = undefined;
         try {
-            const response = await exchange[method] (symbol, chosenTimeframeKey, since, limit);
-            assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json (response));
-            now = exchange.milliseconds ();
-            for (let i = 0; i < response.length; i++) {
-                testOHLCV (exchange, skippedProperties, method, response[i], symbol, now);
-            }
+            response = await exchange[method] (symbol, chosenTimeframeKey, since, limit);
         } catch (e) {
-            if (testSharedMethods.isTemporaryFailure (e)) {
+            if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
+            now = exchange.milliseconds ();
+            continue;
         }
+        assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json (response));
         now = exchange.milliseconds ();
+        for (let i = 0; i < response.length; i++) {
+            testOHLCV (exchange, skippedProperties, method, response[i], symbol, now);
+        }
     }
 }
 

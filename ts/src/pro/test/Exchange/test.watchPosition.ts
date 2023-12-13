@@ -8,17 +8,19 @@ async function testWatchPosition (exchange, skippedProperties, symbol) {
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
+        let response = undefined;
         try {
-            const response = await exchange[method] (symbol);
-            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
-            now = exchange.milliseconds ();
-            testPosition (exchange, skippedProperties, method, response, undefined, now);
+            response = await exchange[method] (symbol);
         } catch (e) {
-            if (testSharedMethods.isTemporaryFailure (e)) {
+            if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
             now = exchange.milliseconds ();
+            continue;
         }
+        assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
+        now = exchange.milliseconds ();
+        testPosition (exchange, skippedProperties, method, response, undefined, now);
     }
 }
 
