@@ -1,6 +1,6 @@
 import { Market } from '../ccxt.js';
 import Exchange from './abstract/p2b.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers } from './base/types.js';
+import type { Int, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers } from './base/types.js';
 /**
  * @class p2b
  * @augments Exchange

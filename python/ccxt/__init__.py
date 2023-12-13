@@ -105,7 +105,6 @@ from ccxt.bitpanda import bitpanda                                    # noqa: F4
 from ccxt.bitrue import bitrue                                        # noqa: F401
 from ccxt.bitso import bitso                                          # noqa: F401
 from ccxt.bitstamp import bitstamp                                    # noqa: F401
-from ccxt.bittrex import bittrex                                      # noqa: F401
 from ccxt.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.bl3p import bl3p                                            # noqa: F401
 from ccxt.blockchaincom import blockchaincom                          # noqa: F401
@@ -206,7 +205,6 @@ exchanges = [
     'bitrue',
     'bitso',
     'bitstamp',
-    'bittrex',
     'bitvavo',
     'bl3p',
     'blockchaincom',

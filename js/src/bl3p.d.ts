@@ -1,5 +1,5 @@
 import Exchange from './abstract/bl3p.js';
-import { Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import type { Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 /**
  * @class bl3p
  * @augments Exchange

@@ -37,7 +37,6 @@ Exchange::$exchanges = array(
     'bitpanda',
     'bitrue',
     'bitstamp',
-    'bittrex',
     'bitvavo',
     'blockchaincom',
     'bybit',

@@ -11,6 +11,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitmart extends \ccxt\async\bitmart {
 
@@ -106,7 +107,7 @@ class bitmart extends \ccxt\async\bitmart {
         }) ();
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#private-balance-change
@@ -242,7 +243,7 @@ class bitmart extends \ccxt\async\bitmart {
         $client->resolve ($this->balance[$type], $messageHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
@@ -267,7 +268,7 @@ class bitmart extends \ccxt\async\bitmart {
         }) ();
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
@@ -288,7 +289,7 @@ class bitmart extends \ccxt\async\bitmart {
         }) ();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/futures/#overview
@@ -325,7 +326,7 @@ class bitmart extends \ccxt\async\bitmart {
         }) ();
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#private-order-channel
@@ -612,7 +613,7 @@ class bitmart extends \ccxt\async\bitmart {
         return $this->safe_string($sides, $sideId, $sideId);
     }
 
-    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/futures/#private-position-channel
@@ -961,7 +962,7 @@ class bitmart extends \ccxt\async\bitmart {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#public-kline-channel
@@ -1088,7 +1089,7 @@ class bitmart extends \ccxt\async\bitmart {
         }
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#public-$depth-all-channel

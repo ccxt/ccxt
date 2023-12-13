@@ -74,7 +74,6 @@ import bitpanda from  './src/bitpanda.js'
 import bitrue from  './src/bitrue.js'
 import bitso from  './src/bitso.js'
 import bitstamp from  './src/bitstamp.js'
-import bittrex from  './src/bittrex.js'
 import bitvavo from  './src/bitvavo.js'
 import bl3p from  './src/bl3p.js'
 import blockchaincom from  './src/blockchaincom.js'
@@ -166,7 +165,6 @@ import bitoproPro from  './src/pro/bitopro.js'
 import bitpandaPro from  './src/pro/bitpanda.js'
 import bitruePro from  './src/pro/bitrue.js'
 import bitstampPro from  './src/pro/bitstamp.js'
-import bittrexPro from  './src/pro/bittrex.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
 import blockchaincomPro from  './src/pro/blockchaincom.js'
 import bybitPro from  './src/pro/bybit.js'
@@ -236,7 +234,6 @@ const exchanges = {
     'bitrue':                 bitrue,
     'bitso':                  bitso,
     'bitstamp':               bitstamp,
-    'bittrex':                bittrex,
     'bitvavo':                bitvavo,
     'bl3p':                   bl3p,
     'blockchaincom':          blockchaincom,
@@ -328,7 +325,6 @@ const pro = {
     'bitpanda':               bitpandaPro,
     'bitrue':                 bitruePro,
     'bitstamp':               bitstampPro,
-    'bittrex':                bittrexPro,
     'bitvavo':                bitvavoPro,
     'blockchaincom':          blockchaincomPro,
     'bybit':                  bybitPro,
@@ -476,7 +472,6 @@ export {
     bitrue,
     bitso,
     bitstamp,
-    bittrex,
     bitvavo,
     bl3p,
     blockchaincom,

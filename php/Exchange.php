@@ -397,7 +397,6 @@ class Exchange {
         'bitrue',
         'bitso',
         'bitstamp',
-        'bittrex',
         'bitvavo',
         'bl3p',
         'blockchaincom',

@@ -126,7 +126,6 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
                 'reduceMargin': False,
-                'repayMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
