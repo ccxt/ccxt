@@ -7245,12 +7245,24 @@ export default class htx extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPosition', params);
         marginMode = (marginMode === undefined) ? 'cross' : marginMode;
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
-        let method = undefined;
+        const request = {};
+        if (market['future'] && market['inverse']) {
+            request['symbol'] = market['settleId'];
+        } else {
+            if (marginMode === 'cross') {
+                request['margin_account'] = 'USDT'; // only allowed value
+            }
+            request['contract_code'] = market['id'];
+        }
+        let response = undefined;
         if (market['linear']) {
-            method = this.getSupportedMapping (marginMode, {
-                'isolated': 'contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo',
-                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo',
-            });
+            if (marginMode === 'isolated') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo (this.extend (request, query));
+            } else if (marginMode === 'cross') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo (this.extend (request, query));
+            } else {
+                throw new NotSupported (this.id + ' fetchPosition() not support this market type');
+            }
             //
             // isolated
             //
@@ -7369,10 +7381,13 @@ export default class htx extends Exchange {
             //     }
             //
         } else {
-            method = this.getSupportedMapping (marketType, {
-                'future': 'contractPrivatePostApiV1ContractAccountPositionInfo',
-                'swap': 'contractPrivatePostSwapApiV1SwapAccountPositionInfo',
-            });
+            if (marketType === 'future') {
+                response = await this.contractPrivatePostApiV1ContractAccountPositionInfo (this.extend (request, query));
+            } else if (marketType === 'swap') {
+                response = await this.contractPrivatePostSwapApiV1SwapAccountPositionInfo (this.extend (request, query));
+            } else {
+                throw new NotSupported (this.id + ' setLeverage() not support this market type');
+            }
             //
             // future, swap
             //
@@ -7443,16 +7458,6 @@ export default class htx extends Exchange {
             //     }
             //
         }
-        const request = {};
-        if (market['future'] && market['inverse']) {
-            request['symbol'] = market['settleId'];
-        } else {
-            if (marginMode === 'cross') {
-                request['margin_account'] = 'USDT'; // only allowed value
-            }
-            request['contract_code'] = market['id'];
-        }
-        const response = await this[method] (this.extend (request, query));
         const data = this.safeValue (response, 'data');
         let account = undefined;
         if (marginMode === 'cross') {

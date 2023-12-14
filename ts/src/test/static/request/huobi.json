@@ -489,6 +489,35 @@
                 "output": "{}"
             }
         ],
+        "fetchPosition": [
+            {
+                "description": "Fetch linear position",
+                "method": "fetchPosition",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_account_position_info?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=fHh3rEyD%2FZFqX2z5IXhQNfsTODGyWF%2FYYJrOFniSPvo%3D",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"margin_account\":\"USDT\",\"contract_code\":\"LTC-USDT\"}"
+            },
+            {
+                "description": "Fetch inverse position",
+                "method": "fetchPosition",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_account_position_info?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=fHh3rEyD%2FZFqX2z5IXhQNfsTODGyWF%2FYYJrOFniSPvo%3D",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "output": "{\"margin_account\":\"USDT\",\"contract_code\":\"BTC-USD\"}"
+            },
+            {
+                "description": "Fetch future position",
+                "method": "fetchPosition",
+                "url": "https://api.hbdm.com/api/v1/contract_account_position_info?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=fHh3rEyD%2FZFqX2z5IXhQNfsTODGyWF%2FYYJrOFniSPvo%3D",
+                "input": [
+                    "BTC/USD:BTC-231124"
+                ],
+                "output": "{\"symbol\":\"btc\"}"
+            }
+        ],
         "setLeverage": [
             {
                 "description": "Set linear leverage",
