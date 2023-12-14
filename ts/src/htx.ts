@@ -6499,12 +6499,15 @@ export default class htx extends Exchange {
         const request = {
             // 'contract_code': market['id'],
         };
-        const method = this.getSupportedMapping (subType, {
-            'linear': 'contractPublicGetLinearSwapApiV1SwapBatchFundingRate',
-            'inverse': 'contractPublicGetSwapApiV1SwapBatchFundingRate',
-        });
         params = this.omit (params, 'subType');
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (subType === 'linear') {
+            response = await this.contractPublicGetLinearSwapApiV1SwapBatchFundingRate (this.extend (request, params));
+        } else if (subType === 'inverse') {
+            response = await this.contractPublicGetSwapApiV1SwapBatchFundingRate (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRates() not support this market type');
+        }
         //
         //     {
         //         "status": "ok",

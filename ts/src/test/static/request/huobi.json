@@ -765,7 +765,7 @@
         ],
         "fetchFundingRate": [
             {
-                "description": "fetch Funding Rate History - swap linear",
+                "description": "fetch Funding Rate - swap linear",
                 "method": "fetchFundingRate",
                 "url": "https://api.hbdm.com/linear-swap-api/v1/swap_funding_rate?contract_code=LTC-USDT",
                 "input": [
@@ -773,11 +773,35 @@
                 ]
             },
             {
-                "description": "fetch Funding Rate History - swap inverse",
+                "description": "fetch Funding Rate - swap inverse",
                 "method": "fetchFundingRate",
                 "url": "https://api.huobi.pro/swap-api/v1/swap_funding_rate?contract_code=BTC-USD",
                 "input": [
                     "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch Funding Rates - swap linear",
+                "method": "fetchFundingRates",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_batch_funding_rate",
+                "input": [
+                    null,
+                    {
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "fetch Funding Rates - swap inverse",
+                "method": "fetchFundingRates",
+                "url": "https://api.huobi.pro/swap-api/v1/swap_batch_funding_rate",
+                "input": [
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
                 ]
             }
         ]
