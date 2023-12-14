@@ -519,6 +519,40 @@
                     "BTC/USD:BTC-231124"
                 ]
             }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetch Tickers - spot",
+                "method": "fetchTickers",
+                "url": "https://api.huobi.pro/market/tickers",
+                "input": [
+                    ["LTC/USDT"]
+                ]
+            },
+            {
+                "description": "fetch Tickers - swap linear",
+                "method": "fetchTickers",
+                "url": "https://api.huobi.pro/linear-swap-ex/market/detail/batch_merged",
+                "input": [
+                    ["LTC/USDT:USDT"]
+                ]
+            },
+            {
+                "description": "fetch Tickers - swap inverse",
+                "method": "fetchTickers",
+                "url": "https://api.huobi.pro/swap-ex/market/detail/batch_merged",
+                "input": [
+                    ["BTC/USD:BTC"]
+                ]
+            },
+            {
+                "description": "fetch Tickers - future",
+                "method": "fetchTickers",
+                "url": "https://api.huobi.pro/market/detail/batch_merged",
+                "input": [
+                    ["BTC/USD:BTC-231124"]
+                ]
+            }
         ]
     }
 }

@@ -2125,7 +2125,6 @@ export default class htx extends Exchange {
         }
         let type = undefined;
         let subType = undefined;
-        let method = 'spotPublicGetMarketTickers';
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         const request = {};
@@ -2133,22 +2132,24 @@ export default class htx extends Exchange {
         const swap = (type === 'swap');
         const linear = (subType === 'linear');
         const inverse = (subType === 'inverse');
+        params = this.omit (params, [ 'type', 'subType' ]);
+        let response = undefined;
         if (future || swap) {
             if (linear) {
-                method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
                 if (future) {
                     request['business_type'] = 'futures';
                 }
+                response = await this.contractPublicGetLinearSwapExMarketDetailBatchMerged (this.extend (request, params));
             } else if (inverse) {
                 if (future) {
-                    method = 'contractPublicGetMarketDetailBatchMerged';
+                    response = await this.contractPublicGetMarketDetailBatchMerged (this.extend (request, params));
                 } else if (swap) {
-                    method = 'contractPublicGetSwapExMarketDetailBatchMerged';
+                    response = await this.contractPublicGetSwapExMarketDetailBatchMerged (this.extend (request, params));
                 }
             }
+        } else {
+            response = await this.spotPublicGetMarketTickers (this.extend (request, params));
         }
-        params = this.omit (params, [ 'type', 'subType' ]);
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
