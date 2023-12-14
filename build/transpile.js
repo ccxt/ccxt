@@ -2457,7 +2457,7 @@ class Transpiler {
             const pyDirsAmount = findDirsAmountForPath('python', test.pyFileAsync || test.pyFileSync, 3);
             const phpDirsAmount = findDirsAmountForPath('php', test.phpFileAsync || test.phpFileSync, 2);
             const pythonPreamble = this.getPythonPreamble(pyDirsAmount);
-            let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, isWs);
+            let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, false); //isWs : to avoid php namespace differences for tests, lets set all WS tests under ccxt namespace for now
 
             let pythonHeaderSync = []
             let pythonHeaderAsync = []
