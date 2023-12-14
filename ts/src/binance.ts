@@ -6808,6 +6808,7 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#futuresTransfer
+         * @ignore
          * @description transfer between futures account
          * @see https://binance-docs.github.io/apidocs/spot/en/#new-future-account-transfer-user_data
          * @param {string} code unified currency code
