@@ -3511,41 +3511,21 @@ export default class htx extends Exchange {
             // 'pair': 'BTC-USDT',
             // 'contract_type': 'this_week', // swap, this_week, next_week, quarter, next_ quarter
         };
-        let method = undefined;
+        let response = undefined;
         if (marketType === 'spot') {
             const clientOrderId = this.safeString (params, 'clientOrderId');
-            method = 'spotPrivateGetV1OrderOrdersOrderId';
             if (clientOrderId !== undefined) {
-                method = 'spotPrivateGetV1OrderOrdersGetClientOrder';
                 // will be filled below in extend ()
                 // they expect clientOrderId instead of client-order-id
                 // request['clientOrderId'] = clientOrderId;
+                response = await this.spotPrivateGetV1OrderOrdersGetClientOrder (this.extend (request, params));
             } else {
                 request['order-id'] = id;
+                response = await this.spotPrivateGetV1OrderOrdersOrderId (this.extend (request, params));
             }
         } else {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-            }
-            request['contract_code'] = market['id'];
-            if (market['linear']) {
-                let marginMode = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
-                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (marginMode === 'isolated') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
-                } else if (marginMode === 'cross') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo';
-                }
-            } else if (market['inverse']) {
-                if (marketType === 'future') {
-                    method = 'contractPrivatePostApiV1ContractOrderInfo';
-                    request['symbol'] = market['settleId'];
-                } else if (marketType === 'swap') {
-                    method = 'contractPrivatePostSwapApiV1SwapOrderInfo';
-                } else {
-                    throw new NotSupported (this.id + ' fetchOrder() does not support ' + marketType + ' markets');
-                }
             }
             const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
             if (clientOrderId === undefined) {
@@ -3554,8 +3534,27 @@ export default class htx extends Exchange {
                 request['client_order_id'] = clientOrderId;
                 params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
             }
+            request['contract_code'] = market['id'];
+            if (market['linear']) {
+                let marginMode = undefined;
+                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
+                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
+                if (marginMode === 'isolated') {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapOrderInfo (this.extend (request, params));
+                } else if (marginMode === 'cross') {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo (this.extend (request, params));
+                }
+            } else if (market['inverse']) {
+                if (marketType === 'future') {
+                    request['symbol'] = market['settleId'];
+                    response = await this.contractPrivatePostApiV1ContractOrderInfo (this.extend (request, params));
+                } else if (marketType === 'swap') {
+                    response = await this.contractPrivatePostSwapApiV1SwapOrderInfo (this.extend (request, params));
+                } else {
+                    throw new NotSupported (this.id + ' fetchOrder() does not support ' + marketType + ' markets');
+                }
+            }
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //

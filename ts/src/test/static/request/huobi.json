@@ -338,6 +338,47 @@
                 "output": "{\"trade_type\":0,\"status\":\"0\",\"contract\":\"LTC-USDT\",\"type\":1}"
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "fetch Order - spot",
+                "method": "fetchOrder",
+                "url": "https://api.huobi.pro/v1/order/orders/357632718898331?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-12-09T01%3A03%3A10&Signature=PbyATPz3DSTYLhTIIkDybElKJc1Kk8s0yHZ0kPVifSw%3D",
+                "input": [
+                    "357632718898331",
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch Order - swap linear",
+                "method": "fetchOrder",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_order_info",
+                "input": [
+                    "357632718898331",
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"contract_code\":\"LTC-USDT\",\"order_id\":\"357632718898331\"}"
+            },
+            {
+                "description": "fetch Order - swap inverse",
+                "method": "fetchOrder",
+                "url": "https://api.huobi.pro/swap-api/v1/swap_order_info",
+                "input": [
+                    "357632718898331",
+                    "BTC/USD:BTC"
+                ],
+                "output": "{\"contract_code\":\"BTC-USD\",\"order_id\":\"357632718898331\"}"
+            },
+            {
+                "description": "fetch Order - future",
+                "method": "fetchOrder",
+                "url": "https://api.huobi.pro/api/v1/contract_order_info",
+                "input": [
+                    "357632718898331",
+                    "BTC/USD:BTC-231124"
+                ],
+                "output": "{\"contract_code\":\"BTC231124\",\"symbol\":\"btc\",\"order_id\":\"357632718898331\"}"
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",
