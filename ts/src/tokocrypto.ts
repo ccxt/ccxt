@@ -1673,7 +1673,7 @@ export default class tokocrypto extends Exchange {
                 let quoteAmount = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
                 [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                const cost = this.safeNumber2 (params, 'cost', 'quoteOrderQty',);
+                const cost = this.safeNumber2 (params, 'cost', 'quoteOrderQty');
                 params = this.omit (params, [ 'cost', 'quoteOrderQty' ]);
                 if (cost !== undefined) {
                     quoteAmount = cost;
