@@ -508,7 +508,7 @@ export default class binance extends binanceRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+        return await this.watchTradesForSymbols ([ symbol ], limit, params);
     }
 
     parseTrade (trade, market = undefined): Trade {
@@ -1857,7 +1857,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    async fetchOrdersWs (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name binance#fetchOrdersWs
@@ -1899,7 +1899,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolLimit (orders, symbol, limit);
     }
 
-    async fetchOpenOrdersWs (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name binance#fetchOpenOrdersWs
@@ -1980,7 +1980,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             return newOrder;
         }
-        return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit, true);
+        return this.filterBySymbolLimit (this.orders, symbol, limit, true);
     }
 
     parseWsOrder (order, market = undefined) {
@@ -2263,13 +2263,13 @@ export default class binance extends binanceRest {
         const cache = this.safeValue (this.positions, type);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             const snapshot = await client.future (type + ':fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsLimit (snapshot, symbols, limit, true);
         }
         const newPositions = await this.watch (url, messageHash, undefined, type);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+        return this.filterBySymbolsLimit (cache, symbols, limit, true);
     }
 
     setPositionsCache (client: Client, type, symbols: Strings = undefined) {
@@ -2419,7 +2419,7 @@ export default class binance extends binanceRest {
         });
     }
 
-    async fetchMyTradesWs (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchMyTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name binance#fetchMyTradesWs

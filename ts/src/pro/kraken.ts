@@ -855,7 +855,7 @@ export default class kraken extends krakenRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
-        return await this.watchPrivate ('ownTrades', symbol, since, limit, params);
+        return await this.watchPrivate ('ownTrades', symbol, limit, params);
     }
 
     handleMyTrades (client: Client, message, subscription = undefined) {
@@ -1020,7 +1020,7 @@ export default class kraken extends krakenRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        return await this.watchPrivate ('openOrders', symbol, since, limit, params);
+        return await this.watchPrivate ('openOrders', symbol, limit, params);
     }
 
     handleOrders (client: Client, message, subscription = undefined) {

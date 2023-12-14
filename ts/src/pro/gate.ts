@@ -393,7 +393,7 @@ export default class gate extends gateRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+        return await this.watchTradesForSymbols ([ symbol ], limit, params);
     }
 
     async watchTradesForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -813,7 +813,7 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsLimit (this.positions, symbols, limit, true);
     }
 
     setPositionsCache (client: Client, type, symbols: Strings = undefined) {

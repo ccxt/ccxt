@@ -360,7 +360,7 @@ export default class bitmart extends bitmartRest {
         if (this.newUpdates) {
             return newOrders;
         }
-        return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit, true);
+        return this.filterBySymbolLimit (this.orders, symbol, limit, true);
     }
 
     handleOrders (client: Client, message) {
@@ -633,7 +633,7 @@ export default class bitmart extends bitmartRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit);
+        return this.filterBySymbolsLimit (this.positions, symbols, limit);
     }
 
     handlePositions (client: Client, message) {

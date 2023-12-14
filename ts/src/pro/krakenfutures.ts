@@ -245,7 +245,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsLimit (this.positions, symbols, limit, true);
     }
 
     handlePositions (client, message) {

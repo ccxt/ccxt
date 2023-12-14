@@ -363,7 +363,7 @@ export default class kucoin extends kucoinRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+        return await this.watchTradesForSymbols ([ symbol ], limit, params);
     }
 
     async watchTradesForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<Trade[]> {

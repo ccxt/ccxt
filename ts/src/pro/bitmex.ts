@@ -631,7 +631,7 @@ export default class bitmex extends bitmexRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsLimit (this.positions, symbols, limit, true);
     }
 
     handlePositions (client, message) {

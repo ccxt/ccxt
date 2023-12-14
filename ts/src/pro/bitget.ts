@@ -599,7 +599,7 @@ export default class bitget extends bitgetRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+        return await this.watchTradesForSymbols ([ symbol ], limit, params);
     }
 
     async watchTradesForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -744,7 +744,7 @@ export default class bitget extends bitgetRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (newPositions, symbols, since, limit, true);
+        return this.filterBySymbolsLimit (newPositions, symbols, limit, true);
     }
 
     handlePositions (client: Client, message) {

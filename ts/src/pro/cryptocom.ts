@@ -158,7 +158,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+        return await this.watchTradesForSymbols ([ symbol ], limit, params);
     }
 
     async watchTradesForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -487,13 +487,13 @@ export default class cryptocom extends cryptocomRest {
         const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsLimit (snapshot, symbols, limit, true);
         }
         const newPositions = await this.watch (url, messageHash, this.extend (request, params));
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsLimit (this.positions, symbols, limit, true);
     }
 
     setPositionsCache (client: Client, type, symbols: Strings = undefined) {

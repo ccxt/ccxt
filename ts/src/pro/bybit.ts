@@ -624,7 +624,7 @@ export default class bybit extends bybitRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+        return await this.watchTradesForSymbols ([ symbol ], limit, params);
     }
 
     async watchTradesForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -946,14 +946,14 @@ export default class bybit extends bybitRest {
         const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsLimit (snapshot, symbols, limit, true);
         }
         const topics = [ 'position' ];
         const newPositions = await this.watchTopics (url, [ messageHash ], topics, params);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+        return this.filterBySymbolsLimit (cache, symbols, limit, true);
     }
 
     setPositionsCache (client: Client, symbols: Strings = undefined) {

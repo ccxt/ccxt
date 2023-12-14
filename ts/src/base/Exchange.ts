@@ -4554,6 +4554,12 @@ export default class Exchange {
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
 
+    filterBySymbolsLimit (array, symbols: string[] = undefined, limit: Int = undefined, tail = false) {
+        const result = this.filterByArray (array, 'symbol', symbols, false);
+        return this.filterByLimit (result, limit, 'timestamp', tail);
+    }
+
+
     parseLastPrices (pricesData, symbols: string[] = undefined, params = {}) {
         //
         // the value of tickers is either a dict or a list

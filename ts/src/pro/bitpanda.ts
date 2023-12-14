@@ -306,7 +306,7 @@ export default class bitpanda extends bitpandaRest {
         trades = this.filterBySymbolLimit (trades, symbol, limit);
         const numTrades = trades.length;
         if (numTrades === 0) {
-            return await this.watchMyTrades (symbol, since, limit, params);
+            return await this.watchMyTrades (symbol, limit, params);
         }
         return trades;
     }
@@ -469,7 +469,7 @@ export default class bitpanda extends bitpandaRest {
         orders = this.filterBySymbolLimit (orders, symbol, limit);
         const numOrders = orders.length;
         if (numOrders === 0) {
-            return await this.watchOrders (symbol, since, limit, params);
+            return await this.watchOrders (symbol, limit, params);
         }
         return orders;
     }

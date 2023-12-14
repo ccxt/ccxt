@@ -512,7 +512,7 @@ export default class cex extends cexRest {
         };
         const request = this.deepExtend (message, params);
         const orders = await this.watch (url, messageHash, request, subscriptionHash, request);
-        return this.filterBySymbolSinceLimit (orders, market['symbol'], since, limit);
+        return this.filterBySymbolLimit (orders, market['symbol'], limit);
     }
 
     handleTransaction (client: Client, message) {
@@ -1261,7 +1261,7 @@ export default class cex extends cexRest {
             'data': data,
         };
         const response = await this.watch (url, messageHash, request, messageHash);
-        return this.parseOrders (response, market, since, limit, params);
+        return this.parseOrders (response, market, undefined, limit, params);
     }
 
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {

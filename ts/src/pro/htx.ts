@@ -1259,7 +1259,7 @@ export default class htx extends htxRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions[url][marginMode], symbols, since, limit, false);
+        return this.filterBySymbolsLimit (this.positions[url][marginMode], symbols, limit, false);
     }
 
     handlePositions (client, message) {
