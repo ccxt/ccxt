@@ -268,6 +268,7 @@ use ccxt\OperationFailed;
 use ccxt\ExchangeNotAvailable;
 use ccxt\OnMaintenance;
 use ccxt\AuthenticationError;
+use ccxt\ExchangeError;
 
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
