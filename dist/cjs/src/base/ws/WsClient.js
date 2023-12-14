@@ -58,7 +58,7 @@ class WsClient extends Client {
     close() {
         if (this.connection instanceof WebSocketPlatform) {
             if (this.disconnected === undefined) {
-                this.disconnected = Future.createFuture();
+                this.disconnected = Future.Future();
             }
             this.connection.close();
         }

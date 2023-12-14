@@ -1121,6 +1121,7 @@ class testMainClass extends baseMainTestClass {
             'apiKey' => 'key',
             'secret' => 'secretsecret',
             'password' => 'password',
+            'walletAddress' => 'wallet',
             'uid' => 'uid',
             'accounts' => [array(
     'id' => 'myAccount',

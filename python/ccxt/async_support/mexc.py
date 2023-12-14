@@ -44,13 +44,15 @@ class mexc(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': True,
-                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': None,
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createDepositAddress': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,
                 'createReduceOnlyOrder': True,
@@ -118,7 +120,6 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
-                'repayMargin': False,
                 'setLeverage': True,
                 'setMarginMode': None,
                 'setPositionMode': True,
@@ -161,9 +162,9 @@ class mexc(Exchange, ImplicitAPI):
                         'get': {
                             'ping': 1,
                             'time': 1,
-                            'exchangeInfo': 1,
+                            'exchangeInfo': 10,
                             'depth': 1,
-                            'trades': 1,
+                            'trades': 5,
                             'historicalTrades': 1,
                             'aggTrades': 1,
                             'klines': 1,
@@ -176,17 +177,18 @@ class mexc(Exchange, ImplicitAPI):
                     },
                     'private': {
                         'get': {
-                            'order': 1,
-                            'openOrders': 1,
-                            'allOrders': 1,
+                            'order': 2,
+                            'openOrders': 3,
+                            'allOrders': 10,
                             'account': 10,
-                            'myTrades': 1,
+                            'myTrades': 10,
                             'sub-account/list': 1,
                             'sub-account/apiKey': 1,
-                            'capital/config/getall': 1,
+                            'capital/config/getall': 10,
                             'capital/deposit/hisrec': 1,
                             'capital/withdraw/history': 1,
-                            'capital/deposit/address': 1,
+                            'capital/withdraw/address': 10,
+                            'capital/deposit/address': 10,
                             'capital/transfer': 1,
                             'capital/transfer/tranId': 1,
                             'capital/transfer/internal': 1,
@@ -230,7 +232,7 @@ class mexc(Exchange, ImplicitAPI):
                             'capital/transfer/internal': 1,
                             'capital/deposit/address': 1,
                             'capital/sub-account/universalTransfer': 1,
-                            'capital/convert': 1,
+                            'capital/convert': 10,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                         },
@@ -1376,7 +1378,15 @@ class mexc(Exchange, ImplicitAPI):
                 request['endTime'] = until
             method = self.safe_string(self.options, 'fetchTradesMethod', 'spotPublicGetAggTrades')
             method = self.safe_string(params, 'method', method)  # AggTrades, HistoricalTrades, Trades
-            trades = await getattr(self, method)(self.extend(request, params))
+            params = self.omit(params, ['method'])
+            if method == 'spotPublicGetAggTrades':
+                trades = await self.spotPublicGetAggTrades(self.extend(request, params))
+            elif method == 'spotPublicGetHistoricalTrades':
+                trades = await self.spotPublicGetHistoricalTrades(self.extend(request, params))
+            elif method == 'spotPublicGetTrades':
+                trades = await self.spotPublicGetTrades(self.extend(request, params))
+            else:
+                raise NotSupported(self.id + ' fetchTrades() not support self method')
             #
             #     /trades, /historicalTrades
             #
@@ -1652,12 +1662,15 @@ class mexc(Exchange, ImplicitAPI):
                 request['end'] = until
             priceType = self.safe_string(params, 'price', 'default')
             params = self.omit(params, 'price')
-            method = self.get_supported_mapping(priceType, {
-                'default': 'contractPublicGetKlineSymbol',
-                'index': 'contractPublicGetKlineIndexPriceSymbol',
-                'mark': 'contractPublicGetKlineFairPriceSymbol',
-            })
-            response = await getattr(self, method)(self.extend(request, params))
+            response = None
+            if priceType == 'default':
+                response = await self.contractPublicGetKlineSymbol(self.extend(request, params))
+            elif priceType == 'index':
+                response = await self.contractPublicGetKlineIndexPriceSymbol(self.extend(request, params))
+            elif priceType == 'mark':
+                response = await self.contractPublicGetKlineFairPriceSymbol(self.extend(request, params))
+            else:
+                raise NotSupported(self.id + ' fetchOHLCV() not support self price type, [default, index, mark]')
             #
             #     {
             #         "success":true,
@@ -1986,9 +1999,28 @@ class mexc(Exchange, ImplicitAPI):
             tickers = [tickers]
         return self.parse_tickers(tickers, symbols)
 
+    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1996,6 +2028,7 @@ class mexc(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: only 'isolated' is supported for spot-margin trading
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2015,12 +2048,15 @@ class mexc(Exchange, ImplicitAPI):
             'type': type.upper(),
         }
         if orderSide == 'BUY' and type == 'market':
-            quoteOrderQty = self.safe_number(params, 'quoteOrderQty')
-            if quoteOrderQty is not None:
-                amount = quoteOrderQty
-            elif self.options['createMarketBuyOrderRequiresPrice']:
+            createMarketBuyOrderRequiresPrice = True
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            cost = self.safe_number_2(params, 'cost', 'quoteOrderQty')
+            params = self.omit(params, 'cost')
+            if cost is not None:
+                amount = cost
+            elif createMarketBuyOrderRequiresPrice:
                 if price is None:
-                    raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                 else:
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
@@ -2127,16 +2163,6 @@ class mexc(Exchange, ImplicitAPI):
             # 'trend': 1,  # Required for trigger order 1: latest price, 2: fair price, 3: index price
             # 'orderType': 1,  # Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         }
-        method = 'contractPrivatePostOrderSubmit'
-        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
-        params = self.omit(params, ['stopPrice', 'triggerPrice'])
-        if stopPrice:
-            method = 'contractPrivatePostPlanorderPlace'
-            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
-            request['triggerType'] = self.safe_integer(params, 'triggerType', 1)
-            request['executeCycle'] = self.safe_integer(params, 'executeCycle', 1)
-            request['trend'] = self.safe_integer(params, 'trend', 1)
-            request['orderType'] = self.safe_integer(params, 'orderType', 1)
         if (type != 5) and (type != 6) and (type != 'market'):
             request['price'] = float(self.price_to_precision(symbol, price))
         if openType == 1:
@@ -2151,8 +2177,18 @@ class mexc(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'externalOid')
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
-        params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly'])
-        response = await getattr(self, method)(self.extend(request, params))
+        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice'])
+        response = None
+        if stopPrice:
+            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['triggerType'] = self.safe_integer(params, 'triggerType', 1)
+            request['executeCycle'] = self.safe_integer(params, 'executeCycle', 1)
+            request['trend'] = self.safe_integer(params, 'trend', 1)
+            request['orderType'] = self.safe_integer(params, 'orderType', 1)
+            response = await self.contractPrivatePostPlanorderPlace(self.extend(request, params))
+        else:
+            response = await self.contractPrivatePostOrderSubmit(self.extend(request, params))
         #
         # Swap
         #     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
@@ -2167,7 +2203,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         *spot only*  *all orders must have the same symbol* create a list of trade orders
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-orders
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2244,12 +2280,12 @@ class mexc(Exchange, ImplicitAPI):
             else:
                 request['orderId'] = id
             marginMode, query = self.handle_margin_mode_and_params('fetchOrder', params)
-            method = 'spotPrivateGetOrder'
             if marginMode is not None:
                 if marginMode != 'isolated':
                     raise BadRequest(self.id + ' fetchOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
-                method = 'spotPrivateGetMarginOrder'
-            data = await getattr(self, method)(self.extend(request, query))
+                data = await self.spotPrivateGetMarginOrder(self.extend(request, query))
+            else:
+                data = await self.spotPrivateGetOrder(self.extend(request, query))
             #
             # spot
             #
@@ -2353,16 +2389,17 @@ class mexc(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument for spot market')
             marginMode, queryInner = self.handle_margin_mode_and_params('fetchOrders', params)
-            method = 'spotPrivateGetAllOrders'
-            if marginMode is not None:
-                if marginMode != 'isolated':
-                    raise BadRequest(self.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
-                method = 'spotPrivateGetMarginAllOrders'
             if since is not None:
                 request['startTime'] = since
             if limit is not None:
                 request['limit'] = limit
-            response = await getattr(self, method)(self.extend(request, queryInner))
+            response = None
+            if marginMode is not None:
+                if marginMode != 'isolated':
+                    raise BadRequest(self.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
+                response = await self.spotPrivateGetMarginAllOrders(self.extend(request, queryInner))
+            else:
+                response = await self.spotPrivateGetAllOrders(self.extend(request, queryInner))
             #
             # spot
             #
@@ -2565,13 +2602,14 @@ class mexc(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for spot market')
             request['symbol'] = market['id']
-            method = 'spotPrivateGetOpenOrders'
             marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
+            response = None
             if marginMode is not None:
                 if marginMode != 'isolated':
                     raise BadRequest(self.id + ' fetchOpenOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
-                method = 'spotPrivateGetMarginOpenOrders'
-            response = await getattr(self, method)(self.extend(request, query))
+                response = await self.spotPrivateGetMarginOpenOrders(self.extend(request, query))
+            else:
+                response = await self.spotPrivateGetOpenOrders(self.extend(request, query))
             #
             # spot
             #
@@ -2691,12 +2729,12 @@ class mexc(Exchange, ImplicitAPI):
                 requestInner['origClientOrderId'] = clientOrderId
             else:
                 requestInner['orderId'] = id
-            method = 'spotPrivateDeleteOrder'
             if marginMode is not None:
                 if marginMode != 'isolated':
                     raise BadRequest(self.id + ' cancelOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
-                method = 'spotPrivateDeleteMarginOrder'
-            data = await getattr(self, method)(self.extend(requestInner, query))
+                data = await self.spotPrivateDeleteMarginOrder(self.extend(requestInner, query))
+            else:
+                data = await self.spotPrivateDeleteOrder(self.extend(requestInner, query))
             #
             # spot
             #
@@ -2735,7 +2773,13 @@ class mexc(Exchange, ImplicitAPI):
             # TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
             method = self.safe_string(self.options, 'cancelOrder', 'contractPrivatePostOrderCancel')  # contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = self.safe_string(query, 'method', method)
-            response = await getattr(self, method)([id])  # the request cannot be changed or extended. This is the only way to send.
+            response = None
+            if method == 'contractPrivatePostOrderCancel':
+                response = await self.contractPrivatePostOrderCancel([id])  # the request cannot be changed or extended. This is the only way to send.
+            elif method == 'contractPrivatePostPlanorderCancel':
+                response = await self.contractPrivatePostPlanorderCancel([id])  # the request cannot be changed or extended. This is the only way to send.
+            else:
+                raise NotSupported(self.id + ' cancelOrder() not support self method')
             #
             #     {
             #         "success": True,
@@ -2805,12 +2849,13 @@ class mexc(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument on spot')
             request['symbol'] = market['id']
-            method = 'spotPrivateDeleteOpenOrders'
+            response = None
             if marginMode is not None:
                 if marginMode != 'isolated':
                     raise BadRequest(self.id + ' cancelAllOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
-                method = 'spotPrivateDeleteMarginOpenOrders'
-            response = await getattr(self, method)(self.extend(request, query))
+                response = await self.spotPrivateDeleteMarginOpenOrders(self.extend(request, query))
+            else:
+                response = await self.spotPrivateDeleteOpenOrders(self.extend(request, query))
             #
             # spot
             #
@@ -2855,7 +2900,11 @@ class mexc(Exchange, ImplicitAPI):
             # the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             method = self.safe_string(self.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll')
             method = self.safe_string(query, 'method', method)
-            response = await getattr(self, method)(self.extend(request, query))
+            response = None
+            if method == 'contractPrivatePostOrderCancelAll':
+                response = await self.contractPrivatePostOrderCancelAll(self.extend(request, query))
+            elif method == 'contractPrivatePostPlanorderCancelAll':
+                response = await self.contractPrivatePostPlanorderCancelAll(self.extend(request, query))
             #
             #     {
             #         "success": True,
@@ -3345,13 +3394,10 @@ class mexc(Exchange, ImplicitAPI):
         marketType = None
         request = {}
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'spotPrivateGetAccount',
-            'swap': 'contractPrivateGetAccountAssets',
-            'margin': 'spotPrivateGetMarginIsolatedAccount',
-        })
         marginMode = self.safe_string(params, 'marginMode')
         isMargin = self.safe_value(params, 'margin', False)
+        params = self.omit(params, ['margin', 'marginMode'])
+        response = None
         if (marginMode is not None) or (isMargin) or (marketType == 'margin'):
             parsedSymbols = None
             symbol = self.safe_string(params, 'symbol')
@@ -3363,11 +3409,16 @@ class mexc(Exchange, ImplicitAPI):
                 market = self.market(symbol)
                 parsedSymbols = market['id']
             self.check_required_argument('fetchBalance', parsedSymbols, 'symbol or symbols')
-            method = 'spotPrivateGetMarginIsolatedAccount'
             marketType = 'margin'
             request['symbols'] = parsedSymbols
-        params = self.omit(params, ['margin', 'marginMode', 'symbol', 'symbols'])
-        response = await getattr(self, method)(self.extend(request, params))
+            params = self.omit(params, ['symbol', 'symbols'])
+            response = await self.spotPrivateGetMarginIsolatedAccount(self.extend(request, params))
+        elif marketType == 'spot':
+            response = await self.spotPrivateGetAccount(self.extend(request, params))
+        elif marketType == 'swap':
+            response = await self.contractPrivateGetAccountAssets(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchBalance() not support self method')
         #
         # spot
         #
@@ -4903,7 +4954,7 @@ class mexc(Exchange, ImplicitAPI):
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.margin]: True for trading spot-margin
-        :returns array: the marginMode in lowercase
+        :returns Array: the marginMode in lowercase
         """
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_value(params, 'margin', False)

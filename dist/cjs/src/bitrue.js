@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bitrue
- * @extends Exchange
+ * @augments Exchange
  */
 class bitrue extends bitrue$1 {
     describe() {

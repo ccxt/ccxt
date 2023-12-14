@@ -2118,7 +2118,7 @@ class bitmex(Exchange, ImplicitAPI):
         datetime = self.safe_string(position, 'timestamp')
         crossMargin = self.safe_value(position, 'crossMargin')
         marginMode = 'cross' if (crossMargin is True) else 'isolated'
-        notionalString = Precise.string_abs(self.safe_string(position, 'foreignNotional', 'homeNotional'))
+        notionalString = Precise.string_abs(self.safe_string_2(position, 'foreignNotional', 'homeNotional'))
         settleCurrencyCode = self.safe_string(market, 'settle')
         maintenanceMargin = self.convert_to_real_amount(settleCurrencyCode, self.safe_string(position, 'maintMargin'))
         unrealisedPnl = self.convert_to_real_amount(settleCurrencyCode, self.safe_string(position, 'unrealisedPnl'))

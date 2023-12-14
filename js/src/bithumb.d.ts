@@ -1,8 +1,8 @@
 import Exchange from './abstract/bithumb.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class bithumb
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bithumb extends Exchange {
     describe(): any;

@@ -14,7 +14,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class kraken
- * @extends Exchange
+ * @augments Exchange
  */
 export default class kraken extends Exchange {
     describe() {
@@ -2358,7 +2358,7 @@ export default class kraken extends Exchange {
          * @param {object} [params.end] End timestamp, withdrawals created strictly after will be not be included in the response
          * @param {boolean} [params.paginate]  default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
+         */
         await this.loadMarkets();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');

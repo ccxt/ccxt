@@ -206,6 +206,7 @@ class coinbase extends Exchange {
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
                             'brokerage/convert/trade/{trade_id}',
+                            'brokerage/time',
                         ),
                         'post' => array(
                             'brokerage/orders',
@@ -630,6 +631,7 @@ class coinbase extends Exchange {
     public function fetch_my_sells(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @ignore
              * fetch $sells
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$sells#list-$sells
              * @param {string} $symbol not used by coinbase fetchMySells ()
@@ -650,6 +652,7 @@ class coinbase extends Exchange {
     public function fetch_my_buys(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @ignore
              * fetch $buys
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$buys#list-$buys
              * @param {string} $symbol not used by coinbase fetchMyBuys ()
@@ -930,6 +933,10 @@ class coinbase extends Exchange {
             $cost = $costString;
         }
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
+        $feeCost = $this->safe_number($feeObject, 'amount', $this->parse_number($v3FeeCost));
+        if (($feeCurrencyId === null) && ($market !== null) && ($feeCost !== null)) {
+            $feeCurrencyId = $market['quote'];
+        }
         $datetime = $this->safe_string_n($trade, array( 'created_at', 'trade_time', 'time' ));
         $side = $this->safe_string_lower_2($trade, 'resource', 'side');
         $takerOrMaker = $this->safe_string_lower($trade, 'liquidity_indicator');
@@ -947,7 +954,7 @@ class coinbase extends Exchange {
             'amount' => $amountString,
             'cost' => $cost,
             'fee' => array(
-                'cost' => $this->safe_number($feeObject, 'amount', $this->parse_number($v3FeeCost)),
+                'cost' => $feeCost,
                 'currency' => $this->safe_currency_code($feeCurrencyId),
             ),
         ));
@@ -2422,6 +2429,11 @@ class coinbase extends Exchange {
             $amount = $this->safe_string($marketIOC, 'base_size');
         }
         $datetime = $this->safe_string($order, 'created_time');
+        $totalFees = $this->safe_string($order, 'total_fees');
+        $currencyFee = null;
+        if (($totalFees !== null) && ($market !== null)) {
+            $currencyFee = $market['quote'];
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'order_id'),
@@ -2445,7 +2457,7 @@ class coinbase extends Exchange {
             'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'fee' => array(
                 'cost' => $this->safe_string($order, 'total_fees'),
-                'currency' => null,
+                'currency' => $currencyFee,
             ),
             'trades' => null,
         ), $market);

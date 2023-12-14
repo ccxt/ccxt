@@ -9,13 +9,13 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
 /**
  * @class idex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class idex extends Exchange {
     describe () {
@@ -1612,7 +1612,14 @@ export default class idex extends Exchange {
         // ]
         const method = params['method'];
         params = this.omit (params, 'method');
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'privateGetDeposits') {
+            response = await this.privateGetDeposits (this.extend (request, params));
+        } else if (method === 'privateGetWithdrawals') {
+            response = await this.privateGetWithdrawals (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchTransactionsHelper() not support this method');
+        }
         return this.parseTransactions (response, currency, since, limit);
     }
 

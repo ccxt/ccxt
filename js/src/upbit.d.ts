@@ -1,8 +1,8 @@
 import Exchange from './abstract/upbit.js';
-import { Balances, Currency, Dictionary, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dictionary, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class upbit
- * @extends Exchange
+ * @augments Exchange
  */
 export default class upbit extends Exchange {
     describe(): any;

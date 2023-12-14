@@ -12,7 +12,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class coincheck
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coincheck extends Exchange {
     describe() {

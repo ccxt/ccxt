@@ -99,7 +99,6 @@ class binance(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchL3OrderBook': False,
-                'fetchLastPrices': True,
                 'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
@@ -3026,104 +3025,6 @@ class binance(Exchange, ImplicitAPI):
             response = self.publicGetTickerBookTicker(params)
         return self.parse_tickers(response, symbols)
 
-    def fetch_last_prices(self, symbols: Strings = None, params={}):
-        """
-        fetches the last price for multiple markets
-        :see: https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         # spot
-        :see: https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       # swap
-        :see: https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     # future
-        :param str[]|None symbols: unified symbols of the markets to fetch the last prices
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
-        """
-        self.load_markets()
-        symbols = self.market_symbols(symbols)
-        market = self.get_market_from_symbols(symbols)
-        type = None
-        subType = None
-        subType, params = self.handle_sub_type_and_params('fetchLastPrices', market, params)
-        type, params = self.handle_market_type_and_params('fetchLastPrices', market, params)
-        response = None
-        if self.is_linear(type, subType):
-            response = self.fapiPublicV2GetTickerPrice(params)
-            #
-            #     [
-            #         {
-            #             "symbol": "LTCBTC",
-            #             "price": "4.00000200"
-            #             "time": 1589437530011
-            #         },
-            #         ...
-            #     ]
-            #
-        elif self.is_inverse(type, subType):
-            response = self.dapiPublicGetTickerPrice(params)
-            #
-            #     [
-            #         {
-            #             "symbol": "BTCUSD_200626",
-            #             "ps": "9647.8",
-            #             "price": "9647.8",
-            #             "time": 1591257246176
-            #         }
-            #     ]
-            #
-        elif type == 'spot':
-            response = self.publicGetTickerPrice(params)
-            #
-            #     [
-            #         {
-            #             "symbol": "LTCBTC",
-            #             "price": "4.00000200"
-            #         },
-            #         ...
-            #     ]
-            #
-        else:
-            raise NotSupported(self.id + ' fetchLastPrices() does not support ' + type + ' markets yet')
-        return self.parse_last_prices(response, symbols)
-
-    def parse_last_price(self, info, market: Market = None):
-        #
-        # spot
-        #
-        #     {
-        #         "symbol": "LTCBTC",
-        #         "price": "4.00000200"
-        #     }
-        #
-        # usdm(swap/future)
-        #
-        #     {
-        #         "symbol": "BTCUSDT",
-        #         "price": "6000.01",
-        #         "time": 1589437530011   # Transaction time
-        #     }
-        #
-        #
-        # coinm(swap/future)
-        #
-        #     {
-        #         "symbol": "BTCUSD_200626",  # symbol("BTCUSD_200626", "BTCUSD_PERP", etc..)
-        #         "ps": "BTCUSD",  # pair
-        #         "price": "9647.8",
-        #         "time": 1591257246176
-        #     }
-        #
-        timestamp = self.safe_integer(info, 'time')
-        type = 'spot' if (timestamp is None) else 'swap'
-        marketId = self.safe_string(info, 'symbol')
-        market = self.safe_market(marketId, market, None, type)
-        price = self.safe_number(info, 'price')
-        return {
-            'symbol': market['symbol'],
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'price': price,
-            'side': None,
-            'info': info,
-        }
-
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -3665,6 +3566,7 @@ class binance(Exchange, ImplicitAPI):
 
     def edit_spot_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
+         * @ignore
         edit a trade order
         :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
         :param str id: cancel order id
@@ -4181,7 +4083,7 @@ class binance(Exchange, ImplicitAPI):
         """
         *contract only* create a list of trade orders
         :see: https://binance-docs.github.io/apidocs/futures/en/#place-multiple-orders-trade
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -6392,6 +6294,7 @@ class binance(Exchange, ImplicitAPI):
 
     def futures_transfer(self, code: str, amount, type, params={}):
         """
+         * @ignore
         transfer between futures account
         :see: https://binance-docs.github.io/apidocs/spot/en/#new-future-account-transfer-user_data
         :param str code: unified currency code
@@ -7273,6 +7176,7 @@ class binance(Exchange, ImplicitAPI):
 
     def fetch_account_positions(self, symbols: Strings = None, params={}):
         """
+         * @ignore
         fetch account positions
         :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
         :see: https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
@@ -7304,6 +7208,7 @@ class binance(Exchange, ImplicitAPI):
 
     def fetch_positions_risk(self, symbols: Strings = None, params={}):
         """
+         * @ignore
         fetch positions risk
         :see: https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
         :see: https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
@@ -7938,7 +7843,7 @@ class binance(Exchange, ImplicitAPI):
                     extendedParams = self.omit(extendedParams, ['orderidlist', 'origclientorderidlist'])
                     query = self.rawencode(extendedParams)
                     orderidlistLength = len(orderidlist)
-                    origclientorderidlistLength = len(orderidlist)
+                    origclientorderidlistLength = len(origclientorderidlist)
                     if orderidlistLength > 0:
                         query = query + '&' + 'orderidlist=[' + ','.join(orderidlist) + ']'
                     if origclientorderidlistLength > 0:

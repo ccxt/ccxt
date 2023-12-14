@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.77';
+$version = '4.1.89';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.77';
+    const VERSION = '4.1.89';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -100,6 +100,8 @@ class Exchange {
     public $ws_proxy = null;
     public $wssProxy = null;
     public $wss_proxy = null;
+    public $wsSocksProxy = null;
+    public $ws_socks_proxy = null;
     //
     public $userAgents = array(
         'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -395,7 +397,6 @@ class Exchange {
         'bitrue',
         'bitso',
         'bitstamp',
-        'bittrex',
         'bitvavo',
         'bl3p',
         'blockchaincom',
@@ -406,7 +407,6 @@ class Exchange {
         'bybit',
         'cex',
         'coinbase',
-        'coinbaseprime',
         'coinbasepro',
         'coincheck',
         'coinex',
@@ -2289,7 +2289,8 @@ class Exchange {
         $usedProxies = array();
         $wsProxy = null;
         $wssProxy = null;
-        // $wsProxy
+        $wsSocksProxy = null;
+        // ws proxy
         if ($this->wsProxy !== null) {
             $usedProxies[] = 'wsProxy';
             $wsProxy = $this->wsProxy;
@@ -2298,7 +2299,7 @@ class Exchange {
             $usedProxies[] = 'ws_proxy';
             $wsProxy = $this->ws_proxy;
         }
-        // $wsProxy
+        // wss proxy
         if ($this->wssProxy !== null) {
             $usedProxies[] = 'wssProxy';
             $wssProxy = $this->wssProxy;
@@ -2307,13 +2308,22 @@ class Exchange {
             $usedProxies[] = 'wss_proxy';
             $wssProxy = $this->wss_proxy;
         }
+        // ws socks proxy
+        if ($this->wsSocksProxy !== null) {
+            $usedProxies[] = 'wsSocksProxy';
+            $wsSocksProxy = $this->wsSocksProxy;
+        }
+        if ($this->ws_socks_proxy !== null) {
+            $usedProxies[] = 'ws_socks_proxy';
+            $wsSocksProxy = $this->ws_socks_proxy;
+        }
         // check
         $length = count($usedProxies);
         if ($length > 1) {
             $joinedProxyNames = implode(',', $usedProxies);
-            throw new ExchangeError($this->id . ' you have multiple conflicting settings (' . $joinedProxyNames . '), please use only one from => $wsProxy, wssProxy');
+            throw new ExchangeError($this->id . ' you have multiple conflicting settings (' . $joinedProxyNames . '), please use only one from => $wsProxy, $wssProxy, wsSocksProxy');
         }
-        return array( $wsProxy, $wssProxy );
+        return array( $wsProxy, $wssProxy, $wsSocksProxy );
     }
 
     public function check_conflicting_proxies($proxyAgentSet, $proxyUrlSet) {
@@ -4783,12 +4793,16 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchFundingHistory() is not supported yet');
     }
 
-    public function close_position(string $symbol, ?string $side = null, ?string $marginMode = null, $params = array ()) {
+    public function close_position(string $symbol, ?string $side = null, $params = array ()) {
         throw new NotSupported($this->id . ' closePositions() is not supported yet');
     }
 
     public function close_all_positions($params = array ()) {
         throw new NotSupported($this->id . ' closeAllPositions() is not supported yet');
+    }
+
+    public function fetch_l3_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+        throw new BadRequest($this->id . ' fetchL3OrderBook() is not supported yet');
     }
 
     public function parse_last_price($price, ?array $market = null) {
@@ -5386,7 +5400,7 @@ class Exchange {
     public function handle_time_in_force($params = array ()) {
         /**
          * @ignore
-         * * Must add $timeInForce to $this->options to use this method
+         * Must add $timeInForce to $this->options to use this method
          * @return {string} returns the exchange specific value for $timeInForce
          */
         $timeInForce = $this->safe_string_upper($params, 'timeInForce'); // supported values GTC, IOC, PO
@@ -5403,7 +5417,7 @@ class Exchange {
     public function convert_type_to_account($account) {
         /**
          * @ignore
-         * * Must add $accountsByType to $this->options to use this method
+         * Must add $accountsByType to $this->options to use this method
          * @param {string} $account key for $account name in $this->options['accountsByType']
          * @return the exchange specific $account name or the isolated margin id for transfers
          */
@@ -5598,33 +5612,6 @@ class Exchange {
          * Typed wrapper for filterByArray that returns a dictionary of tickers
          */
         return $this->filter_by_array($objects, $key, $values, $indexed);
-    }
-
-    public function resolve_promise_if_messagehash_matches($client, string $prefix, string $symbol, $data) {
-        $messageHashes = $this->findMessageHashes ($client, $prefix);
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
-            $parts = explode('::', $messageHash);
-            $symbolsString = $parts[1];
-            $symbols = explode(',', $symbolsString);
-            if ($this->in_array($symbol, $symbols)) {
-                $client->resolve ($data, $messageHash);
-            }
-        }
-    }
-
-    public function resolve_multiple_ohlcv($client, string $prefix, string $symbol, string $timeframe, $data) {
-        $messageHashes = $this->findMessageHashes ($client, 'multipleOHLCV::');
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
-            $parts = explode('::', $messageHash);
-            $symbolsAndTimeframes = $parts[1];
-            $splitted = explode(',', $symbolsAndTimeframes);
-            $id = $symbol . '#' . $timeframe;
-            if ($this->in_array($id, $splitted)) {
-                $client->resolve (array( $symbol, $timeframe, $data ), $messageHash);
-            }
-        }
     }
 
     public function create_ohlcv_object(string $symbol, string $timeframe, $data) {

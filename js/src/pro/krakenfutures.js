@@ -99,10 +99,10 @@ export default class krakenfutures extends krakenfuturesRest {
          * @ignore
          * @method
          * @description Connects to a websocket channel
-         * @param {String} name name of the channel
+         * @param {string} name name of the channel
          * @param {string[]} symbols CCXT market symbols
-         * @param {Object} [params] extra parameters specific to the krakenfutures api
-         * @returns {Object} data from the websocket stream
+         * @param {object} [params] extra parameters specific to the krakenfutures api
+         * @returns {object} data from the websocket stream
          */
         await this.loadMarkets();
         const url = this.urls['api']['ws'];
@@ -133,10 +133,10 @@ export default class krakenfutures extends krakenfuturesRest {
          * @ignore
          * @method
          * @description Connects to a websocket channel
-         * @param {String} name name of the channel
+         * @param {string} name name of the channel
          * @param {string[]} symbols CCXT market symbols
-         * @param {Object} [params] extra parameters specific to the krakenfutures api
-         * @returns {Object} data from the websocket stream
+         * @param {object} [params] extra parameters specific to the krakenfutures api
+         * @returns {object} data from the websocket stream
          */
         await this.loadMarkets();
         await this.authenticate();

@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.1.77'
+__version__ = '4.1.89'
 
 # ----------------------------------------------------------------------------
 
@@ -30,13 +30,11 @@ from ccxt.pro.bitopro import bitopro                                      # noqa
 from ccxt.pro.bitpanda import bitpanda                                    # noqa: F401
 from ccxt.pro.bitrue import bitrue                                        # noqa: F401
 from ccxt.pro.bitstamp import bitstamp                                    # noqa: F401
-from ccxt.pro.bittrex import bittrex                                      # noqa: F401
 from ccxt.pro.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.pro.blockchaincom import blockchaincom                          # noqa: F401
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbase import coinbase                                    # noqa: F401
-from ccxt.pro.coinbaseprime import coinbaseprime                          # noqa: F401
 from ccxt.pro.coinbasepro import coinbasepro                              # noqa: F401
 from ccxt.pro.coinex import coinex                                        # noqa: F401
 from ccxt.pro.cryptocom import cryptocom                                  # noqa: F401
@@ -90,13 +88,11 @@ exchanges = [
     'bitpanda',
     'bitrue',
     'bitstamp',
-    'bittrex',
     'bitvavo',
     'blockchaincom',
     'bybit',
     'cex',
     'coinbase',
-    'coinbaseprime',
     'coinbasepro',
     'coinex',
     'cryptocom',

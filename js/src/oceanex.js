@@ -13,7 +13,7 @@ import { jwt } from './base/functions/rsa.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class oceanex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class oceanex extends Exchange {
     describe() {

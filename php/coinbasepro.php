@@ -1328,46 +1328,6 @@ class coinbasepro extends Exchange {
         return $this->privateGetPaymentMethods ($params);
     }
 
-    public function deposit(string $code, $amount, $address, $params = array ()) {
-        /**
-         * Creates a new deposit $address, by coinbasepro
-         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositpaymentmethod
-         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositcoinbaseaccount
-         * @param {string} $code Unified CCXT $currency $code (e.g. `"USDT"`)
-         * @param {float} $amount The $amount of $currency to send in the deposit (e.g. `20`)
-         * @param {string} $address Not used by coinbasepro
-         * @param {array} [$params] Parameters specific to the exchange API endpoint (e.g. `array("network" => "TRX")`)
-         * @return a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
-         */
-        $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-            'amount' => $amount,
-        );
-        $method = 'privatePostDeposits';
-        if (is_array($params) && array_key_exists('payment_method_id', $params)) {
-            // deposit from a payment_method, like a bank account
-            $method .= 'PaymentMethod';
-        } elseif (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
-            // deposit into Coinbase Pro account from a Coinbase account
-            $method .= 'CoinbaseAccount';
-        } else {
-            // deposit methodotherwise we did not receive a supported deposit location
-            // relevant docs link for the Googlers
-            // https://docs.pro.coinbase.com/#deposits
-            throw new NotSupported($this->id . ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
-        }
-        $response = $this->$method (array_merge($request, $params));
-        if (!$response) {
-            throw new ExchangeError($this->id . ' deposit() error => ' . $this->json($response));
-        }
-        return array(
-            'info' => $response,
-            'id' => $response['id'],
-        );
-    }
-
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal

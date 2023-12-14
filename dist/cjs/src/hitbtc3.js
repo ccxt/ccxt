@@ -5,7 +5,7 @@ var hitbtc = require('./hitbtc.js');
 // ---------------------------------------------------------------------------
 /**
  * @class hitbtc3
- * @extends Exchange
+ * @augments Exchange
  */
 class hitbtc3 extends hitbtc {
     describe() {

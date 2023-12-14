@@ -433,66 +433,6 @@
                 "output": "{\"currency\":\"usdt\",\"amount\":\"1\",\"from\":\"futures\",\"to\":\"spot\",\"settle\":\"usdt\"}"
             }
         ],
-        "borrowMargin": [
-            {
-                "description": "borrow cross margin",
-                "method": "borrowMargin",
-                "url": "https://api.gateio.ws/api/v4/margin/cross/loans",
-                "input": [
-                    "USDT",
-                    "1",
-                    null,
-                    {
-                        "marginMode": "cross"
-                    }
-                ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
-            },
-            {
-                "description": "borrow isolated margin",
-                "method": "borrowMargin",
-                "url": "https://api.gateio.ws/api/v4/margin/uni/loans",
-                "input": [
-                    "USDT",
-                    "1",
-                    "LTC/USDT",
-                    {
-                        "marginMode": "isolated"
-                    }
-                ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"currency_pair\":\"LTC_USDT\",\"type\":\"borrow\"}"
-            }
-        ],
-        "repayMargin": [
-            {
-                "description": "repay cross margin",
-                "method": "repayMargin",
-                "url": "https://api.gateio.ws/api/v4/margin/cross/repayments",
-                "input": [
-                    "USDT",
-                    "1",
-                    null,
-                    {
-                        "marginMode": "cross"
-                    }
-                ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
-            },
-            {
-                "description": "repay isolated margin",
-                "method": "repayMargin",
-                "url": "https://api.gateio.ws/api/v4/margin/uni/loans",
-                "input": [
-                    "USDT",
-                    "1",
-                    "LTC/USDT",
-                    {
-                        "marginMode": "isolated"
-                    }
-                ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"currency_pair\":\"LTC_USDT\",\"type\":\"repay\"}"
-            }
-        ],
         "fetchFundingHistory": [
             {
                 "description": "Fetch FundingHistory - swap",
