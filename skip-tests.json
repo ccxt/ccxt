@@ -49,7 +49,7 @@
         }
     },
     "binance": {
-        "httpProxy": "http://5.75.153.75:8002",
+        "httpsProxy": "http://5.75.153.75:8002",
         "skipPhpAsync": true,
         "skipWs": true,
         "skipMethods": {
@@ -82,7 +82,7 @@
         }
     },
     "binancecoinm": {
-        "httpProxy": "http://5.75.153.75:8002",
+        "httpsProxy": "http://5.75.153.75:8002",
         "skipPhpAsync": true,
         "skipWs": true,
         "skipMethods": {
@@ -101,7 +101,7 @@
         }
     },
     "binanceusdm": {
-        "httpProxy": "http://5.75.153.75:8002",
+        "httpsProxy": "http://5.75.153.75:8002",
         "skipPhpAsync": true,
         "skipWs": true,
         "skipMethods": {
@@ -144,7 +144,7 @@
         }
     },
     "tokocrypto": {
-        "httpProxy": "http://5.75.153.75:8002",
+        "httpsProxy": "http://5.75.153.75:8002",
         "skipPhpAsync": true,
         "skipWs": true
     },
@@ -584,7 +584,7 @@
         }
     },
     "buda": {
-        "httpProxy": "http://5.75.153.75:8002"
+        "httpsProxy": "http://5.75.153.75:8002"
     },
     "bigone": {
         "skipMethods": {
@@ -1083,7 +1083,7 @@
     },
     "kuna": {
         "skip": "temporary glitches with this exchange: https://app.travis-ci.com/github/ccxt/ccxt/builds/267517440#L2304",
-        "httpProxy": "http://5.75.153.75:8002",
+        "httpsProxy": "http://5.75.153.75:8002",
         "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {
@@ -1426,7 +1426,7 @@
         }
     },
     "ripio": {
-        "httpProxy": "http://5.75.153.75:8002",
+        "httpsProxy": "http://5.75.153.75:8002",
         "skipWs": true
     },
     "timex": {
