@@ -80,7 +80,6 @@ export default class binance extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': false,
-                'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
@@ -3106,109 +3105,6 @@ export default class binance extends Exchange {
             response = await this.publicGetTickerBookTicker (params);
         }
         return this.parseTickers (response, symbols);
-    }
-
-    async fetchLastPrices (symbols: Strings = undefined, params = {}) {
-        /**
-         * @method
-         * @name binance#fetchLastPrices
-         * @description fetches the last price for multiple markets
-         * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         // spot
-         * @see https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       // swap
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const market = this.getMarketFromSymbols (symbols);
-        let type = undefined;
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchLastPrices', market, params);
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
-        let response = undefined;
-        if (this.isLinear (type, subType)) {
-            response = await this.fapiPublicV2GetTickerPrice (params);
-            //
-            //     [
-            //         {
-            //             "symbol": "LTCBTC",
-            //             "price": "4.00000200"
-            //             "time": 1589437530011
-            //         },
-            //         ...
-            //     ]
-            //
-        } else if (this.isInverse (type, subType)) {
-            response = await this.dapiPublicGetTickerPrice (params);
-            //
-            //     [
-            //         {
-            //             "symbol": "BTCUSD_200626",
-            //             "ps": "9647.8",
-            //             "price": "9647.8",
-            //             "time": 1591257246176
-            //         }
-            //     ]
-            //
-        } else if (type === 'spot') {
-            response = await this.publicGetTickerPrice (params);
-            //
-            //     [
-            //         {
-            //             "symbol": "LTCBTC",
-            //             "price": "4.00000200"
-            //         },
-            //         ...
-            //     ]
-            //
-        } else {
-            throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
-        }
-        return this.parseLastPrices (response, symbols);
-    }
-
-    parseLastPrice (info, market: Market = undefined) {
-        //
-        // spot
-        //
-        //     {
-        //         "symbol": "LTCBTC",
-        //         "price": "4.00000200"
-        //     }
-        //
-        // usdm (swap/future)
-        //
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "price": "6000.01",
-        //         "time": 1589437530011   // Transaction time
-        //     }
-        //
-        //
-        // coinm (swap/future)
-        //
-        //     {
-        //         "symbol": "BTCUSD_200626", // symbol ("BTCUSD_200626", "BTCUSD_PERP", etc..)
-        //         "ps": "BTCUSD", // pair
-        //         "price": "9647.8",
-        //         "time": 1591257246176
-        //     }
-        //
-        const timestamp = this.safeInteger (info, 'time');
-        const type = (timestamp === undefined) ? 'spot' : 'swap';
-        const marketId = this.safeString (info, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, type);
-        const price = this.safeNumber (info, 'price');
-        return {
-            'symbol': market['symbol'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'price': price,
-            'side': undefined,
-            'info': info,
-        };
     }
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
