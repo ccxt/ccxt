@@ -7793,24 +7793,26 @@ export default class htx extends Exchange {
             'period': timeframes[timeframe],
             'amount_type': amountType,
         };
-        let method = undefined;
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        let response = undefined;
         if (market['future']) {
             request['contract_type'] = this.safeString (market['info'], 'contract_type');
             request['symbol'] = market['baseId'];  // currency code on coin-m futures
-            method = 'contractPublicGetApiV1ContractHisOpenInterest'; // coin-m futures
+            // coin-m futures
+            response = await this.contractPublicGetApiV1ContractHisOpenInterest (this.extend (request, params));
         } else if (market['linear']) {
             request['contract_type'] = 'swap';
             request['contract_code'] = market['id'];
             request['contract_code'] = market['id'];
-            method = 'contractPublicGetLinearSwapApiV1SwapHisOpenInterest'; // USDT-M
+            // USDT-M
+            response = await this.contractPublicGetLinearSwapApiV1SwapHisOpenInterest (this.extend (request, params));
         } else {
             request['contract_code'] = market['id'];
-            method = 'contractPublicGetSwapApiV1SwapHisOpenInterest'; // coin-m swaps
+            // coin-m swaps
+            response = await this.contractPublicGetSwapApiV1SwapHisOpenInterest (this.extend (request, params));
         }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        }
-        const response = await this[method] (this.extend (request, params));
         //
         //  contractPublicGetlinearSwapApiV1SwapHisOpenInterest
         //    {

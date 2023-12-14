@@ -518,6 +518,32 @@
                 "output": "{\"symbol\":\"btc\"}"
             }
         ],
+        "fetchOpenInterestHistory": [
+            {
+                "description": "fetch Open Interest History - swap linear",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_his_open_interest?period=60min&amount_type=2&contract_type=swap&contract_code=LTC-USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch Open Interest History - swap inverse",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_his_open_interest?period=60min&amount_type=2&contract_code=BTC-USD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "fetch Open Interest History - future",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://api.hbdm.com/api/v1/contract_his_open_interest?period=60min&amount_type=2&contract_type=next_week&symbol=btc",
+                "input": [
+                    "BTC/USD:BTC-231124"
+                ]
+            }
+        ],
         "setLeverage": [
             {
                 "description": "Set linear leverage",
