@@ -2648,15 +2648,20 @@ export default class kraken extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
+        // address is optional
+        if (address !== undefined) {
+            this.checkAddress (address);
+        }
         if ('key' in params) {
             await this.loadMarkets ();
             const currency = this.currency (code);
             const request = {
                 'asset': currency['id'],
                 'amount': amount,
-                'address': address,
             };
+            if (address) {
+                request['address'] = address;
+            }
             const response = await this.privatePostWithdraw (this.extend (request, params));
             //
             //     {
