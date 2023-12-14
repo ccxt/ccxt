@@ -3,7 +3,6 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     publicCommonGetV2PublicAnnoucements(params?: {}): Promise<implicitReturnType>;
     publicCommonGetV2PublicTime(params?: {}): Promise<implicitReturnType>;
-    publicCommonGetV2CommonTradeRate(params?: {}): Promise<implicitReturnType>;
     publicSpotGetSpotV1NoticeQueryAllNotices(params?: {}): Promise<implicitReturnType>;
     publicSpotGetSpotV1PublicTime(params?: {}): Promise<implicitReturnType>;
     publicSpotGetSpotV1PublicCurrencies(params?: {}): Promise<implicitReturnType>;
@@ -496,6 +495,7 @@ interface Exchange {
     privateEarnPostV2EarnLoanBorrow(params?: {}): Promise<implicitReturnType>;
     privateEarnPostV2EarnLoanRepay(params?: {}): Promise<implicitReturnType>;
     privateEarnPostV2EarnLoanRevisePledge(params?: {}): Promise<implicitReturnType>;
+    privateCommonGetV2CommonTradeRate(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

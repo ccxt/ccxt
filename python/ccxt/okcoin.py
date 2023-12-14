@@ -1260,14 +1260,20 @@ class okcoin(Exchange, ImplicitAPI):
         requestOrdType = self.safe_string(request, 'ordType')
         if (requestOrdType == 'trigger') or (requestOrdType == 'conditional') or (type == 'oco') or (type == 'move_order_stop') or (type == 'iceberg') or (type == 'twap'):
             method = 'privatePostTradeOrderAlgo'
-        if (method != 'privatePostTradeOrder') and (method != 'privatePostTradeOrderAlgo') and (method != 'privatePostTradeBatchOrders'):
-            raise ExchangeError(self.id + ' createOrder() self.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo')
         if method == 'privatePostTradeBatchOrders':
             # keep the request body the same
             # submit a single order in an array to the batch order endpoint
             # because it has a lower ratelimit
             request = [request]
-        response = getattr(self, method)(request)
+        response = None
+        if method == 'privatePostTradeOrder':
+            response = self.privatePostTradeOrder(request)
+        elif method == 'privatePostTradeOrderAlgo':
+            response = self.privatePostTradeOrderAlgo(request)
+        elif method == 'privatePostTradeBatchOrders':
+            response = self.privatePostTradeBatchOrders(request)
+        else:
+            raise ExchangeError(self.id + ' createOrder() self.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo')
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0)
         order = self.parse_order(first, market)
@@ -2631,7 +2637,13 @@ class okcoin(Exchange, ImplicitAPI):
             currency = self.currency(code)
             request['ccy'] = currency['id']
         request, params = self.handle_until_option('end', request, params)
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetAccountBillsArchive':
+            response = self.privateGetAccountBillsArchive(self.extend(request, params))
+        elif method == 'privateGetAssetBills':
+            response = self.privateGetAssetBills(self.extend(request, params))
+        else:
+            response = self.privateGetAccountBills(self.extend(request, params))
         #
         # privateGetAccountBills, privateGetAccountBillsArchive
         #

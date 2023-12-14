@@ -11,7 +11,7 @@ var Precise = require('./base/Precise.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bigone
- * @extends Exchange
+ * @augments Exchange
  */
 class bigone extends bigone$1 {
     describe() {

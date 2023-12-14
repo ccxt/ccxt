@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class poloniexfutures extends \ccxt\async\poloniexfutures {
 
@@ -138,9 +139,9 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
              * @param {string} $name name of the channel and suscriptionHash
              * @param {bool} $isPrivate true for the authenticated $url, false for the public $url
              * @param {string} $symbol is required for all public channels, not required for private channels (except position)
-             * @param {Object} $subscription subscription parameters
-             * @param {Object} [$params] extra parameters specific to the poloniex api
-             * @return {Object} data from the websocket stream
+             * @param {array} $subscription subscription parameters
+             * @param {array} [$params] extra parameters specific to the poloniex api
+             * @return {array} data from the websocket stream
              */
             $url = Async\await($this->negotiate($isPrivate));
             if ($symbol !== null) {
@@ -241,7 +242,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         $client->resolve ($message, $messageHash);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -257,7 +258,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         }) ();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -281,7 +282,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         }) ();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -312,7 +313,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         }) ();
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -340,7 +341,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         }) ();
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders

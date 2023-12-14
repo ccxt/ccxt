@@ -83,12 +83,13 @@ class coinbasepro extends coinbasepro$1 {
         await this.loadMarkets();
         let market = undefined;
         symbols = this.marketSymbols(symbols);
-        const messageHash = messageHashStart + symbols.join(',');
+        const messageHashes = [];
         const productIds = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             market = this.market(symbol);
             productIds.push(market['id']);
+            messageHashes.push(messageHashStart + ':' + market['id']);
         }
         let url = this.urls['api']['ws'];
         if ('signature' in params) {
@@ -103,7 +104,7 @@ class coinbasepro extends coinbasepro$1 {
             ],
         };
         const request = this.extend(subscribe, params);
-        return await this.watch(url, messageHash, request, messageHash);
+        return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
     async watchTicker(symbol, params = {}) {
         /**
@@ -179,8 +180,7 @@ class coinbasepro extends coinbasepro$1 {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const name = 'matches';
-        const messageHash = 'multipleTrades::';
-        const trades = await this.subscribeMultiple(name, symbols, messageHash, params);
+        const trades = await this.subscribeMultiple(name, symbols, name, params);
         if (this.newUpdates) {
             const first = this.safeValue(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
@@ -227,7 +227,7 @@ class coinbasepro extends coinbasepro$1 {
         symbols = this.marketSymbols(symbols, undefined, false);
         await this.loadMarkets();
         const name = 'user';
-        const messageHash = 'multipleMyTrades::';
+        const messageHash = 'myTrades';
         const authentication = this.authenticate();
         const trades = await this.subscribeMultiple(name, symbols, messageHash, this.extend(params, authentication));
         if (this.newUpdates) {
@@ -251,7 +251,7 @@ class coinbasepro extends coinbasepro$1 {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false);
         const name = 'user';
-        const messageHash = 'multipleOrders::';
+        const messageHash = 'orders';
         const authentication = this.authenticate();
         const orders = await this.subscribeMultiple(name, symbols, messageHash, this.extend(params, authentication));
         if (this.newUpdates) {
@@ -286,6 +286,48 @@ class coinbasepro extends coinbasepro$1 {
         }
         return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
     }
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new errors.BadRequest(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        const name = 'level2';
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const marketIds = this.marketIds(symbols);
+        const messageHashes = [];
+        for (let i = 0; i < symbolsLength; i++) {
+            const marketId = marketIds[i];
+            messageHashes.push(name + ':' + marketId);
+        }
+        const url = this.urls['api']['ws'];
+        const subscribe = {
+            'type': 'subscribe',
+            'product_ids': marketIds,
+            'channels': [
+                name,
+            ],
+        };
+        const request = this.extend(subscribe, params);
+        const subscription = {
+            'messageHash': name,
+            'symbols': symbols,
+            'marketIds': marketIds,
+            'limit': limit,
+        };
+        const authentication = this.authenticate();
+        const orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, authentication), messageHashes, subscription);
+        return orderbook.limit();
+    }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
@@ -316,44 +358,6 @@ class coinbasepro extends coinbasepro$1 {
             'messageHash': messageHash,
             'symbol': symbol,
             'marketId': market['id'],
-            'limit': limit,
-        };
-        const authentication = this.authenticate();
-        const orderbook = await this.watch(url, messageHash, this.extend(request, authentication), messageHash, subscription);
-        return orderbook.limit();
-    }
-    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinbasepro#watchOrderBookForSymbols
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
-        const symbolsLength = symbols.length;
-        if (symbolsLength === 0) {
-            throw new errors.BadRequest(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
-        }
-        const name = 'level2';
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        const marketIds = this.marketIds(symbols);
-        const messageHash = 'multipleOrderbooks' + '::' + symbols.join(',');
-        const url = this.urls['api']['ws'];
-        const subscribe = {
-            'type': 'subscribe',
-            'product_ids': marketIds,
-            'channels': [
-                name,
-            ],
-        };
-        const request = this.extend(subscribe, params);
-        const subscription = {
-            'messageHash': messageHash,
-            'symbols': symbols,
-            'marketIds': marketIds,
             'limit': limit,
         };
         const authentication = this.authenticate();
@@ -392,7 +396,6 @@ class coinbasepro extends coinbasepro$1 {
             }
             tradesArray.append(trade);
             client.resolve(tradesArray, messageHash);
-            this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, tradesArray);
         }
         return message;
     }
@@ -400,7 +403,6 @@ class coinbasepro extends coinbasepro$1 {
         const marketId = this.safeString(message, 'product_id');
         if (marketId !== undefined) {
             const trade = this.parseWsTrade(message);
-            const symbol = trade['symbol'];
             const type = 'myTrades';
             const messageHash = type + ':' + marketId;
             let tradesArray = this.myTrades;
@@ -411,7 +413,6 @@ class coinbasepro extends coinbasepro$1 {
             }
             tradesArray.append(trade);
             client.resolve(tradesArray, messageHash);
-            this.resolvePromiseIfMessagehashMatches(client, 'multipleMyTrades::', symbol, tradesArray);
         }
         return message;
     }
@@ -611,7 +612,6 @@ class coinbasepro extends coinbasepro$1 {
                 const parsed = this.parseWsOrder(message);
                 orders.append(parsed);
                 client.resolve(orders, messageHash);
-                this.resolvePromiseIfMessagehashMatches(client, 'multipleOrders::', symbol, orders);
             }
             else {
                 const sequence = this.safeInteger(message, 'sequence');
@@ -655,7 +655,6 @@ class coinbasepro extends coinbasepro$1 {
                         // update the newUpdates count
                         orders.append(previousOrder);
                         client.resolve(orders, messageHash);
-                        this.resolvePromiseIfMessagehashMatches(client, 'multipleOrders::', symbol, orders);
                     }
                     else if ((type === 'received') || (type === 'done')) {
                         const info = this.extend(previousOrder['info'], message);
@@ -671,7 +670,6 @@ class coinbasepro extends coinbasepro$1 {
                         // update the newUpdates count
                         orders.append(previousOrder);
                         client.resolve(orders, messageHash);
-                        this.resolvePromiseIfMessagehashMatches(client, 'multipleOrders::', symbol, orders);
                     }
                 }
             }
@@ -874,7 +872,6 @@ class coinbasepro extends coinbasepro$1 {
             orderbook['datetime'] = undefined;
             orderbook['symbol'] = symbol;
             client.resolve(orderbook, messageHash);
-            this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbooks::', symbol, orderbook);
         }
         else if (type === 'l2update') {
             const orderbook = this.orderbooks[symbol];
@@ -896,7 +893,6 @@ class coinbasepro extends coinbasepro$1 {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
             client.resolve(orderbook, messageHash);
-            this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbooks::', symbol, orderbook);
         }
     }
     handleSubscriptionStatus(client, message) {

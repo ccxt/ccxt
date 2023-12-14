@@ -12,7 +12,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class lykke
- * @extends Exchange
+ * @augments Exchange
  */
 export default class lykke extends Exchange {
     describe() {

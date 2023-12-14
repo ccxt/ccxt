@@ -657,7 +657,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history
-         * @descriptions Fetch a history of filled trades that self account has made
+        Fetch a history of filled trades that self account has made
         :param str symbol: Unified CCXT market symbol
         :param int [since]: Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
         :param int [limit]: Total number of trades, cannot exceed 100
@@ -903,7 +903,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         create a list of trade orders
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()

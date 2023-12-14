@@ -5,7 +5,7 @@ import bitmexRest from '../bitmex.js';
 import { AuthenticationError, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Str, Strings } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -55,7 +55,7 @@ export default class bitmex extends bitmexRest {
         });
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitmex#watchTicker
@@ -322,7 +322,7 @@ export default class bitmex extends bitmexRest {
         return message;
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitmex#watchBalance
@@ -529,11 +529,10 @@ export default class bitmex extends bitmexRest {
                 stored.append (trades[j]);
             }
             client.resolve (stored, messageHash);
-            this.resolvePromiseIfMessagehashMatches (client, 'multipleTrades::', symbol, stored);
         }
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitmex#watchTrades
@@ -604,7 +603,7 @@ export default class bitmex extends bitmexRest {
         }
     }
 
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name bitmex#watchPositions
@@ -810,7 +809,7 @@ export default class bitmex extends bitmexRest {
         client.resolve (newPositions, 'positions');
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmex#watchOrders
@@ -1027,7 +1026,7 @@ export default class bitmex extends bitmexRest {
         }
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitmex#watchMyTrades
@@ -1146,7 +1145,7 @@ export default class bitmex extends bitmexRest {
         }
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitmex#watchOrderBook
@@ -1156,31 +1155,10 @@ export default class bitmex extends bitmexRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        let table = undefined;
-        if (limit === undefined) {
-            table = this.safeString (this.options, 'watchOrderBookLevel', 'orderBookL2');
-        } else if (limit === 25) {
-            table = 'orderBookL2_25';
-        } else if (limit === 10) {
-            table = 'orderBookL10';
-        } else {
-            throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined (L2), 25 (L2) or 10 (L3)');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const messageHash = table + ':' + market['id'];
-        const url = this.urls['api']['ws'];
-        const request = {
-            'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
-        };
-        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        return orderbook.limit ();
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}) {
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitmex#watchOrderBookForSymbols
@@ -1203,23 +1181,25 @@ export default class bitmex extends bitmexRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const topics = [];
+        const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const currentMessageHash = table + ':' + market['id'];
-            topics.push (currentMessageHash);
+            const topic = table + ':' + market['id'];
+            topics.push (topic);
+            const messageHash = table + ':' + symbol;
+            messageHashes.push (messageHash);
         }
-        const messageHash = 'multipleOrderbook::' + symbols.join (',');
         const url = this.urls['api']['ws'];
         const request = {
             'op': 'subscribe',
             'args': topics,
         };
-        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const orderbook = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), topics);
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitmex#watchOHLCV
@@ -1440,9 +1420,8 @@ export default class bitmex extends bitmexRest {
                 orderbook['timestamp'] = this.parse8601 (datetime);
                 orderbook['datetime'] = datetime;
             }
-            const messageHash = table + ':' + marketId;
+            const messageHash = table + ':' + symbol;
             client.resolve (orderbook, messageHash);
-            this.resolvePromiseIfMessagehashMatches (client, 'multipleOrderbook::', symbol, orderbook);
         } else {
             const numUpdatesByMarketId = {};
             for (let i = 0; i < data.length; i++) {
@@ -1468,12 +1447,11 @@ export default class bitmex extends bitmexRest {
             const marketIds = Object.keys (numUpdatesByMarketId);
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
-                const messageHash = table + ':' + marketId;
                 const market = this.safeMarket (marketId);
                 const symbol = market['symbol'];
+                const messageHash = table + ':' + symbol;
                 const orderbook = this.orderbooks[symbol];
                 client.resolve (orderbook, messageHash);
-                this.resolvePromiseIfMessagehashMatches (client, 'multipleOrderbook::', symbol, orderbook);
             }
         }
     }

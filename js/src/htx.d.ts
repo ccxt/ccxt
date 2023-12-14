@@ -1,8 +1,8 @@
 import Exchange from './abstract/htx.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency } from './base/types.js';
 /**
  * @class huobi
- * @extends Exchange
+ * @augments Exchange
  */
 export default class htx extends Exchange {
     describe(): any;

@@ -28,7 +28,10 @@ class upbit extends Exchange {
                 'option' => false,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
+                'createMarketBuyOrderWithCost' => true,
                 'createMarketOrder' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
@@ -1006,28 +1009,19 @@ class upbit extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
-         * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
          * create a trade order
+         * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $amount how much you want to trade in units of the base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->cost] for $market buy orders, the quote quantity that can be used alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
-        if ($type === 'market') {
-            // for $market buy it requires the $amount of quote currency to spend
-            if ($side === 'buy') {
-                if ($this->options['createMarketBuyOrderRequiresPrice']) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the $amount argument (the exchange-specific behaviour)');
-                    } else {
-                        $amount = $amount * $price;
-                    }
-                }
-            }
-        }
+        $this->load_markets();
+        $market = $this->market($symbol);
         $orderSide = null;
         if ($side === 'buy') {
             $orderSide = 'bid';
@@ -1036,24 +1030,39 @@ class upbit extends Exchange {
         } else {
             throw new InvalidOrder($this->id . ' createOrder() allows buy or sell $side only!');
         }
-        $this->load_markets();
-        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
             'side' => $orderSide,
         );
         if ($type === 'limit') {
-            $request['volume'] = $this->amount_to_precision($symbol, $amount);
             $request['price'] = $this->price_to_precision($symbol, $price);
-            $request['ord_type'] = $type;
-        } elseif ($type === 'market') {
-            if ($side === 'buy') {
-                $request['ord_type'] = 'price';
-                $request['price'] = $this->price_to_precision($symbol, $amount);
-            } elseif ($side === 'sell') {
-                $request['ord_type'] = $type;
-                $request['volume'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if (($type === 'market') && ($side === 'buy')) {
+            // for $market buy it requires the $amount of quote currency to spend
+            $quoteAmount = null;
+            $createMarketBuyOrderRequiresPrice = true;
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            $cost = $this->safe_number($params, 'cost');
+            $params = $this->omit($params, 'cost');
+            if ($cost !== null) {
+                $quoteAmount = $this->cost_to_precision($symbol, $cost);
+            } elseif ($createMarketBuyOrderRequiresPrice) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                } else {
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $costRequest = Precise::string_mul($amountString, $priceString);
+                    $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
+                }
+            } else {
+                $quoteAmount = $this->cost_to_precision($symbol, $amount);
             }
+            $request['ord_type'] = 'price';
+            $request['price'] = $quoteAmount;
+        } else {
+            $request['ord_type'] = $type;
+            $request['volume'] = $this->amount_to_precision($symbol, $amount);
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'identifier');
         if ($clientOrderId !== null) {

@@ -13,7 +13,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
 /**
  * @class woo
- * @extends Exchange
+ * @augments Exchange
  */
 export default class woo extends Exchange {
     describe() {
@@ -34,7 +34,6 @@ export default class woo extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelWithdraw': false,
@@ -90,7 +89,6 @@ export default class woo extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'repayMargin': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'transfer': true,

@@ -1,8 +1,8 @@
 import Exchange from './abstract/btcbox.js';
-import { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import type { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 /**
  * @class btcbox
- * @extends Exchange
+ * @augments Exchange
  */
 export default class btcbox extends Exchange {
     describe(): any;

@@ -40,7 +40,6 @@ var bitpanda = require('./src/bitpanda.js');
 var bitrue = require('./src/bitrue.js');
 var bitso = require('./src/bitso.js');
 var bitstamp = require('./src/bitstamp.js');
-var bittrex = require('./src/bittrex.js');
 var bitvavo = require('./src/bitvavo.js');
 var bl3p = require('./src/bl3p.js');
 var blockchaincom = require('./src/blockchaincom.js');
@@ -51,7 +50,6 @@ var btcturk = require('./src/btcturk.js');
 var bybit = require('./src/bybit.js');
 var cex = require('./src/cex.js');
 var coinbase = require('./src/coinbase.js');
-var coinbaseprime = require('./src/coinbaseprime.js');
 var coinbasepro = require('./src/coinbasepro.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
@@ -129,13 +127,11 @@ var bitopro$1 = require('./src/pro/bitopro.js');
 var bitpanda$1 = require('./src/pro/bitpanda.js');
 var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
-var bittrex$1 = require('./src/pro/bittrex.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
 var blockchaincom$1 = require('./src/pro/blockchaincom.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
-var coinbaseprime$1 = require('./src/pro/coinbaseprime.js');
 var coinbasepro$1 = require('./src/pro/coinbasepro.js');
 var coinex$1 = require('./src/pro/coinex.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
@@ -172,7 +168,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.1.85';
+const version = '4.1.88';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -203,7 +199,6 @@ const exchanges = {
     'bitrue': bitrue,
     'bitso': bitso,
     'bitstamp': bitstamp,
-    'bittrex': bittrex,
     'bitvavo': bitvavo,
     'bl3p': bl3p,
     'blockchaincom': blockchaincom,
@@ -214,7 +209,6 @@ const exchanges = {
     'bybit': bybit,
     'cex': cex,
     'coinbase': coinbase,
-    'coinbaseprime': coinbaseprime,
     'coinbasepro': coinbasepro,
     'coincheck': coincheck,
     'coinex': coinex,
@@ -294,13 +288,11 @@ const pro = {
     'bitpanda': bitpanda$1,
     'bitrue': bitrue$1,
     'bitstamp': bitstamp$1,
-    'bittrex': bittrex$1,
     'bitvavo': bitvavo$1,
     'blockchaincom': blockchaincom$1,
     'bybit': bybit$1,
     'cex': cex$1,
     'coinbase': coinbase$1,
-    'coinbaseprime': coinbaseprime$1,
     'coinbasepro': coinbasepro$1,
     'coinex': coinex$1,
     'cryptocom': cryptocom$1,
@@ -404,7 +396,6 @@ exports.bitpanda = bitpanda;
 exports.bitrue = bitrue;
 exports.bitso = bitso;
 exports.bitstamp = bitstamp;
-exports.bittrex = bittrex;
 exports.bitvavo = bitvavo;
 exports.bl3p = bl3p;
 exports.blockchaincom = blockchaincom;
@@ -415,7 +406,6 @@ exports.btcturk = btcturk;
 exports.bybit = bybit;
 exports.cex = cex;
 exports.coinbase = coinbase;
-exports.coinbaseprime = coinbaseprime;
 exports.coinbasepro = coinbasepro;
 exports.coincheck = coincheck;
 exports.coinex = coinex;

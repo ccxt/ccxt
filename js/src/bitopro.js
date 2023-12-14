@@ -13,7 +13,7 @@ import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitopro
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitopro extends Exchange {
     describe() {

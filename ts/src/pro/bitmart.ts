@@ -5,7 +5,7 @@ import bitmartRest from '../bitmart.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Market, Str, Strings } from '../base/types.js';
+import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Asks, Bids } from '../base/ws/OrderBookSide.js';
 
@@ -102,7 +102,7 @@ export default class bitmart extends bitmartRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitmart#watchBalance
@@ -236,7 +236,7 @@ export default class bitmart extends bitmartRest {
         client.resolve (this.balance[type], messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitmart#watchTrades
@@ -261,7 +261,7 @@ export default class bitmart extends bitmartRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitmart#watchTicker
@@ -282,7 +282,7 @@ export default class bitmart extends bitmartRest {
         return await this.subscribe ('ticker', symbol, type, params);
     }
 
-    async watchTickers (symbols: Strings = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitmart#watchTickers
@@ -304,10 +304,7 @@ export default class bitmart extends bitmartRest {
         if (type === 'swap') {
             type = 'futures';
         }
-        let messageHash = 'tickers';
-        if (symbols !== undefined) {
-            messageHash += '::' + symbols.join (',');
-        }
+        const messageHash = 'tickers';
         const request = {
             'action': 'subscribe',
             'args': [ 'futures/ticker' ],
@@ -319,7 +316,7 @@ export default class bitmart extends bitmartRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmart#watchOrders
@@ -441,12 +438,14 @@ export default class bitmart extends bitmartRest {
                 symbols[symbol] = true;
             }
         }
-        const newOrderSymbols = Object.keys (symbols);
-        for (let i = 0; i < newOrderSymbols.length; i++) {
-            const symbol = newOrderSymbols[i];
-            this.resolvePromiseIfMessagehashMatches (client, 'orders::', symbol, newOrders);
+        const messageHash = 'orders';
+        const symbolKeys = Object.keys (symbols);
+        for (let i = 0; i < symbolKeys.length; i++) {
+            const symbol = symbolKeys[i];
+            const symbolSpecificMessageHash = messageHash + ':' + symbol;
+            client.resolve (newOrders, symbolSpecificMessageHash);
         }
-        client.resolve (newOrders, 'orders');
+        client.resolve (newOrders, messageHash);
     }
 
     parseWsOrder (order, market: Market = undefined) {
@@ -606,7 +605,7 @@ export default class bitmart extends bitmartRest {
         return this.safeString (sides, sideId, sideId);
     }
 
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name bitmart#watchPositions
@@ -912,7 +911,6 @@ export default class bitmart extends bitmartRest {
             const symbol = this.safeString (ticker, 'symbol');
             this.tickers[symbol] = ticker;
             client.resolve (ticker, 'tickers');
-            this.resolvePromiseIfMessagehashMatches (client, 'tickers::', symbol, ticker);
         }
         return message;
     }
@@ -955,7 +953,7 @@ export default class bitmart extends bitmartRest {
         }, market);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitmart#watchOHLCV
@@ -1082,7 +1080,7 @@ export default class bitmart extends bitmartRest {
         }
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitmart#watchOrderBook
