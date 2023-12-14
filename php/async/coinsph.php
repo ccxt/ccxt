@@ -35,7 +35,6 @@ class coinsph extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
-                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
@@ -116,7 +115,6 @@ class coinsph extends Exchange {
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => false,
-                'repayMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -1588,36 +1586,6 @@ class coinsph extends Exchange {
             }
             $params = $this->omit($params, 'network');
             $response = Async\await($this->privatePostOpenapiWalletV1WithdrawApply (array_merge($request, $params)));
-            return $this->parse_transaction($response, $currency);
-        }) ();
-    }
-
-    public function deposit(string $code, $amount, $address, $tag = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
-            /**
-             * make a deposit from coins_ph account to exchange account
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount the $amount to deposit
-             * @param {string} $address not used by coinsph deposit ()
-             * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
-             */
-            $options = $this->safe_value($this->options, 'deposit');
-            $warning = $this->safe_value($options, 'warning', true);
-            if ($warning) {
-                throw new InvalidAddress($this->id . " deposit() makes a deposits only from your coins_ph account, add .options['deposit']['warning'] = false to make a deposit to your exchange account");
-            }
-            Async\await($this->load_markets());
-            $currency = $this->currency($code);
-            $request = array(
-                'coin' => $currency['id'],
-                'amount' => $this->number_to_string($amount),
-            );
-            if ($tag !== null) {
-                $request['depositOrderId'] = $tag;
-            }
-            $response = Async\await($this->privatePostOpenapiV1CapitalDepositApply (array_merge($request, $params)));
             return $this->parse_transaction($response, $currency);
         }) ();
     }

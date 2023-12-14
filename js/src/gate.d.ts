@@ -1,5 +1,5 @@
 import Exchange from './abstract/gate.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface } from './base/types.js';
 /**
  * @class gate
  * @augments Exchange
@@ -220,33 +220,6 @@ export default class gate extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
     parseMarketLeverageTiers(info: any, market?: Market): any[];
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
-        id: number;
-        currency: string;
-        amount: number;
-        symbol: string;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    }>;
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
-        id: number;
-        currency: string;
-        amount: number;
-        symbol: string;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    }>;
-    parseMarginLoan(info: any, currency?: Currency): {
-        id: number;
-        currency: string;
-        amount: number;
-        symbol: string;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    };
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

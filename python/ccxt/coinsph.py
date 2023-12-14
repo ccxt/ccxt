@@ -47,7 +47,6 @@ class coinsph(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
-                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
@@ -128,7 +127,6 @@ class coinsph(Exchange, ImplicitAPI):
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
                 'reduceMargin': False,
-                'repayMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
@@ -1486,31 +1484,6 @@ class coinsph(Exchange, ImplicitAPI):
             request['withdrawOrderId'] = tag
         params = self.omit(params, 'network')
         response = self.privatePostOpenapiWalletV1WithdrawApply(self.extend(request, params))
-        return self.parse_transaction(response, currency)
-
-    def deposit(self, code: str, amount, address, tag=None, params={}):
-        """
-        make a deposit from coins_ph account to exchange account
-        :param str code: unified currency code
-        :param float amount: the amount to deposit
-        :param str address: not used by coinsph deposit()
-        :param str tag:
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
-        """
-        options = self.safe_value(self.options, 'deposit')
-        warning = self.safe_value(options, 'warning', True)
-        if warning:
-            raise InvalidAddress(self.id + " deposit() makes a deposits only from your coins_ph account, add .options['deposit']['warning'] = False to make a deposit to your exchange account")
-        self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'coin': currency['id'],
-            'amount': self.number_to_string(amount),
-        }
-        if tag is not None:
-            request['depositOrderId'] = tag
-        response = self.privatePostOpenapiV1CapitalDepositApply(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:

@@ -1994,7 +1994,7 @@ class bitmart(Exchange, ImplicitAPI):
         #        "updateTime" : 1681701559408
         #    }
         #
-        # swap: fetchOrder, fetchOpenOrders
+        # swap: fetchOrder, fetchOpenOrders, fetchClosedOrders
         #
         #     {
         #         "order_id": "230935812485489",
@@ -2010,7 +2010,10 @@ class bitmart(Exchange, ImplicitAPI):
         #         "deal_avg_price": "0",
         #         "deal_size": "0",
         #         "create_time": 1695702258629,
-        #         "update_time": 1695702258642
+        #         "update_time": 1695702258642,
+        #         "activation_price_type": 0,
+        #         "activation_price": "",
+        #         "callback_rate": ""
         #     }
         #
         id = None
@@ -2036,6 +2039,7 @@ class bitmart(Exchange, ImplicitAPI):
         priceString = self.safe_string(order, 'price')
         if priceString == 'market price':
             priceString = None
+        trailingStopActivationPrice = self.safe_number(order, 'activation_price')
         return self.safe_order({
             'id': id,
             'clientOrderId': self.safe_string(order, 'client_order_id'),
@@ -2049,8 +2053,8 @@ class bitmart(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': self.parse_order_side(self.safe_string(order, 'side')),
             'price': self.omit_zero(priceString),
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': trailingStopActivationPrice,
+            'triggerPrice': trailingStopActivationPrice,
             'amount': self.omit_zero(self.safe_string(order, 'size')),
             'cost': self.safe_string_2(order, 'filled_notional', 'filledNotional'),
             'average': self.safe_string_n(order, ['price_avg', 'priceAvg', 'deal_avg_price']),
@@ -2118,7 +2122,7 @@ class bitmart(Exchange, ImplicitAPI):
         :see: https://developer-pro.bitmart.com/en/spot/#place-margin-order
         :see: https://developer-pro.bitmart.com/en/futures/#submit-order-signed
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: 'market', 'limit' or 'trailing' for swap markets only
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -2169,10 +2173,11 @@ class bitmart(Exchange, ImplicitAPI):
 
     def create_swap_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
+         * @ignore
         create a trade order
         :see: https://developer-pro.bitmart.com/en/futures/#submit-order-signed
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: 'market', 'limit' or 'trailing'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -2180,7 +2185,9 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [params.leverage]: leverage level
         :param boolean [params.reduceOnly]: *swap only* reduce only
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross'
-         *  @param {string} [params.clientOrderId] client order id of the order
+        :param str [params.clientOrderId]: client order id of the order
+        :param int [params.activation_price_type]: *swap trailing order only* 1: last price, 2: fair price, default is 1
+        :param str [params.callback_rate]: *swap trailing order only* min 0.1, max 5 where 1 is 1%, default is "1"
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         market = self.market(symbol)
@@ -2209,9 +2216,14 @@ class bitmart(Exchange, ImplicitAPI):
             request['mode'] = 4
         if isLimitOrder:
             request['price'] = self.price_to_precision(symbol, price)
+        elif type == 'trailing':
+            reduceOnly = True
+            request['activation_price'] = self.price_to_precision(symbol, price)
+            request['activation_price_type'] = self.safe_integer(params, 'activation_price_type', 1)
+            request['callback_rate'] = self.safe_string(params, 'callback_rate', '1')
         if side == 'buy':
             if reduceOnly:
-                request['side'] = 2  # sell close long
+                request['side'] = 2  # buy close short
             else:
                 request['side'] = 1  # buy open long
         elif side == 'sell':
@@ -2233,6 +2245,7 @@ class bitmart(Exchange, ImplicitAPI):
 
     def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
+         * @ignore
         create a spot order request
         :see: https://developer-pro.bitmart.com/en/spot/#place-spot-order
         :see: https://developer-pro.bitmart.com/en/spot/#place-margin-order
@@ -2478,6 +2491,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [params.until]: *spot* the latest time in ms to fetch orders for
         :param str [params.type]: *swap* order type, 'limit' or 'market'
         :param str [params.order_state]: *swap* the order state, 'all' or 'partially_filled', default is 'all'
+        :param str [params.orderType]: *swap only* 'limit', 'market', or 'trailing'
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -2504,6 +2518,10 @@ class bitmart(Exchange, ImplicitAPI):
                 request['endTime'] = until
             response = self.privatePostSpotV4QueryOpenOrders(self.extend(request, params))
         elif type == 'swap':
+            orderType = self.safe_string(params, 'orderType')
+            params = self.omit(params, 'orderType')
+            if orderType is not None:
+                request['type'] = orderType
             response = self.privateGetContractPrivateGetOpenOrders(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchOpenOrders() does not support ' + type + ' orders, only spot and swap orders are accepted')
@@ -2629,6 +2647,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: *spot* fetch the order by client order id instead of order id
+        :param str [params.orderType]: *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -2650,6 +2669,10 @@ class bitmart(Exchange, ImplicitAPI):
         elif type == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+            orderType = self.safe_string(params, 'orderType')
+            params = self.omit(params, 'orderType')
+            if orderType is not None:
+                request['type'] = orderType
             request['symbol'] = market['id']
             request['order_id'] = id
             response = self.privateGetContractPrivateOrder(self.extend(request, params))

@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\NetworkError;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class cryptocom extends \ccxt\async\cryptocom {
 
@@ -70,25 +71,21 @@ class cryptocom extends \ccxt\async\cryptocom {
         }) ();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $messageHash = 'book' . '.' . $market['id'];
-            $orderbook = Async\await($this->watch_public($messageHash, $params));
-            return $orderbook->limit ();
+            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
         }) ();
     }
 
-    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -104,11 +101,10 @@ class cryptocom extends \ccxt\async\cryptocom {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $currentMessageHash = 'book' . '.' . $market['id'];
-                $topics[] = $currentMessageHash;
+                $currentTopic = 'book' . '.' . $market['id'];
+                $topics[] = $currentTopic;
             }
-            $messageHash = 'multipleOrderbooks::' . implode(',', $symbols);
-            $orderbook = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
+            $orderbook = Async\await($this->watch_public_multiple($topics, $topics, $params));
             return $orderbook->limit ();
         }) ();
     }
@@ -152,33 +148,24 @@ class cryptocom extends \ccxt\async\cryptocom {
         $orderbook->reset ($snapshot);
         $this->orderbooks[$symbol] = $orderbook;
         $client->resolve ($orderbook, $messageHash);
-        $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbooks::', $symbol, $orderbook);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent $trades for a particular $symbol
+             * get the list of most recent trades for a particular $symbol
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'trade' . '.' . $market['id'];
-            $trades = Async\await($this->watch_public($messageHash, $params));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
         }) ();
     }
 
-    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -195,11 +182,10 @@ class cryptocom extends \ccxt\async\cryptocom {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $currentMessageHash = 'trade' . '.' . $market['id'];
-                $topics[] = $currentMessageHash;
+                $currentTopic = 'trade' . '.' . $market['id'];
+                $topics[] = $currentTopic;
             }
-            $messageHash = 'multipleTrades::' . implode(',', $symbols);
-            $trades = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
+            $trades = Async\await($this->watch_public_multiple($topics, $topics, $params));
             if ($this->newUpdates) {
                 $first = $this->safe_value($trades, 0);
                 $tradeSymbol = $this->safe_string($first, 'symbol');
@@ -255,10 +241,9 @@ class cryptocom extends \ccxt\async\cryptocom {
         $channelReplaced = str_replace('.' . $marketId, '', $channel);
         $client->resolve ($stored, $symbolSpecificMessageHash);
         $client->resolve ($stored, $channelReplaced);
-        $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $stored);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -285,7 +270,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }) ();
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -337,7 +322,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -395,7 +380,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -474,7 +459,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
     }
 
-    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watch all open positions
@@ -602,7 +587,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $client->resolve ($newPositions, 'positions');
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -680,7 +665,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $client->resolve ($this->balance, $messageHashRequest);
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
@@ -722,7 +707,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $client->resolve ($order, $messageHash);
     }
 
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -797,8 +782,8 @@ class cryptocom extends \ccxt\async\cryptocom {
         }) ();
     }
 
-    public function watch_public_multiple($messageHash, $topics, $params = array ()) {
-        return Async\async(function () use ($messageHash, $topics, $params) {
+    public function watch_public_multiple($messageHashes, $topics, $params = array ()) {
+        return Async\async(function () use ($messageHashes, $topics, $params) {
             $url = $this->urls['api']['ws']['public'];
             $id = $this->nonce();
             $request = array(
@@ -809,7 +794,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 'nonce' => $id,
             );
             $message = array_merge($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+            return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
         }) ();
     }
 

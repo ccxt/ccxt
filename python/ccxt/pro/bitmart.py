@@ -7,8 +7,9 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 from ccxt.async_support.base.ws.order_book_side import Asks, Bids
 import hashlib
-from ccxt.base.types import Int, Market, Str, Strings
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
@@ -104,7 +105,7 @@ class bitmart(ccxt.async_support.bitmart):
             }
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#private-balance-change
         :see: https://developer-pro.bitmart.com/en/futures/#private-assets-channel
@@ -222,7 +223,7 @@ class bitmart(ccxt.async_support.bitmart):
         messageHash = 'balance:' + type
         client.resolve(self.balance[type], messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#public-trade-channel
         :see: https://developer-pro.bitmart.com/en/futures/#public-trade-channel
@@ -243,7 +244,7 @@ class bitmart(ccxt.async_support.bitmart):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -260,7 +261,7 @@ class bitmart(ccxt.async_support.bitmart):
             raise NotSupported(self.id + ' watchTicker() does not support ' + type + ' markets. Use watchTickers() instead')
         return await self.subscribe('ticker', symbol, type, params)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         :see: https://developer-pro.bitmart.com/en/futures/#overview
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -279,8 +280,6 @@ class bitmart(ccxt.async_support.bitmart):
         if type == 'swap':
             type = 'futures'
         messageHash = 'tickers'
-        if symbols is not None:
-            messageHash += '::' + ','.join(symbols)
         request = {
             'action': 'subscribe',
             'args': ['futures/ticker'],
@@ -290,7 +289,7 @@ class bitmart(ccxt.async_support.bitmart):
             return newTickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#private-order-channel
         :see: https://developer-pro.bitmart.com/en/futures/#private-order-channel
@@ -401,11 +400,13 @@ class bitmart(ccxt.async_support.bitmart):
                 newOrders.append(order)
                 symbol = order['symbol']
                 symbols[symbol] = True
-        newOrderSymbols = list(symbols.keys())
-        for i in range(0, len(newOrderSymbols)):
-            symbol = newOrderSymbols[i]
-            self.resolve_promise_if_messagehash_matches(client, 'orders::', symbol, newOrders)
-        client.resolve(newOrders, 'orders')
+        messageHash = 'orders'
+        symbolKeys = list(symbols.keys())
+        for i in range(0, len(symbolKeys)):
+            symbol = symbolKeys[i]
+            symbolSpecificMessageHash = messageHash + ':' + symbol
+            client.resolve(newOrders, symbolSpecificMessageHash)
+        client.resolve(newOrders, messageHash)
 
     def parse_ws_order(self, order, market: Market = None):
         #
@@ -557,7 +558,7 @@ class bitmart(ccxt.async_support.bitmart):
         }
         return self.safe_string(sides, sideId, sideId)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
         :see: https://developer-pro.bitmart.com/en/futures/#private-position-channel
         watch all open positions
@@ -844,7 +845,6 @@ class bitmart(ccxt.async_support.bitmart):
             symbol = self.safe_string(ticker, 'symbol')
             self.tickers[symbol] = ticker
             client.resolve(ticker, 'tickers')
-            self.resolve_promise_if_messagehash_matches(client, 'tickers::', symbol, ticker)
         return message
 
     def parse_ws_swap_ticker(self, ticker, market: Market = None):
@@ -884,7 +884,7 @@ class bitmart(ccxt.async_support.bitmart):
             'info': ticker,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#public-kline-channel
         :see: https://developer-pro.bitmart.com/en/futures/#public-klinebin-channel
@@ -999,7 +999,7 @@ class bitmart(ccxt.async_support.bitmart):
                 stored.append(parsed)
             client.resolve(stored, channel)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
         :see: https://developer-pro.bitmart.com/en/futures/#public-depth-channel

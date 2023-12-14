@@ -67,7 +67,7 @@
       { "blankLine": "always", "prev":"*", "next": "cjs-export" },
       { "blankLine": "always", "prev":"*", "next": "export" },
       { "blankLine": "any",    "prev":"export", "next": "export" },
-      { "blankLine": "always", "prev":"*", "next": "function" },
+      { "blankLine": "always", "prev":"*", "next": "function" }
     ],
     "prefer-template": "off",
     "curly": "error",

@@ -976,7 +976,7 @@ class Exchange {
         }
     }
     spawn(method, ...args) {
-        const future = Future.createFuture();
+        const future = Future.Future();
         method.apply(this, args).then(future.resolve).catch(future.reject);
         return future;
     }
@@ -1028,6 +1028,99 @@ class Exchange {
             this.clients[url] = new WsClient(url, onMessage, onError, onClose, onConnected, options);
         }
         return this.clients[url];
+    }
+    watchMultiple(url, messageHashes, message = undefined, subscribeHashes = undefined, subscription = undefined) {
+        //
+        // Without comments the code of this method is short and easy:
+        //
+        //     const client = this.client (url)
+        //     const backoffDelay = 0
+        //     const future = client.future (messageHash)
+        //     const connected = client.connect (backoffDelay)
+        //     connected.then (() => {
+        //         if (message && !client.subscriptions[subscribeHash]) {
+        //             client.subscriptions[subscribeHash] = true
+        //             client.send (message)
+        //         }
+        //     }).catch ((error) => {})
+        //     return future
+        //
+        // The following is a longer version of this method with comments
+        //
+        const client = this.client(url);
+        // todo: calculate the backoff using the clients cache
+        const backoffDelay = 0;
+        //
+        //  watchOrderBook ---- future ----+---------------+----→ user
+        //                                 |               |
+        //                                 ↓               ↑
+        //                                 |               |
+        //                              connect ......→ resolve
+        //                                 |               |
+        //                                 ↓               ↑
+        //                                 |               |
+        //                             subscribe -----→ receive
+        //
+        const future = Future.Future.race(messageHashes.map(messageHash => client.future(messageHash)));
+        // read and write subscription, this is done before connecting the client
+        // to avoid race conditions when other parts of the code read or write to the client.subscriptions
+        let missingSubscriptions = [];
+        if (subscribeHashes !== undefined) {
+            for (let i = 0; i < subscribeHashes.length; i++) {
+                const subscribeHash = subscribeHashes[i];
+                if (!client.subscriptions[subscribeHash]) {
+                    missingSubscriptions.push(subscribeHash);
+                    client.subscriptions[subscribeHash] = subscription || true;
+                }
+            }
+        }
+        // we intentionally do not use await here to avoid unhandled exceptions
+        // the policy is to make sure that 100% of promises are resolved or rejected
+        // either with a call to client.resolve or client.reject with
+        //  a proper exception class instance
+        const connected = client.connect(backoffDelay);
+        // the following is executed only if the catch-clause does not
+        // catch any connection-level exceptions from the client
+        // (connection established successfully)
+        if ((subscribeHashes === undefined) || missingSubscriptions.length) {
+            connected.then(() => {
+                const options = this.safeValue(this.options, 'ws');
+                const cost = this.safeValue(options, 'cost', 1);
+                if (message) {
+                    if (this.enableRateLimit && client.throttle) {
+                        // add cost here |
+                        //               |
+                        //               V
+                        client.throttle(cost).then(() => {
+                            client.send(message);
+                        }).catch((e) => {
+                            for (let i = 0; i < missingSubscriptions.length; i++) {
+                                const subscribeHash = missingSubscriptions[i];
+                                delete client.subscriptions[subscribeHash];
+                            }
+                            future.reject(e);
+                        });
+                    }
+                    else {
+                        client.send(message)
+                            .catch((e) => {
+                            for (let i = 0; i < missingSubscriptions.length; i++) {
+                                const subscribeHash = missingSubscriptions[i];
+                                delete client.subscriptions[subscribeHash];
+                            }
+                            future.reject(e);
+                        });
+                    }
+                }
+            }).catch((e) => {
+                for (let i = 0; i < missingSubscriptions.length; i++) {
+                    const subscribeHash = missingSubscriptions[i];
+                    delete client.subscriptions[subscribeHash];
+                }
+                future.reject(e);
+            });
+        }
+        return future;
     }
     watch(url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
         //
@@ -1393,7 +1486,7 @@ class Exchange {
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join(',');
-            throw new errors.ExchangeError(this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, socksProxy');
+            throw new errors.ExchangeError(this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy');
         }
         return [wsProxy, wssProxy, wsSocksProxy];
     }
@@ -4517,31 +4610,6 @@ class Exchange {
          * @description Typed wrapper for filterByArray that returns a dictionary of tickers
          */
         return this.filterByArray(objects, key, values, indexed);
-    }
-    resolvePromiseIfMessagehashMatches(client, prefix, symbol, data) {
-        const messageHashes = this.findMessageHashes(client, prefix);
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split(',');
-            if (this.inArray(symbol, symbols)) {
-                client.resolve(data, messageHash);
-            }
-        }
-    }
-    resolveMultipleOHLCV(client, prefix, symbol, timeframe, data) {
-        const messageHashes = this.findMessageHashes(client, 'multipleOHLCV::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split('::');
-            const symbolsAndTimeframes = parts[1];
-            const splitted = symbolsAndTimeframes.split(',');
-            const id = symbol + '#' + timeframe;
-            if (this.inArray(id, splitted)) {
-                client.resolve([symbol, timeframe, data], messageHash);
-            }
-        }
     }
     createOHLCVObject(symbol, timeframe, data) {
         const res = {};
