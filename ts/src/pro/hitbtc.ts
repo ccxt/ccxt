@@ -1110,7 +1110,7 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    async fetchOpenOrdersWs (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name hitbtc#fetchOpenOrdersWs
