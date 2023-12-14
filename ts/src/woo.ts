@@ -794,6 +794,7 @@ export default class woo extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only' ]);
         const orderType = type.toUpperCase ();
         await this.loadMarkets ();
         const market = this.market (symbol);
