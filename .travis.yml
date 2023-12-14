@@ -27,6 +27,10 @@ before_install:
 - composer install
 
 script:
+- pip install git-changelog
+- git fetch --tags
+- git-changelog
+- ./change.sh
 - ./build.sh 2>&1
 - git checkout master composer.json
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
