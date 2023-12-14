@@ -804,6 +804,16 @@
                     }
                 ]
             }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "fetch Borrow Interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.hbdm.com/v1/cross-margin/loan-orders?AccessKeyId=key&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-12-14T06%3A46%3A55&currency=usdt&Signature=zc%2F5gWGPCifvUC2J0f3N1%2F1IZMaoS%2BBg6F5rc6p9ML8%3D",
+                "input": [
+                    "USDT"
+                ]
+            }
         ]
     }
 }

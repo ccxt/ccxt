@@ -6555,21 +6555,20 @@ export default class htx extends Exchange {
             request['size'] = limit;
         }
         let market = undefined;
-        let method = undefined;
+        let response = undefined;
         if (marginMode === 'isolated') {
-            method = 'privateGetMarginLoanOrders';
             if (symbol !== undefined) {
                 market = this.market (symbol);
                 request['symbol'] = market['id'];
             }
+            response = await this.privateGetMarginLoanOrders (this.extend (request, params));
         } else {  // Cross
-            method = 'privateGetCrossMarginLoanOrders';
             if (code !== undefined) {
                 const currency = this.currency (code);
                 request['currency'] = currency['id'];
             }
+            response = await this.privateGetCrossMarginLoanOrders (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //    {
         //        "status":"ok",
