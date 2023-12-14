@@ -2035,21 +2035,23 @@ export default class htx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {};
-        let fieldName = 'symbol';
-        let method = 'spotPublicGetMarketDetailMerged';
+        let response = undefined;
         if (market['linear']) {
-            method = 'contractPublicGetLinearSwapExMarketDetailMerged';
-            fieldName = 'contract_code';
+            request['contract_code'] = market['id'];
+            response = await this.contractPublicGetLinearSwapExMarketDetailMerged (this.extend (request, params));
         } else if (market['inverse']) {
             if (market['future']) {
-                method = 'contractPublicGetMarketDetailMerged';
+                request['symbol'] = market['id'];
+                response = await this.contractPublicGetMarketDetailMerged (this.extend (request, params));
             } else if (market['swap']) {
-                method = 'contractPublicGetSwapExMarketDetailMerged';
-                fieldName = 'contract_code';
+                request['contract_code'] = market['id'];
+                response = await this.contractPublicGetSwapExMarketDetailMerged (this.extend (request, params));
             }
         }
-        request[fieldName] = market['id'];
-        const response = await this[method] (this.extend (request, params));
+        if (response === undefined) {
+            request['symbol'] = market['id'];
+            response = await this.spotPublicGetMarketDetailMerged (this.extend (request, params));
+        }
         //
         // spot
         //
