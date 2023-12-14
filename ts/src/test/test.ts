@@ -21,6 +21,7 @@ process.on ('unhandledRejection', (e: any) => {
 const AuthenticationError = ccxt.AuthenticationError;
 const NotSupported = ccxt.NotSupported;
 const NetworkError = ccxt.NetworkError;
+const ExchangeError = ccxt.ExchangeError;
 const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
@@ -891,7 +892,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         // if exception was set, then throw it
         if (exception) {
-            throw new Error ('[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception));
+            throw new ExchangeError ('[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception));
         }
     }
 
