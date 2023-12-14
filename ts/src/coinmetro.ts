@@ -4,9 +4,8 @@
 import Exchange from './abstract/coinmetro.js';
 import { ArgumentsRequired, AuthenticationError } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-// import { Precise } from './base/Precise.js';
-// import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Currency, Int, Market, OHLCV, OrderBook, Str, Trade } from './base/types.js';
+import { Precise } from './base/Precise.js';
+import { Balances, Currency, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -49,7 +48,7 @@ export default class coinmetro extends Exchange {
                 'editOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
-                'fetchBidsAsks': false,
+                'fetchBidsAsks': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -97,7 +96,7 @@ export default class coinmetro extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -133,7 +132,10 @@ export default class coinmetro extends Exchange {
                 'api': {
                     'public': 'https://api.coinmetro.com',
                     'private': 'https://api.coinmetro.com',
-                    'test': 'https://api.coinmetro.com/open',
+                },
+                'test': {
+                    'public': 'https://api.coinmetro.com',
+                    'private': 'https://api.coinmetro.com/open',
                 },
                 'www': 'https://coinmetro.com/',
                 'doc': [
@@ -150,18 +152,35 @@ export default class coinmetro extends Exchange {
                         'assets': 1,
                         'markets': 1,
                         'exchange/book/{pair}': 1,
-                        'exchange/bookUpdates/{pair}/{from}': 1,
+                        'exchange/bookUpdates/{pair}/{from}': 1, // todo: not unified
                     },
                 },
                 'private': {
                     'get': {
                         'users/balances': 1,
                         'users/wallets/history/{since}': 1,
+                        'exchange/orders/active': 1, // todo: fetchOpenOrders
+                        'exchange/orders/history/{since}': 1, // todo: fetchOrders
+                        'exchange/fills/{since}': 1, // todo: fetchMyTrades
+                        'exchange/margin': 1, // todo: check
                     },
                     'post': {
                         'jwt': 1,
+                        'jwtDevice': 1, // not unified: login with mobile divice
+                        'devices': 1, // not unified: provides information about a yet-to-be authorized mobile device
+                        'jwt-read-only': 1, // not unified: requests a read-only long-lived token
+                        'exchange/orders/create': 1, // todo: createOrder
+                        'exchange/orders/modify/{orderID}': 1, // todo: editOrder
+                        'exchange/swap': 1, // todo: check
+                        'exchange/swap/confirm/{swapId}': 1, // todo: check
+                        'exchange/orders/close/{orderID}': 1, // todo: check - closePosition?
+                        'exchange/orders/hedge': 1, // todo: check
                     },
                     'put': {
+                        'jwt': 1, // not unified: logout
+                        'exchange/orders/cancel/{orderID}': 1, // todo: cancelOrder
+                        'users/margin/collateral': 1, // todo: check
+                        'users/margin/primary/{currency}': 1, // todo: check
                     },
                 },
             },
@@ -647,6 +666,158 @@ export default class coinmetro extends Exchange {
             result.push ([ price, volume ]);
         }
         return result;
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name coinmetro#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ecd1cd1-f162-45a3-8b3b-de690332a485
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetExchangePrices (params);
+        //
+        //     {
+        //         "latestPrices": [
+        //             {
+        //                 "pair": "PERPEUR",
+        //                 "timestamp": 1702549840393,
+        //                 "price": 0.7899997816001223,
+        //                 "qty": 1e-12,
+        //                 "ask": 0.8,
+        //                 "bid": 0.7799995632002446
+        //             },
+        //             {
+        //                 "pair": "PERPUSD",
+        //                 "timestamp": 1702549841973,
+        //                 "price": 0.8615317721366659,
+        //                 "qty": 1e-12,
+        //                 "ask": 0.8742333599999257,
+        //                 "bid": 0.8490376365388491
+        //             },
+        //             ...
+        //         ],
+        //         "24hInfo": [
+        //             {
+        //                 "delta": 0.25396444229149906,
+        //                 "h": 0.78999978160012,
+        //                 "l": 0.630001740844,
+        //                 "v": 54.910000002833996,
+        //                 "pair": "PERPEUR",
+        //                 "sentimentData": {
+        //                     "sentiment": 36.71333333333333,
+        //                     "interest": 0.47430830039525695
+        //                     }
+        //                 },
+        //             {
+        //                 "delta": 0.26915154078134096,
+        //                 "h": 0.86220315458898,
+        //                 "l": 0.67866757035154,
+        //                 "v": 2.835000000000001e-9,
+        //                 "pair": "PERPUSD",
+        //                 "sentimentData": {
+        //                     "sentiment": 36.71333333333333,
+        //                     "interest": 0.47430830039525695
+        //                 }
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const latestPrices = this.safeValue (response, 'latestPrices', []);
+        const twentyFourHInfos = this.safeValue (response, '24hInfo', []);
+        const tickersObject = {};
+        // merging info from two lists into one
+        for (let i = 0; i < latestPrices.length; i++) {
+            const latestPrice = latestPrices[i];
+            const marketId = this.safeString (latestPrice, 'pair');
+            if (marketId !== undefined) {
+                tickersObject[marketId] = latestPrice;
+            }
+        }
+        for (let i = 0; i < twentyFourHInfos.length; i++) {
+            const twentyFourHInfo = twentyFourHInfos[i];
+            const marketId = this.safeString (twentyFourHInfo, 'pair');
+            if (marketId !== undefined) {
+                const latestPrice = this.safeValue (tickersObject, marketId, {});
+                tickersObject[marketId] = this.extend (twentyFourHInfo, latestPrice);
+            }
+        }
+        const tickers = Object.values (tickersObject);
+        return this.parseTickers (tickers, symbols);
+    }
+
+    async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmetro#fetchBidsAsks
+         * @description fetches the bid and ask price and volume for multiple markets
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ecd1cd1-f162-45a3-8b3b-de690332a485
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetExchangePrices (params);
+        const latestPrices = this.safeValue (response, 'latestPrices', []);
+        return this.parseTickers (latestPrices, symbols);
+    }
+
+    parseTicker (ticker, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "pair": "PERPUSD",
+        //         "timestamp": 1702549841973,
+        //         "price": 0.8615317721366659,
+        //         "qty": 1e-12,
+        //         "ask": 0.8742333599999257,
+        //         "bid": 0.8490376365388491
+        //         "delta": 0.26915154078134096,
+        //         "h": 0.86220315458898,
+        //         "l": 0.67866757035154,
+        //         "v": 2.835000000000001e-9,
+        //         "sentimentData": {
+        //             "sentiment": 36.71333333333333,
+        //             "interest": 0.47430830039525695
+        //         }
+        //     }
+        //
+        const marketId = this.safeString (ticker, 'pair');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        const bid = this.safeString (ticker, 'bid');
+        const ask = this.safeString (ticker, 'ask');
+        const high = this.safeString (ticker, 'h');
+        const low = this.safeString (ticker, 'l');
+        const close = this.safeString (ticker, 'price'); // todo: check
+        const baseVolume = this.safeString (ticker, 'v');
+        const delta = this.safeString (ticker, 'delta');
+        const percentage = Precise.stringMul (delta, '100');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'open': undefined,
+            'high': high,
+            'low': low,
+            'close': close,
+            'bid': bid,
+            'bidVolume': undefined,
+            'ask': ask,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
     }
 
     async fetchBalance (params = {}): Promise<Balances> {
