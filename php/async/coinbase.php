@@ -631,6 +631,7 @@ class coinbase extends Exchange {
     public function fetch_my_sells(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @ignore
              * fetch $sells
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$sells#list-$sells
              * @param {string} $symbol not used by coinbase fetchMySells ()
@@ -651,6 +652,7 @@ class coinbase extends Exchange {
     public function fetch_my_buys(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @ignore
              * fetch $buys
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$buys#list-$buys
              * @param {string} $symbol not used by coinbase fetchMyBuys ()

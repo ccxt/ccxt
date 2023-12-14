@@ -232,8 +232,10 @@ class binance extends binance$1 {
         return orderbook.limit();
     }
     async fetchOrderBookSnapshot(client, message, subscription) {
-        const messageHash = this.safeString(subscription, 'messageHash');
+        const name = this.safeString(subscription, 'name');
         const symbol = this.safeString(subscription, 'symbol');
+        const market = this.market(symbol);
+        const messageHash = market['lowercaseId'] + '@' + name;
         try {
             const defaultLimit = this.safeInteger(this.options, 'watchOrderBookLimit', 1000);
             const type = this.safeValue(subscription, 'type');

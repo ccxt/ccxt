@@ -37,6 +37,9 @@ export default class cryptocom extends Exchange {
                 'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': true,
+                'createMarketBuyOrderWithCost': false,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
                 'fetchAccounts': true,
@@ -1343,23 +1346,29 @@ export default class cryptocom extends Exchange {
         }
         if ((side === 'buy') && ((uppercaseType === 'MARKET') || (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT'))) {
             // use createmarketBuy logic here
-            if (this.options['createMarketBuyOrderRequiresPrice']) {
-                const cost = this.safeNumber2(params, 'cost', 'notional');
-                params = this.omit(params, 'cost');
-                if (price === undefined && cost === undefined) {
-                    throw new InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
+            let quoteAmount = undefined;
+            let createMarketBuyOrderRequiresPrice = true;
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber2(params, 'cost', 'notional');
+            params = this.omit(params, 'cost');
+            if (cost !== undefined) {
+                quoteAmount = this.costToPrecision(symbol, cost);
+            }
+            else if (createMarketBuyOrderRequiresPrice) {
+                if (price === undefined) {
+                    throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                 }
                 else {
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
-                    const quoteAmount = Precise.stringMul(amountString, priceString);
-                    amount = (cost !== undefined) ? cost : this.parseNumber(quoteAmount);
-                    request['notional'] = this.costToPrecision(symbol, amount);
+                    const costRequest = Precise.stringMul(amountString, priceString);
+                    quoteAmount = this.costToPrecision(symbol, costRequest);
                 }
             }
             else {
-                request['notional'] = this.costToPrecision(symbol, amount);
+                quoteAmount = this.costToPrecision(symbol, amount);
             }
+            request['notional'] = quoteAmount;
         }
         else {
             request['quantity'] = this.amountToPrecision(symbol, amount);

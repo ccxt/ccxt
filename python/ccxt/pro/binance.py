@@ -230,8 +230,10 @@ class binance(ccxt.async_support.binance):
         return orderbook.limit()
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
-        messageHash = self.safe_string(subscription, 'messageHash')
+        name = self.safe_string(subscription, 'name')
         symbol = self.safe_string(subscription, 'symbol')
+        market = self.market(symbol)
+        messageHash = market['lowercaseId'] + '@' + name
         try:
             defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
             type = self.safe_value(subscription, 'type')
