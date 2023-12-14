@@ -507,6 +507,30 @@
                     "swap"
                 ],
                 "output": "{\"currency\":\"usdt\",\"amount\":1,\"margin-account\":\"USDT\",\"from\":\"spot\",\"to\":\"linear-swap\"}"
+            },
+            {
+                "description": "transfer from spot to future",
+                "method": "transfer",
+                "url": "https://api.huobi.pro/v1/futures/transfer?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T16%3A23%3A59&Signature=rynghR1lgclTs2pbaip8Ysa8C3qkoRa1kkEAy8C3SSU%3D",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "future"
+                ],
+                "output": "{\"currency\":\"usdt\",\"amount\":1,\"type\":\"pro-to-futures\"}"
+            },
+            {
+                "description": "transfer from spot to cross",
+                "method": "transfer",
+                "url": "https://api.huobi.pro/v1/cross-margin/transfer-in?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T16%3A23%3A59&Signature=rynghR1lgclTs2pbaip8Ysa8C3qkoRa1kkEAy8C3SSU%3D",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "cross"
+                ],
+                "output": "{\"currency\":\"usdt\",\"amount\":1}"
             }
         ],
         "fetchDepositAddress": [

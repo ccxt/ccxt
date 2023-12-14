@@ -6168,7 +6168,6 @@ export default class htx extends Exchange {
         };
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('transfer', undefined, params);
-        let method = undefined;
         let fromAccountId = this.convertTypeToAccount (fromAccount);
         let toAccountId = this.convertTypeToAccount (toAccount);
         const toCross = toAccountId === 'cross';
@@ -6181,23 +6180,23 @@ export default class htx extends Exchange {
             throw new BadRequest (this.id + ' transfer () cannot make a transfer between ' + fromAccount + ' and ' + toAccount);
         }
         const fromOrToFuturesAccount = (fromAccountId === 'futures') || (toAccountId === 'futures');
+        let response = undefined;
         if (fromOrToFuturesAccount) {
             let type = fromAccountId + '-to-' + toAccountId;
             type = this.safeString (params, 'type', type);
             request['type'] = type;
-            method = 'spotPrivatePostV1FuturesTransfer';
+            response = await this.spotPrivatePostV1FuturesTransfer (this.extend (request, params));
         } else if (fromSpot && toCross) {
-            method = 'privatePostCrossMarginTransferIn';
+            response = await this.privatePostCrossMarginTransferIn (this.extend (request, params));
         } else if (fromCross && toSpot) {
-            method = 'privatePostCrossMarginTransferOut';
+            response = await this.privatePostCrossMarginTransferOut (this.extend (request, params));
         } else if (fromSpot && toIsolated) {
             request['symbol'] = toAccountId;
-            method = 'privatePostDwTransferInMargin';
+            response = await this.privatePostDwTransferInMargin (this.extend (request, params));
         } else if (fromIsolated && toSpot) {
             request['symbol'] = fromAccountId;
-            method = 'privatePostDwTransferOutMargin';
+            response = await this.privatePostDwTransferOutMargin (this.extend (request, params));
         } else {
-            method = 'v2PrivatePostAccountTransfer';
             if (subType === 'linear') {
                 if ((fromAccountId === 'swap') || (fromAccount === 'linear-swap')) {
                     fromAccountId = 'linear-swap';
@@ -6216,8 +6215,8 @@ export default class htx extends Exchange {
             }
             request['from'] = fromSpot ? 'spot' : fromAccountId;
             request['to'] = toSpot ? 'spot' : toAccountId;
+            response = await this.v2PrivatePostAccountTransfer (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //    {
         //        "code": "200",
