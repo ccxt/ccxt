@@ -357,6 +357,28 @@
                     5
                 ],
                 "output": "{\"contract\":\"LTC-USDT\",\"trade_type\":0,\"start_time\":1699457638000,\"page_size\":5}"
+            },
+            {
+                "description": "fetch My Trades - swap inverse",
+                "method": "fetchMyTrades",
+                "url": "https://api.huobi.pro/swap-api/v3/swap_matchresults_exact",
+                "input": [
+                    "BTC/USD:BTC",
+                    1699457638000,
+                    5
+                ],
+                "output": "{\"contract\":\"BTC-USD\",\"trade_type\":0,\"start_time\":1699457638000,\"page_size\":5}"
+            },
+            {
+                "description": "fetch My Trades - future",
+                "method": "fetchMyTrades",
+                "url": "https://api.huobi.pro/api/v3/contract_matchresults_exact",
+                "input": [
+                    "BTC/USD:BTC-231124",
+                    1699457638000,
+                    5
+                ],
+                "output": "{\"contract\":\"BTC231124\",\"trade_type\":0,\"start_time\":1699457638000,\"page_size\":5,\"symbol\":\"btc\"}"
             }
         ],
         "fetchClosedOrders": [
