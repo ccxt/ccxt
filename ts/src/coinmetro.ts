@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinmetro.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
@@ -210,8 +210,9 @@ export default class coinmetro extends Exchange {
                 'exact': {
                 },
                 'broad': {
-                    'orderType missing': BadRequest, // 422 Unprocessable Entity {"message":"orderType missing!"}
                     'Insufficient order size': InvalidOrder, // 422 Unprocessable Entity {"message":"Insufficient order size - min 0.002 ETH"}
+                    'Not enough balance': InsufficientFunds, // 422 Unprocessable Entity {"message":"Not enough balance!"}
+                    'orderType missing': BadRequest, // 422 Unprocessable Entity {"message":"orderType missing!"}
                 },
             },
         });
@@ -1015,6 +1016,32 @@ export default class coinmetro extends Exchange {
         // todo: add margin order support
         const response = await this.privatePostExchangeOrdersCreate (this.extend (request, params));
         //
+        //     {
+        //         "userID": "65671262d93d9525ac009e36",
+        //         "orderID": "65671262d93d9525ac009e36170257448481749b7ee2893bafec2",
+        //         "orderType": "market",
+        //         "buyingCurrency": "ETH",
+        //         "sellingCurrency": "USDC",
+        //         "buyingQty": 0.002,
+        //         "timeInForce": 4,
+        //         "boughtQty": 0.002,
+        //         "soldQty": 4.587,
+        //         "creationTime": 1702574484829,
+        //         "seqNumber": 10874285330,
+        //         "firstFillTime": 1702574484831,
+        //         "lastFillTime": 1702574484831,
+        //         "fills": [
+        //             {
+        //                 "seqNumber": 10874285329,
+        //                 "timestamp": 1702574484831,
+        //                 "qty": 0.002,
+        //                 "price": 2293.5,
+        //                 "side": "buy"
+        //             }
+        //         ],
+        //         "completionTime": 1702574484831,
+        //         "takerQty": 0.002
+        //     }
         //
         return this.parseOrder (response, market);
     }
@@ -1042,18 +1069,56 @@ export default class coinmetro extends Exchange {
 
     parseOrder (order, market: Market = undefined): Order {
         //
+        // createOrder
+        //     {
+        //         "userID": "65671262d93d9525ac009e36",
+        //         "orderID": "65671262d93d9525ac009e36170257448481749b7ee2893bafec2",
+        //         "orderType": "market",
+        //         "buyingCurrency": "ETH",
+        //         "sellingCurrency": "USDC",
+        //         "buyingQty": 0.002,
+        //         "timeInForce": 4,
+        //         "boughtQty": 0.002,
+        //         "soldQty": 4.587,
+        //         "creationTime": 1702574484829,
+        //         "seqNumber": 10874285330,
+        //         "firstFillTime": 1702574484831,
+        //         "lastFillTime": 1702574484831,
+        //         "fills": [
+        //             {
+        //                 "seqNumber": 10874285329,
+        //                 "timestamp": 1702574484831,
+        //                 "qty": 0.002,
+        //                 "price": 2293.5,
+        //                 "side": "buy"
+        //             }
+        //         ],
+        //         "completionTime": 1702574484831,
+        //         "takerQty": 0.002
+        //     }
         //
+        const timestamp = this.safeInteger (order, 'creationTime');
+        const buyingQty = this.safeNumber (order, 'buyingQty');
+        const sellingQty = this.safeNumber (order, 'sellingQty');
+        // market buy orders has buyingQty
+        // market sell orders has sellingQty
+        let side = undefined;
+        if (buyingQty === undefined) {
+            side = 'sell';
+        } else if (sellingQty === undefined) {
+            side = 'buy';
+        }
         return this.safeOrder ({
-            'id': undefined,
+            'id': this.safeString (order, 'orderID'),
             'clientOrderId': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': this.safeInteger (order, 'lastFillTime'),
             'status': undefined,
             'symbol': undefined,
-            'type': undefined,
-            'timeInForce': undefined,
-            'side': undefined,
+            'type': this.safeString (order, 'orderType'),
+            'timeInForce': this.parseOrderTimeInForce (this.safeInteger (order, 'timeInForce')),
+            'side': side,
             'price': undefined,
             'stopPrice': undefined,
             'triggerPrice': undefined,
@@ -1067,6 +1132,17 @@ export default class coinmetro extends Exchange {
             'trades': undefined,
             'info': order,
         }, market);
+    }
+
+    parseOrderTimeInForce (timeInForce) {
+        const timeInForceTypes = [
+            undefined,
+            'GTC',
+            'IOC',
+            'GTD',
+            'FOK',
+        ];
+        return this.safeValue (timeInForceTypes, timeInForce, timeInForce);
     }
 
     async signIn (params = {}) {
