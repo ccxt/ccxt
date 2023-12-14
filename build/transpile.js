@@ -2460,7 +2460,8 @@ class Transpiler {
             // In PHP preable, for specifically WS tests, we need to avoid php namespace differences for tests, for example, if WATCH methods use ccxt\\pro, then the inlcuded non-pro test methods (like "test_trade" etc) are under ccxt, causing the purely transpiled code to have namespace conflicts specifically in PHP. so, for now, let's just leave all watch method tests under `ccxt` namespace, not `ccxt\pro`
             // let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, isWs); 
             const includePath = isWs && test.base;
-            let phpPreamble = this.getPHPPreamble (includePath, phpDirsAmount, false); 
+            const addProNs = isWs && test.base; // only for base CACHE and ORDERBOOK tests
+            let phpPreamble = this.getPHPPreamble (includePath, phpDirsAmount, addProNs); 
 
 
             let pythonHeaderSync = []
