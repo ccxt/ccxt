@@ -31,6 +31,7 @@ class bigone extends bigone$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -1158,13 +1159,18 @@ class bigone extends bigone$1 {
         /**
          * @method
          * @name bigone#createMarketBuyOrderWithCost
-         * @see https://open.big.one/docs/spot_orders.html#create-order
          * @description create a market buy order by providing the symbol and cost
+         * @see https://open.big.one/docs/spot_orders.html#create-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
         params['createMarketBuyOrderRequiresPrice'] = false;
         return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
     }
@@ -1183,6 +1189,7 @@ class bigone extends bigone$1 {
          * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} operator *stop order only* GTE or LTE (default)

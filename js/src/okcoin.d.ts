@@ -23,6 +23,7 @@ export default class okcoin extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     parseTradingBalance(response: any): Balances;
     parseFundingBalance(response: any): Balances;
+    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;

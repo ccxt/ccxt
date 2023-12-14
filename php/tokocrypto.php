@@ -32,6 +32,9 @@ class tokocrypto extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => null,
                 'createDepositAddress' => false,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => null,
                 'createStopLimitOrder' => true,
@@ -1565,6 +1568,7 @@ class tokocrypto extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] the $price at which a trigger order would be triggered
+         * @param {float} [$params->cost] for spot $market buy orders, the quote quantity that can be used alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -1632,7 +1636,7 @@ class tokocrypto extends Exchange {
         // spot/margin
         //
         //     LIMIT                timeInForce, quantity, $price
-        //     MARKET               quantity or $quoteOrderQty
+        //     MARKET               quantity or quoteOrderQty
         //     STOP_LOSS            quantity, $stopPrice
         //     STOP_LOSS_LIMIT      timeInForce, quantity, $price, $stopPrice
         //     TAKE_PROFIT          quantity, $stopPrice
@@ -1640,19 +1644,27 @@ class tokocrypto extends Exchange {
         //     LIMIT_MAKER          quantity, $price
         //
         if ($uppercaseType === 'MARKET') {
-            $quoteOrderQtyInner = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
-            if ($this->options['createMarketBuyOrderRequiresPrice'] && ($side === 'buy') && ($price === null) && ($quoteOrderQtyInner === null)) {
-                throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the $amount parameter');
-            }
-            $precision = $market['precision']['price'];
-            if ($quoteOrderQtyInner !== null) {
-                $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyInner, TRUNCATE, $precision, $this->precisionMode);
-                $params = $this->omit($params, array( 'quoteOrderQty', 'cost' ));
-            } elseif ($price !== null) {
-                $amountString = $this->number_to_string($amount);
-                $priceString = $this->number_to_string($price);
-                $quoteOrderQty = Precise::string_mul($amountString, $priceString);
-                $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
+            if ($side === 'buy') {
+                $precision = $market['precision']['price'];
+                $quoteAmount = null;
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number_2($params, 'cost', 'quoteOrderQty');
+                $params = $this->omit($params, array( 'cost', 'quoteOrderQty' ));
+                if ($cost !== null) {
+                    $quoteAmount = $cost;
+                } elseif ($createMarketBuyOrderRequiresPrice) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                    } else {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $quoteAmount = Precise::string_mul($amountString, $priceString);
+                    }
+                } else {
+                    $quoteAmount = $amount;
+                }
+                $request['quoteOrderQty'] = $this->decimal_to_precision($quoteAmount, TRUNCATE, $precision, $this->precisionMode);
             } else {
                 $quantityIsRequired = true;
             }

@@ -20,6 +20,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
@@ -51,8 +52,17 @@ class okcoin(Exchange, ImplicitAPI):
                 'future': True,
                 'option': None,
                 'cancelOrder': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,  # see below
                 'fetchDepositAddress': True,
@@ -74,6 +84,10 @@ class okcoin(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
+                'setMargin': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -1227,6 +1241,23 @@ class okcoin(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
+    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        params['tgtCcy'] = 'quote_ccy'
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
@@ -1251,6 +1282,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param float [params.stopLoss.price]: used for stop loss limit orders, not used for stop loss market price orders
         :param str [params.stopLoss.type]: 'market' or 'limit' used to specify the stop loss price type
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1293,7 +1325,7 @@ class okcoin(Exchange, ImplicitAPI):
             'ordType': type,
             # 'ordType': type,  # privatePostTradeOrder: market, limit, post_only, fok, ioc, optimal_limit_ioc
             # 'ordType': type,  # privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
-            'sz': self.amount_to_precision(symbol, amount),
+            # 'sz': self.amount_to_precision(symbol, amount),
             # 'px': self.price_to_precision(symbol, price),  # limit orders only
             # 'reduceOnly': False,
             #
@@ -1356,22 +1388,28 @@ class okcoin(Exchange, ImplicitAPI):
                 # see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if tgtCcy == 'quote_ccy':
                     # quote_ccy: sz refers to units of quote currency
-                    notional = self.safe_number_2(params, 'cost', 'sz')
-                    createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
-                    if createMarketBuyOrderRequiresPrice:
-                        if price is not None:
-                            if notional is None:
-                                amountString = self.number_to_string(amount)
-                                priceString = self.number_to_string(price)
-                                quoteAmount = Precise.string_mul(amountString, priceString)
-                                notional = self.parse_number(quoteAmount)
-                        elif notional is None:
-                            raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter(the exchange-specific behaviour)")
-                    else:
-                        notional = amount if (notional is None) else notional
-                    request['sz'] = self.cost_to_precision(symbol, notional)
+                    quoteAmount = None
+                    createMarketBuyOrderRequiresPrice = True
+                    createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                    cost = self.safe_number_2(params, 'cost', 'sz')
                     params = self.omit(params, ['cost', 'sz'])
+                    if cost is not None:
+                        quoteAmount = self.cost_to_precision(symbol, cost)
+                    elif createMarketBuyOrderRequiresPrice:
+                        if price is None:
+                            raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
+                        else:
+                            amountString = self.number_to_string(amount)
+                            priceString = self.number_to_string(price)
+                            costRequest = Precise.string_mul(amountString, priceString)
+                            quoteAmount = self.cost_to_precision(symbol, costRequest)
+                    else:
+                        quoteAmount = self.cost_to_precision(symbol, amount)
+                    request['sz'] = quoteAmount
+                else:
+                    request['sz'] = self.amount_to_precision(symbol, amount)
         else:
+            request['sz'] = self.amount_to_precision(symbol, amount)
             if (not trigger) and (not conditional):
                 request['px'] = self.price_to_precision(symbol, price)
         if postOnly:

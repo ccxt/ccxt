@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -35,8 +36,17 @@ class okcoin extends Exchange {
                 'future' => true,
                 'option' => null,
                 'cancelOrder' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true, // see below
                 'fetchDepositAddress' => true,
@@ -58,6 +68,10 @@ class okcoin extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
+                'setMargin' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -1267,6 +1281,27 @@ class okcoin extends Exchange {
         return $this->safe_balance($result);
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a $market buy order by providing the $symbol and $cost
+             * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+            }
+            $params['createMarketBuyOrderRequiresPrice'] = false;
+            $params['tgtCcy'] = 'quote_ccy';
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+        }) ();
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -1292,6 +1327,7 @@ class okcoin extends Exchange {
              * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
              * @param {float} [$params->stopLoss.price] used for stop loss limit orders, not used for stop loss $market $price orders
              * @param {string} [$params->stopLoss.type] 'market' or 'limit' used to specify the stop loss $price $type
+             * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -1339,7 +1375,7 @@ class okcoin extends Exchange {
             'ordType' => $type,
             // 'ordType' => $type, // privatePostTradeOrder => $market, limit, post_only, $fok, $ioc, optimal_limit_ioc
             // 'ordType' => $type, // privatePostTradeOrderAlgo => $conditional, oco, $trigger, move_order_stop, iceberg, twap
-            'sz' => $this->amount_to_precision($symbol, $amount),
+            // 'sz' => $this->amount_to_precision($symbol, $amount),
             // 'px' => $this->price_to_precision($symbol, $price), // limit orders only
             // 'reduceOnly' => false,
             //
@@ -1405,27 +1441,32 @@ class okcoin extends Exchange {
                 // see documentation => https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if ($tgtCcy === 'quote_ccy') {
                     // quote_ccy => sz refers to units of quote $currency
-                    $notional = $this->safe_number_2($params, 'cost', 'sz');
-                    $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                    if ($createMarketBuyOrderRequiresPrice) {
-                        if ($price !== null) {
-                            if ($notional === null) {
-                                $amountString = $this->number_to_string($amount);
-                                $priceString = $this->number_to_string($price);
-                                $quoteAmount = Precise::string_mul($amountString, $priceString);
-                                $notional = $this->parse_number($quoteAmount);
-                            }
-                        } elseif ($notional === null) {
-                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
+                    $quoteAmount = null;
+                    $createMarketBuyOrderRequiresPrice = true;
+                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    $cost = $this->safe_number_2($params, 'cost', 'sz');
+                    $params = $this->omit($params, array( 'cost', 'sz' ));
+                    if ($cost !== null) {
+                        $quoteAmount = $this->cost_to_precision($symbol, $cost);
+                    } elseif ($createMarketBuyOrderRequiresPrice) {
+                        if ($price === null) {
+                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                        } else {
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $costRequest = Precise::string_mul($amountString, $priceString);
+                            $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                         }
                     } else {
-                        $notional = ($notional === null) ? $amount : $notional;
+                        $quoteAmount = $this->cost_to_precision($symbol, $amount);
                     }
-                    $request['sz'] = $this->cost_to_precision($symbol, $notional);
-                    $params = $this->omit($params, array( 'cost', 'sz' ));
+                    $request['sz'] = $quoteAmount;
+                } else {
+                    $request['sz'] = $this->amount_to_precision($symbol, $amount);
                 }
             }
         } else {
+            $request['sz'] = $this->amount_to_precision($symbol, $amount);
             if ((!$trigger) && (!$conditional)) {
                 $request['px'] = $this->price_to_precision($symbol, $price);
             }

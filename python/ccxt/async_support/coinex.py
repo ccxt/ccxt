@@ -59,6 +59,8 @@ class coinex(Exchange, ImplicitAPI):
                 'cancelOrders': True,
                 'createDepositAddress': True,
                 'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,
                 'createReduceOnlyOrder': True,
@@ -1867,11 +1869,16 @@ class coinex(Exchange, ImplicitAPI):
     async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
         """
         create a market buy order by providing the symbol and cost
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
@@ -1993,6 +2000,11 @@ class coinex(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade001_limit_order
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade004_IOC_order
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade005_stop_limit_order
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade006_stop_market_order
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
