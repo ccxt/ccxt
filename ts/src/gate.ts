@@ -76,6 +76,8 @@ export default class gate extends Exchange {
                 'future': true,
                 'option': true,
                 'addMargin': true,
+                'borrowCrossMargin': true,
+                'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketOrder': true,
@@ -140,6 +142,8 @@ export default class gate extends Exchange {
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'repayCrossMargin': true,
+                'repayIsolatedMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': true,
@@ -5694,6 +5698,215 @@ export default class gate extends Exchange {
             floor = cap;
         }
         return tiers;
+    }
+
+    async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+        /**
+         * @method
+         * @name gate#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://www.gate.io/docs/apiv4/en/#repay-a-loan
+         * @param {string} symbol unified market symbol
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
+         * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'].toUpperCase (),
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const market = this.market (symbol);
+        request['currency_pair'] = market['id'];
+        request['type'] = 'repay';
+        const response = await this.privateMarginPostUniLoans (this.extend (request, params));
+        //
+        // empty response
+        //
+        return this.parseMarginLoan (response, currency);
+    }
+
+    async repayCrossMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#repayCrossMargin
+         * @description repay cross margin borrowed margin and interest
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cross-margin-repayments
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {string} symbol unified market symbol, required for isolated margin
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
+         * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'].toUpperCase (),
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        let response = await this.privateMarginPostCrossRepayments (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "17",
+        //             "create_time": 1620381696159,
+        //             "update_time": 1620381696159,
+        //             "currency": "EOS",
+        //             "amount": "110.553635",
+        //             "text": "web",
+        //             "status": 2,
+        //             "repaid": "110.506649705159",
+        //             "repaid_interest": "0.046985294841",
+        //             "unpaid_interest": "0.0000074393366667"
+        //         }
+        //     ]
+        //
+        response = this.safeValue (response, 0);
+        return this.parseMarginLoan (response, currency);
+    }
+
+    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+        /**
+         * @method
+         * @name gate#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://www.gate.io/docs/developers/apiv4/en/#marginuni
+         * @param {string} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {string} symbol unified market symbol, required for isolated margin
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'].toUpperCase (),
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        let response = undefined;
+        const market = this.market (symbol);
+        request['currency_pair'] = market['id'];
+        request['type'] = 'borrow';
+        response = await this.privateMarginPostUniLoans (this.extend (request, params));
+        //
+        //     {
+        //         "id": "34267567",
+        //         "create_time": "1656394778",
+        //         "expire_time": "1657258778",
+        //         "status": "loaned",
+        //         "side": "borrow",
+        //         "currency": "USDT",
+        //         "rate": "0.0002",
+        //         "amount": "100",
+        //         "days": 10,
+        //         "auto_renew": false,
+        //         "currency_pair": "LTC_USDT",
+        //         "left": "0",
+        //         "repaid": "0",
+        //         "paid_interest": "0",
+        //         "unpaid_interest": "0.003333333333"
+        //     }
+        //
+        return this.parseMarginLoan (response, currency);
+    }
+
+    async borrowCrossMargin (code: string, amount, params = {}) {
+        /**
+         * @method
+         * @name gate#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
+         * @param {string} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {string} symbol unified market symbol, required for isolated margin
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'].toUpperCase (),
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.privateMarginPostCrossLoans (this.extend (request, params));
+        //
+        //     {
+        //         "id": "17",
+        //         "create_time": 1620381696159,
+        //         "update_time": 1620381696159,
+        //         "currency": "EOS",
+        //         "amount": "110.553635",
+        //         "text": "web",
+        //         "status": 2,
+        //         "repaid": "110.506649705159",
+        //         "repaid_interest": "0.046985294841",
+        //         "unpaid_interest": "0.0000074393366667"
+        //     }
+        //
+        return this.parseMarginLoan (response, currency);
+    }
+
+    parseMarginLoan (info, currency: Currency = undefined) {
+        //
+        // Cross
+        //
+        //     {
+        //         "id": "17",
+        //         "create_time": 1620381696159,
+        //         "update_time": 1620381696159,
+        //         "currency": "EOS",
+        //         "amount": "110.553635",
+        //         "text": "web",
+        //         "status": 2,
+        //         "repaid": "110.506649705159",
+        //         "repaid_interest": "0.046985294841",
+        //         "unpaid_interest": "0.0000074393366667"
+        //     }
+        //
+        // Isolated
+        //
+        //     {
+        //         "id": "34267567",
+        //         "create_time": "1656394778",
+        //         "expire_time": "1657258778",
+        //         "status": "loaned",
+        //         "side": "borrow",
+        //         "currency": "USDT",
+        //         "rate": "0.0002",
+        //         "amount": "100",
+        //         "days": 10,
+        //         "auto_renew": false,
+        //         "currency_pair": "LTC_USDT",
+        //         "left": "0",
+        //         "repaid": "0",
+        //         "paid_interest": "0",
+        //         "unpaid_interest": "0.003333333333"
+        //     }
+        //
+        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        let timestamp = this.safeInteger (info, 'create_time');
+        if (marginMode === 'isolated') {
+            timestamp = this.safeTimestamp (info, 'create_time');
+        }
+        const currencyId = this.safeString (info, 'currency');
+        const marketId = this.safeString (info, 'currency_pair');
+        return {
+            'id': this.safeInteger (info, 'id'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (info, 'amount'),
+            'symbol': this.safeSymbol (marketId, undefined, '_', 'margin'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
