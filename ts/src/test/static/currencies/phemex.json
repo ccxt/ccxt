@@ -198,5 +198,30 @@
         },
         "valueScale": 8,
         "networks": {}
+    },
+    "SOL": {
+        "id": "SOL",
+        "info": {
+            "code": "41",
+            "currency": "SOL",
+            "valueScale": "8",
+            "minValueEv": "1",
+            "maxValueEv": "5000000000000000000",
+            "name": "Solana",
+            "displayCurrency": "SOL",
+            "needAddrTag": "0"
+        },
+        "code": "SOL",
+        "name": "Solana",
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": 50000000000
+            },
+            "withdraw": {}
+        },
+        "valueScale": 8,
+        "networks": {}
     }
 }
