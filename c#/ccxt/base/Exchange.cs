@@ -639,6 +639,13 @@ public partial class Exchange
             try
             {
                 var invokedAction = DynamicInvoker.InvokeMethod(action, args);
+                if (invokedAction is Task<object>)
+                {
+                    var res = (Task<object>)invokedAction;
+                    res.Wait();
+                    future.resolve(res.Result);
+                    return;
+                }
                 if (invokedAction is Task)
                 {
                     var task = invokedAction as Task;
@@ -646,9 +653,7 @@ public partial class Exchange
                     future.resolve(task);
                     return;
                 }
-                var res = (Task<object>)invokedAction;
-                res.Wait();
-                future.resolve(res.Result);
+
             }
             catch (Exception e)
             {

@@ -72,7 +72,7 @@ public partial class Exchange
                 if (isTrue(isGreaterThanOrEqual(index, 0)))
                 {
                     stored.reset(orderBook);
-                    this.handleDeltas(stored, slice(cache, index, null));
+                    this.handleDeltas(stored, arraySlice(cache, index));
                     // getArrayLength((stored as ccxt.OrderBook).cache) = 0;
                     stored.cache.Clear();
                     client.resolve(stored, messageHash);
@@ -161,13 +161,13 @@ public partial class Exchange
     public async Task<object> watchMultiple(object url2, object messageHashes2, object message = null, object subscribeHashes2 = null, object subscription = null)
     {
         var url = url2.ToString();
-        var messageHash = messageHashes2 as List<string>;
-        var subscribeHashes = subscribeHashes2 as List<string>;
+        var messageHashes = (messageHashes2 as List<object>).Select(obj => obj.ToString()).ToList();
+        var subscribeHashes = (subscribeHashes2 as List<object>).Select(obj => obj.ToString()).ToList();
 
         var client = this.client(url);
 
 
-        var future = Future.race(subscribeHashes.Select(subHash => client.future(subHash)).ToArray());
+        var future = Future.race(messageHashes.Select(subHash => client.future(subHash)).ToArray());
 
         var missingSubscriptions = new List<string>();
 
@@ -190,7 +190,8 @@ public partial class Exchange
         if (subscribeHashes == null || missingSubscriptions.Count > 0)
         {
             await connected;
-            if (message != null) {
+            if (message != null)
+            {
                 try
                 {
                     await client.send(message);
