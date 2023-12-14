@@ -6346,15 +6346,14 @@ export default class htx extends Exchange {
         const request = {
             'contract_code': market['id'],
         };
-        let method = undefined;
+        let response = undefined;
         if (market['inverse']) {
-            method = 'contractPublicGetSwapApiV1SwapHistoricalFundingRate';
+            response = await this.contractPublicGetSwapApiV1SwapHistoricalFundingRate (this.extend (request, params));
         } else if (market['linear']) {
-            method = 'contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate';
+            response = await this.contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchFundingRateHistory() supports inverse and linear swaps only');
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // {
         //     "status": "ok",
