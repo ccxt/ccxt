@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinmetro.js';
-import { ArgumentsRequired, AuthenticationError } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currency, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -159,6 +159,7 @@ export default class coinmetro extends Exchange {
                     'get': {
                         'users/balances': 1,
                         'users/wallets/history/{since}': 1,
+                        'exchange/orders/status/{orderID}': 1, // todo: fetchOrder
                         'exchange/orders/active': 1, // todo: fetchOpenOrders
                         'exchange/orders/history/{since}': 1, // todo: fetchOrders
                         'exchange/fills/{since}': 1, // todo: fetchMyTrades
@@ -209,6 +210,8 @@ export default class coinmetro extends Exchange {
                 'exact': {
                 },
                 'broad': {
+                    'orderType missing': BadRequest, // 422 Unprocessable Entity {"message":"orderType missing!"}
+                    'Insufficient order size': InvalidOrder, // 422 Unprocessable Entity {"message":"Insufficient order size - min 0.002 ETH"}
                 },
             },
         });
@@ -312,6 +315,7 @@ export default class coinmetro extends Exchange {
         if (this.safeValue (this, 'currencyIdsList') === undefined) {
             const currencies = await this.fetchCurrencies ();
             const currenciesById = this.indexBy (currencies, 'id');
+            this['currenciesByIdForFetchMarkets'] = currenciesById;
             this['currencyIdsList'] = Object.keys (currenciesById);
         }
         //
@@ -334,6 +338,7 @@ export default class coinmetro extends Exchange {
         //         ...
         //     ]
         //
+        // todo: check what is precision
         return this.parseMarkets (response);
     }
 
@@ -344,6 +349,9 @@ export default class coinmetro extends Exchange {
         const quoteId = this.safeString (parsedMarketId, 'quoteId');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        // todo: check
+        const basePrecisionAndLimits = this.parseMarketPrecisionAndLimits (baseId);
+        const quotePrecisionAndLimits = this.parseMarketPrecisionAndLimits (quoteId);
         const pricePrecision = this.safeInteger (market, 'precision');
         const margin = this.safeValue (market, 'margin', false);
         return {
@@ -371,8 +379,8 @@ export default class coinmetro extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': undefined,
-                'price': this.parseNumber (pricePrecision), // todo: check
+                'amount': basePrecisionAndLimits['precision'],
+                'price': pricePrecision,
             },
             'limits': {
                 'leverage': {
@@ -380,7 +388,7 @@ export default class coinmetro extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': undefined,
+                    'min': basePrecisionAndLimits['minLimit'],
                     'max': undefined,
                 },
                 'price': {
@@ -388,7 +396,7 @@ export default class coinmetro extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': quotePrecisionAndLimits['minLimit'],
                     'max': undefined,
                 },
             },
@@ -398,10 +406,8 @@ export default class coinmetro extends Exchange {
     }
 
     parseMarketId (marketId) {
-        const result = {
-            'baseId': undefined,
-            'quoteId': undefined,
-        };
+        let baseId = undefined;
+        let quoteId = undefined;
         const currencyIds = this.safeValue (this, 'currencyIdsList', []);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -410,16 +416,34 @@ export default class coinmetro extends Exchange {
                 const restId = marketId.replace (currencyId, '');
                 if (this.inArray (restId, currencyIds)) {
                     if (entryIndex === 0) {
-                        result['baseId'] = currencyId;
-                        result['quoteId'] = restId;
+                        baseId = currencyId;
+                        quoteId = restId;
                     } else {
-                        result['baseId'] = restId;
-                        result['quoteId'] = currencyId;
+                        baseId = restId;
+                        quoteId = currencyId;
                     }
                     break;
                 }
             }
         }
+        const result = {
+            'baseId': baseId,
+            'quoteId': quoteId,
+        };
+        return result;
+    }
+
+    parseMarketPrecisionAndLimits (currencyId) {
+        const currencies = this.safeValue (this, 'currenciesByIdForFetchMarkets', {});
+        const currency = this.safeValue (currencies, currencyId, {});
+        const precision = this.safeInteger (currency, 'precision');
+        const limits = this.safeValue (currency, 'limits', {});
+        const amountLimits = this.safeValue (limits, 'amount', {});
+        const minLimit = this.safeNumber (amountLimits, 'min');
+        const result = {
+            'precision': precision,
+            'minLimit': minLimit,
+        };
         return result;
     }
 
@@ -793,7 +817,7 @@ export default class coinmetro extends Exchange {
         const ask = this.safeString (ticker, 'ask');
         const high = this.safeString (ticker, 'h');
         const low = this.safeString (ticker, 'l');
-        const close = this.safeString (ticker, 'price'); // todo: check
+        const close = this.safeString (ticker, 'price'); // todo: check the GUI shows it as a last price
         const baseVolume = this.safeString (ticker, 'v');
         const delta = this.safeString (ticker, 'delta');
         const percentage = Precise.stringMul (delta, '100');
@@ -927,6 +951,122 @@ export default class coinmetro extends Exchange {
             'status': undefined,
             'fee': undefined,
         };
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmetro#createOrder
+         * @description create a trade order
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#a4895a1d-3f50-40ae-8231-6962ef06c771
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount in market orders
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "GTD"
+         * @param {number} [params.expirationTime] timestamp in millisecond, for GTD orders only
+         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
+         * @param {bool} [params.margin] true for creating a margin order
+         * @param {string} [params.fillStyle] fill style of the limit order: "sell" fulfills selling quantity "buy" fulfills buying quantity "base" fulfills base currency quantity "quote" fulfills quote currency quantity
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'orderType': type,
+        };
+        let precisedAmount = undefined;
+        if (amount !== undefined) {
+            precisedAmount = this.amountToPrecision (symbol, amount);
+        }
+        let cost = this.safeNumber (params, 'cost');
+        params = this.omit (params, 'cost');
+        if (type === 'limit') {
+            if ((price === undefined) && (cost === undefined)) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price or params.cost argument for a ' + type + ' order');
+            } else if ((price !== undefined) && (amount !== undefined)) {
+                const costString = Precise.stringMul (price.toString (), precisedAmount.toString ());
+                cost = this.number (costString);
+            }
+        }
+        let precisedCost = undefined;
+        if (cost !== undefined) {
+            precisedCost = this.costToPrecision (symbol, cost);
+        }
+        if (side === 'sell') {
+            this.handleCreateOrderSide (market['baseId'], market['quoteId'], precisedAmount, precisedCost, request);
+        } else if (side === 'buy') {
+            this.handleCreateOrderSide (market['quoteId'], market['baseId'], precisedCost, precisedAmount, request);
+        }
+        const timeInForce = this.safeValue (params, 'timeInForce');
+        if (timeInForce !== undefined) {
+            params = this.omit (params, 'timeInForce');
+            request['timeInForce'] = this.encodeOrderTimeInForce (timeInForce);
+            // todo: check the expiration time for GTD
+        }
+        const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        if (stopPrice !== undefined) {
+            params = this.omit (params, 'triggerPrice', 'stopPrice');
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+        }
+        // todo: add margin order support
+        const response = await this.privatePostExchangeOrdersCreate (this.extend (request, params));
+        //
+        //
+        return this.parseOrder (response, market);
+    }
+
+    handleCreateOrderSide (sellingCurrency, buyingCurrency, sellingQty, buyingQty, request = {}) {
+        request['sellingCurrency'] = sellingCurrency;
+        request['buyingCurrency'] = buyingCurrency;
+        if (sellingQty !== undefined) {
+            request['sellingQty'] = sellingQty;
+        }
+        if (buyingQty !== undefined) {
+            request['buyingQty'] = buyingQty;
+        }
+    }
+
+    encodeOrderTimeInForce (timeInForce) {
+        const timeInForceTypes = {
+            'GTC': 1,
+            'IOC': 2,
+            'GTD': 3,
+            'FOK': 4,
+        };
+        return this.safeValue (timeInForceTypes, timeInForce, timeInForce);
+    }
+
+    parseOrder (order, market: Market = undefined): Order {
+        //
+        //
+        return this.safeOrder ({
+            'id': undefined,
+            'clientOrderId': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'status': undefined,
+            'symbol': undefined,
+            'type': undefined,
+            'timeInForce': undefined,
+            'side': undefined,
+            'price': undefined,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'average': undefined,
+            'amount': undefined,
+            'cost': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'fee': undefined,
+            'fees': undefined,
+            'trades': undefined,
+            'info': order,
+        }, market);
     }
 
     async signIn (params = {}) {
