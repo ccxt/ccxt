@@ -845,6 +845,56 @@
                     1
                 ]
             }
+        ],
+        "borrowCrossMargin": [
+            {
+                "description": "Borrow 1 USDT in the cross market wallet",
+                "method": "borrowCrossMargin",
+                "url": "https://api.gateio.ws/api/v4/margin/cross/loans",
+                "input": [
+                    "USDT",
+                    1
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
+            }
+        ],
+        "repayCrossMargin": [
+            {
+                "description": "Repay 1 USDT in the cross market wallet",
+                "method": "repayCrossMargin",
+                "url": "https://api.gateio.ws/api/v4/margin/cross/repayments",
+                "input": [
+                    "USDT",
+                    1
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
+            }
+        ],
+        "borrowIsolatedMargin": [
+            {           
+                "description": "Borrow 1 USDT in the XRP/USDT Isolated market",
+                "method": "borrowIsolatedMargin",
+                "url": "https://api.gateio.ws/api/v4/margin/uni/loans",
+                "input": [
+                    "XRP/USDT",
+                    "USDT",
+                    1
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"currency_pair\":\"XRP_USDT\",\"type\":\"borrow\"}"
+            }
+        ],
+        "repayIsolatedMargin": [
+            {
+                "description": "Repay 1 USDT in the XRP/USDT Isolated market",
+                "method": "repayIsolatedMargin",
+                "url": "https://api.gateio.ws/api/v4/margin/uni/loans",
+                "input": [
+                    "XRP/USDT",
+                    "USDT",
+                    1
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"currency_pair\":\"XRP_USDT\",\"type\":\"repay\"}"
+            }
         ]
     }
 }
