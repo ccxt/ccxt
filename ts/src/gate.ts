@@ -5730,7 +5730,7 @@ export default class gate extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    async repayCrossMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+    async repayCrossMargin (code: string, amount, params = {}) {
         /**
          * @method
          * @name gate#repayCrossMargin
