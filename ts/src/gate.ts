@@ -5771,56 +5771,6 @@ export default class gate extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @deprecated
-         * @name gate#repayMargin
-         * @description deprecated, use repayCrossMargin and repayIsolatedMargin instead
-         * @see https://www.gate.io/docs/developers/apiv4/en/#cross-margin-repayments
-         * @see https://www.gate.io/docs/apiv4/en/#repay-a-loan
-         * @param {string} code unified currency code of the currency to repay
-         * @param {float} amount the amount to repay
-         * @param {string} symbol unified market symbol, required for isolated margin
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
-         * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-         */
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('repayMargin', params);
-        if (marginMode === 'cross') {
-            return await this.repayCrossMargin (code, amount, symbol, params);
-        } else {
-            return await this.repayIsolatedMargin (code, amount, symbol, params);
-        }
-    }
-
-    async borrowMargin (code: string, amount, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @deprecated
-         * @name gate#borrowMargin
-         * @description deprecated, use borrowCrossMargin and borrowIsolatedMargin instead
-         * @see https://www.gate.io/docs/developers/apiv4/en/#marginuni
-         * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
-         * @param {string} code unified currency code of the currency to repay
-         * @param {float} amount the amount to repay
-         * @param {string} symbol unified market symbol, required for isolated margin
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
-         * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-         */
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('borrowMargin', params);
-        if (marginMode === 'cross') {
-            return await this.repayCrossMargin (code, amount, symbol, params);
-        } else {
-            return await this.repayIsolatedMargin (code, amount, symbol, params);
-        }
-    }
-
     async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
