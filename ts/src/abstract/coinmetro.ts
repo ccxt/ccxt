@@ -18,7 +18,25 @@ interface Exchange {
     publicGetExchangeBookUpdatesPairFrom (params?: {}): Promise<implicitReturnType>;
     privateGetUsersBalances (params?: {}): Promise<implicitReturnType>;
     privateGetUsersWalletsHistorySince (params?: {}): Promise<implicitReturnType>;
+    privateGetExchangeOrdersStatusOrderID (params?: {}): Promise<implicitReturnType>;
+    privateGetExchangeOrdersActive (params?: {}): Promise<implicitReturnType>;
+    privateGetExchangeOrdersHistorySince (params?: {}): Promise<implicitReturnType>;
+    privateGetExchangeFillsSince (params?: {}): Promise<implicitReturnType>;
+    privateGetExchangeMargin (params?: {}): Promise<implicitReturnType>;
     privatePostJwt (params?: {}): Promise<implicitReturnType>;
+    privatePostJwtDevice (params?: {}): Promise<implicitReturnType>;
+    privatePostDevices (params?: {}): Promise<implicitReturnType>;
+    privatePostJwtReadOnly (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeOrdersCreate (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeOrdersModifyOrderID (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeSwap (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeSwapConfirmSwapId (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeOrdersCloseOrderID (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeOrdersHedge (params?: {}): Promise<implicitReturnType>;
+    privatePutJwt (params?: {}): Promise<implicitReturnType>;
+    privatePutExchangeOrdersCancelOrderID (params?: {}): Promise<implicitReturnType>;
+    privatePutUsersMarginCollateral (params?: {}): Promise<implicitReturnType>;
+    privatePutUsersMarginPrimaryCurrency (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
