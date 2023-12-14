@@ -5886,7 +5886,7 @@ export default class gate extends Exchange {
             'currency': currency['id'].toUpperCase (),
             'amount': this.currencyToPrecision (code, amount),
         };
-        let response = await this.privateMarginPostCrossLoans (this.extend (request, params));
+        const response = await this.privateMarginPostCrossLoans (this.extend (request, params));
         //
         //     {
         //         "id": "17",
