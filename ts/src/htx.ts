@@ -2817,69 +2817,8 @@ export default class htx extends Exchange {
             // 'from': parseInt ((since / 1000).toString ()), spot only
             // 'to': this.seconds (), spot only
         };
-        let fieldName = 'symbol';
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        let method = 'spotPublicGetMarketHistoryCandles';
-        if (market['spot']) {
-            if (timeframe === '1M' || timeframe === '1y') {
-                // for some reason 1M and 1Y does not work with the regular endpoint
-                // https://github.com/ccxt/ccxt/issues/18006
-                method = 'spotPublicGetMarketHistoryKline';
-            }
-            if (since !== undefined) {
-                request['from'] = this.parseToInt (since / 1000);
-            }
-            if (limit !== undefined) {
-                request['size'] = limit; // max 2000
-            }
-        } else if (market['future']) {
-            if (market['inverse']) {
-                if (price === 'mark') {
-                    method = 'contractPublicGetIndexMarketHistoryMarkPriceKline';
-                } else if (price === 'index') {
-                    method = 'contractPublicGetIndexMarketHistoryIndex';
-                } else if (price === 'premiumIndex') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
-                } else {
-                    method = 'contractPublicGetMarketHistoryKline';
-                }
-            } else if (market['linear']) {
-                if (price === 'mark') {
-                    method = 'contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline';
-                } else if (price === 'index') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
-                } else if (price === 'premiumIndex') {
-                    method = 'contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline';
-                } else {
-                    method = 'contractPublicGetLinearSwapExMarketHistoryKline';
-                }
-                fieldName = 'contract_code';
-            }
-        } else if (market['swap']) {
-            if (market['inverse']) {
-                if (price === 'mark') {
-                    method = 'contractPublicGetIndexMarketHistorySwapMarkPriceKline';
-                } else if (price === 'index') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
-                } else if (price === 'premiumIndex') {
-                    method = 'contractPublicGetIndexMarketHistorySwapPremiumIndexKline';
-                } else {
-                    method = 'contractPublicGetSwapExMarketHistoryKline';
-                }
-            } else if (market['linear']) {
-                if (price === 'mark') {
-                    method = 'contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline';
-                } else if (price === 'index') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
-                } else if (price === 'premiumIndex') {
-                    method = 'contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline';
-                } else {
-                    method = 'contractPublicGetLinearSwapExMarketHistoryKline';
-                }
-            }
-            fieldName = 'contract_code';
-        }
         if (market['contract']) {
             if (limit !== undefined) {
                 request['size'] = limit; // when using limit from and to are ignored
@@ -2900,8 +2839,70 @@ export default class htx extends Exchange {
                 }
             }
         }
-        request[fieldName] = market['id'];
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['future']) {
+            if (market['inverse']) {
+                request['symbol'] = market['id'];
+                if (price === 'mark') {
+                    response = await this.contractPublicGetIndexMarketHistoryMarkPriceKline (this.extend (request, params));
+                } else if (price === 'index') {
+                    response = await this.contractPublicGetIndexMarketHistoryIndex (this.extend (request, params));
+                } else if (price === 'premiumIndex') {
+                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
+                } else {
+                    response = await this.contractPublicGetMarketHistoryKline (this.extend (request, params));
+                }
+            } else if (market['linear']) {
+                request['contract_code'] = market['id'];
+                if (price === 'mark') {
+                    response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (this.extend (request, params));
+                } else if (price === 'index') {
+                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
+                } else if (price === 'premiumIndex') {
+                    response = await this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (this.extend (request, params));
+                } else {
+                    response = await this.contractPublicGetLinearSwapExMarketHistoryKline (this.extend (request, params));
+                }
+            }
+        } else if (market['swap']) {
+            request['contract_code'] = market['id'];
+            if (market['inverse']) {
+                if (price === 'mark') {
+                    response = await this.contractPublicGetIndexMarketHistorySwapMarkPriceKline (this.extend (request, params));
+                } else if (price === 'index') {
+                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
+                } else if (price === 'premiumIndex') {
+                    response = await this.contractPublicGetIndexMarketHistorySwapPremiumIndexKline (this.extend (request, params));
+                } else {
+                    response = await this.contractPublicGetSwapExMarketHistoryKline (this.extend (request, params));
+                }
+            } else if (market['linear']) {
+                if (price === 'mark') {
+                    response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (this.extend (request, params));
+                } else if (price === 'index') {
+                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
+                } else if (price === 'premiumIndex') {
+                    response = await this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (this.extend (request, params));
+                } else {
+                    response = await this.contractPublicGetLinearSwapExMarketHistoryKline (this.extend (request, params));
+                }
+            }
+        } else {
+            if (since !== undefined) {
+                request['from'] = this.parseToInt (since / 1000);
+            }
+            if (limit !== undefined) {
+                request['size'] = limit; // max 2000
+            }
+            request['symbol'] = market['id'];
+            if (timeframe === '1M' || timeframe === '1y') {
+                // for some reason 1M and 1Y does not work with the regular endpoint
+                // https://github.com/ccxt/ccxt/issues/18006
+                response = await this.spotPublicGetMarketHistoryKline (this.extend (request, params));
+            } else {
+                response = await this.spotPublicGetMarketHistoryCandles (this.extend (request, params));
+            }
+        }
         //
         //     {
         //         "status":"ok",

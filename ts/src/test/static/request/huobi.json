@@ -5,7 +5,9 @@
         "client-order-id",
         "AccessKeyId",
         "Timestamp",
-        "Signature"
+        "Signature",
+        "from",
+        "to"
     ],
     "outputType": "json",
     "methods": {
@@ -639,6 +641,40 @@
                 "description": "fetch Trades - future",
                 "method": "fetchTrades",
                 "url": "https://api.huobi.pro/market/history/trade?symbol=BTC231124&size=1000",
+                "input": [
+                    "BTC/USD:BTC-231124"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV - spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&symbol=ltcusdt",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch OHLCV - swap linear",
+                "method": "fetchOHLCV",
+                "url": "https://api.hbdm.com/linear-swap-ex/market/history/kline?period=1min&from=1702411463&to=1702531403&contract_code=LTC-USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch OHLCV - swap inverse",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/swap-ex/market/history/kline?period=1min&from=1702411463&to=1702531403&contract_code=BTC-USD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "fetch OHLCV - future",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/kline?period=1min&from=1702411463&to=1702531403&symbol=BTC231124",
                 "input": [
                     "BTC/USD:BTC-231124"
                 ]
