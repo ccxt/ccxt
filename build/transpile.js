@@ -2481,6 +2481,10 @@ class Transpiler {
                 phpHeaderAsync.push ('use \\ccxt\\Precise;')
                 phpHeaderSync.push ('use \\ccxt\\Precise;')
             }
+            if (test.pyHeaders) {
+                pythonHeaderAsync = pythonHeaderAsync.concat (test.pyHeaders);
+                pythonHeaderSync = pythonHeaderSync.concat (test.pyHeaders);
+            }
 
             for (const eType of importedExceptionTypes) {
                 const py = `from ccxt.base.errors import ${eType}  # noqa E402`;
