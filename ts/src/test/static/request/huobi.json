@@ -570,6 +570,32 @@
                 ]
             }
         ],
+        "fetchSettlementHistory": [
+            {
+                "description": "fetch Settlement History - swap linear",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_settlement_records?contract_code=LTC-USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch Settlement History - swap inverse",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_settlement_records?contract_code=BTC-USD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "fetch Settlement History - future",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.hbdm.com/api/v1/contract_settlement_records?symbol=btc",
+                "input": [
+                    "BTC/USD:BTC-231124"
+                ]
+            }
+        ],
         "setLeverage": [
             {
                 "description": "Set linear leverage",

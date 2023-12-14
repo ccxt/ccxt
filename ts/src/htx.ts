@@ -8270,15 +8270,16 @@ export default class htx extends Exchange {
         if (until !== undefined) {
             request['end_at'] = until;
         }
-        let method = 'contractPublicGetApiV1ContractSettlementRecords';
+        let response = undefined;
         if (market['swap']) {
             if (market['linear']) {
-                method = 'contractPublicGetLinearSwapApiV1SwapSettlementRecords';
+                response = await this.contractPublicGetLinearSwapApiV1SwapSettlementRecords (this.extend (request, params));
             } else {
-                method = 'contractPublicGetSwapApiV1SwapSettlementRecords';
+                response = await this.contractPublicGetSwapApiV1SwapSettlementRecords (this.extend (request, params));
             }
+        } else {
+            response = await this.contractPublicGetApiV1ContractSettlementRecords (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // linear swap, coin-m swap
         //
