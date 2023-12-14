@@ -2457,7 +2457,10 @@ class Transpiler {
             const pyDirsAmount = findDirsAmountForPath('python', test.pyFileAsync || test.pyFileSync, 3);
             const phpDirsAmount = findDirsAmountForPath('php', test.phpFileAsync || test.phpFileSync, 2);
             const pythonPreamble = this.getPythonPreamble(pyDirsAmount);
-            let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, false); //isWs : to avoid php namespace differences for tests, lets set all WS tests under ccxt namespace for now
+            // In PHP preable, for specifically WS tests, we need to avoid php namespace differences for tests, for example, if WATCH methods use ccxt\\pro, then the inlcuded non-pro test methods (like "test_trade" etc) are under ccxt, causing the purely transpiled code to have namespace conflicts specifically in PHP. so, for now, let's just leave all watch method tests under `ccxt` namespace, not `ccxt\pro`
+            // let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, isWs); 
+            let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, false); 
+
 
             let pythonHeaderSync = []
             let pythonHeaderAsync = []
@@ -2529,8 +2532,6 @@ class Transpiler {
             test.phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
             test.pythonPreambleAsync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderAsync.join ('\n') + '\n\n';
 
-            this.modifyCustomFilesHeaders (test); // hook for ws transpiler
-
             test.phpFileSyncContent = test.phpPreambleSync + phpSync;
             test.pyFileSyncContent = test.pythonPreambleSync + pythonSync;
             test.phpFileAsyncContent = test.phpPreambleAsync + phpAsync;
@@ -2548,9 +2549,6 @@ class Transpiler {
             }
         }
     }
-
-    // placeholder for override (ws transpiler)
-    modifyCustomFilesHeaders (test) { }
 
     // ============================================================================
 
