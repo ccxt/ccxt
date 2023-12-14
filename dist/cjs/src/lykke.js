@@ -9,7 +9,7 @@ var number = require('./base/functions/number.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class lykke
- * @extends Exchange
+ * @augments Exchange
  */
 class lykke extends lykke$1 {
     describe() {

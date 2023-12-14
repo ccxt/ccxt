@@ -10,7 +10,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 /**
  * @class timex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class timex extends Exchange {
     describe() {

@@ -1260,18 +1260,18 @@ class poloniex extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
-            * create a trade order
-            * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
-            * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-create-order  // trigger orders
-            * @param {string} $symbol unified $symbol of the $market to create an order in
-            * @param {string} $type 'market' or 'limit'
-            * @param {string} $side 'buy' or 'sell'
-            * @param {float} $amount how much of currency you want to trade in units of base currency
-            * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-            * @param {array} [$params] extra parameters specific to the exchange API endpoint
-            * @param {float} [$params->triggerPrice] *spot only* The $price at which a trigger order is triggered at
-            * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
-            */
+             * create a trade order
+             * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
+             * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-create-order  // trigger orders
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->triggerPrice] *spot only* The $price at which a trigger order is triggered at
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             if (!$market['spot']) {
@@ -1341,19 +1341,19 @@ class poloniex extends Exchange {
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
-            * edit a trade order
-            * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
-            * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-replace-order
-            * @param {string} $id order $id
-            * @param {string} $symbol unified $symbol of the $market to create an order in
-            * @param {string} $type 'market' or 'limit'
-            * @param {string} $side 'buy' or 'sell'
-            * @param {float} [$amount] how much of the currency you want to trade in units of the base currency
-            * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-            * @param {array} [$params] extra parameters specific to the exchange API endpoint
-            * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
-            * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
-            */
+             * edit a trade order
+             * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
+             * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-replace-order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} [$amount] how much of the currency you want to trade in units of the base currency
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             if (!$market['spot']) {
@@ -1429,14 +1429,14 @@ class poloniex extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
-            * cancel all open orders
-            * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
-            * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-all-orders  // trigger orders
-            * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-            * @param {array} [$params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [$params->trigger] true if canceling trigger orders
-            * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
-            */
+             * cancel all open orders
+             * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
+             * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-all-orders  // trigger orders
+             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->trigger] true if canceling trigger orders
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
             Async\await($this->load_markets());
             $request = array(
                 // 'accountTypes' => 'SPOT',
@@ -1481,15 +1481,15 @@ class poloniex extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
-            * fetch an $order by it's $id
-            * @see https://docs.poloniex.com/#authenticated-endpoints-orders-$order-details
-            * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  // trigger orders
-            * @param {string} $id $order $id
-            * @param {string} $symbol unified market $symbol, default is null
-            * @param {array} [$params] extra parameters specific to the exchange API endpoint
-            * @param {boolean} [$params->trigger] true if fetching a trigger $order
-            * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
-            */
+             * fetch an $order by it's $id
+             * @see https://docs.poloniex.com/#authenticated-endpoints-orders-$order-details
+             * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  // trigger orders
+             * @param {string} $id $order $id
+             * @param {string} $symbol unified market $symbol, default is null
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->trigger] true if fetching a trigger $order
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+             */
             Async\await($this->load_markets());
             $id = (string) $id;
             $request = array(

@@ -204,7 +204,7 @@ export default class poloniex extends poloniexRest {
          * @param {string} [params.stpMode] self-trade prevention, defaults to expire_taker, none: enable self-trade; expire_taker: taker order will be canceled when self-trade happens
          * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-        */
+         */
         await this.loadMarkets();
         await this.authenticate();
         const market = this.market(symbol);

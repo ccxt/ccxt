@@ -3,7 +3,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSym
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 /**
  * @class coinsph
@@ -27,7 +27,6 @@ export default class coinsph extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -108,7 +107,6 @@ export default class coinsph extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
-                'repayMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -1581,36 +1579,6 @@ export default class coinsph extends Exchange {
         }
         params = this.omit (params, 'network');
         const response = await this.privatePostOpenapiWalletV1WithdrawApply (this.extend (request, params));
-        return this.parseTransaction (response, currency);
-    }
-
-    async deposit (code: string, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#deposit
-         * @description make a deposit from coins_ph account to exchange account
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to deposit
-         * @param {string} address not used by coinsph deposit ()
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
-        const options = this.safeValue (this.options, 'deposit');
-        const warning = this.safeValue (options, 'warning', true);
-        if (warning) {
-            throw new InvalidAddress (this.id + " deposit() makes a deposits only from your coins_ph account, add .options['deposit']['warning'] = false to make a deposit to your exchange account");
-        }
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'coin': currency['id'],
-            'amount': this.numberToString (amount),
-        };
-        if (tag !== undefined) {
-            request['depositOrderId'] = tag;
-        }
-        const response = await this.privatePostOpenapiV1CapitalDepositApply (this.extend (request, params));
         return this.parseTransaction (response, currency);
     }
 

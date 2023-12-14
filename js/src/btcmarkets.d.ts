@@ -1,8 +1,8 @@
 import Exchange from './abstract/btcmarkets.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class btcmarkets
- * @extends Exchange
+ * @augments Exchange
  */
 export default class btcmarkets extends Exchange {
     describe(): any;

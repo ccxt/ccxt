@@ -5,8 +5,9 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Int, Trade
+from ccxt.base.types import Int, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
+from typing import List
 
 
 class luno(ccxt.async_support.luno):
@@ -37,7 +38,7 @@ class luno(ccxt.async_support.luno):
             },
         })
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://www.luno.com/en/developers/api#tag/Streaming-API
@@ -129,7 +130,7 @@ class luno(ccxt.async_support.luno):
             'fee': None,
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for

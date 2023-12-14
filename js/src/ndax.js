@@ -14,7 +14,7 @@ import totp from './base/functions/totp.js';
 // ---------------------------------------------------------------------------
 /**
  * @class ndax
- * @extends Exchange
+ * @augments Exchange
  */
 export default class ndax extends Exchange {
     describe() {

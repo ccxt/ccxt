@@ -350,7 +350,9 @@
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "baseVolume": "quoteVolume >= baseVolume * low is failing",
+                "bid": "bid ask crossed",
+                "ask": "bid ask crossed"
             },
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -465,19 +467,6 @@
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "fetchOHLCV": "open might be greater than high"
-        }
-    },
-    "bittrex": {
-        "skipWs": true,
-        "skipMethods": {
-            "fetchStatus": "frequent rate limit for this endpoint",
-            "fetchTickers": "bid might be set to 0",
-            "fetchTicker": "same",
-            "fetchCurrencies": {
-                "withdraw": "not provided",
-                "deposit": "not provided",
-                "networks":"missing"
-            }
         }
     },
     "btcbox": {
