@@ -8,8 +8,7 @@ import Client from '../base/ws/Client.js';
  */
 export default class bitget extends bitgetRest {
     describe(): any;
-    getWsMarketId(market: any): any;
-    getMarketIdFromArg(arg: any): string;
+    getInstType(market: any, params?: {}): any[];
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;

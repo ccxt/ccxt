@@ -609,6 +609,7 @@ class coinbase(Exchange, ImplicitAPI):
 
     def fetch_my_sells(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
+         * @ignore
         fetch sells
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-sells#list-sells
         :param str symbol: not used by coinbase fetchMySells()
@@ -626,6 +627,7 @@ class coinbase(Exchange, ImplicitAPI):
 
     def fetch_my_buys(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
+         * @ignore
         fetch buys
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-buys#list-buys
         :param str symbol: not used by coinbase fetchMyBuys()
