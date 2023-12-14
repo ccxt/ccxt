@@ -152,7 +152,9 @@ class CCXTProTranspiler extends Transpiler {
     };
 
     transpileWsTests (){
-        this.transpileWsExchangeTests();
+        this.transpileWsCacheTest();
+        this.transpileWsOrderBookTest();
+        // this.transpileWsExchangeTests();
     }
 
     transpileWsExchangeTests () {
@@ -172,10 +174,6 @@ class CCXTProTranspiler extends Transpiler {
             }
         }
 
-        // remove pro namespace from ws WATCH tests, as they "import" non-pro test methods (like "test_trade" etc) 
-        // causing namespace problems which is harder to solve through transpiler
-        // so let's just namespace tests under `ccxt` namespace only
-        // test.phpPreambleAsync = test.phpPreambleAsync.replace ('namespace ccxt\\pro', 'namespace ccxt');
         this.transpileAndSaveExchangeTests (wsCollectedTests);
     }
 
@@ -184,7 +182,7 @@ class CCXTProTranspiler extends Transpiler {
         const testName = 'test.OrderBook';
         const testNameUncameled = this.uncamelcaseName(testName);
         const test = {
-            base: false,
+            base: true,
             name: testName,
             tsFile: this.wsTestsDirectories.ts + currentFolder + testName + '.ts',
             pyFileSync: this.wsTestsDirectories.py + currentFolder + testNameUncameled + '.py',
@@ -200,7 +198,7 @@ class CCXTProTranspiler extends Transpiler {
         const testName = 'test.Cache';
         const testNameUncameled = this.uncamelcaseName(testName);
         const test = {
-            base: false,
+            base: true,
             name: testName,
             tsFile: this.wsTestsDirectories.ts + currentFolder + testName + '.ts',
             pyFileSync: this.wsTestsDirectories.py + currentFolder + testNameUncameled + '.py',
