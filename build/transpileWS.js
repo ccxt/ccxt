@@ -154,7 +154,7 @@ class CCXTProTranspiler extends Transpiler {
     transpileWsTests (){
         this.transpileWsCacheTest();
         this.transpileWsOrderBookTest();
-        // this.transpileWsExchangeTests();
+        this.transpileWsExchangeTests();
     }
 
     transpileWsExchangeTests () {
