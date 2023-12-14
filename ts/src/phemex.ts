@@ -566,7 +566,7 @@ export default class phemex extends Exchange {
             // "1.0"
             contractSize = this.parseNumber (contractSizeString);
         }
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote + ':' + settle,
             'base': base,
@@ -619,7 +619,7 @@ export default class phemex extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     parseSpotMarket (market) {
@@ -668,7 +668,7 @@ export default class phemex extends Exchange {
         const status = this.safeString (market, 'status');
         const precisionAmount = this.parseSafeNumber (this.safeString (market, 'baseTickSize'));
         const precisionPrice = this.parseSafeNumber (this.safeString (market, 'quoteTickSize'));
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -721,7 +721,7 @@ export default class phemex extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     async fetchMarkets (params = {}) {
