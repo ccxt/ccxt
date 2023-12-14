@@ -7670,6 +7670,7 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchAccountPositions
+         * @ignore
          * @description fetch account positions
          * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
@@ -7707,6 +7708,7 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchPositionsRisk
+         * @ignore
          * @description fetch positions risk
          * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
