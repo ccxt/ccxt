@@ -950,6 +950,7 @@ class Transpiler {
             'Currency': /(-> Currency:|: Currency)/,
             'Greeks': /-> Greeks:/,
             'Int': /: Int =/,
+            'Liquidation': /-> (?:List\[)?Liquidation/,
             'MarginMode': /-> MarginMode:/,
             'MarketType': /: MarketType/,
             'Market': /(-> Market:|: Market)/,
