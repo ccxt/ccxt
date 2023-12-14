@@ -236,7 +236,7 @@ export default class bitmart extends bitmartRest {
         client.resolve (this.balance[type], messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitmart#watchTrades
@@ -258,7 +258,7 @@ export default class bitmart extends bitmartRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, 'timestamp', true);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -316,7 +316,7 @@ export default class bitmart extends bitmartRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmart#watchOrders
@@ -605,7 +605,7 @@ export default class bitmart extends bitmartRest {
         return this.safeString (sides, sideId, sideId);
     }
 
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    async watchPositions (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name bitmart#watchPositions
@@ -953,7 +953,7 @@ export default class bitmart extends bitmartRest {
         }, market);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe = '1m', limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitmart#watchOHLCV
@@ -984,7 +984,7 @@ export default class bitmart extends bitmartRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, 0, true);
     }
 
     handleOHLCV (client: Client, message) {

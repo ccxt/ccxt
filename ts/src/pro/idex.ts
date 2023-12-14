@@ -143,7 +143,7 @@ export default class idex extends idexRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name idex#watchTrades
@@ -167,7 +167,7 @@ export default class idex extends idexRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, 'timestamp', true);
     }
 
     handleTrade (client: Client, message) {
@@ -240,7 +240,7 @@ export default class idex extends idexRest {
         });
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe = '1m', limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name idex#watchOHLCV
@@ -267,7 +267,7 @@ export default class idex extends idexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, 0, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -518,7 +518,7 @@ export default class idex extends idexRest {
         return this.options['token'];
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name idex#watchOrders
@@ -545,7 +545,7 @@ export default class idex extends idexRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        return this.filterByLimit (orders, limit, 'timestamp', true);
     }
 
     handleOrder (client: Client, message) {
@@ -651,7 +651,7 @@ export default class idex extends idexRest {
         client.resolve (orders, type);
     }
 
-    async watchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTransactions (code: Str = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'balances';
         const subscribeObject = {
@@ -665,7 +665,7 @@ export default class idex extends idexRest {
         if (this.newUpdates) {
             limit = transactions.getLimit (code, limit);
         }
-        return this.filterBySinceLimit (transactions, since, limit, 'timestamp');
+        return this.filterByLimit (transactions, limit, 'timestamp');
     }
 
     handleTransaction (client: Client, message) {

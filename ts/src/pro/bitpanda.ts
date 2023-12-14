@@ -266,7 +266,7 @@ export default class bitpanda extends bitpandaRest {
         }, market);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchMyTrades (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitpanda#watchMyTrades
@@ -303,7 +303,7 @@ export default class bitpanda extends bitpandaRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        trades = this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        trades = this.filterBySymbolLimit (trades, symbol, limit);
         const numTrades = trades.length;
         if (numTrades === 0) {
             return await this.watchMyTrades (symbol, since, limit, params);
@@ -428,7 +428,7 @@ export default class bitpanda extends bitpandaRest {
         }
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitpanda#watchOrders
@@ -466,7 +466,7 @@ export default class bitpanda extends bitpandaRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        orders = this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        orders = this.filterBySymbolLimit (orders, symbol, limit);
         const numOrders = orders.length;
         if (numOrders === 0) {
             return await this.watchOrders (symbol, since, limit, params);
@@ -1048,7 +1048,7 @@ export default class bitpanda extends bitpandaRest {
         this.balance = this.safeBalance (this.balance);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe = '1m', limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitpanda#watchOHLCV
@@ -1120,7 +1120,7 @@ export default class bitpanda extends bitpandaRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, 0, true);
     }
 
     handleOHLCV (client: Client, message) {

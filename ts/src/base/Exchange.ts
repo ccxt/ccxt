@@ -1795,19 +1795,11 @@ export default class Exchange {
         return result;
     }
 
-    filterByLimit (array: object[], limit: Int = undefined, key: IndexType = 'timestamp'): any {
+    filterByLimit (array: object[], limit: Int = undefined, key: IndexType = 'timestamp', tail = true): any {
         if (this.valueIsDefined (limit)) {
             const arrayLength = array.length;
             if (arrayLength > 0) {
-                let ascending = true;
-                if ((key in array[0])) {
-                    const first = array[0][key];
-                    const last = array[arrayLength - 1][key];
-                    if (first !== undefined && last !== undefined) {
-                        ascending = first <= last;  // true if array is sorted in ascending order based on 'timestamp'
-                    }
-                }
-                array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
+                array = tail ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
             }
         }
         return array;
@@ -1827,10 +1819,21 @@ export default class Exchange {
                 }
             }
         }
-        if (tail && limit !== undefined) {
-            return this.arraySlice (result, -limit);
+        return this.filterByLimit (result, limit, key, tail);
+    }
+
+    filterBySymbolLimit (array: object[], symbol: string, limit: Int = undefined, tail = true): any {
+        const parsedArray = this.toArray (array) as any;
+        let result = parsedArray;
+        result = [ ];
+        for (let i = 0; i < parsedArray.length; i++) {
+            const entry = parsedArray[i];
+            const entryFiledEqualValue = entry['symbol'] === symbol;
+            if (entryFiledEqualValue) {
+                result.push (entry);
+            }
         }
-        return this.filterByLimit (result, limit, key);
+        return this.filterByLimit (result, limit, 'timestamp', tail);
     }
 
     filterByValueSinceLimit (array: object[], field: IndexType, value = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any {
@@ -1853,10 +1856,7 @@ export default class Exchange {
                 }
             }
         }
-        if (tail && limit !== undefined) {
-            return this.arraySlice (result, -limit);
-        }
-        return this.filterByLimit (result, limit, key);
+        return this.filterByLimit (result, limit, key, tail);
     }
 
     setSandboxMode (enabled) {
@@ -1899,23 +1899,23 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTradesWs() is not supported yet');
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
     }
 
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTradesForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchTradesForSymbols() is not supported yet');
     }
 
-    async watchMyTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchMyTradesForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchMyTradesForSymbols() is not supported yet');
     }
 
-    async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrdersForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' watchOrdersForSymbols() is not supported yet');
     }
 
-    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
         throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
     }
 
@@ -3023,7 +3023,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet' + message);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe = '1m', limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         throw new NotSupported (this.id + ' watchOHLCV() is not supported yet');
     }
 
@@ -4181,7 +4181,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrderTrades() is not supported yet');
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: string = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' watchOrders() is not supported yet');
     }
 
@@ -4213,7 +4213,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchMyTradesWs() is not supported yet');
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchMyTrades (symbol: string = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchMyTrades() is not supported yet');
     }
 
