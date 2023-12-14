@@ -488,7 +488,7 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        const trades = await this.watch (url, subParams, this.extend (request, query), subParams, subscribe);
+        const trades = await this.watchMultiple (url, subParams, this.extend (request, query), subParams, subscribe);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
