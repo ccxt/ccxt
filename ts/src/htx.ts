@@ -6828,17 +6828,16 @@ export default class htx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
-        let method = undefined;
         const request = {
             'type': '30,31',
         };
         if (since !== undefined) {
             request['start_date'] = since;
         }
+        let response = undefined;
         if (marketType === 'swap') {
             request['contract'] = market['id'];
             if (market['linear']) {
-                method = 'contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact';
                 //
                 //    {
                 //        "status": "ok",
@@ -6869,8 +6868,8 @@ export default class htx extends Exchange {
                 } else {
                     request['mar_acct'] = market['quoteId'];
                 }
+                response = await this.contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact (this.extend (request, query));
             } else {
-                method = 'contractPrivatePostSwapApiV3SwapFinancialRecordExact';
                 //
                 //     {
                 //         "code": 200,
@@ -6891,12 +6890,12 @@ export default class htx extends Exchange {
                 //         "ts": 1604312615051
                 //     }
                 //
+                response = await this.contractPrivatePostSwapApiV3SwapFinancialRecordExact (this.extend (request, query));
             }
         } else {
-            method = 'contractPrivatePostApiV3ContractFinancialRecordExact';
             request['symbol'] = market['id'];
+            response = await this.contractPrivatePostApiV3ContractFinancialRecordExact (this.extend (request, query));
         }
-        const response = await this[method] (this.extend (request, query));
         const data = this.safeValue (response, 'data', []);
         return this.parseIncomes (data, market, since, limit);
     }

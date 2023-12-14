@@ -814,6 +814,35 @@
                     "USDT"
                 ]
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetch Funding History - swap linear",
+                "method": "fetchFundingHistory",
+                "url": "https://api.hbdm.com/swap-api/v3/swap_financial_record_exact",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "output": "{\"type\":\"30,31\",\"contract\":\"BTC-USD\"}"
+            },
+            {
+                "description": "fetch Funding History - swap inverse",
+                "method": "fetchFundingHistory",
+                "url": "https://api.hbdm.com/linear-swap-api/v3/swap_financial_record_exact",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"type\":\"30,31\",\"contract\":\"LTC-USDT\",\"mar_acct\":\"usdt\"}"
+            },
+            {
+                "description": "fetch Funding History - future",
+                "method": "fetchFundingHistory",
+                "url": "https://api.hbdm.com/api/v3/contract_financial_record_exact",
+                "input": [
+                    "BTC/USD:BTC-231124"
+                ],
+                "output": "{\"type\":\"30,31\",\"symbol\":\"BTC231124\"}"
+            }
         ]
     }
 }
