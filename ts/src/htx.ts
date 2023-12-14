@@ -6934,7 +6934,7 @@ export default class htx extends Exchange {
             } else if (marginMode === 'cross') {
                 response = await this.contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate (this.extend (request, query));
             } else {
-                throw new NotSupported (this.id + ' fetchFundingRates() not support this market type');
+                throw new NotSupported (this.id + ' setLeverage() not support this market type');
             }
             //
             //     {
@@ -6953,7 +6953,7 @@ export default class htx extends Exchange {
             } else if (marketType === 'swap') {
                 response = await this.contractPrivatePostSwapApiV1SwapSwitchLeverRate (this.extend (request, query));
             } else {
-                throw new NotSupported (this.id + ' fetchFundingRates() not support this market type');
+                throw new NotSupported (this.id + ' setLeverage() not support this market type');
             }
             //
             // future
@@ -7121,12 +7121,15 @@ export default class htx extends Exchange {
         if (marketType === 'spot') {
             marketType = 'future';
         }
-        let method = undefined;
+        let response = undefined;
         if (subType === 'linear') {
-            method = this.getSupportedMapping (marginMode, {
-                'isolated': 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
-                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',
-            });
+            if (marginMode === 'isolated') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapPositionInfo (params);
+            } else if (marginMode === 'cross') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo (params);
+            } else {
+                throw new NotSupported (this.id + ' fetchPositions() not support this market type');
+            }
             //
             //     {
             //       "status": "ok",
@@ -7155,10 +7158,13 @@ export default class htx extends Exchange {
             //     }
             //
         } else {
-            method = this.getSupportedMapping (marketType, {
-                'future': 'contractPrivatePostApiV1ContractPositionInfo',
-                'swap': 'contractPrivatePostSwapApiV1SwapPositionInfo',
-            });
+            if (marketType === 'future') {
+                response = await this.contractPrivatePostApiV1ContractPositionInfo (params);
+            } else if (marketType === 'swap') {
+                response = await this.contractPrivatePostSwapApiV1SwapPositionInfo (params);
+            } else {
+                throw new NotSupported (this.id + ' fetchPositions() not support this market type');
+            }
             //
             // future
             //     {
@@ -7210,7 +7216,6 @@ export default class htx extends Exchange {
             //     }
             //
         }
-        const response = await this[method] (params);
         const data = this.safeValue (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = [];

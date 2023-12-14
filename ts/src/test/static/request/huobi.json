@@ -465,6 +465,28 @@
                     ]
                 ],
                 "output": "{}"
+            },
+            {
+                "description": "Fetch inverse position",
+                "method": "fetchPositions",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_position_info?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=fHh3rEyD%2FZFqX2z5IXhQNfsTODGyWF%2FYYJrOFniSPvo%3D",
+                "input": [
+                    [
+                        "BTC/USD:BTC"
+                    ]
+                ],
+                "output": "{}"
+            },
+            {
+                "description": "Fetch future position",
+                "method": "fetchPositions",
+                "url": "https://api.hbdm.com/api/v1/contract_position_info?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=fHh3rEyD%2FZFqX2z5IXhQNfsTODGyWF%2FYYJrOFniSPvo%3D",
+                "input": [
+                    [
+                        "BTC/USD:BTC-231124"
+                    ]
+                ],
+                "output": "{}"
             }
         ],
         "setLeverage": [
