@@ -206,7 +206,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -378,7 +378,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterByLimit (orders, limit, 'timestamp', true);
+        return this.filterByLimit (orders, limit, true);
     }
 
     async watchMyTrades (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -404,7 +404,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     async watchBalance (params = {}): Promise<Balances> {

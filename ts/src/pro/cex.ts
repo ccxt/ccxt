@@ -158,7 +158,7 @@ export default class cex extends cexRest {
         for (let i = 0; i < trades.length; i++) {
             trades[i]['symbol'] = symbol;
         }
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleTradesSnapshot (client: Client, message) {
@@ -1085,7 +1085,7 @@ export default class cex extends cexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterByLimit (ohlcv, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, true);
     }
 
     handleInitOHLCV (client: Client, message) {

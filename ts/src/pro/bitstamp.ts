@@ -188,7 +188,7 @@ export default class bitstamp extends bitstampRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     parseWsTrade (trade, market = undefined) {
@@ -299,7 +299,7 @@ export default class bitstamp extends bitstampRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterByLimit (orders, limit, 'timestamp', true);
+        return this.filterByLimit (orders, limit, true);
     }
 
     handleOrders (client: Client, message) {

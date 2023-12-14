@@ -167,7 +167,7 @@ export default class idex extends idexRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleTrade (client: Client, message) {
@@ -267,7 +267,7 @@ export default class idex extends idexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterByLimit (ohlcv, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -545,7 +545,7 @@ export default class idex extends idexRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterByLimit (orders, limit, 'timestamp', true);
+        return this.filterByLimit (orders, limit, true);
     }
 
     handleOrder (client: Client, message) {
@@ -665,7 +665,7 @@ export default class idex extends idexRest {
         if (this.newUpdates) {
             limit = transactions.getLimit (code, limit);
         }
-        return this.filterByLimit (transactions, limit, 'timestamp');
+        return this.filterByLimit (transactions, limit, true);
     }
 
     handleTransaction (client: Client, message) {

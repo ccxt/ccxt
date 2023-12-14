@@ -169,7 +169,7 @@ export default class coinbasepro extends coinbaseproRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     async watchTradesForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -196,7 +196,7 @@ export default class coinbasepro extends coinbaseproRest {
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     async watchMyTrades (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -222,7 +222,7 @@ export default class coinbasepro extends coinbaseproRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     async watchMyTradesForSymbols (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -247,7 +247,7 @@ export default class coinbasepro extends coinbaseproRest {
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     async watchOrdersForSymbols (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -272,7 +272,7 @@ export default class coinbasepro extends coinbaseproRest {
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = orders.getLimit (tradeSymbol, limit);
         }
-        return this.filterByLimit (orders, limit, 'timestamp', true);
+        return this.filterByLimit (orders, limit, true);
     }
 
     async watchOrders (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -298,7 +298,7 @@ export default class coinbasepro extends coinbaseproRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterByLimit (orders, limit, 'timestamp', true);
+        return this.filterByLimit (orders, limit, true);
     }
 
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {

@@ -84,7 +84,7 @@ export default class okcoin extends okcoinRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     async watchOrders (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -108,7 +108,7 @@ export default class okcoin extends okcoinRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleOrders (client: Client, message, subscription = undefined) {
@@ -278,7 +278,7 @@ export default class okcoin extends okcoinRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterByLimit (ohlcv, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, true);
     }
 
     handleOHLCV (client: Client, message) {

@@ -67,7 +67,7 @@ export default class gemini extends geminiRest {
         if (this.newUpdates) {
             limit = trades.getLimit (market['symbol'], limit);
         }
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     parseWsTrade (trade, market = undefined) {
@@ -222,7 +222,7 @@ export default class gemini extends geminiRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterByLimit (ohlcv, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, true);
     }
 
     handleOHLCV (client: Client, message) {

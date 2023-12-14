@@ -349,7 +349,7 @@ export default class poloniex extends poloniexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterByLimit (ohlcv, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, true);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -407,7 +407,7 @@ export default class poloniex extends poloniexRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -452,7 +452,7 @@ export default class poloniex extends poloniexRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterByLimit (orders, limit, 'timestamp', true);
+        return this.filterByLimit (orders, limit, true);
     }
 
     async watchMyTrades (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -479,7 +479,7 @@ export default class poloniex extends poloniexRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     async watchBalance (params = {}): Promise<Balances> {

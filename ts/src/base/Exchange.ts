@@ -1795,7 +1795,7 @@ export default class Exchange {
         return result;
     }
 
-    filterByLimit (array: object[], limit: Int = undefined, key: IndexType = 'timestamp', tail = true): any {
+    filterByLimit (array: object[], limit: Int = undefined, tail = true): any {
         if (this.valueIsDefined (limit)) {
             const arrayLength = array.length;
             if (arrayLength > 0) {
@@ -1819,7 +1819,7 @@ export default class Exchange {
                 }
             }
         }
-        return this.filterByLimit (result, limit, key, tail);
+        return this.filterByLimit (result, limit, tail);
     }
 
     filterBySymbolLimit (array: object[], symbol: string, limit: Int = undefined, tail = true): any {
@@ -1833,7 +1833,7 @@ export default class Exchange {
                 result.push (entry);
             }
         }
-        return this.filterByLimit (result, limit, 'timestamp', tail);
+        return this.filterByLimit (result, limit, tail);
     }
 
     filterByValueSinceLimit (array: object[], field: IndexType, value = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any {
@@ -1856,7 +1856,7 @@ export default class Exchange {
                 }
             }
         }
-        return this.filterByLimit (result, limit, key, tail);
+        return this.filterByLimit (result, limit, tail);
     }
 
     setSandboxMode (enabled) {
@@ -4556,9 +4556,8 @@ export default class Exchange {
 
     filterBySymbolsLimit (array, symbols: string[] = undefined, limit: Int = undefined, tail = false) {
         const result = this.filterByArray (array, 'symbol', symbols, false);
-        return this.filterByLimit (result, limit, 'timestamp', tail);
+        return this.filterByLimit (result, limit, tail);
     }
-
 
     parseLastPrices (pricesData, symbols: string[] = undefined, params = {}) {
         //

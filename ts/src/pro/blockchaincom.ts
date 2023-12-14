@@ -153,7 +153,7 @@ export default class blockchaincom extends blockchaincomRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterByLimit (ohlcv, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -335,7 +335,7 @@ export default class blockchaincom extends blockchaincomRest {
         };
         request = this.deepExtend (request, params);
         const trades = await this.watch (url, messageHash, request, messageHash, request);
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleTrades (client: Client, message) {

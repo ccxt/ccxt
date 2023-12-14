@@ -287,7 +287,7 @@ export default class exmo extends exmoRest {
         };
         const request = this.deepExtend (message, params);
         const trades = await this.watch (url, messageHash, request, messageHash, request);
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleTrades (client: Client, message) {

@@ -74,7 +74,7 @@ export default class bitfinex extends bitfinexRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {

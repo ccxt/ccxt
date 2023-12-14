@@ -54,7 +54,7 @@ export default class independentreserve extends independentreserveRest {
         const url = this.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote'];
         const messageHash = 'trades:' + symbol;
         const trades = await this.watch (url, messageHash, undefined, messageHash);
-        return this.filterByLimit (trades, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleTrades (client: Client, message) {

@@ -511,7 +511,7 @@ export default class hitbtc extends hitbtcRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterByLimit (trades, limit, 'timestamp');
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleTrades (client: Client, message) {
@@ -644,7 +644,7 @@ export default class hitbtc extends hitbtcRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterByLimit (ohlcv, limit, 0);
+        return this.filterByLimit (ohlcv, limit, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -761,7 +761,7 @@ export default class hitbtc extends hitbtcRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterByLimit (orders, limit, 'timestamp');
+        return this.filterByLimit (orders, limit, true);
     }
 
     handleOrder (client: Client, message) {
