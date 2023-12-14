@@ -145,57 +145,69 @@ class CCXTProTranspiler extends Transpiler {
     }
 
     // -----------------------------------------------------------------------
+    wsTestsDirectories = {
+        ts: './ts/src/pro/test/',
+        py: './python/ccxt/pro/test/',
+        php: './php/pro/test/',
+    };
 
     transpileWsTests (){
-        const baseWsFolders = {
-            ts: './ts/src/',
-            py: './python/ccxt/',
-            php: './php/',
-        };
-        const wsFolder = 'pro/test/';
+        this.transpileWsExchangeTests();
+    }
 
+    transpileWsExchangeTests () {
         const wsCollectedTests = [];
-        for (const currentFolder of ['Exchange/', 'base/']) {
-            const subDirectory = wsFolder + currentFolder;
-            const fileNames = this.readTsFileNames(baseWsFolders.ts + subDirectory);
+        for (const currentFolder of ['Exchange/']) {
+            const fileNames = this.readTsFileNames(this.wsTestsDirectories.ts + currentFolder);
             for (const testName of fileNames) {
                 const testNameUncameled = this.uncamelcaseName(testName);
-                const isBaseTestFile = subDirectory.includes('test/base/');
                 const test = {
-                    base: isBaseTestFile,
+                    base: false,
                     name: testName,
-                    tsFile: baseWsFolders.ts + subDirectory + testName + '.ts',
+                    tsFile: baseWsFolders.ts + currentFolder + testName + '.ts',
+                    pyFileAsync: baseWsFolders.py + currentFolder + testNameUncameled + '.py',
+                    phpFileAsync: baseWsFolders.php + currentFolder + testNameUncameled + '.php',
                 };
-                const pyKey = isBaseTestFile ? 'pyFileSync': 'pyFileAsync';
-                const phpKey = isBaseTestFile ? 'phpFileSync': 'phpFileAsync';
-                test[pyKey] = baseWsFolders.py + subDirectory + testNameUncameled + '.py';
-                test[phpKey] = baseWsFolders.php + subDirectory + testNameUncameled + '.php';
                 wsCollectedTests.push(test);
             }
         }
-        this.transpileAndSaveExchangeTests (wsCollectedTests);
-    }
 
-
-    modifyCustomFilesHeaders (test) {
-        const isWsCache = test.tsFile.includes('pro/test/base/test.Cache.ts');
-        const isWsOrderBook = test.tsFile.includes('pro/test/base/test.OrderBook.ts');
-        if (isWsCache){
-            // py head
-            test.pythonPreambleSync = test.pythonPreambleSync + '\n' + 'from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402' + '\n' + '\n';
-            // php head
-            test.phpPreambleSync = this.getPHPPreamble(true, 4, true);
-        }
-        if (isWsOrderBook){
-            // py head
-            test.pythonPreambleSync = test.pythonPreambleSync + '\n' + 'from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402' + '\n' + '\n';
-            // php head
-            test.phpPreambleSync = this.getPHPPreamble(true, 4, true);
-        }
         // remove pro namespace from ws WATCH tests, as they "import" non-pro test methods (like "test_trade" etc) 
         // causing namespace problems which is harder to solve through transpiler
         // so let's just namespace tests under `ccxt` namespace only
-        test.phpPreambleAsync = test.phpPreambleAsync.replace ('namespace ccxt\\pro', 'namespace ccxt');
+        // test.phpPreambleAsync = test.phpPreambleAsync.replace ('namespace ccxt\\pro', 'namespace ccxt');
+        this.transpileAndSaveExchangeTests (wsCollectedTests);
+    }
+
+    transpileWsOrderBookTest() {
+        const currentFolder = 'base/';
+        const testName = 'test.OrderBook';
+        const testNameUncameled = this.uncamelcaseName(testName);
+        const test = {
+            base: false,
+            name: testName,
+            tsFile: baseWsFolders.ts + currentFolder + testName + '.ts',
+            pyFileSync: baseWsFolders.py + currentFolder + testNameUncameled + '.py',
+            pyHeaders: ['\n', 'from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402', '\n', '\n'],
+            phpFileSync: baseWsFolders.php + currentFolder + testNameUncameled + '.php',
+        };
+        this.transpileAndSaveExchangeTests ([test]);
+    }
+
+
+    transpileWsCacheTest() {
+        const currentFolder = 'base/';
+        const testName = 'test.Cache';
+        const testNameUncameled = this.uncamelcaseName(testName);
+        const test = {
+            base: false,
+            name: testName,
+            tsFile: baseWsFolders.ts + currentFolder + testName + '.ts',
+            pyFileSync: baseWsFolders.py + currentFolder + testNameUncameled + '.py',
+            pyHeaders: ['from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402', '\n', '\n'],
+            phpFileSync: baseWsFolders.php + currentFolder + testNameUncameled + '.php',
+        };
+        this.transpileAndSaveExchangeTests ([test]);
     }
 
     // -----------------------------------------------------------------------
