@@ -1245,8 +1245,7 @@ export default class htx extends Exchange {
             } else if (marketType === 'contract') {
                 response = await this.contractPublicGetHeartbeat ();
             }
-        }
-        if (response === undefined) {
+        } else {
             response = await this.statusPublicSpotGetApiV2SummaryJson ();
         }
         //
@@ -1651,8 +1650,7 @@ export default class htx extends Exchange {
                     response = await this.contractPublicGetSwapApiV1SwapContractInfo (this.extend (request, query));
                 }
             }
-        }
-        if (response === undefined) {
+        } else {
             response = await this.spotPublicGetV1CommonSymbols (this.extend (request, query));
         }
         //
@@ -2047,8 +2045,7 @@ export default class htx extends Exchange {
                 request['contract_code'] = market['id'];
                 response = await this.contractPublicGetSwapExMarketDetailMerged (this.extend (request, params));
             }
-        }
-        if (response === undefined) {
+        } else {
             request['symbol'] = market['id'];
             response = await this.spotPublicGetMarketDetailMerged (this.extend (request, params));
         }
@@ -2280,17 +2277,16 @@ export default class htx extends Exchange {
             // 'symbol': market['id'], // spot, future
             // 'contract_code': market['id'], // swap
         };
-        let fieldName = 'symbol';
-        let method = 'spotPublicGetMarketDepth';
+        let response = undefined;
         if (market['linear']) {
-            method = 'contractPublicGetLinearSwapExMarketDepth';
-            fieldName = 'contract_code';
+            request['contract_code'] = market['id'];
+            response = await this.contractPublicGetLinearSwapExMarketDepth (this.extend (request, params));
         } else if (market['inverse']) {
             if (market['future']) {
-                method = 'contractPublicGetMarketDepth';
+                response = await this.contractPublicGetMarketDepth (this.extend (request, params));
             } else if (market['swap']) {
-                method = 'contractPublicGetSwapExMarketDepth';
-                fieldName = 'contract_code';
+                request['contract_code'] = market['id'];
+                response = await this.contractPublicGetSwapExMarketDepth (this.extend (request, params));
             }
         } else {
             if (limit !== undefined) {
@@ -2305,9 +2301,9 @@ export default class htx extends Exchange {
                     request['depth'] = limit;
                 }
             }
+            request['symbol'] = market['id'];
+            response = await this.spotPublicGetMarketDepth (this.extend (request, params));
         }
-        request[fieldName] = market['id'];
-        const response = await this[method] (this.extend (request, params));
         //
         // spot, future, swap
         //

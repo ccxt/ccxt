@@ -553,6 +553,40 @@
                     ["BTC/USD:BTC-231124"]
                 ]
             }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch OrderBook - spot",
+                "method": "fetchOrderBook",
+                "url": "https://api.huobi.pro/market/depth?type=step0&symbol=ltcusdt",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch OrderBook - swap linear",
+                "method": "fetchOrderBook",
+                "url": "https://api.huobi.pro/linear-swap-ex/market/depth?type=step0&contract_code=LTC-USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch OrderBook - swap inverse",
+                "method": "fetchOrderBook",
+                "url": "https://api.huobi.pro/swap-ex/market/depth?type=step0&contract_code=BTC-USD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "fetch OrderBook - future",
+                "method": "fetchOrderBook",
+                "url": "https://api.huobi.pro/market/depth?type=step0&symbol=BTC231124",
+                "input": [
+                    "BTC/USD:BTC-231124"
+                ]
+            }
         ]
     }
 }
