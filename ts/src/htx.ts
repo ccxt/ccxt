@@ -6916,15 +6916,26 @@ export default class htx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('setLeverage', market, params);
-        let method = undefined;
+        const request = {
+            'lever_rate': leverage,
+        };
+        if (marketType === 'future' && market['inverse']) {
+            request['symbol'] = market['settleId'];
+        } else {
+            request['contract_code'] = market['id'];
+        }
+        let response = undefined;
         if (market['linear']) {
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
             marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-            method = this.getSupportedMapping (marginMode, {
-                'isolated': 'contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate',
-                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate',
-            });
+            if (marginMode === 'isolated') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate (this.extend (request, query));
+            } else if (marginMode === 'cross') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate (this.extend (request, query));
+            } else {
+                throw new NotSupported (this.id + ' fetchFundingRates() not support this market type');
+            }
             //
             //     {
             //       "status": "ok",
@@ -6937,10 +6948,13 @@ export default class htx extends Exchange {
             //     }
             //
         } else {
-            method = this.getSupportedMapping (marketType, {
-                'future': 'contractPrivatePostApiV1ContractSwitchLeverRate',
-                'swap': 'contractPrivatePostSwapApiV1SwapSwitchLeverRate',
-            });
+            if (marketType === 'future') {
+                response = await this.contractPrivatePostApiV1ContractSwitchLeverRate (this.extend (request, query));
+            } else if (marketType === 'swap') {
+                response = await this.contractPrivatePostSwapApiV1SwapSwitchLeverRate (this.extend (request, query));
+            } else {
+                throw new NotSupported (this.id + ' fetchFundingRates() not support this market type');
+            }
             //
             // future
             //     {
@@ -6958,15 +6972,6 @@ export default class htx extends Exchange {
             //     }
             //
         }
-        const request = {
-            'lever_rate': leverage,
-        };
-        if (marketType === 'future' && market['inverse']) {
-            request['symbol'] = market['settleId'];
-        } else {
-            request['contract_code'] = market['id'];
-        }
-        const response = await this[method] (this.extend (request, query));
         return response;
     }
 

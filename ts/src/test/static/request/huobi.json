@@ -477,6 +477,26 @@
                     "LTC/USDT:USDT"
                 ],
                 "output": "{\"lever_rate\":5,\"contract_code\":\"LTC-USDT\"}"
+            },
+            {
+                "description": "Set inverse leverage",
+                "method": "setLeverage",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_switch_lever_rate?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=SnWzCM6V5BNqBA95kG8NK9aZPmqkLPiW0USifdlTN9U%3D",
+                "input": [
+                    5,
+                    "BTC/USD:BTC"
+                ],
+                "output": "{\"lever_rate\":5,\"contract_code\":\"BTC-USD\"}"
+            },
+            {
+                "description": "Set future leverage",
+                "method": "setLeverage",
+                "url": "https://api.hbdm.com/api/v1/contract_switch_lever_rate?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=SnWzCM6V5BNqBA95kG8NK9aZPmqkLPiW0USifdlTN9U%3D",
+                "input": [
+                    5,
+                    "BTC/USD:BTC-231124"
+                ],
+                "output": "{\"lever_rate\":5,\"symbol\":\"btc\"}"
             }
         ],
         "fetchDeposits": [
@@ -819,20 +839,20 @@
             {
                 "description": "fetch Funding History - swap linear",
                 "method": "fetchFundingHistory",
-                "url": "https://api.hbdm.com/swap-api/v3/swap_financial_record_exact",
-                "input": [
-                    "BTC/USD:BTC"
-                ],
-                "output": "{\"type\":\"30,31\",\"contract\":\"BTC-USD\"}"
-            },
-            {
-                "description": "fetch Funding History - swap inverse",
-                "method": "fetchFundingHistory",
                 "url": "https://api.hbdm.com/linear-swap-api/v3/swap_financial_record_exact",
                 "input": [
                     "LTC/USDT:USDT"
                 ],
                 "output": "{\"type\":\"30,31\",\"contract\":\"LTC-USDT\",\"mar_acct\":\"usdt\"}"
+            },
+            {
+                "description": "fetch Funding History - swap inverse",
+                "method": "fetchFundingHistory",
+                "url": "https://api.hbdm.com/swap-api/v3/swap_financial_record_exact",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "output": "{\"type\":\"30,31\",\"contract\":\"BTC-USD\"}"
             },
             {
                 "description": "fetch Funding History - future",
