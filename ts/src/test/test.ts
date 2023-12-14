@@ -411,7 +411,7 @@ export default class testMainClass extends baseMainTestClass {
             } catch (e) {
                 const isAuthError = (e instanceof AuthenticationError);
                 const isNotSupported = (e instanceof NotSupported);
-                const isOperationFailed = (e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "isOperationFailed", "InvalidNonce", ...
+                const isOperationFailed = (e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
                 const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
                 const tempFailure = isOperationFailed && !isExchangeNotAvailable; // we do not mute specifically "ExchangeNotAvailable" excetpion (but its subtype "OnMaintenance" can be muted)
                 if (tempFailure) {
