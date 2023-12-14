@@ -2702,28 +2702,29 @@ export default class htx extends Exchange {
             // 'symbol': market['id'], // spot, future
             // 'contract_code': market['id'], // swap
         };
-        let fieldName = 'symbol';
-        let method = 'spotPublicGetMarketHistoryTrade';
-        if (market['future']) {
-            if (market['inverse']) {
-                method = 'contractPublicGetMarketHistoryTrade';
-            } else if (market['linear']) {
-                method = 'contractPublicGetLinearSwapExMarketHistoryTrade';
-                fieldName = 'contract_code';
-            }
-        } else if (market['swap']) {
-            if (market['inverse']) {
-                method = 'contractPublicGetSwapExMarketHistoryTrade';
-            } else if (market['linear']) {
-                method = 'contractPublicGetLinearSwapExMarketHistoryTrade';
-            }
-            fieldName = 'contract_code';
-        }
-        request[fieldName] = market['id'];
         if (limit !== undefined) {
             request['size'] = Math.min (limit, 2000); // max 2000
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['future']) {
+            if (market['inverse']) {
+                request['symbol'] = market['id'];
+                response = await this.contractPublicGetMarketHistoryTrade (this.extend (request, params));
+            } else if (market['linear']) {
+                request['contract_code'] = market['id'];
+                response = await this.contractPublicGetLinearSwapExMarketHistoryTrade (this.extend (request, params));
+            }
+        } else if (market['swap']) {
+            request['contract_code'] = market['id'];
+            if (market['inverse']) {
+                response = await this.contractPublicGetSwapExMarketHistoryTrade (this.extend (request, params));
+            } else if (market['linear']) {
+                response = await this.contractPublicGetLinearSwapExMarketHistoryTrade (this.extend (request, params));
+            }
+        } else {
+            request['symbol'] = market['id'];
+            response = await this.spotPublicGetMarketHistoryTrade (this.extend (request, params));
+        }
         //
         //     {
         //         "status": "ok",
