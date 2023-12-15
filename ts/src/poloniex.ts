@@ -230,6 +230,7 @@ export default class poloniex extends Exchange {
                 'UST': 'USTC',
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
