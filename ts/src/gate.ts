@@ -6975,6 +6975,9 @@ export default class gate extends Exchange {
             'close': true,
         };
         params = this.extend (request, params);
+        if (side === undefined) {
+            side = ''; // side is not used but needs to be present, otherwise crashes in php
+        }
         return await this.createOrder (symbol, 'market', side, 0, undefined, params);
     }
 
