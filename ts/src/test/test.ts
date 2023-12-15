@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable max-classes-per-file */
-import fs, { readFile } from 'fs';
+import fs from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
 import assert from 'assert';
 import ccxt, { Exchange } from '../../ccxt.js';
