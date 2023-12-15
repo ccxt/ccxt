@@ -35,12 +35,12 @@ function fixPhpObjectArray (exchange, response, skippedProperties) {
     skippedProperties['timestamp'] = true;
     skippedProperties['datetime'] = true;
     // ### temporarily fix some bugs for PHP (before they are fixed in library) ###
-    // 1)  limit to first 100 to avoid PHP memory exhaustion (another bug)
-    result['asks'] = exchange.filterByLimit(result['asks'], 100);
-    result['bids'] = exchange.filterByLimit(result['bids'], 100);
-    // 2) entries are being unordered in some cases, so before that separate issue is fixed, temporarily fix it here
+    // 1) entries are being unordered in some cases, so before that separate issue is fixed, temporarily fix it here. for example, some entries are weird, like [[price, amount], [price, amount], ["1", amount]]]
     result['asks'] = exchange.sortBy(result['asks'], 0, false);
     result['bids'] = exchange.sortBy(result['bids'], 0, true);
+    // 2)  limit to first 100 to avoid PHP memory exhaustion (another bug)
+    result['asks'] = exchange.filterByLimit(result['asks'], 100);
+    result['bids'] = exchange.filterByLimit(result['bids'], 100);
     // #################################
     return [ result , skippedProperties ];
 }
