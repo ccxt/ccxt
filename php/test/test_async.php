@@ -38,7 +38,7 @@ function custom_excetpion_handler(\Throwable $e) {
     throw $e;
 }
   
-set_exception_handler('custom_excetpion_handler');
+set_exception_handler('ccxt\custom_excetpion_handler');
 
 $filetered_args = array_filter(array_map (function ($x) { return stripos($x,'--')===false? $x : null;} , $argv));
 $exchangeId = array_key_exists(1, $filetered_args) ? $filetered_args[1] : null; // this should be different than JS
