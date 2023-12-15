@@ -1980,7 +1980,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     parseWsOrder (order, market = undefined) {
