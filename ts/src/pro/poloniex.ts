@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import poloniexRest from '../poloniex.js';
-import { BadRequest, AuthenticationError, ExchangeError, ArgumentsRequired, InvalidOrder } from '../base/errors.js';
+import { BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
