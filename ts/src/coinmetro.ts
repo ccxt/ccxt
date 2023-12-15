@@ -204,7 +204,11 @@ export default class coinmetro extends Exchange {
             'precisionMode': DECIMAL_PLACES,
             // exchange-specific options
             'options': {
+                'currenciesByIdForParseMarket': undefined,
+                'currencyIdsListForParseMarket': undefined,
             },
+            // todo: check
+            'token': undefined,
             'exceptions': {
                 // https://trade-docs.coinmetro.co/?javascript--nodejs#message-codes
                 'exact': {
@@ -313,11 +317,11 @@ export default class coinmetro extends Exchange {
          */
         const response = await this.publicGetMarkets (params);
         // todo: check
-        if (this.safeValue (this, 'currencyIdsList') === undefined) {
+        if (this.safeValue (this, 'currenciesByIdForParseMarket') === undefined) {
             const currencies = await this.fetchCurrencies ();
             const currenciesById = this.indexBy (currencies, 'id');
-            this['currenciesByIdForFetchMarkets'] = currenciesById;
-            this['currencyIdsList'] = Object.keys (currenciesById);
+            this.options['currenciesByIdForParseMarket'] = currenciesById;
+            this.options['currencyIdsListForParseMarket'] = Object.keys (currenciesById);
         }
         //
         //     [
@@ -409,7 +413,7 @@ export default class coinmetro extends Exchange {
     parseMarketId (marketId) {
         let baseId = undefined;
         let quoteId = undefined;
-        const currencyIds = this.safeValue (this, 'currencyIdsList', []);
+        const currencyIds = this.safeValue (this.options, 'currencyIdsListForParseMarket', []);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const entryIndex = marketId.indexOf (currencyId);
@@ -435,7 +439,7 @@ export default class coinmetro extends Exchange {
     }
 
     parseMarketPrecisionAndLimits (currencyId) {
-        const currencies = this.safeValue (this, 'currenciesByIdForFetchMarkets', {});
+        const currencies = this.safeValue (this.options, 'currenciesByIdForParseMarket', {});
         const currency = this.safeValue (currencies, currencyId, {});
         const precision = this.safeInteger (currency, 'precision');
         const limits = this.safeValue (currency, 'limits', {});
@@ -583,6 +587,29 @@ export default class coinmetro extends Exchange {
         // todo: check what is seqNum?
         const tickHistory = this.safeValue (response, 'tickHistory', []);
         return this.parseTrades (tickHistory, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmetro#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {};
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        const response = await this.privateGetExchangeFillsSince (this.extend (request, params));
+        //
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseTrade (trade, market: Market = undefined): Trade {
@@ -1166,7 +1193,7 @@ export default class coinmetro extends Exchange {
         //         "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjNTJkMWEyZTFkMWM5MjhkNWRkZWZlNSIsInVzZXJuYW1lIjoic29tZUBtYWlsLmNvbSIsImV4cCI6MTU3MDM4MDU3MTU1NCwiaWF0IjoxNTY3Nzg4NTcxfQ.2A5PbS8Oo7ZDGfNlhNEs43gHfmj0OyCHM2sbGFBbi1Y",
         //     }
         //
-        this['token'] = this.safeString (response, 'token');
+        this.token = this.safeString (response, 'token');
         return response;
     }
 
