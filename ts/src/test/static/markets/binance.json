@@ -2132,5 +2132,26 @@
         "feeSide": "get",
         "lowercaseId": "trxusdt",
         "created": 1569398400000
+    },
+    "BTC/USDT:USDT-231229": {
+        "id": "BTCUSDT_231229",
+        "symbol": "BTC/USDT:USDT-231229",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "future",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": false,
+        "future": true,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT"
     }
 }
