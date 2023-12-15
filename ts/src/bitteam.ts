@@ -1,12 +1,17 @@
+
+//  ---------------------------------------------------------------------------
+
 import Exchange from './abstract/bitteam.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
+//  ---------------------------------------------------------------------------
+
 /**
  * @class bitteam
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitteam extends Exchange {
     describe () {
@@ -15,7 +20,7 @@ export default class bitteam extends Exchange {
             'name': 'BIT.TEAM',
             'countries': [ 'UK' ],
             'version': 'v2.0.6',
-            'rateLimit': 1,
+            'rateLimit': 1, // the exchange has no rate limit
             'certified': false,
             'pro': false,
             'has': {
@@ -135,7 +140,7 @@ export default class bitteam extends Exchange {
             'api': {
                 'history': {
                     'get': {
-                        'api/tw/history/{pairName}/{resolution}': 1, // fetchOHLCV
+                        'api/tw/history/{pairName}/{resolution}': 1,
                     },
                 },
                 'public': {
@@ -818,14 +823,7 @@ export default class bitteam extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
-        // todo: limit and offset params work bad - looks like the exchange keeps orders badly sorted by timestamp
-        // limit = 0 returns all orders
-        // also filtration by symbol breaks pagination (maybe should set limit to 0?) - check in other exchanges
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        let type = this.safeString (params, 'type') as any;
+        let type = this.safeString (params, 'type');
         if (type === undefined) {
             type = 'all';
         } else {
@@ -834,6 +832,11 @@ export default class bitteam extends Exchange {
         const request = {
             'type': type,
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -1065,12 +1068,13 @@ export default class bitteam extends Exchange {
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
         };
-        if (price !== undefined) {
-            request['price'] = this.priceToPrecision (symbol, price);
-        } else if (type === 'limit') {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+        if (type === 'limit') {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+            } else {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
         }
-        // todo: ask about executed price for an order filled with many trades with different prices
         const response = await this.privatePostTradeApiCcxtOrdercreate (this.extend (request, params));
         //
         //     {
@@ -1263,11 +1267,7 @@ export default class bitteam extends Exchange {
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const side = this.safeString (order, 'side');
         const feeRaw = this.safeValue (order, 'fee');
-        let price = this.safeString (order, 'executedPrice', '0');
-        // todo: check
-        if (price === '0') {
-            price = this.safeString (order, 'price');
-        }
+        const price = this.safeString (order, 'price');
         const stopPrice = this.safeString (order, 'stopPrice');
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'executed');
@@ -1781,7 +1781,6 @@ export default class bitteam extends Exchange {
          * @param {object} [params] extra parameters specific to the bitteam api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        // todo: offset overwrites limit
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -2131,7 +2130,6 @@ export default class bitteam extends Exchange {
          * @param {object} [params] extra parameters specific to the bitteam api endpoint
          * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
-        // todo: check the offset
         await this.loadMarkets ();
         let currency = undefined;
         const request = {};
