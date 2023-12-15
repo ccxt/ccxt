@@ -4353,27 +4353,29 @@ export default class binance extends Exchange {
         const sor = this.safeValue2 (params, 'sor', 'SOR', false);
         params = this.omit (params, 'sor', 'SOR');
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let method = 'privatePostOrder';
+        const test = this.safeValue (query, 'test', false);
+        let response = undefined;
         if (sor) {
-            method = 'privatePostSorOrder';
-        } else if (market['linear']) {
-            method = 'fapiPrivatePostOrder';
-        } else if (market['inverse']) {
-            method = 'dapiPrivatePostOrder';
-        } else if (marketType === 'margin' || marginMode !== undefined) {
-            method = 'sapiPostMarginOrder';
-        }
-        if (market['option']) {
-            method = 'eapiPrivatePostOrder';
-        }
-        // support for testing orders
-        if (market['spot'] || marketType === 'margin') {
-            const test = this.safeValue (query, 'test', false);
             if (test) {
-                method += 'Test';
+                response = await this.privatePostSorOrderTest (request);
+            } else {
+                response = await this.privatePostSorOrder (request);
+            }
+        } else if (market['linear']) {
+            response = await this.fapiPrivatePostOrder (request);
+        } else if (market['inverse']) {
+            response = await this.dapiPrivatePostOrder (request);
+        } else if (marketType === 'margin' || marginMode !== undefined) {
+            response = await this.sapiPostMarginOrder (request);
+        } else if (market['option']) {
+            response = await this.eapiPrivatePostOrder (request);
+        } else {
+            if (test) {
+                response = await this.privatePostOrderTest (request);
+            } else {
+                response = await this.privatePostOrder (request);
             }
         }
-        const response = await this[method] (request);
         return this.parseOrder (response, market);
     }
 
