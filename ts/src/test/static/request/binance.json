@@ -306,6 +306,48 @@
                 "type": "swap"
               }
             ]
+          },
+          {
+            "description": "Swap inverse fetchBalance",
+            "method": "fetchBalance",
+            "url": "https://testnet.binancefuture.com/dapi/v1/account?timestamp=1699385163596&recvWindow=10000&signature=f8a952f41e186866660fa44ef11e22e69fd54145638964c6e79034e2fa83eb58",
+            "input": [
+              {
+                "type": "swap",
+                "subType": "inverse"
+              }
+            ]
+          },
+          {
+            "description": "Margin fetchBalance",
+            "method": "fetchBalance",
+            "url": "https://testnet.binancefuture.com/sapi/v1/margin/account?timestamp=1699385163596&recvWindow=10000&signature=f8a952f41e186866660fa44ef11e22e69fd54145638964c6e79034e2fa83eb58",
+            "input": [
+              {
+                "type": "margin"
+              }
+            ]
+          },
+          {
+            "description": "Savings fetchBalance",
+            "method": "fetchBalance",
+            "url": "https://testnet.binancefuture.com/sapi/v1/lending/union/account?timestamp=1699385163596&recvWindow=10000&signature=f8a952f41e186866660fa44ef11e22e69fd54145638964c6e79034e2fa83eb58",
+            "input": [
+              {
+                "type": "savings"
+              }
+            ]
+          },
+          {
+            "description": "Funding fetchBalance",
+            "method": "fetchBalance",
+            "url": "https://testnet.binancefuture.com/sapi/v1/asset/get-funding-asset",
+            "input": [
+              {
+                "type": "funding"
+              }
+            ],
+            "output": "timestamp=1702624225422&recvWindow=10000&signature=9dbc6d2f649bd8522187b3ac2643e2eec3c50e48d5d44e925eb225e108c133ee"
           }
         ],
         "fetchMyTrades": [
