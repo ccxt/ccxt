@@ -895,6 +895,17 @@
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"currency_pair\":\"XRP_USDT\",\"type\":\"repay\"}"
             }
+        ],
+        "closePosition": [
+            {
+                "description": "Closes open position in XRP/USDT:USDT market",
+                "method": "closePosition",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders",
+                "input": [
+                  "XRP/USDT:USDT"
+                ],
+                "output": "{\"contract\":\"XRP_USDT\",\"size\":0,\"price\":0,\"tif\":\"ioc\",\"close\":true}"
+              }
         ]
     }
 }
