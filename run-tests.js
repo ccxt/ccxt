@@ -318,8 +318,8 @@ const testExchange = async (exchange) => {
                     if (!failed && fullSkip)
                         continue;
 
-                    if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + '):\n') }
-                    else        { log.bright ('\nWARN'.yellow.inverse,      exchange.yellow, '(' + language + '):\n') }
+                    if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + ' ' + wsFlag + '):\n') }
+                    else        { log.bright ('\nWARN'.yellow.inverse,      exchange.yellow, '(' + language + ' ' + wsFlag + '):\n') }
 
                     log.indent (1) (output)
                 }
