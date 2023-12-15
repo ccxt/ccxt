@@ -39,8 +39,8 @@ function fixPhpObjectArray (exchange, response, skippedProperties) {
         // note, we will fix that bug later, but for now, we just remove last 5 items
         const newAsks = [];
         const newBids = [];
-        const asks = response['asks'];
-        const bids = response['bids'];
+        const asks = result['asks'];
+        const bids = result['bids'];
         const asksLength = asks.length;
         const bidsLength = bids.length;
         for (let i = 0; i < asksLength - 5; i++) {
@@ -53,7 +53,7 @@ function fixPhpObjectArray (exchange, response, skippedProperties) {
         result['bids'] = newBids;
     }
     // #################################
-    return result;
+    return [ result , skippedProperties ];
 }
 
 
