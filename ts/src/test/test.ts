@@ -216,7 +216,7 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         const symbolStr = symbolArgv !== undefined ? symbolArgv : 'all';
-        dump ('\nTESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.isWsTests }, '\n');
+        dump ('\n[INFO]TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.isWsTests }, '\n');
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
@@ -444,7 +444,7 @@ export default class testMainClass extends baseMainTestClass {
                 } else {
                     // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
                     if (isNotSupported) {
-                        dump ('[NOT_SUPPORTED]', this.exchangeHint (exchange), methodName, argsStringified);
+                        dump ('[INFO:NOT_SUPPORTED]', this.exchangeHint (exchange), methodName, argsStringified);
                         return true; // why consider not supported as a failed test?
                     } else {
                         dump ('[TEST_FAILURE]', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
@@ -569,7 +569,7 @@ export default class testMainClass extends baseMainTestClass {
                 resultMsg = resultSymbols.join (', ');
             }
         }
-        dump ('Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg);
+        dump ('[INFO] Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg);
         return true;
     }
 
@@ -734,23 +734,23 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         if (spotSymbol !== undefined) {
-            dump ('Selected SPOT SYMBOL:', spotSymbol);
+            dump ('[INFO] Selected SPOT SYMBOL:', spotSymbol);
         }
         if (swapSymbol !== undefined) {
-            dump ('Selected SWAP SYMBOL:', swapSymbol);
+            dump ('[INFO] Selected SWAP SYMBOL:', swapSymbol);
         }
         if (!this.privateTestOnly) {
             // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['type']` setting
             if (exchange.has['spot'] && spotSymbol !== undefined) {
                 if (this.info) {
-                    dump ('[INFO: ### SPOT TESTS ###]');
+                    dump ('[INFO] ### SPOT TESTS ###');
                 }
                 exchange.options['type'] = 'spot';
                 await this.runPublicTests (exchange, spotSymbol);
             }
             if (exchange.has['swap'] && swapSymbol !== undefined) {
                 if (this.info) {
-                    dump ('[INFO: ### SWAP TESTS ###]');
+                    dump ('[INFO] ### SWAP TESTS ###');
                 }
                 exchange.options['type'] = 'swap';
                 await this.runPublicTests (exchange, swapSymbol);
@@ -770,7 +770,7 @@ export default class testMainClass extends baseMainTestClass {
 
     async runPrivateTests (exchange, symbol) {
         if (!exchange.checkRequiredCredentials (false)) {
-            dump ('[Skipping private tests]', 'Keys not found');
+            dump ('[INFO] Skipping private tests', 'Keys not found');
             return;
         }
         const code = this.getExchangeCode (exchange);
@@ -1165,7 +1165,7 @@ export default class testMainClass extends baseMainTestClass {
         catch (e) {
             this.requestTestsFailed = true;
             const errorMessage = '[' + this.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + this.exchangeHint (exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
-            dump (errorMessage);
+            dump ('[TEST_FAILURE]' + errorMessage);
         }
     }
 
@@ -1179,7 +1179,7 @@ export default class testMainClass extends baseMainTestClass {
         catch (e) {
             this.requestTestsFailed = true;
             const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + this.exchangeHint (exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
-            dump (errorMessage);
+            dump ('[TEST_FAILURE]' + errorMessage);
         }
         setFetchResponse (exchange, undefined); // reset state
     }
@@ -1261,10 +1261,10 @@ export default class testMainClass extends baseMainTestClass {
         const promises = [];
         let sum = 0;
         if (targetExchange) {
-            dump ("Exchange to test: " + targetExchange);
+            dump ("[INFO] Exchange to test: " + targetExchange);
         }
         if (testName) {
-            dump ("Testing only: " + testName);
+            dump ("[INFO] Testing only: " + testName);
         }
         for (let i = 0; i < exchanges.length; i++) {
             const exchangeName = exchanges[i];
@@ -1282,7 +1282,7 @@ export default class testMainClass extends baseMainTestClass {
             exitScript (1);
         } else {
             const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString () + ' static ' + type + ' tests passed.';
-            dump (successMessage);
+            dump ('[INFO]' + successMessage);
             exitScript (0);
         }
     }
@@ -1314,7 +1314,7 @@ export default class testMainClass extends baseMainTestClass {
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
-        dump (successMessage);
+        dump ('[INFO]' + successMessage);
         exitScript (0);
     }
 
