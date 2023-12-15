@@ -3132,18 +3132,17 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         const query = this.omit (params, 'type');
-        let defaultMethod = undefined;
-        if (type === 'option') {
-            defaultMethod = 'eapiPublicGetTicker';
-        } else if (this.isLinear (type, subType)) {
-            defaultMethod = 'fapiPublicGetTicker24hr';
-        } else if (this.isInverse (type, subType)) {
-            defaultMethod = 'dapiPublicGetTicker24hr';
+        const method = this.safeString (this.options, 'fetchTickersMethod');
+        let response = undefined;
+        if (type === 'option' || method === 'eapiPublicGetTicker') {
+            response = await this.eapiPublicGetTicker (query);
+        } else if (this.isLinear (type, subType) || method === 'fapiPublicGetTicker24hr') {
+            response = await this.fapiPublicGetTicker24hr (query);
+        } else if (this.isInverse (type, subType) || method === 'dapiPublicGetTicker24hr') {
+            response = await this.dapiPublicGetTicker24hr (query);
         } else {
-            defaultMethod = 'publicGetTicker24hr';
+            response = await this.publicGetTicker24hr (query);
         }
-        const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
-        const response = await this[method] (query);
         return this.parseTickers (response, symbols);
     }
 
