@@ -75,7 +75,7 @@ for (const key of Object.keys (exchangeSpecificFlags)) {
 }
 /*  --------------------------------------------------------------------------- */
 
-const content = fs.readFileSync ('skip-tests.json', 'utf8');
+const content = fs.readFileSync ('./skip-tests.json', 'utf8');
 const skipSettings = JSON.parse (content);
 
 if (!exchanges.length) {
@@ -118,7 +118,6 @@ const exec = (bin, ...args) =>
             // const removeDebuger = (str) => str.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
             // stderr = removeDebuger(stderr);
             // output = removeDebuger(output);
-            // if (stderr === '') { hasWarnings = false; }
 
             let hasWarnings = stderr.length > 0;
             output = ansi.strip (output.trim ())
@@ -144,7 +143,7 @@ const exec = (bin, ...args) =>
             const infos = []
             if (output.length) {
                 // check output for pattern like `[INFO:TESTING] xyz message`
-                const infoRegex = /\[INFO:([\w_-]+)\].+$(?!\n)*/gmi
+                const infoRegex = /\[INFO(|:([\w_-]+))\].+$(?!\n)*/gmi
                 let matchInfo;
                 while ((matchInfo = infoRegex.exec (output))) {
                     infos.push (matchInfo[0])
@@ -277,7 +276,6 @@ const testExchange = async (exchange) => {
         const completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
         , hasWarnings    = completeTests.find (test => test.warnings.length)
-        , hasInfo        = completeTests.find (test => test.infos.length)
         , warnings       = completeTests.reduce (
             (total, { warnings }) => {
                 return total.concat (warnings)
@@ -294,24 +292,22 @@ const testExchange = async (exchange) => {
     let logMessage = '';
 
     if (failed) {
-        logMessage+= 'FAIL'.red;
+        logMessage = 'FAIL'.red;
     } else if (hasWarnings) {
         logMessage = ('WARN: ' + (warnings.length ? warnings.join (' ') : '')).yellow;
     } else {
         logMessage = 'OK'.green;
     }
 
-    //
-    const showInfos = false; // temporarily remove info messages from here - they are emiited through language-specific tests
-    if (showInfos && hasInfo && debugKeys['--info']) {
-        logMessage += '\n' + 'OUTPUT INFO'.blue + ' ';
-        const infoMessages = '\n' + infos.join('\n');
-        logMessage += infoMessages.blue;
-    }
-    
     numExchangesTested++;
     log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, logMessage)
 
+    if (exchangeSpecificFlags['--info'] && infos.length) {
+        // show info if enabled
+        log.bright ('\n__________INFO_________\n'.blue.inverse)
+        log.indent (1) (infos.join('\n').blue)
+        log.bright ('\n_______________________\n'.blue)
+    }
 /*  Return collected data to main loop     */
 
     return {
@@ -321,20 +317,16 @@ const testExchange = async (exchange) => {
         hasWarnings,
         explain () {
             for (let { language, failed, output, warnings, infos } of completeTests) {
-                if (failed || warnings.length) {
-                    const fullSkip = output.indexOf('[SKIPPED]') >= 0;
-                    if (!failed && fullSkip)
-                        continue;
-
-                    if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + ' ' + wsFlag + '):\n') }
-                    else        { log.bright ('\nWARN'.yellow.inverse,      exchange.yellow, '(' + language + ' ' + wsFlag + '):\n') }
-
-                    log.indent (1) (output)
+                const fullSkip = output.indexOf('[SKIPPED]') >= 0;
+                if (fullSkip)
+                    continue;
+                if (failed) {
+                    log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + ' ' + wsFlag + '):\n')
                 }
-                if (infos.length) {
-                    log.bright ('\nINFO'.blue.inverse,':\n')
-                    log.indent (1) (infos.join('\n'))
+                if (warnings.length) {
+                    log.bright ('\nWARN'.yellow.inverse,     exchange.yellow, '(' + language + ' ' + wsFlag + '):\n')
                 }
+                log.indent (1) (output)
             }
         }
     }
@@ -395,6 +387,7 @@ async function testAllExchanges () {
 
 (async function () {
 
+    // show output like `TESTING  js {exchange: 'binance', symbol: 'all', isWs: true}`
     log.bright.magenta.noPretty (
         'Testing'.white, 
         Object.assign ({ exchanges, symbol, debugKeys, langKeys, exchangeSpecificFlags }, maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency })
@@ -417,9 +410,9 @@ async function testAllExchanges () {
 
     log.newline ()
 
-    log.bright ('All done,', [failed.length    && (failed.length    + ' failed')   .red,
-                                succeeded.length && (succeeded.length + ' succeeded').green,
-                                warnings.length  && (warnings.length  + ' warnings') .yellow].filter (s => s).join (', '))
+    log.bright ('All done,', [failed.length   && (failed.length    + ' failed')   .red,
+                             succeeded.length && (succeeded.length + ' succeeded').green,
+                             warnings.length  && (warnings.length  + ' warnings') .yellow].filter (s => s).join (', '))
 
     if (failed.length) {
 
@@ -433,4 +426,3 @@ async function testAllExchanges () {
 }) ();
 
 /*  ------------------------------------------------------------------------ */
-    
