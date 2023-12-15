@@ -880,9 +880,6 @@ export default class testMainClass extends baseMainTestClass {
     async testProxies (exchange) {
         // these tests should be synchronously executed, because of conflicting nature of proxy settings
         const proxyTestName = this.proxyTestFileName;
-        if (this.info) {
-            dump (this.addPadding ('[INFO:TESTING]', 25), this.exchangeHint (exchange), proxyTestName);
-        }
         // try proxy several times
         const maxRetries = 3;
         let exception = undefined;
