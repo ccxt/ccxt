@@ -293,14 +293,14 @@ const testExchange = async (exchange) => {
         logMessage = 'OK'.green;
     }
 
-    // info messages
-    if (hasInfo) {
-        if (debugKeys['--info']) {
-            logMessage += ' ' + 'INFO'.blue + ' ';
-            const infoMessages = '\n' + infos.join('\n');
-            logMessage += infoMessages.blue;
-        }
+    //
+    const showInfos = false; // temporarily remove info messages from here - they are emiited through language-specific tests
+    if (showInfos && hasInfo && debugKeys['--info']) {
+        logMessage += '\n' + 'OUTPUTED INFOS'.blue + ' ';
+        const infoMessages = '\n' + infos.join('\n');
+        logMessage += infoMessages.blue;
     }
+    
     numExchangesTested++;
     log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, logMessage)
 
