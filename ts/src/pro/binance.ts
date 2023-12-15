@@ -1976,9 +1976,9 @@ export default class binance extends binanceRest {
         this.setBalanceCache (client, type);
         this.setPositionsCache (client, type);
         const message = undefined;
-        const newOrder = await this.watch (url, messageHash, message, type);
+        const orders = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
-            return newOrder;
+            limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit, true);
     }
