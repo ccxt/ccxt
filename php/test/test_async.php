@@ -255,7 +255,7 @@ function close($exchange) {
     return Async\async (function() use ($exchange) {
         // for WS classes
         if (method_exists($exchange, 'close')) {
-            return Async\await($exchange->close());
+            return $exchange->close();
         }
         return true;
     })();
