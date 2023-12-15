@@ -66,7 +66,7 @@ export default class bingx extends bingxRest {
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': true, // needed to be true to keep track of used and free balance
-                    'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
+                    'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
                 },
             },
             'streaming': {
@@ -564,8 +564,10 @@ export default class bingx extends bingxRest {
         }
         const client = this.client (url);
         this.setBalanceCache (client, type, subscriptionHash, params);
-        const fetchBalanceSnapshot = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
-        const awaitBalanceSnapshot = this.handleOptionAndParams (params, 'watchBalance', 'awaitBalanceSnapshot', false);
+        let fetchBalanceSnapshot = undefined;
+        let awaitBalanceSnapshot = undefined;
+        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [ awaitBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'awaitBalanceSnapshot', false);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
