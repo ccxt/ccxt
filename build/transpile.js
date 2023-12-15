@@ -2157,15 +2157,15 @@ class Transpiler {
         return unCamelCase (name).replace (/\./g, '_');
     }
 
+    phpReplaceException (cont) {
+        return cont.
+            replace (/catch\(Exception/g, 'catch\(\\Throwable').
+            replace (/catch\(\\Exception/g, 'catch\(\\Throwable');
+    }
+
     // ============================================================================
 
     transpileExchangeTests () {
-
-        this.phpReplaceException = (cont) => {
-            return cont.
-                replace (/catch\(Exception/g, 'catch\(\\Throwable').
-                replace (/catch\(\\Exception/g, 'catch\(\\Throwable');
-        };
 
         this.transpileMainTests ({
             'tsFile': './ts/src/test/test.ts',
