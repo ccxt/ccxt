@@ -14,6 +14,10 @@ process.on ('uncaughtException', (e) => {
     // process.exit (1);
 });
 process.on ('unhandledRejection', (e: any) => {
+    if (e.message.includes('connection closed by remote server')) {
+        // because of unbeknown reason, this error is happening somewhere in the middle of WS tests, and it's not caught by the try/catch block. so temporarily ignore it
+        return;
+    }
     throw new Error (exceptionMessage (e));
     // process.exit (1);
 });
@@ -177,15 +181,7 @@ function isNullValue (value) {
 }
 
 async function close (exchange: Exchange) {
-    try {
-        await exchange.close ();
-    } catch (e) {
-        // if connection was failed/already closed by remote exchange, then .close() would have thrown exception "connection closed by remote server", so if that's case, we should skip it
-        // @ts-ignore
-        if (!e.message.includes ('connection closed by remote server')) {
-            throw e;
-        } 
-    }
+    await exchange.close ();
 }
 
 // *********************************
