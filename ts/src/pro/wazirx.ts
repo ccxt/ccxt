@@ -292,7 +292,7 @@ export default class wazirx extends wazirxRest {
         }, market);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name wazirx#watchTrades
@@ -317,7 +317,7 @@ export default class wazirx extends wazirxRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleTrades (client: Client, message) {
@@ -359,7 +359,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchMyTrades (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name wazirx#watchMyTrades
@@ -389,10 +389,10 @@ export default class wazirx extends wazirxRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolLimit (trades, symbol, limit);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe = '1m', limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name wazirx#watchOHLCV
@@ -419,7 +419,7 @@ export default class wazirx extends wazirxRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -560,7 +560,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -579,7 +579,7 @@ export default class wazirx extends wazirxRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolLimit (orders, symbol, limit);
     }
 
     handleOrder (client: Client, message) {

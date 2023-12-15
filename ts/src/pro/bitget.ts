@@ -307,7 +307,7 @@ export default class bitget extends bitgetRest {
         }, market);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe = '1m', limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitget#watchOHLCV
@@ -338,7 +338,7 @@ export default class bitget extends bitgetRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -586,7 +586,7 @@ export default class bitget extends bitgetRest {
         }
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitget#watchTrades
@@ -599,10 +599,10 @@ export default class bitget extends bitgetRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+        return await this.watchTradesForSymbols ([ symbol ], limit, params);
     }
 
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTradesForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitget#watchTradesForSymbols
@@ -642,7 +642,7 @@ export default class bitget extends bitgetRest {
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleTrades (client: Client, message) {
@@ -713,7 +713,7 @@ export default class bitget extends bitgetRest {
         }, market);
     }
 
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    async watchPositions (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name bitget#watchPositions
@@ -744,7 +744,7 @@ export default class bitget extends bitgetRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (newPositions, symbols, since, limit, true);
+        return this.filterBySymbolsLimit (newPositions, symbols, limit, true);
     }
 
     handlePositions (client: Client, message) {
@@ -890,7 +890,7 @@ export default class bitget extends bitgetRest {
         });
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitget#watchOrders
@@ -958,7 +958,7 @@ export default class bitget extends bitgetRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolLimit (orders, symbol, limit);
     }
 
     handleOrder (client: Client, message, subscription = undefined) {
@@ -1285,7 +1285,7 @@ export default class bitget extends bitgetRest {
         return this.safeString (statuses, status, status);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchMyTrades (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitget#watchMyTrades
@@ -1324,7 +1324,7 @@ export default class bitget extends bitgetRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolLimit (trades, symbol, limit);
     }
 
     handleMyTrades (client: Client, message) {

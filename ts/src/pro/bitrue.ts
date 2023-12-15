@@ -169,7 +169,7 @@ export default class bitrue extends bitrueRest {
         this.balance = this.safeBalance (this.balance);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitrue#watchOrders
@@ -199,7 +199,7 @@ export default class bitrue extends bitrueRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolLimit (orders, symbol, limit);
     }
 
     handleOrder (client: Client, message) {

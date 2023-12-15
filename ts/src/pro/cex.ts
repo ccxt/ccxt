@@ -116,7 +116,7 @@ export default class cex extends cexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name cex#watchTrades
@@ -158,7 +158,7 @@ export default class cex extends cexRest {
         for (let i = 0; i < trades.length; i++) {
             trades[i]['symbol'] = symbol;
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleTradesSnapshot (client: Client, message) {
@@ -440,7 +440,7 @@ export default class cex extends cexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: string = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name cex#watchOrders
@@ -476,10 +476,10 @@ export default class cex extends cexRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolLimit (orders, symbol, limit);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchMyTrades (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name cex#watchMyTrades
@@ -512,7 +512,7 @@ export default class cex extends cexRest {
         };
         const request = this.deepExtend (message, params);
         const orders = await this.watch (url, messageHash, request, subscriptionHash, request);
-        return this.filterBySymbolSinceLimit (orders, market['symbol'], since, limit);
+        return this.filterBySymbolLimit (orders, market['symbol'], limit);
     }
 
     handleTransaction (client: Client, message) {
@@ -1056,7 +1056,7 @@ export default class cex extends cexRest {
         }
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe = '1m', limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name cex#watchOHLCV
@@ -1085,7 +1085,7 @@ export default class cex extends cexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, true);
     }
 
     handleInitOHLCV (client: Client, message) {
@@ -1232,7 +1232,7 @@ export default class cex extends cexRest {
         return this.parseOrder (response, market);
     }
 
-    async fetchOpenOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrdersWs (symbol: string = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOpenOrdersWs
@@ -1261,7 +1261,7 @@ export default class cex extends cexRest {
             'data': data,
         };
         const response = await this.watch (url, messageHash, request, messageHash);
-        return this.parseOrders (response, market, since, limit, params);
+        return this.parseOrders (response, market, undefined, limit, params);
     }
 
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {

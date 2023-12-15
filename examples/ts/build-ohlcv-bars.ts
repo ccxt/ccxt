@@ -25,7 +25,7 @@ async function example_with_watch_trades () {
     let collectedTrades = [];
     const collectedBars = [];
     while (true) {
-        const wsTrades = await exch.watchTrades (symbol, since, limit, {});
+        const wsTrades = await exch.watchTrades (symbol, limit, {});
         collectedTrades = collectedTrades.concat (wsTrades);
         const generatedBars = exch.buildOHLCVC (collectedTrades, timeframe, since, limit);
         // Note: first bar would be partially constructed bar and its 'open' & 'high' & 'low' prices (except 'close' price) would probably have different values compared to real bar on chart, because the first obtained trade timestamp might be somewhere in the middle of timeframe period, so the pre-period would be missing because we would not have trades data. To fix that, you can get older data with `fetchTrades` to fill up bars till start bar.

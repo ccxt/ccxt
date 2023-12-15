@@ -262,7 +262,7 @@ export default class exmo extends exmoRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name exmo#watchTrades
@@ -287,7 +287,7 @@ export default class exmo extends exmoRest {
         };
         const request = this.deepExtend (message, params);
         const trades = await this.watch (url, messageHash, request, messageHash, request);
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleTrades (client: Client, message) {
@@ -328,7 +328,7 @@ export default class exmo extends exmoRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchMyTrades (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name exmo#watchTrades
@@ -360,7 +360,7 @@ export default class exmo extends exmoRest {
         };
         const request = this.deepExtend (message, query);
         const trades = await this.watch (url, messageHash, request, messageHash, request);
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolLimit (trades, symbol, limit);
     }
 
     handleMyTrades (client: Client, message) {

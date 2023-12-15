@@ -127,7 +127,7 @@ export default class alpaca extends alpacaRest {
         }, market);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe = '1m', limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name alpaca#watchOHLCV
@@ -153,7 +153,7 @@ export default class alpaca extends alpacaRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -267,7 +267,7 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name alpaca#watchTrades
@@ -292,7 +292,7 @@ export default class alpaca extends alpacaRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleTrades (client: Client, message) {
@@ -321,7 +321,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchMyTrades (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name alpaca#watchMyTrades
@@ -351,10 +351,10 @@ export default class alpaca extends alpacaRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name alpaca#watchOrders
@@ -384,7 +384,7 @@ export default class alpaca extends alpacaRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolLimit (orders, symbol, limit);
     }
 
     handleTradeUpdate (client: Client, message) {

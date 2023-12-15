@@ -250,7 +250,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return await this.subscribe (name, false, symbol, undefined, params);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name poloniexfutures#watchTrades
@@ -271,7 +271,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -305,7 +305,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return orderbook.limit ();
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name poloniexfutures#watchOrders
@@ -325,10 +325,10 @@ export default class poloniexfutures extends poloniexfuturesRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        orders = this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        orders = this.filterBySymbolLimit (orders, symbol, limit);
         const length = orders.length;
         if (length === 0) {
-            return await this.watchOrders (symbol, since, limit, params);
+            return await this.watchOrders (symbol, limit, params);
         }
         return orders;
     }

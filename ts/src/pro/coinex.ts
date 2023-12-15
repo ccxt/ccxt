@@ -455,7 +455,7 @@ export default class coinex extends coinexRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinex#watchTrades
@@ -485,7 +485,7 @@ export default class coinex extends coinexRest {
         this.options['watchTradesSubscriptions'] = subscribedSymbols;
         const request = this.deepExtend (message, params);
         const trades = await this.watch (url, messageHash, request, subscriptionHash);
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -537,7 +537,7 @@ export default class coinex extends coinexRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe = '1m', limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name coinex#watchOHLCV
@@ -588,7 +588,7 @@ export default class coinex extends coinexRest {
         if (this.newUpdates) {
             limit = ohlcvs.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcvs, since, limit, 0);
+        return this.filterByLimit (ohlcvs, limit, true);
     }
 
     async fetchOHLCVWs (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}): Promise<OHLCV[]> {
@@ -634,7 +634,7 @@ export default class coinex extends coinexRest {
         const subscriptionHash = id;
         const request = this.deepExtend (subscribe, query);
         const ohlcvs = await this.watch (url, messageHash, request, subscriptionHash, subscription);
-        return this.filterBySinceLimit (ohlcvs, since, limit, 0);
+        return this.filterByLimit (ohlcvs, limit, true);
     }
 
     handleDelta (bookside, delta) {
@@ -706,7 +706,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         await this.authenticate (params);
         let messageHash = 'orders';
@@ -730,7 +730,7 @@ export default class coinex extends coinexRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolLimit (orders, symbol, limit);
     }
 
     handleOrders (client: Client, message) {

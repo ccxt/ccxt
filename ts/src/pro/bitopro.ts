@@ -119,7 +119,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitopro#watchTrades
@@ -138,7 +138,7 @@ export default class bitopro extends bitoproRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleTrade (client: Client, message) {

@@ -200,7 +200,7 @@ export default class htx extends htxRest {
         return message;
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name huobi#watchTrades
@@ -220,7 +220,7 @@ export default class htx extends htxRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleTrades (client: Client, message) {
@@ -265,7 +265,7 @@ export default class htx extends htxRest {
         return message;
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe = '1m', limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name huobi#watchOHLCV
@@ -287,7 +287,7 @@ export default class htx extends htxRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -670,7 +670,7 @@ export default class htx extends htxRest {
         }
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchMyTrades (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name huobi#watchMyTrades
@@ -724,7 +724,7 @@ export default class htx extends htxRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolLimit (trades, symbol, limit);
     }
 
     getOrderChannelAndMessageHash (type, subType, market = undefined, params = {}) {
@@ -768,7 +768,7 @@ export default class htx extends htxRest {
         return [ channel, messageHash ];
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name huobi#watchOrders
@@ -811,7 +811,7 @@ export default class htx extends htxRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        return this.filterByLimit (orders, limit, true);
     }
 
     handleOrder (client: Client, message) {
@@ -1216,7 +1216,7 @@ export default class htx extends htxRest {
         }, market);
     }
 
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    async watchPositions (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name huobi#watchPositions
@@ -1259,7 +1259,7 @@ export default class htx extends htxRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions[url][marginMode], symbols, since, limit, false);
+        return this.filterBySymbolsLimit (this.positions[url][marginMode], symbols, limit, false);
     }
 
     handlePositions (client, message) {

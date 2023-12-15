@@ -244,7 +244,7 @@ export default class coinbase extends coinbaseRest {
         });
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinbasepro#watchTrades
@@ -263,7 +263,7 @@ export default class coinbase extends coinbaseRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}): Promise<Order[]> {
@@ -284,7 +284,7 @@ export default class coinbase extends coinbaseRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        return this.filterByLimit (orders, limit, true);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {

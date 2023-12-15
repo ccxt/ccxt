@@ -487,7 +487,7 @@ export default class kraken extends krakenRest {
         return await this.watchPublic ('ticker', symbol, params);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name kraken#watchTrades
@@ -505,7 +505,7 @@ export default class kraken extends krakenRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -533,7 +533,7 @@ export default class kraken extends krakenRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe = '1m', limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name kraken#watchOHLCV
@@ -569,7 +569,7 @@ export default class kraken extends krakenRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, true);
     }
 
     async loadMarkets (reload = false, params = {}) {
@@ -817,7 +817,7 @@ export default class kraken extends krakenRest {
         return this.safeString (subscription, 'token');
     }
 
-    async watchPrivate (name, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPrivate (name, symbol: Str = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const token = await this.authenticate ();
         const subscriptionHash = name;
@@ -841,10 +841,10 @@ export default class kraken extends krakenRest {
         if (this.newUpdates) {
             limit = result.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        return this.filterBySymbolLimit (result, symbol, limit);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchMyTrades (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name kraken#watchMyTrades
@@ -855,7 +855,7 @@ export default class kraken extends krakenRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
-        return await this.watchPrivate ('ownTrades', symbol, since, limit, params);
+        return await this.watchPrivate ('ownTrades', symbol, limit, params);
     }
 
     handleMyTrades (client: Client, message, subscription = undefined) {
@@ -1008,7 +1008,7 @@ export default class kraken extends krakenRest {
         };
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name kraken#watchOrders
@@ -1020,7 +1020,7 @@ export default class kraken extends krakenRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        return await this.watchPrivate ('openOrders', symbol, since, limit, params);
+        return await this.watchPrivate ('openOrders', symbol, limit, params);
     }
 
     handleOrders (client: Client, message, subscription = undefined) {

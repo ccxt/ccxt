@@ -37,7 +37,7 @@ export default class independentreserve extends independentreserveRest {
         });
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name independentreserve#watchTrades
@@ -54,7 +54,7 @@ export default class independentreserve extends independentreserveRest {
         const url = this.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote'];
         const messageHash = 'trades:' + symbol;
         const trades = await this.watch (url, messageHash, undefined, messageHash);
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleTrades (client: Client, message) {

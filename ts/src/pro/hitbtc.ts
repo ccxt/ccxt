@@ -485,7 +485,7 @@ export default class hitbtc extends hitbtcRest {
         }, market);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name hitbtc#watchTrades
@@ -511,7 +511,7 @@ export default class hitbtc extends hitbtcRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+        return this.filterByLimit (trades, limit, true);
     }
 
     handleTrades (client: Client, message) {
@@ -576,7 +576,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    parseWsTrades (trades, market: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseWsTrades (trades, market: object = undefined, limit: Int = undefined, params = {}) {
         trades = this.toArray (trades);
         let result = [];
         for (let i = 0; i < trades.length; i++) {
@@ -585,7 +585,7 @@ export default class hitbtc extends hitbtcRest {
         }
         result = this.sortBy2 (result, 'timestamp', 'id');
         const symbol = this.safeString (market, 'symbol');
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
+        return this.filterBySymbolLimit (result, symbol, limit) as Trade[];
     }
 
     parseWsTrade (trade, market = undefined) {
@@ -616,7 +616,7 @@ export default class hitbtc extends hitbtcRest {
         }, market);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe = '1m', limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name hitbtc#watchOHLCV
@@ -644,7 +644,7 @@ export default class hitbtc extends hitbtcRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0);
+        return this.filterByLimit (ohlcv, limit, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -730,7 +730,7 @@ export default class hitbtc extends hitbtcRest {
         ];
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name hitbtc#watchOrders
@@ -761,7 +761,7 @@ export default class hitbtc extends hitbtcRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp');
+        return this.filterByLimit (orders, limit, true);
     }
 
     handleOrder (client: Client, message) {

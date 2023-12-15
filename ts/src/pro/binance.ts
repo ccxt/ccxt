@@ -450,7 +450,7 @@ export default class binance extends binanceRest {
         return message;
     }
 
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTradesForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name binance#watchTradesForSymbols
@@ -494,10 +494,10 @@ export default class binance extends binanceRest {
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByLimit (trades, limit, true);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: string, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name binance#watchTrades
@@ -508,7 +508,7 @@ export default class binance extends binanceRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+        return await this.watchTradesForSymbols ([ symbol ], limit, params);
     }
 
     parseTrade (trade, market = undefined): Trade {
@@ -696,7 +696,7 @@ export default class binance extends binanceRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe = '1m', limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name binance#watchOHLCV
@@ -741,7 +741,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterByLimit (ohlcv, limit, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -1896,7 +1896,7 @@ export default class binance extends binanceRest {
             'method': this.handleOrdersWs,
         };
         const orders = await this.watch (url, messageHash, message, messageHash, subscription);
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolLimit (orders, symbol, limit);
     }
 
     async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1933,10 +1933,10 @@ export default class binance extends binanceRest {
             'method': this.handleOrdersWs,
         };
         const orders = await this.watch (url, messageHash, message, messageHash, subscription);
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolLimit (orders, symbol, limit);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name binance#watchOrders
@@ -1980,7 +1980,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             return newOrder;
         }
-        return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit, true);
+        return this.filterBySymbolLimit (this.orders, symbol, limit, true);
     }
 
     parseWsOrder (order, market = undefined) {
@@ -2224,7 +2224,7 @@ export default class binance extends binanceRest {
         this.handleOrder (client, message);
     }
 
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    async watchPositions (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name binance#watchPositions
@@ -2263,13 +2263,13 @@ export default class binance extends binanceRest {
         const cache = this.safeValue (this.positions, type);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             const snapshot = await client.future (type + ':fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsLimit (snapshot, symbols, limit, true);
         }
         const newPositions = await this.watch (url, messageHash, undefined, type);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+        return this.filterBySymbolsLimit (cache, symbols, limit, true);
     }
 
     setPositionsCache (client: Client, type, symbols: Strings = undefined) {
@@ -2466,7 +2466,7 @@ export default class binance extends binanceRest {
             'method': this.handleTradesWs,
         };
         const trades = await this.watch (url, messageHash, message, messageHash, subscription);
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        return this.filterBySymbolLimit (trades, symbol, limit);
     }
 
     handleTradesWs (client: Client, message) {
@@ -2499,7 +2499,7 @@ export default class binance extends binanceRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchMyTrades (symbol: Str = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name binance#watchMyTrades
@@ -2545,7 +2545,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolLimit (trades, symbol, limit);
     }
 
     handleMyTrade (client: Client, message) {
