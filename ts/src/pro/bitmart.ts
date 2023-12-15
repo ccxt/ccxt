@@ -144,18 +144,19 @@ export default class bitmart extends bitmartRest {
 
     setBalanceCache (client: Client, type, subscribeHash) {
         if (subscribeHash in client.subscriptions) {
-            return undefined;
+            return;
         }
         const options = this.safeValue (this.options, 'watchBalance');
-        const fetchBalanceSnapshot = this.handleOptionAndParams (options, 'watchBalance', 'fetchBalanceSnapshot', true);
-        if (fetchBalanceSnapshot) {
-            const messageHash = type + ':fetchBalanceSnapshot';
+        const snapshot = this.safeValue (options, 'fetchBalanceSnapshot', true);
+        if (snapshot) {
+            const messageHash = type + ':' + 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
                 this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
             }
         }
         this.balance[type] = {};
+        // without this comment, transpilation breaks for some reason...
     }
 
     async loadBalanceSnapshot (client, messageHash, type) {
