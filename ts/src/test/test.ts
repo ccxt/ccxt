@@ -177,7 +177,15 @@ function isNullValue (value) {
 }
 
 async function close (exchange: Exchange) {
-    await exchange.close ();
+    try {
+        await exchange.close ();
+    } catch (e) {
+        // if connection was failed/already closed by remote exchange, then .close() would have thrown exception "connection closed by remote server", so if that's case, we should skip it
+        // @ts-ignore
+        if (!e.message.includes ('connection closed by remote server')) {
+            throw e;
+        } 
+    }
 }
 
 // *********************************
