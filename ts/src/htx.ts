@@ -39,6 +39,8 @@ export default class htx extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': true,
                 'createDepositAddress': undefined,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
@@ -8647,5 +8649,58 @@ export default class htx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
+    }
+
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name htx#closePositions
+         * @description closes open positions for a market, requires "amount" in params, unlike other exchanges
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-lightning-close-order  // USDT-M (Isolated)
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-lightning-close-position  // USDT-M (Cross)
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  // Coin-M Swap
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M Futures
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} side 'buy' or 'sell'
+         * @param {string} [params.clientOrderId] Client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {number} params.amount Order Quantity
+         * @param {string} [params.order_price_type] "lightning" by default, "lightning_fok": lightning fok type,"lightning_ioc": lightning ioc type "market" by default, "market": market order type," "lightning_fok": lightning 
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const amount = this.safeString2 (params, 'amount', 'volume');
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' closePositions () requires an extra argument params["amount"]');
+        }
+        const request = {
+            'contract_code': market['id'],
+            'direction': side,
+            'volume': amount,
+        };
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+        }
+        let response = undefined;
+        if (market['inverse']) {  // Coin-M
+            if (market['swap']) {
+                response = await this.contractPrivatePostSwapApiV1SwapLightningClosePosition (this.extend (request, params));
+            } else {  // future
+                response = await this.contractPrivatePostApiV1LightningClosePosition (this.extend (request, params));
+            }
+        } else {  // USDT-M
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params);
+            if (marginMode === 'cross') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition (this.extend (request, params));
+            } else {  // isolated
+                response = await this.contractPrivatePostLinearSwapApiV1SwapLightningClosePosition (this.extend (request, params));
+            }
+        }
+        return this.parseOrder (response, market);
     }
 }
