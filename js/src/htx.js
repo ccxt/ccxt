@@ -13,7 +13,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class huobi
- * @extends Exchange
+ * @augments Exchange
  */
 export default class htx extends Exchange {
     describe() {
@@ -41,6 +41,9 @@ export default class htx extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': undefined,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': false,
@@ -1224,30 +1227,32 @@ export default class htx extends Exchange {
         await this.loadMarkets();
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', undefined, params);
-        let method = 'statusPublicSpotGetApiV2SummaryJson';
+        let response = undefined;
         if (marketType !== 'spot') {
             const subType = this.safeString(params, 'subType', this.options['defaultSubType']);
             if (marketType === 'swap') {
                 if (subType === 'linear') {
-                    method = 'statusPublicSwapLinearGetApiV2SummaryJson';
+                    response = await this.statusPublicSwapLinearGetApiV2SummaryJson();
                 }
                 else if (subType === 'inverse') {
-                    method = 'statusPublicSwapInverseGetApiV2SummaryJson';
+                    response = await this.statusPublicSwapInverseGetApiV2SummaryJson();
                 }
             }
             else if (marketType === 'future') {
                 if (subType === 'linear') {
-                    method = 'statusPublicFutureLinearGetApiV2SummaryJson';
+                    response = await this.statusPublicFutureLinearGetApiV2SummaryJson();
                 }
                 else if (subType === 'inverse') {
-                    method = 'statusPublicFutureInverseGetApiV2SummaryJson';
+                    response = await this.statusPublicFutureInverseGetApiV2SummaryJson();
                 }
             }
             else if (marketType === 'contract') {
-                method = 'contractPublicGetHeartbeat';
+                response = await this.contractPublicGetHeartbeat();
             }
         }
-        const response = await this[method]();
+        else {
+            response = await this.statusPublicSpotGetApiV2SummaryJson();
+        }
         //
         // statusPublicSpotGetApiV2SummaryJson, statusPublicSwapInverseGetApiV2SummaryJson, statusPublicFutureLinearGetApiV2SummaryJson, statusPublicFutureInverseGetApiV2SummaryJson
         //
@@ -1412,7 +1417,7 @@ export default class htx extends Exchange {
         let status = undefined;
         let updated = undefined;
         let url = undefined;
-        if (method === 'contractPublicGetHeartbeat') {
+        if (marketType === 'contract') {
             const statusRaw = this.safeString(response, 'status');
             status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
             updated = this.safeString(response, 'ts');
@@ -1446,11 +1451,13 @@ export default class htx extends Exchange {
         const defaultType = this.safeString(this.options, 'defaultType', 'spot');
         let type = this.safeString(options, 'type', defaultType);
         type = this.safeString(params, 'type', type);
-        let method = 'spotPublicGetV1CommonTimestamp';
+        let response = undefined;
         if ((type === 'future') || (type === 'swap')) {
-            method = 'contractPublicGetApiV1Timestamp';
+            response = await this.contractPublicGetApiV1Timestamp(params);
         }
-        const response = await this[method](params);
+        else {
+            response = await this.spotPublicGetV1CommonTimestamp(params);
+        }
         //
         // spot
         //
@@ -1618,7 +1625,6 @@ export default class htx extends Exchange {
         return allMarkets;
     }
     async fetchMarketsByTypeAndSubType(type, subType, params = {}) {
-        let method = 'spotPublicGetV1CommonSymbols';
         const query = this.omit(params, ['type', 'subType']);
         const spot = (type === 'spot');
         const contract = (type !== 'spot');
@@ -1627,25 +1633,28 @@ export default class htx extends Exchange {
         let linear = undefined;
         let inverse = undefined;
         const request = {};
+        let response = undefined;
         if (contract) {
             linear = (subType === 'linear');
             inverse = (subType === 'inverse');
             if (linear) {
-                method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
                 if (future) {
                     request['business_type'] = 'futures';
                 }
+                response = await this.contractPublicGetLinearSwapApiV1SwapContractInfo(this.extend(request, query));
             }
             else if (inverse) {
                 if (future) {
-                    method = 'contractPublicGetApiV1ContractContractInfo';
+                    response = await this.contractPublicGetApiV1ContractContractInfo(this.extend(request, query));
                 }
                 else if (swap) {
-                    method = 'contractPublicGetSwapApiV1SwapContractInfo';
+                    response = await this.contractPublicGetSwapApiV1SwapContractInfo(this.extend(request, query));
                 }
             }
         }
-        const response = await this[method](this.extend(request, query));
+        else {
+            response = await this.spotPublicGetV1CommonSymbols(this.extend(request, query));
+        }
         //
         // spot
         //
@@ -2032,23 +2041,25 @@ export default class htx extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {};
-        let fieldName = 'symbol';
-        let method = 'spotPublicGetMarketDetailMerged';
+        let response = undefined;
         if (market['linear']) {
-            method = 'contractPublicGetLinearSwapExMarketDetailMerged';
-            fieldName = 'contract_code';
+            request['contract_code'] = market['id'];
+            response = await this.contractPublicGetLinearSwapExMarketDetailMerged(this.extend(request, params));
         }
         else if (market['inverse']) {
             if (market['future']) {
-                method = 'contractPublicGetMarketDetailMerged';
+                request['symbol'] = market['id'];
+                response = await this.contractPublicGetMarketDetailMerged(this.extend(request, params));
             }
             else if (market['swap']) {
-                method = 'contractPublicGetSwapExMarketDetailMerged';
-                fieldName = 'contract_code';
+                request['contract_code'] = market['id'];
+                response = await this.contractPublicGetSwapExMarketDetailMerged(this.extend(request, params));
             }
         }
-        request[fieldName] = market['id'];
-        const response = await this[method](this.extend(request, params));
+        else {
+            request['symbol'] = market['id'];
+            response = await this.spotPublicGetMarketDetailMerged(this.extend(request, params));
+        }
         //
         // spot
         //
@@ -2121,7 +2132,6 @@ export default class htx extends Exchange {
         }
         let type = undefined;
         let subType = undefined;
-        let method = 'spotPublicGetMarketTickers';
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         [subType, params] = this.handleSubTypeAndParams('fetchTickers', market, params);
         const request = {};
@@ -2129,24 +2139,27 @@ export default class htx extends Exchange {
         const swap = (type === 'swap');
         const linear = (subType === 'linear');
         const inverse = (subType === 'inverse');
+        params = this.omit(params, ['type', 'subType']);
+        let response = undefined;
         if (future || swap) {
             if (linear) {
-                method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
                 if (future) {
                     request['business_type'] = 'futures';
                 }
+                response = await this.contractPublicGetLinearSwapExMarketDetailBatchMerged(this.extend(request, params));
             }
             else if (inverse) {
                 if (future) {
-                    method = 'contractPublicGetMarketDetailBatchMerged';
+                    response = await this.contractPublicGetMarketDetailBatchMerged(this.extend(request, params));
                 }
                 else if (swap) {
-                    method = 'contractPublicGetSwapExMarketDetailBatchMerged';
+                    response = await this.contractPublicGetSwapExMarketDetailBatchMerged(this.extend(request, params));
                 }
             }
         }
-        params = this.omit(params, ['type', 'subType']);
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.spotPublicGetMarketTickers(this.extend(request, params));
+        }
         //
         // spot
         //
@@ -2279,19 +2292,19 @@ export default class htx extends Exchange {
             // 'symbol': market['id'], // spot, future
             // 'contract_code': market['id'], // swap
         };
-        let fieldName = 'symbol';
-        let method = 'spotPublicGetMarketDepth';
+        let response = undefined;
         if (market['linear']) {
-            method = 'contractPublicGetLinearSwapExMarketDepth';
-            fieldName = 'contract_code';
+            request['contract_code'] = market['id'];
+            response = await this.contractPublicGetLinearSwapExMarketDepth(this.extend(request, params));
         }
         else if (market['inverse']) {
             if (market['future']) {
-                method = 'contractPublicGetMarketDepth';
+                request['symbol'] = market['id'];
+                response = await this.contractPublicGetMarketDepth(this.extend(request, params));
             }
             else if (market['swap']) {
-                method = 'contractPublicGetSwapExMarketDepth';
-                fieldName = 'contract_code';
+                request['contract_code'] = market['id'];
+                response = await this.contractPublicGetSwapExMarketDepth(this.extend(request, params));
             }
         }
         else {
@@ -2307,9 +2320,9 @@ export default class htx extends Exchange {
                     request['depth'] = limit;
                 }
             }
+            request['symbol'] = market['id'];
+            response = await this.spotPublicGetMarketDepth(this.extend(request, params));
         }
-        request[fieldName] = market['id'];
-        const response = await this[method](this.extend(request, params));
         //
         // spot, future, swap
         //
@@ -2560,7 +2573,7 @@ export default class htx extends Exchange {
         // 'direct': 'prev', // next, prev
         // 'size': limit, // default 20, max 50
         };
-        let method = undefined;
+        let response = undefined;
         if (marketType === 'spot') {
             if (symbol !== undefined) {
                 market = this.market(symbol);
@@ -2574,7 +2587,7 @@ export default class htx extends Exchange {
                 // request['end-time'] = this.sum (since, 172800000); // 48 hours window
             }
             [request, params] = this.handleUntilOption('end-time', request, params);
-            method = 'spotPrivateGetV1OrderMatchresults';
+            response = await this.spotPrivateGetV1OrderMatchresults(this.extend(request, params));
         }
         else {
             if (symbol === undefined) {
@@ -2595,26 +2608,25 @@ export default class htx extends Exchange {
                 [marginMode, params] = this.handleMarginModeAndParams('fetchMyTrades', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
-                    method = 'contractPrivatePostLinearSwapApiV3SwapMatchresultsExact';
+                    response = await this.contractPrivatePostLinearSwapApiV3SwapMatchresultsExact(this.extend(request, params));
                 }
                 else if (marginMode === 'cross') {
-                    method = 'contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact';
+                    response = await this.contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact(this.extend(request, params));
                 }
             }
             else if (market['inverse']) {
                 if (marketType === 'future') {
-                    method = 'contractPrivatePostApiV3ContractMatchresultsExact';
                     request['symbol'] = market['settleId'];
+                    response = await this.contractPrivatePostApiV3ContractMatchresultsExact(this.extend(request, params));
                 }
                 else if (marketType === 'swap') {
-                    method = 'contractPrivatePostSwapApiV3SwapMatchresultsExact';
+                    response = await this.contractPrivatePostSwapApiV3SwapMatchresultsExact(this.extend(request, params));
                 }
                 else {
                     throw new NotSupported(this.id + ' fetchMyTrades() does not support ' + marketType + ' markets');
                 }
             }
         }
-        const response = await this[method](this.extend(request, params));
         //
         // spot
         //
@@ -2708,31 +2720,33 @@ export default class htx extends Exchange {
         // 'symbol': market['id'], // spot, future
         // 'contract_code': market['id'], // swap
         };
-        let fieldName = 'symbol';
-        let method = 'spotPublicGetMarketHistoryTrade';
-        if (market['future']) {
-            if (market['inverse']) {
-                method = 'contractPublicGetMarketHistoryTrade';
-            }
-            else if (market['linear']) {
-                method = 'contractPublicGetLinearSwapExMarketHistoryTrade';
-                fieldName = 'contract_code';
-            }
-        }
-        else if (market['swap']) {
-            if (market['inverse']) {
-                method = 'contractPublicGetSwapExMarketHistoryTrade';
-            }
-            else if (market['linear']) {
-                method = 'contractPublicGetLinearSwapExMarketHistoryTrade';
-            }
-            fieldName = 'contract_code';
-        }
-        request[fieldName] = market['id'];
         if (limit !== undefined) {
             request['size'] = Math.min(limit, 2000); // max 2000
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (market['future']) {
+            if (market['inverse']) {
+                request['symbol'] = market['id'];
+                response = await this.contractPublicGetMarketHistoryTrade(this.extend(request, params));
+            }
+            else if (market['linear']) {
+                request['contract_code'] = market['id'];
+                response = await this.contractPublicGetLinearSwapExMarketHistoryTrade(this.extend(request, params));
+            }
+        }
+        else if (market['swap']) {
+            request['contract_code'] = market['id'];
+            if (market['inverse']) {
+                response = await this.contractPublicGetSwapExMarketHistoryTrade(this.extend(request, params));
+            }
+            else if (market['linear']) {
+                response = await this.contractPublicGetLinearSwapExMarketHistoryTrade(this.extend(request, params));
+            }
+        }
+        else {
+            request['symbol'] = market['id'];
+            response = await this.spotPublicGetMarketHistoryTrade(this.extend(request, params));
+        }
         //
         //     {
         //         "status": "ok",
@@ -2823,85 +2837,8 @@ export default class htx extends Exchange {
             // 'from': parseInt ((since / 1000).toString ()), spot only
             // 'to': this.seconds (), spot only
         };
-        let fieldName = 'symbol';
         const price = this.safeString(params, 'price');
         params = this.omit(params, 'price');
-        let method = 'spotPublicGetMarketHistoryCandles';
-        if (market['spot']) {
-            if (timeframe === '1M' || timeframe === '1y') {
-                // for some reason 1M and 1Y does not work with the regular endpoint
-                // https://github.com/ccxt/ccxt/issues/18006
-                method = 'spotPublicGetMarketHistoryKline';
-            }
-            if (since !== undefined) {
-                request['from'] = this.parseToInt(since / 1000);
-            }
-            if (limit !== undefined) {
-                request['size'] = limit; // max 2000
-            }
-        }
-        else if (market['future']) {
-            if (market['inverse']) {
-                if (price === 'mark') {
-                    method = 'contractPublicGetIndexMarketHistoryMarkPriceKline';
-                }
-                else if (price === 'index') {
-                    method = 'contractPublicGetIndexMarketHistoryIndex';
-                }
-                else if (price === 'premiumIndex') {
-                    throw new BadRequest(this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
-                }
-                else {
-                    method = 'contractPublicGetMarketHistoryKline';
-                }
-            }
-            else if (market['linear']) {
-                if (price === 'mark') {
-                    method = 'contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline';
-                }
-                else if (price === 'index') {
-                    throw new BadRequest(this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
-                }
-                else if (price === 'premiumIndex') {
-                    method = 'contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline';
-                }
-                else {
-                    method = 'contractPublicGetLinearSwapExMarketHistoryKline';
-                }
-                fieldName = 'contract_code';
-            }
-        }
-        else if (market['swap']) {
-            if (market['inverse']) {
-                if (price === 'mark') {
-                    method = 'contractPublicGetIndexMarketHistorySwapMarkPriceKline';
-                }
-                else if (price === 'index') {
-                    throw new BadRequest(this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
-                }
-                else if (price === 'premiumIndex') {
-                    method = 'contractPublicGetIndexMarketHistorySwapPremiumIndexKline';
-                }
-                else {
-                    method = 'contractPublicGetSwapExMarketHistoryKline';
-                }
-            }
-            else if (market['linear']) {
-                if (price === 'mark') {
-                    method = 'contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline';
-                }
-                else if (price === 'index') {
-                    throw new BadRequest(this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
-                }
-                else if (price === 'premiumIndex') {
-                    method = 'contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline';
-                }
-                else {
-                    method = 'contractPublicGetLinearSwapExMarketHistoryKline';
-                }
-            }
-            fieldName = 'contract_code';
-        }
         if (market['contract']) {
             if (limit !== undefined) {
                 request['size'] = limit; // when using limit from and to are ignored
@@ -2924,8 +2861,87 @@ export default class htx extends Exchange {
                 }
             }
         }
-        request[fieldName] = market['id'];
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (market['future']) {
+            if (market['inverse']) {
+                request['symbol'] = market['id'];
+                if (price === 'mark') {
+                    response = await this.contractPublicGetIndexMarketHistoryMarkPriceKline(this.extend(request, params));
+                }
+                else if (price === 'index') {
+                    response = await this.contractPublicGetIndexMarketHistoryIndex(this.extend(request, params));
+                }
+                else if (price === 'premiumIndex') {
+                    throw new BadRequest(this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
+                }
+                else {
+                    response = await this.contractPublicGetMarketHistoryKline(this.extend(request, params));
+                }
+            }
+            else if (market['linear']) {
+                request['contract_code'] = market['id'];
+                if (price === 'mark') {
+                    response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.extend(request, params));
+                }
+                else if (price === 'index') {
+                    throw new BadRequest(this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
+                }
+                else if (price === 'premiumIndex') {
+                    response = await this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(this.extend(request, params));
+                }
+                else {
+                    response = await this.contractPublicGetLinearSwapExMarketHistoryKline(this.extend(request, params));
+                }
+            }
+        }
+        else if (market['swap']) {
+            request['contract_code'] = market['id'];
+            if (market['inverse']) {
+                if (price === 'mark') {
+                    response = await this.contractPublicGetIndexMarketHistorySwapMarkPriceKline(this.extend(request, params));
+                }
+                else if (price === 'index') {
+                    throw new BadRequest(this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
+                }
+                else if (price === 'premiumIndex') {
+                    response = await this.contractPublicGetIndexMarketHistorySwapPremiumIndexKline(this.extend(request, params));
+                }
+                else {
+                    response = await this.contractPublicGetSwapExMarketHistoryKline(this.extend(request, params));
+                }
+            }
+            else if (market['linear']) {
+                if (price === 'mark') {
+                    response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.extend(request, params));
+                }
+                else if (price === 'index') {
+                    throw new BadRequest(this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
+                }
+                else if (price === 'premiumIndex') {
+                    response = await this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(this.extend(request, params));
+                }
+                else {
+                    response = await this.contractPublicGetLinearSwapExMarketHistoryKline(this.extend(request, params));
+                }
+            }
+        }
+        else {
+            if (since !== undefined) {
+                request['from'] = this.parseToInt(since / 1000);
+            }
+            if (limit !== undefined) {
+                request['size'] = limit; // max 2000
+            }
+            request['symbol'] = market['id'];
+            if (timeframe === '1M' || timeframe === '1y') {
+                // for some reason 1M and 1Y does not work with the regular endpoint
+                // https://github.com/ccxt/ccxt/issues/18006
+                response = await this.spotPublicGetMarketHistoryKline(this.extend(request, params));
+            }
+            else {
+                response = await this.spotPublicGetMarketHistoryCandles(this.extend(request, params));
+            }
+        }
         //
         //     {
         //         "status":"ok",
@@ -3542,47 +3558,23 @@ export default class htx extends Exchange {
         // 'pair': 'BTC-USDT',
         // 'contract_type': 'this_week', // swap, this_week, next_week, quarter, next_ quarter
         };
-        let method = undefined;
+        let response = undefined;
         if (marketType === 'spot') {
             const clientOrderId = this.safeString(params, 'clientOrderId');
-            method = 'spotPrivateGetV1OrderOrdersOrderId';
             if (clientOrderId !== undefined) {
-                method = 'spotPrivateGetV1OrderOrdersGetClientOrder';
                 // will be filled below in extend ()
                 // they expect clientOrderId instead of client-order-id
                 // request['clientOrderId'] = clientOrderId;
+                response = await this.spotPrivateGetV1OrderOrdersGetClientOrder(this.extend(request, params));
             }
             else {
                 request['order-id'] = id;
+                response = await this.spotPrivateGetV1OrderOrdersOrderId(this.extend(request, params));
             }
         }
         else {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
-            }
-            request['contract_code'] = market['id'];
-            if (market['linear']) {
-                let marginMode = undefined;
-                [marginMode, params] = this.handleMarginModeAndParams('fetchOrder', params);
-                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (marginMode === 'isolated') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
-                }
-                else if (marginMode === 'cross') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo';
-                }
-            }
-            else if (market['inverse']) {
-                if (marketType === 'future') {
-                    method = 'contractPrivatePostApiV1ContractOrderInfo';
-                    request['symbol'] = market['settleId'];
-                }
-                else if (marketType === 'swap') {
-                    method = 'contractPrivatePostSwapApiV1SwapOrderInfo';
-                }
-                else {
-                    throw new NotSupported(this.id + ' fetchOrder() does not support ' + marketType + ' markets');
-                }
             }
             const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
             if (clientOrderId === undefined) {
@@ -3592,8 +3584,31 @@ export default class htx extends Exchange {
                 request['client_order_id'] = clientOrderId;
                 params = this.omit(params, ['client_order_id', 'clientOrderId']);
             }
+            request['contract_code'] = market['id'];
+            if (market['linear']) {
+                let marginMode = undefined;
+                [marginMode, params] = this.handleMarginModeAndParams('fetchOrder', params);
+                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
+                if (marginMode === 'isolated') {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapOrderInfo(this.extend(request, params));
+                }
+                else if (marginMode === 'cross') {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo(this.extend(request, params));
+                }
+            }
+            else if (market['inverse']) {
+                if (marketType === 'future') {
+                    request['symbol'] = market['settleId'];
+                    response = await this.contractPrivatePostApiV1ContractOrderInfo(this.extend(request, params));
+                }
+                else if (marketType === 'swap') {
+                    response = await this.contractPrivatePostSwapApiV1SwapOrderInfo(this.extend(request, params));
+                }
+                else {
+                    throw new NotSupported(this.id + ' fetchOrder() does not support ' + marketType + ' markets');
+                }
+            }
         }
-        const response = await this[method](this.extend(request, params));
         //
         // spot
         //
@@ -4843,6 +4858,25 @@ export default class htx extends Exchange {
             'trades': trades,
         }, market);
     }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name htx#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4ee16-7773-11ed-9966-0242ac110003
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
     async createSpotOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -4856,6 +4890,7 @@ export default class htx extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
+         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
          * @returns {object} request to be sent to the exchange
          */
         await this.loadMarkets();
@@ -4930,9 +4965,17 @@ export default class htx extends Exchange {
             request['source'] = 'c2c-margin-api';
         }
         if ((orderType === 'market') && (side === 'buy')) {
-            if (this.options['createMarketBuyOrderRequiresPrice']) {
+            let quoteAmount = undefined;
+            let createMarketBuyOrderRequiresPrice = true;
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber(params, 'cost');
+            params = this.omit(params, 'cost');
+            if (cost !== undefined) {
+                quoteAmount = this.amountToPrecision(symbol, cost);
+            }
+            else if (createMarketBuyOrderRequiresPrice) {
                 if (price === undefined) {
-                    throw new InvalidOrder(this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
+                    throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 }
                 else {
                     // despite that cost = amount * price is in quote currency and should have quote precision
@@ -4943,12 +4986,13 @@ export default class htx extends Exchange {
                     // we use amountToPrecision here because the exchange requires cost in base precision
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
-                    request['amount'] = this.costToPrecision(symbol, Precise.stringMul(amountString, priceString));
+                    quoteAmount = this.amountToPrecision(symbol, Precise.stringMul(amountString, priceString));
                 }
             }
             else {
-                request['amount'] = this.costToPrecision(symbol, amount);
+                quoteAmount = this.amountToPrecision(symbol, amount);
             }
+            request['amount'] = quoteAmount;
         }
         else {
             request['amount'] = this.amountToPrecision(symbol, amount);
@@ -5080,6 +5124,7 @@ export default class htx extends Exchange {
          * @param {bool} [params.postOnly] *contract only* true or false
          * @param {int} [params.leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
          * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -5226,7 +5271,7 @@ export default class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-orders
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-orders
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-orders
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -6262,7 +6307,6 @@ export default class htx extends Exchange {
         };
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('transfer', undefined, params);
-        let method = undefined;
         let fromAccountId = this.convertTypeToAccount(fromAccount);
         let toAccountId = this.convertTypeToAccount(toAccount);
         const toCross = toAccountId === 'cross';
@@ -6275,28 +6319,28 @@ export default class htx extends Exchange {
             throw new BadRequest(this.id + ' transfer () cannot make a transfer between ' + fromAccount + ' and ' + toAccount);
         }
         const fromOrToFuturesAccount = (fromAccountId === 'futures') || (toAccountId === 'futures');
+        let response = undefined;
         if (fromOrToFuturesAccount) {
             let type = fromAccountId + '-to-' + toAccountId;
             type = this.safeString(params, 'type', type);
             request['type'] = type;
-            method = 'spotPrivatePostV1FuturesTransfer';
+            response = await this.spotPrivatePostV1FuturesTransfer(this.extend(request, params));
         }
         else if (fromSpot && toCross) {
-            method = 'privatePostCrossMarginTransferIn';
+            response = await this.privatePostCrossMarginTransferIn(this.extend(request, params));
         }
         else if (fromCross && toSpot) {
-            method = 'privatePostCrossMarginTransferOut';
+            response = await this.privatePostCrossMarginTransferOut(this.extend(request, params));
         }
         else if (fromSpot && toIsolated) {
             request['symbol'] = toAccountId;
-            method = 'privatePostDwTransferInMargin';
+            response = await this.privatePostDwTransferInMargin(this.extend(request, params));
         }
         else if (fromIsolated && toSpot) {
             request['symbol'] = fromAccountId;
-            method = 'privatePostDwTransferOutMargin';
+            response = await this.privatePostDwTransferOutMargin(this.extend(request, params));
         }
         else {
-            method = 'v2PrivatePostAccountTransfer';
             if (subType === 'linear') {
                 if ((fromAccountId === 'swap') || (fromAccount === 'linear-swap')) {
                     fromAccountId = 'linear-swap';
@@ -6317,8 +6361,8 @@ export default class htx extends Exchange {
             }
             request['from'] = fromSpot ? 'spot' : fromAccountId;
             request['to'] = toSpot ? 'spot' : toAccountId;
+            response = await this.v2PrivatePostAccountTransfer(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         //    {
         //        "code": "200",
@@ -6445,17 +6489,16 @@ export default class htx extends Exchange {
         const request = {
             'contract_code': market['id'],
         };
-        let method = undefined;
+        let response = undefined;
         if (market['inverse']) {
-            method = 'contractPublicGetSwapApiV1SwapHistoricalFundingRate';
+            response = await this.contractPublicGetSwapApiV1SwapHistoricalFundingRate(this.extend(request, params));
         }
         else if (market['linear']) {
-            method = 'contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate';
+            response = await this.contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate(this.extend(request, params));
         }
         else {
             throw new NotSupported(this.id + ' fetchFundingRateHistory() supports inverse and linear swaps only');
         }
-        const response = await this[method](this.extend(request, params));
         //
         // {
         //     "status": "ok",
@@ -6551,20 +6594,19 @@ export default class htx extends Exchange {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        let method = undefined;
+        const request = {
+            'contract_code': market['id'],
+        };
+        let response = undefined;
         if (market['inverse']) {
-            method = 'contractPublicGetSwapApiV1SwapFundingRate';
+            response = await this.contractPublicGetSwapApiV1SwapFundingRate(this.extend(request, params));
         }
         else if (market['linear']) {
-            method = 'contractPublicGetLinearSwapApiV1SwapFundingRate';
+            response = await this.contractPublicGetLinearSwapApiV1SwapFundingRate(this.extend(request, params));
         }
         else {
             throw new NotSupported(this.id + ' fetchFundingRate() supports inverse and linear swaps only');
         }
-        const request = {
-            'contract_code': market['id'],
-        };
-        const response = await this[method](this.extend(request, params));
         //
         // {
         //     "status": "ok",
@@ -6601,12 +6643,17 @@ export default class htx extends Exchange {
         const request = {
         // 'contract_code': market['id'],
         };
-        const method = this.getSupportedMapping(subType, {
-            'linear': 'contractPublicGetLinearSwapApiV1SwapBatchFundingRate',
-            'inverse': 'contractPublicGetSwapApiV1SwapBatchFundingRate',
-        });
         params = this.omit(params, 'subType');
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (subType === 'linear') {
+            response = await this.contractPublicGetLinearSwapApiV1SwapBatchFundingRate(this.extend(request, params));
+        }
+        else if (subType === 'inverse') {
+            response = await this.contractPublicGetSwapApiV1SwapBatchFundingRate(this.extend(request, params));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchFundingRates() not support this market type');
+        }
         //
         //     {
         //         "status": "ok",
@@ -6653,22 +6700,21 @@ export default class htx extends Exchange {
             request['size'] = limit;
         }
         let market = undefined;
-        let method = undefined;
+        let response = undefined;
         if (marginMode === 'isolated') {
-            method = 'privateGetMarginLoanOrders';
             if (symbol !== undefined) {
                 market = this.market(symbol);
                 request['symbol'] = market['id'];
             }
+            response = await this.privateGetMarginLoanOrders(this.extend(request, params));
         }
         else { // Cross
-            method = 'privateGetCrossMarginLoanOrders';
             if (code !== undefined) {
                 const currency = this.currency(code);
                 request['currency'] = currency['id'];
             }
+            response = await this.privateGetCrossMarginLoanOrders(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         //    {
         //        "status":"ok",
@@ -6931,17 +6977,16 @@ export default class htx extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('fetchFundingHistory', market, params);
-        let method = undefined;
         const request = {
             'type': '30,31',
         };
         if (since !== undefined) {
             request['start_date'] = since;
         }
+        let response = undefined;
         if (marketType === 'swap') {
             request['contract'] = market['id'];
             if (market['linear']) {
-                method = 'contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact';
                 //
                 //    {
                 //        "status": "ok",
@@ -6973,9 +7018,9 @@ export default class htx extends Exchange {
                 else {
                     request['mar_acct'] = market['quoteId'];
                 }
+                response = await this.contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact(this.extend(request, query));
             }
             else {
-                method = 'contractPrivatePostSwapApiV3SwapFinancialRecordExact';
                 //
                 //     {
                 //         "code": 200,
@@ -6996,13 +7041,13 @@ export default class htx extends Exchange {
                 //         "ts": 1604312615051
                 //     }
                 //
+                response = await this.contractPrivatePostSwapApiV3SwapFinancialRecordExact(this.extend(request, query));
             }
         }
         else {
-            method = 'contractPrivatePostApiV3ContractFinancialRecordExact';
             request['symbol'] = market['id'];
+            response = await this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, query));
         }
-        const response = await this[method](this.extend(request, query));
         const data = this.safeValue(response, 'data', []);
         return this.parseIncomes(data, market, since, limit);
     }
@@ -7022,15 +7067,29 @@ export default class htx extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('setLeverage', market, params);
-        let method = undefined;
+        const request = {
+            'lever_rate': leverage,
+        };
+        if (marketType === 'future' && market['inverse']) {
+            request['symbol'] = market['settleId'];
+        }
+        else {
+            request['contract_code'] = market['id'];
+        }
+        let response = undefined;
         if (market['linear']) {
             let marginMode = undefined;
             [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params);
             marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-            method = this.getSupportedMapping(marginMode, {
-                'isolated': 'contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate',
-                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate',
-            });
+            if (marginMode === 'isolated') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate(this.extend(request, query));
+            }
+            else if (marginMode === 'cross') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate(this.extend(request, query));
+            }
+            else {
+                throw new NotSupported(this.id + ' setLeverage() not support this market type');
+            }
             //
             //     {
             //       "status": "ok",
@@ -7044,10 +7103,15 @@ export default class htx extends Exchange {
             //
         }
         else {
-            method = this.getSupportedMapping(marketType, {
-                'future': 'contractPrivatePostApiV1ContractSwitchLeverRate',
-                'swap': 'contractPrivatePostSwapApiV1SwapSwitchLeverRate',
-            });
+            if (marketType === 'future') {
+                response = await this.contractPrivatePostApiV1ContractSwitchLeverRate(this.extend(request, query));
+            }
+            else if (marketType === 'swap') {
+                response = await this.contractPrivatePostSwapApiV1SwapSwitchLeverRate(this.extend(request, query));
+            }
+            else {
+                throw new NotSupported(this.id + ' setLeverage() not support this market type');
+            }
             //
             // future
             //     {
@@ -7065,16 +7129,6 @@ export default class htx extends Exchange {
             //     }
             //
         }
-        const request = {
-            'lever_rate': leverage,
-        };
-        if (marketType === 'future' && market['inverse']) {
-            request['symbol'] = market['settleId'];
-        }
-        else {
-            request['contract_code'] = market['id'];
-        }
-        const response = await this[method](this.extend(request, query));
         return response;
     }
     parseIncome(income, market = undefined) {
@@ -7222,12 +7276,17 @@ export default class htx extends Exchange {
         if (marketType === 'spot') {
             marketType = 'future';
         }
-        let method = undefined;
+        let response = undefined;
         if (subType === 'linear') {
-            method = this.getSupportedMapping(marginMode, {
-                'isolated': 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
-                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',
-            });
+            if (marginMode === 'isolated') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapPositionInfo(params);
+            }
+            else if (marginMode === 'cross') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo(params);
+            }
+            else {
+                throw new NotSupported(this.id + ' fetchPositions() not support this market type');
+            }
             //
             //     {
             //       "status": "ok",
@@ -7257,10 +7316,15 @@ export default class htx extends Exchange {
             //
         }
         else {
-            method = this.getSupportedMapping(marketType, {
-                'future': 'contractPrivatePostApiV1ContractPositionInfo',
-                'swap': 'contractPrivatePostSwapApiV1SwapPositionInfo',
-            });
+            if (marketType === 'future') {
+                response = await this.contractPrivatePostApiV1ContractPositionInfo(params);
+            }
+            else if (marketType === 'swap') {
+                response = await this.contractPrivatePostSwapApiV1SwapPositionInfo(params);
+            }
+            else {
+                throw new NotSupported(this.id + ' fetchPositions() not support this market type');
+            }
             //
             // future
             //     {
@@ -7312,7 +7376,6 @@ export default class htx extends Exchange {
             //     }
             //
         }
-        const response = await this[method](params);
         const data = this.safeValue(response, 'data', []);
         const timestamp = this.safeInteger(response, 'ts');
         const result = [];
@@ -7341,12 +7404,27 @@ export default class htx extends Exchange {
         [marginMode, params] = this.handleMarginModeAndParams('fetchPosition', params);
         marginMode = (marginMode === undefined) ? 'cross' : marginMode;
         const [marketType, query] = this.handleMarketTypeAndParams('fetchPosition', market, params);
-        let method = undefined;
+        const request = {};
+        if (market['future'] && market['inverse']) {
+            request['symbol'] = market['settleId'];
+        }
+        else {
+            if (marginMode === 'cross') {
+                request['margin_account'] = 'USDT'; // only allowed value
+            }
+            request['contract_code'] = market['id'];
+        }
+        let response = undefined;
         if (market['linear']) {
-            method = this.getSupportedMapping(marginMode, {
-                'isolated': 'contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo',
-                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo',
-            });
+            if (marginMode === 'isolated') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo(this.extend(request, query));
+            }
+            else if (marginMode === 'cross') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo(this.extend(request, query));
+            }
+            else {
+                throw new NotSupported(this.id + ' fetchPosition() not support this market type');
+            }
             //
             // isolated
             //
@@ -7466,10 +7544,15 @@ export default class htx extends Exchange {
             //
         }
         else {
-            method = this.getSupportedMapping(marketType, {
-                'future': 'contractPrivatePostApiV1ContractAccountPositionInfo',
-                'swap': 'contractPrivatePostSwapApiV1SwapAccountPositionInfo',
-            });
+            if (marketType === 'future') {
+                response = await this.contractPrivatePostApiV1ContractAccountPositionInfo(this.extend(request, query));
+            }
+            else if (marketType === 'swap') {
+                response = await this.contractPrivatePostSwapApiV1SwapAccountPositionInfo(this.extend(request, query));
+            }
+            else {
+                throw new NotSupported(this.id + ' setLeverage() not support this market type');
+            }
             //
             // future, swap
             //
@@ -7540,17 +7623,6 @@ export default class htx extends Exchange {
             //     }
             //
         }
-        const request = {};
-        if (market['future'] && market['inverse']) {
-            request['symbol'] = market['settleId'];
-        }
-        else {
-            if (marginMode === 'cross') {
-                request['margin_account'] = 'USDT'; // only allowed value
-            }
-            request['contract_code'] = market['id'];
-        }
-        const response = await this[method](this.extend(request, query));
         const data = this.safeValue(response, 'data');
         let account = undefined;
         if (marginMode === 'cross') {
@@ -7881,26 +7953,28 @@ export default class htx extends Exchange {
             'period': timeframes[timeframe],
             'amount_type': amountType,
         };
-        let method = undefined;
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        let response = undefined;
         if (market['future']) {
             request['contract_type'] = this.safeString(market['info'], 'contract_type');
             request['symbol'] = market['baseId']; // currency code on coin-m futures
-            method = 'contractPublicGetApiV1ContractHisOpenInterest'; // coin-m futures
+            // coin-m futures
+            response = await this.contractPublicGetApiV1ContractHisOpenInterest(this.extend(request, params));
         }
         else if (market['linear']) {
             request['contract_type'] = 'swap';
             request['contract_code'] = market['id'];
             request['contract_code'] = market['id'];
-            method = 'contractPublicGetLinearSwapApiV1SwapHisOpenInterest'; // USDT-M
+            // USDT-M
+            response = await this.contractPublicGetLinearSwapApiV1SwapHisOpenInterest(this.extend(request, params));
         }
         else {
             request['contract_code'] = market['id'];
-            method = 'contractPublicGetSwapApiV1SwapHisOpenInterest'; // coin-m swaps
+            // coin-m swaps
+            response = await this.contractPublicGetSwapApiV1SwapHisOpenInterest(this.extend(request, params));
         }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        }
-        const response = await this[method](this.extend(request, params));
         //
         //  contractPublicGetlinearSwapApiV1SwapHisOpenInterest
         //    {
@@ -7988,20 +8062,22 @@ export default class htx extends Exchange {
         const request = {
             'contract_code': market['id'],
         };
-        let method = undefined;
+        let response = undefined;
         if (market['future']) {
             request['contract_type'] = this.safeString(market['info'], 'contract_type');
             request['symbol'] = market['baseId'];
-            method = 'contractPublicGetApiV1ContractOpenInterest'; // COIN-M futures
+            // COIN-M futures
+            response = await this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, params));
         }
         else if (market['linear']) {
             request['contract_type'] = 'swap';
-            method = 'contractPublicGetLinearSwapApiV1SwapOpenInterest'; // USDT-M
+            // USDT-M
+            response = await this.contractPublicGetLinearSwapApiV1SwapOpenInterest(this.extend(request, params));
         }
         else {
-            method = 'contractPublicGetSwapApiV1SwapOpenInterest'; // COIN-M swaps
+            // COIN-M swaps
+            response = await this.contractPublicGetSwapApiV1SwapOpenInterest(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         // USDT-M contractPublicGetLinearSwapApiV1SwapOpenInterest
         //
@@ -8351,16 +8427,18 @@ export default class htx extends Exchange {
         if (until !== undefined) {
             request['end_at'] = until;
         }
-        let method = 'contractPublicGetApiV1ContractSettlementRecords';
+        let response = undefined;
         if (market['swap']) {
             if (market['linear']) {
-                method = 'contractPublicGetLinearSwapApiV1SwapSettlementRecords';
+                response = await this.contractPublicGetLinearSwapApiV1SwapSettlementRecords(this.extend(request, params));
             }
             else {
-                method = 'contractPublicGetSwapApiV1SwapSettlementRecords';
+                response = await this.contractPublicGetSwapApiV1SwapSettlementRecords(this.extend(request, params));
             }
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.contractPublicGetApiV1ContractSettlementRecords(this.extend(request, params));
+        }
         //
         // linear swap, coin-m swap
         //

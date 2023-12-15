@@ -12,7 +12,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitpanda
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitpanda extends Exchange {
     describe() {

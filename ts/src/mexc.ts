@@ -6,13 +6,13 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
 /**
  * @class mexc
- * @extends Exchange
+ * @augments Exchange
  */
 export default class mexc extends Exchange {
     describe () {
@@ -32,7 +32,6 @@ export default class mexc extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': true,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
@@ -109,7 +108,8 @@ export default class mexc extends Exchange {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': true,
                 'setMarginMode': undefined,
                 'setPositionMode': true,
@@ -1413,7 +1413,16 @@ export default class mexc extends Exchange {
             }
             let method = this.safeString (this.options, 'fetchTradesMethod', 'spotPublicGetAggTrades');
             method = this.safeString (params, 'method', method); // AggTrades, HistoricalTrades, Trades
-            trades = await this[method] (this.extend (request, params));
+            params = this.omit (params, [ 'method' ]);
+            if (method === 'spotPublicGetAggTrades') {
+                trades = await this.spotPublicGetAggTrades (this.extend (request, params));
+            } else if (method === 'spotPublicGetHistoricalTrades') {
+                trades = await this.spotPublicGetHistoricalTrades (this.extend (request, params));
+            } else if (method === 'spotPublicGetTrades') {
+                trades = await this.spotPublicGetTrades (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' fetchTrades() not support this method');
+            }
             //
             //     /trades, /historicalTrades
             //
@@ -1715,12 +1724,16 @@ export default class mexc extends Exchange {
             }
             const priceType = this.safeString (params, 'price', 'default');
             params = this.omit (params, 'price');
-            const method = this.getSupportedMapping (priceType, {
-                'default': 'contractPublicGetKlineSymbol',
-                'index': 'contractPublicGetKlineIndexPriceSymbol',
-                'mark': 'contractPublicGetKlineFairPriceSymbol',
-            });
-            const response = await this[method] (this.extend (request, params));
+            let response = undefined;
+            if (priceType === 'default') {
+                response = await this.contractPublicGetKlineSymbol (this.extend (request, params));
+            } else if (priceType === 'index') {
+                response = await this.contractPublicGetKlineIndexPriceSymbol (this.extend (request, params));
+            } else if (priceType === 'mark') {
+                response = await this.contractPublicGetKlineFairPriceSymbol (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' fetchOHLCV() not support this price type, [default, index, mark]');
+            }
             //
             //     {
             //         "success":true,
@@ -2108,6 +2121,7 @@ export default class mexc extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2259,17 +2273,6 @@ export default class mexc extends Exchange {
             // 'trend': 1, // Required for trigger order 1: latest price, 2: fair price, 3: index price
             // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         };
-        let method = 'contractPrivatePostOrderSubmit';
-        const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
-        if (stopPrice) {
-            method = 'contractPrivatePostPlanorderPlace';
-            request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
-            request['triggerType'] = this.safeInteger (params, 'triggerType', 1);
-            request['executeCycle'] = this.safeInteger (params, 'executeCycle', 1);
-            request['trend'] = this.safeInteger (params, 'trend', 1);
-            request['orderType'] = this.safeInteger (params, 'orderType', 1);
-        }
         if ((type !== 5) && (type !== 6) && (type !== 'market')) {
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
@@ -2289,8 +2292,19 @@ export default class mexc extends Exchange {
         if (clientOrderId !== undefined) {
             request['externalOid'] = clientOrderId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'externalOid', 'postOnly' ]);
-        const response = await this[method] (this.extend (request, params));
+        const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        params = this.omit (params, [ 'clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice' ]);
+        let response = undefined;
+        if (stopPrice) {
+            request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['triggerType'] = this.safeInteger (params, 'triggerType', 1);
+            request['executeCycle'] = this.safeInteger (params, 'executeCycle', 1);
+            request['trend'] = this.safeInteger (params, 'trend', 1);
+            request['orderType'] = this.safeInteger (params, 'orderType', 1);
+            response = await this.contractPrivatePostPlanorderPlace (this.extend (request, params));
+        } else {
+            response = await this.contractPrivatePostOrderSubmit (this.extend (request, params));
+        }
         //
         // Swap
         //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
@@ -2308,7 +2322,7 @@ export default class mexc extends Exchange {
          * @name mexc#createOrders
          * @description *spot only*  *all orders must have the same symbol* create a list of trade orders
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-orders
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2394,14 +2408,14 @@ export default class mexc extends Exchange {
                 request['orderId'] = id;
             }
             const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', params);
-            let method = 'spotPrivateGetOrder';
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest (this.id + ' fetchOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
-                method = 'spotPrivateGetMarginOrder';
+                data = await this.spotPrivateGetMarginOrder (this.extend (request, query));
+            } else {
+                data = await this.spotPrivateGetOrder (this.extend (request, query));
             }
-            data = await this[method] (this.extend (request, query));
             //
             // spot
             //
@@ -2511,20 +2525,21 @@ export default class mexc extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument for spot market');
             }
             const [ marginMode, queryInner ] = this.handleMarginModeAndParams ('fetchOrders', params);
-            let method = 'spotPrivateGetAllOrders';
-            if (marginMode !== undefined) {
-                if (marginMode !== 'isolated') {
-                    throw new BadRequest (this.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
-                }
-                method = 'spotPrivateGetMarginAllOrders';
-            }
             if (since !== undefined) {
                 request['startTime'] = since;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const response = await this[method] (this.extend (request, queryInner));
+            let response = undefined;
+            if (marginMode !== undefined) {
+                if (marginMode !== 'isolated') {
+                    throw new BadRequest (this.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
+                }
+                response = await this.spotPrivateGetMarginAllOrders (this.extend (request, queryInner));
+            } else {
+                response = await this.spotPrivateGetAllOrders (this.extend (request, queryInner));
+            }
             //
             // spot
             //
@@ -2740,15 +2755,16 @@ export default class mexc extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument for spot market');
             }
             request['symbol'] = market['id'];
-            let method = 'spotPrivateGetOpenOrders';
             const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+            let response = undefined;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest (this.id + ' fetchOpenOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
-                method = 'spotPrivateGetMarginOpenOrders';
+                response = await this.spotPrivateGetMarginOpenOrders (this.extend (request, query));
+            } else {
+                response = await this.spotPrivateGetOpenOrders (this.extend (request, query));
             }
-            const response = await this[method] (this.extend (request, query));
             //
             // spot
             //
@@ -2884,14 +2900,14 @@ export default class mexc extends Exchange {
             } else {
                 requestInner['orderId'] = id;
             }
-            let method = 'spotPrivateDeleteOrder';
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest (this.id + ' cancelOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
-                method = 'spotPrivateDeleteMarginOrder';
+                data = await this.spotPrivateDeleteMarginOrder (this.extend (requestInner, query));
+            } else {
+                data = await this.spotPrivateDeleteOrder (this.extend (requestInner, query));
             }
-            data = await this[method] (this.extend (requestInner, query));
             //
             // spot
             //
@@ -2930,7 +2946,14 @@ export default class mexc extends Exchange {
             // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
             let method = this.safeString (this.options, 'cancelOrder', 'contractPrivatePostOrderCancel'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = this.safeString (query, 'method', method);
-            const response = await this[method] ([ id ]); // the request cannot be changed or extended. This is the only way to send.
+            let response = undefined;
+            if (method === 'contractPrivatePostOrderCancel') {
+                response = await this.contractPrivatePostOrderCancel ([ id ]); // the request cannot be changed or extended. This is the only way to send.
+            } else if (method === 'contractPrivatePostPlanorderCancel') {
+                response = await this.contractPrivatePostPlanorderCancel ([ id ]); // the request cannot be changed or extended. This is the only way to send.
+            } else {
+                throw new NotSupported (this.id + ' cancelOrder() not support this method');
+            }
             //
             //     {
             //         "success": true,
@@ -3010,14 +3033,15 @@ export default class mexc extends Exchange {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument on spot');
             }
             request['symbol'] = market['id'];
-            let method = 'spotPrivateDeleteOpenOrders';
+            let response = undefined;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest (this.id + ' cancelAllOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
-                method = 'spotPrivateDeleteMarginOpenOrders';
+                response = await this.spotPrivateDeleteMarginOpenOrders (this.extend (request, query));
+            } else {
+                response = await this.spotPrivateDeleteOpenOrders (this.extend (request, query));
             }
-            const response = await this[method] (this.extend (request, query));
             //
             // spot
             //
@@ -3063,7 +3087,12 @@ export default class mexc extends Exchange {
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             let method = this.safeString (this.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
             method = this.safeString (query, 'method', method);
-            const response = await this[method] (this.extend (request, query));
+            let response = undefined;
+            if (method === 'contractPrivatePostOrderCancelAll') {
+                response = await this.contractPrivatePostOrderCancelAll (this.extend (request, query));
+            } else if (method === 'contractPrivatePostPlanorderCancelAll') {
+                response = await this.contractPrivatePostPlanorderCancelAll (this.extend (request, query));
+            }
             //
             //     {
             //         "success": true,
@@ -3582,13 +3611,10 @@ export default class mexc extends Exchange {
         let marketType = undefined;
         const request = {};
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPrivateGetAccount',
-            'swap': 'contractPrivateGetAccountAssets',
-            'margin': 'spotPrivateGetMarginIsolatedAccount',
-        });
         const marginMode = this.safeString (params, 'marginMode');
         const isMargin = this.safeValue (params, 'margin', false);
+        params = this.omit (params, [ 'margin', 'marginMode' ]);
+        let response = undefined;
         if ((marginMode !== undefined) || (isMargin) || (marketType === 'margin')) {
             let parsedSymbols = undefined;
             const symbol = this.safeString (params, 'symbol');
@@ -3602,12 +3628,17 @@ export default class mexc extends Exchange {
                 parsedSymbols = market['id'];
             }
             this.checkRequiredArgument ('fetchBalance', parsedSymbols, 'symbol or symbols');
-            method = 'spotPrivateGetMarginIsolatedAccount';
             marketType = 'margin';
             request['symbols'] = parsedSymbols;
+            params = this.omit (params, [ 'symbol', 'symbols' ]);
+            response = await this.spotPrivateGetMarginIsolatedAccount (this.extend (request, params));
+        } else if (marketType === 'spot') {
+            response = await this.spotPrivateGetAccount (this.extend (request, params));
+        } else if (marketType === 'swap') {
+            response = await this.contractPrivateGetAccountAssets (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchBalance() not support this method');
         }
-        params = this.omit (params, [ 'margin', 'marginMode', 'symbol', 'symbols' ]);
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -5283,7 +5314,7 @@ export default class mexc extends Exchange {
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.margin] true for trading spot-margin
-         * @returns {array} the marginMode in lowercase
+         * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeValue (params, 'margin', false);

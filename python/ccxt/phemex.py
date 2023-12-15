@@ -100,7 +100,7 @@ class phemex(Exchange, ImplicitAPI):
                 'setMarginMode': True,
                 'setPositionMode': True,
                 'transfer': True,
-                'withdraw': None,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -174,6 +174,7 @@ class phemex(Exchange, ImplicitAPI):
                 },
                 'v2': {
                     'get': {
+                        'public/products': 5,
                         'md/v2/orderbook': 5,  # ?symbol=<symbol>&id=<id>
                         'md/v2/trade': 5,  # ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr': 5,  # ?symbol=<symbol>&id=<id>
@@ -238,6 +239,7 @@ class phemex(Exchange, ImplicitAPI):
                         'assets/spots/sub-accounts/transfer': 5,  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/futures/sub-accounts/transfer': 5,  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote': 5,  # ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                        # deposit/withdraw
                     },
                     'post': {
                         # spot
@@ -481,6 +483,16 @@ class phemex(Exchange, ImplicitAPI):
                     'spot': 'spot',
                     'swap': 'future',
                 },
+                'stableCoins': [
+                    'BUSD',
+                    'FEI',
+                    'TUSD',
+                    'USD',
+                    'USDC',
+                    'USDD',
+                    'USDP',
+                    'USDT',
+                ],
                 'transfer': {
                     'fillResponseFromRequest': True,
                 },
@@ -499,6 +511,8 @@ class phemex(Exchange, ImplicitAPI):
         #
         #     {
         #         "symbol":"BTCUSD",
+        #         "code":"1",
+        #         "type":"Perpetual",
         #         "displaySymbol":"BTC / USD",
         #         "indexSymbol":".BTC",
         #         "markSymbol":".MBTC",
@@ -516,9 +530,10 @@ class phemex(Exchange, ImplicitAPI):
         #         "minPriceEp":5000,
         #         "maxPriceEp":10000000000,
         #         "maxOrderQty":1000000,
-        #         "type":"Perpetual",
         #         "status":"Listed",
         #         "tipOrderQty":1000000,
+        #         "listTime":"1574650800000",
+        #         "majorSymbol":true,
         #         "steps":"50",
         #         "riskLimits":[
         #             {"limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000},
@@ -572,7 +587,7 @@ class phemex(Exchange, ImplicitAPI):
         else:
             # "1.0"
             contractSize = self.parse_number(contractSizeString)
-        return {
+        return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote + ':' + settle,
             'base': base,
@@ -625,24 +640,26 @@ class phemex(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
     def parse_spot_market(self, market):
         #
         #     {
         #         "symbol":"sBTCUSDT",
         #         "code":1001,
+        #         "type":"Spot",
         #         "displaySymbol":"BTC / USDT",
         #         "quoteCurrency":"USDT",
         #         "priceScale":8,
         #         "ratioScale":8,
         #         "pricePrecision":2,
-        #         "type":"Spot",
         #         "baseCurrency":"BTC",
         #         "baseTickSize":"0.000001 BTC",
         #         "baseTickSizeEv":100,
         #         "quoteTickSize":"0.01 USDT",
         #         "quoteTickSizeEv":1000000,
+        #         "baseQtyPrecision":6,
+        #         "quoteQtyPrecision":2,
         #         "minOrderValue":"10 USDT",
         #         "minOrderValueEv":1000000000,
         #         "maxBaseOrderSize":"1000 BTC",
@@ -653,13 +670,13 @@ class phemex(Exchange, ImplicitAPI):
         #         "defaultTakerFeeEr":100000,
         #         "defaultMakerFee":"0.001",
         #         "defaultMakerFeeEr":100000,
-        #         "baseQtyPrecision":6,
-        #         "quoteQtyPrecision":2,
+        #         "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
         #         "status":"Listed",
         #         "tipOrderQty":2,
-        #         "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        #         "listTime":1589338800000,
+        #         "buyPriceUpperLimitPct":110,
+        #         "sellPriceLowerLimitPct":90,
         #         "leverage":5
-        #         "valueScale":8,
         #     },
         #
         type = self.safe_string_lower(market, 'type')
@@ -671,7 +688,7 @@ class phemex(Exchange, ImplicitAPI):
         status = self.safe_string(market, 'status')
         precisionAmount = self.parse_safe_number(self.safe_string(market, 'baseTickSize'))
         precisionPrice = self.parse_safe_number(self.safe_string(market, 'quoteTickSize'))
-        return {
+        return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -724,7 +741,7 @@ class phemex(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
     def fetch_markets(self, params={}):
         """
@@ -732,21 +749,22 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        v2Products = self.publicGetCfgV2Products(params)
+        v2Products = self.v2GetPublicProducts(params)
         #
         #     {
         #         "code":0,
-        #         "msg":"OK",
+        #         "msg":"",
         #         "data":{
-        #             "ratioScale":8,
         #             "currencies":[
-        #                 {"code":1,"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
-        #                 {"code":2,"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
-        #                 {"code":3,"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
+        #                 {"currency":"BTC","name":"Bitcoin","code":1,"valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"BTC","inAssetsDisplay":1,"perpetual":0,"stableCoin":0,"assetsPrecision":8},
+        #                 {"currency":"USD","name":"USD","code":2,"valueScale":4,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"USD","inAssetsDisplay":1,"perpetual":0,"stableCoin":0,"assetsPrecision":2},
+        #                 {"currency":"USDT","name":"TetherUS","code":3,"valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"USDT","inAssetsDisplay":1,"perpetual":2,"stableCoin":1,"assetsPrecision":8},
         #             ],
         #             "products":[
         #                 {
         #                     "symbol":"BTCUSD",
+        #                     "code":1,
+        #                     "type":"Perpetual"
         #                     "displaySymbol":"BTC / USD",
         #                     "indexSymbol":".BTC",
         #                     "markSymbol":".MBTC",
@@ -764,22 +782,31 @@ class phemex(Exchange, ImplicitAPI):
         #                     "minPriceEp":5000,
         #                     "maxPriceEp":10000000000,
         #                     "maxOrderQty":1000000,
-        #                     "type":"Perpetual"
+        #                     "description":"BTC/USD perpetual contracts are priced on the .BTC Index. Each contract is worth 1 USD. Funding fees are paid and received every 8 hours at UTC time: 00:00, 08:00 and 16:00.",
+        #                     "status":"Listed",
+        #                     "tipOrderQty":1000000,
+        #                     "listTime":1574650800000,
+        #                     "majorSymbol":true,
+        #                     "defaultLeverage":"-10",
+        #                     "fundingInterval":28800,
+        #                     "maxLeverage":100
         #                 },
         #                 {
         #                     "symbol":"sBTCUSDT",
         #                     "code":1001,
+        #                     "type":"Spot",
         #                     "displaySymbol":"BTC / USDT",
         #                     "quoteCurrency":"USDT",
         #                     "priceScale":8,
         #                     "ratioScale":8,
         #                     "pricePrecision":2,
-        #                     "type":"Spot",
         #                     "baseCurrency":"BTC",
         #                     "baseTickSize":"0.000001 BTC",
         #                     "baseTickSizeEv":100,
         #                     "quoteTickSize":"0.01 USDT",
         #                     "quoteTickSizeEv":1000000,
+        #                     "baseQtyPrecision":6,
+        #                     "quoteQtyPrecision":2,
         #                     "minOrderValue":"10 USDT",
         #                     "minOrderValueEv":1000000000,
         #                     "maxBaseOrderSize":"1000 BTC",
@@ -790,12 +817,49 @@ class phemex(Exchange, ImplicitAPI):
         #                     "defaultTakerFeeEr":100000,
         #                     "defaultMakerFee":"0.001",
         #                     "defaultMakerFeeEr":100000,
-        #                     "baseQtyPrecision":6,
-        #                     "quoteQtyPrecision":2,
+        #                     "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
         #                     "status":"Listed",
         #                     "tipOrderQty":2,
-        #                     "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        #                     "listTime":1589338800000,
+        #                     "buyPriceUpperLimitPct":110,
+        #                     "sellPriceLowerLimitPct":90,
         #                     "leverage":5
+        #                 },
+        #             ],
+        #             "perpProductsV2":[
+        #                 {
+        #                     "symbol":"BTCUSDT",
+        #                     "code":41541,
+        #                     "type":"PerpetualV2",
+        #                     "displaySymbol":"BTC / USDT",
+        #                     "indexSymbol":".BTCUSDT",
+        #                     "markSymbol":".MBTCUSDT",
+        #                     "fundingRateSymbol":".BTCUSDTFR",
+        #                     "fundingRate8hSymbol":".BTCUSDTFR8H",
+        #                     "contractUnderlyingAssets":"BTC",
+        #                     "settleCurrency":"USDT",
+        #                     "quoteCurrency":"USDT",
+        #                     "tickSize":"0.1",
+        #                     "priceScale":0,
+        #                     "ratioScale":0,
+        #                     "pricePrecision":1,
+        #                     "baseCurrency":"BTC",
+        #                     "description":"BTC/USDT perpetual contracts are priced on the .BTCUSDT Index. Each contract is worth 1 BTC. Funding fees are paid and received every 8 hours at UTC time: 00:00, 08:00 and 16:00.",
+        #                     "status":"Listed",
+        #                     "tipOrderQty":0,
+        #                     "listTime":1668225600000,
+        #                     "majorSymbol":true,
+        #                     "defaultLeverage":"-10",
+        #                     "fundingInterval":28800,
+        #                     "maxLeverage":100,
+        #                     "maxOrderQtyRq":"1000",
+        #                     "maxPriceRp":"2000000000",
+        #                     "minOrderValueRv":"1",
+        #                     "minPriceRp":"1000.0",
+        #                     "qtyPrecision":3,
+        #                     "qtyStepSize":"0.001",
+        #                     "tipOrderQtyRq":"200",
+        #                     "maxOpenPosLeverage":100.0
         #                 },
         #             ],
         #             "riskLimits":[
@@ -813,7 +877,25 @@ class phemex(Exchange, ImplicitAPI):
         #                 {"initialMargin":"1.0%","initialMarginEr":1000000,"options":[1,2,3,5,10,25,50,100]},
         #                 {"initialMargin":"1.5%","initialMarginEr":1500000,"options":[1,2,3,5,10,25,50,66]},
         #                 {"initialMargin":"2.0%","initialMarginEr":2000000,"options":[1,2,3,5,10,25,33,50]},
-        #             ]
+        #             ],
+        #             "riskLimitsV2":[
+        #                 {
+        #                     "symbol":"BTCUSDT",
+        #                     "steps":"2000K",
+        #                     "riskLimits":[
+        #                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},,
+        #                         {"limit":4000000,"initialMarginRr":"0.015","maintenanceMarginRr":"0.0075"},
+        #                         {"limit":6000000,"initialMarginRr":"0.02","maintenanceMarginRr":"0.01"},
+        #                     ]
+        #                 },
+        #             ],
+        #             "leveragesV2":[
+        #                 {"options":[1.0,2.0,3.0,5.0,10.0,25.0,50.0,100.0],"initialMarginRr":"0.01"},
+        #                 {"options":[1.0,2.0,3.0,5.0,10.0,25.0,50.0,66.67],"initialMarginRr":"0.015"},
+        #                 {"options":[1.0,2.0,3.0,5.0,10.0,25.0,33.0,50.0],"initialMarginRr":"0.02"},
+        #             ],
+        #             "ratioScale":8,
+        #             "md5Checksum":"5c6604814d3c1bafbe602c3d11a7e8bf",
         #         }
         #     }
         #
@@ -856,7 +938,11 @@ class phemex(Exchange, ImplicitAPI):
         #
         v2ProductsData = self.safe_value(v2Products, 'data', {})
         products = self.safe_value(v2ProductsData, 'products', [])
+        perpetualProductsV2 = self.safe_value(v2ProductsData, 'perpProductsV2', [])
+        products = self.array_concat(products, perpetualProductsV2)
         riskLimits = self.safe_value(v2ProductsData, 'riskLimits', [])
+        riskLimitsV2 = self.safe_value(v2ProductsData, 'riskLimitsV2', [])
+        riskLimits = self.array_concat(riskLimits, riskLimitsV2)
         currencies = self.safe_value(v2ProductsData, 'currencies', [])
         riskLimitsById = self.index_by(riskLimits, 'symbol')
         v1ProductsById = self.index_by(v1ProductsData, 'symbol')
@@ -887,7 +973,7 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = self.publicGetCfgV2Products(params)
+        response = self.v2GetPublicProducts(params)
         #
         #     {
         #         "code":0,
@@ -895,9 +981,9 @@ class phemex(Exchange, ImplicitAPI):
         #         "data":{
         #             ...,
         #             "currencies":[
-        #                 {"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
-        #                 {"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
-        #                 {"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
+        #                 {"currency":"BTC","name":"Bitcoin","code":1,"valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"BTC","inAssetsDisplay":1,"perpetual":0,"stableCoin":0,"assetsPrecision":8},
+        #                 {"currency":"USD","name":"USD","code":2,"valueScale":4,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"USD","inAssetsDisplay":1,"perpetual":0,"stableCoin":0,"assetsPrecision":2},
+        #                 {"currency":"USDT","name":"TetherUS","code":3,"valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"USDT","inAssetsDisplay":1,"perpetual":2,"stableCoin":1,"assetsPrecision":8},
         #             ],
         #             ...
         #         }
@@ -910,6 +996,7 @@ class phemex(Exchange, ImplicitAPI):
             id = self.safe_string(currency, 'currency')
             name = self.safe_string(currency, 'name')
             code = self.safe_currency_code(id)
+            status = self.safe_string(currency, 'status')
             valueScaleString = self.safe_string(currency, 'valueScale')
             valueScale = int(valueScaleString)
             minValueEv = self.safe_string(currency, 'minValueEv')
@@ -927,7 +1014,7 @@ class phemex(Exchange, ImplicitAPI):
                 'info': currency,
                 'code': code,
                 'name': name,
-                'active': None,
+                'active': status == 'Listed',
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
@@ -4150,6 +4237,42 @@ class phemex(Exchange, ImplicitAPI):
             })
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :see: https://phemex-docs.github.io/#create-withdraw-request
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str tag:
+        :param dict [params]: extra parameters specific to the phemex api endpoint
+        :param str [params.network]: unified network code
+        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.load_markets()
+        self.check_address(address)
+        currency = self.currency(code)
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        networkId = self.network_code_to_id(networkCode)
+        stableCoins = self.safe_value(self.options, 'stableCoins')
+        if networkId is None:
+            if not (self.in_array(code, stableCoins)):
+                networkId = currency['id']
+            else:
+                raise ArgumentsRequired(self.id + ' withdraw() requires an extra argument params["network"]')
+        request = {
+            'currency': currency['id'],
+            'address': address,
+            'amount': amount,
+            'chainName': networkId.upper(),
+        }
+        if tag is not None:
+            request['tag'] = tag
+        response = self.privatePostPhemexWithdrawWalletsApiCreateWithdraw(self.extend(request, params))
+        return self.parse_transaction(response, currency)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

@@ -27,6 +27,7 @@ class bigone extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
@@ -1138,13 +1139,18 @@ class bigone extends Exchange {
 
     public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
         /**
+         * create a $market buy order by providing the $symbol and $cost
          * @see https://open.big.one/docs/spot_orders.html#create-order
-         * create a market buy order by providing the $symbol and $cost
-         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
         $params['createMarketBuyOrderRequiresPrice'] = false;
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
@@ -1162,6 +1168,7 @@ class bigone extends Exchange {
          * @param {float} [$params->triggerPrice] the $price at which a trigger $order is triggered at
          * @param {bool} [$params->postOnly] if true, the $order will only be posted to the $order book and not executed immediately
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} operator *stop $order only* GTE or LTE (default)

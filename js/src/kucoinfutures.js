@@ -707,9 +707,6 @@ export default class kucoinfutures extends kucoin {
         orderbook['nonce'] = this.safeInteger(data, 'sequence');
         return orderbook;
     }
-    async fetchL3OrderBook(symbol, limit = undefined, params = {}) {
-        throw new BadRequest(this.id + ' fetchL3OrderBook() is not supported yet');
-    }
     async fetchTicker(symbol, params = {}) {
         /**
          * @method

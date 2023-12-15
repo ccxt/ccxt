@@ -1,8 +1,8 @@
 import Exchange from './abstract/paymium.js';
-import { Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import type { Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 /**
  * @class paymium
- * @extends Exchange
+ * @augments Exchange
  */
 export default class paymium extends Exchange {
     describe(): any;

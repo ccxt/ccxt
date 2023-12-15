@@ -40,7 +40,10 @@ class upbit(Exchange, ImplicitAPI):
                 'option': False,
                 'cancelOrder': True,
                 'createDepositAddress': True,
+                'createMarketBuyOrderWithCost': True,
                 'createMarketOrder': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
@@ -983,24 +986,19 @@ class upbit(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        :see: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
         create a trade order
+        :see: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
+        :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.cost]: for market buy orders, the quote quantity that can be used alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if type == 'market':
-            # for market buy it requires the amount of quote currency to spend
-            if side == 'buy':
-                if self.options['createMarketBuyOrderRequiresPrice']:
-                    if price is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False to supply the cost in the amount argument(the exchange-specific behaviour)')
-                    else:
-                        amount = amount * price
+        self.load_markets()
+        market = self.market(symbol)
         orderSide = None
         if side == 'buy':
             orderSide = 'bid'
@@ -1008,23 +1006,36 @@ class upbit(Exchange, ImplicitAPI):
             orderSide = 'ask'
         else:
             raise InvalidOrder(self.id + ' createOrder() allows buy or sell side only!')
-        self.load_markets()
-        market = self.market(symbol)
         request = {
             'market': market['id'],
             'side': orderSide,
         }
         if type == 'limit':
-            request['volume'] = self.amount_to_precision(symbol, amount)
             request['price'] = self.price_to_precision(symbol, price)
+        if (type == 'market') and (side == 'buy'):
+            # for market buy it requires the amount of quote currency to spend
+            quoteAmount = None
+            createMarketBuyOrderRequiresPrice = True
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            cost = self.safe_number(params, 'cost')
+            params = self.omit(params, 'cost')
+            if cost is not None:
+                quoteAmount = self.cost_to_precision(symbol, cost)
+            elif createMarketBuyOrderRequiresPrice:
+                if price is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
+                else:
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    costRequest = Precise.string_mul(amountString, priceString)
+                    quoteAmount = self.cost_to_precision(symbol, costRequest)
+            else:
+                quoteAmount = self.cost_to_precision(symbol, amount)
+            request['ord_type'] = 'price'
+            request['price'] = quoteAmount
+        else:
             request['ord_type'] = type
-        elif type == 'market':
-            if side == 'buy':
-                request['ord_type'] = 'price'
-                request['price'] = self.price_to_precision(symbol, amount)
-            elif side == 'sell':
-                request['ord_type'] = type
-                request['volume'] = self.amount_to_precision(symbol, amount)
+            request['volume'] = self.amount_to_precision(symbol, amount)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'identifier')
         if clientOrderId is not None:
             request['identifier'] = clientOrderId

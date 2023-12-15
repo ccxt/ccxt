@@ -90,7 +90,7 @@ class phemex extends Exchange {
                 'setMarginMode' => true,
                 'setPositionMode' => true,
                 'transfer' => true,
-                'withdraw' => null,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -164,6 +164,7 @@ class phemex extends Exchange {
                 ),
                 'v2' => array(
                     'get' => array(
+                        'public/products' => 5,
                         'md/v2/orderbook' => 5, // ?symbol=<symbol>&id=<id>
                         'md/v2/trade' => 5, // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr' => 5, // ?symbol=<symbol>&id=<id>
@@ -228,6 +229,7 @@ class phemex extends Exchange {
                         'assets/spots/sub-accounts/transfer' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/futures/sub-accounts/transfer' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote' => 5, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                        // deposit/withdraw
                     ),
                     'post' => array(
                         // spot
@@ -471,6 +473,16 @@ class phemex extends Exchange {
                     'spot' => 'spot',
                     'swap' => 'future',
                 ),
+                'stableCoins' => array(
+                    'BUSD',
+                    'FEI',
+                    'TUSD',
+                    'USD',
+                    'USDC',
+                    'USDD',
+                    'USDP',
+                    'USDT',
+                ),
                 'transfer' => array(
                     'fillResponseFromRequest' => true,
                 ),
@@ -492,6 +504,8 @@ class phemex extends Exchange {
         //
         //     {
         //         "symbol":"BTCUSD",
+        //         "code":"1",
+        //         "type":"Perpetual",
         //         "displaySymbol":"BTC / USD",
         //         "indexSymbol":".BTC",
         //         "markSymbol":".MBTC",
@@ -509,9 +523,10 @@ class phemex extends Exchange {
         //         "minPriceEp":5000,
         //         "maxPriceEp":10000000000,
         //         "maxOrderQty":1000000,
-        //         "type":"Perpetual",
         //         "status":"Listed",
         //         "tipOrderQty":1000000,
+        //         "listTime":"1574650800000",
+        //         "majorSymbol":true,
         //         "steps":"50",
         //         "riskLimits":array(
         //             array("limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000),
@@ -567,7 +582,7 @@ class phemex extends Exchange {
             // "1.0"
             $contractSize = $this->parse_number($contractSizeString);
         }
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote . ':' . $settle,
             'base' => $base,
@@ -620,7 +635,7 @@ class phemex extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function parse_spot_market($market) {
@@ -628,17 +643,19 @@ class phemex extends Exchange {
         //     array(
         //         "symbol":"sBTCUSDT",
         //         "code":1001,
+        //         "type":"Spot",
         //         "displaySymbol":"BTC / USDT",
         //         "quoteCurrency":"USDT",
         //         "priceScale":8,
         //         "ratioScale":8,
         //         "pricePrecision":2,
-        //         "type":"Spot",
         //         "baseCurrency":"BTC",
         //         "baseTickSize":"0.000001 BTC",
         //         "baseTickSizeEv":100,
         //         "quoteTickSize":"0.01 USDT",
         //         "quoteTickSizeEv":1000000,
+        //         "baseQtyPrecision":6,
+        //         "quoteQtyPrecision":2,
         //         "minOrderValue":"10 USDT",
         //         "minOrderValueEv":1000000000,
         //         "maxBaseOrderSize":"1000 BTC",
@@ -649,13 +666,13 @@ class phemex extends Exchange {
         //         "defaultTakerFeeEr":100000,
         //         "defaultMakerFee":"0.001",
         //         "defaultMakerFeeEr":100000,
-        //         "baseQtyPrecision":6,
-        //         "quoteQtyPrecision":2,
+        //         "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
         //         "status":"Listed",
         //         "tipOrderQty":2,
-        //         "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        //         "listTime":1589338800000,
+        //         "buyPriceUpperLimitPct":110,
+        //         "sellPriceLowerLimitPct":90,
         //         "leverage":5
-        //         "valueScale":8,
         //     ),
         //
         $type = $this->safe_string_lower($market, 'type');
@@ -667,7 +684,7 @@ class phemex extends Exchange {
         $status = $this->safe_string($market, 'status');
         $precisionAmount = $this->parse_safe_number($this->safe_string($market, 'baseTickSize'));
         $precisionPrice = $this->parse_safe_number($this->safe_string($market, 'quoteTickSize'));
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
             'base' => $base,
@@ -720,7 +737,7 @@ class phemex extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function fetch_markets($params = array ()) {
@@ -730,21 +747,22 @@ class phemex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $v2Products = Async\await($this->publicGetCfgV2Products ($params));
+            $v2Products = Async\await($this->v2GetPublicProducts ($params));
             //
             //     {
             //         "code":0,
-            //         "msg":"OK",
+            //         "msg":"",
             //         "data":{
-            //             "ratioScale":8,
             //             "currencies":array(
-            //                 array("code":1,"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"),
-            //                 array("code":2,"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"),
-            //                 array("code":3,"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"),
+            //                 array("currency":"BTC","name":"Bitcoin","code":1,"valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"BTC","inAssetsDisplay":1,"perpetual":0,"stableCoin":0,"assetsPrecision":8),
+            //                 array("currency":"USD","name":"USD","code":2,"valueScale":4,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"USD","inAssetsDisplay":1,"perpetual":0,"stableCoin":0,"assetsPrecision":2),
+            //                 array("currency":"USDT","name":"TetherUS","code":3,"valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"USDT","inAssetsDisplay":1,"perpetual":2,"stableCoin":1,"assetsPrecision":8),
             //             ),
             //             "products":array(
             //                 array(
             //                     "symbol":"BTCUSD",
+            //                     "code":1,
+            //                     "type":"Perpetual"
             //                     "displaySymbol":"BTC / USD",
             //                     "indexSymbol":".BTC",
             //                     "markSymbol":".MBTC",
@@ -762,22 +780,31 @@ class phemex extends Exchange {
             //                     "minPriceEp":5000,
             //                     "maxPriceEp":10000000000,
             //                     "maxOrderQty":1000000,
-            //                     "type":"Perpetual"
+            //                     "description":"BTC/USD perpetual contracts are priced on the .BTC Index. Each contract is worth 1 USD. Funding fees are paid and received every 8 hours at UTC time => 00:00, 08:00 and 16:00.",
+            //                     "status":"Listed",
+            //                     "tipOrderQty":1000000,
+            //                     "listTime":1574650800000,
+            //                     "majorSymbol":true,
+            //                     "defaultLeverage":"-10",
+            //                     "fundingInterval":28800,
+            //                     "maxLeverage":100
             //                 ),
             //                 array(
             //                     "symbol":"sBTCUSDT",
             //                     "code":1001,
+            //                     "type":"Spot",
             //                     "displaySymbol":"BTC / USDT",
             //                     "quoteCurrency":"USDT",
             //                     "priceScale":8,
             //                     "ratioScale":8,
             //                     "pricePrecision":2,
-            //                     "type":"Spot",
             //                     "baseCurrency":"BTC",
             //                     "baseTickSize":"0.000001 BTC",
             //                     "baseTickSizeEv":100,
             //                     "quoteTickSize":"0.01 USDT",
             //                     "quoteTickSizeEv":1000000,
+            //                     "baseQtyPrecision":6,
+            //                     "quoteQtyPrecision":2,
             //                     "minOrderValue":"10 USDT",
             //                     "minOrderValueEv":1000000000,
             //                     "maxBaseOrderSize":"1000 BTC",
@@ -788,12 +815,49 @@ class phemex extends Exchange {
             //                     "defaultTakerFeeEr":100000,
             //                     "defaultMakerFee":"0.001",
             //                     "defaultMakerFeeEr":100000,
-            //                     "baseQtyPrecision":6,
-            //                     "quoteQtyPrecision":2,
+            //                     "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
             //                     "status":"Listed",
             //                     "tipOrderQty":2,
-            //                     "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+            //                     "listTime":1589338800000,
+            //                     "buyPriceUpperLimitPct":110,
+            //                     "sellPriceLowerLimitPct":90,
             //                     "leverage":5
+            //                 ),
+            //             ),
+            //             "perpProductsV2":array(
+            //                 array(
+            //                     "symbol":"BTCUSDT",
+            //                     "code":41541,
+            //                     "type":"PerpetualV2",
+            //                     "displaySymbol":"BTC / USDT",
+            //                     "indexSymbol":".BTCUSDT",
+            //                     "markSymbol":".MBTCUSDT",
+            //                     "fundingRateSymbol":".BTCUSDTFR",
+            //                     "fundingRate8hSymbol":".BTCUSDTFR8H",
+            //                     "contractUnderlyingAssets":"BTC",
+            //                     "settleCurrency":"USDT",
+            //                     "quoteCurrency":"USDT",
+            //                     "tickSize":"0.1",
+            //                     "priceScale":0,
+            //                     "ratioScale":0,
+            //                     "pricePrecision":1,
+            //                     "baseCurrency":"BTC",
+            //                     "description":"BTC/USDT perpetual contracts are priced on the .BTCUSDT Index. Each contract is worth 1 BTC. Funding fees are paid and received every 8 hours at UTC time => 00:00, 08:00 and 16:00.",
+            //                     "status":"Listed",
+            //                     "tipOrderQty":0,
+            //                     "listTime":1668225600000,
+            //                     "majorSymbol":true,
+            //                     "defaultLeverage":"-10",
+            //                     "fundingInterval":28800,
+            //                     "maxLeverage":100,
+            //                     "maxOrderQtyRq":"1000",
+            //                     "maxPriceRp":"2000000000",
+            //                     "minOrderValueRv":"1",
+            //                     "minPriceRp":"1000.0",
+            //                     "qtyPrecision":3,
+            //                     "qtyStepSize":"0.001",
+            //                     "tipOrderQtyRq":"200",
+            //                     "maxOpenPosLeverage":100.0
             //                 ),
             //             ),
             //             "riskLimits":array(
@@ -811,7 +875,25 @@ class phemex extends Exchange {
             //                 array("initialMargin":"1.0%","initialMarginEr":1000000,"options":[1,2,3,5,10,25,50,100]),
             //                 array("initialMargin":"1.5%","initialMarginEr":1500000,"options":[1,2,3,5,10,25,50,66]),
             //                 array("initialMargin":"2.0%","initialMarginEr":2000000,"options":[1,2,3,5,10,25,33,50]),
-            //             ]
+            //             ],
+            //             "riskLimitsV2":array(
+            //                 array(
+            //                     "symbol":"BTCUSDT",
+            //                     "steps":"2000K",
+            //                     "riskLimits":array(
+            //                         array("limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"),,
+            //                         array("limit":4000000,"initialMarginRr":"0.015","maintenanceMarginRr":"0.0075"),
+            //                         array("limit":6000000,"initialMarginRr":"0.02","maintenanceMarginRr":"0.01"),
+            //                     )
+            //                 ),
+            //             ),
+            //             "leveragesV2":[
+            //                 array("options":[1.0,2.0,3.0,5.0,10.0,25.0,50.0,100.0],"initialMarginRr":"0.01"),
+            //                 array("options":[1.0,2.0,3.0,5.0,10.0,25.0,50.0,66.67],"initialMarginRr":"0.015"),
+            //                 array("options":[1.0,2.0,3.0,5.0,10.0,25.0,33.0,50.0],"initialMarginRr":"0.02"),
+            //             ],
+            //             "ratioScale":8,
+            //             "md5Checksum":"5c6604814d3c1bafbe602c3d11a7e8bf",
             //         }
             //     }
             //
@@ -854,7 +936,11 @@ class phemex extends Exchange {
             //
             $v2ProductsData = $this->safe_value($v2Products, 'data', array());
             $products = $this->safe_value($v2ProductsData, 'products', array());
+            $perpetualProductsV2 = $this->safe_value($v2ProductsData, 'perpProductsV2', array());
+            $products = $this->array_concat($products, $perpetualProductsV2);
             $riskLimits = $this->safe_value($v2ProductsData, 'riskLimits', array());
+            $riskLimitsV2 = $this->safe_value($v2ProductsData, 'riskLimitsV2', array());
+            $riskLimits = $this->array_concat($riskLimits, $riskLimitsV2);
             $currencies = $this->safe_value($v2ProductsData, 'currencies', array());
             $riskLimitsById = $this->index_by($riskLimits, 'symbol');
             $v1ProductsById = $this->index_by($v1ProductsData, 'symbol');
@@ -890,7 +976,7 @@ class phemex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of $currencies
              */
-            $response = Async\await($this->publicGetCfgV2Products ($params));
+            $response = Async\await($this->v2GetPublicProducts ($params));
             //
             //     {
             //         "code":0,
@@ -898,9 +984,9 @@ class phemex extends Exchange {
             //         "data":{
             //             ...,
             //             "currencies":array(
-            //                 array("currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"),
-            //                 array("currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"),
-            //                 array("currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"),
+            //                 array("currency":"BTC","name":"Bitcoin","code":1,"valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"BTC","inAssetsDisplay":1,"perpetual":0,"stableCoin":0,"assetsPrecision":8),
+            //                 array("currency":"USD","name":"USD","code":2,"valueScale":4,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"USD","inAssetsDisplay":1,"perpetual":0,"stableCoin":0,"assetsPrecision":2),
+            //                 array("currency":"USDT","name":"TetherUS","code":3,"valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"USDT","inAssetsDisplay":1,"perpetual":2,"stableCoin":1,"assetsPrecision":8),
             //             ),
             //             ...
             //         }
@@ -913,6 +999,7 @@ class phemex extends Exchange {
                 $id = $this->safe_string($currency, 'currency');
                 $name = $this->safe_string($currency, 'name');
                 $code = $this->safe_currency_code($id);
+                $status = $this->safe_string($currency, 'status');
                 $valueScaleString = $this->safe_string($currency, 'valueScale');
                 $valueScale = intval($valueScaleString);
                 $minValueEv = $this->safe_string($currency, 'minValueEv');
@@ -931,7 +1018,7 @@ class phemex extends Exchange {
                     'info' => $currency,
                     'code' => $code,
                     'name' => $name,
-                    'active' => null,
+                    'active' => $status === 'Listed',
                     'deposit' => null,
                     'withdraw' => null,
                     'fee' => null,
@@ -4459,6 +4546,48 @@ class phemex extends Exchange {
             }
             $sorted = $this->sort_by($result, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        }) ();
+    }
+
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @see https://phemex-docs.github.io/#create-withdraw-$request
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string} $tag
+             * @param {array} [$params] extra parameters specific to the phemex api endpoint
+             * @param {string} [$params->network] unified network $code
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            Async\await($this->load_markets());
+            $this->check_address($address);
+            $currency = $this->currency($code);
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            $networkId = $this->network_code_to_id($networkCode);
+            $stableCoins = $this->safe_value($this->options, 'stableCoins');
+            if ($networkId === null) {
+                if (!($this->in_array($code, $stableCoins))) {
+                    $networkId = $currency['id'];
+                } else {
+                    throw new ArgumentsRequired($this->id . ' withdraw () requires an extra argument $params["network"]');
+                }
+            }
+            $request = array(
+                'currency' => $currency['id'],
+                'address' => $address,
+                'amount' => $amount,
+                'chainName' => strtoupper($networkId),
+            );
+            if ($tag !== null) {
+                $request['tag'] = $tag;
+            }
+            $response = Async\await($this->privatePostPhemexWithdrawWalletsApiCreateWithdraw (array_merge($request, $params)));
+            return $this->parse_transaction($response, $currency);
         }) ();
     }
 

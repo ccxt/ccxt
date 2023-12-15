@@ -36,7 +36,6 @@ class mexc extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => true,
-                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => null,
@@ -113,7 +112,8 @@ class mexc extends Exchange {
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
-                'repayMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => true,
                 'setMarginMode' => null,
                 'setPositionMode' => true,
@@ -1420,7 +1420,16 @@ class mexc extends Exchange {
                 }
                 $method = $this->safe_string($this->options, 'fetchTradesMethod', 'spotPublicGetAggTrades');
                 $method = $this->safe_string($params, 'method', $method); // AggTrades, HistoricalTrades, Trades
-                $trades = Async\await($this->$method (array_merge($request, $params)));
+                $params = $this->omit($params, array( 'method' ));
+                if ($method === 'spotPublicGetAggTrades') {
+                    $trades = Async\await($this->spotPublicGetAggTrades (array_merge($request, $params)));
+                } elseif ($method === 'spotPublicGetHistoricalTrades') {
+                    $trades = Async\await($this->spotPublicGetHistoricalTrades (array_merge($request, $params)));
+                } elseif ($method === 'spotPublicGetTrades') {
+                    $trades = Async\await($this->spotPublicGetTrades (array_merge($request, $params)));
+                } else {
+                    throw new NotSupported($this->id . ' fetchTrades() not support this method');
+                }
                 //
                 //     /trades, /historicalTrades
                 //
@@ -1722,12 +1731,16 @@ class mexc extends Exchange {
                 }
                 $priceType = $this->safe_string($params, 'price', 'default');
                 $params = $this->omit($params, 'price');
-                $method = $this->get_supported_mapping($priceType, array(
-                    'default' => 'contractPublicGetKlineSymbol',
-                    'index' => 'contractPublicGetKlineIndexPriceSymbol',
-                    'mark' => 'contractPublicGetKlineFairPriceSymbol',
-                ));
-                $response = Async\await($this->$method (array_merge($request, $params)));
+                $response = null;
+                if ($priceType === 'default') {
+                    $response = Async\await($this->contractPublicGetKlineSymbol (array_merge($request, $params)));
+                } elseif ($priceType === 'index') {
+                    $response = Async\await($this->contractPublicGetKlineIndexPriceSymbol (array_merge($request, $params)));
+                } elseif ($priceType === 'mark') {
+                    $response = Async\await($this->contractPublicGetKlineFairPriceSymbol (array_merge($request, $params)));
+                } else {
+                    throw new NotSupported($this->id . ' fetchOHLCV() not support this price type, [default, index, mark]');
+                }
                 //
                 //     {
                 //         "success":true,
@@ -2115,6 +2128,7 @@ class mexc extends Exchange {
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
+             * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -2270,17 +2284,6 @@ class mexc extends Exchange {
                 // 'trend' => 1, // Required for trigger order 1 => latest $price, 2 => fair $price, 3 => index $price
                 // 'orderType' => 1, // Required for trigger order 1 => limit order,2:Post Only Maker,3 => close or cancel instantly ,4 => close or cancel completely,5 => Market order
             );
-            $method = 'contractPrivatePostOrderSubmit';
-            $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-            $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
-            if ($stopPrice) {
-                $method = 'contractPrivatePostPlanorderPlace';
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
-                $request['triggerType'] = $this->safe_integer($params, 'triggerType', 1);
-                $request['executeCycle'] = $this->safe_integer($params, 'executeCycle', 1);
-                $request['trend'] = $this->safe_integer($params, 'trend', 1);
-                $request['orderType'] = $this->safe_integer($params, 'orderType', 1);
-            }
             if (($type !== 5) && ($type !== 6) && ($type !== 'market')) {
                 $request['price'] = floatval($this->price_to_precision($symbol, $price));
             }
@@ -2300,8 +2303,19 @@ class mexc extends Exchange {
             if ($clientOrderId !== null) {
                 $request['externalOid'] = $clientOrderId;
             }
-            $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly' ));
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+            $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice' ));
+            $response = null;
+            if ($stopPrice) {
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['triggerType'] = $this->safe_integer($params, 'triggerType', 1);
+                $request['executeCycle'] = $this->safe_integer($params, 'executeCycle', 1);
+                $request['trend'] = $this->safe_integer($params, 'trend', 1);
+                $request['orderType'] = $this->safe_integer($params, 'orderType', 1);
+                $response = Async\await($this->contractPrivatePostPlanorderPlace (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->contractPrivatePostOrderSubmit (array_merge($request, $params)));
+            }
             //
             // Swap
             //     array("code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4")
@@ -2319,7 +2333,7 @@ class mexc extends Exchange {
             /**
              * *spot only*  *all $orders must have the same $symbol* create a list of trade $orders
              * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-$orders
-             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to api endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -2405,14 +2419,14 @@ class mexc extends Exchange {
                     $request['orderId'] = $id;
                 }
                 list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrder', $params);
-                $method = 'spotPrivateGetOrder';
                 if ($marginMode !== null) {
                     if ($marginMode !== 'isolated') {
                         throw new BadRequest($this->id . ' fetchOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                     }
-                    $method = 'spotPrivateGetMarginOrder';
+                    $data = Async\await($this->spotPrivateGetMarginOrder (array_merge($request, $query)));
+                } else {
+                    $data = Async\await($this->spotPrivateGetOrder (array_merge($request, $query)));
                 }
-                $data = Async\await($this->$method (array_merge($request, $query)));
                 //
                 // spot
                 //
@@ -2522,20 +2536,21 @@ class mexc extends Exchange {
                     throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument for spot market');
                 }
                 list($marginMode, $queryInner) = $this->handle_margin_mode_and_params('fetchOrders', $params);
-                $method = 'spotPrivateGetAllOrders';
-                if ($marginMode !== null) {
-                    if ($marginMode !== 'isolated') {
-                        throw new BadRequest($this->id . ' fetchOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
-                    }
-                    $method = 'spotPrivateGetMarginAllOrders';
-                }
                 if ($since !== null) {
                     $request['startTime'] = $since;
                 }
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }
-                $response = Async\await($this->$method (array_merge($request, $queryInner)));
+                $response = null;
+                if ($marginMode !== null) {
+                    if ($marginMode !== 'isolated') {
+                        throw new BadRequest($this->id . ' fetchOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+                    }
+                    $response = Async\await($this->spotPrivateGetMarginAllOrders (array_merge($request, $queryInner)));
+                } else {
+                    $response = Async\await($this->spotPrivateGetAllOrders (array_merge($request, $queryInner)));
+                }
                 //
                 // spot
                 //
@@ -2753,15 +2768,16 @@ class mexc extends Exchange {
                     throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for spot market');
                 }
                 $request['symbol'] = $market['id'];
-                $method = 'spotPrivateGetOpenOrders';
                 list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
+                $response = null;
                 if ($marginMode !== null) {
                     if ($marginMode !== 'isolated') {
                         throw new BadRequest($this->id . ' fetchOpenOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                     }
-                    $method = 'spotPrivateGetMarginOpenOrders';
+                    $response = Async\await($this->spotPrivateGetMarginOpenOrders (array_merge($request, $query)));
+                } else {
+                    $response = Async\await($this->spotPrivateGetOpenOrders (array_merge($request, $query)));
                 }
-                $response = Async\await($this->$method (array_merge($request, $query)));
                 //
                 // spot
                 //
@@ -2899,14 +2915,14 @@ class mexc extends Exchange {
                 } else {
                     $requestInner['orderId'] = $id;
                 }
-                $method = 'spotPrivateDeleteOrder';
                 if ($marginMode !== null) {
                     if ($marginMode !== 'isolated') {
                         throw new BadRequest($this->id . ' cancelOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                     }
-                    $method = 'spotPrivateDeleteMarginOrder';
+                    $data = Async\await($this->spotPrivateDeleteMarginOrder (array_merge($requestInner, $query)));
+                } else {
+                    $data = Async\await($this->spotPrivateDeleteOrder (array_merge($requestInner, $query)));
                 }
-                $data = Async\await($this->$method (array_merge($requestInner, $query)));
                 //
                 // spot
                 //
@@ -2945,7 +2961,14 @@ class mexc extends Exchange {
                 // TODO => PlanorderCancel endpoint has bug atm. waiting for fix.
                 $method = $this->safe_string($this->options, 'cancelOrder', 'contractPrivatePostOrderCancel'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
                 $method = $this->safe_string($query, 'method', $method);
-                $response = Async\await($this->$method (array( $id ))); // the $request cannot be changed or extended. This is the only way to send.
+                $response = null;
+                if ($method === 'contractPrivatePostOrderCancel') {
+                    $response = Async\await($this->contractPrivatePostOrderCancel (array( $id ))); // the $request cannot be changed or extended. This is the only way to send.
+                } elseif ($method === 'contractPrivatePostPlanorderCancel') {
+                    $response = Async\await($this->contractPrivatePostPlanorderCancel (array( $id ))); // the $request cannot be changed or extended. This is the only way to send.
+                } else {
+                    throw new NotSupported($this->id . ' cancelOrder() not support this method');
+                }
                 //
                 //     {
                 //         "success" => true,
@@ -3025,14 +3048,15 @@ class mexc extends Exchange {
                     throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument on spot');
                 }
                 $request['symbol'] = $market['id'];
-                $method = 'spotPrivateDeleteOpenOrders';
+                $response = null;
                 if ($marginMode !== null) {
                     if ($marginMode !== 'isolated') {
                         throw new BadRequest($this->id . ' cancelAllOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                     }
-                    $method = 'spotPrivateDeleteMarginOpenOrders';
+                    $response = Async\await($this->spotPrivateDeleteMarginOpenOrders (array_merge($request, $query)));
+                } else {
+                    $response = Async\await($this->spotPrivateDeleteOpenOrders (array_merge($request, $query)));
                 }
-                $response = Async\await($this->$method (array_merge($request, $query)));
                 //
                 // spot
                 //
@@ -3078,7 +3102,12 @@ class mexc extends Exchange {
                 // the Planorder endpoints work not only for stop-$market orders but also for stop-limit orders that are supposed to have separate endpoint
                 $method = $this->safe_string($this->options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
                 $method = $this->safe_string($query, 'method', $method);
-                $response = Async\await($this->$method (array_merge($request, $query)));
+                $response = null;
+                if ($method === 'contractPrivatePostOrderCancelAll') {
+                    $response = Async\await($this->contractPrivatePostOrderCancelAll (array_merge($request, $query)));
+                } elseif ($method === 'contractPrivatePostPlanorderCancelAll') {
+                    $response = Async\await($this->contractPrivatePostPlanorderCancelAll (array_merge($request, $query)));
+                }
                 //
                 //     {
                 //         "success" => true,
@@ -3599,13 +3628,10 @@ class mexc extends Exchange {
             $marketType = null;
             $request = array();
             list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'spotPrivateGetAccount',
-                'swap' => 'contractPrivateGetAccountAssets',
-                'margin' => 'spotPrivateGetMarginIsolatedAccount',
-            ));
             $marginMode = $this->safe_string($params, 'marginMode');
             $isMargin = $this->safe_value($params, 'margin', false);
+            $params = $this->omit($params, array( 'margin', 'marginMode' ));
+            $response = null;
             if (($marginMode !== null) || ($isMargin) || ($marketType === 'margin')) {
                 $parsedSymbols = null;
                 $symbol = $this->safe_string($params, 'symbol');
@@ -3619,12 +3645,17 @@ class mexc extends Exchange {
                     $parsedSymbols = $market['id'];
                 }
                 $this->check_required_argument('fetchBalance', $parsedSymbols, 'symbol or symbols');
-                $method = 'spotPrivateGetMarginIsolatedAccount';
                 $marketType = 'margin';
                 $request['symbols'] = $parsedSymbols;
+                $params = $this->omit($params, array( 'symbol', 'symbols' ));
+                $response = Async\await($this->spotPrivateGetMarginIsolatedAccount (array_merge($request, $params)));
+            } elseif ($marketType === 'spot') {
+                $response = Async\await($this->spotPrivateGetAccount (array_merge($request, $params)));
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->contractPrivateGetAccountAssets (array_merge($request, $params)));
+            } else {
+                throw new NotSupported($this->id . ' fetchBalance() not support this method');
             }
-            $params = $this->omit($params, array( 'margin', 'marginMode', 'symbol', 'symbols' ));
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // spot
             //
@@ -5308,7 +5339,7 @@ class mexc extends Exchange {
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->margin] true for trading spot-margin
-         * @return {array} the $marginMode in lowercase
+         * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);
