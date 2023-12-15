@@ -2160,6 +2160,23 @@ class Transpiler {
     // ============================================================================
 
     transpileExchangeTests () {
+        
+        this.phpContentFixes = (str) => {
+            str = str.
+                replace (/\$exchange\[\$method\]/g, '$exchange->$method').
+                replace (/\$test_shared_methods\->/g, '').
+                replace (/TICK_SIZE/g, '\\ccxt\\TICK_SIZE').
+                replace (/Precise\->/g, 'Precise::').
+                replace (/catch\(Exception/g, 'catch\(\\Throwable');
+            return exchangeCamelCaseProps(str);
+        };
+
+        this.pyContentFixes = (str) => {
+            str = str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
+            str = str.replace (/ == True/g, ' is True');
+            str = str.replace (/ == False/g, ' is False');
+            return exchangeCamelCaseProps(str);
+        };
 
         this.transpileMainTests ({
             'tsFile': './ts/src/test/test.ts',
@@ -2405,23 +2422,6 @@ class Transpiler {
                 replace (/precision_mode/g, 'precisionMode');
         };
 
-        const pyFixes = (str) => {
-            str = str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
-            str = str.replace (/ == True/g, ' is True');
-            str = str.replace (/ == False/g, ' is False');
-            return exchangeCamelCaseProps(str);
-        }
-
-        const phpFixes = (str) => {
-            str = str.
-                replace (/\$exchange\[\$method\]/g, '$exchange->$method').
-                replace (/\$test_shared_methods\->/g, '').
-                replace (/TICK_SIZE/g, '\\ccxt\\TICK_SIZE').
-                replace (/Precise\->/g, 'Precise::').
-                replace (/catch\(Exception/g, 'catch\(\\Throwable');
-            return exchangeCamelCaseProps(str);
-        }
-
         const fileSaveFunc = (path, content) => {
             log.magenta ('→', path);
             overwriteFile (path, content);
@@ -2430,11 +2430,11 @@ class Transpiler {
         for (let i = 0; i < flatResult.length; i++) {
             const result = flatResult[i];
             const test = tests[i];
-            const isWs = test.tsFile.includes('ts/src/pro/');
-            let phpAsync = phpFixes(result[0].content);
-            let phpSync = phpFixes(result[1].content);
-            let pythonSync = pyFixes (result[2].content);
-            let pythonAsync = pyFixes (result[3].content);
+            const isWs = test.tsFile.includes ('ts/src/pro/');
+            let phpAsync = this.phpContentFixes (result[0].content);
+            let phpSync = this.phpContentFixes (result[1].content);
+            let pythonSync = this.pyContentFixes (result[2].content);
+            let pythonAsync = this.pyContentFixes (result[3].content);
             if (tests.base) {
                 phpAsync = '';
                 pythonAsync = '';
