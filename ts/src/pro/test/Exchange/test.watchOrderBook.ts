@@ -19,6 +19,9 @@ async function testWatchOrderBook (exchange, skippedProperties, symbol) {
             continue;
         }
         response = fixPhpObjectArray (exchange, response);
+        // temporary fix, because of json removes 'undefined' members
+        skippedProperties['timestamp'] = true;
+        skippedProperties['datetime'] = true;
         assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
         now = exchange.milliseconds ();
         testOrderBook (exchange, skippedProperties, method, response, symbol);
