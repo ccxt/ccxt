@@ -895,47 +895,6 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function fetch_withdrawal_whitelist($params = array ()) {
-        /**
-         * fetch the list of withdrawal addresses on the whitelist
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} dictionary with keys beneficiaryId, name, currency
-         */
-        $this->load_markets();
-        $response = $this->privateGetWhitelist ();
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $result[] = array(
-                'beneficiaryId' => $this->safe_string($entry, 'whitelistId'),
-                'name' => $this->safe_string($entry, 'name'),
-                'currency' => $this->safe_string($entry, 'currency'),
-                'info' => $entry,
-            );
-        }
-        return $result;
-    }
-
-    public function fetch_withdrawal_whitelist_by_currency(string $code, $params = array ()) {
-        $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-        );
-        $response = $this->privateGetWhitelistCurrency (array_merge($request, $params));
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $result[] = array(
-                'beneficiaryId' => $this->safe_string($entry, 'whitelistId'),
-                'name' => $this->safe_string($entry, 'name'),
-                'currency' => $this->safe_string($entry, 'currency'),
-                'info' => $entry,
-            );
-        }
-        return $result;
-    }
-
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal

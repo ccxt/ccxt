@@ -38,6 +38,8 @@ class bitmex extends bitmex$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'editOrder': true,

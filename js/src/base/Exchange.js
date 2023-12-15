@@ -3693,7 +3693,7 @@ export default class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (this.options['createMarketOrderWithCost'] || (this.options['createMarketBuyOrderWithCost'] && this.options['createMarketSellOrderWithCost'])) {
+        if (this.has['createMarketOrderWithCost'] || (this.has['createMarketBuyOrderWithCost'] && this.has['createMarketSellOrderWithCost'])) {
             return await this.createOrder(symbol, 'market', side, cost, 1, params);
         }
         throw new NotSupported(this.id + ' createMarketOrderWithCost() is not supported yet');
@@ -3708,7 +3708,7 @@ export default class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (this.options['createMarketBuyOrderRequiresPrice'] || this.options['createMarketBuyOrderWithCost']) {
+        if (this.options['createMarketBuyOrderRequiresPrice'] || this.has['createMarketBuyOrderWithCost']) {
             return await this.createOrder(symbol, 'market', 'buy', cost, 1, params);
         }
         throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() is not supported yet');

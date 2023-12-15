@@ -100,7 +100,7 @@ class phemex(Exchange, ImplicitAPI):
                 'setMarginMode': True,
                 'setPositionMode': True,
                 'transfer': True,
-                'withdraw': None,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -239,6 +239,7 @@ class phemex(Exchange, ImplicitAPI):
                         'assets/spots/sub-accounts/transfer': 5,  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/futures/sub-accounts/transfer': 5,  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote': 5,  # ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                        # deposit/withdraw
                     },
                     'post': {
                         # spot
@@ -482,6 +483,16 @@ class phemex(Exchange, ImplicitAPI):
                     'spot': 'spot',
                     'swap': 'future',
                 },
+                'stableCoins': [
+                    'BUSD',
+                    'FEI',
+                    'TUSD',
+                    'USD',
+                    'USDC',
+                    'USDD',
+                    'USDP',
+                    'USDT',
+                ],
                 'transfer': {
                     'fillResponseFromRequest': True,
                 },
@@ -4226,6 +4237,42 @@ class phemex(Exchange, ImplicitAPI):
             })
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :see: https://phemex-docs.github.io/#create-withdraw-request
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str tag:
+        :param dict [params]: extra parameters specific to the phemex api endpoint
+        :param str [params.network]: unified network code
+        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.load_markets()
+        self.check_address(address)
+        currency = self.currency(code)
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        networkId = self.network_code_to_id(networkCode)
+        stableCoins = self.safe_value(self.options, 'stableCoins')
+        if networkId is None:
+            if not (self.in_array(code, stableCoins)):
+                networkId = currency['id']
+            else:
+                raise ArgumentsRequired(self.id + ' withdraw() requires an extra argument params["network"]')
+        request = {
+            'currency': currency['id'],
+            'address': address,
+            'amount': amount,
+            'chainName': networkId.upper(),
+        }
+        if tag is not None:
+            request['tag'] = tag
+        response = self.privatePostPhemexWithdrawWalletsApiCreateWithdraw(self.extend(request, params))
+        return self.parse_transaction(response, currency)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

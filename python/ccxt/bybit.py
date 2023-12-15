@@ -959,6 +959,7 @@ class bybit(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
                 'createMarketBuyOrderRequiresPrice': True,
@@ -1425,21 +1426,29 @@ class bybit(Exchange, ImplicitAPI):
         """
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
-        promisesUnresolved = [
-            self.fetch_spot_markets(params),
-            self.fetch_future_markets({'category': 'linear'}),
-            self.fetch_future_markets({'category': 'inverse'}),
-            self.fetch_option_markets({'baseCoin': 'BTC'}),
-            self.fetch_option_markets({'baseCoin': 'ETH'}),
-            self.fetch_option_markets({'baseCoin': 'SOL'}),
-        ]
+        promisesUnresolved = []
+        fetchMarkets = self.safe_value(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
+        for i in range(0, len(fetchMarkets)):
+            marketType = fetchMarkets[i]
+            if marketType == 'spot':
+                promisesUnresolved.append(self.fetch_spot_markets(params))
+            elif marketType == 'linear':
+                promisesUnresolved.append(self.fetch_future_markets({'category': 'linear'}))
+            elif marketType == 'inverse':
+                promisesUnresolved.append(self.fetch_future_markets({'category': 'inverse'}))
+            elif marketType == 'option':
+                promisesUnresolved.append(self.fetch_option_markets({'baseCoin': 'BTC'}))
+                promisesUnresolved.append(self.fetch_option_markets({'baseCoin': 'ETH'}))
+                promisesUnresolved.append(self.fetch_option_markets({'baseCoin': 'SOL'}))
+            else:
+                raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         promises = promisesUnresolved
-        spotMarkets = promises[0]
-        linearMarkets = promises[1]
-        inverseMarkets = promises[2]
-        btcOptionMarkets = promises[3]
-        ethOptionMarkets = promises[4]
-        solOptionMarkets = promises[5]
+        spotMarkets = self.safe_value(promises, 0, [])
+        linearMarkets = self.safe_value(promises, 1, [])
+        inverseMarkets = self.safe_value(promises, 2, [])
+        btcOptionMarkets = self.safe_value(promises, 3, [])
+        ethOptionMarkets = self.safe_value(promises, 4, [])
+        solOptionMarkets = self.safe_value(promises, 5, [])
         futureMarkets = self.array_concat(linearMarkets, inverseMarkets)
         optionMarkets = self.array_concat(btcOptionMarkets, ethOptionMarkets)
         optionMarkets = self.array_concat(optionMarkets, solOptionMarkets)

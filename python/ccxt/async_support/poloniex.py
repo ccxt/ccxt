@@ -47,6 +47,9 @@ class poloniex(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -240,6 +243,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'UST': 'USTC',
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': True,
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
@@ -1219,6 +1223,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: *spot only* The price at which a trigger order is triggered at
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1251,7 +1256,6 @@ class poloniex(Exchange, ImplicitAPI):
         return self.parse_order(response, market)
 
     def order_request(self, symbol, type, side, amount, request, price=None, params={}):
-        market = self.market(symbol)
         upperCaseType = type.upper()
         isMarket = upperCaseType == 'MARKET'
         isPostOnly = self.is_post_only(isMarket, upperCaseType == 'LIMIT_MAKER', params)
@@ -1265,7 +1269,24 @@ class poloniex(Exchange, ImplicitAPI):
         request['type'] = upperCaseType
         if isMarket:
             if side == 'buy':
-                request['amount'] = self.currency_to_precision(market['quote'], amount)
+                quoteAmount = None
+                createMarketBuyOrderRequiresPrice = True
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                cost = self.safe_number(params, 'cost')
+                params = self.omit(params, 'cost')
+                if cost is not None:
+                    quoteAmount = self.cost_to_precision(symbol, cost)
+                elif createMarketBuyOrderRequiresPrice:
+                    if price is None:
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
+                    else:
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        costRequest = Precise.string_mul(amountString, priceString)
+                        quoteAmount = self.cost_to_precision(symbol, costRequest)
+                else:
+                    quoteAmount = self.cost_to_precision(symbol, amount)
+                request['amount'] = quoteAmount
             else:
                 request['quantity'] = self.amount_to_precision(symbol, amount)
         else:

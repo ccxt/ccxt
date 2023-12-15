@@ -60,7 +60,7 @@ class binance(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'cancelOrders': True,  # contract only
                 'closeAllPositions': False,
-                'closePosition': False,
+                'closePosition': False,  # exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createOrders': True,

@@ -3848,7 +3848,7 @@ class bitget extends Exchange {
         if ($feeCostString !== null) {
             // swap
             $fee = array(
-                'cost' => $feeCostString,
+                'cost' => $this->parse_number(Precise::string_abs($feeCostString)),
                 'currency' => $market['settle'],
             );
         }
@@ -3856,10 +3856,17 @@ class bitget extends Exchange {
         if ($feeDetail !== null) {
             $parsedFeeDetail = json_decode($feeDetail, $as_associative_array = true);
             $feeValues = is_array($parsedFeeDetail) ? array_values($parsedFeeDetail) : array();
-            $first = $this->safe_value($feeValues, 0);
+            $feeObject = null;
+            for ($i = 0; $i < count($feeValues); $i++) {
+                $feeValue = $feeValues[$i];
+                if ($this->safe_value($feeValue, 'feeCoinCode') !== null) {
+                    $feeObject = $feeValue;
+                    break;
+                }
+            }
             $fee = array(
-                'cost' => $this->safe_string($first, 'totalFee'),
-                'currency' => $this->safe_currency_code($this->safe_string($first, 'feeCoinCode')),
+                'cost' => $this->parse_number(Precise::string_abs($this->safe_string($feeObject, 'totalFee'))),
+                'currency' => $this->safe_currency_code($this->safe_string($feeObject, 'feeCoinCode')),
             );
         }
         $postOnly = null;

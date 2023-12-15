@@ -444,7 +444,7 @@ class binance(ccxt.async_support.binance):
         subscribe = {
             'id': requestId,
         }
-        trades = await self.watch(url, subParams, self.extend(request, query), subParams, subscribe)
+        trades = await self.watch_multiple(url, subParams, self.extend(request, query), subParams, subscribe)
         if self.newUpdates:
             first = self.safe_value(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
@@ -1802,10 +1802,10 @@ class binance(ccxt.async_support.binance):
         self.set_balance_cache(client, type)
         self.set_positions_cache(client, type)
         message = None
-        newOrder = await self.watch(url, messageHash, message, type)
+        orders = await self.watch(url, messageHash, message, type)
         if self.newUpdates:
-            return newOrder
-        return self.filter_by_symbol_since_limit(self.orders, symbol, since, limit, True)
+            limit = orders.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def parse_ws_order(self, order, market=None):
         #
@@ -2405,8 +2405,8 @@ class binance(ccxt.async_support.binance):
             cachedOrders.append(parsed)
             messageHash = 'orders'
             symbolSpecificMessageHash = 'orders:' + symbol
-            client.resolve(parsed, messageHash)
-            client.resolve(parsed, symbolSpecificMessageHash)
+            client.resolve(cachedOrders, messageHash)
+            client.resolve(cachedOrders, symbolSpecificMessageHash)
 
     def handle_acount_update(self, client, message):
         self.handle_balance(client, message)

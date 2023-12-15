@@ -1383,7 +1383,7 @@ class okcoin(Exchange, ImplicitAPI):
             request['tgtCcy'] = tgtCcy
         if isMarketOrder or marketIOC:
             request['ordType'] = 'market'
-            if (side == 'buy'):
+            if side == 'buy':
                 # spot market buy: "sz" can refer either to base currency units or to quote currency units
                 # see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if tgtCcy == 'quote_ccy':
@@ -1408,6 +1408,8 @@ class okcoin(Exchange, ImplicitAPI):
                     request['sz'] = quoteAmount
                 else:
                     request['sz'] = self.amount_to_precision(symbol, amount)
+            else:
+                request['sz'] = self.amount_to_precision(symbol, amount)
         else:
             request['sz'] = self.amount_to_precision(symbol, amount)
             if (not trigger) and (not conditional):
