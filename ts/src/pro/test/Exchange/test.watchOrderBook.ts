@@ -36,8 +36,8 @@ function fixPhpObjectArray (exchange, response, skippedProperties) {
     skippedProperties['datetime'] = true;
     if (exchange.id === 'binance') {
         // this bug affects binance in PHP: entries are being unordered in some cases, so before that separate issue is fixed, temporarily fix it here
-        result['asks'] = exchange.sortBy(result['asks'], 0, true);
-        result['bids'] = exchange.sortBy(result['bids'], 0, false);
+        result['asks'] = exchange.sortBy(result['asks'], 0, false);
+        result['bids'] = exchange.sortBy(result['bids'], 0, true);
     }
     // #################################
     return [ result , skippedProperties ];
