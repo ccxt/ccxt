@@ -38,7 +38,7 @@ export default class coinmetro extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -74,13 +74,13 @@ export default class coinmetro extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': false,
-                'fetchLedger': false,
+                'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
@@ -162,7 +162,7 @@ export default class coinmetro extends Exchange {
                         'exchange/orders/status/{orderID}': 1, // todo: fetchOrder
                         'exchange/orders/active': 1, // todo: fetchOpenOrders
                         'exchange/orders/history/{since}': 1, // todo: fetchOrders
-                        'exchange/fills/{since}': 1, // todo: fetchMyTrades
+                        'exchange/fills/{since}': 1,
                         'exchange/margin': 1, // todo: check
                     },
                     'post': {
@@ -170,7 +170,7 @@ export default class coinmetro extends Exchange {
                         'jwtDevice': 1, // not unified: login with mobile divice
                         'devices': 1, // not unified: provides information about a yet-to-be authorized mobile device
                         'jwt-read-only': 1, // not unified: requests a read-only long-lived token
-                        'exchange/orders/create': 1, // todo: createOrder
+                        'exchange/orders/create': 1,
                         'exchange/orders/modify/{orderID}': 1, // todo: editOrder
                         'exchange/swap': 1, // todo: check
                         'exchange/swap/confirm/{swapId}': 1, // todo: check
@@ -594,6 +594,7 @@ export default class coinmetro extends Exchange {
          * @method
          * @name coinmetro#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
@@ -601,7 +602,10 @@ export default class coinmetro extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const request = {};
         if (since !== undefined) {
             request['since'] = since;
