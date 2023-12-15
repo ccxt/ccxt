@@ -10,7 +10,7 @@ async function testWatchTicker (exchange, skippedProperties, symbol) {
     while (now < ends) {
         let response = undefined;
         try {
-            response = await exchange[method] (symbol);
+            response = await exchange.watchTicker (symbol);
         } catch (e) {
             if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;

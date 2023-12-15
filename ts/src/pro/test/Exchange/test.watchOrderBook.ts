@@ -10,7 +10,7 @@ async function testWatchOrderBook (exchange, skippedProperties, symbol) {
     while (now < ends) {
         let response = undefined;
         try {
-            response = await exchange[method] (symbol);
+            response = await exchange.watchOrderBook (symbol);
         } catch (e) {
             if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;

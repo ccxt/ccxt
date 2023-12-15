@@ -9,7 +9,7 @@ async function testWatchBalance (exchange, skippedProperties, code) {
     while (now < ends) {
         let response = undefined;
         try {
-            response = await exchange[method] ();
+            response = await exchange.watchBalance ();
         } catch (e) {
             if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
