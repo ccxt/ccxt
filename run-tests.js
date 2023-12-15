@@ -247,11 +247,19 @@ const testExchange = async (exchange) => {
     }
     const allTestsWithoutTs = [
             { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',              ...args] },
-            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',    ...args] },
             { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py',   ...args] },
-            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
             { language: 'PHP Async',      key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] }
         ]
+
+        // if it's not WS tests, then add sync versions to tests queue
+        if (!wsFlag) {
+            allTestsWithoutTs.push (
+                { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] } 
+            );
+            allTestsWithoutTs.push (
+                { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',    ...args] }
+            );
+        }
 
         const allTests = allTestsWithoutTs.concat([
             { language: 'TypeScript',     key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/test/test.ts',           ...args] },
@@ -296,7 +304,7 @@ const testExchange = async (exchange) => {
     //
     const showInfos = false; // temporarily remove info messages from here - they are emiited through language-specific tests
     if (showInfos && hasInfo && debugKeys['--info']) {
-        logMessage += '\n' + 'OUTPUTED INFOS'.blue + ' ';
+        logMessage += '\n' + 'OUTPUT INFO'.blue + ' ';
         const infoMessages = '\n' + infos.join('\n');
         logMessage += infoMessages.blue;
     }
