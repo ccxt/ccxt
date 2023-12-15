@@ -240,7 +240,7 @@ async def set_test_files(holderClass, properties):
 
 
 async def close(exchange):
-    if (hasattr(exchange, 'close')):
+    if (not is_synchronous and hasattr(exchange, 'close')):
         await exchange.close()
 
 def is_null_value(value):
