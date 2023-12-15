@@ -34,11 +34,13 @@ function fixPhpObjectArray (exchange, response, skippedProperties) {
     // temporary fix, because after json.strinfigy->parse, 'undefined' members are removed
     skippedProperties['timestamp'] = true;
     skippedProperties['datetime'] = true;
-    if (exchange.id === 'binance') {
-        // this bug affects binance in PHP: entries are being unordered in some cases, so before that separate issue is fixed, temporarily fix it here
-        result['asks'] = exchange.sortBy(result['asks'], 0, false);
-        result['bids'] = exchange.sortBy(result['bids'], 0, true);
-    }
+    // ### temporarily fix some bugs for PHP (before they are fixed in library) ###
+    // 1)  limit to first 100 to avoid PHP memory exhaustion (another bug)
+    result['asks'] = exchange.filterByLimit(result['asks'], 100);
+    result['bids'] = exchange.filterByLimit(result['bids'], 100);
+    // 2) entries are being unordered in some cases, so before that separate issue is fixed, temporarily fix it here
+    result['asks'] = exchange.sortBy(result['asks'], 0, false);
+    result['bids'] = exchange.sortBy(result['bids'], 0, true);
     // #################################
     return [ result , skippedProperties ];
 }
