@@ -3958,9 +3958,14 @@ export default class gate extends Exchange {
             }
         }
         if (contract) {
-            const amountToPrecision = this.amountToPrecision (symbol, amount);
-            const signedAmount = (side === 'sell') ? Precise.stringNeg (amountToPrecision) : amountToPrecision;
-            amount = parseInt (signedAmount);
+            const isClose = this.safeValue (params, 'close');
+            if (isClose) {
+                amount = 0;
+            } else {
+                const amountToPrecision = this.amountToPrecision (symbol, amount);
+                const signedAmount = (side === 'sell') ? Precise.stringNeg (amountToPrecision) : amountToPrecision;
+                amount = parseInt (signedAmount);
+            }
         }
         let request = undefined;
         const nonTriggerOrder = !isStopOrder && (trigger === undefined);
@@ -6951,6 +6956,26 @@ export default class gate extends Exchange {
             'underlyingPrice': this.parseNumber (market['info']['underlying_price']),
             'info': greeks,
         };
+    }
+
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name gate#closePositions
+         * @description closes open positions for a market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-options-order
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} side 'buy' or 'sell'
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        const request = {
+            'close': true,
+        };
+        params = this.extend (request, params);
+        return await this.createOrder (symbol, 'market', side, 0, undefined, params);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
