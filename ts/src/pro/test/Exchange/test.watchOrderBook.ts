@@ -37,20 +37,8 @@ function fixPhpObjectArray (exchange, response, skippedProperties) {
     if (exchange.id === 'binance') {
         // this bug affects binance in PHP: remove last 5 members from orderbook, because of unindentified bugs of unordered items (i.e. last members hving weird ask/bid prices)
         // note, we will fix that bug later, but for now, we just remove last 5 items
-        const newAsks = [];
-        const newBids = [];
-        const asks = result['asks'];
-        const bids = result['bids'];
-        const asksLength = asks.length;
-        const bidsLength = bids.length;
-        for (let i = 0; i < asksLength - 5; i++) {
-            newAsks.push (asks[i]);
-        }
-        for (let i = 0; i < bidsLength - 5; i++) {
-            newBids.push (bids[i]);
-        }
-        result['asks'] = newAsks;
-        result['bids'] = newBids;
+        result['asks'] = exchange.filterByLimit(result['asks'], result['asks'].length - 5);
+        result['bids'] = exchange.filterByLimit(result['bids'], result['bids'].length - 5);
     }
     // #################################
     return [ result , skippedProperties ];
