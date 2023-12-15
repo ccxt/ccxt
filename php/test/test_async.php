@@ -179,7 +179,7 @@ function exception_message($exc) {
     } catch (\Throwable $exc) { 
         $origin_message = '';
     }
-    $final_message = '[' . get_class($exc) . '] ' . $origin_message . "\n" . $output . "\n\n";
+    $final_message = '[' . get_class($exc) . '] ' . $origin_message . "\n" . $output;
     return substr($final_message, 0, LOG_CHARS_LENGTH);
 }
 
