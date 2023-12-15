@@ -229,6 +229,7 @@ export default class testMainClass extends baseMainTestClass {
         this.expandSettings (exchange);
         const symbolOrUndefined = this.checkIfSpecificTestIsChosen (symbolArgv);
         await this.startTest (exchange, symbolOrUndefined);
+        exitScript (0); // needed to be explicitly finished for WS tests
     }
 
     checkIfSpecificTestIsChosen (symbolArgv) {
