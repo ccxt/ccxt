@@ -35,10 +35,9 @@ function fixPhpObjectArray (exchange, response, skippedProperties) {
     skippedProperties['timestamp'] = true;
     skippedProperties['datetime'] = true;
     if (exchange.id === 'binance') {
-        // this bug affects binance in PHP: remove last 20 members from orderbook, because of unindentified bugs of unordered items (i.e. last members hving weird ask/bid prices)
-        // note, we will fix that bug later, but for now, we just remove last items
-        result['asks'] = exchange.filterByLimit(result['asks'], result['asks'].length - 20);
-        result['bids'] = exchange.filterByLimit(result['bids'], result['bids'].length - 20);
+        // this bug affects binance in PHP: entries are being unordered in some cases, so before that separate issue is fixed, temporarily fix it here
+        result['asks'] = exchange.sortBy(result['asks'], 0, true);
+        result['bids'] = exchange.sortBy(result['asks'], 0, false);
     }
     // #################################
     return [ result , skippedProperties ];
