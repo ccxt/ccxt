@@ -2645,8 +2645,8 @@ export default class binance extends binanceRest {
             cachedOrders.append (parsed);
             const messageHash = 'orders';
             const symbolSpecificMessageHash = 'orders:' + symbol;
-            client.resolve (parsed, messageHash);
-            client.resolve (parsed, symbolSpecificMessageHash);
+            client.resolve (cachedOrders, messageHash);
+            client.resolve (cachedOrders, symbolSpecificMessageHash);
         }
     }
 
