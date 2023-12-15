@@ -15,7 +15,8 @@ include_once rootDir .'/vendor/autoload.php';
 use React\Async;
 use React\Promise;
 
-// assert_options (ASSERT_CALLBACK, function(string $file, int $line, ?string $assertion, string $description = null){
+// the below approach is being deprecated in PHP (keep this commented area for a while)
+//
 // assert_options (ASSERT_CALLBACK, function(string $file, int $line, ?string $assertion, string $description = null){
 //     $args = func_get_args();
 //     $message = '';
@@ -28,16 +29,17 @@ use React\Promise;
 //     dump($message);
 //     exit;
 // });
-
-function custom_excetpion_handler(\Throwable $e) {
-    if ($e instanceof \AssertionError) {
-        dump('[ASSERT_ERROR] -' . exception_message($e));
-        exit_script(0);
-    }
-    throw $e;
-}
-  
-set_exception_handler('ccxt\custom_excetpion_handler');
+//
+//
+// the below one is the accepted way of handling assertion errors nowadays (however, keep this also commented here for a while)
+//
+// set_exception_handler( function (\Throwable $e) {
+//     if ($e instanceof \AssertionError) {
+//         dump('[ASSERT_ERROR] -' . exception_message($e));
+//         exit_script(0);
+//     }
+//     throw $e;
+// } );
 
 $filetered_args = array_filter(array_map (function ($x) { return stripos($x,'--')===false? $x : null;} , $argv));
 $exchangeId = array_key_exists(1, $filetered_args) ? $filetered_args[1] : null; // this should be different than JS
@@ -171,10 +173,12 @@ function exception_message($exc) {
             $output .= "\n";
         }
     }
-    $origin_message = '';
+    $origin_message = null;
     try{
         $origin_message = $exc->getMessage() . "\n" . $exc->getFile() . ':' . $exc->getLine();
-    } catch (\Exception $exc) { }
+    } catch (\Throwable $exc) { 
+        $origin_message = '';
+    }
     $final_message = '[' . get_class($exc) . '] ' . $origin_message . "\n" . $output . "\n\n";
     return substr($final_message, 0, LOG_CHARS_LENGTH);
 }
