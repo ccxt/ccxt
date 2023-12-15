@@ -5,7 +5,7 @@ import Exchange from './abstract/coinmetro.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, Currency, IndexType, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -125,7 +125,7 @@ export default class coinmetro extends Exchange {
                 '5m': '300000',
                 '30m': '1800000',
                 '4h': '14400000',
-                '24h': '86400000',
+                '1d': '86400000',
             },
             'urls': {
                 'logo': '', // todo
@@ -478,15 +478,18 @@ export default class coinmetro extends Exchange {
                 const duration = this.parseTimeframe (timeframe) * 1000;
                 // todo: should we substract 1 from duration?
                 request['to'] = this.sum (since, duration * (limit));
-            } else {
-                request['to'] = this.milliseconds ();
             }
+        } else {
+            request['from'] = ':from';
         }
         const until = this.safeInteger2 (params, 'till', 'until');
         if (until !== undefined) {
             params = this.omit (params, [ 'till', 'until' ]);
             request['to'] = until;
+        } else {
+            request['to'] = ':to';
         }
+        // this endpoint doesn't accept empty from and to params (setting them into the value described in the documentation)
         const response = await this.publicGetExchangeCandlesPairTimeframeFromTo (this.extend (request, params));
         //
         //     {
@@ -543,9 +546,6 @@ export default class coinmetro extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
-        }
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
@@ -553,6 +553,7 @@ export default class coinmetro extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         } else {
+            // this endpoint accepts empty from param
             request['from'] = '';
         }
         const response = await this.publicGetExchangeTicksPairFrom (this.extend (request, params));
@@ -584,7 +585,6 @@ export default class coinmetro extends Exchange {
         //         ]
         //     }
         //
-        // todo: check what is seqNum?
         const tickHistory = this.safeValue (response, 'tickHistory', []);
         return this.parseTrades (tickHistory, market, since, limit);
     }
@@ -609,9 +609,24 @@ export default class coinmetro extends Exchange {
         const request = {};
         if (since !== undefined) {
             request['since'] = since;
+        } else {
+            // todo: check - the exchange requires a value for the since param
+            request['since'] = 0;
         }
         const response = await this.privateGetExchangeFillsSince (this.extend (request, params));
         //
+        //     [
+        //         {
+        //             "pair": "ETHUSDC",
+        //             "seqNumber": 10873722343,
+        //             "timestamp": 1702570610747,
+        //             "qty": 0.002,
+        //             "price": 2282,
+        //             "side": "buy",
+        //             "orderID": "65671262d93d9525ac009e36170257061073952c6423a8c5b4d6c"
+        //         },
+        //         ...
+        //     ]
         //
         return this.parseTrades (response, market, since, limit);
     }
@@ -627,17 +642,26 @@ export default class coinmetro extends Exchange {
         //         "seqNum": 10644567113
         //     },
         //
+        // fetchMyTrades
+        //     {
+        //         "pair": "ETHUSDC",
+        //         "seqNumber": 10873722343,
+        //         "timestamp": 1702570610747,
+        //         "qty": 0.002,
+        //         "price": 2282,
+        //         "side": "buy",
+        //         "orderID": "65671262d93d9525ac009e36170257061073952c6423a8c5b4d6c"
+        //     }
+        //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const id = this.safeString (trade, 'pair');
+        const id = this.safeString2 (trade, 'seqNum', 'seqNumber'); // todo: check
         const timestamp = this.safeString (trade, 'timestamp');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
-        const order = undefined;
-        const fee = undefined;
-        const side = undefined;
-        const takerOrMaker = undefined;
+        const order = this.safeString (trade, 'orderID');
+        const side = this.safeString (trade, 'side');
         return this.safeTrade ({
             'id': id,
             'order': order,
@@ -646,11 +670,11 @@ export default class coinmetro extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
-            'fee': fee,
+            'fee': undefined,
             'info': trade,
         }, market);
     }
@@ -711,14 +735,14 @@ export default class coinmetro extends Exchange {
         return orderbook;
     }
 
-    parseBidsAsks (rawBidsAsks) {
+    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1) {
         // overriding Exchange.parseBidsAsks
-        const prices = Object.keys (rawBidsAsks);
+        const prices = Object.keys (bidasks);
         const result = [];
         for (let i = 0; i < prices.length; i++) {
             const priceString = this.safeString (prices, i);
             const price = this.safeNumber (prices, i);
-            const volume = this.safeNumber (rawBidsAsks, priceString);
+            const volume = this.safeNumber (bidasks, priceString);
             result.push ([ price, volume ]);
         }
         return result;
@@ -950,6 +974,7 @@ export default class coinmetro extends Exchange {
         if (since !== undefined) {
             request['since'] = since;
         } else {
+            // this endpoint accepts empty since param
             request['since'] = '';
         }
         let currency = undefined;
@@ -1229,6 +1254,9 @@ export default class coinmetro extends Exchange {
             }
         } else if (query.length !== 0) {
             url += '?' + query;
+        }
+        while (url.endsWith ('/')) {
+            url = url.slice (0, url.length - 1);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
