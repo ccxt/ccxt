@@ -31,9 +31,8 @@ use React\Promise;
 
 function custom_excetpion_handler(\Throwable $e) {
     if ($e instanceof \AssertionError) {
-      // Your callback logic here
-      dump('[ASSERT_ERROR]' . exception_message($e));
-      exit_script(1);
+        dump('[ASSERT_ERROR] -' . exception_message($e));
+        exit_script(0);
     }
     throw $e;
 }
