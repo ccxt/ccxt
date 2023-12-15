@@ -16,6 +16,7 @@ use React\Async;
 use React\Promise;
 
 // assert_options (ASSERT_CALLBACK, function(string $file, int $line, ?string $assertion, string $description = null){
+// assert_options (ASSERT_CALLBACK, function(string $file, int $line, ?string $assertion, string $description = null){
 //     $args = func_get_args();
 //     $message = '';
 //     try {
@@ -27,6 +28,17 @@ use React\Promise;
 //     dump($message);
 //     exit;
 // });
+
+function custom_excetpion_handler(\Throwable $e) {
+    if ($e instanceof \AssertionError) {
+      // Your callback logic here
+      dump('[ASSERT_ERROR]' . exception_message($e));
+      exit_script(1);
+    }
+    throw $e;
+}
+  
+set_exception_handler('custom_excetpion_handler');
 
 $filetered_args = array_filter(array_map (function ($x) { return stripos($x,'--')===false? $x : null;} , $argv));
 $exchangeId = array_key_exists(1, $filetered_args) ? $filetered_args[1] : null; // this should be different than JS
