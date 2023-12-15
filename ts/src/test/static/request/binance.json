@@ -788,6 +788,38 @@
                     }
                 ]
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch Trades - spot",
+                "method": "fetchTrades",
+                "url": "https://api.binance.com/api/v3/aggTrades?limit=5&symbol=BTCUSDT&startTime=1699381234000&endTime=1699384834000",
+                "input": [
+                    "BTC/USDT",
+                    1699381234000,
+                    5
+                ]
+            },
+            {
+                "description": "Fetch Trades - linear",
+                "method": "fetchTrades",
+                "url": "https://api.binance.com/fapi/v1/aggTrades?limit=5&symbol=BTCUSDT&startTime=1699381234000&endTime=1699384834000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1699381234000,
+                    5
+                ]
+            },
+            {
+                "description": "Fetch Trades - inverse",
+                "method": "fetchTrades",
+                "url": "https://api.binance.com/dapi/v1/aggTrades?limit=5&symbol=BTCUSD_PERP&startTime=1699381234000&endTime=1699384834000",
+                "input": [
+                    "BTC/USD:BTC",
+                    1699381234000,
+                    5
+                ]
+            }
         ]
     }
 }
