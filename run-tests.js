@@ -279,6 +279,11 @@ const testExchange = async (exchange) => {
                 return total.concat(['\n\n']).concat (warnings)
             }, []
         )
+        , infos       = completeTests.reduce (
+            (total, { infos }) => {
+                return total.concat(['\n\n']).concat (infos)
+            }, []
+        )
 
 /*  Print interactive log output    */
 
