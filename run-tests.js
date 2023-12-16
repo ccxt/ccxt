@@ -276,12 +276,12 @@ const testExchange = async (exchange) => {
         , hasWarnings    = completeTests.find (test => test.warnings.length)
         , warnings       = completeTests.reduce (
             (total, { warnings }) => {
-                return total.concat (warnings)
+                return total.concat (warnings).concat(['\n\n'])
             }, []
         )
         , infos       = completeTests.reduce (
             (total, { infos }) => {
-                return total.concat (infos)
+                return total.concat (infos).concat(['\n\n'])
             }, []
         )
 
