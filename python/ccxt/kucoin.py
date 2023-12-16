@@ -508,6 +508,7 @@ class kucoin(Exchange, ImplicitAPI):
             'commonCurrencies': {
                 'BIFI': 'BIFIF',
                 'VAI': 'VAIOT',
+                'WAX': 'WAXP',
             },
             'options': {
                 'version': 'v1',

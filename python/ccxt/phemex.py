@@ -474,6 +474,7 @@ class phemex(Exchange, ImplicitAPI):
                 'networks': {
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
+                    'BEP20': 'BNB',
                 },
                 'defaultNetworks': {
                     'USDT': 'ETH',
@@ -3160,6 +3161,19 @@ class phemex(Exchange, ImplicitAPI):
         statuses = {
             'Success': 'ok',
             'Succeed': 'ok',
+            'Rejected': 'failed',
+            'Security check failed': 'failed',
+            'SecurityCheckFailed': 'failed',
+            'Expired': 'failed',
+            'Address Risk': 'failed',
+            'Security Checking': 'pending',
+            'SecurityChecking': 'pending',
+            'Pending Review': 'pending',
+            'Pending Transfer': 'pending',
+            'AmlCsApporve': 'pending',
+            'New': 'pending',
+            'Confirmed': 'pending',
+            'Cancelled': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -3167,36 +3181,68 @@ class phemex(Exchange, ImplicitAPI):
         #
         # withdraw
         #
-        #     ...
+        #     {
+        #         "id": "10000001",
+        #         "freezeId": null,
+        #         "address": "44exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        #         "amountRv": "100",
+        #         "chainCode": "11",
+        #         "chainName": "TRX",
+        #         "currency": "USDT",
+        #         "currencyCode": 3,
+        #         "email": "abc@gmail.com",
+        #         "expiredTime": "0",
+        #         "feeRv": "1",
+        #         "nickName": null,
+        #         "phone": null,
+        #         "rejectReason": "",
+        #         "submitedAt": "1670000000000",
+        #         "submittedAt": "1670000000000",
+        #         "txHash": null,
+        #         "userId": "10000001",
+        #         "status": "Success"
         #
         # fetchDeposits
         #
         #     {
-        #         "id":29200,
-        #         "currency":"USDT",
-        #         "currencyCode":3,
-        #         "txHash":"0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
-        #         "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        #         "amountEv":3000000000,
-        #         "confirmations":13,
-        #         "type":"Deposit",
-        #         "status":"Success",
-        #         "createdAt":1592722565000
+        #         "id": "29200",
+        #         "currency": "USDT",
+        #         "currencyCode": "3",
+        #         "chainName": "ETH",
+        #         "chainCode": "4",
+        #         "txHash": "0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
+        #         "address": "0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
+        #         "amountEv": "3000000000",
+        #         "confirmations": "13",
+        #         "type": "Deposit",
+        #         "status": "Success",
+        #         "createdAt": "1592722565000",
         #     }
         #
         # fetchWithdrawals
         #
         #     {
-        #         "address": "1Lxxxxxxxxxxx"
-        #         "amountEv": 200000
-        #         "currency": "BTC"
-        #         "currencyCode": 1
-        #         "expiredTime": 0
-        #         "feeEv": 50000
-        #         "rejectReason": null
-        #         "status": "Succeed"
-        #         "txHash": "44exxxxxxxxxxxxxxxxxxxxxx"
-        #         "withdrawStatus: ""
+        #         "id": "10000001",
+        #         "userId": "10000001",
+        #         "freezeId": "10000002",
+        #         "phone": null,
+        #         "email": "abc@gmail.com",
+        #         "nickName": null,
+        #         "currency": "USDT",
+        #         "currencyCode": "3",
+        #         "status": "Succeed",
+        #         "withdrawStatus": "Succeed",
+        #         "amountEv": "8800000000",
+        #         "feeEv": "1200000000",
+        #         "address": "0x5xxxad",
+        #         "txHash: "0x0xxxx5d",
+        #         "submitedAt": "1702571922000",
+        #         "submittedAt": "1702571922000",
+        #         "expiredTime": "0",
+        #         "rejectReason": null,
+        #         "chainName": "ETH",
+        #         "chainCode": "4",
+        #         "proxyAddress": null
         #     }
         #
         id = self.safe_string(transaction, 'id')
@@ -3206,9 +3252,12 @@ class phemex(Exchange, ImplicitAPI):
         currencyId = self.safe_string(transaction, 'currency')
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
-        timestamp = self.safe_integer_2(transaction, 'createdAt', 'submitedAt')
+        networkId = self.safe_string(transaction, 'chainName')
+        timestamp = self.safe_integer_n(transaction, ['createdAt', 'submitedAt', 'submittedAt'])
         type = self.safe_string_lower(transaction, 'type')
         feeCost = self.parse_number(self.from_en(self.safe_string(transaction, 'feeEv'), currency['valueScale']))
+        if feeCost is None:
+            feeCost = self.safe_number(transaction, 'feeRv')
         fee = None
         if feeCost is not None:
             type = 'withdrawal'
@@ -3218,13 +3267,15 @@ class phemex(Exchange, ImplicitAPI):
             }
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amount = self.parse_number(self.from_en(self.safe_string(transaction, 'amountEv'), currency['valueScale']))
+        if amount is None:
+            amount = self.safe_number(transaction, 'amountRv')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
+            'network': self.network_id_to_code(networkId),
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -4270,9 +4321,37 @@ class phemex(Exchange, ImplicitAPI):
             'chainName': networkId.upper(),
         }
         if tag is not None:
-            request['tag'] = tag
+            request['addressTag'] = tag
         response = self.privatePostPhemexWithdrawWalletsApiCreateWithdraw(self.extend(request, params))
-        return self.parse_transaction(response, currency)
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "OK",
+        #         "data": {
+        #             "id": "10000001",
+        #             "freezeId": null,
+        #             "address": "44exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        #             "amountRv": "100",
+        #             "chainCode": "11",
+        #             "chainName": "TRX",
+        #             "currency": "USDT",
+        #             "currencyCode": 3,
+        #             "email": "abc@gmail.com",
+        #             "expiredTime": "0",
+        #             "feeRv": "1",
+        #             "nickName": null,
+        #             "phone": null,
+        #             "rejectReason": "",
+        #             "submitedAt": "1670000000000",
+        #             "submittedAt": "1670000000000",
+        #             "txHash": null,
+        #             "userId": "10000001",
+        #             "status": "Success"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_transaction(data, currency)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
