@@ -304,7 +304,7 @@ const testExchange = async (exchange) => {
     if (debugKeys['--info'] && infos.length) {
         // show info if enabled
         log.indent (1).bright ((
-            '\n|-------------- INFO (' + language + ') --------------|\n' +
+            '\n|-------------- INFO --------------|\n' +
             infos.join('\n') +
             '\n|--------------------------------------------|\n'
         ).blue);
