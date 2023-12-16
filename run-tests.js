@@ -176,8 +176,8 @@ const exec = (bin, ...args) => {
         warnings: [],
         infos: [],
 
-    }))
-}
+    }));
+};
 
 /*  ------------------------------------------------------------------------ */
 
@@ -300,11 +300,11 @@ const testExchange = async (exchange) => {
     numExchangesTested++;
     log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, logMessage)
 
-    if (exchangeSpecificFlags['--info'] && infos.length) {
+    if (debugKeys['--info'] && infos.length) {
         // show info if enabled
-        log.bright ('\n__________INFO_________\n'.blue.inverse)
+        log.bright ('\n|--------------------INFO--------------------|\n'.blue.inverse)
         log.indent (1) (infos.join('\n').blue)
-        log.bright ('\n_______________________\n'.blue)
+        log.bright ('\n|--------------------------------------------|\n'.blue)
     }
 /*  Return collected data to main loop     */
 
