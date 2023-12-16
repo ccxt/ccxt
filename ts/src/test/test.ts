@@ -217,7 +217,7 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         const symbolStr = symbolArgv !== undefined ? symbolArgv : 'all';
-        dump ('\n\n\n[INFO]TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.isWsTests }, '\n');
+        dump (this.newLine + this.newLine + this.newLine + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.isWsTests }, this.newLine);
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
@@ -357,7 +357,7 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async testMethod (methodName: string, exchange: any, args: any[], isPublic: boolean) {
-        //  temporary skip for php
+        // todo: temporary skip for php
         if (methodName.indexOf ('OrderBook') && this.ext === 'php') {
             return;
         }
