@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.89';
+$version = '4.1.90';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.89';
+    const VERSION = '4.1.90';
 
     public $browser;
     public $marketsLoading = null;
@@ -2876,7 +2876,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
-            if ($this->options['createMarketOrderWithCost'] || ($this->options['createMarketBuyOrderWithCost'] && $this->options['createMarketSellOrderWithCost'])) {
+            if ($this->has['createMarketOrderWithCost'] || ($this->has['createMarketBuyOrderWithCost'] && $this->has['createMarketSellOrderWithCost'])) {
                 return Async\await($this->create_order($symbol, 'market', $side, $cost, 1, $params));
             }
             throw new NotSupported($this->id . ' createMarketOrderWithCost() is not supported yet');
@@ -2892,7 +2892,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
-            if ($this->options['createMarketBuyOrderRequiresPrice'] || $this->options['createMarketBuyOrderWithCost']) {
+            if ($this->options['createMarketBuyOrderRequiresPrice'] || $this->has['createMarketBuyOrderWithCost']) {
                 return Async\await($this->create_order($symbol, 'market', 'buy', $cost, 1, $params));
             }
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() is not supported yet');

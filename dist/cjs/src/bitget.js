@@ -3855,7 +3855,7 @@ class bitget extends bitget$1 {
         if (feeCostString !== undefined) {
             // swap
             fee = {
-                'cost': feeCostString,
+                'cost': this.parseNumber(Precise["default"].stringAbs(feeCostString)),
                 'currency': market['settle'],
             };
         }
@@ -3863,10 +3863,17 @@ class bitget extends bitget$1 {
         if (feeDetail !== undefined) {
             const parsedFeeDetail = JSON.parse(feeDetail);
             const feeValues = Object.values(parsedFeeDetail);
-            const first = this.safeValue(feeValues, 0);
+            let feeObject = undefined;
+            for (let i = 0; i < feeValues.length; i++) {
+                const feeValue = feeValues[i];
+                if (this.safeValue(feeValue, 'feeCoinCode') !== undefined) {
+                    feeObject = feeValue;
+                    break;
+                }
+            }
             fee = {
-                'cost': this.safeString(first, 'totalFee'),
-                'currency': this.safeCurrencyCode(this.safeString(first, 'feeCoinCode')),
+                'cost': this.parseNumber(Precise["default"].stringAbs(this.safeString(feeObject, 'totalFee'))),
+                'currency': this.safeCurrencyCode(this.safeString(feeObject, 'feeCoinCode')),
             };
         }
         let postOnly = undefined;

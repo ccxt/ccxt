@@ -3719,17 +3719,22 @@ class bitget(Exchange, ImplicitAPI):
         if feeCostString is not None:
             # swap
             fee = {
-                'cost': feeCostString,
+                'cost': self.parse_number(Precise.string_abs(feeCostString)),
                 'currency': market['settle'],
             }
         feeDetail = self.safe_value(order, 'feeDetail')
         if feeDetail is not None:
             parsedFeeDetail = json.loads(feeDetail)
             feeValues = list(parsedFeeDetail.values())
-            first = self.safe_value(feeValues, 0)
+            feeObject = None
+            for i in range(0, len(feeValues)):
+                feeValue = feeValues[i]
+                if self.safe_value(feeValue, 'feeCoinCode') is not None:
+                    feeObject = feeValue
+                    break
             fee = {
-                'cost': self.safe_string(first, 'totalFee'),
-                'currency': self.safe_currency_code(self.safe_string(first, 'feeCoinCode')),
+                'cost': self.parse_number(Precise.string_abs(self.safe_string(feeObject, 'totalFee'))),
+                'currency': self.safe_currency_code(self.safe_string(feeObject, 'feeCoinCode')),
             }
         postOnly = None
         timeInForce = self.safe_string_upper(order, 'force')

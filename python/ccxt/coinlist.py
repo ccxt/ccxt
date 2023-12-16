@@ -122,6 +122,8 @@ class coinlist(Exchange, ImplicitAPI):
                 'fetchWithdrawals': False,
                 'fetchWithdrawalWhitelist': False,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
