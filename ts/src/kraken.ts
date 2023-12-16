@@ -1374,8 +1374,12 @@ export default class kraken extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} params.postOnly
-         * @param {bool} params.reduceOnly
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {bool} [params.reduceOnly] *margin only* indicates if this order is to reduce the size of a position
+         * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
+         * @param {string} [params.trailingStopLossPrice] *margin only* the quote price away from the current market price
+         * @param {string} [params.trailingStopLossActivationPriceType] *margin only* the activation price type, 'last' or 'index', default is 'last'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1634,6 +1638,8 @@ export default class kraken extends Exchange {
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
+        const trailingStopLossPrice = this.safeString (params, 'trailingStopLossPrice');
+        const isTrailingStopLossPriceOrder = trailingStopLossPrice !== undefined;
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -1648,6 +1654,20 @@ export default class kraken extends Exchange {
             }
             request['price2'] = this.priceToPrecision (symbol, price);
             reduceOnly = true;
+        } else if (isTrailingStopLossPriceOrder) {
+            const trailingStopLossActivationPriceType = this.safeString (params, 'trailingStopLossActivationPriceType', 'last');
+            const trailingStopLossPriceString = '+' + trailingStopLossPrice;
+            request['trigger'] = trailingStopLossActivationPriceType;
+            reduceOnly = true;
+            if (type === 'limit') {
+                const trailingStopLossLimitPriceString = '+' + this.numberToString (price);
+                request['price'] = trailingStopLossPriceString;
+                request['price2'] = trailingStopLossLimitPriceString;
+                request['ordertype'] = 'trailing-stop-limit';
+            } else {
+                request['price'] = trailingStopLossPriceString;
+                request['ordertype'] = 'trailing-stop';
+            }
         }
         if (reduceOnly) {
             request['reduce_only'] = true;
@@ -1675,7 +1695,7 @@ export default class kraken extends Exchange {
         if (postOnly) {
             request['oflags'] = 'post';
         }
-        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice' ]);
+        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingStopLossPrice', 'trailingStopLossActivationPriceType' ]);
         return [ request, params ];
     }
 
@@ -1692,6 +1712,10 @@ export default class kraken extends Exchange {
          * @param {float} amount how much of the currency you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
+         * @param {string} [params.trailingStopLossPrice] *margin only* the quote price away from the current market price
+         * @param {string} [params.trailingStopLossActivationPriceType] *margin only* the activation price type, 'last' or 'index', default is 'last'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
