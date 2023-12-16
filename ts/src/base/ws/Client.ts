@@ -7,6 +7,7 @@ import {
     isJsonEncodedObject,
     deepExtend,
     milliseconds,
+    isEmpty,
 } from '../../base/functions.js';
 import { utf8 } from '../../static_dependencies/scure-base/index.js';
 
@@ -112,6 +113,16 @@ export default class Client {
         return future
     }
 
+    resolveMany (result, messageHashes) {
+        if (messageHashes === undefined) {
+            return result;
+        }
+        for (let i = 0; i < messageHashes.length; i++) {
+            this.resolve (result, messageHashes[i]);
+        }
+        return result;
+    }
+
     resolve (result, messageHash) {
         if (this.verbose && (messageHash === undefined)) {
             this.log (new Date (), 'resolve received undefined messageHash');
@@ -120,7 +131,6 @@ export default class Client {
             const promise = this.futures[messageHash]
             promise.resolve (result)
             delete this.futures[messageHash]
-            // TODO : check if should I delete also from calledMethods?
         }
         return result
     }

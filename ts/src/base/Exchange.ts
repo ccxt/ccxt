@@ -145,12 +145,14 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 import { axolotl } from './functions/crypto.js';
 // import types
 import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export type {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks } from './types.js'
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks } from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
 import totp from './functions/totp.js';
+import testFetchWithdrawals from '../test/Exchange/test.fetchWithdrawals.js'
+import Client from './ws/Client.js'
 
 // ----------------------------------------------------------------------------
 /**
@@ -1296,14 +1298,33 @@ export default class Exchange {
         return this.clients[url];
     }
 
-    // User experience
-    // Option 0 - return an id when creating a subscription. Rejected: wouldn't be backwards compatible
-    // Option 00 - allow user to access client subscriptions and unsubscribe. Rejected: wouldn't be a unified solution
-    // Option 1 - by method - unsubscribe all methods of a type
-    //unwatch ("watchOrders" )
-    // Option 2 - by signature
-    // unwatch ("watchOrders::BTC/USDT")
-    // 
+    hashInMultipleUse (client: Client, subscribeHash: string): boolean {
+        const methods = Object.keys (client.calledMethods)
+        let numUses = 0;
+        for (let i = 0; i < methods.length; i++) {
+            const method = methods[i];
+            const calledMethod = client.calledMethods[method];
+            const calledSubscribeHashes = calledMethod['subscribeHashes'];
+            if (this.inArray (subscribeHash, calledSubscribeHashes)) {
+               numUses++;
+               if (numUses >= 2) return true;
+            }
+        }
+    }
+
+    subscribeHashesToUnsubscribe (client: Client, methodHash: string): string [] {
+        const calledMethod = client.calledMethods[methodHash];
+        const subscribeHashes = calledMethod['subscribeHashes'];
+        const hashesToUnsubscribe = [];
+        // check if subscription is other calledMethods and build hashes to unsubscribe
+        for (let i = 0; i < subscribeHashes.length; i++) {
+            const hash = subscribeHashes[i];
+            if (!this.hashInMultipleUse (client, hash)) {
+                hashesToUnsubscribe.push (hash);
+            }
+        }
+        return hashesToUnsubscribe;
+    }
 
     unwatch (methodHash, url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
         /**
@@ -1318,24 +1339,21 @@ export default class Exchange {
         if (calledMethod === undefined) {
             throw new NotFound ("could not find methodHash " + methodHash);
         }
-        const unsubscribeMessageHash = calledMethod['messageHash'];
-        const unsubscribeHash = calledMethod['subscribeHash'];
-        // resolve awaiting future
-        const bySubscriptions = this.groupBy (client.calledMethods, 'subscribeHash');
-        const messageHashes = this.safeValue (bySubscriptions, unsubscribeHash);
-        const methods = Object.keys (messageHashes);
-        const length = methods.length;
-        // unsubscribe if no messageHash
-        if (length <= 1 ) { // if last subscription unsubscribe websokcer
-            return this.watch (url, messageHash, message, subscribeHash, subscription);
-        } else { // else delete calledMethod and resolve unsubscribe
+        const unsubscribeMessageHashes = calledMethod['messageHashes'];
+        const unsubscribeHashes = this.subscribeHashesToUnsubscribe (client, methodHash);
+        const unsubscribeHashesLength = unsubscribeHashes.length;
+        if (unsubscribeHashesLength === 0) {
+            // no unsubscribe message is sent resolve pending messageHashes and delete calledMethod
+            client.resolveMany (null, unsubscribeMessageHashes);
             delete client.calledMethods[methodHash];
-            client.resolve (null, unsubscribeMessageHash);
+            future.resolve ();
+        } else {
+            this.watch (url, messageHash, message, subscribeHash, subscription); 
         }
         return future;
     }
 
-    watchMultiple (url, messageHashes, message = undefined, subscribeHashes = undefined, subscription = undefined) {
+    watchMultiple (url, messageHashes, message = undefined, subscribeHashes = undefined, subscription = undefined, methodHash = undefined) {
         //
         // Without comments the code of this method is short and easy:
         //
@@ -1378,6 +1396,13 @@ export default class Exchange {
                     missingSubscriptions.push (subscribeHash)
                     client.subscriptions[subscribeHash] = subscription || true
                 }
+            }
+        }
+        // save calledMethod hashes
+        if (methodHash !== undefined) {
+            client.calledMethods[methodHash] = {
+                'messageHashes': messageHashes,
+                'subscribeHashes': subscribeHashes,
             }
         }
         // we intentionally do not use await here to avoid unhandled exceptions
@@ -1463,8 +1488,8 @@ export default class Exchange {
         // save calledMethod hashes
         if (methodHash !== undefined) {
             client.calledMethods[methodHash] = {
-                'messageHash': messageHash,
-                'subscribeHash': subscribeHash,
+                'messageHashes': [ messageHash ],
+                'subscribeHashes': [ subscribeHash ],
             }
         }
         if ((subscribeHash === undefined) && (messageHash in client.futures)) {
