@@ -37,6 +37,8 @@ export default class kucoinfutures extends kucoin {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'closePosition': true,
+                'closePositions': false,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
