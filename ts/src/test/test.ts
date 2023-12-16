@@ -59,6 +59,7 @@ class baseMainTestClass {
     testFiles = {};
     publicTests = {};
     isWsTests = isWsTests;
+    newLine = '\n';
     rootDir = DIR_NAME + '/../../../';
     rootDirForSkips = DIR_NAME + '/../../../';
     onlySpecificTests = [];

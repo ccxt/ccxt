@@ -78,6 +78,7 @@ class baseMainTestClass {
     public $id_tests = false;
     public $response_tests = false;
     public $request_tests = false;
+    public $new_line = "\n";
     public $root_dir = root_dir;
     public $env_vars = envVars;
     public $root_dir_for_skips = rootDirForSkips;

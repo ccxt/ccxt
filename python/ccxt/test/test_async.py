@@ -129,6 +129,7 @@ class baseMainTestClass():
     test_files = {}
     public_tests = {}
     is_ws_tests = isWsTests
+    new_line = '\n'
     root_dir = rootDir
     env_vars = envVars
     ext = ext
