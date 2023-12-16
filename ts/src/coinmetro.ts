@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinmetro.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, InsufficientFunds, InvalidOrder } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, InsufficientFunds, InvalidOrder, PermissionDenied } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { Balances, Currency, IndexType, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
@@ -217,6 +217,7 @@ export default class coinmetro extends Exchange {
                     'Insufficient order size': InvalidOrder, // 422 Unprocessable Entity {"message":"Insufficient order size - min 0.002 ETH"}
                     'Not enough balance': InsufficientFunds, // 422 Unprocessable Entity {"message":"Not enough balance!"}
                     'orderType missing': BadRequest, // 422 Unprocessable Entity {"message":"orderType missing!"}
+                    'accessing from a new IP': PermissionDenied, //
                 },
             },
         });
