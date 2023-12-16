@@ -83,7 +83,7 @@ export default class coinmetro extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrder': false,
+                'fetchOpenOrder': true,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
@@ -736,7 +736,6 @@ export default class coinmetro extends Exchange {
     }
 
     parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1) {
-        // overriding Exchange.parseBidsAsks
         const prices = Object.keys (bidasks);
         const result = [];
         for (let i = 0; i < prices.length; i++) {
