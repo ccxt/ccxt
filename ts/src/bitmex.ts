@@ -40,6 +40,8 @@ export default class bitmex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'editOrder': true,

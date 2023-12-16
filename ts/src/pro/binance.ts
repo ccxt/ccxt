@@ -1976,11 +1976,11 @@ export default class binance extends binanceRest {
         this.setBalanceCache (client, type);
         this.setPositionsCache (client, type);
         const message = undefined;
-        const newOrder = await this.watch (url, messageHash, message, type);
+        const orders = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
-            return newOrder;
+            limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     parseWsOrder (order, market = undefined) {
@@ -2645,8 +2645,8 @@ export default class binance extends binanceRest {
             cachedOrders.append (parsed);
             const messageHash = 'orders';
             const symbolSpecificMessageHash = 'orders:' + symbol;
-            client.resolve (parsed, messageHash);
-            client.resolve (parsed, symbolSpecificMessageHash);
+            client.resolve (cachedOrders, messageHash);
+            client.resolve (cachedOrders, symbolSpecificMessageHash);
         }
     }
 

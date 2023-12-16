@@ -481,7 +481,7 @@ class binance extends binance$1 {
         const subscribe = {
             'id': requestId,
         };
-        const trades = await this.watch(url, subParams, this.extend(request, query), subParams, subscribe);
+        const trades = await this.watchMultiple(url, subParams, this.extend(request, query), subParams, subscribe);
         if (this.newUpdates) {
             const first = this.safeValue(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
@@ -1961,11 +1961,11 @@ class binance extends binance$1 {
         this.setBalanceCache(client, type);
         this.setPositionsCache(client, type);
         const message = undefined;
-        const newOrder = await this.watch(url, messageHash, message, type);
+        const orders = await this.watch(url, messageHash, message, type);
         if (this.newUpdates) {
-            return newOrder;
+            limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(this.orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     parseWsOrder(order, market = undefined) {
         //
@@ -2626,8 +2626,8 @@ class binance extends binance$1 {
             cachedOrders.append(parsed);
             const messageHash = 'orders';
             const symbolSpecificMessageHash = 'orders:' + symbol;
-            client.resolve(parsed, messageHash);
-            client.resolve(parsed, symbolSpecificMessageHash);
+            client.resolve(cachedOrders, messageHash);
+            client.resolve(cachedOrders, symbolSpecificMessageHash);
         }
     }
     handleAcountUpdate(client, message) {

@@ -7,8 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\InvalidOrder;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
@@ -202,13 +202,14 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the $quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
              * @param {string} [$params->timeInForce] GTC (default), IOC, FOK
              * @param {string} [$params->clientOrderId] Maximum 64-character length.*
+             * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
              *
              * EXCHANGE SPECIFIC PARAMETERS
-             * @param {string} [$params->amount] $quote units for the order
+             * @param {string} [$params->amount] quote units for the order
              * @param {boolean} [$params->allowBorrow] allow order to be placed by borrowing funds (Default => false)
              * @param {string} [$params->stpMode] self-trade prevention, defaults to expire_taker, none => enable self-trade; expire_taker => taker order will be canceled when self-trade happens
              * @param {string} [$params->slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
@@ -229,23 +230,26 @@ class poloniex extends \ccxt\async\poloniex {
                 'type' => strtoupper($type),
             );
             if (($uppercaseType === 'MARKET') && ($uppercaseSide === 'BUY')) {
-                $quoteAmount = $this->safe_string($params, 'amount');
-                if (($quoteAmount === null) && ($this->options['createMarketBuyOrderRequiresPrice'])) {
-                    $cost = $this->safe_number($params, 'cost');
-                    $params = $this->omit($params, 'cost');
-                    if ($price === null && $cost === null) {
-                        throw new ArgumentsRequired($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
+                $quoteAmount = null;
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number($params, 'cost');
+                $params = $this->omit($params, 'cost');
+                if ($cost !== null) {
+                    $quoteAmount = $this->cost_to_precision($symbol, $cost);
+                } elseif ($createMarketBuyOrderRequiresPrice) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
-                        $quote = Precise::string_mul($amountString, $priceString);
-                        $amount = ($cost !== null) ? $cost : $this->parse_number($quote);
-                        $quoteAmount = $this->cost_to_precision($symbol, $amount);
+                        $costRequest = Precise::string_mul($amountString, $priceString);
+                        $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                     }
                 } else {
                     $quoteAmount = $this->cost_to_precision($symbol, $amount);
                 }
-                $request['amount'] = $this->amount_to_precision($market['symbol'], $quoteAmount);
+                $request['amount'] = $quoteAmount;
             } else {
                 $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
                 if ($price !== null) {

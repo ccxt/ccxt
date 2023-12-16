@@ -90,7 +90,7 @@ class phemex extends Exchange {
                 'setMarginMode' => true,
                 'setPositionMode' => true,
                 'transfer' => true,
-                'withdraw' => null,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -229,6 +229,7 @@ class phemex extends Exchange {
                         'assets/spots/sub-accounts/transfer' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/futures/sub-accounts/transfer' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote' => 5, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                        // deposit/withdraw
                     ),
                     'post' => array(
                         // spot
@@ -471,6 +472,16 @@ class phemex extends Exchange {
                 'accountsByType' => array(
                     'spot' => 'spot',
                     'swap' => 'future',
+                ),
+                'stableCoins' => array(
+                    'BUSD',
+                    'FEI',
+                    'TUSD',
+                    'USD',
+                    'USDC',
+                    'USDD',
+                    'USDP',
+                    'USDT',
                 ),
                 'transfer' => array(
                     'fillResponseFromRequest' => true,
@@ -4535,6 +4546,48 @@ class phemex extends Exchange {
             }
             $sorted = $this->sort_by($result, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        }) ();
+    }
+
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @see https://phemex-docs.github.io/#create-withdraw-$request
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string} $tag
+             * @param {array} [$params] extra parameters specific to the phemex api endpoint
+             * @param {string} [$params->network] unified network $code
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            Async\await($this->load_markets());
+            $this->check_address($address);
+            $currency = $this->currency($code);
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            $networkId = $this->network_code_to_id($networkCode);
+            $stableCoins = $this->safe_value($this->options, 'stableCoins');
+            if ($networkId === null) {
+                if (!($this->in_array($code, $stableCoins))) {
+                    $networkId = $currency['id'];
+                } else {
+                    throw new ArgumentsRequired($this->id . ' withdraw () requires an extra argument $params["network"]');
+                }
+            }
+            $request = array(
+                'currency' => $currency['id'],
+                'address' => $address,
+                'amount' => $amount,
+                'chainName' => strtoupper($networkId),
+            );
+            if ($tag !== null) {
+                $request['tag'] = $tag;
+            }
+            $response = Async\await($this->privatePostPhemexWithdrawWalletsApiCreateWithdraw (array_merge($request, $params)));
+            return $this->parse_transaction($response, $currency);
         }) ();
     }
 

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.89';
+$version = '4.1.90';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.89';
+    const VERSION = '4.1.90';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4643,7 +4643,7 @@ class Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
-        if ($this->options['createMarketOrderWithCost'] || ($this->options['createMarketBuyOrderWithCost'] && $this->options['createMarketSellOrderWithCost'])) {
+        if ($this->has['createMarketOrderWithCost'] || ($this->has['createMarketBuyOrderWithCost'] && $this->has['createMarketSellOrderWithCost'])) {
             return $this->create_order($symbol, 'market', $side, $cost, 1, $params);
         }
         throw new NotSupported($this->id . ' createMarketOrderWithCost() is not supported yet');
@@ -4657,7 +4657,7 @@ class Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
-        if ($this->options['createMarketBuyOrderRequiresPrice'] || $this->options['createMarketBuyOrderWithCost']) {
+        if ($this->options['createMarketBuyOrderRequiresPrice'] || $this->has['createMarketBuyOrderWithCost']) {
             return $this->create_order($symbol, 'market', 'buy', $cost, 1, $params);
         }
         throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() is not supported yet');

@@ -41,7 +41,7 @@ export default class binance extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,  // contract only
                 'closeAllPositions': false,
-                'closePosition': false,
+                'closePosition': false,  // exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createOrders': true,

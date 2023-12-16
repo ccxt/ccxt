@@ -21,7 +21,7 @@ use React\Promise;
 function example_proxy_url() {
     return Async\async(function () {
         $my_ex = new \ccxt\async\kucoin();
-        $my_ex->proxy_url = 'http://5.75.153.75:8090/proxy.php?url=';
+        $my_ex->proxy_url = 'http://5.75.153.75:8090/proxy_url.php?caller=https://ccxt.com&url=';
         var_dump(Async\await($my_ex->fetch('https://api.ipify.org/')));
     }) ();
 }

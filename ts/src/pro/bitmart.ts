@@ -51,7 +51,7 @@ export default class bitmart extends bitmartRest {
                 'defaultType': 'spot',
                 'watchBalance': {
                     'fetchBalanceSnapshot': true, // or false
-                    'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
+                    'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
                 },
                 'watchOrderBook': {
                     'depth': 'depth50', // depth5, depth20, depth50
@@ -131,30 +131,32 @@ export default class bitmart extends bitmartRest {
         const messageHash = 'balance:' + type;
         const url = this.implodeHostname (this.urls['api']['ws'][type]['private']);
         const client = this.client (url);
-        this.setBalanceCache (client, type);
-        const fetchBalanceSnapshot = this.handleOptionAndParams (this.options, 'watchBalance', 'fetchBalanceSnapshot', true);
-        const awaitBalanceSnapshot = this.handleOptionAndParams (this.options, 'watchBalance', 'awaitBalanceSnapshot', false);
+        this.setBalanceCache (client, type, messageHash);
+        let fetchBalanceSnapshot = undefined;
+        let awaitBalanceSnapshot = undefined;
+        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (this.options, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [ awaitBalanceSnapshot, params ] = this.handleOptionAndParams (this.options, 'watchBalance', 'awaitBalanceSnapshot', false);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    setBalanceCache (client: Client, type) {
-        if (type in client.subscriptions) {
-            return undefined;
+    setBalanceCache (client: Client, type, subscribeHash) {
+        if (subscribeHash in client.subscriptions) {
+            return;
         }
         const options = this.safeValue (this.options, 'watchBalance');
-        const fetchBalanceSnapshot = this.handleOptionAndParams (options, 'watchBalance', 'fetchBalanceSnapshot', true);
-        if (fetchBalanceSnapshot) {
-            const messageHash = type + ':fetchBalanceSnapshot';
+        const snapshot = this.safeValue (options, 'fetchBalanceSnapshot', true);
+        if (snapshot) {
+            const messageHash = type + ':' + 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
                 this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
             }
-        } else {
-            this.balance[type] = {};
         }
+        this.balance[type] = {};
+        // without this comment, transpilation breaks for some reason...
     }
 
     async loadBalanceSnapshot (client, messageHash, type) {
@@ -203,15 +205,15 @@ export default class bitmart extends bitmartRest {
         }
         const isSpot = (channel.indexOf ('spot') >= 0);
         const type = isSpot ? 'spot' : 'swap';
-        this.balance['info'] = message;
+        this.balance[type]['info'] = message;
         if (isSpot) {
             if (!Array.isArray (data)) {
                 return;
             }
             for (let i = 0; i < data.length; i++) {
                 const timestamp = this.safeInteger (message, 'event_time');
-                this.balance['timestamp'] = timestamp;
-                this.balance['datetime'] = this.iso8601 (timestamp);
+                this.balance[type]['timestamp'] = timestamp;
+                this.balance[type]['datetime'] = this.iso8601 (timestamp);
                 const balanceDetails = this.safeValue (data[i], 'balance_details', []);
                 for (let ii = 0; ii < balanceDetails.length; ii++) {
                     const rawBalance = balanceDetails[i];
@@ -219,8 +221,8 @@ export default class bitmart extends bitmartRest {
                     const currencyId = this.safeString (rawBalance, 'ccy');
                     const code = this.safeCurrencyCode (currencyId);
                     account['free'] = this.safeString (rawBalance, 'av_bal');
-                    account['total'] = this.safeString (rawBalance, 'fz_bal');
-                    this.balance[code] = account;
+                    account['used'] = this.safeString (rawBalance, 'fz_bal');
+                    this.balance[type][code] = account;
                 }
             }
         } else {

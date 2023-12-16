@@ -1426,7 +1426,7 @@ export default class okcoin extends Exchange {
         }
         if (isMarketOrder || marketIOC) {
             request['ordType'] = 'market';
-            if ((side === 'buy')) {
+            if (side === 'buy') {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if (tgtCcy === 'quote_ccy') {
@@ -1458,6 +1458,9 @@ export default class okcoin extends Exchange {
                 else {
                     request['sz'] = this.amountToPrecision(symbol, amount);
                 }
+            }
+            else {
+                request['sz'] = this.amountToPrecision(symbol, amount);
             }
         }
         else {

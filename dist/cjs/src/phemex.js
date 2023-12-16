@@ -83,7 +83,7 @@ class phemex extends phemex$1 {
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'transfer': true,
-                'withdraw': undefined,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -222,6 +222,7 @@ class phemex extends phemex$1 {
                         'assets/spots/sub-accounts/transfer': 5,
                         'assets/futures/sub-accounts/transfer': 5,
                         'assets/quote': 5, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                        // deposit/withdraw
                     },
                     'post': {
                         // spot
@@ -465,6 +466,16 @@ class phemex extends phemex$1 {
                     'spot': 'spot',
                     'swap': 'future',
                 },
+                'stableCoins': [
+                    'BUSD',
+                    'FEI',
+                    'TUSD',
+                    'USD',
+                    'USDC',
+                    'USDD',
+                    'USDP',
+                    'USDT',
+                ],
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
@@ -4553,6 +4564,48 @@ class phemex extends phemex$1 {
         }
         const sorted = this.sortBy(result, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    async withdraw(code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name phemex#withdraw
+         * @description make a withdrawal
+         * @see https://phemex-docs.github.io/#create-withdraw-request
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the phemex api endpoint
+         * @param {string} [params.network] unified network code
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         */
+        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        await this.loadMarkets();
+        this.checkAddress(address);
+        const currency = this.currency(code);
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        let networkId = this.networkCodeToId(networkCode);
+        const stableCoins = this.safeValue(this.options, 'stableCoins');
+        if (networkId === undefined) {
+            if (!(this.inArray(code, stableCoins))) {
+                networkId = currency['id'];
+            }
+            else {
+                throw new errors.ArgumentsRequired(this.id + ' withdraw () requires an extra argument params["network"]');
+            }
+        }
+        const request = {
+            'currency': currency['id'],
+            'address': address,
+            'amount': amount,
+            'chainName': networkId.toUpperCase(),
+        };
+        if (tag !== undefined) {
+            request['tag'] = tag;
+        }
+        const response = await this.privatePostPhemexWithdrawWalletsApiCreateWithdraw(this.extend(request, params));
+        return this.parseTransaction(response, currency);
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

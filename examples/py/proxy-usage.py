@@ -18,7 +18,7 @@ import ccxt.pro as ccxt  # noqa: E402
 # ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/#/README?id=proxy
 async def example_proxy_url():
     my_ex = ccxt.kucoin()
-    my_ex.proxy_url = 'http://5.75.153.75:8090/proxy.php?url='
+    my_ex.proxy_url = 'http://5.75.153.75:8090/proxy_url.php?caller=https://ccxt.com&url='
     print(await my_ex.fetch('https://api.ipify.org/'))
 
     await my_ex.close()
