@@ -42,12 +42,6 @@ class ArrayCache extends BaseCache {
         }
     }
 
-
-    // tmp support for type bcz of transpiler snake_case
-    public function get_limit($symbol, $limit) {
-        return $this->getLimit($symbol, $limit);
-    }
-
     public function append($item) {
         if ($this->max_size && (count($this->deque) === $this->max_size)) {
             array_shift($this->deque);
