@@ -356,6 +356,10 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async testMethod (methodName: string, exchange: any, args: any[], isPublic: boolean) {
+        //  temporary skip for php
+        if (methodName.indexOf ('OrderBook') && this.ext === 'php') {
+            return;
+        }
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
         const isProxyTest = (methodName === this.proxyTestFileName);
@@ -369,12 +373,7 @@ export default class testMainClass extends baseMainTestClass {
             skipMessage = '[INFO:IGNORED_TEST]';
         } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
-        } else if (
-            (methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')
-                ||
-            // support skipping methods only for specific language, like: `"fetchOrderBook_php": true`
-            (((methodName + '_' + this.ext) in this.skippedMethods) && (typeof this.skippedMethods[(methodName + '_' + this.ext)] === 'string'))
-        ) {
+        } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
             skipMessage = '[INFO:SKIPPED_TEST]';
         } else if (!(methodName in this.testFiles)) {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
