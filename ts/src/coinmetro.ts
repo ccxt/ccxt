@@ -1123,9 +1123,94 @@ export default class coinmetro extends Exchange {
         return this.safeValue (timeInForceTypes, timeInForce, timeInForce);
     }
 
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name coinmetro#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {};
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        const response = await this.privateGetExchangeOrdersHistorySince (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "userID": "65671262d93d9525ac009e36",
+        //             "orderID": "65671262d93d9525ac009e36170257061073952c6423a8c5b4d6c",
+        //             "orderType": "market",
+        //             "buyingCurrency": "ETH",
+        //             "sellingCurrency": "USDC",
+        //             "buyingQty": 0.002,
+        //             "timeInForce": 4,
+        //             "boughtQty": 0.002,
+        //             "soldQty": 4.564,
+        //             "creationTime": 1702570610746,
+        //             "seqNumber": 10873722344,
+        //             "firstFillTime": 1702570610747,
+        //             "lastFillTime": 1702570610747,
+        //             "fills": [
+        //                 {
+        //                     "_id": "657b31d360a9542449381bdc",
+        //                     "seqNumber": 10873722343,
+        //                     "timestamp": 1702570610747,
+        //                     "qty": 0.002,
+        //                     "price": 2282,
+        //                     "side": "buy"
+        //                 }
+        //             ],
+        //             "completionTime": 1702570610747,
+        //             "takerQty": 0.002,
+        //             "fees": 0.000002,
+        //             "isAncillary": false,
+        //             "margin": false,
+        //             "trade": false,
+        //             "canceled": false,
+        //             "__v": 0
+        //         },
+        //         ...
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name coinmetro#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#518afd7a-4338-439c-a651-d4fdaa964138
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open order structures to retrieve (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const response = await this.privateGetExchangeOrdersActive (this.extend (request, params));
+        return this.parseOrders (response, market, since, limit);
+    }
+
     parseOrder (order, market: Market = undefined): Order {
         //
-        // createOrder
+        // createOrder market order
         //     {
         //         "userID": "65671262d93d9525ac009e36",
         //         "orderID": "65671262d93d9525ac009e36170257448481749b7ee2893bafec2",
@@ -1153,17 +1238,92 @@ export default class coinmetro extends Exchange {
         //         "takerQty": 0.002
         //     }
         //
+        // createOrder limit order
+        //     {
+        //         "userID": "65671262d93d9525ac009e36",
+        //         "orderID": "65671262d93d9525ac009e3617026635256739c996fe17d7cd5d4",
+        //         "orderType": "limit",
+        //         "buyingCurrency": "ETH",
+        //         "sellingCurrency": "USDC",
+        //         "fillStyle": "sell",
+        //         "orderPlatform": "trade-v3",
+        //         "timeInForce": 1,
+        //         "buyingQty": 0.005655,
+        //         "sellingQty": 11.31,
+        //         "boughtQty": 0,
+        //         "soldQty": 0,
+        //         "creationTime": 1702663525713,
+        //         "seqNumber": 10885528683,
+        //         "fees": 0,
+        //         "fills": [],
+        //         "isAncillary": false,
+        //         "margin": false,
+        //         "trade": false
+        //     }
+        //
+        // fetchOrders
+        //     {
+        //         "userID": "65671262d93d9525ac009e36",
+        //         "orderID": "65671262d93d9525ac009e36170257061073952c6423a8c5b4d6c",
+        //         "orderType": "market",
+        //         "buyingCurrency": "ETH",
+        //         "sellingCurrency": "USDC",
+        //         "buyingQty": 0.002,
+        //         "timeInForce": 4,
+        //         "boughtQty": 0.002,
+        //         "soldQty": 4.564,
+        //         "creationTime": 1702570610746,
+        //         "seqNumber": 10873722344,
+        //         "firstFillTime": 1702570610747,
+        //         "lastFillTime": 1702570610747,
+        //         "fills": [
+        //             {
+        //                 "_id": "657b31d360a9542449381bdc",
+        //                 "seqNumber": 10873722343,
+        //                 "timestamp": 1702570610747,
+        //                 "qty": 0.002,
+        //                 "price": 2282,
+        //                 "side": "buy"
+        //             }
+        //         ],
+        //         "completionTime": 1702570610747,
+        //         "takerQty": 0.002,
+        //         "fees": 0.000002,
+        //         "isAncillary": false,
+        //         "margin": false,
+        //         "trade": false,
+        //         "canceled": false,
+        //         "__v": 0
+        //     }
+        //
         const timestamp = this.safeInteger (order, 'creationTime');
-        const buyingQty = this.safeNumber (order, 'buyingQty');
-        const sellingQty = this.safeNumber (order, 'sellingQty');
-        // market buy orders has buyingQty
-        // market sell orders has sellingQty
+        const buyingCurrencyId = this.safeString (order, 'buyingCurrency', '');
+        const sellingCurrencyId = this.safeString (order, 'sellingCurrency', '');
+        const byuingPlusSelling = buyingCurrencyId + sellingCurrencyId;
+        const sellingPlusBuying = sellingCurrencyId + buyingCurrencyId;
         let side = undefined;
-        if (buyingQty === undefined) {
-            side = 'sell';
-        } else if (sellingQty === undefined) {
+        let marketId = undefined;
+        let baseAmount = this.safeString (order, 'buyingQty');
+        let quoteAmount = this.safeString (order, 'buyingQty');
+        let filled = undefined;
+        const marketsById = this.indexBy (this.markets, 'id');
+        if (this.safeValue (marketsById, byuingPlusSelling) !== undefined) {
             side = 'buy';
+            marketId = byuingPlusSelling;
+            quoteAmount = this.safeString (order, 'sellingQty');
+            filled = this.safeString (order, 'boughtQty');
+        } else if (this.safeValue (marketsById, sellingPlusBuying) !== undefined) {
+            side = 'sell';
+            marketId = sellingPlusBuying;
+            baseAmount = this.safeString (order, 'sellingQty');
+            filled = this.safeString (order, 'soldQty');
         }
+        let price = undefined;
+        if ((baseAmount !== undefined) && (quoteAmount !== undefined)) {
+            price = Precise.stringDiv (quoteAmount, baseAmount);
+        }
+        market = this.safeMarket (marketId, market);
+        const trades = this.safeValue (order, 'fills', []);
         return this.safeOrder ({
             'id': this.safeString (order, 'orderID'),
             'clientOrderId': undefined,
@@ -1171,21 +1331,21 @@ export default class coinmetro extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': this.safeInteger (order, 'lastFillTime'),
             'status': undefined,
-            'symbol': undefined,
+            'symbol': market['symbol'],
             'type': this.safeString (order, 'orderType'),
             'timeInForce': this.parseOrderTimeInForce (this.safeInteger (order, 'timeInForce')),
             'side': side,
-            'price': undefined,
+            'price': price,
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'average': undefined,
-            'amount': undefined,
+            'amount': baseAmount,
             'cost': undefined,
-            'filled': undefined,
+            'filled': filled,
             'remaining': undefined,
             'fee': undefined,
             'fees': undefined,
-            'trades': undefined,
+            'trades': trades,
             'info': order,
         }, market);
     }
