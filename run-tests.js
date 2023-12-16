@@ -97,13 +97,13 @@ const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => {
 
 /*  --------------------------------------------------------------------------- */
 
-const exec = (bin, ...args) =>
+const exec = (bin, ...args) => { 
 
 /*  A custom version of child_process.exec that captures both stdout and
     stderr,  not separating them into distinct buffers — so that we can show
     the same output as if it were running in a terminal.                        */
 
-    timeout (250, new Promise (return_ => {
+    return timeout (250, new Promise (return_ => {
 
         const psSpawn = ps.spawn (bin, args)
 
@@ -177,6 +177,7 @@ const exec = (bin, ...args) =>
         infos: [],
 
     }))
+}
 
 /*  ------------------------------------------------------------------------ */
 
@@ -270,7 +271,7 @@ const testExchange = async (exchange) => {
             // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
             scheduledTests = scheduledTests.filter (x => x.key !== '--php-async');
         }
-        const completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
+        const completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await  exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
         , hasWarnings    = completeTests.find (test => test.warnings.length)
         , warnings       = completeTests.reduce (
