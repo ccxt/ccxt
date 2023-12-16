@@ -1629,43 +1629,28 @@ export default class kraken extends Exchange {
         if (clientOrderId !== undefined) {
             request['userref'] = clientOrderId;
         }
-        //
-        //     market
-        //     limit (price = limit price)
-        //     stop-loss (price = stop loss trigger price)
-        //     take-profit (price = take profit trigger price)
-        //     stop-loss-limit (price = stop loss trigger price, price2 = triggered limit price)
-        //     take-profit-limit (price = take profit trigger price, price2 = triggered limit price)
-        //     settle-position
-        //
+        const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeNumber (params, 'takeProfitPrice');
+        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
+        const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
-        } else if ((type === 'stop-loss') || (type === 'take-profit')) {
-            const stopPrice = this.safeNumber2 (params, 'price', 'stopPrice', price);
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + method + ' requires a price argument or a price/stopPrice parameter for a ' + type + ' order');
-            } else {
-                request['price'] = this.priceToPrecision (symbol, stopPrice);
+        }
+        let reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
+        if (isStopLossOrTakeProfitTrigger) {
+            if (isStopLossTriggerOrder) {
+                request['price'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                request['ordertype'] = 'stop-loss-limit';
+            } else if (isTakeProfitTriggerOrder) {
+                request['price'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                request['ordertype'] = 'take-profit-limit';
             }
-        } else if ((type === 'stop-loss-limit') || (type === 'take-profit-limit')) {
-            const stopPrice = this.safeNumber2 (params, 'price', 'stopPrice');
-            const limitPrice = this.safeNumber (params, 'price2');
-            const stopPriceDefined = (stopPrice !== undefined);
-            const limitPriceDefined = (limitPrice !== undefined);
-            if (stopPriceDefined && limitPriceDefined) {
-                request['price'] = this.priceToPrecision (symbol, stopPrice);
-                request['price2'] = this.priceToPrecision (symbol, limitPrice);
-            } else if ((price === undefined) || (!(stopPriceDefined || limitPriceDefined))) {
-                throw new ArgumentsRequired (this.id + method + ' requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order');
-            } else {
-                if (stopPriceDefined) {
-                    request['price'] = this.priceToPrecision (symbol, stopPrice);
-                    request['price2'] = this.priceToPrecision (symbol, price);
-                } else if (limitPriceDefined) {
-                    request['price'] = this.priceToPrecision (symbol, price);
-                    request['price2'] = this.priceToPrecision (symbol, limitPrice);
-                }
-            }
+            request['price2'] = this.priceToPrecision (symbol, price);
+            reduceOnly = true;
+        }
+        if (reduceOnly) {
+            request['reduce_only'] = true;
         }
         let close = this.safeValue (params, 'close');
         if (close !== undefined) {
@@ -1690,11 +1675,7 @@ export default class kraken extends Exchange {
         if (postOnly) {
             request['oflags'] = 'post';
         }
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        if (reduceOnly) {
-            request['reduce_only'] = true;
-        }
-        params = this.omit (params, [ 'price', 'stopPrice', 'price2', 'close', 'timeInForce', 'reduceOnly' ]);
+        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice' ]);
         return [ request, params ];
     }
 
