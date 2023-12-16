@@ -76,7 +76,7 @@
     "fast-force-transpileWs": "node build/transpileWS.js --multiprocess",
     "test-js-cache": "node js/src/pro/test/base/test.Cache.js",
     "test-js-orderbook": "node js/src/pro/test/base/test.OrderBook.js",
-    "test-python-cache": "python python/ccxt/pro/test/base/test_cache.py",
+    "test-python-cache": "python python/ccxt/pro/test/test_cache.py",
     "test-python-orderbook": "python python/ccxt/pro/test/test_order_book.py",
     "test-ws-php-base": "npm run test-php-cache && npm run test-php-orderbook",
     "test-php-cache": "php -f php/pro/test/Cache.php",
