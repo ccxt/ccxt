@@ -216,7 +216,7 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         const symbolStr = symbolArgv !== undefined ? symbolArgv : 'all';
-        dump ('\n[INFO]TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.isWsTests }, '\n');
+        dump ('\n\n\n[INFO]TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.isWsTests }, '\n');
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
