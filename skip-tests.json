@@ -19,7 +19,6 @@
         "skip": "private endpoints"
     },
     "ascendex": {
-        "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -48,7 +47,6 @@
     },
     "binance": {
         "httpsProxy": "http://5.75.153.75:8002",
-        "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC",
@@ -80,7 +78,6 @@
     },
     "binancecoinm": {
         "httpsProxy": "http://5.75.153.75:8002",
-        "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {
                 "expiry": "expiry not set for future markets",
@@ -98,7 +95,6 @@
     },
     "binanceusdm": {
         "httpsProxy": "http://5.75.153.75:8002",
-        "skipPhpAsync": true,
         "skipMethods": {
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -139,8 +135,7 @@
         }
     },
     "tokocrypto": {
-        "httpsProxy": "http://5.75.153.75:8002",
-        "skipPhpAsync": true
+        "httpsProxy": "http://5.75.153.75:8002"
     },
     "bitbank": {
     },
@@ -602,7 +597,6 @@
         }
     },
     "coinbasepro": {
-        "skipPhpAsync": true,
         "skipMethods": {
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
@@ -612,7 +606,6 @@
         }
     },
     "coinbaseprime": {
-        "skipPhpAsync": true,
         "skipMethods": {
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
@@ -655,7 +648,6 @@
         }
     },
     "cex": {
-        "skipPhpAsync": true,
         "skipMethods": {
             "proxies": "probably they do not permit our proxy location",
             "loadMarkets": {
@@ -688,7 +680,6 @@
         }
     },
     "cryptocom": {
-        "skipPhpAsync": true,
         "skipMethods": {
             "proxies": "probably they do not permit our proxy",
             "loadMarkets": {
@@ -1055,7 +1046,6 @@
     "kuna": {
         "skip": "temporary glitches with this exchange: https://app.travis-ci.com/github/ccxt/ccxt/builds/267517440#L2304",
         "httpsProxy": "http://5.75.153.75:8002",
-        "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
@@ -1240,7 +1230,6 @@
         }
     },
     "phemex": {
-        "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {
                 "contractSize": "broken for some markets",
@@ -1346,7 +1335,6 @@
         "skip": "exchange unavailable, probably api upgrade needed"
     },
     "kraken": {
-        "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267515280#L2314"
