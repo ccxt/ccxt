@@ -33,7 +33,7 @@ export default class coinmetro extends Exchange {
                 'addMargin': false,
                 'borrowMargin': false,
                 'cancelAllOrders': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelOrders': false,
                 'closeAllPositions': false,
                 'closePosition': false,
@@ -45,7 +45,7 @@ export default class coinmetro extends Exchange {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'deposit': false,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
@@ -83,9 +83,9 @@ export default class coinmetro extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrder': true,
-                'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOpenOrder': false,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
@@ -159,9 +159,9 @@ export default class coinmetro extends Exchange {
                     'get': {
                         'users/balances': 1,
                         'users/wallets/history/{since}': 1,
-                        'exchange/orders/status/{orderID}': 1, // todo: fetchOrder
-                        'exchange/orders/active': 1, // todo: fetchOpenOrders
-                        'exchange/orders/history/{since}': 1, // todo: fetchOrders
+                        'exchange/orders/status/{orderID}': 1,
+                        'exchange/orders/active': 1,
+                        'exchange/orders/history/{since}': 1,
                         'exchange/fills/{since}': 1,
                         'exchange/margin': 1, // todo: check
                     },
@@ -171,7 +171,7 @@ export default class coinmetro extends Exchange {
                         'devices': 1, // not unified: provides information about a yet-to-be authorized mobile device
                         'jwt-read-only': 1, // not unified: requests a read-only long-lived token
                         'exchange/orders/create': 1,
-                        'exchange/orders/modify/{orderID}': 1, // todo: editOrder
+                        'exchange/orders/modify/{orderID}': 1,
                         'exchange/swap': 1, // todo: check
                         'exchange/swap/confirm/{swapId}': 1, // todo: check
                         'exchange/orders/close/{orderID}': 1, // todo: check - closePosition?
@@ -179,7 +179,7 @@ export default class coinmetro extends Exchange {
                     },
                     'put': {
                         'jwt': 1, // not unified: logout
-                        'exchange/orders/cancel/{orderID}': 1, // todo: cancelOrder
+                        'exchange/orders/cancel/{orderID}': 1,
                         'users/margin/collateral': 1, // todo: check
                         'users/margin/primary/{currency}': 1, // todo: check
                     },
@@ -217,7 +217,7 @@ export default class coinmetro extends Exchange {
                     'Insufficient order size': InvalidOrder, // 422 Unprocessable Entity {"message":"Insufficient order size - min 0.002 ETH"}
                     'Not enough balance': InsufficientFunds, // 422 Unprocessable Entity {"message":"Not enough balance!"}
                     'orderType missing': BadRequest, // 422 Unprocessable Entity {"message":"orderType missing!"}
-                    'accessing from a new IP': PermissionDenied, //
+                    'accessing from a new IP': PermissionDenied, // 403 Forbidden {"message":"You're accessing from a new IP. Please check your email."}
                 },
             },
         });
@@ -1102,6 +1102,34 @@ export default class coinmetro extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmetro#editOrder
+         * @description create a trade order
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#d3c579f7-7135-4d47-8c01-3955dd02382b
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type not used by coinmetro editOrder ()
+         * @param {string} side not used by coinmetro editOrder ()
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount in market orders
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'orderID': id,
+        };
+        // todo: finish this method
+        const response = await this.privatePostExchangeOrdersModifyOrderID (this.extend (request, params));
+        return this.parseOrder (response, market);
+    }
+
     handleCreateOrderSide (sellingCurrency, buyingCurrency, sellingQty, buyingQty, request = {}) {
         request['sellingCurrency'] = sellingCurrency;
         request['buyingCurrency'] = buyingCurrency;
@@ -1121,6 +1149,28 @@ export default class coinmetro extends Exchange {
             'FOK': 4,
         };
         return this.safeValue (timeInForceTypes, timeInForce, timeInForce);
+    }
+
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmetro#cancelOrder
+         * @description cancels an open order
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#eaea86da-16ca-4c56-9f00-5b1cb2ad89f8
+         * @param {string} id order id
+         * @param {string} symbol not used by coinmetro cancelOrder ()
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        // todo: blind implementation
+        const request = {
+            'orderID': id,
+        };
+        const response = await this.privatePostExchangeOrdersCloseOrderID (this.extend (request, params));
+        //
+        //
+        return this.parseOrder (response);
     }
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1199,6 +1249,7 @@ export default class coinmetro extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        // todo: blind implementation
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1206,6 +1257,28 @@ export default class coinmetro extends Exchange {
         }
         const response = await this.privateGetExchangeOrdersActive (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmetro#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#95bbed87-db1c-47a7-a03e-aa247e91d5a6
+         * @param {int|string} id order id
+         * @param {string} symbol not used by coinmetro fetchOrder ()
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        // todo: blind implementation
+        const request = {
+            'orderID': id,
+        };
+        const response = await this.privateGetExchangeOrdersStatusOrderID (this.extend (request, params));
+        //
+        //
+        return this.parseOrder (response);
     }
 
     parseOrder (order, market: Market = undefined): Order {
