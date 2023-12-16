@@ -37,6 +37,8 @@ export default class kucoinfutures extends kucoin {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'closePosition': true,
+                'closePositions': false,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
@@ -2434,5 +2436,40 @@ export default class kucoinfutures extends kucoin {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
+    }
+
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name kucoinfutures#closePosition
+         * @description closes open positions for a market
+         * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} side not used by kucoinfutures closePositions
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.clientOrderId] client order id of the order
+         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let clientOrderId = this.safeString (params, 'clientOrderId');
+        const testOrder = this.safeValue (params, 'test', false);
+        params = this.omit (params, [ 'test', 'clientOrderId' ]);
+        if (clientOrderId === undefined) {
+            clientOrderId = this.numberToString (this.nonce ());
+        }
+        const request = {
+            'symbol': market['id'],
+            'closeOrder': true,
+            'clientOid': clientOrderId,
+            'type': 'market',
+        };
+        let response = undefined;
+        if (testOrder) {
+            response = await this.futuresPrivatePostOrdersTest (this.extend (request, params));
+        } else {
+            response = await this.futuresPrivatePostOrders (this.extend (request, params));
+        }
+        return this.parseOrder (response, market);
     }
 }
