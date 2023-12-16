@@ -295,6 +295,15 @@ const testExchange = async (exchange) => {
     numExchangesTested++;
     log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, logMessage)
 
+    // independenly of the success result, show infos
+    if (debugKeys['--info'] && infos.length) {
+        // show info if enabled
+        log.indent (1).bright ((
+            '\n|-------------- INFO (' + language + ') --------------|\n' +
+            infos.join('\n') +
+            '\n|--------------------------------------------|\n'
+        ).blue);
+    }
 /*  Return collected data to main loop     */
 
     return {
@@ -314,15 +323,6 @@ const testExchange = async (exchange) => {
                     log.bright ('\nWARN'.yellow.inverse,     exchange.yellow, '(' + language + ' ' + wsFlag + '):\n')
                 }
                 log.indent (1) (output)
-
-                if (debugKeys['--info'] && infos.length) {
-                    // show info if enabled
-                    log.indent (1).bright ((
-                        '\n|-------------- INFO (' + language + ') --------------|\n' +
-                        infos.join('\n') +
-                        '\n|--------------------------------------------|\n'
-                    ).blue);
-                }
             }
         }
     }
