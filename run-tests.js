@@ -115,16 +115,14 @@ const exec = (bin, ...args) =>
 
         psSpawn.on ('exit', code => {
             // keep this commented code for a while (just in case), as the below avoids vscode false positive warnings from output: https://github.com/nodejs/node/issues/34799 during debugging
-            // const removeDebuger = (str) => str.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
-            // stderr = removeDebuger(stderr);
-            // output = removeDebuger(output);
+            const removeDebuger = (str) => str.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
+            stderr = removeDebuger(stderr);
+            output = removeDebuger(output);
 
-            let hasWarnings = stderr.length > 0;
             output = ansi.strip (output.trim ())
 
             // detect error
-            let hasFailed = false;
-            if (
+            const hasFailed = (
                 // exception caught in "test -> testMethod"
                 output.indexOf('[TEST_FAILURE]') > -1 ||
                 // 1) thrown from JS assert module
@@ -135,35 +133,34 @@ const exec = (bin, ...args) =>
                 output.indexOf('[ASSERT_ERROR]') > -1 ||
                 // 4) thrown from PHP async library
                 output.indexOf('Fatal error:') > -1
-            ) {
-                hasFailed = true;
-            }
+            );
 
-            // Infos
+            // ### Infos ###
             const infos = []
+            // check output for pattern like `[INFO:TESTING] xyz message`
             if (output.length) {
-                // check output for pattern like `[INFO:TESTING] xyz message`
-                const infoRegex = /\[INFO(|:([\w_-]+))\].+$(?!\n)*/gmi
+                const infoRegex = /\[INFO(|:([\w_-]+))\].+$(?!\n)*/gm
                 let matchInfo;
                 while ((matchInfo = infoRegex.exec (output))) {
                     infos.push (matchInfo[0])
                 }
             }
 
-            // Warnings
+            // ### Warnings ###
             const warnings = []
-            if (hasWarnings) {
-                // check output for pattern like `[TEST_WARNING] whatever`
+            // check output for pattern like `[TEST_WARNING] whatever`
+            if (output.length) {
                 const warningRegex = /\[TEST_WARNING\].+$(?!\n)*/gmi
                 let matchWarnings; 
                 while (matchWarnings = warningRegex.exec (stderr)) {
                     warnings.push (matchWarnings[0])
                 }
-                // if pattern not found, then add the whole stderr to warning
-                if (!warnings.length) {
-                    warnings.push (stderr)
-                }
             }
+            // check stderr
+            if (stderr.length > 0) {
+                warnings.push (stderr)
+            }
+
             return_ ({
                 failed: hasFailed || code !== 0,
                 output,
@@ -387,7 +384,7 @@ async function testAllExchanges () {
 
 (async function () {
 
-    // show output like `TESTING  js {exchange: 'binance', symbol: 'all', isWs: true}`
+    // show output like `Testing { exchanges: ["binance"], symbol: "all", debugKeys: { '--warnings': false, '--info': true }, langKeys: { '--ts': false, '--js': false, '--php': false, '--python': false, '--python-async': false, '--php-async': false }, exchangeSpecificFlags: { '--ws': true, '--sandbox': false, '--verbose': false, '--private': false, '--privateOnly': false }, maxConcurrency: 100 }`
     log.bright.magenta.noPretty (
         'Testing'.white, 
         Object.assign ({ exchanges, symbol, debugKeys, langKeys, exchangeSpecificFlags }, maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency })
