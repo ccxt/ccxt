@@ -123,6 +123,16 @@ export default class Client {
         return result;
     }
 
+    rejectMany (result, messageHashes) {
+        if (messageHashes === undefined) {
+            return result;
+        }
+        for (let i = 0; i < messageHashes.length; i++) {
+            this.reject (result, messageHashes[i]);
+        }
+        return result;
+    }
+
     resolve (result, messageHash) {
         if (this.verbose && (messageHash === undefined)) {
             this.log (new Date (), 'resolve received undefined messageHash');

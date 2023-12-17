@@ -130,7 +130,8 @@ import {
     , ArgumentsRequired
     , RateLimitExceeded,
     BadRequest,
-    NotFound} from "./errors.js"
+    NotFound,
+    UnsubscribeError} from "./errors.js"
 
 import { Precise } from './Precise.js'
 
@@ -1326,7 +1327,7 @@ export default class Exchange {
         return hashesToUnsubscribe;
     }
 
-    unwatch (methodHash, url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
+    unwatch (methodHash: string, url: string, messageHash: string, message: any = undefined, subscribeHash: string = undefined, subscription: any = undefined) {
         /**
          * @method
          * @name exchange#unwatch
@@ -1344,7 +1345,8 @@ export default class Exchange {
         const unsubscribeHashesLength = unsubscribeHashes.length;
         if (unsubscribeHashesLength === 0) {
             // no unsubscribe message is sent resolve pending messageHashes and delete calledMethod
-            client.resolveMany (null, unsubscribeMessageHashes);
+            const unsubscibe = new UnsubscribeError (methodHash);
+            client.rejectMany (unsubscibe, unsubscribeMessageHashes);
             delete client.calledMethods[methodHash];
             future.resolve ();
         } else {
@@ -1451,6 +1453,40 @@ export default class Exchange {
             });
         }
         return future;
+    }
+
+    async watchMultipleWithUnsubscribe (url, messageHashes, message = undefined, subscribeHashes = undefined, subscription = undefined, methodHash = undefined) {
+        let response = undefined;
+        try {
+            response = await this.watchMultiple (url, messageHashes, message, subscribeHashes, subscription, methodHash);
+        } catch (e) {
+            if (e instanceof UnsubscribeError) {
+                if (e.message === methodHash) {
+                    throw e;
+                } else { // unsubscribe signal from other method
+                    return this.watchMultipleWithUnsubscribe (url, messageHashes, message, subscribeHashes, subscription, methodHash)
+                }
+            }
+            throw e;
+        }
+        return response;
+    }
+
+    async watchWithUnsubscribe (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined, methodHash = undefined) {
+        let response = undefined;
+        try {
+            response = await this.watch (url, messageHash, message, subscribeHash, subscription, methodHash)
+        } catch (e) {
+            if (e instanceof UnsubscribeError) {
+                if (e.message === methodHash) {
+                    throw e;
+                } else { // unsubscribe signal from other method
+                    return this.watchWithUnsubscribe (url, messageHash, message, subscribeHash, subscription, methodHash);
+                }
+            }
+            throw e;
+        }
+        return response;
     }
 
     watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined, methodHash = undefined) {

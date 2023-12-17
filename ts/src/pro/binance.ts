@@ -3,7 +3,7 @@
 
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { ExchangeError, ArgumentsRequired, BadRequest, NotFound } from '../base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadRequest, NotFound, UnsubscribeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -495,10 +495,7 @@ export default class binance extends binanceRest {
             'id': requestId,
         };
         const methodHash = 'watchTradesForSymbols::' + symbols.join (',');
-        const trades = await this.watchMultiple (url, subParams, this.extend (request, query), subParams, subscribe, methodHash);
-        if (trades === null) {
-            return;
-        }
+        const trades = await this.watchMultipleWithUnsubscribe (url, subParams, this.extend (request, query), subParams, subscribe, methodHash);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -855,7 +852,7 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe, methodHash);
+        return await this.watchWithUnsubscribe (url, messageHash, this.extend (request, params), messageHash, subscribe, methodHash);
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -2632,16 +2629,17 @@ export default class binance extends binanceRest {
         const methodHash = this.safeString (subscription, 'methodHash');
         const unsubsribedSuscriptionHashes = this.safeValue (subscription, 'subscriptionsToUnsubscribe');
         const unsubscibeMessageHashes = client.calledMethods[methodHash]['messageHashes'];
+        // delete called method
+        delete client.calledMethods[methodHash];
+        // resolve any waiting futures;
+        const unsubcribe = new UnsubscribeError (methodHash);
+        client.rejectMany (unsubcribe, unsubscibeMessageHashes);
+        // resolve unsubscribe
+        client.resolve (undefined, messageHash);
         // delete subscription
         for (let i = 0; i < unsubsribedSuscriptionHashes.length; i++) {
             delete client.subscriptions[unsubsribedSuscriptionHashes[i]];
         }
-        // delete called method
-        delete client.calledMethods[methodHash];
-        // resolve any waiting futures;
-        client.resolveMany (null, unsubscibeMessageHashes);
-        // resolve unsubscribe
-        client.resolve (null, messageHash);
     }
 
     handleMyTrade (client: Client, message) {
