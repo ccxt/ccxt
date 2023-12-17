@@ -251,7 +251,7 @@ export default class coinone extends Exchange {
                 'deposit': isDepositEnabled,
                 'withdraw': isWithdrawEnabled,
                 'fee': this.safeNumber (entry, 'withdrawal_fee'),
-                'precision': this.safeNumber (entry, 'max_precision'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'max_precision'))),
                 'limits': {
                     'amount': {
                         'min': undefined,
