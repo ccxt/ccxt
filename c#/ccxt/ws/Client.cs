@@ -90,6 +90,10 @@ public partial class Exchange
 
         public void resolve(object content, object messageHash2)
         {
+            if (this.verbose && (messageHash2 == null))
+            {
+                Console.WriteLine("resolve received undefined messageHash");
+            }
             var messageHash = messageHash2.ToString();
             if (this.futures.ContainsKey(messageHash))
             {
