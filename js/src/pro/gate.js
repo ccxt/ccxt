@@ -286,7 +286,7 @@ export default class gate extends gateRest {
         const marketId = market['id'];
         const url = this.getUrlByMarket(market);
         const messageType = this.getTypeByMarket(market);
-        const [topic, query] = this.handleOptionAndParams(params, 'watchTicker', 'method', 'tickers');
+        const [topic, query] = this.handleOptionAndParams(params, 'watchTicker', 'name', 'tickers');
         const channel = messageType + '.' + topic;
         const messageHash = 'ticker:' + symbol;
         const payload = [marketId];
@@ -388,20 +388,7 @@ export default class gate extends gateRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        symbol = market['symbol'];
-        const marketId = market['id'];
-        const messageType = this.getTypeByMarket(market);
-        const channel = messageType + '.trades';
-        const messageHash = 'trades:' + symbol;
-        const url = this.getUrlByMarket(market);
-        const payload = [marketId];
-        const trades = await this.subscribePublic(url, messageHash, payload, channel, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
-        }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         /**
@@ -412,7 +399,7 @@ export default class gate extends gateRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -420,9 +407,13 @@ export default class gate extends gateRest {
         const market = this.market(symbols[0]);
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.trades';
-        const messageHash = 'multipleTrades::' + symbols.join(',');
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push('trades:' + symbol);
+        }
         const url = this.getUrlByMarket(market);
-        const trades = await this.subscribePublic(url, messageHash, marketIds, channel, params);
+        const trades = await this.subscribePublicMultiple(url, messageHashes, marketIds, channel, params);
         if (this.newUpdates) {
             const first = this.safeValue(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
@@ -464,7 +455,6 @@ export default class gate extends gateRest {
             cachedTrades.append(trade);
             const hash = 'trades:' + symbol;
             client.resolve(cachedTrades, hash);
-            this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, cachedTrades);
         }
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1266,6 +1256,19 @@ export default class gate extends gateRest {
         }
         const message = this.extend(request, params);
         return await this.watch(url, messageHash, message, messageHash, subscription);
+    }
+    async subscribePublicMultiple(url, messageHashes, payload, channel, params = {}) {
+        const requestId = this.requestId();
+        const time = this.seconds();
+        const request = {
+            'id': requestId,
+            'time': time,
+            'channel': channel,
+            'event': 'subscribe',
+            'payload': payload,
+        };
+        const message = this.extend(request, params);
+        return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
     async subscribePrivate(url, messageHash, payload, channel, params, requiresUid = false) {
         this.checkRequiredCredentials();

@@ -6,13 +6,13 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class okx
- * @extends Exchange
+ * @augments Exchange
  */
 export default class okx extends Exchange {
     describe () {
@@ -21,7 +21,7 @@ export default class okx extends Exchange {
             'name': 'OKX',
             'countries': [ 'CN', 'US' ],
             'version': 'v5',
-            'rateLimit': 100,
+            'rateLimit': 100 * 1.03, // 3% tolerance because of #20229
             'pro': true,
             'certified': true,
             'has': {
@@ -32,10 +32,11 @@ export default class okx extends Exchange {
                 'future': true,
                 'option': true,
                 'addMargin': true,
-                'borrowMargin': true,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': true,
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketSellOrderWithCost': true,
@@ -290,6 +291,7 @@ export default class okx extends Exchange {
                         'asset/convert/currencies': 5 / 3,
                         'asset/convert/currency-pair': 5 / 3,
                         'asset/convert/history': 5 / 3,
+                        'asset/monthly-statement': 2,
                         // account
                         'account/balance': 2,
                         'account/positions': 2,
@@ -423,6 +425,7 @@ export default class okx extends Exchange {
                         'asset/convert-dust-assets': 10,
                         'asset/convert/estimate-quote': 1,
                         'asset/convert/trade': 1,
+                        'asset/monthly-statement': 1,
                         // account
                         'account/set-position-mode': 4,
                         'account/set-leverage': 1,
@@ -1056,14 +1059,7 @@ export default class okx extends Exchange {
             'commonCurrencies': {
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
                 'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
-                'BOX': 'DefiBox',
-                'HOT': 'Hydro Protocol',
-                'HSR': 'HC',
-                'MAG': 'Maggie',
-                'SBTC': 'Super Bitcoin',
-                'TRADE': 'Unitrade',
-                'YOYO': 'YOYOW',
-                'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
+                'WIN': 'WINTOKEN', // https://github.com/ccxt/ccxt/issues/5701
             },
         });
     }
@@ -2862,7 +2858,7 @@ export default class okx extends Exchange {
          * @name okx#createOrders
          * @description create a list of trade orders
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3085,6 +3081,7 @@ export default class okx extends Exchange {
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.trigger] whether the order is a stop/trigger order
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
@@ -3099,7 +3096,7 @@ export default class okx extends Exchange {
         let method = this.safeString (params, 'method', defaultMethod);
         const clientOrderIds = this.parseIds (this.safeValue2 (params, 'clOrdId', 'clientOrderId'));
         const algoIds = this.parseIds (this.safeValue (params, 'algoId'));
-        const stop = this.safeValue (params, 'stop');
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
         if (stop) {
             method = 'privatePostTradeCancelAlgos';
         }
@@ -3134,7 +3131,12 @@ export default class okx extends Exchange {
                 });
             }
         }
-        const response = await this[method] (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        let response = undefined;
+        if (method === 'privatePostTradeCancelAlgos') {
+            response = await this.privatePostTradeCancelAlgos (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        } else {
+            response = await this.privatePostTradeCancelBatchOrders (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        }
         //
         //     {
         //         "code": "0",
@@ -3398,7 +3400,7 @@ export default class okx extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra and exchange specific parameters
          * @returns [an order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -3430,7 +3432,12 @@ export default class okx extends Exchange {
             }
         }
         const query = this.omit (params, [ 'method', 'clOrdId', 'clientOrderId', 'stop' ]);
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (method === 'privateGetTradeOrderAlgo') {
+            response = await this.privateGetTradeOrderAlgo (this.extend (request, query));
+        } else {
+            response = await this.privateGetTradeOrder (this.extend (request, query));
+        }
         //
         // Spot and Swap
         //
@@ -3590,7 +3597,12 @@ export default class okx extends Exchange {
             }
         }
         const query = this.omit (params, [ 'method', 'stop' ]);
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoPending') {
+            response = await this.privateGetTradeOrdersAlgoPending (this.extend (request, query));
+        } else {
+            response = await this.privateGetTradeOrdersPending (this.extend (request, query));
+        }
         //
         //     {
         //         "code": "0",
@@ -3762,7 +3774,12 @@ export default class okx extends Exchange {
             }
         }
         const send = this.omit (query, [ 'method', 'stop', 'ordType' ]);
-        const response = await this[method] (this.extend (request, send));
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoHistory') {
+            response = await this.privateGetTradeOrdersAlgoHistory (this.extend (request, send));
+        } else {
+            response = await this.privateGetTradeOrdersHistory (this.extend (request, send));
+        }
         //
         //     {
         //         "code": "0",
@@ -3939,7 +3956,12 @@ export default class okx extends Exchange {
             request['state'] = 'filled';
         }
         const send = this.omit (query, [ 'method', 'stop' ]);
-        const response = await this[method] (this.extend (request, send));
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoHistory') {
+            response = await this.privateGetTradeOrdersAlgoHistory (this.extend (request, send));
+        } else {
+            response = await this.privateGetTradeOrdersHistory (this.extend (request, send));
+        }
         //
         //     {
         //         "code": "0",
@@ -4195,7 +4217,14 @@ export default class okx extends Exchange {
             request['ccy'] = currency['id'];
         }
         [ request, params ] = this.handleUntilOption ('end', request, params);
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (method === 'privateGetAccountBillsArchive') {
+            response = await this.privateGetAccountBillsArchive (this.extend (request, query));
+        } else if (method === 'privateGetAssetBills') {
+            response = await this.privateGetAssetBills (this.extend (request, query));
+        } else {
+            response = await this.privateGetAccountBills (this.extend (request, query));
+        }
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -5118,7 +5147,12 @@ export default class okx extends Exchange {
         }
         const fetchPositionsOptions = this.safeValue (this.options, 'fetchPositions', {});
         const method = this.safeString (fetchPositionsOptions, 'method', 'privateGetAccountPositions');
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'privateGetAccountPositionsHistory') {
+            response = await this.privateGetAccountPositionsHistory (this.extend (request, params));
+        } else {
+            response = await this.privateGetAccountPositions (this.extend (request, params));
+        }
         //
         //     {
         //         "code": "0",
@@ -7158,6 +7192,73 @@ export default class okx extends Exchange {
             'underlyingPrice': undefined,
             'info': greeks,
         };
+    }
+
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name okx#closePosition
+         * @description closes open positions for a market
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.clientOrderId] a unique identifier for the order
+         * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
+         * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
+         * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const code = this.safeString (params, 'code');
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params, 'cross');
+        const request = {
+            'instId': market['id'],
+            'mgnMode': marginMode,
+        };
+        if (side !== undefined) {
+            if ((side === 'buy')) {
+                request['posSide'] = 'long';
+            } else if (side === 'sell') {
+                request['posSide'] = 'short';
+            } else {
+                request['posSide'] = side;
+            }
+        }
+        if (clientOrderId !== undefined) {
+            request['clOrdId'] = clientOrderId;
+        }
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['ccy'] = currency['id'];
+        }
+        const response = await this.privatePostTradeClosePosition (this.extend (request, params));
+        //
+        //    {
+        //        "code": "1",
+        //        "data": [
+        //            {
+        //                "clOrdId":"e847386590ce4dBCe903bbc394dc88bf",
+        //                "ordId":"",
+        //                "sCode":"51000",
+        //                "sMsg":"Parameter posSide error ",
+        //                "tag":"e847386590ce4dBC"
+        //            }
+        //        ],
+        //        "inTime": "1701877077101064",
+        //        "msg": "All operations failed",
+        //        "outTime": "1701877077102579"
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const order = this.safeValue (data, 0);
+        return this.parseOrder (order, market);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

@@ -1,8 +1,8 @@
 import Exchange from './abstract/coinbase.js';
-import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency } from './base/types.js';
 /**
  * @class coinbase
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinbase extends Exchange {
     describe(): any;
@@ -93,6 +93,7 @@ export default class coinbase extends Exchange {
     prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<{
         account_id: string;
     }>;
+    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     parseOrder(order: any, market?: Market): Order;
     parseOrderStatus(status: any): string;

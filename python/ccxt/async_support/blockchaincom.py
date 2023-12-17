@@ -857,43 +857,6 @@ class blockchaincom(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def fetch_withdrawal_whitelist(self, params={}):
-        """
-        fetch the list of withdrawal addresses on the whitelist
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: dictionary with keys beneficiaryId, name, currency
-        """
-        await self.load_markets()
-        response = await self.privateGetWhitelist()
-        result = []
-        for i in range(0, len(response)):
-            entry = response[i]
-            result.append({
-                'beneficiaryId': self.safe_string(entry, 'whitelistId'),
-                'name': self.safe_string(entry, 'name'),
-                'currency': self.safe_string(entry, 'currency'),
-                'info': entry,
-            })
-        return result
-
-    async def fetch_withdrawal_whitelist_by_currency(self, code: str, params={}):
-        await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'currency': currency['id'],
-        }
-        response = await self.privateGetWhitelistCurrency(self.extend(request, params))
-        result = []
-        for i in range(0, len(response)):
-            entry = response[i]
-            result.append({
-                'beneficiaryId': self.safe_string(entry, 'whitelistId'),
-                'name': self.safe_string(entry, 'name'),
-                'currency': self.safe_string(entry, 'currency'),
-                'info': entry,
-            })
-        return result
-
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal

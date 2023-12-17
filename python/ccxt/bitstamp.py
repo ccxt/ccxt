@@ -1007,6 +1007,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetOHLCData
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1028,13 +1029,13 @@ class bitstamp(Exchange, ImplicitAPI):
                 limit = 1000
                 start = self.parse_to_int(since / 1000)
                 request['start'] = start
-                request['end'] = self.sum(start, limit * duration)
+                request['end'] = self.sum(start, duration * (limit - 1))
                 request['limit'] = limit
         else:
             if since is not None:
                 start = self.parse_to_int(since / 1000)
                 request['start'] = start
-                request['end'] = self.sum(start, limit * duration)
+                request['end'] = self.sum(start, duration * (limit - 1))
             request['limit'] = min(limit, 1000)  # min 1, max 1000
         response = self.publicGetOhlcPair(self.extend(request, params))
         #

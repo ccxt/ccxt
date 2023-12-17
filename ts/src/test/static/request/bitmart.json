@@ -171,6 +171,24 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTC_USDT\",\"side\":\"buy\",\"type\":\"market\",\"notional\":\"5\"}"
+            },
+            {
+                "description": "Swap trailing stop order",
+                "method": "createOrder",
+                "url": "https://api-cloud.bitmart.com/contract/private/submit-order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "trailing",
+                  "sell",
+                  1,
+                  55000,
+                  {
+                    "marginMode": "isolated",
+                    "leverage": "10",
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"trailing\",\"size\":1,\"activation_price\":\"55000\",\"activation_price_type\":1,\"callback_rate\":\"1\",\"side\":3,\"open_type\":\"isolated\",\"leverage\":\"10\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -224,6 +242,33 @@
                 "url": "https://api-cloud.bitmart.com/contract/private/get-open-orders?symbol=LTCUSDT",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap open trailing stop orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api-cloud.bitmart.com/contract/private/get-open-orders?symbol=BTCUSDT&type=trailing",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "orderType": "trailing"
+                  }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Swap trailing stop order by id",
+                "method": "fetchOrder",
+                "url": "https://api-cloud.bitmart.com/contract/private/order?type=trailing&symbol=BTCUSDT&order_id=2312139250106560",
+                "input": [
+                  "2312139250106560",
+                  "BTC/USDT:USDT",
+                  {
+                    "orderType": "trailing"
+                  }
                 ]
             }
         ],

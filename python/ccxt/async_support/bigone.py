@@ -14,6 +14,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -39,6 +40,7 @@ class bigone(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
@@ -1108,13 +1110,17 @@ class bigone(Exchange, ImplicitAPI):
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
         """
-        :see: https://open.big.one/docs/spot_orders.html#create-order
         create a market buy order by providing the symbol and cost
+        :see: https://open.big.one/docs/spot_orders.html#create-order
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
@@ -1131,6 +1137,7 @@ class bigone(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param str operator: *stop order only* GTE or LTE(default)

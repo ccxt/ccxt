@@ -38,7 +38,10 @@ class coinbase extends Exchange {
                 'createLimitBuyOrder' => true,
                 'createLimitSellOrder' => true,
                 'createMarketBuyOrder' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
                 'createMarketSellOrder' => true,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => false,
@@ -195,6 +198,7 @@ class coinbase extends Exchange {
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
                             'brokerage/convert/trade/{trade_id}',
+                            'brokerage/time',
                         ),
                         'post' => array(
                             'brokerage/orders',
@@ -608,6 +612,7 @@ class coinbase extends Exchange {
 
     public function fetch_my_sells(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @ignore
          * fetch $sells
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$sells#list-$sells
          * @param {string} $symbol not used by coinbase fetchMySells ()
@@ -626,6 +631,7 @@ class coinbase extends Exchange {
 
     public function fetch_my_buys(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @ignore
          * fetch $buys
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$buys#list-$buys
          * @param {string} $symbol not used by coinbase fetchMyBuys ()
@@ -899,6 +905,10 @@ class coinbase extends Exchange {
             $cost = $costString;
         }
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
+        $feeCost = $this->safe_number($feeObject, 'amount', $this->parse_number($v3FeeCost));
+        if (($feeCurrencyId === null) && ($market !== null) && ($feeCost !== null)) {
+            $feeCurrencyId = $market['quote'];
+        }
         $datetime = $this->safe_string_n($trade, array( 'created_at', 'trade_time', 'time' ));
         $side = $this->safe_string_lower_2($trade, 'resource', 'side');
         $takerOrMaker = $this->safe_string_lower($trade, 'liquidity_indicator');
@@ -916,7 +926,7 @@ class coinbase extends Exchange {
             'amount' => $amountString,
             'cost' => $cost,
             'fee' => array(
-                'cost' => $this->safe_number($feeObject, 'amount', $this->parse_number($v3FeeCost)),
+                'cost' => $feeCost,
                 'currency' => $this->safe_currency_code($feeCurrencyId),
             ),
         ));
@@ -2079,6 +2089,24 @@ class coinbase extends Exchange {
         return $request;
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * create a $market buy order by providing the $symbol and $cost
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        $params['createMarketBuyOrderRequiresPrice'] = false;
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
@@ -2097,6 +2125,7 @@ class coinbase extends Exchange {
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
          * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the $stopPrice is triggered from
          * @param {string} [$params->end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -2193,19 +2222,24 @@ class coinbase extends Exchange {
                 throw new NotSupported($this->id . ' createOrder() only stop limit orders are supported');
             }
             if ($side === 'buy') {
-                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
                 $total = null;
-                if ($createMarketBuyOrderRequiresPrice) {
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number($params, 'cost');
+                $params = $this->omit($params, 'cost');
+                if ($cost !== null) {
+                    $total = $this->cost_to_precision($symbol, $cost);
+                } elseif ($createMarketBuyOrderRequiresPrice) {
                     if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for $market buy orders on spot markets to calculate the $total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                        throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for $market buy orders on spot markets to calculate the $total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
-                        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                        $total = $this->price_to_precision($symbol, $cost);
+                        $costRequest = Precise::string_mul($amountString, $priceString);
+                        $total = $this->cost_to_precision($symbol, $costRequest);
                     }
                 } else {
-                    $total = $this->price_to_precision($symbol, $amount);
+                    $total = $this->cost_to_precision($symbol, $amount);
                 }
                 $request['order_configuration'] = array(
                     'market_market_ioc' => array(
@@ -2333,6 +2367,11 @@ class coinbase extends Exchange {
             $amount = $this->safe_string($marketIOC, 'base_size');
         }
         $datetime = $this->safe_string($order, 'created_time');
+        $totalFees = $this->safe_string($order, 'total_fees');
+        $currencyFee = null;
+        if (($totalFees !== null) && ($market !== null)) {
+            $currencyFee = $market['quote'];
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'order_id'),
@@ -2356,7 +2395,7 @@ class coinbase extends Exchange {
             'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'fee' => array(
                 'cost' => $this->safe_string($order, 'total_fees'),
-                'currency' => null,
+                'currency' => $currencyFee,
             ),
             'trades' => null,
         ), $market);

@@ -35,6 +35,8 @@ class bitmex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'editOrder' => true,
@@ -385,7 +387,12 @@ class bitmex extends Exchange {
         return $this->parse_number($finalAmount);
     }
 
-    public function convert_to_real_amount(string $code, string $amount) {
+    public function convert_to_real_amount(?string $code, ?string $amount) {
+        if ($code === null) {
+            return $amount;
+        } elseif ($amount === null) {
+            return null;
+        }
         $currency = $this->currency($code);
         $precision = $this->safe_string($currency, 'precision');
         return Precise::string_mul($amount, $precision);
@@ -2214,7 +2221,7 @@ class bitmex extends Exchange {
         $datetime = $this->safe_string($position, 'timestamp');
         $crossMargin = $this->safe_value($position, 'crossMargin');
         $marginMode = ($crossMargin === true) ? 'cross' : 'isolated';
-        $notionalString = Precise::string_abs($this->safe_string($position, 'foreignNotional', 'homeNotional'));
+        $notionalString = Precise::string_abs($this->safe_string_2($position, 'foreignNotional', 'homeNotional'));
         $settleCurrencyCode = $this->safe_string($market, 'settle');
         $maintenanceMargin = $this->convert_to_real_amount($settleCurrencyCode, $this->safe_string($position, 'maintMargin'));
         $unrealisedPnl = $this->convert_to_real_amount($settleCurrencyCode, $this->safe_string($position, 'unrealisedPnl'));

@@ -13,7 +13,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bithumb
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bithumb extends Exchange {
     describe() {
@@ -948,11 +948,11 @@ export default class bithumb extends Exchange {
         };
         return await this.privatePostTradeCancel(this.extend(request, params));
     }
-    cancelUnifiedOrder(order, params = {}) {
+    async cancelUnifiedOrder(order, params = {}) {
         const request = {
             'side': order['side'],
         };
-        return this.cancelOrder(order['id'], order['symbol'], this.extend(request, params));
+        return await this.cancelOrder(order['id'], order['symbol'], this.extend(request, params));
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**

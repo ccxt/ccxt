@@ -174,6 +174,16 @@
         ],
         "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"LimitIfTouched\",\"text\":\"CCXT\",\"stopPx\":36944,\"price\":36000}"
       }
+    ],
+    "fetchTrades": [
+      {
+        "description": "spot",
+        "method": "fetchTrades",
+        "url": "https://www.bitmex.com/api/v1/trade?symbol=XBT_USDT&reverse=true",
+        "input": [
+          "BTC/USDT"
+        ]
+      }
     ]
   }
 }

@@ -17,10 +17,11 @@ use React\Promise;
 
 
 // AUTO-TRANSPILE //
+// ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/#/README?id=proxy
 function example_proxy_url() {
     return Async\async(function () {
         $my_ex = new \ccxt\async\kucoin();
-        $my_ex->proxy_url = 'http://5.75.153.75:8090/proxy.php?url=';
+        $my_ex->proxy_url = 'http://5.75.153.75:8090/proxy_url.php?caller=https://ccxt.com&url=';
         var_dump(Async\await($my_ex->fetch('https://api.ipify.org/')));
     }) ();
 }
@@ -38,7 +39,7 @@ function example_http_proxy() {
 function example_socks_proxy() {
     return Async\async(function () {
         $my_ex = new \ccxt\async\kucoin();
-        $my_ex->socks_proxy = 'socks5://127.0.0.1:1080'; // socks5 or socks5h
+        $my_ex->socks_proxy = 'socks5://127.0.0.1:1080'; // from protocols: socks, socks5, socks5h
         var_dump(Async\await($my_ex->fetch('https://api.ipify.org/')));
     }) ();
 }
@@ -47,8 +48,8 @@ function example_socks_proxy() {
 function example_web_sockets() {
     return Async\async(function () {
         $my_ex = new \ccxt\pro\kucoin();
-        $my_ex->http_proxy = 'http://5.75.153.75:8002'; // "httpProxy" or "httpsProxy" (depending on your proxy protocol)
-        $my_ex->ws_proxy = 'http://5.75.153.75:8002'; // "wsProxy" or "wssProxy" (depending on your proxy protocol)
+        $my_ex->http_proxy = 'http://5.75.153.75:8002'; // even though you are using WebSockets, you might also need to set up proxy for the exchange's REST requests
+        $my_ex->ws_proxy = 'http://5.75.153.75:8002'; // "wsProxy" or "wssProxy" or "wsSocksProxy" (depending on your proxy protocol)
         Async\await($my_ex->load_markets());
         while (true) {
             $ticker = Async\await($my_ex->watch_ticker('BTC/USDT'));

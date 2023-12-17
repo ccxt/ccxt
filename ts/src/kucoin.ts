@@ -6,13 +6,13 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class kucoin
- * @extends Exchange
+ * @augments Exchange
  */
 export default class kucoin extends Exchange {
     describe () {
@@ -491,9 +491,6 @@ export default class kucoin extends Exchange {
             },
             'commonCurrencies': {
                 'BIFI': 'BIFIF',
-                'EDGE': 'DADI', // https://github.com/ccxt/ccxt/issues/5756
-                'HOT': 'HOTNOW',
-                'TRY': 'Trias',
                 'VAI': 'VAIOT',
                 'WAX': 'WAXP',
             },
@@ -1952,7 +1949,7 @@ export default class kucoin extends Exchange {
          * @description create a list of trade orders
          * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders
          * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params]  extra parameters specific to the exchange API endpoint
          * @param {bool} [params.hf] false, // true for hf orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

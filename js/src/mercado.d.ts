@@ -1,8 +1,8 @@
 import Exchange from './abstract/mercado.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class mercado
- * @extends Exchange
+ * @augments Exchange
  */
 export default class mercado extends Exchange {
     describe(): any;

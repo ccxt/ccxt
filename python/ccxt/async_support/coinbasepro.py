@@ -15,7 +15,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import AuthenticationError
@@ -1272,43 +1271,6 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     async def fetch_payment_methods(self, params={}):
         return await self.privateGetPaymentMethods(params)
-
-    async def deposit(self, code: str, amount, address, params={}):
-        """
-        Creates a new deposit address, by coinbasepro
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositpaymentmethod
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositcoinbaseaccount
-        :param str code: Unified CCXT currency code(e.g. `"USDT"`)
-        :param float amount: The amount of currency to send in the deposit(e.g. `20`)
-        :param str address: Not used by coinbasepro
-        :param dict [params]: Parameters specific to the exchange API endpoint(e.g. `{"network": "TRX"}`)
-        :returns: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
-        """
-        await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'currency': currency['id'],
-            'amount': amount,
-        }
-        method = 'privatePostDeposits'
-        if 'payment_method_id' in params:
-            # deposit from a payment_method, like a bank account
-            method += 'PaymentMethod'
-        elif 'coinbase_account_id' in params:
-            # deposit into Coinbase Pro account from a Coinbase account
-            method += 'CoinbaseAccount'
-        else:
-            # deposit methodotherwise we did not receive a supported deposit location
-            # relevant docs link for the Googlers
-            # https://docs.pro.coinbase.com/#deposits
-            raise NotSupported(self.id + ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params')
-        response = await getattr(self, method)(self.extend(request, params))
-        if not response:
-            raise ExchangeError(self.id + ' deposit() error: ' + self.json(response))
-        return {
-            'info': response,
-            'id': response['id'],
-        }
 
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """

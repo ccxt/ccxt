@@ -1,14 +1,14 @@
 import Exchange from './abstract/bitmex.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency } from './base/types.js';
 /**
  * @class bitmex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitmex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
     convertFromRealAmount(code: any, amount: any): number;
-    convertToRealAmount(code: string, amount: string): string;
+    convertToRealAmount(code: Str, amount: Str): string;
     amountToPrecision(symbol: any, amount: any): any;
     convertFromRawQuantity(symbol: any, rawQuantity: any, currencySide?: string): number;
     convertFromRawCost(symbol: any, rawQuantity: any): number;

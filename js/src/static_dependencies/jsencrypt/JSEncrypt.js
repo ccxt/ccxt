@@ -11,7 +11,7 @@ const version = typeof process !== 'undefined'
     : undefined;
 /**
  *
- * @param {Object} [options = {}] - An object to customize JSEncrypt behaviour
+ * @param {object} [options = {}] - An object to customize JSEncrypt behaviour
  * possible parameters are:
  * - default_key_size        {number}  default: 1024 the key size in bit
  * - default_public_exponent {string}  default: '010001' the hexadecimal representation of the public exponent

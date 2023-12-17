@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitmex extends \ccxt\async\bitmex {
 
@@ -22,6 +23,7 @@ class bitmex extends \ccxt\async\bitmex {
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
+                'watchPostions' => true,
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
@@ -55,7 +57,7 @@ class bitmex extends \ccxt\async\bitmex {
         ));
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -322,7 +324,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $message;
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -529,11 +531,10 @@ class bitmex extends \ccxt\async\bitmex {
                 $stored->append ($trades[$j]);
             }
             $client->resolve ($stored, $messageHash);
-            $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $stored);
         }
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -604,7 +605,213 @@ class bitmex extends \ccxt\async\bitmex {
         }
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * @see https://www.bitmex.com/app/wsAPI
+             * watch all open positions
+             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $subscriptionHash = 'position';
+            $messageHash = 'positions';
+            if (!$this->is_empty($symbols)) {
+                $messageHash = '::' . implode(',', $symbols);
+            }
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => array(
+                    $subscriptionHash,
+                ),
+            );
+            $newPositions = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
+            if ($this->newUpdates) {
+                return $newPositions;
+            }
+            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_positions($client, $message) {
+        //
+        // partial
+        //    {
+        //        table => 'position',
+        //        action => 'partial',
+        //        keys => array( 'account', 'symbol' ),
+        //        types => array(
+        //            account => 'long',
+        //            symbol => 'symbol',
+        //            currency => 'symbol',
+        //            underlying => 'symbol',
+        //            quoteCurrency => 'symbol',
+        //            commission => 'float',
+        //            initMarginReq => 'float',
+        //            maintMarginReq => 'float',
+        //            riskLimit => 'long',
+        //            leverage => 'float',
+        //            crossMargin => 'boolean',
+        //            deleveragePercentile => 'float',
+        //            rebalancedPnl => 'long',
+        //            prevRealisedPnl => 'long',
+        //            prevUnrealisedPnl => 'long',
+        //            openingQty => 'long',
+        //            openOrderBuyQty => 'long',
+        //            openOrderBuyCost => 'long',
+        //            openOrderBuyPremium => 'long',
+        //            openOrderSellQty => 'long',
+        //            openOrderSellCost => 'long',
+        //            openOrderSellPremium => 'long',
+        //            currentQty => 'long',
+        //            currentCost => 'long',
+        //            currentComm => 'long',
+        //            realisedCost => 'long',
+        //            unrealisedCost => 'long',
+        //            grossOpenPremium => 'long',
+        //            isOpen => 'boolean',
+        //            markPrice => 'float',
+        //            markValue => 'long',
+        //            riskValue => 'long',
+        //            homeNotional => 'float',
+        //            foreignNotional => 'float',
+        //            posState => 'symbol',
+        //            posCost => 'long',
+        //            posCross => 'long',
+        //            posComm => 'long',
+        //            posLoss => 'long',
+        //            posMargin => 'long',
+        //            posMaint => 'long',
+        //            initMargin => 'long',
+        //            maintMargin => 'long',
+        //            realisedPnl => 'long',
+        //            unrealisedPnl => 'long',
+        //            unrealisedPnlPcnt => 'float',
+        //            unrealisedRoePcnt => 'float',
+        //            avgCostPrice => 'float',
+        //            avgEntryPrice => 'float',
+        //            breakEvenPrice => 'float',
+        //            marginCallPrice => 'float',
+        //            liquidationPrice => 'float',
+        //            bankruptPrice => 'float',
+        //            timestamp => 'timestamp'
+        //        ),
+        //        filter => array( account => 412475 ),
+        //        data => array(
+        //            {
+        //                account => 412475,
+        //                symbol => 'XBTUSD',
+        //                currency => 'XBt',
+        //                underlying => 'XBT',
+        //                quoteCurrency => 'USD',
+        //                commission => 0.00075,
+        //                initMarginReq => 0.01,
+        //                maintMarginReq => 0.0035,
+        //                riskLimit => 20000000000,
+        //                leverage => 100,
+        //                crossMargin => true,
+        //                deleveragePercentile => 1,
+        //                rebalancedPnl => 0,
+        //                prevRealisedPnl => 0,
+        //                prevUnrealisedPnl => 0,
+        //                openingQty => 400,
+        //                openOrderBuyQty => 0,
+        //                openOrderBuyCost => 0,
+        //                openOrderBuyPremium => 0,
+        //                openOrderSellQty => 0,
+        //                openOrderSellCost => 0,
+        //                openOrderSellPremium => 0,
+        //                currentQty => 400,
+        //                currentCost => -912269,
+        //                currentComm => 684,
+        //                realisedCost => 0,
+        //                unrealisedCost => -912269,
+        //                grossOpenPremium => 0,
+        //                isOpen => true,
+        //                markPrice => 43772,
+        //                markValue => -913828,
+        //                riskValue => 913828,
+        //                homeNotional => 0.00913828,
+        //                foreignNotional => -400,
+        //                posCost => -912269,
+        //                posCross => 1559,
+        //                posComm => 694,
+        //                posLoss => 0,
+        //                posMargin => 11376,
+        //                posMaint => 3887,
+        //                initMargin => 0,
+        //                maintMargin => 9817,
+        //                realisedPnl => -684,
+        //                unrealisedPnl => -1559,
+        //                unrealisedPnlPcnt => -0.0017,
+        //                unrealisedRoePcnt => -0.1709,
+        //                avgCostPrice => 43846.7643,
+        //                avgEntryPrice => 43846.7643,
+        //                breakEvenPrice => 43880,
+        //                marginCallPrice => 20976,
+        //                liquidationPrice => 20976,
+        //                bankruptPrice => 20941,
+        //                timestamp => '2023-12-07T00:09:00.709Z'
+        //            }
+        //        )
+        //    }
+        // update
+        //    {
+        //        table => 'position',
+        //        action => 'update',
+        //        data => array(
+        //            {
+        //                account => 412475,
+        //                symbol => 'XBTUSD',
+        //                currency => 'XBt',
+        //                currentQty => 400,
+        //                markPrice => 43772.75,
+        //                markValue => -913812,
+        //                riskValue => 913812,
+        //                homeNotional => 0.00913812,
+        //                posCross => 1543,
+        //                posComm => 693,
+        //                posMargin => 11359,
+        //                posMaint => 3886,
+        //                maintMargin => 9816,
+        //                unrealisedPnl => -1543,
+        //                unrealisedRoePcnt => -0.1691,
+        //                liquidationPrice => 20976,
+        //                timestamp => '2023-12-07T00:09:10.760Z'
+        //            }
+        //        )
+        //    }
+        //
+        if ($this->positions === null) {
+            $this->positions = new ArrayCacheBySymbolBySide ();
+        }
+        $cache = $this->positions;
+        $rawPositions = $this->safe_value($message, 'data', array());
+        $newPositions = array();
+        for ($i = 0; $i < count($rawPositions); $i++) {
+            $rawPosition = $rawPositions[$i];
+            $position = $this->parse_position($rawPosition);
+            $newPositions[] = $position;
+            $cache->append ($position);
+        }
+        $messageHashes = $this->find_message_hashes($client, 'positions::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $positions = $this->filter_by_array($newPositions, 'symbol', $symbols, false);
+            if (!$this->is_empty($positions)) {
+                $client->resolve ($positions, $messageHash);
+            }
+        }
+        $client->resolve ($newPositions, 'positions');
+    }
+
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -821,7 +1028,7 @@ class bitmex extends \ccxt\async\bitmex {
         }
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -940,41 +1147,20 @@ class bitmex extends \ccxt\async\bitmex {
         }
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
-            $table = null;
-            if ($limit === null) {
-                $table = $this->safe_string($this->options, 'watchOrderBookLevel', 'orderBookL2');
-            } elseif ($limit === 25) {
-                $table = 'orderBookL2_25';
-            } elseif ($limit === 10) {
-                $table = 'orderBookL10';
-            } else {
-                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null (L2), 25 (L2) or 10 (L3)');
-            }
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $messageHash = $table . ':' . $market['id'];
-            $url = $this->urls['api']['ws'];
-            $request = array(
-                'op' => 'subscribe',
-                'args' => array(
-                    $messageHash,
-                ),
-            );
-            $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
-            return $orderbook->limit ();
+            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
         }) ();
     }
 
-    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -996,24 +1182,26 @@ class bitmex extends \ccxt\async\bitmex {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $topics = array();
+            $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $currentMessageHash = $table . ':' . $market['id'];
-                $topics[] = $currentMessageHash;
+                $topic = $table . ':' . $market['id'];
+                $topics[] = $topic;
+                $messageHash = $table . ':' . $symbol;
+                $messageHashes[] = $messageHash;
             }
-            $messageHash = 'multipleOrderbook::' . implode(',', $symbols);
             $url = $this->urls['api']['ws'];
             $request = array(
                 'op' => 'subscribe',
                 'args' => $topics,
             );
-            $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+            $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $topics));
             return $orderbook->limit ();
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1236,9 +1424,8 @@ class bitmex extends \ccxt\async\bitmex {
                 $orderbook['timestamp'] = $this->parse8601($datetime);
                 $orderbook['datetime'] = $datetime;
             }
-            $messageHash = $table . ':' . $marketId;
+            $messageHash = $table . ':' . $symbol;
             $client->resolve ($orderbook, $messageHash);
-            $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbook::', $symbol, $orderbook);
         } else {
             $numUpdatesByMarketId = array();
             for ($i = 0; $i < count($data); $i++) {
@@ -1264,12 +1451,11 @@ class bitmex extends \ccxt\async\bitmex {
             $marketIds = is_array($numUpdatesByMarketId) ? array_keys($numUpdatesByMarketId) : array();
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
-                $messageHash = $table . ':' . $marketId;
                 $market = $this->safe_market($marketId);
                 $symbol = $market['symbol'];
+                $messageHash = $table . ':' . $symbol;
                 $orderbook = $this->orderbooks[$symbol];
                 $client->resolve ($orderbook, $messageHash);
-                $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbook::', $symbol, $orderbook);
             }
         }
     }
@@ -1391,6 +1577,7 @@ class bitmex extends \ccxt\async\bitmex {
                 'order' => array($this, 'handle_orders'),
                 'execution' => array($this, 'handle_my_trades'),
                 'margin' => array($this, 'handle_balance'),
+                'position' => array($this, 'handle_positions'),
             );
             $method = $this->safe_value($methods, $table);
             if ($method === null) {
