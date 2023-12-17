@@ -147,7 +147,6 @@ export default class bitteam extends Exchange {
                     'get': {
                         'trade/api/asset': 1, // not unified
                         'trade/api/currencies': 1,
-                        'trade/api/login-confirmation': 1, // not unified
                         'trade/api/orderbooks/{symbol}': 1, // not unified
                         'trade/api/orders': 1, // not unified
                         'trade/api/pair/{name}': 1,
