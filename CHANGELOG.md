@@ -1,5 +1,42 @@
 # Changelog
 
+
+## 4.1.89
+
+- docs: add full changelog [#20369](https://github.com/ccxt/ccxt/pull/20369)
+- feat(cli.ts): add static report option [#20362](https://github.com/ccxt/ccxt/pull/20362)
+- fix(package) - exchanges amount [#20348](https://github.com/ccxt/ccxt/pull/20348)
+- phemex fetchMarkets v2 [#20334](https://github.com/ccxt/ccxt/pull/20334)
+- Tokocrypto: createMarketBuyOrderWithCost [#20363](https://github.com/ccxt/ccxt/pull/20363)
+- Coinex: createMarketBuyOrderWithCost check type [#20366](https://github.com/ccxt/ccxt/pull/20366)
+- woo: createMarketBuyOrderRequiresPrice [#20365](https://github.com/ccxt/ccxt/pull/20365)
+- Bigone: createMarketBuyOrderWithCost check type [#20367](https://github.com/ccxt/ccxt/pull/20367)
+- okcoin add margin methods to has as false [#20337](https://github.com/ccxt/ccxt/pull/20337)
+- okcoin: createMarketBuyOrderRequiresPrice [#20364](https://github.com/ccxt/ccxt/pull/20364)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/4.1.88...4.1.89
+
+
+## 4.1.88
+* fix(proxy) - typo by @ttodua in https://github.com/ccxt/ccxt/pull/20351
+* gate fetchDepositAddress network support by @ndubel in https://github.com/ccxt/ccxt/pull/20329
+* Novadax: createMarketBuyOrderWithCost by @Dan-krm in https://github.com/ccxt/ccxt/pull/20346
+* bit2c: remove method by @sc0Vu in https://github.com/ccxt/ccxt/pull/20352
+* fix(cryptocom): add referral by @carlosmiei in https://github.com/ccxt/ccxt/pull/20354
+* okcoin: remove method by @sc0Vu in https://github.com/ccxt/ccxt/pull/20350
+* Watch multiple by @frosty00 in https://github.com/ccxt/ccxt/pull/20335
+* Bitmart: trailing stop orders by @Dan-krm in https://github.com/ccxt/ccxt/pull/20342
+* Fix build and coinbasepro by @carlosmiei in https://github.com/ccxt/ccxt/pull/20357
+* fix(coinbasepro): remove import by @carlosmiei in https://github.com/ccxt/ccxt/pull/20359
+* fix(binancePro): snapshot messageHash [ci deploy] by @carlosmiei in https://github.com/ccxt/ccxt/pull/20360
+* Cryptocom: createMarketBuyOrderRequiresPrice by @Dan-krm in https://github.com/ccxt/ccxt/pull/20345
+* Bitget: update to v2 by @Dan-krm in https://github.com/ccxt/ccxt/pull/19996
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/4.1.87...4.1.88
+
+
 ## 4.1.87
 
 - fix(proxy) - typo [#20351](https://github.com/ccxt/ccxt/pull/20351)
