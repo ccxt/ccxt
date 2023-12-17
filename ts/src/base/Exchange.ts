@@ -2086,6 +2086,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' signIn() is not supported yet');
     }
 
+    async fetchPaymentMethods (params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' fetchPaymentMethods() is not supported yet');
+    }
+
     parseToInt (number) {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
