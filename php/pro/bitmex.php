@@ -531,7 +531,6 @@ class bitmex extends \ccxt\async\bitmex {
                 $stored->append ($trades[$j]);
             }
             $client->resolve ($stored, $messageHash);
-            $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $stored);
         }
     }
 
@@ -1152,33 +1151,12 @@ class bitmex extends \ccxt\async\bitmex {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
-            $table = null;
-            if ($limit === null) {
-                $table = $this->safe_string($this->options, 'watchOrderBookLevel', 'orderBookL2');
-            } elseif ($limit === 25) {
-                $table = 'orderBookL2_25';
-            } elseif ($limit === 10) {
-                $table = 'orderBookL10';
-            } else {
-                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null (L2), 25 (L2) or 10 (L3)');
-            }
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $messageHash = $table . ':' . $market['id'];
-            $url = $this->urls['api']['ws'];
-            $request = array(
-                'op' => 'subscribe',
-                'args' => array(
-                    $messageHash,
-                ),
-            );
-            $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
-            return $orderbook->limit ();
+            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
         }) ();
     }
 
@@ -1204,19 +1182,21 @@ class bitmex extends \ccxt\async\bitmex {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $topics = array();
+            $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $currentMessageHash = $table . ':' . $market['id'];
-                $topics[] = $currentMessageHash;
+                $topic = $table . ':' . $market['id'];
+                $topics[] = $topic;
+                $messageHash = $table . ':' . $symbol;
+                $messageHashes[] = $messageHash;
             }
-            $messageHash = 'multipleOrderbook::' . implode(',', $symbols);
             $url = $this->urls['api']['ws'];
             $request = array(
                 'op' => 'subscribe',
                 'args' => $topics,
             );
-            $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+            $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $topics));
             return $orderbook->limit ();
         }) ();
     }
@@ -1444,9 +1424,8 @@ class bitmex extends \ccxt\async\bitmex {
                 $orderbook['timestamp'] = $this->parse8601($datetime);
                 $orderbook['datetime'] = $datetime;
             }
-            $messageHash = $table . ':' . $marketId;
+            $messageHash = $table . ':' . $symbol;
             $client->resolve ($orderbook, $messageHash);
-            $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbook::', $symbol, $orderbook);
         } else {
             $numUpdatesByMarketId = array();
             for ($i = 0; $i < count($data); $i++) {
@@ -1472,12 +1451,11 @@ class bitmex extends \ccxt\async\bitmex {
             $marketIds = is_array($numUpdatesByMarketId) ? array_keys($numUpdatesByMarketId) : array();
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
-                $messageHash = $table . ':' . $marketId;
                 $market = $this->safe_market($marketId);
                 $symbol = $market['symbol'];
+                $messageHash = $table . ':' . $symbol;
                 $orderbook = $this->orderbooks[$symbol];
                 $client->resolve ($orderbook, $messageHash);
-                $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbook::', $symbol, $orderbook);
             }
         }
     }

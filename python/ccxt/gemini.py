@@ -311,6 +311,7 @@ class gemini(Exchange, ImplicitAPI):
 
     def fetch_currencies_from_web(self, params={}):
         """
+         * @ignore
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the endpoint
         :returns dict: an associative dictionary of currencies

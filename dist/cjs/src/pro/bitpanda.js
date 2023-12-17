@@ -156,7 +156,7 @@ class bitpanda extends bitpanda$1 {
                 },
             ],
         };
-        return await this.watchMultiple(messageHash, request, subscriptionHash, [symbol], params);
+        return await this.watchMany(messageHash, request, subscriptionHash, [symbol], params);
     }
     async watchTickers(symbols = undefined, params = {}) {
         /**
@@ -184,7 +184,7 @@ class bitpanda extends bitpanda$1 {
                 },
             ],
         };
-        const tickers = await this.watchMultiple(messageHash, request, subscriptionHash, symbols, params);
+        const tickers = await this.watchMany(messageHash, request, subscriptionHash, symbols, params);
         return this.filterByArray(tickers, 'symbol', symbols);
     }
     handleTicker(client, message) {
@@ -327,7 +327,7 @@ class bitpanda extends bitpanda$1 {
                 },
             ],
         };
-        const orderbook = await this.watchMultiple(messageHash, request, subscriptionHash, [symbol], params);
+        const orderbook = await this.watchMany(messageHash, request, subscriptionHash, [symbol], params);
         return orderbook.limit();
     }
     handleOrderBook(client, message) {
@@ -1283,7 +1283,7 @@ class bitpanda extends bitpanda$1 {
         }
         return message;
     }
-    async watchMultiple(messageHash, request, subscriptionHash, symbols = [], params = {}) {
+    async watchMany(messageHash, request, subscriptionHash, symbols = [], params = {}) {
         let marketIds = [];
         const numSymbols = symbols.length;
         if (numSymbols === 0) {

@@ -906,47 +906,6 @@ class blockchaincom extends blockchaincom$1 {
             'fee': fee,
         };
     }
-    async fetchWithdrawalWhitelist(params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchWithdrawalWhitelist
-         * @description fetch the list of withdrawal addresses on the whitelist
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} dictionary with keys beneficiaryId, name, currency
-         */
-        await this.loadMarkets();
-        const response = await this.privateGetWhitelist();
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            result.push({
-                'beneficiaryId': this.safeString(entry, 'whitelistId'),
-                'name': this.safeString(entry, 'name'),
-                'currency': this.safeString(entry, 'currency'),
-                'info': entry,
-            });
-        }
-        return result;
-    }
-    async fetchWithdrawalWhitelistByCurrency(code, params = {}) {
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.privateGetWhitelistCurrency(this.extend(request, params));
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            result.push({
-                'beneficiaryId': this.safeString(entry, 'whitelistId'),
-                'name': this.safeString(entry, 'name'),
-                'currency': this.safeString(entry, 'currency'),
-                'info': entry,
-            });
-        }
-        return result;
-    }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**
          * @method

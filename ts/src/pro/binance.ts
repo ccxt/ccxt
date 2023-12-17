@@ -240,8 +240,10 @@ export default class binance extends binanceRest {
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
-        const messageHash = this.safeString (subscription, 'messageHash');
+        const name = this.safeString (subscription, 'name');
         const symbol = this.safeString (subscription, 'symbol');
+        const market = this.market (symbol);
+        const messageHash = market['lowercaseId'] + '@' + name;
         try {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             const type = this.safeValue (subscription, 'type');
@@ -486,7 +488,7 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        const trades = await this.watch (url, subParams, this.extend (request, query), subParams, subscribe);
+        const trades = await this.watchMultiple (url, subParams, this.extend (request, query), subParams, subscribe);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -1974,11 +1976,11 @@ export default class binance extends binanceRest {
         this.setBalanceCache (client, type);
         this.setPositionsCache (client, type);
         const message = undefined;
-        const newOrder = await this.watch (url, messageHash, message, type);
+        const orders = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
-            return newOrder;
+            limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     parseWsOrder (order, market = undefined) {
@@ -2643,8 +2645,8 @@ export default class binance extends binanceRest {
             cachedOrders.append (parsed);
             const messageHash = 'orders';
             const symbolSpecificMessageHash = 'orders:' + symbol;
-            client.resolve (parsed, messageHash);
-            client.resolve (parsed, symbolSpecificMessageHash);
+            client.resolve (cachedOrders, messageHash);
+            client.resolve (cachedOrders, symbolSpecificMessageHash);
         }
     }
 

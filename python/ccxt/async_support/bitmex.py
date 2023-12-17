@@ -50,6 +50,8 @@ class bitmex(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': False,
+                'closePosition': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'editOrder': True,

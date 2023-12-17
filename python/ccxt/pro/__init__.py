@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.1.87'
+__version__ = '4.1.91'
 
 # ----------------------------------------------------------------------------
 
@@ -35,6 +35,7 @@ from ccxt.pro.blockchaincom import blockchaincom                          # noqa
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbase import coinbase                                    # noqa: F401
+from ccxt.pro.coinbasepro import coinbasepro                              # noqa: F401
 from ccxt.pro.coinex import coinex                                        # noqa: F401
 from ccxt.pro.cryptocom import cryptocom                                  # noqa: F401
 from ccxt.pro.currencycom import currencycom                              # noqa: F401
@@ -92,6 +93,7 @@ exchanges = [
     'bybit',
     'cex',
     'coinbase',
+    'coinbasepro',
     'coinex',
     'cryptocom',
     'currencycom',

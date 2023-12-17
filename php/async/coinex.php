@@ -52,6 +52,8 @@ class coinex extends Exchange {
                 'cancelOrders' => true,
                 'createDepositAddress' => true,
                 'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createReduceOnlyOrder' => true,
@@ -1954,12 +1956,18 @@ class coinex extends Exchange {
     public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
-             * create a market buy order by providing the $symbol and $cost
-             * @param {string} $symbol unified $symbol of the market to create an order in
+             * create a $market buy order by providing the $symbol and $cost
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+            }
             $params['createMarketBuyOrderRequiresPrice'] = false;
             return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
         }) ();
@@ -2113,6 +2121,11 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade001_limit_order
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade004_IOC_order
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade005_stop_limit_order
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade006_stop_market_order
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop

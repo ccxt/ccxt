@@ -6,7 +6,7 @@
 
 // ----------------------------------------------------------------------------
 import Exchange from './abstract/coinbasepro.js';
-import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
+import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1354,49 +1354,6 @@ export default class coinbasepro extends Exchange {
     }
     async fetchPaymentMethods(params = {}) {
         return await this.privateGetPaymentMethods(params);
-    }
-    async deposit(code, amount, address, params = {}) {
-        /**
-         * @method
-         * @name coinbasepro#deposit
-         * @description Creates a new deposit address, as required by coinbasepro
-         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositpaymentmethod
-         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositcoinbaseaccount
-         * @param {string} code Unified CCXT currency code (e.g. `"USDT"`)
-         * @param {float} amount The amount of currency to send in the deposit (e.g. `20`)
-         * @param {string} address Not used by coinbasepro
-         * @param {object} [params] Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
-         * @returns a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
-            'currency': currency['id'],
-            'amount': amount,
-        };
-        let method = 'privatePostDeposits';
-        if ('payment_method_id' in params) {
-            // deposit from a payment_method, like a bank account
-            method += 'PaymentMethod';
-        }
-        else if ('coinbase_account_id' in params) {
-            // deposit into Coinbase Pro account from a Coinbase account
-            method += 'CoinbaseAccount';
-        }
-        else {
-            // deposit methodotherwise we did not receive a supported deposit location
-            // relevant docs link for the Googlers
-            // https://docs.pro.coinbase.com/#deposits
-            throw new NotSupported(this.id + ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
-        }
-        const response = await this[method](this.extend(request, params));
-        if (!response) {
-            throw new ExchangeError(this.id + ' deposit() error: ' + this.json(response));
-        }
-        return {
-            'info': response,
-            'id': response['id'],
-        };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**

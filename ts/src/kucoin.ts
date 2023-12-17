@@ -492,6 +492,7 @@ export default class kucoin extends Exchange {
             'commonCurrencies': {
                 'BIFI': 'BIFIF',
                 'VAI': 'VAIOT',
+                'WAX': 'WAXP',
             },
             'options': {
                 'version': 'v1',

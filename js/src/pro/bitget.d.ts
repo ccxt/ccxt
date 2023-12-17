@@ -8,14 +8,12 @@ import Client from '../base/ws/Client.js';
  */
 export default class bitget extends bitgetRest {
     describe(): any;
-    getWsMarketId(market: any): any;
-    getMarketIdFromArg(arg: any): string;
+    getInstType(market: any, params?: {}): any[];
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTicker(client: Client, message: any): any;
+    handleTicker(client: Client, message: any): void;
     parseWsTicker(message: any, market?: any): Ticker;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     handleOHLCV(client: Client, message: any): void;
     parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -40,7 +38,7 @@ export default class bitget extends bitgetRest {
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
     watchPublic(messageHash: any, args: any, params?: {}): Promise<any>;
-    watchPublicMultiple(messageHash: any, argsArray: any, params?: {}): Promise<any>;
+    watchPublicMultiple(messageHashes: any, argsArray: any, params?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;
     watchPrivate(messageHash: any, subscriptionHash: any, args: any, params?: {}): Promise<any>;
     handleAuthenticate(client: Client, message: any): void;

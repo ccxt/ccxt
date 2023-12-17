@@ -490,6 +490,7 @@ class kucoin extends kucoin$1 {
             'commonCurrencies': {
                 'BIFI': 'BIFIF',
                 'VAI': 'VAIOT',
+                'WAX': 'WAXP',
             },
             'options': {
                 'version': 'v1',
