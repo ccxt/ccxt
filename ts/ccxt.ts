@@ -77,6 +77,7 @@ import bitstamp from  './src/bitstamp.js'
 import bitvavo from  './src/bitvavo.js'
 import bl3p from  './src/bl3p.js'
 import blockchaincom from  './src/blockchaincom.js'
+import blofin from  './src/blofin.js'
 import btcalpha from  './src/btcalpha.js'
 import btcbox from  './src/btcbox.js'
 import btcmarkets from  './src/btcmarkets.js'
@@ -235,6 +236,7 @@ const exchanges = {
     'bitvavo':                bitvavo,
     'bl3p':                   bl3p,
     'blockchaincom':          blockchaincom,
+    'blofin':                 blofin,
     'btcalpha':               btcalpha,
     'btcbox':                 btcbox,
     'btcmarkets':             btcmarkets,
@@ -471,6 +473,7 @@ export {
     bitvavo,
     bl3p,
     blockchaincom,
+    blofin,
     btcalpha,
     btcbox,
     btcmarkets,
