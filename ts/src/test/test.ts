@@ -425,11 +425,11 @@ export default class testMainClass extends baseMainTestClass {
                 if (isOperationFailed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
-                        dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified);
                         // we do not mute specifically "ExchangeNotAvailable" exception, because it might be a hint about a change in API engine (but its subtype "OnMaintenance" can be muted)
-                        const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
-                        if (isExchangeNotAvailable) {
-                            return false;
+                        if (e instanceof ExchangeNotAvailable) {
+                            dump ('[TEST_FAILURE]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified);
+                        } else {
+                            dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified);
                         }
                     } else {
                         // wait and retry again
@@ -525,11 +525,9 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         const testPrefixString = isPublicTest ? 'PUBLIC_TESTS' : 'PRIVATE_TESTS';
-        let errorsInMessage = '';
         if (errors.length) {
             const errorsString = errors.join (', ');
-            errorsInMessage = ' | Failed methods : ' + errorsString;
-            dump ('[TEST_FAILURE]', 'Failed ' + testPrefixString + ' tests for ' + this.exchangeHint (exchange) + errorsInMessage);
+            dump ('[TEST_FAILURE]', this.exchangeHint (exchange), testPrefixString, 'Failed methods : ' + errorsString);
         }
         if (this.info) {
             dump ( this.addPadding ('[INFO:END ' + testPrefixString + '] ' + this.exchangeHint (exchange), 25));
