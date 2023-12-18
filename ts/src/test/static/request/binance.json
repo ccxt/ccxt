@@ -382,11 +382,19 @@
                 ]
             },
             {
-                "description": "Swap fetchMyTrades",
+                "description": "Swap linear fetchMyTrades",
                 "method": "fetchMyTrades",
                 "url": "https://testnet.binancefuture.com/fapi/v1/userTrades?timestamp=1699380991270&symbol=LTCUSDT&recvWindow=10000&signature=df9868b4dbe11d15402e6cbea7910cc8cea2f5f5f87cddd91e40d8aa3b869d82",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap inverse fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://testnet.binancefuture.com/dapi/v1/userTrades?timestamp=1699380991270&symbol=BTCUSD_PERP&recvWindow=10000&signature=df9868b4dbe11d15402e6cbea7910cc8cea2f5f5f87cddd91e40d8aa3b869d82",
+                "input": [
+                    "BTC/USD:BTC"
                 ]
             }
         ],
