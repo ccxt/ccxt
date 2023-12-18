@@ -11,7 +11,7 @@ async function testFetchTrades (exchange, skippedProperties, symbol) {
     for (let i = 0; i < trades.length; i++) {
         testTrade (exchange, skippedProperties, method, trades[i], symbol, now);
     }
-    testSharedMethods.assertTimestampOrder (exchange, method, symbol, trades);
+    testSharedMethods.assertTimestampOrder (exchange, method, symbol, trades, true);
 }
 
 export default testFetchTrades;
