@@ -430,6 +430,7 @@ export default class testMainClass extends baseMainTestClass {
                             dump ('[TEST_FAILURE]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified);
                         } else {
                             dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified);
+                            return true;
                         }
                     } else {
                         // wait and retry again
@@ -439,12 +440,14 @@ export default class testMainClass extends baseMainTestClass {
                 } else if (e instanceof OnMaintenance) {
                     // in case of maintenance, skip exchange (don't fail the test)
                     dump ('[TEST_WARNING] Exchange is on maintenance', this.exchangeHint (exchange));
+                    return true;
                 }
                 // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                 else if (isPublic && isAuthError) {
                     // in case of loadMarkets, it means that "tester" (developer or travis) does not have correct authentication, so it does not have a point to proceed at all
                     if (methodName === 'loadMarkets') {
                         dump ('[TEST_WARNING]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
+                        return true;
                     }
                     if (this.info) {
                         dump ('[TEST_WARNING]', 'Authentication problem for public method', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
