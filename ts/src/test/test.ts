@@ -42,7 +42,7 @@ const isWsTests = getCliArgValue ('--ws');
 const proxyTestFileName = 'proxies';
 class baseMainTestClass {
     lang = 'JS';
-    isAsync = true;
+    isSynchronous = false;
     idTests = false;
     requestTestsFailed = false;
     responseTestsFailed = false;
@@ -362,7 +362,7 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         // todo: temporary skip for py
-        if (methodName.indexOf ('proxies') >= 0 && this.ext === 'py' && !this.isAsync) {
+        if (methodName.indexOf ('proxies') >= 0 && this.ext === 'py' && this.isSynchronous) {
             return;
         }
         const isLoadMarkets = (methodName === 'loadMarkets');
