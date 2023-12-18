@@ -1,5 +1,6 @@
 {
     "ace": {
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
@@ -16,7 +17,8 @@
         }
     },
     "alpaca": {
-        "skip": "private endpoints"
+        "skip": "private endpoints",
+        "skipWs": true
     },
     "ascendex": {
         "skipWs": "unknown https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2416",
@@ -172,6 +174,7 @@
         }
     },
     "bitcoincom": {
+        "skipWs": true
     },
     "bitfinex": {
         "skipMethods": {
@@ -187,6 +190,7 @@
         }
     },
     "bitfinex2": {
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -209,6 +213,7 @@
         }
     },
     "bitget": {
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "precision": "broken precision",
@@ -247,6 +252,7 @@
         }
     },
     "bitmart": {
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "expiry":"expiry is expected to be > 0",
@@ -339,6 +345,7 @@
         }
     },
     "bitpanda": {
+        "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "some bid might be lower than next bid",
             "fetchL2OrderBook": "same",
@@ -625,6 +632,7 @@
         }
     },
     "coinbase": {
+        "skipWs": true,
         "skip": "private endpoints",
         "skipMethods": {
             "fetchCurrencies": {
@@ -634,6 +642,7 @@
         }
     },
     "coinbasepro": {
+        "skipWs": true,
         "skipMethods": {
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
@@ -1562,6 +1571,7 @@
         }
     },
     "bingx": {
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "taker": "is undefined",

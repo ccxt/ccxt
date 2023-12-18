@@ -51,7 +51,7 @@ function get_cli_arg_value ($arg) {
     return in_array($arg, $GLOBALS['argv']);
 }
 
-define ('is_synchronous', stripos(__FILE__, '_async') === false);
+define('is_synchronous', stripos(__FILE__, '_async') === false);
 define('rootDirForSkips', __DIR__ . '/../../');
 define('envVars', $_ENV);
 define('LOG_CHARS_LENGTH', 1000000); // no need to trim
@@ -61,6 +61,7 @@ define('isWsTests', get_cli_arg_value('--ws'));
 
 class baseMainTestClass {
     public $lang = 'PHP';
+    public $is_async = is_synchronous;
     public $test_files = [];
     public $skipped_methods = [];
     public $checked_public_tests = [];
