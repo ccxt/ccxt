@@ -47,10 +47,14 @@ class BaseCache(list):
         else:
             return deque[item]
 
-    def __getattr__(self, attr_name):
-        # support snake_case
-        if (attr_name == 'get_limit'):
-            return self.getLimit
+    # to be overriden
+    def getLimit(self, symbol, limit):
+        pass
+
+    # support transpiled snake_case calls
+    def get_limit(self, symbol, limit):
+        return self.getLimit(symbol, limit)
+
 
 class ArrayCache(BaseCache):
     def __init__(self, max_size=None):
