@@ -142,6 +142,9 @@ abstract class woo extends \ccxt\async\Exchange {
     public function v2_private_get_client_holding($params = array()) {
         return $this->request('client/holding', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v3_public_get_insurancefund($params = array()) {
+        return $this->request('insuranceFund', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function v3_private_get_algo_order_oid($params = array()) {
         return $this->request('algo/order/{oid}', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -345,6 +348,9 @@ abstract class woo extends \ccxt\async\Exchange {
     }
     public function v2PrivateGetClientHolding($params = array()) {
         return $this->request('client/holding', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v3PublicGetInsuranceFund($params = array()) {
+        return $this->request('insuranceFund', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
     }
     public function v3PrivateGetAlgoOrderOid($params = array()) {
         return $this->request('algo/order/{oid}', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));

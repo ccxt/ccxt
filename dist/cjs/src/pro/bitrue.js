@@ -57,8 +57,8 @@ class bitrue extends bitrue$1 {
          * @name bitrue#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-         * @param {object} [params] extra parameters specific to the bitrue api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         const url = await this.authenticate();
         const messageHash = 'balance';
@@ -172,8 +172,8 @@ class bitrue extends bitrue$1 {
          * @param {string[]} symbols unified symbols of the market to watch the orders for
          * @param {int} [since] timestamp in ms of the earliest order
          * @param {int} [limit] the maximum amount of orders to return
-         * @param {object} [params] extra parameters specific to the bitrue api endpoint
-         * @returns {object} A dictionary of [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
          */
         await this.loadMarkets();
         if (symbol !== undefined) {

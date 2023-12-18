@@ -1,8 +1,8 @@
 import Exchange from './abstract/cryptocom.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
 /**
  * @class cryptocom
- * @extends Exchange
+ * @augments Exchange
  */
 export default class cryptocom extends Exchange {
     describe(): any;
@@ -32,30 +32,6 @@ export default class cryptocom extends Exchange {
     safeNetwork(networkId: any): string;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        timestamp: any;
-        datetime: string;
-        currency: any;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: any;
-    }>;
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseTransferStatus(status: any): string;
-    parseTransfer(transfer: any, currency?: Currency): {
-        info: any;
-        id: string;
-        timestamp: any;
-        datetime: string;
-        currency: any;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: any;
-    };
     parseTicker(ticker: any, market?: Market): Ticker;
     parseTrade(trade: any, market?: Market): Trade;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
@@ -65,29 +41,6 @@ export default class cryptocom extends Exchange {
     parseDepositStatus(status: any): string;
     parseWithdrawalStatus(status: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
-    parseMarginLoan(info: any, currency?: Currency): {
-        id: number;
-        currency: string;
-        amount: any;
-        symbol: any;
-        timestamp: any;
-        datetime: any;
-        info: any;
-    };
-    parseBorrowInterest(info: any, market?: Market): {
-        symbol: any;
-        marginMode: any;
-        currency: string;
-        interest: number;
-        interestRate: number;
-        amountBorrowed: any;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    };
-    parseBorrowRates(info: any, codeKey: any): any[];
     customHandleMarginModeAndParams(methodName: any, params?: {}): any[];
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         info: any;
@@ -146,6 +99,7 @@ export default class cryptocom extends Exchange {
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
     nonce(): number;
     paramsToString(object: any, level: any): any;
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

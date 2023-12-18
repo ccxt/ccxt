@@ -6,10 +6,12 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class krakenfutures extends \ccxt\async\krakenfutures {
 
@@ -102,10 +104,10 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             /**
              * @ignore
              * Connects to a websocket channel
-             * @param ~'strval'~ $name name of the channel
+             * @param {string} $name name of the channel
              * @param {string[]} $symbols CCXT $market $symbols
-             * @param {Object} [$params] extra parameters specific to the krakenfutures api
-             * @return {Object} data from the websocket stream
+             * @param {array} [$params] extra parameters specific to the krakenfutures api
+             * @return {array} data from the websocket stream
              */
             Async\await($this->load_markets());
             $url = $this->urls['api']['ws'];
@@ -138,10 +140,10 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             /**
              * @ignore
              * Connects to a websocket channel
-             * @param ~'strval'~ $name name of the channel
+             * @param {string} $name name of the channel
              * @param {string[]} symbols CCXT market symbols
-             * @param {Object} [$params] extra parameters specific to the krakenfutures api
-             * @return {Object} data from the websocket stream
+             * @param {array} [$params] extra parameters specific to the krakenfutures api
+             * @return {array} data from the websocket stream
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -158,14 +160,14 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }) ();
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             $options = $this->safe_value($this->options, 'watchTicker');
             $method = $this->safe_string($options, 'method', 'ticker'); // or ticker_lite
@@ -175,14 +177,14 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }) ();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
              * @param {string} symbol unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             $method = $this->safe_string($this->options, 'watchTickerMethod', 'ticker'); // or ticker_lite
             $name = $this->safe_string_2($params, 'method', 'watchTickerMethod', $method);
@@ -192,7 +194,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }) ();
     }
 
-    public function watch_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -200,8 +202,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $name = 'trade';
@@ -213,28 +215,28 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }) ();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-book
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] not used by krakenfutures watchOrderBook
-             * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $orderbook = Async\await($this->subscribe_public('book', array( $symbol ), $params));
             return $orderbook->limit ();
         }) ();
     }
 
-    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
              * watch all open positions
              * @param {string[]|null} $symbols list of unified market $symbols
-             * @param {array} $params extra parameters specific to the krakenfutures api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
@@ -358,7 +360,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         ));
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -367,8 +369,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {string} $symbol not used by krakenfutures watchOrders
              * @param {int} [$since] not used by krakenfutures watchOrders
              * @param {int} [$limit] not used by krakenfutures watchOrders
-             * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $name = 'open_orders';
@@ -385,7 +387,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }) ();
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -393,8 +395,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $name = 'fills';
@@ -411,7 +413,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }) ();
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watches information on multiple orders made by the user
@@ -419,9 +421,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {string} symbol not used by krakenfutures watchBalance
              * @param {int} [since] not used by krakenfutures watchBalance
              * @param {int} [limit] not used by krakenfutures watchBalance
-             * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->account] can be either 'futures' or 'flex_futures'
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structures}
+             * @return {array} a object of wallet types each with a balance structure array(@link https://docs.ccxt.com/#/?id=balance-structure)
              */
             Async\await($this->load_markets());
             $name = 'balances';
@@ -1290,13 +1292,11 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $key = $holdingKeys[$i];
                 $code = $this->safe_currency_code($key);
                 $newAccount = $this->account();
-                $amount = $this->safe_number($holding, $key);
-                $newAccount['free'] = $amount;
-                $newAccount['total'] = $amount;
-                $newAccount['used'] = 0;
+                $newAccount['total'] = $this->safe_string($holding, $key);
                 $holdingResult[$code] = $newAccount;
             }
             $this->balance['cash'] = $holdingResult;
+            $this->balance['cash'] = $this->safe_balance($this->balance['cash']);
             $client->resolve ($holdingResult, $messageHash);
         }
         if ($futures !== null) {
@@ -1313,13 +1313,14 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $future = $this->safe_value($futures, $key);
                 $currencyId = $this->safe_string($future, 'unit');
                 $code = $this->safe_currency_code($currencyId);
-                $newAccount['free'] = $this->safe_number($future, 'available');
-                $newAccount['used'] = $this->safe_number($future, 'initial_margin');
-                $newAccount['total'] = $this->safe_number($future, 'balance');
+                $newAccount['free'] = $this->safe_string($future, 'available');
+                $newAccount['used'] = $this->safe_string($future, 'initial_margin');
+                $newAccount['total'] = $this->safe_string($future, 'balance');
                 $futuresResult[$symbol] = array();
                 $futuresResult[$symbol][$code] = $newAccount;
             }
             $this->balance['margin'] = $futuresResult;
+            $this->balance['margin'] = $this->safe_balance($this->balance['margin']);
             $client->resolve ($this->balance['margin'], $messageHash . 'futures');
         }
         if ($flexFutures !== null) {
@@ -1335,12 +1336,13 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $flexFuture = $this->safe_value($flexFutureCurrencies, $key);
                 $code = $this->safe_currency_code($key);
                 $newAccount = $this->account();
-                $newAccount['free'] = $this->safe_number($flexFuture, 'available');
-                $newAccount['used'] = $this->safe_number($flexFuture, 'collateral_value');
-                $newAccount['total'] = $this->safe_number($flexFuture, 'quantity');
+                $newAccount['free'] = $this->safe_string($flexFuture, 'available');
+                $newAccount['used'] = $this->safe_string($flexFuture, 'collateral_value');
+                $newAccount['total'] = $this->safe_string($flexFuture, 'quantity');
                 $flexFuturesResult[$code] = $newAccount;
             }
             $this->balance['flex'] = $flexFuturesResult;
+            $this->balance['flex'] = $this->safe_balance($this->balance['flex']);
             $client->resolve ($this->balance['flex'], $messageHash . 'flex_futures');
         }
         $client->resolve ($this->balance, $messageHash);
@@ -1440,10 +1442,27 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         ));
     }
 
+    public function handle_error_message(Client $client, $message) {
+        //
+        //    {
+        //        event => 'alert',
+        //        $message => 'Failed to subscribe to authenticated feed'
+        //    }
+        //
+        $errMsg = $this->safe_string($message, 'message');
+        try {
+            throw new ExchangeError($this->id . ' ' . $errMsg);
+        } catch (Exception $error) {
+            $client->reject ($error);
+        }
+    }
+
     public function handle_message($client, $message) {
         $event = $this->safe_string($message, 'event');
         if ($event === 'challenge') {
             $this->handle_authenticate($client, $message);
+        } elseif ($event === 'alert') {
+            return $this->handle_error_message($client, $message);
         } elseif ($event === 'pong') {
             $client->lastPong = $this->milliseconds();
         } elseif ($event === null) {

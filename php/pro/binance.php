@@ -11,6 +11,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class binance extends \ccxt\async\binance {
 
@@ -25,6 +26,7 @@ class binance extends \ccxt\async\binance {
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
+                'watchOrdersForSymbols' => true,
                 'watchPositions' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
@@ -52,8 +54,8 @@ class binance extends \ccxt\async\binance {
                 ),
                 'api' => array(
                     'ws' => array(
-                        'spot' => 'wss://stream.binance.com:9443/ws',
-                        'margin' => 'wss://stream.binance.com:9443/ws',
+                        'spot' => 'wss://stream.binance.com/ws',
+                        'margin' => 'wss://stream.binance.com/ws',
                         'future' => 'wss://fstream.binance.com/ws',
                         'delivery' => 'wss://dstream.binance.com/ws',
                         'ws' => 'wss://ws-api.binance.com:443/ws-api/v3',
@@ -137,14 +139,14 @@ class binance extends \ccxt\async\binance {
         return $stream;
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             //
             // todo add support for <levels>-snapshots (depth)
@@ -152,23 +154,6 @@ class binance extends \ccxt\async\binance {
             // valid <levels> are 5, 10, or 20
             //
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            if ($limit !== null) {
-                if ($market['contract']) {
-                    if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500) && ($limit !== 1000)) {
-                        throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10, 20, 50, 100, 500 or 1000');
-                    }
-                } else {
-                    if ($limit > 5000) {
-                        throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be less than or equal to 5000');
-                    }
-                }
-            }
-            $type = $market['type'];
-            if ($market['contract']) {
-                $type = $market['linear'] ? 'future' : 'delivery';
-            }
             //
             // notice the differences between trading futures and spot trading
             // the algorithms use different urls in step 1
@@ -200,42 +185,17 @@ class binance extends \ccxt\async\binance {
             // 8. If the quantity is 0, remove the price level.
             // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
             //
-            $name = 'depth';
-            $messageHash = $market['lowercaseId'] . '@' . $name;
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
-            $requestId = $this->request_id($url);
-            $watchOrderBookRate = $this->safe_string($this->options, 'watchOrderBookRate', '100');
-            $request = array(
-                'method' => 'SUBSCRIBE',
-                'params' => array(
-                    $messageHash . '@' . $watchOrderBookRate . 'ms',
-                ),
-                'id' => $requestId,
-            );
-            $subscription = array(
-                'id' => (string) $requestId,
-                'messageHash' => $messageHash,
-                'name' => $name,
-                'symbol' => $market['symbol'],
-                'method' => array($this, 'handle_order_book_subscription'),
-                'limit' => $limit,
-                'type' => $type,
-                'params' => $params,
-            );
-            $message = array_merge($request, $params);
-            // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-            $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-            return $orderbook->limit ();
+            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
         }) ();
     }
 
-    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
              */
             Async\await($this->load_markets());
@@ -246,15 +206,17 @@ class binance extends \ccxt\async\binance {
                 $type = $firstMarket['linear'] ? 'future' : 'delivery';
             }
             $name = 'depth';
-            $messageHash = 'multipleOrderbook::' . implode(',', $symbols);
             $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, 'multipleOrderbook');
             $requestId = $this->request_id($url);
             $watchOrderBookRate = $this->safe_string($this->options, 'watchOrderBookRate', '100');
             $subParams = array();
+            $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $symbolHash = $market['lowercaseId'] . '@' . $name . '@' . $watchOrderBookRate . 'ms';
+                $messageHash = $market['lowercaseId'] . '@' . $name;
+                $messageHashes[] = $messageHash;
+                $symbolHash = $messageHash . '@' . $watchOrderBookRate . 'ms';
                 $subParams[] = $symbolHash;
             }
             $request = array(
@@ -264,7 +226,6 @@ class binance extends \ccxt\async\binance {
             );
             $subscription = array(
                 'id' => (string) $requestId,
-                'messageHash' => $messageHash,
                 'name' => $name,
                 'symbols' => $symbols,
                 'method' => array($this, 'handle_order_book_subscription'),
@@ -273,15 +234,17 @@ class binance extends \ccxt\async\binance {
                 'params' => $params,
             );
             $message = array_merge($request, $params);
-            $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+            $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $subscription));
             return $orderbook->limit ();
         }) ();
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {
         return Async\async(function () use ($client, $message, $subscription) {
-            $messageHash = $this->safe_string($subscription, 'messageHash');
+            $name = $this->safe_string($subscription, 'name');
             $symbol = $this->safe_string($subscription, 'symbol');
+            $market = $this->market($symbol);
+            $messageHash = $market['lowercaseId'] . '@' . $name;
             try {
                 $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
                 $type = $this->safe_value($subscription, 'type');
@@ -422,8 +385,6 @@ class binance extends \ccxt\async\binance {
                             $this->handle_order_book_message($client, $message, $orderbook);
                             if ($nonce < $orderbook['nonce']) {
                                 $client->resolve ($orderbook, $messageHash);
-                                // watchOrderBookForSymbols part (dry logic)
-                                $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbook::', $symbol, $orderbook);
                             }
                         } else {
                             // todo => $client->reject from handleOrderBookMessage properly
@@ -440,8 +401,6 @@ class binance extends \ccxt\async\binance {
                             $this->handle_order_book_message($client, $message, $orderbook);
                             if ($nonce <= $orderbook['nonce']) {
                                 $client->resolve ($orderbook, $messageHash);
-                                // watchOrderBookForSymbols part (dry logic)
-                                $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbook::', $symbol, $orderbook);
                             }
                         } else {
                             // todo => $client->reject from handleOrderBookMessage properly
@@ -493,15 +452,15 @@ class binance extends \ccxt\async\binance {
         return $message;
     }
 
-    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a list of $symbols
              * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false, true, true);
@@ -519,9 +478,8 @@ class binance extends \ccxt\async\binance {
                 $currentMessageHash = $market['lowercaseId'] . '@' . $name;
                 $subParams[] = $currentMessageHash;
             }
-            $messageHash = 'multipleTrades::' . implode(',', $symbols);
             $query = $this->omit($params, 'type');
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, 'multipleTrades');
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'SUBSCRIBE',
@@ -531,7 +489,7 @@ class binance extends \ccxt\async\binance {
             $subscribe = array(
                 'id' => $requestId,
             );
-            $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe));
+            $trades = Async\await($this->watch_multiple($url, $subParams, array_merge($request, $query), $subParams, $subscribe));
             if ($this->newUpdates) {
                 $first = $this->safe_value($trades, 0);
                 $tradeSymbol = $this->safe_string($first, 'symbol');
@@ -541,43 +499,17 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent $trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $options = $this->safe_value($this->options, 'watchTrades', array());
-            $name = $this->safe_string($options, 'name', 'trade');
-            $messageHash = $market['lowercaseId'] . '@' . $name;
-            $type = $market['type'];
-            if ($market['contract']) {
-                $type = $market['linear'] ? 'future' : 'delivery';
-            }
-            $query = $this->omit($params, 'type');
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
-            $requestId = $this->request_id($url);
-            $request = array(
-                'method' => 'SUBSCRIBE',
-                'params' => array(
-                    $messageHash,
-                ),
-                'id' => $requestId,
-            );
-            $subscribe = array(
-                'id' => $requestId,
-            );
-            $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit ($market['symbol'], $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
         }) ();
     }
 
@@ -747,7 +679,7 @@ class binance extends \ccxt\async\binance {
     public function handle_trade(Client $client, $message) {
         // the $trade streams push raw $trade information in real-time
         // each $trade has a unique buyer and seller
-        $isSpot = ((mb_strpos($client->url, '/stream') > -1) || (mb_strpos($client->url, '/testnet.binance') > -1));
+        $isSpot = ((mb_strpos($client->url, 'wss://stream.binance.com') > -1) || (mb_strpos($client->url, '/testnet.binance') > -1));
         $marketType = ($isSpot) ? 'spot' : 'contract';
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
@@ -764,11 +696,9 @@ class binance extends \ccxt\async\binance {
         $tradesArray->append ($trade);
         $this->trades[$symbol] = $tradesArray;
         $client->resolve ($tradesArray, $messageHash);
-        // watchTradesForSymbols part
-        $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $tradesArray);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -776,7 +706,7 @@ class binance extends \ccxt\async\binance {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -813,63 +743,6 @@ class binance extends \ccxt\async\binance {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
-    }
-
-    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
-            /**
-             * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            Async\await($this->load_markets());
-            $options = $this->safe_value($this->options, 'watchOHLCV', array());
-            $nameOption = $this->safe_string($options, 'name', 'kline');
-            $name = $this->safe_string($params, 'name', $nameOption);
-            $params = $this->omit($params, 'name');
-            $firstMarket = $this->market($symbolsAndTimeframes[0][0]);
-            $type = $firstMarket['type'];
-            if ($firstMarket['contract']) {
-                $type = $firstMarket['linear'] ? 'future' : 'delivery';
-            }
-            $subParams = array();
-            $hashes = array();
-            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                $data = $symbolsAndTimeframes[$i];
-                $symbolString = $data[0];
-                $timeframeString = $data[1];
-                $interval = $this->safe_string($this->timeframes, $timeframeString, $timeframeString);
-                $market = $this->market($symbolString);
-                $marketId = $market['lowercaseId'];
-                if ($name === 'indexPriceKline') {
-                    // weird behavior for index price kline we can't use the perp suffix
-                    $marketId = str_replace('_perp', '', $marketId);
-                }
-                $topic = $marketId . '@' . $name . '_' . $interval;
-                $subParams[] = $topic;
-                $hashes[] = $symbolString . '#' . $timeframeString;
-            }
-            $messageHash = 'multipleOHLCV::' . implode(',', $hashes);
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
-            $requestId = $this->request_id($url);
-            $request = array(
-                'method' => 'SUBSCRIBE',
-                'params' => $subParams,
-                'id' => $requestId,
-            );
-            $subscribe = array(
-                'id' => $requestId,
-            );
-            list($symbol, $timeframe, $stored) = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscribe));
-            if ($this->newUpdates) {
-                $limit = $stored->getLimit ($symbol, $limit);
-            }
-            $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
-            return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
         }) ();
     }
 
@@ -937,18 +810,16 @@ class binance extends \ccxt\async\binance {
         }
         $stored->append ($parsed);
         $client->resolve ($stored, $messageHash);
-        // watchOHLCVForSymbols part
-        $this->resolve_multiple_ohlcv($client, 'multipleOHLCV::', $symbol, $timeframe, $stored);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->name] stream to use can be ticker or bookTicker
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -978,13 +849,13 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, true, true, true);
@@ -1008,9 +879,6 @@ class binance extends \ccxt\async\binance {
             $params = $this->omit($params, 'name');
             $wsParams = array();
             $messageHash = 'tickers';
-            if ($symbols !== null) {
-                $messageHash = 'tickers::' . implode(',', $symbols);
-            }
             if ($name === 'bookTicker') {
                 if ($marketIds === null) {
                     throw new ArgumentsRequired($this->id . ' watchTickers() requires $symbols for bookTicker');
@@ -1204,19 +1072,6 @@ class binance extends \ccxt\async\binance {
             $this->tickers[$symbol] = $result;
             $newTickers[] = $result;
         }
-        $messageHashes = $this->find_message_hashes($client, 'tickers::');
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
-            $parts = explode('::', $messageHash);
-            $symbolsString = $parts[1];
-            $symbols = explode(',', $symbolsString);
-            $tickers = $this->filter_by_array($newTickers, 'symbol', $symbols);
-            $tickersSymbols = is_array($tickers) ? array_keys($tickers) : array();
-            $numTickers = count($tickersSymbols);
-            if ($numTickers > 0) {
-                $client->resolve ($tickers, $messageHash);
-            }
-        }
         $client->resolve ($newTickers, 'tickers');
     }
 
@@ -1318,18 +1173,21 @@ class binance extends \ccxt\async\binance {
                 return;
             }
             $method = 'publicPutUserDataStream';
+            $request = array();
+            $symbol = $this->safe_string($params, 'symbol');
+            $sendParams = $this->omit($params, array( 'type', 'symbol' ));
             if ($type === 'future') {
                 $method = 'fapiPrivatePutListenKey';
             } elseif ($type === 'delivery') {
                 $method = 'dapiPrivatePutListenKey';
-            } elseif ($type === 'margin') {
-                $method = 'sapiPutUserDataStream';
+            } else {
+                $request['listenKey'] = $listenKey;
+                if ($type === 'margin') {
+                    $request['symbol'] = $symbol;
+                    $method = 'sapiPutUserDataStream';
+                }
             }
-            $request = array(
-                'listenKey' => $listenKey,
-            );
             $time = $this->milliseconds();
-            $sendParams = $this->omit($params, 'type');
             try {
                 Async\await($this->$method (array_merge($request, $sendParams)));
             } catch (Exception $error) {
@@ -1394,16 +1252,16 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function fetch_balance_ws($params = array ()) {
+    public function fetch_balance_ws($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-information-user_data
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string|null} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot'
              * @param {string|null} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
              * @param {string[]|null} [$params->symbols] unified market symbols, only used in isolated margin mode
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $url = $this->urls['api']['ws']['ws'];
@@ -1477,12 +1335,12 @@ class binance extends \ccxt\async\binance {
         $client->resolve ($parsedBalances, $messageHash);
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
@@ -1637,7 +1495,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://binance-docs.github.io/apidocs/websocket_api/en/#place-new-order-trade
@@ -1647,27 +1505,34 @@ class binance extends \ccxt\async\binance {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} $params->test $test order, default false
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $this->check_is_spot('createOrderWs', $symbol, $params);
             $url = $this->urls['api']['ws']['ws'];
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
+            $sor = $this->safe_value_2($params, 'sor', 'SOR', false);
+            $params = $this->omit($params, 'sor', 'SOR');
             $payload = $this->createOrderRequest ($symbol, $type, $side, $amount, $price, $params);
             $returnRateLimits = false;
             list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'returnRateLimits', false);
             $payload['returnRateLimits'] = $returnRateLimits;
+            $test = $this->safe_value($params, 'test', false);
+            $params = $this->omit($params, 'test');
             $message = array(
                 'id' => $messageHash,
                 'method' => 'order.place',
                 'params' => $this->sign_params(array_merge($payload, $params)),
             );
-            $test = $this->safe_value($params, 'test', false);
             if ($test) {
-                $message['method'] = 'order.test';
+                if ($sor) {
+                    $message['method'] = 'sor.order.test';
+                } else {
+                    $message['method'] = 'order.test';
+                }
             }
             $subscription = array(
                 'method' => array($this, 'handle_order_ws'),
@@ -1774,7 +1639,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve ($orders, $messageHash);
     }
 
-    public function edit_order_ws(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1785,8 +1650,8 @@ class binance extends \ccxt\async\binance {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
              * @param {float|null} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $this->check_is_spot('editOrderWs', $symbol, $params);
@@ -1883,16 +1748,16 @@ class binance extends \ccxt\async\binance {
         $client->resolve ($order, $messageHash);
     }
 
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * @see https://binance-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade
              * cancel multiple orders
              * @param {string} $id order $id
              * @param {string} $symbol unified market $symbol, default is null
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string|null} [$params->cancelRestrictions] Supported values => ONLY_NEW - Cancel will succeed if the order status is NEW. ONLY_PARTIALLY_FILLED - Cancel will succeed if order status is PARTIALLY_FILLED.
-             * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=order-structure order structures~
              */
             Async\await($this->load_markets());
             if ($symbol === null) {
@@ -1933,8 +1798,8 @@ class binance extends \ccxt\async\binance {
              * @see https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-orders-user_data
              * cancel all open orders in a market
              * @param {string} $symbol unified market $symbol of the market to cancel orders in
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $url = $this->urls['api']['ws']['ws'];
@@ -1958,14 +1823,14 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function fetch_order_ws(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order_ws(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * @see https://binance-docs.github.io/apidocs/websocket_api/en/#query-order-user_data
              * fetches information on an order made by the user
              * @param {string} $symbol unified $symbol of the market the order was made in
-             * @param {array} $params extra parameters specific to the binance api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             if ($symbol === null) {
@@ -1999,7 +1864,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function fetch_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data
@@ -2007,12 +1872,12 @@ class binance extends \ccxt\async\binance {
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int|null} [$since] the earliest time in ms to fetch $orders for
              * @param {int|null} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->orderId] order id to begin at
              * @param {int} [$params->startTime] earliest time in ms to retrieve $orders for
              * @param {int} [$params->endTime] latest time in ms to retrieve $orders for
              * @param {int} [$params->limit] the maximum number of order structures to retrieve
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             if ($symbol === null) {
@@ -2041,7 +1906,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-$orders-user_data
@@ -2049,8 +1914,8 @@ class binance extends \ccxt\async\binance {
              * @param {string} $symbol unified market $symbol
              * @param {int|null} [$since] the earliest time in ms to fetch open $orders for
              * @param {int|null} [$limit] the maximum number of open $orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $this->check_is_spot('fetchOpenOrdersWs', $symbol);
@@ -2078,15 +1943,16 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'orders';
@@ -2095,9 +1961,7 @@ class binance extends \ccxt\async\binance {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
                 $messageHash .= ':' . $symbol;
-                $params = array_merge($params, array( 'type' => $market['type'], 'symbol' => $symbol )); // needed inside authenticate for isolated margin
             }
-            Async\await($this->authenticate($params));
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
             $subType = null;
@@ -2107,6 +1971,8 @@ class binance extends \ccxt\async\binance {
             } elseif ($this->isInverse ($type, $subType)) {
                 $type = 'delivery';
             }
+            $params = array_merge($params, array( 'type' => $type, 'symbol' => $symbol )); // needed inside authenticate for isolated margin
+            Async\await($this->authenticate($params));
             $urlType = $type;
             if ($type === 'margin') {
                 $urlType = 'spot'; // spot-margin shares the same stream spot
@@ -2365,12 +2231,12 @@ class binance extends \ccxt\async\binance {
         $this->handle_order($client, $message);
     }
 
-    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watch all open positions
              * @param {string[]|null} $symbols list of unified $market $symbols
-             * @param {array} $params extra parameters specific to the binance api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
@@ -2414,6 +2280,9 @@ class binance extends \ccxt\async\binance {
     }
 
     public function set_positions_cache(Client $client, $type, ?array $symbols = null) {
+        if ($type === 'spot') {
+            return;
+        }
         if ($this->positions === null) {
             $this->positions = array();
         }
@@ -2559,7 +2428,7 @@ class binance extends \ccxt\async\binance {
         ));
     }
 
-    public function fetch_my_trades_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-trade-history-user_data
@@ -2567,10 +2436,10 @@ class binance extends \ccxt\async\binance {
              * @param {string} $symbol unified market $symbol
              * @param {int|null} [$since] the earliest time in ms to fetch $trades for
              * @param {int|null} [$limit] the maximum number of $trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->endTime] the latest time in ms to fetch $trades for
              * @param {int} [$params->fromId] first trade Id to fetch
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             if ($symbol === null) {
@@ -2639,15 +2508,15 @@ class binance extends \ccxt\async\binance {
         $client->resolve ($trades, $messageHash);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the binance api endpoint
-             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             Async\await($this->load_markets());
             $type = null;
@@ -2755,7 +2624,6 @@ class binance extends \ccxt\async\binance {
     }
 
     public function handle_order(Client $client, $message) {
-        $messageHash = 'orders';
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');
@@ -2784,9 +2652,10 @@ class binance extends \ccxt\async\binance {
                 }
             }
             $cachedOrders->append ($parsed);
-            $client->resolve ($this->orders, $messageHash);
-            $messageHashSymbol = $messageHash . ':' . $symbol;
-            $client->resolve ($this->orders, $messageHashSymbol);
+            $messageHash = 'orders';
+            $symbolSpecificMessageHash = 'orders:' . $symbol;
+            $client->resolve ($cachedOrders, $messageHash);
+            $client->resolve ($cachedOrders, $symbolSpecificMessageHash);
         }
     }
 

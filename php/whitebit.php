@@ -25,7 +25,6 @@ class whitebit extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'borrowMargin' => false,
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
@@ -35,11 +34,11 @@ class whitebit extends Exchange {
                 'createStopOrder' => true,
                 'editOrder' => false,
                 'fetchBalance' => true,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
@@ -51,6 +50,8 @@ class whitebit extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -69,7 +70,8 @@ class whitebit extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => true,
-                'repayMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => true,
                 'transfer' => true,
                 'withdraw' => true,
@@ -265,8 +267,8 @@ class whitebit extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for whitebit
-         * @see https://whitebit-exchange.github.io/api-docs/docs/Public/http-v4#market-info
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @see https://docs.whitebit.com/public/http-v4/#market-info
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
         $markets = $this->v4PublicGetMarkets ();
@@ -387,7 +389,8 @@ class whitebit extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
+         * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
         $response = $this->v4PublicGetAssets ($params);
@@ -445,9 +448,10 @@ class whitebit extends Exchange {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFees instead
+         * @see https://docs.whitebit.com/public/http-v4/#fee
          * @param {string[]|null} $codes not used by fetchTransactionFees ()
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
          */
         $this->load_markets();
         $response = $this->v4PublicGetFee ($params);
@@ -498,9 +502,10 @@ class whitebit extends Exchange {
     public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
+         * @see https://docs.whitebit.com/public/http-v4/#fee
          * @param {string[]|null} $codes not used by fetchDepositWithdrawFees ()
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
          */
         $this->load_markets();
         $response = $this->v4PublicGetFee ($params);
@@ -646,8 +651,9 @@ class whitebit extends Exchange {
     public function fetch_trading_fees($params = array ()) {
         /**
          * fetch the trading fees for multiple markets
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$fee-structure $fee structures} indexed by $market symbols
+         * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market symbols
          */
         $this->load_markets();
         $response = $this->v4PublicGetAssets ($params);
@@ -692,9 +698,10 @@ class whitebit extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @see https://docs.whitebit.com/public/http-v4/#$market-activity
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -779,10 +786,11 @@ class whitebit extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         * @see https://docs.whitebit.com/public/http-v4/#$market-activity
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -812,12 +820,12 @@ class whitebit extends Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
-         * @see https://whitebit-exchange.github.io/api-docs/public/http-v4/#orderbook
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.whitebit.com/public/http-v4/#orderbook
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -854,11 +862,12 @@ class whitebit extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         * @see https://docs.whitebit.com/public/http-v4/#recent-trades
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -884,11 +893,12 @@ class whitebit extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
+         * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-order-history
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = null;
@@ -1036,11 +1046,12 @@ class whitebit extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @see https://docs.whitebit.com/public/http-v1/#kline
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1102,8 +1113,9 @@ class whitebit extends Exchange {
     public function fetch_status($params = array ()) {
         /**
          * the latest known information on the availability of the exchange API
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-$status-structure $status structure}
+         * @see https://docs.whitebit.com/public/http-v4/#server-$status
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
          */
         $response = $this->v4PublicGetPing ($params);
         //
@@ -1124,7 +1136,8 @@ class whitebit extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
+         * @see https://docs.whitebit.com/public/http-v4/#server-time
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $response = $this->v4PublicGetTime ($params);
@@ -1139,13 +1152,18 @@ class whitebit extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://docs.whitebit.com/private/http-trade-v4/#create-limit-order
+         * @see https://docs.whitebit.com/private/http-trade-v4/#create-$market-order
+         * @see https://docs.whitebit.com/private/http-trade-v4/#create-buy-stock-$market-order
+         * @see https://docs.whitebit.com/private/http-trade-v4/#create-stop-limit-order
+         * @see https://docs.whitebit.com/private/http-trade-v4/#create-stop-$market-order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1177,50 +1195,56 @@ class whitebit extends Exchange {
         if ($marginMode !== null && $marginMode !== 'cross') {
             throw new NotSupported($this->id . ' createOrder() is only available for cross margin');
         }
+        $params = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice' ));
         $useCollateralEndpoint = $marginMode !== null || $marketType === 'swap';
+        $response = null;
         if ($isStopOrder) {
             $request['activation_price'] = $this->price_to_precision($symbol, $stopPrice);
             if ($isLimitOrder) {
                 // stop limit order
-                $method = 'v4PrivatePostOrderStopLimit';
                 $request['price'] = $this->price_to_precision($symbol, $price);
+                $response = $this->v4PrivatePostOrderStopLimit (array_merge($request, $params));
             } else {
                 // stop $market order
-                $method = 'v4PrivatePostOrderStopMarket';
                 if ($useCollateralEndpoint) {
-                    $method = 'v4PrivatePostOrderCollateralTriggerMarket';
+                    $response = $this->v4PrivatePostOrderCollateralTriggerMarket (array_merge($request, $params));
+                } else {
+                    $response = $this->v4PrivatePostOrderStopMarket (array_merge($request, $params));
                 }
             }
         } else {
             if ($isLimitOrder) {
                 // limit order
-                $method = 'v4PrivatePostOrderNew';
-                if ($useCollateralEndpoint) {
-                    $method = 'v4PrivatePostOrderCollateralLimit';
-                }
                 $request['price'] = $this->price_to_precision($symbol, $price);
+                if ($useCollateralEndpoint) {
+                    $response = $this->v4PrivatePostOrderCollateralLimit (array_merge($request, $params));
+                } else {
+                    $response = $this->v4PrivatePostOrderNew (array_merge($request, $params));
+                }
             } else {
                 // $market order
-                $method = 'v4PrivatePostOrderStockMarket';
                 if ($useCollateralEndpoint) {
-                    $method = 'v4PrivatePostOrderCollateralMarket';
+                    $response = $this->v4PrivatePostOrderCollateralMarket (array_merge($request, $params));
+                } else {
+                    $response = $this->v4PrivatePostOrderStockMarket (array_merge($request, $params));
                 }
             }
         }
-        $params = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice' ));
-        $response = $this->$method (array_merge($request, $params));
         return $this->parse_order($response);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         * @see https://docs.whitebit.com/private/http-trade-v4/#cancel-order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
-        $this->check_required_symbol('cancelOrder', $symbol);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1254,27 +1278,29 @@ class whitebit extends Exchange {
 
     public function fetch_balance($params = array ()): array {
         /**
-         * $query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.whitebit.com/private/http-main-v4/#main-balance
+         * @see https://docs.whitebit.com/private/http-trade-v4/#trading-balance
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $method = null;
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $response = null;
         if ($marketType === 'swap') {
-            $method = 'v4PrivatePostCollateralAccountBalance';
+            $response = $this->v4PrivatePostCollateralAccountBalance ($params);
         } else {
             $options = $this->safe_value($this->options, 'fetchBalance', array());
             $defaultAccount = $this->safe_string($options, 'account');
             $account = $this->safe_string($params, 'account', $defaultAccount);
             $params = $this->omit($params, 'account');
             if ($account === 'main') {
-                $method = 'v4PrivatePostMainAccountBalance';
+                $response = $this->v4PrivatePostMainAccountBalance ($params);
             } else {
-                $method = 'v4PrivatePostTradeAccountBalance';
+                $response = $this->v4PrivatePostTradeAccountBalance ($params);
             }
         }
-        $response = $this->$method ($query);
         //
         // main $account
         //
@@ -1303,13 +1329,16 @@ class whitebit extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
+         * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
-        $this->check_required_symbol('fetchOpenOrders', $symbol);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1345,11 +1374,12 @@ class whitebit extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed $orders made by the user
+         * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-$orders
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
          */
         $this->load_markets();
         $request = array();
@@ -1506,12 +1536,13 @@ class whitebit extends Exchange {
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
+         * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-order-deals
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades to retrieve
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array(
@@ -1552,19 +1583,20 @@ class whitebit extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this $account
+         * @see https://docs.whitebit.com/private/http-main-v4/#get-fiat-deposit-$address
+         * @see https://docs.whitebit.com/private/http-main-v4/#get-cryptocurrency-deposit-$address
          * @param {string} $code unified $currency $code
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
             'ticker' => $currency['id'],
         );
-        $method = 'v4PrivatePostMainAccountAddress';
+        $response = null;
         if ($this->is_fiat($code)) {
-            $method = 'v4PrivatePostMainAccountFiatDepositUrl';
-            $provider = $this->safe_number($params, 'provider');
+            $provider = $this->safe_string($params, 'provider');
             if ($provider === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a $provider when the ticker is fiat');
             }
@@ -1578,8 +1610,10 @@ class whitebit extends Exchange {
             if ($uniqueId === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an $uniqueId when the ticker is fiat');
             }
+            $response = $this->v4PrivatePostMainAccountFiatDepositUrl (array_merge($request, $params));
+        } else {
+            $response = $this->v4PrivatePostMainAccountAddress (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         // fiat
         //
@@ -1623,9 +1657,10 @@ class whitebit extends Exchange {
     public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a market
+         * @see https://docs.whitebit.com/private/http-trade-v4/#change-collateral-account-$leverage
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified market $symbol
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
          */
         $this->load_markets();
@@ -1647,13 +1682,13 @@ class whitebit extends Exchange {
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
-         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#transfer-between-main-and-trade-balances
+         * @see https://docs.whitebit.com/private/http-main-v4/#transfer-between-main-and-trade-balances
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from - main, spot, collateral
          * @param {string} $toAccount account to transfer to - main, spot, collateral
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1694,12 +1729,13 @@ class whitebit extends Exchange {
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
+         * @see https://docs.whitebit.com/private/http-main-v4/#create-withdraw-$request
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         $this->load_markets();
         $currency = $this->currency($code); // check if it has canDeposit
@@ -1821,10 +1857,11 @@ class whitebit extends Exchange {
     public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch information on a deposit
+         * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
          * @param {string} $id deposit $id
          * @param {string} $code not used by whitebit fetchDeposit ()
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
          */
         $this->load_markets();
         $currency = null;
@@ -1884,11 +1921,12 @@ class whitebit extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
+         * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $currency = null;
@@ -1949,13 +1987,13 @@ class whitebit extends Exchange {
     public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the $interest owed by the user for borrowing currency for margin trading
-         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-trade-v4.md#open-positions
+         * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
          * @param {string} $code unified currency $code
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch borrrow $interest for
          * @param {int} [$limit] the maximum number of structures to retrieve
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-$interest-structure borrow $interest structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=borrow-$interest-structure borrow $interest structures~
          */
         $this->load_markets();
         $request = array();
@@ -2028,11 +2066,11 @@ class whitebit extends Exchange {
 
     public function fetch_funding_rate(string $symbol, $params = array ()) {
         /**
-         * @see https://whitebit-exchange.github.io/api-docs/public/http-v4/#available-futures-markets-list
+         * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
          * fetch the current funding rate
          * @param {string} $symbol unified market $symbol
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
         $symbol = $this->symbol($symbol);
@@ -2042,11 +2080,11 @@ class whitebit extends Exchange {
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         /**
-         * @see https://whitebit-exchange.github.io/api-docs/public/http-v4/#available-futures-markets-list
+         * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
          * fetch the funding rate for multiple markets
          * @param {string[]|null} $symbols list of unified market $symbols
-         * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rates-structure funding rates structures}, indexe by market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);

@@ -29,11 +29,15 @@ class htx extends Exchange {
                 'future' => true,
                 'option' => null,
                 'addMargin' => null,
-                'borrowMargin' => true,
+                'borrowCrossMargin' => true,
+                'borrowIsolatedMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createDepositAddress' => null,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createReduceOnlyOrder' => false,
@@ -44,14 +48,13 @@ class htx extends Exchange {
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchBorrowInterest' => true,
-                'fetchBorrowRate' => null,
                 'fetchBorrowRateHistories' => null,
                 'fetchBorrowRateHistory' => null,
-                'fetchBorrowRates' => true,
-                'fetchBorrowRatesPerSymbol' => true,
                 'fetchCanceledOrders' => null,
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
@@ -65,6 +68,8 @@ class htx extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => true,
                 'fetchL3OrderBook' => null,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => null,
@@ -108,7 +113,8 @@ class htx extends Exchange {
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
                 'reduceMargin' => null,
-                'repayMargin' => true,
+                'repayCrossMargin' => true,
+                'repayIsolatedMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -1158,10 +1164,6 @@ class htx extends Exchange {
                     'deposit-earning' => 'deposit-earning',
                     'otc-options' => 'otc-options',
                 ),
-                'marginAccounts' => array(
-                    'cross' => 'super-margin',
-                    'isolated' => 'margin',
-                ),
                 'typesByAccount' => array(
                     'pro' => 'spot',
                     'futures' => 'future',
@@ -1220,26 +1222,27 @@ class htx extends Exchange {
         $this->load_markets();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', null, $params);
-        $method = 'statusPublicSpotGetApiV2SummaryJson';
+        $response = null;
         if ($marketType !== 'spot') {
             $subType = $this->safe_string($params, 'subType', $this->options['defaultSubType']);
             if ($marketType === 'swap') {
                 if ($subType === 'linear') {
-                    $method = 'statusPublicSwapLinearGetApiV2SummaryJson';
+                    $response = $this->statusPublicSwapLinearGetApiV2SummaryJson ();
                 } elseif ($subType === 'inverse') {
-                    $method = 'statusPublicSwapInverseGetApiV2SummaryJson';
+                    $response = $this->statusPublicSwapInverseGetApiV2SummaryJson ();
                 }
             } elseif ($marketType === 'future') {
                 if ($subType === 'linear') {
-                    $method = 'statusPublicFutureLinearGetApiV2SummaryJson';
+                    $response = $this->statusPublicFutureLinearGetApiV2SummaryJson ();
                 } elseif ($subType === 'inverse') {
-                    $method = 'statusPublicFutureInverseGetApiV2SummaryJson';
+                    $response = $this->statusPublicFutureInverseGetApiV2SummaryJson ();
                 }
             } elseif ($marketType === 'contract') {
-                $method = 'contractPublicGetHeartbeat';
+                $response = $this->contractPublicGetHeartbeat ();
             }
+        } else {
+            $response = $this->statusPublicSpotGetApiV2SummaryJson ();
         }
-        $response = $this->$method ();
         //
         // statusPublicSpotGetApiV2SummaryJson, statusPublicSwapInverseGetApiV2SummaryJson, statusPublicFutureLinearGetApiV2SummaryJson, statusPublicFutureInverseGetApiV2SummaryJson
         //
@@ -1404,7 +1407,7 @@ class htx extends Exchange {
         $status = null;
         $updated = null;
         $url = null;
-        if ($method === 'contractPublicGetHeartbeat') {
+        if ($marketType === 'contract') {
             $statusRaw = $this->safe_string($response, 'status');
             $status = ($statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
             $updated = $this->safe_string($response, 'ts');
@@ -1429,18 +1432,19 @@ class htx extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $options = $this->safe_value($this->options, 'fetchTime', array());
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $type = $this->safe_string($options, 'type', $defaultType);
         $type = $this->safe_string($params, 'type', $type);
-        $method = 'spotPublicGetV1CommonTimestamp';
+        $response = null;
         if (($type === 'future') || ($type === 'swap')) {
-            $method = 'contractPublicGetApiV1Timestamp';
+            $response = $this->contractPublicGetApiV1Timestamp ($params);
+        } else {
+            $response = $this->spotPublicGetV1CommonTimestamp ($params);
         }
-        $response = $this->$method ($params);
         //
         // spot
         //
@@ -1476,8 +1480,8 @@ class htx extends Exchange {
         /**
          * fetch the trading fees for a $market
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1579,7 +1583,7 @@ class htx extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all markets for huobi
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
         $options = $this->safe_value($this->options, 'fetchMarkets', array());
@@ -1611,7 +1615,6 @@ class htx extends Exchange {
     }
 
     public function fetch_markets_by_type_and_sub_type($type, $subType, $params = array ()) {
-        $method = 'spotPublicGetV1CommonSymbols';
         $query = $this->omit($params, array( 'type', 'subType' ));
         $spot = ($type === 'spot');
         $contract = ($type !== 'spot');
@@ -1620,23 +1623,25 @@ class htx extends Exchange {
         $linear = null;
         $inverse = null;
         $request = array();
+        $response = null;
         if ($contract) {
             $linear = ($subType === 'linear');
             $inverse = ($subType === 'inverse');
             if ($linear) {
-                $method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
                 if ($future) {
                     $request['business_type'] = 'futures';
                 }
+                $response = $this->contractPublicGetLinearSwapApiV1SwapContractInfo (array_merge($request, $query));
             } elseif ($inverse) {
                 if ($future) {
-                    $method = 'contractPublicGetApiV1ContractContractInfo';
+                    $response = $this->contractPublicGetApiV1ContractContractInfo (array_merge($request, $query));
                 } elseif ($swap) {
-                    $method = 'contractPublicGetSwapApiV1SwapContractInfo';
+                    $response = $this->contractPublicGetSwapApiV1SwapContractInfo (array_merge($request, $query));
                 }
             }
+        } else {
+            $response = $this->spotPublicGetV1CommonSymbols (array_merge($request, $query));
         }
-        $response = $this->$method (array_merge($request, $query));
         //
         // $spot
         //
@@ -2009,27 +2014,28 @@ class htx extends Exchange {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array();
-        $fieldName = 'symbol';
-        $method = 'spotPublicGetMarketDetailMerged';
+        $response = null;
         if ($market['linear']) {
-            $method = 'contractPublicGetLinearSwapExMarketDetailMerged';
-            $fieldName = 'contract_code';
+            $request['contract_code'] = $market['id'];
+            $response = $this->contractPublicGetLinearSwapExMarketDetailMerged (array_merge($request, $params));
         } elseif ($market['inverse']) {
             if ($market['future']) {
-                $method = 'contractPublicGetMarketDetailMerged';
+                $request['symbol'] = $market['id'];
+                $response = $this->contractPublicGetMarketDetailMerged (array_merge($request, $params));
             } elseif ($market['swap']) {
-                $method = 'contractPublicGetSwapExMarketDetailMerged';
-                $fieldName = 'contract_code';
+                $request['contract_code'] = $market['id'];
+                $response = $this->contractPublicGetSwapExMarketDetailMerged (array_merge($request, $params));
             }
+        } else {
+            $request['symbol'] = $market['id'];
+            $response = $this->spotPublicGetMarketDetailMerged (array_merge($request, $params));
         }
-        $request[$fieldName] = $market['id'];
-        $response = $this->$method (array_merge($request, $params));
         //
         // spot
         //
@@ -2083,14 +2089,14 @@ class htx extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-$tickers-for-all-pairs
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-$market-data-overview
          * @see https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-$market-data-overview
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-$market-data-overview-v2
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -2101,7 +2107,6 @@ class htx extends Exchange {
         }
         $type = null;
         $subType = null;
-        $method = 'spotPublicGetMarketTickers';
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
         $request = array();
@@ -2109,22 +2114,24 @@ class htx extends Exchange {
         $swap = ($type === 'swap');
         $linear = ($subType === 'linear');
         $inverse = ($subType === 'inverse');
+        $params = $this->omit($params, array( 'type', 'subType' ));
+        $response = null;
         if ($future || $swap) {
             if ($linear) {
-                $method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
                 if ($future) {
                     $request['business_type'] = 'futures';
                 }
+                $response = $this->contractPublicGetLinearSwapExMarketDetailBatchMerged (array_merge($request, $params));
             } elseif ($inverse) {
                 if ($future) {
-                    $method = 'contractPublicGetMarketDetailBatchMerged';
+                    $response = $this->contractPublicGetMarketDetailBatchMerged (array_merge($request, $params));
                 } elseif ($swap) {
-                    $method = 'contractPublicGetSwapExMarketDetailBatchMerged';
+                    $response = $this->contractPublicGetSwapExMarketDetailBatchMerged (array_merge($request, $params));
                 }
             }
+        } else {
+            $response = $this->spotPublicGetMarketTickers (array_merge($request, $params));
         }
-        $params = $this->omit($params, array( 'type', 'subType' ));
-        $response = $this->$method (array_merge($request, $params));
         //
         // spot
         //
@@ -2237,8 +2244,8 @@ class htx extends Exchange {
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2253,17 +2260,17 @@ class htx extends Exchange {
             // 'symbol' => $market['id'], // spot, future
             // 'contract_code' => $market['id'], // swap
         );
-        $fieldName = 'symbol';
-        $method = 'spotPublicGetMarketDepth';
+        $response = null;
         if ($market['linear']) {
-            $method = 'contractPublicGetLinearSwapExMarketDepth';
-            $fieldName = 'contract_code';
+            $request['contract_code'] = $market['id'];
+            $response = $this->contractPublicGetLinearSwapExMarketDepth (array_merge($request, $params));
         } elseif ($market['inverse']) {
             if ($market['future']) {
-                $method = 'contractPublicGetMarketDepth';
+                $request['symbol'] = $market['id'];
+                $response = $this->contractPublicGetMarketDepth (array_merge($request, $params));
             } elseif ($market['swap']) {
-                $method = 'contractPublicGetSwapExMarketDepth';
-                $fieldName = 'contract_code';
+                $request['contract_code'] = $market['id'];
+                $response = $this->contractPublicGetSwapExMarketDepth (array_merge($request, $params));
             }
         } else {
             if ($limit !== null) {
@@ -2278,9 +2285,9 @@ class htx extends Exchange {
                     $request['depth'] = $limit;
                 }
             }
+            $request['symbol'] = $market['id'];
+            $response = $this->spotPublicGetMarketDepth (array_merge($request, $params));
         }
-        $request[$fieldName] = $market['id'];
-        $response = $this->$method (array_merge($request, $params));
         //
         // spot, future, swap
         //
@@ -2462,8 +2469,8 @@ class htx extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         $market = null;
         if ($symbol !== null) {
@@ -2495,10 +2502,10 @@ class htx extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch $trades for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -2531,7 +2538,7 @@ class htx extends Exchange {
             // 'direct' => 'prev', // next, prev
             // 'size' => $limit, // default 20, max 50
         );
-        $method = null;
+        $response = null;
         if ($marketType === 'spot') {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2545,9 +2552,11 @@ class htx extends Exchange {
                 // $request['end-time'] = $this->sum($since, 172800000); // 48 hours window
             }
             list($request, $params) = $this->handle_until_option('end-time', $request, $params);
-            $method = 'spotPrivateGetV1OrderMatchresults';
+            $response = $this->spotPrivateGetV1OrderMatchresults (array_merge($request, $params));
         } else {
-            $this->check_required_symbol('fetchMyTrades', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            }
             $request['contract'] = $market['id'];
             $request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
             if ($since !== null) {
@@ -2563,22 +2572,21 @@ class htx extends Exchange {
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
                 $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                 if ($marginMode === 'isolated') {
-                    $method = 'contractPrivatePostLinearSwapApiV3SwapMatchresultsExact';
+                    $response = $this->contractPrivatePostLinearSwapApiV3SwapMatchresultsExact (array_merge($request, $params));
                 } elseif ($marginMode === 'cross') {
-                    $method = 'contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact';
+                    $response = $this->contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact (array_merge($request, $params));
                 }
             } elseif ($market['inverse']) {
                 if ($marketType === 'future') {
-                    $method = 'contractPrivatePostApiV3ContractMatchresultsExact';
                     $request['symbol'] = $market['settleId'];
+                    $response = $this->contractPrivatePostApiV3ContractMatchresultsExact (array_merge($request, $params));
                 } elseif ($marketType === 'swap') {
-                    $method = 'contractPrivatePostSwapApiV3SwapMatchresultsExact';
+                    $response = $this->contractPrivatePostSwapApiV3SwapMatchresultsExact (array_merge($request, $params));
                 } else {
                     throw new NotSupported($this->id . ' fetchMyTrades() does not support ' . $marketType . ' markets');
                 }
             }
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         // spot
         //
@@ -2662,8 +2670,8 @@ class htx extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest $trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades $trade structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades $trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2671,28 +2679,29 @@ class htx extends Exchange {
             // 'symbol' => $market['id'], // spot, future
             // 'contract_code' => $market['id'], // swap
         );
-        $fieldName = 'symbol';
-        $method = 'spotPublicGetMarketHistoryTrade';
-        if ($market['future']) {
-            if ($market['inverse']) {
-                $method = 'contractPublicGetMarketHistoryTrade';
-            } elseif ($market['linear']) {
-                $method = 'contractPublicGetLinearSwapExMarketHistoryTrade';
-                $fieldName = 'contract_code';
-            }
-        } elseif ($market['swap']) {
-            if ($market['inverse']) {
-                $method = 'contractPublicGetSwapExMarketHistoryTrade';
-            } elseif ($market['linear']) {
-                $method = 'contractPublicGetLinearSwapExMarketHistoryTrade';
-            }
-            $fieldName = 'contract_code';
-        }
-        $request[$fieldName] = $market['id'];
         if ($limit !== null) {
             $request['size'] = min ($limit, 2000); // max 2000
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($market['future']) {
+            if ($market['inverse']) {
+                $request['symbol'] = $market['id'];
+                $response = $this->contractPublicGetMarketHistoryTrade (array_merge($request, $params));
+            } elseif ($market['linear']) {
+                $request['contract_code'] = $market['id'];
+                $response = $this->contractPublicGetLinearSwapExMarketHistoryTrade (array_merge($request, $params));
+            }
+        } elseif ($market['swap']) {
+            $request['contract_code'] = $market['id'];
+            if ($market['inverse']) {
+                $response = $this->contractPublicGetSwapExMarketHistoryTrade (array_merge($request, $params));
+            } elseif ($market['linear']) {
+                $response = $this->contractPublicGetLinearSwapExMarketHistoryTrade (array_merge($request, $params));
+            }
+        } else {
+            $request['symbol'] = $market['id'];
+            $response = $this->spotPublicGetMarketHistoryTrade (array_merge($request, $params));
+        }
         //
         //     {
         //         "status" => "ok",
@@ -2764,7 +2773,7 @@ class htx extends Exchange {
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
@@ -2783,69 +2792,8 @@ class htx extends Exchange {
             // 'from' => intval(($since / (string) 1000)), spot only
             // 'to' => $this->seconds(), spot only
         );
-        $fieldName = 'symbol';
         $price = $this->safe_string($params, 'price');
         $params = $this->omit($params, 'price');
-        $method = 'spotPublicGetMarketHistoryCandles';
-        if ($market['spot']) {
-            if ($timeframe === '1M' || $timeframe === '1y') {
-                // for some reason 1M and 1Y does not work with the regular endpoint
-                // https://github.com/ccxt/ccxt/issues/18006
-                $method = 'spotPublicGetMarketHistoryKline';
-            }
-            if ($since !== null) {
-                $request['from'] = $this->parse_to_int($since / 1000);
-            }
-            if ($limit !== null) {
-                $request['size'] = $limit; // max 2000
-            }
-        } elseif ($market['future']) {
-            if ($market['inverse']) {
-                if ($price === 'mark') {
-                    $method = 'contractPublicGetIndexMarketHistoryMarkPriceKline';
-                } elseif ($price === 'index') {
-                    $method = 'contractPublicGetIndexMarketHistoryIndex';
-                } elseif ($price === 'premiumIndex') {
-                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
-                } else {
-                    $method = 'contractPublicGetMarketHistoryKline';
-                }
-            } elseif ($market['linear']) {
-                if ($price === 'mark') {
-                    $method = 'contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline';
-                } elseif ($price === 'index') {
-                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
-                } elseif ($price === 'premiumIndex') {
-                    $method = 'contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline';
-                } else {
-                    $method = 'contractPublicGetLinearSwapExMarketHistoryKline';
-                }
-                $fieldName = 'contract_code';
-            }
-        } elseif ($market['swap']) {
-            if ($market['inverse']) {
-                if ($price === 'mark') {
-                    $method = 'contractPublicGetIndexMarketHistorySwapMarkPriceKline';
-                } elseif ($price === 'index') {
-                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
-                } elseif ($price === 'premiumIndex') {
-                    $method = 'contractPublicGetIndexMarketHistorySwapPremiumIndexKline';
-                } else {
-                    $method = 'contractPublicGetSwapExMarketHistoryKline';
-                }
-            } elseif ($market['linear']) {
-                if ($price === 'mark') {
-                    $method = 'contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline';
-                } elseif ($price === 'index') {
-                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
-                } elseif ($price === 'premiumIndex') {
-                    $method = 'contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline';
-                } else {
-                    $method = 'contractPublicGetLinearSwapExMarketHistoryKline';
-                }
-            }
-            $fieldName = 'contract_code';
-        }
         if ($market['contract']) {
             if ($limit !== null) {
                 $request['size'] = $limit; // when using $limit from and to are ignored
@@ -2866,8 +2814,70 @@ class htx extends Exchange {
                 }
             }
         }
-        $request[$fieldName] = $market['id'];
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($market['future']) {
+            if ($market['inverse']) {
+                $request['symbol'] = $market['id'];
+                if ($price === 'mark') {
+                    $response = $this->contractPublicGetIndexMarketHistoryMarkPriceKline (array_merge($request, $params));
+                } elseif ($price === 'index') {
+                    $response = $this->contractPublicGetIndexMarketHistoryIndex (array_merge($request, $params));
+                } elseif ($price === 'premiumIndex') {
+                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
+                } else {
+                    $response = $this->contractPublicGetMarketHistoryKline (array_merge($request, $params));
+                }
+            } elseif ($market['linear']) {
+                $request['contract_code'] = $market['id'];
+                if ($price === 'mark') {
+                    $response = $this->contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (array_merge($request, $params));
+                } elseif ($price === 'index') {
+                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
+                } elseif ($price === 'premiumIndex') {
+                    $response = $this->contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (array_merge($request, $params));
+                } else {
+                    $response = $this->contractPublicGetLinearSwapExMarketHistoryKline (array_merge($request, $params));
+                }
+            }
+        } elseif ($market['swap']) {
+            $request['contract_code'] = $market['id'];
+            if ($market['inverse']) {
+                if ($price === 'mark') {
+                    $response = $this->contractPublicGetIndexMarketHistorySwapMarkPriceKline (array_merge($request, $params));
+                } elseif ($price === 'index') {
+                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
+                } elseif ($price === 'premiumIndex') {
+                    $response = $this->contractPublicGetIndexMarketHistorySwapPremiumIndexKline (array_merge($request, $params));
+                } else {
+                    $response = $this->contractPublicGetSwapExMarketHistoryKline (array_merge($request, $params));
+                }
+            } elseif ($market['linear']) {
+                if ($price === 'mark') {
+                    $response = $this->contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (array_merge($request, $params));
+                } elseif ($price === 'index') {
+                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
+                } elseif ($price === 'premiumIndex') {
+                    $response = $this->contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (array_merge($request, $params));
+                } else {
+                    $response = $this->contractPublicGetLinearSwapExMarketHistoryKline (array_merge($request, $params));
+                }
+            }
+        } else {
+            if ($since !== null) {
+                $request['from'] = $this->parse_to_int($since / 1000);
+            }
+            if ($limit !== null) {
+                $request['size'] = $limit; // max 2000
+            }
+            $request['symbol'] = $market['id'];
+            if ($timeframe === '1M' || $timeframe === '1y') {
+                // for some reason 1M and 1Y does not work with the regular endpoint
+                // https://github.com/ccxt/ccxt/issues/18006
+                $response = $this->spotPublicGetMarketHistoryKline (array_merge($request, $params));
+            } else {
+                $response = $this->spotPublicGetMarketHistoryCandles (array_merge($request, $params));
+            }
+        }
         //
         //     {
         //         "status":"ok",
@@ -2887,8 +2897,8 @@ class htx extends Exchange {
     public function fetch_accounts($params = array ()) {
         /**
          * fetch all the accounts associated with a profile
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure account structures} indexed by the account type
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
          */
         $this->load_markets();
         $response = $this->spotPrivateGetV1AccountAccounts ($params);
@@ -2959,7 +2969,7 @@ class htx extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
         $response = $this->spotPublicGetV2ReferenceCurrencies ($params);
@@ -3129,9 +3139,9 @@ class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#$isolated-query-user-s-$account-information
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#$cross-query-user-39-s-$account-information
          * query for $balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->unified] provide this parameter if you have a recent $account with unified $cross+$isolated $margin $account
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$balance-structure $balance structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
          */
         $this->load_markets();
         $type = null;
@@ -3308,14 +3318,16 @@ class htx extends Exchange {
         //                 "margin_mode" => "cross",
         //                 "margin_account" => "USDT",
         //                 "margin_asset" => "USDT",
-        //                 "margin_balance" => 200.000000000000000000,
-        //                 "margin_static" => 200.000000000000000000,
-        //                 "margin_position" => 0,
-        //                 "margin_frozen" => 0,
-        //                 "profit_real" => 0E-18,
-        //                 "profit_unreal" => 0,
-        //                 "withdraw_available" => 2E+2,
-        //                 "risk_rate" => null,
+        //                 "margin_balance" => 49.874186030200000000,
+        //                 "money_in" => 50,
+        //                 "money_out" => 0,
+        //                 "margin_static" => 49.872786030200000000,
+        //                 "margin_position" => 6.180000000000000000,
+        //                 "margin_frozen" => 6.000000000000000000,
+        //                 "profit_unreal" => 0.001400000000000000,
+        //                 "withdraw_available" => 37.6927860302,
+        //                 "risk_rate" => 271.984050521072796934,
+        //                 "new_risk_rate" => 0.001858676950514399,
         //                 "contract_detail" => array(
         //                     array(
         //                         "symbol" => "MANA",
@@ -3417,8 +3429,8 @@ class htx extends Exchange {
                 }
             } else {
                 $account = $this->account();
-                $account['free'] = $this->safe_string($first, 'margin_balance', 'margin_available');
-                $account['used'] = $this->safe_string($first, 'margin_frozen');
+                $account['free'] = $this->safe_string($first, 'withdraw_available');
+                $account['total'] = $this->safe_string($first, 'margin_balance');
                 $currencyId = $this->safe_string_2($first, 'margin_asset', 'symbol');
                 $code = $this->safe_currency_code($currencyId);
                 $result[$code] = $account;
@@ -3443,8 +3455,8 @@ class htx extends Exchange {
         /**
          * fetches information on an $order made by the user
          * @param {string} $symbol unified $symbol of the $market the $order was made in
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = null;
@@ -3466,39 +3478,21 @@ class htx extends Exchange {
             // 'pair' => 'BTC-USDT',
             // 'contract_type' => 'this_week', // swap, this_week, next_week, quarter, next_ quarter
         );
-        $method = null;
+        $response = null;
         if ($marketType === 'spot') {
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            $method = 'spotPrivateGetV1OrderOrdersOrderId';
             if ($clientOrderId !== null) {
-                $method = 'spotPrivateGetV1OrderOrdersGetClientOrder';
                 // will be filled below in extend ()
                 // they expect $clientOrderId instead of client-$order-$id
                 // $request['clientOrderId'] = $clientOrderId;
+                $response = $this->spotPrivateGetV1OrderOrdersGetClientOrder (array_merge($request, $params));
             } else {
                 $request['order-id'] = $id;
+                $response = $this->spotPrivateGetV1OrderOrdersOrderId (array_merge($request, $params));
             }
         } else {
-            $this->check_required_symbol('fetchOrder', $symbol);
-            $request['contract_code'] = $market['id'];
-            if ($market['linear']) {
-                $marginMode = null;
-                list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrder', $params);
-                $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
-                if ($marginMode === 'isolated') {
-                    $method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
-                } elseif ($marginMode === 'cross') {
-                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo';
-                }
-            } elseif ($market['inverse']) {
-                if ($marketType === 'future') {
-                    $method = 'contractPrivatePostApiV1ContractOrderInfo';
-                    $request['symbol'] = $market['settleId'];
-                } elseif ($marketType === 'swap') {
-                    $method = 'contractPrivatePostSwapApiV1SwapOrderInfo';
-                } else {
-                    throw new NotSupported($this->id . ' fetchOrder() does not support ' . $marketType . ' markets');
-                }
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
             }
             $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
             if ($clientOrderId === null) {
@@ -3507,8 +3501,27 @@ class htx extends Exchange {
                 $request['client_order_id'] = $clientOrderId;
                 $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
             }
+            $request['contract_code'] = $market['id'];
+            if ($market['linear']) {
+                $marginMode = null;
+                list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrder', $params);
+                $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
+                if ($marginMode === 'isolated') {
+                    $response = $this->contractPrivatePostLinearSwapApiV1SwapOrderInfo (array_merge($request, $params));
+                } elseif ($marginMode === 'cross') {
+                    $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo (array_merge($request, $params));
+                }
+            } elseif ($market['inverse']) {
+                if ($marketType === 'future') {
+                    $request['symbol'] = $market['settleId'];
+                    $response = $this->contractPrivatePostApiV1ContractOrderInfo (array_merge($request, $params));
+                } elseif ($marketType === 'swap') {
+                    $response = $this->contractPrivatePostSwapApiV1SwapOrderInfo (array_merge($request, $params));
+                } else {
+                    throw new NotSupported($this->id . ' fetchOrder() does not support ' . $marketType . ' markets');
+                }
+            }
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         // spot
         //
@@ -3660,7 +3673,9 @@ class htx extends Exchange {
     public function fetch_spot_orders_by_states($states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if ($method === 'spot_private_get_v1_order_orders') {
-            $this->check_required_symbol('fetchOrders', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            }
         }
         $this->load_markets();
         $market = null;
@@ -3693,7 +3708,12 @@ class htx extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($method === 'spot_private_get_v1_order_orders') {
+            $response = $this->spotPrivateGetV1OrderOrders (array_merge($request, $params));
+        } else {
+            $response = $this->spotPrivateGetV1OrderHistory (array_merge($request, $params));
+        }
         //
         // spot_private_get_v1_order_orders GET /v1/order/orders
         //
@@ -3733,7 +3753,9 @@ class htx extends Exchange {
     }
 
     public function fetch_contract_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        $this->check_required_symbol('fetchContractOrders', $symbol);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchContractOrders() requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -3974,11 +3996,11 @@ class htx extends Exchange {
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->stop] *$contract only* if the orders are stop trigger orders or not
          * @param {bool} [$params->stopLossTakeProfit] *$contract only* if the orders are stop-loss or take-profit orders
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -4010,10 +4032,10 @@ class htx extends Exchange {
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -4043,10 +4065,10 @@ class htx extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->stop] *contract only* if the $orders are $stop trigger $orders or not
          * @param {bool} [$params->stopLossTakeProfit] *contract only* if the $orders are $stop-loss or take-profit $orders
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -4083,7 +4105,9 @@ class htx extends Exchange {
             $params = $this->omit($params, 'account-id');
             $response = $this->spotPrivateGetV1OrderOpenOrders (array_merge($request, $params));
         } else {
-            $this->check_required_symbol('fetchOpenOrders', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            }
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
@@ -4722,6 +4746,24 @@ class htx extends Exchange {
         ), $market);
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * create a $market buy order by providing the $symbol and $cost
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4ee16-7773-11ed-9966-0242ac110003
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        $params['createMarketBuyOrderRequiresPrice'] = false;
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+    }
+
     public function create_spot_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * @ignore
@@ -4731,8 +4773,9 @@ class htx extends Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the htx api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
+         * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
          * @return {array} $request to be sent to the exchange
          */
         $this->load_markets();
@@ -4746,7 +4789,7 @@ class htx extends Exchange {
             'account-id' => $accountId,
             'symbol' => $market['id'],
             // 'type' => $side . '-' . $type, // buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
-            // 'amount' => $this->amount_to_precision($symbol, $amount), // for buy $market orders it's the order cost
+            // 'amount' => $this->amount_to_precision($symbol, $amount), // for buy $market orders it's the order $cost
             // 'price' => $this->price_to_precision($symbol, $price),
             // 'source' => 'spot-api', // optional, spot-api, margin-api = isolated margin, super-margin-api = cross margin, c2c-margin-api
             // 'client-order-id' => $clientOrderId, // optional, max 64 chars, must be unique within 8 hours
@@ -4801,23 +4844,31 @@ class htx extends Exchange {
             $request['source'] = 'c2c-margin-api';
         }
         if (($orderType === 'market') && ($side === 'buy')) {
-            if ($this->options['createMarketBuyOrderRequiresPrice']) {
+            $quoteAmount = null;
+            $createMarketBuyOrderRequiresPrice = true;
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            $cost = $this->safe_number($params, 'cost');
+            $params = $this->omit($params, 'cost');
+            if ($cost !== null) {
+                $quoteAmount = $this->amount_to_precision($symbol, $cost);
+            } elseif ($createMarketBuyOrderRequiresPrice) {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . " $market buy order requires $price argument to calculate cost (total $amount of quote currency to spend for buying, $amount * $price). To switch off this warning exception and specify cost in the $amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
                 } else {
-                    // despite that cost = $amount * $price is in quote currency and should have quote precision
-                    // the exchange API requires the cost supplied in 'amount' to be of base precision
+                    // despite that $cost = $amount * $price is in quote currency and should have quote precision
+                    // the exchange API requires the $cost supplied in 'amount' to be of base precision
                     // more about it here:
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
-                    // we use amountToPrecision here because the exchange requires cost in base precision
+                    // we use amountToPrecision here because the exchange requires $cost in base precision
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
-                    $request['amount'] = $this->cost_to_precision($symbol, Precise::string_mul($amountString, $priceString));
+                    $quoteAmount = $this->amount_to_precision($symbol, Precise::string_mul($amountString, $priceString));
                 }
             } else {
-                $request['amount'] = $this->cost_to_precision($symbol, $amount);
+                $quoteAmount = $this->amount_to_precision($symbol, $amount);
             }
+            $request['amount'] = $quoteAmount;
         } else {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
         }
@@ -4838,7 +4889,7 @@ class htx extends Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the htx api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
          * @return {array} $request to be sent to the exchange
          */
@@ -4932,7 +4983,7 @@ class htx extends Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->stopPrice] the $price a trigger order is triggered at
          * @param {string} [$params->triggerType] *contract trigger orders only* ge => greater than or equal to, le => less than or equal to
          * @param {float} [$params->stopLossPrice] *contract only* the $price a stop-loss order is triggered at
@@ -4942,7 +4993,8 @@ class htx extends Exchange {
          * @param {bool} [$params->postOnly] *contract only* true or false
          * @param {int} [$params->leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
          * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -5072,9 +5124,9 @@ class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-$orders
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-$orders
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-$orders
-         * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
-         * @param {array} [$params] extra parameters specific to the htx api endpoint
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $ordersRequests = array();
@@ -5196,10 +5248,10 @@ class htx extends Exchange {
          * cancels an open order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->stop] *contract only* if the order is a $stop trigger order or not
          * @param {bool} [$params->stopLossTakeProfit] *contract only* if the order is a $stop-loss or take-profit order
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = null;
@@ -5232,7 +5284,9 @@ class htx extends Exchange {
                 $response = $this->spotPrivatePostV1OrderOrdersSubmitCancelClientOrder (array_merge($request, $params));
             }
         } else {
-            $this->check_required_symbol('cancelOrder', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            }
             $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
             if ($clientOrderId === null) {
                 $request['order_id'] = $id;
@@ -5321,10 +5375,10 @@ class htx extends Exchange {
          * cancel multiple orders
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol, default is null
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->stop] *contract only* if the orders are $stop trigger orders or not
          * @param {bool} [$params->stopLossTakeProfit] *contract only* if the orders are $stop-loss or take-profit orders
-         * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -5363,7 +5417,9 @@ class htx extends Exchange {
             }
             $response = $this->spotPrivatePostV1OrderOrdersBatchcancel (array_merge($request, $params));
         } else {
-            $this->check_required_symbol('cancelOrders', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            }
             $clientOrderIds = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
             $clientOrderIds = $this->safe_string_2($params, 'client_order_ids', 'clientOrderIds', $clientOrderIds);
             if ($clientOrderIds === null) {
@@ -5481,10 +5537,10 @@ class htx extends Exchange {
         /**
          * cancel all open orders
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->stop] *contract only* if the orders are $stop trigger orders or not
          * @param {bool} [$params->stopLossTakeProfit] *contract only* if the orders are $stop-loss or take-profit orders
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -5514,7 +5570,9 @@ class htx extends Exchange {
             }
             $response = $this->spotPrivatePostV1OrderOrdersBatchCancelOpenOrders (array_merge($request, $params));
         } else {
-            $this->check_required_symbol('cancelAllOrders', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            }
             if ($market['future']) {
                 $request['symbol'] = $market['settleId'];
             }
@@ -5622,8 +5680,8 @@ class htx extends Exchange {
         /**
          * fetch a dictionary of addresses for a $currency, indexed by network
          * @param {string} $code unified $currency $code of the $currency for the deposit address
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structures} indexed by the network
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by the network
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -5653,8 +5711,8 @@ class htx extends Exchange {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -5705,8 +5763,8 @@ class htx extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         if ($limit === null || $limit > 100) {
             $limit = 100;
@@ -5763,8 +5821,8 @@ class htx extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         if ($limit === null || $limit > 100) {
             $limit = 100;
@@ -5940,8 +5998,8 @@ class htx extends Exchange {
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();
@@ -6030,10 +6088,10 @@ class htx extends Exchange {
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from 'spot', 'future', 'swap'
          * @param {string} $toAccount account to transfer to 'spot', 'future', 'swap'
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->symbol] used for isolated margin transfer
          * @param {string} [$params->subType] 'linear' or 'inverse', only used when transfering to/from swap accounts
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -6043,7 +6101,6 @@ class htx extends Exchange {
         );
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('transfer', null, $params);
-        $method = null;
         $fromAccountId = $this->convert_type_to_account($fromAccount);
         $toAccountId = $this->convert_type_to_account($toAccount);
         $toCross = $toAccountId === 'cross';
@@ -6056,23 +6113,23 @@ class htx extends Exchange {
             throw new BadRequest($this->id . ' transfer () cannot make a transfer between ' . $fromAccount . ' and ' . $toAccount);
         }
         $fromOrToFuturesAccount = ($fromAccountId === 'futures') || ($toAccountId === 'futures');
+        $response = null;
         if ($fromOrToFuturesAccount) {
             $type = $fromAccountId . '-to-' . $toAccountId;
             $type = $this->safe_string($params, 'type', $type);
             $request['type'] = $type;
-            $method = 'spotPrivatePostV1FuturesTransfer';
+            $response = $this->spotPrivatePostV1FuturesTransfer (array_merge($request, $params));
         } elseif ($fromSpot && $toCross) {
-            $method = 'privatePostCrossMarginTransferIn';
+            $response = $this->privatePostCrossMarginTransferIn (array_merge($request, $params));
         } elseif ($fromCross && $toSpot) {
-            $method = 'privatePostCrossMarginTransferOut';
+            $response = $this->privatePostCrossMarginTransferOut (array_merge($request, $params));
         } elseif ($fromSpot && $toIsolated) {
             $request['symbol'] = $toAccountId;
-            $method = 'privatePostDwTransferInMargin';
+            $response = $this->privatePostDwTransferInMargin (array_merge($request, $params));
         } elseif ($fromIsolated && $toSpot) {
             $request['symbol'] = $fromAccountId;
-            $method = 'privatePostDwTransferOutMargin';
+            $response = $this->privatePostDwTransferOutMargin (array_merge($request, $params));
         } else {
-            $method = 'v2PrivatePostAccountTransfer';
             if ($subType === 'linear') {
                 if (($fromAccountId === 'swap') || ($fromAccount === 'linear-swap')) {
                     $fromAccountId = 'linear-swap';
@@ -6091,8 +6148,8 @@ class htx extends Exchange {
             }
             $request['from'] = $fromSpot ? 'spot' : $fromAccountId;
             $request['to'] = $toSpot ? 'spot' : $toAccountId;
+            $response = $this->v2PrivatePostAccountTransfer (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         //    {
         //        "code" => "200",
@@ -6105,79 +6162,15 @@ class htx extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function fetch_borrow_rates_per_symbol($params = array ()) {
+    public function fetch_isolated_borrow_rates($params = array ()) {
         /**
-         * fetch borrow $rates for $currencies within individual markets
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-$rate-structure borrow $rate structures} indexed by market $symbol
+         * fetch the borrow interest $rates of all currencies
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure isolated borrow rate structures~
          */
         $this->load_markets();
         $response = $this->spotPrivateGetV1MarginLoanInfo ($params);
         //
-        //    {
-        //        "status" => "ok",
-        //        "data" => array(
-        //            {
-        //                "symbol" => "1inchusdt",
-        //                "currencies" => array(
-        //                    array(
-        //                        "currency" => "1inch",
-        //                        "interest-$rate" => "0.00098",
-        //                        "min-loan-amt" => "90.000000000000000000",
-        //                        "max-loan-amt" => "1000.000000000000000000",
-        //                        "loanable-amt" => "0.0",
-        //                        "actual-$rate" => "0.00098"
-        //                    ),
-        //                    array(
-        //                        "currency" => "usdt",
-        //                        "interest-$rate" => "0.00098",
-        //                        "min-loan-amt" => "100.000000000000000000",
-        //                        "max-loan-amt" => "1000.000000000000000000",
-        //                        "loanable-amt" => "0.0",
-        //                        "actual-$rate" => "0.00098"
-        //                    }
-        //                )
-        //            ),
-        //            ...
-        //        )
-        //    }
-        //
-        $timestamp = $this->milliseconds();
-        $data = $this->safe_value($response, 'data', array());
-        $rates = array(
-            'info' => $response,
-        );
-        for ($i = 0; $i < count($data); $i++) {
-            $rate = $data[$i];
-            $currencies = $this->safe_value($rate, 'currencies', array());
-            $symbolRates = array();
-            for ($j = 0; $j < count($currencies); $j++) {
-                $currency = $currencies[$j];
-                $currencyId = $this->safe_string($currency, 'currency');
-                $code = $this->safe_currency_code($currencyId);
-                $symbolRates[$code] = array(
-                    'currency' => $code,
-                    'rate' => $this->safe_number($currency, 'actual-rate'),
-                    'span' => 86400000,
-                    'timestamp' => $timestamp,
-                    'datetime' => $this->iso8601($timestamp),
-                );
-            }
-            $marketId = $this->safe_string($rate, 'symbol');
-            $symbol = $this->safe_symbol($marketId);
-            $rates[$symbol] = $symbolRates;
-        }
-        return $rates;
-    }
-
-    public function fetch_borrow_rates($params = array ()) {
-        /**
-         * fetch the borrow interest $rates of all $currencies
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structures}
-         */
-        $this->load_markets();
-        $response = $this->spotPrivateGetV1MarginLoanInfo ($params);
         // {
         //     "status" => "ok",
         //     "data" => array(
@@ -6205,27 +6198,57 @@ class htx extends Exchange {
         //         ...
         //     )
         // }
-        $timestamp = $this->milliseconds();
+        //
         $data = $this->safe_value($response, 'data', array());
         $rates = array();
         for ($i = 0; $i < count($data); $i++) {
-            $market = $data[$i];
-            $currencies = $this->safe_value($market, 'currencies', array());
-            for ($j = 0; $j < count($currencies); $j++) {
-                $currency = $currencies[$j];
-                $currencyId = $this->safe_string($currency, 'currency');
-                $code = $this->safe_currency_code($currencyId);
-                $rates[$code] = array(
-                    'currency' => $code,
-                    'rate' => $this->safe_number($currency, 'actual-rate'),
-                    'span' => 86400000,
-                    'timestamp' => $timestamp,
-                    'datetime' => $this->iso8601($timestamp),
-                    'info' => null,
-                );
-            }
+            $rates[] = $this->parse_isolated_borrow_rate($data[$i]);
         }
         return $rates;
+    }
+
+    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+        //
+        //     {
+        //         "symbol" => "1inchusdt",
+        //         "currencies" => array(
+        //             array(
+        //                 "currency" => "1inch",
+        //                 "interest-rate" => "0.00098",
+        //                 "min-loan-amt" => "90.000000000000000000",
+        //                 "max-loan-amt" => "1000.000000000000000000",
+        //                 "loanable-amt" => "0.0",
+        //                 "actual-rate" => "0.00098"
+        //             ),
+        //             array(
+        //                 "currency" => "usdt",
+        //                 "interest-rate" => "0.00098",
+        //                 "min-loan-amt" => "100.000000000000000000",
+        //                 "max-loan-amt" => "1000.000000000000000000",
+        //                 "loanable-amt" => "0.0",
+        //                 "actual-rate" => "0.00098"
+        //             }
+        //         )
+        //     ),
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $currencies = $this->safe_value($info, 'currencies', array());
+        $baseData = $this->safe_value($currencies, 0);
+        $quoteData = $this->safe_value($currencies, 1);
+        $baseId = $this->safe_string($baseData, 'currency');
+        $quoteId = $this->safe_string($quoteData, 'currency');
+        return array(
+            'symbol' => $symbol,
+            'base' => $this->safe_currency_code($baseId),
+            'baseRate' => $this->safe_number($baseData, 'actual-rate'),
+            'quote' => $this->safe_currency_code($quoteId),
+            'quoteRate' => $this->safe_number($quoteData, 'actual-rate'),
+            'period' => 86400000,
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $info,
+        );
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -6236,10 +6259,12 @@ class htx extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] not used by huobi, but filtered internally by ccxt
          * @param {int} [$limit] not used by huobi, but filtered internally by ccxt
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
          */
-        $this->check_required_symbol('fetchFundingRateHistory', $symbol);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
@@ -6250,15 +6275,14 @@ class htx extends Exchange {
         $request = array(
             'contract_code' => $market['id'],
         );
-        $method = null;
+        $response = null;
         if ($market['inverse']) {
-            $method = 'contractPublicGetSwapApiV1SwapHistoricalFundingRate';
+            $response = $this->contractPublicGetSwapApiV1SwapHistoricalFundingRate (array_merge($request, $params));
         } elseif ($market['linear']) {
-            $method = 'contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate';
+            $response = $this->contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate (array_merge($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchFundingRateHistory() supports inverse and linear swaps only');
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         // {
         //     "status" => "ok",
@@ -6349,23 +6373,22 @@ class htx extends Exchange {
         /**
          * fetch the current funding rate
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $method = null;
-        if ($market['inverse']) {
-            $method = 'contractPublicGetSwapApiV1SwapFundingRate';
-        } elseif ($market['linear']) {
-            $method = 'contractPublicGetLinearSwapApiV1SwapFundingRate';
-        } else {
-            throw new NotSupported($this->id . ' fetchFundingRate() supports inverse and linear swaps only');
-        }
         $request = array(
             'contract_code' => $market['id'],
         );
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($market['inverse']) {
+            $response = $this->contractPublicGetSwapApiV1SwapFundingRate (array_merge($request, $params));
+        } elseif ($market['linear']) {
+            $response = $this->contractPublicGetLinearSwapApiV1SwapFundingRate (array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchFundingRate() supports inverse and linear swaps only');
+        }
         //
         // {
         //     "status" => "ok",
@@ -6389,8 +6412,8 @@ class htx extends Exchange {
         /**
          * fetch the funding rate for multiple markets
          * @param {string[]|null} $symbols list of unified market $symbols
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rates-structure funding rates structures}, indexe by market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -6401,12 +6424,15 @@ class htx extends Exchange {
         $request = array(
             // 'contract_code' => market['id'],
         );
-        $method = $this->get_supported_mapping($subType, array(
-            'linear' => 'contractPublicGetLinearSwapApiV1SwapBatchFundingRate',
-            'inverse' => 'contractPublicGetSwapApiV1SwapBatchFundingRate',
-        ));
         $params = $this->omit($params, 'subType');
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($subType === 'linear') {
+            $response = $this->contractPublicGetLinearSwapApiV1SwapBatchFundingRate (array_merge($request, $params));
+        } elseif ($subType === 'inverse') {
+            $response = $this->contractPublicGetSwapApiV1SwapBatchFundingRate (array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchFundingRates() not support this market type');
+        }
         //
         //     {
         //         "status" => "ok",
@@ -6437,8 +6463,8 @@ class htx extends Exchange {
          * @param {string} $symbol unified $market $symbol when fetch $interest in isolated markets
          * @param {int} [$since] the earliest time in ms to fetch borrrow $interest for
          * @param {int} [$limit] the maximum number of structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-$interest-structure borrow $interest structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=borrow-$interest-structure borrow $interest structures~
          */
         $this->load_markets();
         $marginMode = null;
@@ -6452,21 +6478,20 @@ class htx extends Exchange {
             $request['size'] = $limit;
         }
         $market = null;
-        $method = null;
+        $response = null;
         if ($marginMode === 'isolated') {
-            $method = 'privateGetMarginLoanOrders';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
+            $response = $this->privateGetMarginLoanOrders (array_merge($request, $params));
         } else {  // Cross
-            $method = 'privateGetCrossMarginLoanOrders';
             if ($code !== null) {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
             }
+            $response = $this->privateGetCrossMarginLoanOrders (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         //    {
         //        "status":"ok",
@@ -6718,23 +6743,22 @@ class htx extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         list($marketType, $query) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
-        $method = null;
         $request = array(
             'type' => '30,31',
         );
         if ($since !== null) {
             $request['start_date'] = $since;
         }
+        $response = null;
         if ($marketType === 'swap') {
             $request['contract'] = $market['id'];
             if ($market['linear']) {
-                $method = 'contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact';
                 //
                 //    {
                 //        "status" => "ok",
@@ -6765,8 +6789,8 @@ class htx extends Exchange {
                 } else {
                     $request['mar_acct'] = $market['quoteId'];
                 }
+                $response = $this->contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact (array_merge($request, $query));
             } else {
-                $method = 'contractPrivatePostSwapApiV3SwapFinancialRecordExact';
                 //
                 //     {
                 //         "code" => 200,
@@ -6787,12 +6811,12 @@ class htx extends Exchange {
                 //         "ts" => 1604312615051
                 //     }
                 //
+                $response = $this->contractPrivatePostSwapApiV3SwapFinancialRecordExact (array_merge($request, $query));
             }
         } else {
-            $method = 'contractPrivatePostApiV3ContractFinancialRecordExact';
             $request['symbol'] = $market['id'];
+            $response = $this->contractPrivatePostApiV3ContractFinancialRecordExact (array_merge($request, $query));
         }
-        $response = $this->$method (array_merge($request, $query));
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_incomes($data, $market, $since, $limit);
     }
@@ -6802,22 +6826,35 @@ class htx extends Exchange {
          * set the level of $leverage for a $market
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} $response from the exchange
          */
-        $this->check_required_symbol('setLeverage', $symbol);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         list($marketType, $query) = $this->handle_market_type_and_params('setLeverage', $market, $params);
-        $method = null;
+        $request = array(
+            'lever_rate' => $leverage,
+        );
+        if ($marketType === 'future' && $market['inverse']) {
+            $request['symbol'] = $market['settleId'];
+        } else {
+            $request['contract_code'] = $market['id'];
+        }
+        $response = null;
         if ($market['linear']) {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
             $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
-            $method = $this->get_supported_mapping($marginMode, array(
-                'isolated' => 'contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate',
-                'cross' => 'contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate',
-            ));
+            if ($marginMode === 'isolated') {
+                $response = $this->contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate (array_merge($request, $query));
+            } elseif ($marginMode === 'cross') {
+                $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate (array_merge($request, $query));
+            } else {
+                throw new NotSupported($this->id . ' setLeverage() not support this $market type');
+            }
             //
             //     {
             //       "status" => "ok",
@@ -6830,10 +6867,13 @@ class htx extends Exchange {
             //     }
             //
         } else {
-            $method = $this->get_supported_mapping($marketType, array(
-                'future' => 'contractPrivatePostApiV1ContractSwitchLeverRate',
-                'swap' => 'contractPrivatePostSwapApiV1SwapSwitchLeverRate',
-            ));
+            if ($marketType === 'future') {
+                $response = $this->contractPrivatePostApiV1ContractSwitchLeverRate (array_merge($request, $query));
+            } elseif ($marketType === 'swap') {
+                $response = $this->contractPrivatePostSwapApiV1SwapSwitchLeverRate (array_merge($request, $query));
+            } else {
+                throw new NotSupported($this->id . ' setLeverage() not support this $market type');
+            }
             //
             // future
             //     {
@@ -6851,15 +6891,6 @@ class htx extends Exchange {
             //     }
             //
         }
-        $request = array(
-            'lever_rate' => $leverage,
-        );
-        if ($marketType === 'future' && $market['inverse']) {
-            $request['symbol'] = $market['settleId'];
-        } else {
-            $request['contract_code'] = $market['id'];
-        }
-        $response = $this->$method (array_merge($request, $query));
         return $response;
     }
 
@@ -6988,8 +7019,8 @@ class htx extends Exchange {
         /**
          * fetch all open positions
          * @param {string[]|null} $symbols list of unified $market $symbols
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$position-structure $position structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -7007,12 +7038,15 @@ class htx extends Exchange {
         if ($marketType === 'spot') {
             $marketType = 'future';
         }
-        $method = null;
+        $response = null;
         if ($subType === 'linear') {
-            $method = $this->get_supported_mapping($marginMode, array(
-                'isolated' => 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
-                'cross' => 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',
-            ));
+            if ($marginMode === 'isolated') {
+                $response = $this->contractPrivatePostLinearSwapApiV1SwapPositionInfo ($params);
+            } elseif ($marginMode === 'cross') {
+                $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo ($params);
+            } else {
+                throw new NotSupported($this->id . ' fetchPositions() not support this $market type');
+            }
             //
             //     {
             //       "status" => "ok",
@@ -7041,10 +7075,13 @@ class htx extends Exchange {
             //     }
             //
         } else {
-            $method = $this->get_supported_mapping($marketType, array(
-                'future' => 'contractPrivatePostApiV1ContractPositionInfo',
-                'swap' => 'contractPrivatePostSwapApiV1SwapPositionInfo',
-            ));
+            if ($marketType === 'future') {
+                $response = $this->contractPrivatePostApiV1ContractPositionInfo ($params);
+            } elseif ($marketType === 'swap') {
+                $response = $this->contractPrivatePostSwapApiV1SwapPositionInfo ($params);
+            } else {
+                throw new NotSupported($this->id . ' fetchPositions() not support this $market type');
+            }
             //
             // future
             //     {
@@ -7096,7 +7133,6 @@ class htx extends Exchange {
             //     }
             //
         }
-        $response = $this->$method ($params);
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();
@@ -7115,8 +7151,8 @@ class htx extends Exchange {
         /**
          * fetch $data on a single open contract trade $position
          * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$position-structure $position structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -7124,12 +7160,24 @@ class htx extends Exchange {
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPosition', $params);
         $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
         list($marketType, $query) = $this->handle_market_type_and_params('fetchPosition', $market, $params);
-        $method = null;
+        $request = array();
+        if ($market['future'] && $market['inverse']) {
+            $request['symbol'] = $market['settleId'];
+        } else {
+            if ($marginMode === 'cross') {
+                $request['margin_account'] = 'USDT'; // only allowed value
+            }
+            $request['contract_code'] = $market['id'];
+        }
+        $response = null;
         if ($market['linear']) {
-            $method = $this->get_supported_mapping($marginMode, array(
-                'isolated' => 'contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo',
-                'cross' => 'contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo',
-            ));
+            if ($marginMode === 'isolated') {
+                $response = $this->contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo (array_merge($request, $query));
+            } elseif ($marginMode === 'cross') {
+                $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo (array_merge($request, $query));
+            } else {
+                throw new NotSupported($this->id . ' fetchPosition() not support this $market type');
+            }
             //
             // isolated
             //
@@ -7248,10 +7296,13 @@ class htx extends Exchange {
             //     }
             //
         } else {
-            $method = $this->get_supported_mapping($marketType, array(
-                'future' => 'contractPrivatePostApiV1ContractAccountPositionInfo',
-                'swap' => 'contractPrivatePostSwapApiV1SwapAccountPositionInfo',
-            ));
+            if ($marketType === 'future') {
+                $response = $this->contractPrivatePostApiV1ContractAccountPositionInfo (array_merge($request, $query));
+            } elseif ($marketType === 'swap') {
+                $response = $this->contractPrivatePostSwapApiV1SwapAccountPositionInfo (array_merge($request, $query));
+            } else {
+                throw new NotSupported($this->id . ' setLeverage() not support this $market type');
+            }
             //
             // future, swap
             //
@@ -7322,16 +7373,6 @@ class htx extends Exchange {
             //     }
             //
         }
-        $request = array();
-        if ($market['future'] && $market['inverse']) {
-            $request['symbol'] = $market['settleId'];
-        } else {
-            if ($marginMode === 'cross') {
-                $request['margin_account'] = 'USDT'; // only allowed value
-            }
-            $request['contract_code'] = $market['id'];
-        }
-        $response = $this->$method (array_merge($request, $query));
         $data = $this->safe_value($response, 'data');
         $account = null;
         if ($marginMode === 'cross') {
@@ -7430,10 +7471,10 @@ class htx extends Exchange {
          * @param {string} $code unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entrys to return, default is null
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
         $this->load_markets();
         $paginate = false;
@@ -7505,8 +7546,8 @@ class htx extends Exchange {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {string[]|null} $symbols list of unified market $symbols
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
          */
         $this->load_markets();
         $response = $this->contractPublicGetLinearSwapApiV1SwapAdjustfactor ($params);
@@ -7547,8 +7588,8 @@ class htx extends Exchange {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-$tiers-structure leverage $tiers structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-$tiers-structure leverage $tiers structure~
          */
         $this->load_markets();
         $request = array();
@@ -7641,7 +7682,7 @@ class htx extends Exchange {
          * @param {array} [$params] Exchange specific parameters
          * @param {int} [$params->amount_type] *required* Open interest unit. 1-cont，2-cryptocurrency
          * @param {int} [$params->pair] eg BTC-USDT *Only for USDT-M*
-         * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure open interest structures}
+         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structures~
          */
         if ($timeframe !== '1h' && $timeframe !== '4h' && $timeframe !== '12h' && $timeframe !== '1d') {
             throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe');
@@ -7659,24 +7700,26 @@ class htx extends Exchange {
             'period' => $timeframes[$timeframe],
             'amount_type' => $amountType,
         );
-        $method = null;
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = null;
         if ($market['future']) {
             $request['contract_type'] = $this->safe_string($market['info'], 'contract_type');
             $request['symbol'] = $market['baseId'];  // currency code on coin-m futures
-            $method = 'contractPublicGetApiV1ContractHisOpenInterest'; // coin-m futures
+            // coin-m futures
+            $response = $this->contractPublicGetApiV1ContractHisOpenInterest (array_merge($request, $params));
         } elseif ($market['linear']) {
             $request['contract_type'] = 'swap';
             $request['contract_code'] = $market['id'];
             $request['contract_code'] = $market['id'];
-            $method = 'contractPublicGetLinearSwapApiV1SwapHisOpenInterest'; // USDT-M
+            // USDT-M
+            $response = $this->contractPublicGetLinearSwapApiV1SwapHisOpenInterest (array_merge($request, $params));
         } else {
             $request['contract_code'] = $market['id'];
-            $method = 'contractPublicGetSwapApiV1SwapHisOpenInterest'; // coin-m swaps
+            // coin-m swaps
+            $response = $this->contractPublicGetSwapApiV1SwapHisOpenInterest (array_merge($request, $params));
         }
-        if ($limit !== null) {
-            $request['size'] = $limit;
-        }
-        $response = $this->$method (array_merge($request, $params));
         //
         //  contractPublicGetlinearSwapApiV1SwapHisOpenInterest
         //    {
@@ -7750,7 +7793,7 @@ class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {array} [$params] exchange specific parameters
-         * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure)
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -7763,18 +7806,20 @@ class htx extends Exchange {
         $request = array(
             'contract_code' => $market['id'],
         );
-        $method = null;
+        $response = null;
         if ($market['future']) {
             $request['contract_type'] = $this->safe_string($market['info'], 'contract_type');
             $request['symbol'] = $market['baseId'];
-            $method = 'contractPublicGetApiV1ContractOpenInterest'; // COIN-M futures
+            // COIN-M futures
+            $response = $this->contractPublicGetApiV1ContractOpenInterest (array_merge($request, $params));
         } elseif ($market['linear']) {
             $request['contract_type'] = 'swap';
-            $method = 'contractPublicGetLinearSwapApiV1SwapOpenInterest'; // USDT-M
+            // USDT-M
+            $response = $this->contractPublicGetLinearSwapApiV1SwapOpenInterest (array_merge($request, $params));
         } else {
-            $method = 'contractPublicGetSwapApiV1SwapOpenInterest'; // COIN-M swaps
+            // COIN-M swaps
+            $response = $this->contractPublicGetSwapApiV1SwapOpenInterest (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         // USDT-M contractPublicGetLinearSwapApiV1SwapOpenInterest
         //
@@ -7912,43 +7957,26 @@ class htx extends Exchange {
         ), $market);
     }
 
-    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-isolated
          * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-cross
+         * @param {string} $symbol unified $market $symbol, required for isolated margin
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
-         * @param {string} $symbol unified $market $symbol, required for isolated margin
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
+        $market = $this->market($symbol);
         $request = array(
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
+            'symbol' => $market['id'],
         );
-        $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('borrowMargin', $params);
-        $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
-        $method = null;
-        if ($marginMode === 'isolated') {
-            $this->check_required_symbol('borrowMargin', $symbol);
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-            $method = 'privatePostMarginOrders';
-        } elseif ($marginMode === 'cross') {
-            $method = 'privatePostCrossMarginOrders';
-        }
-        $response = $this->$method (array_merge($request, $params));
-        //
-        // Cross
-        //
-        //     {
-        //         "status" => "ok",
-        //         "data" => null
-        //     }
+        $response = $this->privatePostMarginOrders (array_merge($request, $params));
         //
         // Isolated
         //
@@ -7963,24 +7991,50 @@ class htx extends Exchange {
         ));
     }
 
-    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+        /**
+         * create a loan to borrow margin
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-isolated
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-cross
+         * @param {string} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        $response = $this->privatePostCrossMarginOrders (array_merge($request, $params));
+        //
+        // Cross
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => null
+        //     }
+        //
+        $transaction = $this->parse_margin_loan($response, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+        ));
+    }
+
+    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-$loan-cross-isolated
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {string} $symbol unified market $symbol
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-$loan-structure margin $loan structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-$loan-structure margin $loan structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('repayMargin', $params);
-        $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
-        $marginAccounts = $this->safe_value($this->options, 'marginAccounts', array());
-        $accountType = $this->get_supported_mapping($marginMode, $marginAccounts);
-        $accountId = $this->fetch_account_id_by_type($accountType, $marginMode, $symbol, $params);
+        $accountId = $this->fetch_account_id_by_type('spot', 'isolated', $symbol, $params);
         $request = array(
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
@@ -8004,6 +8058,43 @@ class htx extends Exchange {
         return array_merge($transaction, array(
             'amount' => $amount,
             'symbol' => $symbol,
+        ));
+    }
+
+    public function repay_cross_margin(string $code, $amount, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-$loan-cross-isolated
+         * @param {string} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-$loan-structure margin $loan structure~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $accountId = $this->fetch_account_id_by_type('spot', 'cross', null, $params);
+        $request = array(
+            'currency' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+            'accountId' => $accountId,
+        );
+        $response = $this->v2PrivatePostAccountRepayment (array_merge($request, $params));
+        //
+        //     {
+        //         "code":200,
+        //         "data" => array(
+        //             {
+        //                 "repayId":1174424,
+        //                 "repayTime":1600747722018
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'Data', array());
+        $loan = $this->safe_value($data, 0);
+        $transaction = $this->parse_margin_loan($loan, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
         ));
     }
 
@@ -8031,7 +8122,7 @@ class htx extends Exchange {
         //
         $timestamp = $this->safe_integer($info, 'repayTime');
         return array(
-            'id' => $this->safe_integer_2($info, 'repayId', 'data'),
+            'id' => $this->safe_string_2($info, 'repayId', 'data'),
             'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'symbol' => null,
@@ -8051,9 +8142,11 @@ class htx extends Exchange {
          * @param {int} [$params->until] timestamp in ms, value range = start_time -> current time，default = current time
          * @param {int} [$params->page_index] page index, default page 1 if not filled
          * @param {int} [$params->code] unified currency code, can be used when $symbol is null
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=settlement-history-structure settlement history objects~
          */
-        $this->check_required_symbol('fetchSettlementHistory', $symbol);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a $symbol argument');
+        }
         $until = $this->safe_integer_2($params, 'until', 'till');
         $params = $this->omit($params, array( 'until', 'till' ));
         $market = $this->market($symbol);
@@ -8072,15 +8165,16 @@ class htx extends Exchange {
         if ($until !== null) {
             $request['end_at'] = $until;
         }
-        $method = 'contractPublicGetApiV1ContractSettlementRecords';
+        $response = null;
         if ($market['swap']) {
             if ($market['linear']) {
-                $method = 'contractPublicGetLinearSwapApiV1SwapSettlementRecords';
+                $response = $this->contractPublicGetLinearSwapApiV1SwapSettlementRecords (array_merge($request, $params));
             } else {
-                $method = 'contractPublicGetSwapApiV1SwapSettlementRecords';
+                $response = $this->contractPublicGetSwapApiV1SwapSettlementRecords (array_merge($request, $params));
             }
+        } else {
+            $response = $this->contractPublicGetApiV1ContractSettlementRecords (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         // linear swap, coin-m swap
         //
@@ -8144,8 +8238,8 @@ class htx extends Exchange {
          * fetch deposit and withdraw fees
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
          * @param {string[]|null} $codes list of unified currency $codes
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fees structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
          */
         $this->load_markets();
         $response = $this->spotPublicGetV2ReferenceCurrencies ($params);
@@ -8361,7 +8455,7 @@ class htx extends Exchange {
          * @param {array} [$params] exchange specific parameters for the huobi api endpoint
          * @param {int} [$params->until] timestamp in ms of the latest liquidation
          * @param {int} [$params->tradeType] default 0, linear swap 0 => all liquidated orders, 5 => liquidated longs; 6 => liquidated shorts, inverse swap and future 0 => filled liquidated orders, 5 => liquidated close orders, 6 => liquidated open orders
-         * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=liquidation-structure liquidation structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);

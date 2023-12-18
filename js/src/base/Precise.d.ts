@@ -1,9 +1,9 @@
-import { Str } from "./types";
+import { Str, Int } from './types';
 declare class Precise {
-    decimals: any;
-    integer: any;
+    decimals: number;
+    integer: bigint;
     base: any;
-    constructor(number: any, decimals?: any);
+    constructor(number: any, decimals?: Int);
     mul(other: any): Precise;
     div(other: any, precision?: number): Precise;
     add(other: any): Precise;

@@ -235,13 +235,12 @@ class exmo extends Exchange {
             'position_id' => $market['id'],
             'quantity' => $amount,
         );
-        $method = null;
+        $response = null;
         if ($type === 'add') {
-            $method = 'privatePostMarginUserPositionMarginAdd';
+            $response = $this->privatePostMarginUserPositionMarginAdd (array_merge($request, $params));
         } elseif ($type === 'reduce') {
-            $method = 'privatePostMarginUserPositionMarginReduce';
+            $response = $this->privatePostMarginUserPositionMarginRemove (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         //      array()
         //
@@ -275,8 +274,8 @@ class exmo extends Exchange {
          * remove margin from a position
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure margin structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
@@ -286,8 +285,8 @@ class exmo extends Exchange {
          * add margin
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure margin structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
@@ -295,16 +294,18 @@ class exmo extends Exchange {
     public function fetch_trading_fees($params = array ()) {
         /**
          * fetch the trading fees for multiple markets
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures} indexed by market symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
          */
-        $method = $this->safe_string($params, 'method');
+        $options = $this->safe_value($this->options, 'fetchTradingFees', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
         $params = $this->omit($params, 'method');
-        if ($method === null) {
-            $options = $this->safe_value($this->options, 'fetchTradingFees', array());
-            $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
+        if ($method === 'fetchPrivateTradingFees') {
+            return $this->fetch_private_trading_fees($params);
+        } else {
+            return $this->fetch_public_trading_fees($params);
         }
-        return $this->$method ($params);
     }
 
     public function fetch_private_trading_fees($params = array ()) {
@@ -423,8 +424,8 @@ class exmo extends Exchange {
          * please use fetchDepositWithdrawFees instead
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
          * @param {string[]|null} $codes list of unified $currency $codes
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fees-structure transaction fees structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fees-structure transaction fees structures~
          */
         $this->load_markets();
         $cryptoList = $this->publicGetPaymentsProvidersCryptoList ($params);
@@ -495,8 +496,8 @@ class exmo extends Exchange {
          * fetch deposit and withdraw fees
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
          * @param {string[]|null} $codes list of unified currency $codes
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fees-structure transaction fees structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fees-structure transaction fees structures~
          */
         $this->load_markets();
         $response = $this->publicGetPaymentsProvidersCryptoList ($params);
@@ -580,7 +581,7 @@ class exmo extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
         //
@@ -701,7 +702,7 @@ class exmo extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all markets for exmo
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
         $response = $this->publicGetPairSettings ($params);
@@ -831,7 +832,7 @@ class exmo extends Exchange {
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle $to fetch
          * @param {int} [$limit] the maximum amount of $candles $to fetch
-         * @param {array} [$params] extra parameters specific $to the exmo api endpoint
+         * @param {array} [$params] extra parameters specific $to the exchange API endpoint
          * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -938,9 +939,9 @@ class exmo extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] *isolated* fetches the isolated margin balance
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $marginMode = null;
@@ -985,8 +986,8 @@ class exmo extends Exchange {
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1006,8 +1007,8 @@ class exmo extends Exchange {
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
          * @param {string[]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
          * @param {int} [$limit] max number of entries per orderbook to return, default is null
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbol
          */
         $this->load_markets();
         $ids = null;
@@ -1082,10 +1083,10 @@ class exmo extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -1121,8 +1122,8 @@ class exmo extends Exchange {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
@@ -1227,8 +1228,8 @@ class exmo extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1270,13 +1271,15 @@ class exmo extends Exchange {
          * @param {string} $symbol a $symbol is required but it can be a single string, or a non-empty array
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] *required for margin orders* the maximum number of $trades structures to retrieve
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [$params->offset] last deal $offset, default = 0
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
-        $this->check_required_symbol('fetchMyTrades', $symbol);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+        }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
         if ($marginMode === 'cross') {
@@ -1371,11 +1374,11 @@ class exmo extends Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->stopPrice] the $price at which a trigger order is triggered at
          * @param {string} [$params->timeInForce] *spot only* 'fok', 'ioc' or 'post_only'
          * @param {boolean} [$params->postOnly] *spot only* true for post only orders
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1399,7 +1402,6 @@ class exmo extends Exchange {
             // 'client_id' => 123, // optional, must be a positive integer
             // 'comment' => '', // up to 50 latin symbols, whitespaces, underscores
         );
-        $method = $isSpot ? 'privatePostOrderCreate' : 'privatePostMarginUserOrderCreate';
         $clientOrderId = $this->safe_value_2($params, 'client_id', 'clientOrderId');
         if ($clientOrderId !== null) {
             $clientOrderId = $this->safe_integer_2($params, 'client_id', 'clientOrderId');
@@ -1414,27 +1416,20 @@ class exmo extends Exchange {
             throw new ArgumentsRequired($this->id . ' createOrder requires an extra param $params["leverage"] for margin orders');
         }
         $params = $this->omit($params, array( 'stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId' ));
-        if ($triggerPrice !== null) {
-            if ($isSpot) {
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($market['symbol'], $price);
+        }
+        $response = null;
+        if ($isSpot) {
+            if ($triggerPrice !== null) {
                 if ($type === 'limit') {
                     throw new BadRequest($this->id . ' createOrder () cannot create stop limit orders for spot, only stop market');
                 } else {
-                    $method = 'privatePostStopMarketOrderCreate';
                     $request['type'] = $side;
                     $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
                 }
+                $response = $this->privatePostStopMarketOrderCreate (array_merge($request, $params));
             } else {
-                $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
-                if ($type === 'limit') {
-                    $request['type'] = 'stop_limit_' . $side;
-                } elseif ($type === 'market') {
-                    $request['type'] = 'stop_' . $side;
-                } else {
-                    $request['type'] = $type;
-                }
-            }
-        } else {
-            if ($isSpot) {
                 $execType = $this->safe_string($params, 'exec_type');
                 $isPostOnly = null;
                 list($isPostOnly, $params) = $this->handle_post_only($type === 'market', $execType === 'post_only', $params);
@@ -1450,6 +1445,18 @@ class exmo extends Exchange {
                 } elseif ($timeInForce !== null) {
                     $request['exec_type'] = $timeInForce;
                 }
+                $response = $this->privatePostOrderCreate (array_merge($request, $params));
+            }
+        } else {
+            if ($triggerPrice !== null) {
+                $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
+                if ($type === 'limit') {
+                    $request['type'] = 'stop_limit_' . $side;
+                } elseif ($type === 'market') {
+                    $request['type'] = 'stop_' . $side;
+                } else {
+                    $request['type'] = $type;
+                }
             } else {
                 if ($type === 'limit' || $type === 'market') {
                     $request['type'] = $type . '_' . $side;
@@ -1457,11 +1464,8 @@ class exmo extends Exchange {
                     $request['type'] = $type;
                 }
             }
+            $response = $this->privatePostMarginUserOrderCreate (array_merge($request, $params));
         }
-        if ($price !== null) {
-            $request['price'] = $this->price_to_precision($market['symbol'], $price);
-        }
-        $response = $this->$method (array_merge($request, $params));
         return $this->parse_order($response, $market);
     }
 
@@ -1473,10 +1477,10 @@ class exmo extends Exchange {
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  // margin
          * @param {string} $id order $id
          * @param {string} $symbol not used by exmo cancelOrder ()
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] true to cancel a trigger order
          * @param {string} [$params->marginMode] set to 'cross' or 'isolated' to cancel a margin order
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array();
@@ -1520,8 +1524,8 @@ class exmo extends Exchange {
          * *spot only* fetches information on an $order made by the user
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
          * @param {string} $symbol not used by exmo fetchOrder
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         $this->load_markets();
         $request = array(
@@ -1563,9 +1567,9 @@ class exmo extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades to retrieve
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] set to "isolated" to fetch $trades for a margin order
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrderTrades', $params);
@@ -1638,9 +1642,9 @@ class exmo extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] set to "isolated" for margin $orders
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -1901,9 +1905,9 @@ class exmo extends Exchange {
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] timestamp in ms of the earliest $order, default is null
          * @param {int} [$limit] max number of $orders to return, default is null
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] set to "isolated" for margin $orders
-         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structures}
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
          */
         $this->load_markets();
         $marginMode = null;
@@ -1998,7 +2002,7 @@ class exmo extends Exchange {
          * @param {string} $side not used by exmo editOrder
          * @param {float} [$amount] how much of the currency you want to trade in units of the base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] stop $price for stop-$market and stop-limit orders
          * @param {string} $params->marginMode must be set to isolated
          *
@@ -2006,7 +2010,7 @@ class exmo extends Exchange {
          * @param {int} [$params->distance] distance for trailing stop orders
          * @param {int} [$params->expire] expiration timestamp in UTC timezone for the order. order will not be expired if expire is 0
          * @param {string} [$params->comment] optional comment for order. up to 50 latin symbols, whitespaces, underscores
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2037,8 +2041,8 @@ class exmo extends Exchange {
         /**
          * fetch the deposit $address for a currency associated with this account
          * @param {string} $code unified currency $code
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
          */
         $this->load_markets();
         $response = $this->privatePostDepositAddress ($params);
@@ -2086,8 +2090,8 @@ class exmo extends Exchange {
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();
@@ -2264,8 +2268,8 @@ class exmo extends Exchange {
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         $this->load_markets();
         $request = array();
@@ -2316,8 +2320,8 @@ class exmo extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $currency = null;
@@ -2367,8 +2371,8 @@ class exmo extends Exchange {
          * fetch data on a $currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id
          * @param {string} $code unified $currency $code of the $currency withdrawn, default is null
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
          */
         $this->load_markets();
         $currency = null;
@@ -2417,8 +2421,8 @@ class exmo extends Exchange {
          * fetch information on a deposit
          * @param {string} $id deposit $id
          * @param {string} $code unified $currency $code, default is null
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
          */
         $this->load_markets();
         $currency = null;
@@ -2468,8 +2472,8 @@ class exmo extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
-         * @param {array} [$params] extra parameters specific to the exmo api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $currency = null;

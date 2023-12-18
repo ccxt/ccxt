@@ -61,6 +61,16 @@
                     50
                 ]
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.wazirx.com/sapi/v1/trades?symbol=btcusdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
         ]
     }
 }

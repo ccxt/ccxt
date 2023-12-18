@@ -3,7 +3,8 @@
     "skipKeys": [
         "access_id",
         "timestamp",
-        "tonce"
+        "tonce",
+        "client_id"
     ],
     "outputType": "urlencoded",
     "methods": {
@@ -35,6 +36,32 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Spot open stop orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.coinex.com/v1/order/stop/pending?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&page=1&tonce=1699458294944",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "stop": true
+                    }
+                ]
+            },
+            {
+                "description": "Swap open stop orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.coinex.com/perpetual/v1/order/stop_pending?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&offset=0&side=0&timestamp=1699458295225",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "stop": true
+                    }
+                ]
             }
         ],
         "fetchClosedOrders": [
@@ -52,6 +79,32 @@
                 "url": "https://api.coinex.com/perpetual/v1/order/finished?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&offset=0&side=0&timestamp=1699458295831",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Spot closed stop orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.coinex.com/v1/order/stop/finished?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&page=1&tonce=1699458295531",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "stop": true
+                    }
+                ]
+            },
+            {
+                "description": "Swap closed stop orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.coinex.com/perpetual/v1/order/stop_pending?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&offset=0&side=0&timestamp=1699458295831",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "stop": true
+                    }
                 ]
             }
         ],
@@ -163,6 +216,139 @@
                     50
                 ],
                 "output": "{\"access_id\":\"53DD577FFFD741D4B53A5424ECD33196\",\"amount\":\"0.1\",\"market\":\"LTCUSDT\",\"price\":\"50\",\"tonce\":\"1699460637215\",\"type\":\"buy\"}"
+            },
+            {
+                "description": "Spot limit trigger buy order",
+                "method": "createOrder",
+                "url": "https://api.coinex.com/v1/order/stop/limit",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0005,
+                    25000,
+                    {
+                        "triggerPrice": 26000
+                    }
+                ],
+                "output": "{\"access_id\":\"86AC33D5904F432C9C9DDD4708233F38\",\"amount\":\"0.0005\",\"client_id\":\"x-167673045-de0c9f4634898ab2\",\"market\":\"BTCUSDT\",\"price\":\"25000\",\"stop_price\":\"26000\",\"tonce\":\"1701227312608\",\"type\":\"buy\"}"
+            },
+            {
+                "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://api.coinex.com/v1/order/market",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    20,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
+                ],
+                "output": "{\"access_id\":\"86AC33D5904F432C9C9DDD4708233F38\",\"amount\":\"20\",\"client_id\":\"x-167673045-c652179664b5b9b7\",\"market\":\"BTCUSDT\",\"tonce\":\"1701315225775\",\"type\":\"buy\"}"
+            },
+            {
+                "description": "Swap limit buy",
+                "method": "createOrder",
+                "url": "https://api.coinex.com/perpetual/v1/order/put_limit",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.0005,
+                    25000
+                ],
+                "output": "access_id=86AC33D5904F432C9C9DDD4708233F38&amount=0.0005&client_id=x-167673045-fa8a1fff84199157&market=BTCUSDT&price=25000&side=2&timestamp=1701232436828"
+            },
+            {
+                "description": "Swap limit trigger buy order",
+                "method": "createOrder",
+                "url": "https://api.coinex.com/perpetual/v1/order/put_stop_limit",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.0005,
+                    27000,
+                    {
+                        "triggerPrice": 28000
+                    }
+                ],
+                "output": "access_id=86AC33D5904F432C9C9DDD4708233F38&amount=0.0005&client_id=x-167673045-bcae965354bfaf26&market=BTCUSDT&price=27000&side=2&stop_price=28000&stop_type=1&timestamp=1701232792670"
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "Create multiple spot orders at once",
+                "method": "createOrders",
+                "url": "https://api.coinex.com/v1/order/limit/batch",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0005,
+                            "price": 23000
+                        },
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0005,
+                            "price": 22000
+                        }
+                    ]
+                ],
+                "output": "{\"access_id\":\"86AC33D5904F432C9C9DDD4708233F38\",\"batch_orders\":\"[{\\\"market\\\":\\\"BTCUSDT\\\",\\\"client_id\\\":\\\"x-167673045-d34bfb41242d8fd1\\\",\\\"type\\\":\\\"buy\\\",\\\"amount\\\":\\\"0.0005\\\",\\\"price\\\":\\\"23000\\\"},{\\\"market\\\":\\\"BTCUSDT\\\",\\\"client_id\\\":\\\"x-167673045-d4e03c38f4d19b4e\\\",\\\"type\\\":\\\"buy\\\",\\\"amount\\\":\\\"0.0005\\\",\\\"price\\\":\\\"22000\\\"}]\",\"market\":\"BTCUSDT\",\"tonce\":\"1701229156016\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Spot cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.coinex.com/v1/order/pending?access_id=86AC33D5904F432C9C9DDD4708233F38&id=107745260032&market=BTCUSDT&tonce=1701228187975",
+                "input": [
+                    "107745260032",
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Spot cancel trigger order",
+                "method": "cancelOrder",
+                "url": "https://api.coinex.com/v1/order/stop/pending/107744772540?access_id=86AC33D5904F432C9C9DDD4708233F38&id=107744772540&market=BTCUSDT&tonce=1701228118229",
+                "input": [
+                    "107744772540",
+                    "BTC/USDT",
+                    {
+                        "stop": true
+                    }
+                ]
+            },
+            {
+                "description": "Swap cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.coinex.com/perpetual/v1/order/cancel",
+                "input": [
+                    "115939084611",
+                    "BTC/USDT:USDT"
+                ],
+                "output": "access_id=86AC33D5904F432C9C9DDD4708233F38&market=BTCUSDT&order_id=115939084611&timestamp=1701232671805"
+            },
+            {
+                "description": "Swap cancel trigger order",
+                "method": "cancelOrder",
+                "url": "https://api.coinex.com/perpetual/v1/order/cancel_stop",
+                "input": [
+                    "115940250059",
+                    "BTC/USDT:USDT",
+                    {
+                        "stop": true
+                    }
+                ],
+                "output": "access_id=86AC33D5904F432C9C9DDD4708233F38&market=BTCUSDT&order_id=115940250059&timestamp=1701233531405"
             }
         ],
         "fetchIsolatedBorrowRate": [
@@ -171,7 +357,7 @@
                 "method": "fetchIsolatedBorrowRate",
                 "url": "https://api.coinex.com/v1/margin/config?access_id=86AC33D5904F432C9C9DDD4708233F38&market=BTCUSDT&tonce=1700201048704",
                 "input": [
-                  "BTC/USDT"
+                    "BTC/USDT"
                 ]
             }
         ],
@@ -182,6 +368,167 @@
                 "url": "https://api.coinex.com/v1/margin/config?access_id=86AC33D5904F432C9C9DDD4708233F38&tonce=1700202207814",
                 "input": []
             }
+        ],
+        "cancelOrders": [
+            {
+                "description": "Cancel multiple spot orders at once",
+                "method": "cancelOrders",
+                "url": "https://api.coinex.com/v1/order/pending/batch?access_id=86AC33D5904F432C9C9DDD4708233F38&batch_ids=107745856682,107745856676&market=BTCUSDT&tonce=1701230333560",
+                "input": [
+                    [
+                        "107745856682",
+                        "107745856676"
+                    ],
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Cancel multiple swap orders at once",
+                "method": "cancelOrders",
+                "url": "https://api.coinex.com/perpetual/v1/order/cancel_batch",
+                "input": [
+                    [
+                        "115938781741",
+                        "115938847458"
+                    ],
+                    "BTC/USDT:USDT"
+                ],
+                "output": "access_id=86AC33D5904F432C9C9DDD4708233F38&market=BTCUSDT&order_ids=115938781741,115938847458&timestamp=1701232526724"
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Spot fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://api.coinex.com/v1/market/ticker?market=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://api.coinex.com/perpetual/v1/market/ticker?market=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Spot fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://api.coinex.com/v1/market/ticker/all",
+                "input": []
+            },
+            {
+                "description": "Swap fetch ticker",
+                "method": "fetchTickers",
+                "url": "https://api.coinex.com/perpetual/v1/market/ticker/all",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Spot fetch orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.coinex.com/v1/market/depth?market=BTCUSDT&merge=0&limit=20",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.coinex.com/perpetual/v1/market/depth?market=BTCUSDT&merge=0&limit=20",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Spot fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.coinex.com/v1/market/deals?market=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.coinex.com/perpetual/v1/market/deals?market=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Spot fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.coinex.com/v1/market/kline?market=BTCUSDT&type=1min",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.coinex.com/perpetual/v1/market/kline?market=BTCUSDT&type=1min",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Spot fetch order",
+                "method": "fetchOrder",
+                "url": "https://api.coinex.com/v1/order/status?market=BTCUSDT&id=420291&access_id=key&tonce=1702016708915",
+                "input": [
+                    "420291",
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch order",
+                "method": "fetchOrder",
+                "url": "https://api.coinex.com/perpetual/v1/order/status?market=BTCUSDT&order_id=420291&access_id=key&tonce=1702016708915",
+                "input": [
+                    "420291",
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch stop order",
+                "method": "fetchOrder",
+                "url": "https://api.coinex.com/perpetual/v1/order/stop_status?market=BTCUSDT&order_id=420291&access_id=key&tonce=1702016708915",
+                "input": [
+                    "420291",
+                    "BTC/USDT:USDT",
+                    {
+                        "stop": true
+                    }
+                ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "Spot fetch transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.coinex.com/v1/contract/transfer/history?access_id=key&page=1&tonce=1702016708915&asset=BTC&limit=100",
+                "input": [
+                    "BTC"
+                ]
+            }
         ]
-    }
+    },
+    "disabledTests": {}
 }

@@ -1,8 +1,8 @@
 import Exchange from './abstract/digifinex.js';
-import { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
 /**
  * @class digifinex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class digifinex extends Exchange {
     describe(): any;
@@ -31,6 +31,7 @@ export default class digifinex extends Exchange {
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
+    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
@@ -107,7 +108,7 @@ export default class digifinex extends Exchange {
         datetime: any;
         info: any;
     };
-    fetchBorrowRate(code: string, params?: {}): Promise<{
+    fetchCrossBorrowRate(code: string, params?: {}): Promise<{
         currency: string;
         rate: number;
         period: number;
@@ -115,7 +116,7 @@ export default class digifinex extends Exchange {
         datetime: string;
         info: any;
     }>;
-    fetchBorrowRates(params?: {}): Promise<{}>;
+    fetchCrossBorrowRates(params?: {}): Promise<{}>;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: string;
         rate: number;

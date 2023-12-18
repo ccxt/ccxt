@@ -1146,5 +1146,272 @@
                 ]
             ]
         }
+    },
+    "LTC/USD:USD": {
+        "id": "LTCUSD-PERP",
+        "symbol": "LTC/USD:USD",
+        "base": "LTC",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "LTC",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.004,
+        "maker": 0.004,
+        "contractSize": 1,
+        "precision": {
+            "price": 0.01,
+            "amount": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "symbol": "LTCUSD-PERP",
+            "inst_type": "PERPETUAL_SWAP",
+            "display_name": "LTCUSD Perpetual",
+            "base_ccy": "LTC",
+            "quote_ccy": "USD",
+            "quote_decimals": 2,
+            "quantity_decimals": 2,
+            "price_tick_size": "0.01",
+            "qty_tick_size": "0.01",
+            "max_leverage": "50",
+            "tradable": true,
+            "expiry_timestamp_ms": 0,
+            "beta_product": false,
+            "underlying_symbol": "LTCUSD-INDEX",
+            "contract_size": "1",
+            "margin_buy_enabled": false,
+            "margin_sell_enabled": false
+        },
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0009
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    20000000,
+                    0.0007
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    200000000,
+                    0.0004
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    250000,
+                    0.00015
+                ],
+                [
+                    1000000,
+                    0.00014
+                ],
+                [
+                    20000000,
+                    0.00013
+                ],
+                [
+                    100000000,
+                    0.00012
+                ],
+                [
+                    200000000,
+                    0.0001
+                ]
+            ]
+        }
+    },
+    "ADA/USD:USD": {
+        "id": "ADAUSD-PERP",
+        "symbol": "ADA/USD:USD",
+        "base": "ADA",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "ADA",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.004,
+        "maker": 0.004,
+        "contractSize": 1,
+        "precision": {
+            "price": 0.00001,
+            "amount": 1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "symbol": "ADAUSD-PERP",
+            "inst_type": "PERPETUAL_SWAP",
+            "display_name": "ADAUSD Perpetual",
+            "base_ccy": "ADA",
+            "quote_ccy": "USD",
+            "quote_decimals": 5,
+            "quantity_decimals": 0,
+            "price_tick_size": "0.00001",
+            "qty_tick_size": "1",
+            "max_leverage": "50",
+            "tradable": true,
+            "expiry_timestamp_ms": 0,
+            "beta_product": false,
+            "underlying_symbol": "ADAUSD-INDEX",
+            "contract_size": "1",
+            "margin_buy_enabled": false,
+            "margin_sell_enabled": false
+        },
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0009
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    20000000,
+                    0.0007
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    200000000,
+                    0.0004
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    250000,
+                    0.00015
+                ],
+                [
+                    1000000,
+                    0.00014
+                ],
+                [
+                    20000000,
+                    0.00013
+                ],
+                [
+                    100000000,
+                    0.00012
+                ],
+                [
+                    200000000,
+                    0.0001
+                ]
+            ]
+        }
     }
 }

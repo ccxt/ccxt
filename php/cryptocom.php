@@ -27,21 +27,25 @@ class cryptocom extends Exchange {
                 'future' => true,
                 'option' => true,
                 'addMargin' => false,
-                'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => true,
+                'createMarketBuyOrderWithCost' => false,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchBorrowInterest' => false,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
                 'fetchClosedOrders' => 'emulated',
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
@@ -55,6 +59,8 @@ class cryptocom extends Exchange {
                 'fetchFundingRates' => false,
                 'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
@@ -83,16 +89,17 @@ class cryptocom extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
-                'fetchTransfers' => true,
+                'fetchTransfers' => false,
                 'fetchUnderlyingAssets' => false,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
-                'repayMargin' => true,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
-                'transfer' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -122,7 +129,10 @@ class cryptocom extends Exchange {
                     'derivatives' => 'https://deriv-api.crypto.com/v1',
                 ),
                 'www' => 'https://crypto.com/',
-                'referral' => 'https://crypto.com/exch/5835vstech',
+                'referral' => array(
+                    'url' => 'https://crypto.com/exch/kdacthrnxt',
+                    'discount' => 0.15,
+                ),
                 'doc' => array(
                     'https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html',
                     'https://exchange-docs.crypto.com/spot/index.html',
@@ -199,6 +209,9 @@ class cryptocom extends Exchange {
                             'private/get-currency-networks' => 10 / 3,
                             'private/get-deposit-history' => 10 / 3,
                             'private/get-deposit-address' => 10 / 3,
+                            'private/export/create-export-request' => 10 / 3,
+                            'private/export/get-export-requests' => 10 / 3,
+                            'private/export/download-export-output' => 10 / 3,
                             'private/get-account-summary' => 10 / 3,
                             'private/create-order' => 2 / 3,
                             'private/cancel-order' => 2 / 3,
@@ -208,26 +221,6 @@ class cryptocom extends Exchange {
                             'private/get-open-orders' => 10 / 3,
                             'private/get-order-detail' => 1 / 3,
                             'private/get-trades' => 100,
-                            'private/margin/get-user-config' => 10 / 3,
-                            'private/margin/get-account-summary' => 10 / 3,
-                            'private/margin/transfer' => 10 / 3,
-                            'private/margin/borrow' => 10 / 3,
-                            'private/margin/repay' => 10 / 3,
-                            'private/margin/get-transfer-history' => 10 / 3,
-                            'private/margin/get-borrow-history' => 10 / 3,
-                            'private/margin/get-interest-history' => 10 / 3,
-                            'private/margin/get-repay-history' => 10 / 3,
-                            'private/margin/get-liquidation-history' => 10 / 3,
-                            'private/margin/get-liquidation-orders' => 10 / 3,
-                            'private/margin/create-order' => 2 / 3,
-                            'private/margin/cancel-order' => 2 / 3,
-                            'private/margin/cancel-all-orders' => 2 / 3,
-                            'private/margin/get-order-history' => 10 / 3,
-                            'private/margin/get-open-orders' => 10 / 3,
-                            'private/margin/get-order-detail' => 1 / 3,
-                            'private/margin/get-trades' => 100,
-                            'private/deriv/transfer' => 10 / 3,
-                            'private/deriv/get-transfer-history' => 10 / 3,
                             'private/get-accounts' => 10 / 3,
                             'private/get-subaccount-balances' => 10 / 3,
                             'private/create-subaccount-transfer' => 10 / 3,
@@ -237,6 +230,7 @@ class cryptocom extends Exchange {
                             'private/otc/accept-quote' => 100,
                             'private/otc/get-quote-history' => 10 / 3,
                             'private/otc/get-trade-history' => 10 / 3,
+                            'private/otc/create-order' => 10 / 3,
                         ),
                     ),
                 ),
@@ -384,7 +378,7 @@ class cryptocom extends Exchange {
         /**
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
          * retrieves $data on all markets for cryptocom
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market $data
          */
         $response = $this->v1PublicGetPublicGetInstruments ($params);
@@ -571,12 +565,12 @@ class cryptocom extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
          * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $market = null;
@@ -630,8 +624,8 @@ class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-$tickers
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $symbol = $this->symbol($symbol);
@@ -646,10 +640,10 @@ class cryptocom extends Exchange {
          * @param {string} $symbol unified $market $symbol of the $market the $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for, max date range is one day
          * @param {int} [$limit] the maximum number of order structures to retrieve, default 100 max 100
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -726,10 +720,10 @@ class cryptocom extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch, maximum date range is one day
          * @param {int} [$limit] the maximum number of $trades to fetch
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -785,7 +779,7 @@ class cryptocom extends Exchange {
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
@@ -845,8 +839,8 @@ class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the number of order book entries to return, max 50
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -903,8 +897,8 @@ class cryptocom extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->v1PrivatePostPrivateUserBalance ($params);
@@ -959,8 +953,8 @@ class cryptocom extends Exchange {
          * fetches information on an $order made by the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$order-detail
          * @param {string} $symbol unified $symbol of the $market the $order was made in
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = null;
@@ -1115,13 +1109,13 @@ class cryptocom extends Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
          * @param {string} [$params->ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger $price $type to use, default is MARK_PRICE
          * @param {float} [$params->stopPrice] $price to trigger a stop order
          * @param {float} [$params->stopLossPrice] $price to trigger a stop-loss trigger order
          * @param {float} [$params->takeProfitPrice] $price to trigger a take-profit trigger order
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1147,8 +1141,8 @@ class cryptocom extends Exchange {
          * create a list of trade $orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
-         * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $ordersRequests = array();
@@ -1306,21 +1300,26 @@ class cryptocom extends Exchange {
         }
         if (($side === 'buy') && (($uppercaseType === 'MARKET') || ($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT'))) {
             // use createmarketBuy logic here
-            if ($this->options['createMarketBuyOrderRequiresPrice']) {
-                $cost = $this->safe_number_2($params, 'cost', 'notional');
-                $params = $this->omit($params, 'cost');
-                if ($price === null && $cost === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
+            $quoteAmount = null;
+            $createMarketBuyOrderRequiresPrice = true;
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            $cost = $this->safe_number_2($params, 'cost', 'notional');
+            $params = $this->omit($params, 'cost');
+            if ($cost !== null) {
+                $quoteAmount = $this->cost_to_precision($symbol, $cost);
+            } elseif ($createMarketBuyOrderRequiresPrice) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
                 } else {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
-                    $quoteAmount = Precise::string_mul($amountString, $priceString);
-                    $amount = ($cost !== null) ? $cost : $this->parse_number($quoteAmount);
-                    $request['notional'] = $this->cost_to_precision($symbol, $amount);
+                    $costRequest = Precise::string_mul($amountString, $priceString);
+                    $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                 }
             } else {
-                $request['notional'] = $this->cost_to_precision($symbol, $amount);
+                $quoteAmount = $this->cost_to_precision($symbol, $amount);
             }
+            $request['notional'] = $quoteAmount;
         } else {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
@@ -1333,8 +1332,8 @@ class cryptocom extends Exchange {
          * cancel all open orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
          * @param {string} $symbol unified $market $symbol of the orders to cancel
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} Returns exchange raw messagearray(@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} Returns exchange raw messagearray(@link https://docs.ccxt.com/#/?id=order-structure)
          */
         $this->load_markets();
         $market = null;
@@ -1352,8 +1351,8 @@ class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
          * @param {string} $id the order $id of the order to cancel
          * @param {string} [$symbol] unified $symbol of the $market the order was made in
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = null;
@@ -1386,10 +1385,12 @@ class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-$order-list-list
          * @param {string[]} $ids $order $ids
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the okx api endpoint
-         * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
          */
-        $this->check_required_symbol('cancelOrders', $symbol);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $orderRequests = array();
@@ -1417,8 +1418,8 @@ class cryptocom extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -1477,10 +1478,10 @@ class cryptocom extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for, maximum date range is one day
          * @param {int} [$limit] the maximum number of trade structures to retrieve
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -1562,8 +1563,8 @@ class cryptocom extends Exchange {
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();
@@ -1608,8 +1609,8 @@ class cryptocom extends Exchange {
          * fetch a dictionary of $addresses for a $currency, indexed by $network
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-$address
          * @param {string} $code unified $currency $code of the $currency for the deposit $address
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structures} indexed by the $network
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$address-structure $address structures~ indexed by the $network
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1667,8 +1668,8 @@ class cryptocom extends Exchange {
         /**
          * fetch the deposit address for a currency associated with this account
          * @param {string} $code unified currency $code
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $network = $this->safe_string_upper($params, 'network');
         $params = $this->omit($params, array( 'network' ));
@@ -1701,9 +1702,9 @@ class cryptocom extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $currency = null;
@@ -1759,9 +1760,9 @@ class cryptocom extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $currency = null;
@@ -1810,186 +1811,6 @@ class cryptocom extends Exchange {
         $data = $this->safe_value($response, 'result', array());
         $withdrawalList = $this->safe_value($data, 'withdrawal_list', array());
         return $this->parse_transactions($withdrawalList, $currency, $since, $limit);
-    }
-
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
-        /**
-         * transfer $currency internally between wallets on the same account
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount amount to transfer
-         * @param {string} $fromAccount account to transfer from
-         * @param {string} $toAccount account to transfer to
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structure}
-         */
-        $this->load_markets();
-        $currency = $this->currency($code);
-        $fromAccount = strtolower($fromAccount);
-        $toAccount = strtolower($toAccount);
-        $accountsById = $this->safe_value($this->options, 'accountsById', array());
-        $fromId = $this->safe_string($accountsById, $fromAccount, $fromAccount);
-        $toId = $this->safe_string($accountsById, $toAccount, $toAccount);
-        $request = array(
-            'currency' => $currency['id'],
-            'amount' => floatval($amount),
-            'from' => $fromId,
-            'to' => $toId,
-        );
-        $method = 'v2PrivatePostPrivateDerivTransfer';
-        if (($fromAccount === 'margin') || ($toAccount === 'margin')) {
-            $method = 'v2PrivatePostPrivateMarginTransfer';
-        }
-        $response = $this->$method (array_merge($request, $params));
-        //
-        //     {
-        //         "id" => 11,
-        //         "method" => "private/deriv/transfer",
-        //         "code" => 0
-        //     }
-        //
-        return $this->parse_transfer($response, $currency);
-    }
-
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        /**
-         * fetch a history of internal transfers made on an account
-         * @param {string} $code unified $currency $code of the $currency transferred
-         * @param {int} [$since] the earliest time in ms to fetch transfers for
-         * @param {int} [$limit] the maximum number of  transfers structures to retrieve
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$transfer-structure $transfer structures}
-         */
-        if (!(is_array($params) && array_key_exists('direction', $params))) {
-            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a direction param to be either "IN" or "OUT"');
-        }
-        $this->load_markets();
-        $currency = null;
-        $request = array(
-            'direction' => 'OUT',
-        );
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['currency'] = $currency['id'];
-        }
-        if ($since !== null) {
-            $request['start_ts'] = $since;
-        }
-        if ($limit !== null) {
-            $request['page_size'] = $limit;
-        }
-        $method = 'v2PrivatePostPrivateDerivGetTransferHistory';
-        list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('fetchTransfers', $params);
-        if ($marginMode !== null) {
-            $method = 'v2PrivatePostPrivateMarginGetTransferHistory';
-        }
-        $response = $this->$method (array_merge($request, $query));
-        //
-        //     {
-        //       "id" => "1641032709328",
-        //       "method" => "private/deriv/get-$transfer-history",
-        //       "code" => "0",
-        //       "result" => {
-        //         "transfer_list" => array(
-        //           {
-        //             "direction" => "IN",
-        //             "time" => "1641025185223",
-        //             "amount" => "109.56",
-        //             "status" => "COMPLETED",
-        //             "information" => "From Spot Wallet",
-        //             "currency" => "USDC"
-        //           }
-        //         )
-        //       }
-        //     }
-        //
-        $transfer = array();
-        $transfer[] = array(
-            'response' => $response,
-        );
-        return $this->parse_transfers($transfer, $currency, $since, $limit, $params);
-    }
-
-    public function parse_transfer_status($status) {
-        $statuses = array(
-            'COMPLETED' => 'ok',
-            'PROCESSING' => 'pending',
-        );
-        return $this->safe_string($statuses, $status, $status);
-    }
-
-    public function parse_transfer($transfer, ?array $currency = null) {
-        //
-        //   {
-        //     "response" => {
-        //       "id" => "1641032709328",
-        //       "method" => "private/deriv/get-$transfer-history",
-        //       "code" => "0",
-        //       "result" => {
-        //         "transfer_list" => array(
-        //           {
-        //             "direction" => "IN",
-        //             "time" => "1641025185223",
-        //             "amount" => "109.56",
-        //             "status" => "COMPLETED",
-        //             "information" => "From Spot Wallet",
-        //             "currency" => "USDC"
-        //           }
-        //         )
-        //       }
-        //     }
-        //   }
-        //
-        $response = $this->safe_value($transfer, 'response', array());
-        $result = $this->safe_value($response, 'result', array());
-        $transferList = $this->safe_value($result, 'transfer_list', array());
-        $timestamp = null;
-        $amount = null;
-        $code = null;
-        $information = null;
-        $status = null;
-        for ($i = 0; $i < count($transferList); $i++) {
-            $entry = $transferList[$i];
-            $timestamp = $this->safe_integer($entry, 'time');
-            $amount = $this->safe_number($entry, 'amount');
-            $currencyId = $this->safe_string($entry, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $information = $this->safe_string($entry, 'information');
-            $rawStatus = $this->safe_string($entry, 'status');
-            $status = $this->parse_transfer_status($rawStatus);
-        }
-        $fromAccount = null;
-        $toAccount = null;
-        if ($information !== null) {
-            $parts = explode(' ', $information);
-            $direction = $this->safe_string_lower($parts, 0);
-            $method = $this->safe_string($response, 'method');
-            if ($direction === 'from') {
-                $fromAccount = $this->safe_string_lower($parts, 1);
-                if ($method === 'private/margin/get-$transfer-history') {
-                    $toAccount = 'margin';
-                } else {
-                    $toAccount = 'derivative';
-                }
-            } elseif ($direction === 'to') {
-                $toAccount = $this->safe_string_lower($parts, 1);
-                if ($method === 'private/margin/get-$transfer-history') {
-                    $fromAccount = 'margin';
-                } else {
-                    $fromAccount = 'derivative';
-                }
-            }
-        }
-        return array(
-            'info' => $transferList,
-            'id' => $this->safe_string($response, 'id'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'currency' => $code,
-            'amount' => $amount,
-            'fromAccount' => $fromAccount,
-            'toAccount' => $toAccount,
-            'status' => $status,
-        );
     }
 
     public function parse_ticker($ticker, ?array $market = null): array {
@@ -2363,161 +2184,12 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        /**
-         * repay borrowed margin and interest
-         * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-repay
-         * @param {string} $code unified $currency $code of the $currency to repay
-         * @param {float} $amount the $amount to repay
-         * @param {string} $symbol unified market $symbol, not used by cryptocom.repayMargin ()
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
-         */
-        $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-            'amount' => $this->currency_to_precision($code, $amount),
-        );
-        $response = $this->v2PrivatePostPrivateMarginRepay (array_merge($request, $params));
-        //
-        //     {
-        //         "id" => 1656620104211,
-        //         "method" => "private/margin/repay",
-        //         "code" => 0,
-        //         "result" => {
-        //             "badDebt" => 0
-        //         }
-        //     }
-        //
-        $transaction = $this->parse_margin_loan($response, $currency);
-        return array_merge($transaction, array(
-            'amount' => $amount,
-        ));
-    }
-
-    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        /**
-         * create a loan to borrow margin
-         * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-borrow
-         * @param {string} $code unified $currency $code of the $currency to borrow
-         * @param {float} $amount the $amount to borrow
-         * @param {string} $symbol unified market $symbol, not used by cryptocom.repayMargin ()
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
-         */
-        $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-            'amount' => $this->currency_to_precision($code, $amount),
-        );
-        $response = $this->v2PrivatePostPrivateMarginBorrow (array_merge($request, $params));
-        //
-        //     {
-        //         "id" => 1656619578559,
-        //         "method" => "private/margin/borrow",
-        //         "code" => 0
-        //     }
-        //
-        $transaction = $this->parse_margin_loan($response, $currency);
-        return array_merge($transaction, array(
-            'amount' => $amount,
-        ));
-    }
-
-    public function parse_margin_loan($info, ?array $currency = null) {
-        //
-        // borrowMargin
-        //
-        //     {
-        //         "id" => 1656619578559,
-        //         "method" => "private/margin/borrow",
-        //         "code" => 0
-        //     }
-        //
-        // repayMargin
-        //
-        //     {
-        //         "id" => 1656620104211,
-        //         "method" => "private/margin/repay",
-        //         "code" => 0,
-        //         "result" => {
-        //             "badDebt" => 0
-        //         }
-        //     }
-        //
-        return array(
-            'id' => $this->safe_integer($info, 'id'),
-            'currency' => $this->safe_currency_code(null, $currency),
-            'amount' => null,
-            'symbol' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'info' => $info,
-        );
-    }
-
-    public function parse_borrow_interest($info, ?array $market = null) {
-        //
-        //     array(
-        //         "loan_id" => "2643528867803765921",
-        //         "currency" => "USDT",
-        //         "interest" => 0.00000004,
-        //         "time" => 1656702899559,
-        //         "stake_amount" => 6,
-        //         "interest_rate" => 0.000025
-        //     ),
-        //
-        $timestamp = $this->safe_integer($info, 'time');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
-            'symbol' => $symbol,
-            'marginMode' => null,
-            'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
-            'interest' => $this->safe_number($info, 'interest'),
-            'interestRate' => $this->safe_number($info, 'interest_rate'), // hourly interest rate
-            'amountBorrowed' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
-        );
-    }
-
-    public function parse_borrow_rates($info, $codeKey) {
-        //
-        //     array(
-        //         "currency" => "AGLD",
-        //         "hourly_rate" => 0.00003334,
-        //         "max_borrow_limit" => 342.4032393,
-        //         "min_borrow_limit" => 30
-        //     ),
-        //
-        $timestamp = $this->milliseconds();
-        $rates = array();
-        for ($i = 0; $i < count($info); $i++) {
-            $entry = $info[$i];
-            $rates[] = array(
-                'currency' => $this->safe_currency_code($this->safe_string($entry, 'currency')),
-                'rate' => $this->safe_number($entry, 'hourly_rate'),
-                'period' => 3600000, // 1-Hour
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'info' => $entry,
-            );
-        }
-        return $rates;
-    }
-
     public function custom_handle_margin_mode_and_params($methodName, $params = array ()) {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array} the $marginMode in lowercase
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);
@@ -2591,8 +2263,8 @@ class cryptocom extends Exchange {
          * fetch deposit and withdraw fees
          * @see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
          * @param {string[]|null} $codes list of unified currency $codes
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
          */
         $this->load_markets();
         $response = $this->v2PrivatePostPrivateGetCurrencyNetworks ($params);
@@ -2608,9 +2280,9 @@ class cryptocom extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] timestamp in ms of the earliest $ledger entry
          * @param {int} [$limit] max number of $ledger entries to return
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ledger-structure $ledger structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
          */
         $this->load_markets();
         $request = array();
@@ -2748,8 +2420,8 @@ class cryptocom extends Exchange {
         /**
          * fetch all the $accounts associated with a profile
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$accounts
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure account structures} indexed by the account type
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
          */
         $this->load_markets();
         $response = $this->v1PrivatePostPrivateGetAccounts ($params);
@@ -2834,7 +2506,7 @@ class cryptocom extends Exchange {
          * @param {int} [$limit] number of records
          * @param {array} [$params] exchange specific $params
          * @param {int} [$params->type] 'future', 'option'
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=settlement-history-structure settlement history objects~
          */
         $this->load_markets();
         $market = null;
@@ -2920,12 +2592,14 @@ class cryptocom extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
          * @param {int} [$limit] the maximum amount of [funding rate structures] to fetch
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] $timestamp in ms for the ending date filter, default is the current time
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
          */
-        $this->check_required_symbol('fetchFundingRateHistory', $symbol);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
         $this->load_markets();
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
@@ -2992,8 +2666,8 @@ class cryptocom extends Exchange {
          * fetch $data on a single open contract trade position
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3033,8 +2707,8 @@ class cryptocom extends Exchange {
          * fetch all open $positions
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$positions
          * @param {string[]|null} $symbols list of unified $market $symbols
-         * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -3107,6 +2781,7 @@ class cryptocom extends Exchange {
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $symbol = $this->safe_symbol($marketId, $market, null, 'contract');
         $timestamp = $this->safe_integer($position, 'update_timestamp_ms');
+        $amount = $this->safe_string($position, 'quantity');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -3114,8 +2789,8 @@ class cryptocom extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'hedged' => null,
-            'side' => null,
-            'contracts' => $this->safe_number($position, 'quantity'),
+            'side' => Precise::string_gt($amount, '0') ? 'buy' : 'sell',
+            'contracts' => Precise::string_abs($amount),
             'contractSize' => $market['contractSize'],
             'entryPrice' => null,
             'markPrice' => null,
@@ -3171,6 +2846,50 @@ class cryptocom extends Exchange {
             }
         }
         return $returnString;
+    }
+
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): array {
+        /**
+         * closes open positions for a $market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {string} [marginMode] not used by cryptocom.closePositions
+         * @param {string} [$side] not used by cryptocom.closePositions
+         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [$params->type] LIMIT or MARKET
+         * @param {number} [$params->price] for limit orders only
+         * @return {array[]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'instrument_name' => $market['id'],
+            'type' => 'MARKET',
+        );
+        $type = $this->safe_string_upper($params, 'type');
+        $price = $this->safe_string($params, 'price');
+        if ($type !== null) {
+            $request['type'] = $type;
+        }
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($market['symbol'], $price);
+        }
+        $response = $this->v1PrivatePostPrivateClosePosition (array_merge($request, $params));
+        //
+        //    {
+        //        "id" : 1700830813298,
+        //        "method" : "private/close-position",
+        //        "code" : 0,
+        //        "result" : {
+        //            "client_oid" : "179a909d-5614-655b-0d0e-9e85c9a25c85",
+        //            "order_id" : "6142909897021751347"
+        //        }
+        //    }
+        //
+        $result = $this->safe_value($response, 'result');
+        return $this->parse_order($result, $market);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -52,6 +52,7 @@ interface Exchange {
     sapiGetMarginCapitalFlow(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginDelistSchedule(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAvailableInventory(params?: {}): Promise<implicitReturnType>;
+    sapiGetMarginLeverageBracket(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipLoanableData(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipCollateralData(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipRequestData(params?: {}): Promise<implicitReturnType>;
@@ -80,6 +81,7 @@ interface Exchange {
     sapiGetRebateTaxQuery(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalConfigGetall(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositAddress(params?: {}): Promise<implicitReturnType>;
+    sapiGetCapitalDepositAddressList(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositHisrec(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositSubAddress(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositSubHisrec(params?: {}): Promise<implicitReturnType>;
@@ -349,6 +351,7 @@ interface Exchange {
     sapiDeleteAlgoFuturesOrder(params?: {}): Promise<implicitReturnType>;
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params?: {}): Promise<implicitReturnType>;
     sapiV2GetSubAccountFuturesAccount(params?: {}): Promise<implicitReturnType>;
+    sapiV2GetSubAccountFuturesAccountSummary(params?: {}): Promise<implicitReturnType>;
     sapiV2GetSubAccountFuturesPositionRisk(params?: {}): Promise<implicitReturnType>;
     sapiV2PostSubAccountSubAccountApiIpRestriction(params?: {}): Promise<implicitReturnType>;
     sapiV3GetSubAccountAssets(params?: {}): Promise<implicitReturnType>;
@@ -549,6 +552,7 @@ interface Exchange {
     publicGetUiKlines(params?: {}): Promise<implicitReturnType>;
     publicGetTicker24hr(params?: {}): Promise<implicitReturnType>;
     publicGetTicker(params?: {}): Promise<implicitReturnType>;
+    publicGetTickerTradingDay(params?: {}): Promise<implicitReturnType>;
     publicGetTickerPrice(params?: {}): Promise<implicitReturnType>;
     publicGetTickerBookTicker(params?: {}): Promise<implicitReturnType>;
     publicGetExchangeInfo(params?: {}): Promise<implicitReturnType>;
@@ -567,6 +571,7 @@ interface Exchange {
     privateGetRateLimitOrder(params?: {}): Promise<implicitReturnType>;
     privateGetMyPreventedMatches(params?: {}): Promise<implicitReturnType>;
     privateGetMyAllocations(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountCommission(params?: {}): Promise<implicitReturnType>;
     privatePostOrderOco(params?: {}): Promise<implicitReturnType>;
     privatePostSorOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSorOrderTest(params?: {}): Promise<implicitReturnType>;
@@ -625,7 +630,7 @@ interface Exchange {
     papiGetCmIncome(params?: {}): Promise<implicitReturnType>;
     papiGetUmAccount(params?: {}): Promise<implicitReturnType>;
     papiGetCmAccount(params?: {}): Promise<implicitReturnType>;
-    papiGetPortfolioRepayFuturesSwitch(params?: {}): Promise<implicitReturnType>;
+    papiGetRepayFuturesSwitch(params?: {}): Promise<implicitReturnType>;
     papiGetUmAdlQuantile(params?: {}): Promise<implicitReturnType>;
     papiGetCmAdlQuantile(params?: {}): Promise<implicitReturnType>;
     papiPostUmOrder(params?: {}): Promise<implicitReturnType>;
@@ -642,8 +647,8 @@ interface Exchange {
     papiPostCmPositionSideDual(params?: {}): Promise<implicitReturnType>;
     papiPostAutoCollection(params?: {}): Promise<implicitReturnType>;
     papiPostBnbTransfer(params?: {}): Promise<implicitReturnType>;
-    papiPostPortfolioRepayFuturesSwitch(params?: {}): Promise<implicitReturnType>;
-    papiPostPortfolioRepayFuturesNegativeBalance(params?: {}): Promise<implicitReturnType>;
+    papiPostRepayFuturesSwitch(params?: {}): Promise<implicitReturnType>;
+    papiPostRepayFuturesNegativeBalance(params?: {}): Promise<implicitReturnType>;
     papiPostListenKey(params?: {}): Promise<implicitReturnType>;
     papiPostAssetCollection(params?: {}): Promise<implicitReturnType>;
     papiPutListenKey(params?: {}): Promise<implicitReturnType>;
