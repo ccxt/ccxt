@@ -287,7 +287,7 @@ function assertFeeStructure (exchange, skippedProperties, method, entry, key) {
     }
 }
 
-function assertTimestampOrder (exchange, method, codeOrSymbol, items, ascending = false) {
+function assertTimestampOrder (exchange, method, codeOrSymbol, items, ascending = true) {
     for (let i = 0; i < items.length; i++) {
         if (i > 0) {
             const ascendingOrDescending = ascending ? 'ascending' : 'descending';
