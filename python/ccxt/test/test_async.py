@@ -121,7 +121,7 @@ isWsTests = get_cli_arg_value('--ws')
 
 class baseMainTestClass():
     lang = 'PY'
-    is_async = is_synchronous
+    is_synchronous = is_synchronous
     request_tests_failed = False
     response_tests_failed = False
     response_tests = False
