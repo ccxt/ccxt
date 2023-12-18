@@ -61,7 +61,7 @@ define('isWsTests', get_cli_arg_value('--ws'));
 
 class baseMainTestClass {
     public $lang = 'PHP';
-    public $is_async = is_synchronous;
+    public $is_synchronous = is_synchronous;
     public $test_files = [];
     public $skipped_methods = [];
     public $checked_public_tests = [];
