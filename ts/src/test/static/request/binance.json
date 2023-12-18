@@ -262,6 +262,15 @@
                     464950,
                     "LTC/USDT"
                 ]
+            },
+            {
+                "description": "Swap inverse cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://testnet.binancefuture.com/dapi/v1/order?timestamp=1699382897679&symbol=BTCUSD_PERP&orderId=652509009&recvWindow=10000&signature=02d0287d26b9b0603902e299840941f6738f9fbb3f497390b29d7077c42c318b",
+                "input": [
+                    652509009,
+                    "BTC/USD:BTC"
+                ]
             }
         ],
         "cancelOrders": [
