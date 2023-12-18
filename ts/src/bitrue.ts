@@ -1548,7 +1548,7 @@ export default class bitrue extends Exchange {
                 response['symbol'] = market['id'];
                 data = [ response ];
             } else if (market['spot']) {
-                [params] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+                request['symbol'] = market['id'];
                 response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
                 data = response;
             } else {
