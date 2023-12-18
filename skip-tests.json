@@ -1600,5 +1600,13 @@
                 "ask": "invalid"
             }
         }
+    },
+    "bitteam": {
+        "skipMethods": {
+            "loadMarkets": {
+                "taker": "is undefined",
+                "maker": "is undefined"
+            }
+        }
     }
 }
