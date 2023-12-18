@@ -34,6 +34,7 @@ function fixPhpObjectArray (exchange, response, skippedProperties) {
     // temporary fix, because after json.strinfigy->parse, 'undefined' members are removed
     skippedProperties['timestamp'] = true;
     skippedProperties['datetime'] = true;
+    skippedProperties['nonce'] = true;
     // ### temporarily fix some bugs for PHP (before they are fixed in library) ###
     // 1) entries are being unordered in some cases, so before that separate issue is fixed, temporarily fix it here. for example, some entries are weird, like [[price, amount], [price, amount], ["1", amount]]]
     result['asks'] = exchange.sortBy(result['asks'], 0, false);
