@@ -3,8 +3,8 @@ import { AuthenticationError, DDoSProtection, ExchangeError, ExchangeNotAvailabl
 import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
 import { CountedOrderBook, IndexedOrderBook, OrderBook as WsOrderBook } from './ws/OrderBook.js';
-import { Account, Balance, Balances, Currency, CurrencyInterface, DepositAddressResponse, Dictionary, FundingHistory, FundingRateHistory, Greeks, IndexType, Int, Liquidation, MarginMode, Market, MarketInterface, MinMax, Num, OHLCV, OHLCVC, Order, OrderBook, OrderRequest, OrderSide, OpenInterest, OrderType, Position, Str, Ticker, Tickers, Trade } from './types.js';
-export { Balance, Balances, Currency, DepositAddressResponse, Dictionary, FundingHistory, Fee, FundingRateHistory, Greeks, IndexType, Int, Liquidation, Market, MinMax, OHLCV, OHLCVC, Order, OrderBook, OrderSide, OrderType, Position, Ticker, Trade, Transaction } from './types.js';
+import type { Account, Balance, Balances, Currency, CurrencyInterface, DepositAddressResponse, Dictionary, FundingHistory, FundingRateHistory, Greeks, IndexType, Int, Liquidation, MarginMode, Market, MarketInterface, MinMax, Num, OHLCV, OHLCVC, Order, OrderBook, OrderRequest, OrderSide, OpenInterest, OrderType, Position, Str, Ticker, Tickers, Trade } from './types.js';
+export type { Balance, Balances, Currency, DepositAddressResponse, Dictionary, FundingHistory, Fee, FundingRateHistory, Greeks, IndexType, Int, Liquidation, Market, MinMax, OHLCV, OHLCVC, Order, OrderBook, OrderSide, OrderType, Position, Ticker, Trade, Transaction } from './types.js';
 /**
  * @class Exchange
  */
@@ -12,40 +12,25 @@ export default class Exchange {
     options: {
         [key: string]: any;
     };
-    api: any;
-    http_proxy: string;
-    http_proxy_callback: any;
-    httpProxy: string;
-    httpProxyCallback: any;
-    https_proxy: string;
-    https_proxy_callback: any;
-    httpsProxy: string;
-    httpsProxyCallback: any;
-    proxy: any;
-    proxy_url: string;
-    proxy_url_callback: any;
-    proxyUrl: string;
-    proxyUrlCallback: any;
-    socks_proxy: string;
-    socks_proxy_callback: any;
-    socksProxy: string;
-    socksProxyCallback: any;
-    user_agent: {
-        'User-Agent': string;
-    } | false;
-    userAgent: {
-        'User-Agent': string;
-    } | false;
     AbortError: any;
     agent: any;
+    api: any;
     apiKey: string;
     balance: {};
     FetchError: any;
     fetchImplementation: any;
     handleContentTypeApplicationZip: boolean;
     headers: any;
+    http_proxy: string;
+    http_proxy_callback: any;
     httpAgent: any;
+    httpProxy: string;
+    httpProxyCallback: any;
+    https_proxy: string;
+    https_proxy_callback: any;
     httpsAgent: any;
+    httpsProxy: string;
+    httpsProxyCallback: any;
     login: string;
     minFundingAddressLength: number;
     myTrades: any;
@@ -58,9 +43,18 @@ export default class Exchange {
     password: string;
     positions: any;
     privateKey: string;
+    proxy: any;
+    proxy_url: string;
+    proxy_url_callback: any;
+    proxyUrl: string;
+    proxyUrlCallback: any;
     quoteJsonNumbers: boolean;
     reduceFees: boolean;
     secret: string;
+    socks_proxy: string;
+    socks_proxy_callback: any;
+    socksProxy: string;
+    socksProxyCallback: any;
     substituteCommonCurrencyCodes: boolean;
     tickers: {};
     timeout: number;
@@ -75,8 +69,10 @@ export default class Exchange {
     verbose: boolean;
     walletAddress: string;
     ws_proxy: string;
+    ws_socks_proxy: string;
     wsProxy: string;
     wss_proxy: string;
+    wsSocksProxy: string;
     wssProxy: string;
     urls: {
         api?: string | Dictionary<string>;
@@ -88,6 +84,12 @@ export default class Exchange {
         test?: string | Dictionary<string>;
         www?: string;
     };
+    user_agent: {
+        'User-Agent': string;
+    } | false;
+    userAgent: {
+        'User-Agent': string;
+    } | false;
     precision: {
         amount: number | undefined;
         price: number | undefined;
@@ -500,6 +502,8 @@ export default class Exchange {
     proxyModulesLoaded: boolean;
     loadProxyModules(): Promise<void>;
     setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
+    loadHttpProxyAgent(): Promise<any>;
+    getHttpAgentIfNeeded(url: any): any;
     fetch(url: any, method?: string, headers?: any, body?: any): Promise<any>;
     parseJson(jsonString: any): any;
     getResponseHeaders(response: any): {};
@@ -515,13 +519,14 @@ export default class Exchange {
     checkOrderArguments(market: any, type: any, side: any, amount: any, price: any, params: any): void;
     handleHttpStatusCode(code: any, reason: any, url: any, method: any, body: any): void;
     remove0xPrefix(hexData: any): any;
-    spawn(method: any, ...args: any[]): Future;
+    spawn(method: any, ...args: any[]): ReturnType<typeof Future>;
     delay(timeout: any, method: any, ...args: any[]): void;
     orderBook(snapshot?: {}, depth?: number): WsOrderBook;
     indexedOrderBook(snapshot?: {}, depth?: number): IndexedOrderBook;
     countedOrderBook(snapshot?: {}, depth?: number): CountedOrderBook;
     handleMessage(client: any, message: any): void;
     client(url: any): WsClient;
+    watchMultiple(url: any, messageHashes: any, message?: any, subscribeHashes?: any, subscription?: any): import("./ws/Future.js").FutureInterface;
     watch(url: any, messageHash: any, message?: any, subscribeHash?: any, subscription?: any): any;
     onConnected(client: any, message?: any): void;
     onError(client: any, error: any): void;
@@ -555,7 +560,7 @@ export default class Exchange {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchMyTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<Dictionary<Dictionary<OHLCV[]>>>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     fetchDepositAddresses(codes?: string[], params?: {}): Promise<any>;
@@ -854,8 +859,6 @@ export default class Exchange {
     fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     filterByArrayPositions(objects: any, key: IndexType, values?: any, indexed?: boolean): Position[];
     filterByArrayTickers(objects: any, key: IndexType, values?: any, indexed?: boolean): Dictionary<Ticker>;
-    resolvePromiseIfMessagehashMatches(client: any, prefix: string, symbol: string, data: any): void;
-    resolveMultipleOHLCV(client: any, prefix: string, symbol: string, timeframe: string, data: any): void;
     createOHLCVObject(symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>>;
     handleMaxEntriesPerRequestAndParams(method: string, maxEntriesPerRequest?: Int, params?: {}): [Int, any];
     fetchPaginatedCallDynamic(method: string, symbol?: string, since?: Int, limit?: Int, params?: {}, maxEntriesPerRequest?: Int): Promise<any>;

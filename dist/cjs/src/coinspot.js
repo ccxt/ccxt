@@ -10,7 +10,7 @@ var Precise = require('./base/Precise.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class coinspot
- * @extends Exchange
+ * @augments Exchange
  */
 class coinspot extends coinspot$1 {
     describe() {

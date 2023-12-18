@@ -10,7 +10,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class whitebit
- * @extends Exchange
+ * @augments Exchange
  */
 class whitebit extends whitebit$1 {
     describe() {
@@ -28,7 +28,6 @@ class whitebit extends whitebit$1 {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'borrowMargin': false,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -74,7 +73,8 @@ class whitebit extends whitebit$1 {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': true,
                 'transfer': true,
                 'withdraw': true,

@@ -33,7 +33,7 @@ $exchangeSymbol = null; // todo: this should be different than JS
 define ('is_synchronous', stripos(__FILE__, '_async') === false);
 define('rootDirForSkips', __DIR__ . '/../../');
 define('envVars', $_ENV);
-define('LOG_CHARS_LENGTH', 10000);
+define('LOG_CHARS_LENGTH', 1000000); // no need to trim
 define('ext', 'php');
 define('proxyTestFileName', 'proxies');
 
@@ -61,7 +61,6 @@ class baseMainTestClass {
     public $only_specific_tests = [];
     public $proxy_test_file_name = proxyTestFileName;
     public $ext = ext;
-    public $LOG_CHARS_LENGTH = LOG_CHARS_LENGTH;
 }
 
 function dump(...$s) {
@@ -150,8 +149,12 @@ function exception_message($exc) {
             $output .= "\n";
         }
     }
-    $message = '[' . get_class($exc) . '] ' . $output . "\n\n";
-    return substr($message, 0, LOG_CHARS_LENGTH);
+    $origin_message = '';
+    try{
+        $origin_message = $exc->getMessage() . "\n" . $exc->getFile() . ':' . $exc->getLine();
+    } catch (\Exception $exc) { }
+    $final_message = '[' . get_class($exc) . '] ' . $origin_message . "\n" . $output . "\n\n";
+    return substr($final_message, 0, LOG_CHARS_LENGTH);
 }
 
 function exit_script($code = 0) {

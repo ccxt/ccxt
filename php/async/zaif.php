@@ -308,15 +308,14 @@ class zaif extends Exchange {
         // }
         //
         $symbol = $this->safe_symbol(null, $market);
-        $timestamp = $this->milliseconds();
         $vwap = $this->safe_string($ticker, 'vwap');
         $baseVolume = $this->safe_string($ticker, 'volume');
         $quoteVolume = Precise::string_mul($baseVolume, $vwap);
         $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $this->safe_string($ticker, 'high'),
             'low' => $this->safe_string($ticker, 'low'),
             'bid' => $this->safe_string($ticker, 'bid'),

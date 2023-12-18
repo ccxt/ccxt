@@ -1,32 +1,32 @@
 import Exchange from './abstract/coinbasepro.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
 /**
  * @class coinbasepro
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinbasepro extends Exchange {
-    describe(): any;
-    fetchAccounts(params?: {}): Promise<any[]>;
-    fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
-    createDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: any;
-        tag: string;
-        info: any;
-    }>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    createDepositAddress(code: string, params?: {}): Promise<{
+        address: any;
+        currency: string;
+        info: any;
+        tag: string;
+    }>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     deposit(code: string, amount: any, address: any, params?: {}): Promise<{
-        info: any;
         id: any;
+        info: any;
     }>;
+    describe(): any;
+    fetchAccounts(params?: {}): Promise<any[]>;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCurrencies(params?: {}): Promise<{}>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchMarkets(params?: {}): Promise<any[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -43,46 +43,37 @@ export default class coinbasepro extends Exchange {
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     parseAccount(account: any): {
-        id: string;
-        type: any;
         code: string;
+        id: string;
         info: any;
+        type: any;
     };
     parseBalance(response: any): Balances;
     parseLedgerEntry(item: any, currency?: Currency): {
-        id: string;
-        currency: string;
         account: any;
+        after: number;
+        amount: number;
+        before: number;
+        currency: string;
+        datetime: string;
+        direction: any;
+        fee: any;
+        id: string;
+        info: any;
         referenceAccount: any;
         referenceId: any;
         status: string;
-        amount: number;
-        before: number;
-        after: number;
-        fee: any;
-        direction: any;
         timestamp: number;
-        datetime: string;
         type: string;
-        info: any;
     };
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(transaction: any): "ok" | "canceled" | "failed" | "pending";
+    parseLedgerEntryType(type: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    createDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: any;
-        tag: string;
-        info: any;
-    }>;
+    parseTransactionStatus(transaction: any): "ok" | "canceled" | "failed" | "pending";
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: string;
-        method: string;
         body: any;
         headers: any;
+        method: string;
+        url: string;
     };
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
 }

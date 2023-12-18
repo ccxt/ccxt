@@ -5,7 +5,9 @@
         "client-order-id",
         "AccessKeyId",
         "Timestamp",
-        "Signature"
+        "Signature",
+        "from",
+        "to"
     ],
     "outputType": "json",
     "methods": {
@@ -336,6 +338,47 @@
                 "output": "{\"trade_type\":0,\"status\":\"0\",\"contract\":\"LTC-USDT\",\"type\":1}"
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "fetch Order - spot",
+                "method": "fetchOrder",
+                "url": "https://api.huobi.pro/v1/order/orders/357632718898331?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-12-09T01%3A03%3A10&Signature=PbyATPz3DSTYLhTIIkDybElKJc1Kk8s0yHZ0kPVifSw%3D",
+                "input": [
+                    "357632718898331",
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch Order - swap linear",
+                "method": "fetchOrder",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_order_info",
+                "input": [
+                    "357632718898331",
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"contract_code\":\"LTC-USDT\",\"order_id\":\"357632718898331\"}"
+            },
+            {
+                "description": "fetch Order - swap inverse",
+                "method": "fetchOrder",
+                "url": "https://api.huobi.pro/swap-api/v1/swap_order_info",
+                "input": [
+                    "357632718898331",
+                    "BTC/USD:BTC"
+                ],
+                "output": "{\"contract_code\":\"BTC-USD\",\"order_id\":\"357632718898331\"}"
+            },
+            {
+                "description": "fetch Order - future",
+                "method": "fetchOrder",
+                "url": "https://api.huobi.pro/api/v1/contract_order_info",
+                "input": [
+                    "357632718898331",
+                    "BTC/USD:BTC-231124"
+                ],
+                "output": "{\"contract_code\":\"BTC231124\",\"symbol\":\"btc\",\"order_id\":\"357632718898331\"}"
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",
@@ -357,6 +400,28 @@
                     5
                 ],
                 "output": "{\"contract\":\"LTC-USDT\",\"trade_type\":0,\"start_time\":1699457638000,\"page_size\":5}"
+            },
+            {
+                "description": "fetch My Trades - swap inverse",
+                "method": "fetchMyTrades",
+                "url": "https://api.huobi.pro/swap-api/v3/swap_matchresults_exact",
+                "input": [
+                    "BTC/USD:BTC",
+                    1699457638000,
+                    5
+                ],
+                "output": "{\"contract\":\"BTC-USD\",\"trade_type\":0,\"start_time\":1699457638000,\"page_size\":5}"
+            },
+            {
+                "description": "fetch My Trades - future",
+                "method": "fetchMyTrades",
+                "url": "https://api.huobi.pro/api/v3/contract_matchresults_exact",
+                "input": [
+                    "BTC/USD:BTC-231124",
+                    1699457638000,
+                    5
+                ],
+                "output": "{\"contract\":\"BTC231124\",\"trade_type\":0,\"start_time\":1699457638000,\"page_size\":5,\"symbol\":\"btc\"}"
             }
         ],
         "fetchClosedOrders": [
@@ -400,6 +465,135 @@
                     ]
                 ],
                 "output": "{}"
+            },
+            {
+                "description": "Fetch inverse position",
+                "method": "fetchPositions",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_position_info?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=fHh3rEyD%2FZFqX2z5IXhQNfsTODGyWF%2FYYJrOFniSPvo%3D",
+                "input": [
+                    [
+                        "BTC/USD:BTC"
+                    ]
+                ],
+                "output": "{}"
+            },
+            {
+                "description": "Fetch future position",
+                "method": "fetchPositions",
+                "url": "https://api.hbdm.com/api/v1/contract_position_info?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=fHh3rEyD%2FZFqX2z5IXhQNfsTODGyWF%2FYYJrOFniSPvo%3D",
+                "input": [
+                    [
+                        "BTC/USD:BTC-231124"
+                    ]
+                ],
+                "output": "{}"
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "Fetch linear position",
+                "method": "fetchPosition",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_account_position_info?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=fHh3rEyD%2FZFqX2z5IXhQNfsTODGyWF%2FYYJrOFniSPvo%3D",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"margin_account\":\"USDT\",\"contract_code\":\"LTC-USDT\"}"
+            },
+            {
+                "description": "Fetch inverse position",
+                "method": "fetchPosition",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_account_position_info?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=fHh3rEyD%2FZFqX2z5IXhQNfsTODGyWF%2FYYJrOFniSPvo%3D",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "output": "{\"margin_account\":\"USDT\",\"contract_code\":\"BTC-USD\"}"
+            },
+            {
+                "description": "Fetch future position",
+                "method": "fetchPosition",
+                "url": "https://api.hbdm.com/api/v1/contract_account_position_info?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=fHh3rEyD%2FZFqX2z5IXhQNfsTODGyWF%2FYYJrOFniSPvo%3D",
+                "input": [
+                    "BTC/USD:BTC-231124"
+                ],
+                "output": "{\"symbol\":\"btc\"}"
+            }
+        ],
+        "fetchOpenInterestHistory": [
+            {
+                "description": "fetch Open Interest History - swap linear",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_his_open_interest?period=60min&amount_type=2&contract_type=swap&contract_code=LTC-USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch Open Interest History - swap inverse",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_his_open_interest?period=60min&amount_type=2&contract_code=BTC-USD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "fetch Open Interest History - future",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://api.hbdm.com/api/v1/contract_his_open_interest?period=60min&amount_type=2&contract_type=next_week&symbol=btc",
+                "input": [
+                    "BTC/USD:BTC-231124"
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetch Open Interest - swap linear",
+                "method": "fetchOpenInterest",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_open_interest?contract_type=swap&contract_code=LTC-USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch Open Interest - swap inverse",
+                "method": "fetchOpenInterest",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_open_interest?contract_code=BTC-USD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "fetch Open Interest - future",
+                "method": "fetchOpenInterest",
+                "url": "https://api.hbdm.com/api/v1/contract_open_interest?contract_code=BTC231124&contract_type=next_week&symbol=btc",
+                "input": [
+                    "BTC/USD:BTC-231124"
+                ]
+            }
+        ],
+        "fetchSettlementHistory": [
+            {
+                "description": "fetch Settlement History - swap linear",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_settlement_records?contract_code=LTC-USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch Settlement History - swap inverse",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_settlement_records?contract_code=BTC-USD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "fetch Settlement History - future",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.hbdm.com/api/v1/contract_settlement_records?symbol=btc",
+                "input": [
+                    "BTC/USD:BTC-231124"
+                ]
             }
         ],
         "setLeverage": [
@@ -412,6 +606,26 @@
                     "LTC/USDT:USDT"
                 ],
                 "output": "{\"lever_rate\":5,\"contract_code\":\"LTC-USDT\"}"
+            },
+            {
+                "description": "Set inverse leverage",
+                "method": "setLeverage",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_switch_lever_rate?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=SnWzCM6V5BNqBA95kG8NK9aZPmqkLPiW0USifdlTN9U%3D",
+                "input": [
+                    5,
+                    "BTC/USD:BTC"
+                ],
+                "output": "{\"lever_rate\":5,\"contract_code\":\"BTC-USD\"}"
+            },
+            {
+                "description": "Set future leverage",
+                "method": "setLeverage",
+                "url": "https://api.hbdm.com/api/v1/contract_switch_lever_rate?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=SnWzCM6V5BNqBA95kG8NK9aZPmqkLPiW0USifdlTN9U%3D",
+                "input": [
+                    5,
+                    "BTC/USD:BTC-231124"
+                ],
+                "output": "{\"lever_rate\":5,\"symbol\":\"btc\"}"
             }
         ],
         "fetchDeposits": [
@@ -442,6 +656,30 @@
                     "swap"
                 ],
                 "output": "{\"currency\":\"usdt\",\"amount\":1,\"margin-account\":\"USDT\",\"from\":\"spot\",\"to\":\"linear-swap\"}"
+            },
+            {
+                "description": "transfer from spot to future",
+                "method": "transfer",
+                "url": "https://api.huobi.pro/v1/futures/transfer?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T16%3A23%3A59&Signature=rynghR1lgclTs2pbaip8Ysa8C3qkoRa1kkEAy8C3SSU%3D",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "future"
+                ],
+                "output": "{\"currency\":\"usdt\",\"amount\":1,\"type\":\"pro-to-futures\"}"
+            },
+            {
+                "description": "transfer from spot to cross",
+                "method": "transfer",
+                "url": "https://api.huobi.pro/v1/cross-margin/transfer-in?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T16%3A23%3A59&Signature=rynghR1lgclTs2pbaip8Ysa8C3qkoRa1kkEAy8C3SSU%3D",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "cross"
+                ],
+                "output": "{\"currency\":\"usdt\",\"amount\":1}"
             }
         ],
         "fetchDepositAddress": [
@@ -460,6 +698,299 @@
                 "method": "fetchIsolatedBorrowRates",
                 "url": "https://api.huobi.pro/v1/margin/loan-info?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-17T06%3A46%3A38&Signature=6cO4v70%2F%2BsYkysT5TmdL3iI6SDlhVDb8voCnNkhy3Rs%3D",
                 "input": []
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetch Status",
+                "method": "fetchStatus",
+                "url": "https://status.huobigroup.com/api/v2/summary.json",
+                "input": []
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetch Time",
+                "method": "fetchTime",
+                "url": "https://api.huobi.pro/v1/common/timestamp",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetch Markets",
+                "method": "fetchMarkets",
+                "url": "https://api.huobi.pro/swap-api/v1/swap_contract_info",
+                "input": []
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch Ticker - spot",
+                "method": "fetchTicker",
+                "url": "https://api.huobi.pro/market/detail/merged?symbol=ltcusdt",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch Ticker - swap linear",
+                "method": "fetchTicker",
+                "url": "https://api.huobi.pro/linear-swap-ex/market/detail/merged?contract_code=LTC-USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch Ticker - swap inverse",
+                "method": "fetchTicker",
+                "url": "https://api.huobi.pro/swap-ex/market/detail/merged?contract_code=BTC-USD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "fetch Ticker - future",
+                "method": "fetchTicker",
+                "url": "https://api.huobi.pro/market/detail/merged?symbol=BTC231124",
+                "input": [
+                    "BTC/USD:BTC-231124"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetch Tickers - spot",
+                "method": "fetchTickers",
+                "url": "https://api.huobi.pro/market/tickers",
+                "input": [
+                    ["LTC/USDT"]
+                ]
+            },
+            {
+                "description": "fetch Tickers - swap linear",
+                "method": "fetchTickers",
+                "url": "https://api.huobi.pro/linear-swap-ex/market/detail/batch_merged",
+                "input": [
+                    ["LTC/USDT:USDT"]
+                ]
+            },
+            {
+                "description": "fetch Tickers - swap inverse",
+                "method": "fetchTickers",
+                "url": "https://api.huobi.pro/swap-ex/market/detail/batch_merged",
+                "input": [
+                    ["BTC/USD:BTC"]
+                ]
+            },
+            {
+                "description": "fetch Tickers - future",
+                "method": "fetchTickers",
+                "url": "https://api.huobi.pro/market/detail/batch_merged",
+                "input": [
+                    ["BTC/USD:BTC-231124"]
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch OrderBook - spot",
+                "method": "fetchOrderBook",
+                "url": "https://api.huobi.pro/market/depth?type=step0&symbol=ltcusdt",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch OrderBook - swap linear",
+                "method": "fetchOrderBook",
+                "url": "https://api.huobi.pro/linear-swap-ex/market/depth?type=step0&contract_code=LTC-USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch OrderBook - swap inverse",
+                "method": "fetchOrderBook",
+                "url": "https://api.huobi.pro/swap-ex/market/depth?type=step0&contract_code=BTC-USD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "fetch OrderBook - future",
+                "method": "fetchOrderBook",
+                "url": "https://api.huobi.pro/market/depth?type=step0&symbol=BTC231124",
+                "input": [
+                    "BTC/USD:BTC-231124"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch Trades - spot",
+                "method": "fetchTrades",
+                "url": "https://api.huobi.pro/market/history/trade?symbol=ltcusdt&size=1000",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch Trades - swap linear",
+                "method": "fetchTrades",
+                "url": "https://api.hbdm.com/linear-swap-ex/market/history/trade?contract_code=LTC-USDT&size=1000",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch Trades - swap inverse",
+                "method": "fetchTrades",
+                "url": "https://api.huobi.pro/swap-ex/market/history/trade?contract_code=BTC-USD&size=1000",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "fetch Trades - future",
+                "method": "fetchTrades",
+                "url": "https://api.huobi.pro/market/history/trade?symbol=BTC231124&size=1000",
+                "input": [
+                    "BTC/USD:BTC-231124"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV - spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&symbol=ltcusdt",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch OHLCV - swap linear",
+                "method": "fetchOHLCV",
+                "url": "https://api.hbdm.com/linear-swap-ex/market/history/kline?period=1min&from=1702411463&to=1702531403&contract_code=LTC-USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch OHLCV - swap inverse",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/swap-ex/market/history/kline?period=1min&from=1702411463&to=1702531403&contract_code=BTC-USD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "fetch OHLCV - future",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/kline?period=1min&from=1702411463&to=1702531403&symbol=BTC231124",
+                "input": [
+                    "BTC/USD:BTC-231124"
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch Funding Rate History - swap linear",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_historical_funding_rate?contract_code=LTC-USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch Funding Rate History - swap inverse",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.huobi.pro/swap-api/v1/swap_historical_funding_rate?contract_code=BTC-USD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetch Funding Rate - swap linear",
+                "method": "fetchFundingRate",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_funding_rate?contract_code=LTC-USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch Funding Rate - swap inverse",
+                "method": "fetchFundingRate",
+                "url": "https://api.huobi.pro/swap-api/v1/swap_funding_rate?contract_code=BTC-USD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch Funding Rates - swap linear",
+                "method": "fetchFundingRates",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_batch_funding_rate",
+                "input": [
+                    null,
+                    {
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "fetch Funding Rates - swap inverse",
+                "method": "fetchFundingRates",
+                "url": "https://api.huobi.pro/swap-api/v1/swap_batch_funding_rate",
+                "input": [
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "fetch Borrow Interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.hbdm.com/v1/cross-margin/loan-orders?AccessKeyId=key&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-12-14T06%3A46%3A55&currency=usdt&Signature=zc%2F5gWGPCifvUC2J0f3N1%2F1IZMaoS%2BBg6F5rc6p9ML8%3D",
+                "input": [
+                    "USDT"
+                ]
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetch Funding History - swap linear",
+                "method": "fetchFundingHistory",
+                "url": "https://api.hbdm.com/linear-swap-api/v3/swap_financial_record_exact",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"type\":\"30,31\",\"contract\":\"LTC-USDT\",\"mar_acct\":\"usdt\"}"
+            },
+            {
+                "description": "fetch Funding History - swap inverse",
+                "method": "fetchFundingHistory",
+                "url": "https://api.hbdm.com/swap-api/v3/swap_financial_record_exact",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "output": "{\"type\":\"30,31\",\"contract\":\"BTC-USD\"}"
+            },
+            {
+                "description": "fetch Funding History - future",
+                "method": "fetchFundingHistory",
+                "url": "https://api.hbdm.com/api/v3/contract_financial_record_exact",
+                "input": [
+                    "BTC/USD:BTC-231124"
+                ],
+                "output": "{\"type\":\"30,31\",\"symbol\":\"BTC231124\"}"
             }
         ]
     }

@@ -13,7 +13,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class btcalpha
- * @extends Exchange
+ * @augments Exchange
  */
 export default class btcalpha extends Exchange {
     describe() {

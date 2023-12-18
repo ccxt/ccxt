@@ -9,7 +9,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class gate
- * @extends Exchange
+ * @augments Exchange
  */
 class gate extends gate$1 {
     describe() {
@@ -76,9 +76,14 @@ class gate extends gate$1 {
                 'future': true,
                 'option': true,
                 'addMargin': true,
+                'borrowCrossMargin': true,
+                'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createMarketBuyOrderWithCost': true,
                 'createMarketOrder': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': true,
@@ -140,6 +145,8 @@ class gate extends gate$1 {
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'repayCrossMargin': true,
+                'repayIsolatedMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': true,
@@ -587,12 +594,8 @@ class gate extends gate$1 {
                     'expiration': 86400, // for conditional orders
                 },
                 'networks': {
-                    'ALGORAND': 'ALGO',
-                    'ARBITRUM_NOVA': 'ARBNOVA',
-                    'ARBITRUM_ONE': 'ARBEVM',
-                    'AVALANCHE_C': 'AVAX_C',
+                    'AVAXC': 'AVAX_C',
                     'BEP20': 'BSC',
-                    'CHILIZ': 'CHZ',
                     'EOS': 'EOS',
                     'ERC20': 'ETH',
                     'GATECHAIN': 'GTEVM',
@@ -602,29 +605,7 @@ class gate extends gate$1 {
                     'OKC': 'OKT',
                     'OPTIMISM': 'OPETH',
                     'POLKADOT': 'DOTSM',
-                    'POLYGON': 'MATIC',
-                    'SOLANA': 'SOL',
                     'TRC20': 'TRX',
-                },
-                'networksById': {
-                    'ALGO': 'ALGORAND',
-                    'ARBEVM': 'ARBITRUM_ONE',
-                    'ARBNOVA': 'ARBITRUM_NOVA',
-                    'AVAX_C': 'AVALANCHE_C',
-                    'BSC': 'BEP20',
-                    'CHZ': 'CHILIZ',
-                    'DOTSM': 'POLKADOT',
-                    'EOS': 'EOS',
-                    'ETH': 'ERC20',
-                    'GTEVM': 'GATECHAIN',
-                    'HT': 'HRC20',
-                    'KSMSM': 'KUSAMA',
-                    'MATIC': 'POLYGON',
-                    'NEAR': 'NEAR',
-                    'OKT': 'OKC',
-                    'OPETH': 'OPTIMISM',
-                    'SOL': 'SOLANA',
-                    'TRX': 'TRC20',
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
@@ -1924,10 +1905,13 @@ class gate extends gate$1 {
          * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] unified network code (not used directly by gate.io but used by ccxt to filter the response)
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
+        const rawNetwork = this.safeStringUpper(params, 'network');
+        params = this.omit(params, 'network');
         const request = {
             'currency': currency['id'],
         };
@@ -1949,20 +1933,41 @@ class gate extends gate$1 {
         //
         const currencyId = this.safeString(response, 'currency');
         code = this.safeCurrencyCode(currencyId);
-        const addressField = this.safeString(response, 'address');
+        const networkId = this.networkCodeToId(rawNetwork, code);
+        let network = undefined;
         let tag = undefined;
         let address = undefined;
-        if (addressField !== undefined) {
-            if (addressField.indexOf('New address is being generated for you, please wait') >= 0) {
-                throw new errors.BadResponse(this.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.');
+        if (networkId !== undefined) {
+            const addresses = this.safeValue(response, 'multichain_addresses');
+            for (let i = 0; i < addresses.length; i++) {
+                const entry = addresses[i];
+                const entryNetwork = this.safeString(entry, 'chain');
+                if (networkId === entryNetwork) {
+                    const obtainFailed = this.safeInteger(entry, 'obtain_failed');
+                    if (obtainFailed) {
+                        break;
+                    }
+                    address = this.safeString(entry, 'address');
+                    tag = this.safeString(entry, 'payment_id');
+                    network = this.networkIdToCode(networkId, code);
+                    break;
+                }
             }
-            if (addressField.indexOf(' ') >= 0) {
-                const splitted = addressField.split(' ');
-                address = splitted[0];
-                tag = splitted[1];
-            }
-            else {
-                address = addressField;
+        }
+        else {
+            const addressField = this.safeString(response, 'address');
+            if (addressField !== undefined) {
+                if (addressField.indexOf('New address is being generated for you, please wait') >= 0) {
+                    throw new errors.BadResponse(this.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.');
+                }
+                if (addressField.indexOf(' ') >= 0) {
+                    const splitted = addressField.split(' ');
+                    address = splitted[0];
+                    tag = splitted[1];
+                }
+                else {
+                    address = addressField;
+                }
             }
         }
         this.checkAddress(address);
@@ -1972,7 +1977,7 @@ class gate extends gate$1 {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': undefined,
+            'network': network,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -3760,6 +3765,7 @@ class gate extends gate$1 {
          * @param {bool} [params.close] *contract only* Set as true to close the position, with size set to 0
          * @param {bool} [params.auto_size] *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
          * @param {int} [params.price_type] *contract only* 0 latest deal price, 1 mark price, 2 index price
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -3957,9 +3963,15 @@ class gate extends gate$1 {
             }
         }
         if (contract) {
-            const amountToPrecision = this.amountToPrecision(symbol, amount);
-            const signedAmount = (side === 'sell') ? Precise["default"].stringNeg(amountToPrecision) : amountToPrecision;
-            amount = parseInt(signedAmount);
+            const isClose = this.safeValue(params, 'close');
+            if (isClose) {
+                amount = 0;
+            }
+            else {
+                const amountToPrecision = this.amountToPrecision(symbol, amount);
+                const signedAmount = (side === 'sell') ? Precise["default"].stringNeg(amountToPrecision) : amountToPrecision;
+                amount = parseInt(signedAmount);
+            }
         }
         let request = undefined;
         const nonTriggerOrder = !isStopOrder && (trigger === undefined);
@@ -4007,24 +4019,30 @@ class gate extends gate$1 {
                     // 'auto_borrow': false, // used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
                     // 'auto_repay': false, // automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
                 };
-                const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
                 if (isMarketOrder && (side === 'buy')) {
-                    if (createMarketBuyOrderRequiresPrice) {
+                    let quoteAmount = undefined;
+                    let createMarketBuyOrderRequiresPrice = true;
+                    [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    const cost = this.safeNumber(params, 'cost');
+                    params = this.omit(params, 'cost');
+                    if (cost !== undefined) {
+                        quoteAmount = this.costToPrecision(symbol, cost);
+                    }
+                    else if (createMarketBuyOrderRequiresPrice) {
                         if (price === undefined) {
-                            throw new errors.InvalidOrder(this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                            throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                         }
                         else {
                             const amountString = this.numberToString(amount);
                             const priceString = this.numberToString(price);
-                            const cost = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
-                            request['amount'] = this.costToPrecision(symbol, cost);
+                            const costRequest = Precise["default"].stringMul(amountString, priceString);
+                            quoteAmount = this.costToPrecision(symbol, costRequest);
                         }
                     }
                     else {
-                        const cost = this.safeNumber(params, 'cost', amount);
-                        params = this.omit(params, 'cost');
-                        request['amount'] = this.costToPrecision(symbol, cost);
+                        quoteAmount = this.costToPrecision(symbol, amount);
                     }
+                    request['amount'] = quoteAmount;
                 }
                 else {
                     request['amount'] = this.amountToPrecision(symbol, amount);
@@ -4153,6 +4171,25 @@ class gate extends gate$1 {
             }
         }
         return this.extend(request, params);
+    }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name gate#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
@@ -5739,13 +5776,41 @@ class gate extends gate$1 {
         }
         return tiers;
     }
-    async repayMargin(code, amount, symbol = undefined, params = {}) {
+    async repayIsolatedMargin(symbol, code, amount, params = {}) {
         /**
          * @method
          * @name gate#repayMargin
          * @description repay borrowed margin and interest
-         * @see https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
          * @see https://www.gate.io/docs/apiv4/en/#repay-a-loan
+         * @param {string} symbol unified market symbol
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
+         * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'currency': currency['id'].toUpperCase(),
+            'amount': this.currencyToPrecision(code, amount),
+        };
+        const market = this.market(symbol);
+        request['currency_pair'] = market['id'];
+        request['type'] = 'repay';
+        const response = await this.privateMarginPostUniLoans(this.extend(request, params));
+        //
+        // empty response
+        //
+        return this.parseMarginLoan(response, currency);
+    }
+    async repayCrossMargin(code, amount, params = {}) {
+        /**
+         * @method
+         * @name gate#repayCrossMargin
+         * @description repay cross margin borrowed margin and interest
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cross-margin-repayments
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {string} symbol unified market symbol, required for isolated margin
@@ -5754,31 +5819,13 @@ class gate extends gate$1 {
          * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        let marginMode = undefined;
-        [marginMode, params] = this.handleOptionAndParams(params, 'repayMargin', 'marginMode');
-        this.checkRequiredArgument('repayMargin', marginMode, 'marginMode', ['cross', 'isolated']);
-        this.checkRequiredMarginArgument('repayMargin', symbol, marginMode);
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'].toUpperCase(),
             'amount': this.currencyToPrecision(code, amount),
         };
-        let response = undefined;
-        if ((marginMode === 'cross') && (symbol === undefined)) {
-            response = await this.privateMarginPostCrossRepayments(this.extend(request, params));
-        }
-        else if ((marginMode === 'isolated') || (symbol !== undefined)) {
-            if (symbol === undefined) {
-                throw new errors.BadRequest(this.id + ' repayMargin() requires a symbol argument for isolated margin');
-            }
-            const market = this.market(symbol);
-            request['currency_pair'] = market['id'];
-            request['type'] = 'repay';
-            response = await this.privateMarginPostUniLoans(this.extend(request, params));
-        }
-        //
-        // Cross
+        let response = await this.privateMarginPostCrossRepayments(this.extend(request, params));
         //
         //     [
         //         {
@@ -5795,37 +5842,14 @@ class gate extends gate$1 {
         //         }
         //     ]
         //
-        // Isolated
-        //
-        //     {
-        //         "id": "34267567",
-        //         "create_time": "1656394778",
-        //         "expire_time": "1657258778",
-        //         "status": "finished",
-        //         "side": "borrow",
-        //         "currency": "USDT",
-        //         "rate": "0.0002",
-        //         "amount": "100",
-        //         "days": 10,
-        //         "auto_renew": false,
-        //         "currency_pair": "LTC_USDT",
-        //         "left": "0",
-        //         "repaid": "100",
-        //         "paid_interest": "0.003333333333",
-        //         "unpaid_interest": "0"
-        //     }
-        //
-        if (marginMode === 'cross') {
-            response = response[0];
-        }
+        response = this.safeValue(response, 0);
         return this.parseMarginLoan(response, currency);
     }
-    async borrowMargin(code, amount, symbol = undefined, params = {}) {
+    async borrowIsolatedMargin(symbol, code, amount, params = {}) {
         /**
          * @method
          * @name gate#borrowMargin
          * @description create a loan to borrow margin
-         * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
          * @see https://www.gate.io/docs/developers/apiv4/en/#marginuni
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
@@ -5834,10 +5858,6 @@ class gate extends gate$1 {
          * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        let marginMode = undefined;
-        [marginMode, params] = this.handleOptionAndParams(params, 'borrowMargin', 'marginMode');
-        this.checkRequiredArgument('borrowMargin', marginMode, 'marginMode', ['cross', 'isolated']);
-        this.checkRequiredMarginArgument('borrowMargin', symbol, marginMode);
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
@@ -5845,35 +5865,10 @@ class gate extends gate$1 {
             'amount': this.currencyToPrecision(code, amount),
         };
         let response = undefined;
-        if ((marginMode === 'cross') && (symbol === undefined)) {
-            response = await this.privateMarginPostCrossLoans(this.extend(request, params));
-        }
-        else if ((marginMode === 'isolated') || (symbol !== undefined)) {
-            if (symbol === undefined) {
-                throw new errors.BadRequest(this.id + ' borrowMargin() requires a symbol argument for isolated margin');
-            }
-            const market = this.market(symbol);
-            request['currency_pair'] = market['id'];
-            request['type'] = 'borrow';
-            response = await this.privateMarginPostUniLoans(this.extend(request, params));
-        }
-        //
-        // Cross
-        //
-        //     {
-        //         "id": "17",
-        //         "create_time": 1620381696159,
-        //         "update_time": 1620381696159,
-        //         "currency": "EOS",
-        //         "amount": "110.553635",
-        //         "text": "web",
-        //         "status": 2,
-        //         "repaid": "110.506649705159",
-        //         "repaid_interest": "0.046985294841",
-        //         "unpaid_interest": "0.0000074393366667"
-        //     }
-        //
-        // Isolated
+        const market = this.market(symbol);
+        request['currency_pair'] = market['id'];
+        request['type'] = 'borrow';
+        response = await this.privateMarginPostUniLoans(this.extend(request, params));
         //
         //     {
         //         "id": "34267567",
@@ -5891,6 +5886,42 @@ class gate extends gate$1 {
         //         "repaid": "0",
         //         "paid_interest": "0",
         //         "unpaid_interest": "0.003333333333"
+        //     }
+        //
+        return this.parseMarginLoan(response, currency);
+    }
+    async borrowCrossMargin(code, amount, params = {}) {
+        /**
+         * @method
+         * @name gate#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
+         * @param {string} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {string} symbol unified market symbol, required for isolated margin
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'currency': currency['id'].toUpperCase(),
+            'amount': this.currencyToPrecision(code, amount),
+        };
+        const response = await this.privateMarginPostCrossLoans(this.extend(request, params));
+        //
+        //     {
+        //         "id": "17",
+        //         "create_time": 1620381696159,
+        //         "update_time": 1620381696159,
+        //         "currency": "EOS",
+        //         "amount": "110.553635",
+        //         "text": "web",
+        //         "status": 2,
+        //         "repaid": "110.506649705159",
+        //         "repaid_interest": "0.046985294841",
+        //         "unpaid_interest": "0.0000074393366667"
         //     }
         //
         return this.parseMarginLoan(response, currency);
@@ -6957,6 +6988,28 @@ class gate extends gate$1 {
             'underlyingPrice': this.parseNumber(market['info']['underlying_price']),
             'info': greeks,
         };
+    }
+    async closePosition(symbol, side = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#closePositions
+         * @description closes open positions for a market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-options-order
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} side 'buy' or 'sell'
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        const request = {
+            'close': true,
+        };
+        params = this.extend(request, params);
+        if (side === undefined) {
+            side = ''; // side is not used but needs to be present, otherwise crashes in php
+        }
+        return await this.createOrder(symbol, 'market', side, 0, undefined, params);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

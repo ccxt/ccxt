@@ -1,8 +1,8 @@
 import Exchange from './abstract/bitfinex.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class bitfinex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitfinex extends Exchange {
     describe(): any;

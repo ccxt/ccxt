@@ -445,6 +445,19 @@
                     10
                 ]
             }
+        ],
+        "withdraw": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "withdraw",
+                "url": "https://api.phemex.com/phemex-withdraw/wallets/api/createWithdraw",
+                "input": [
+                  "SOL",
+                  0.03,
+                  "6CV4jDnwyiJDEmR5paeiCdia1386c15vvuwLQSScQTCK"
+                ],
+                "output": "{\"currency\":\"SOL\",\"address\":\"6CV4jDnwyiJDEmR5paeiCdia1386c15vvuwLQSScQTCK\",\"amount\":0.03,\"chainName\":\"SOL\"}"
+              }
         ]
     }
 }

@@ -1,8 +1,8 @@
 import Exchange from './abstract/probit.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class probit
- * @extends Exchange
+ * @augments Exchange
  */
 export default class probit extends Exchange {
     describe(): any;

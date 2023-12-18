@@ -214,6 +214,26 @@
                 ]
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "Spot order",
+                "method": "fetchOrder",
+                "url": "https://openapi.digifinex.com/v3/spot/order?market=spot&order_id=1699457638000",
+                "input": [
+                    "1699457638000",
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap order",
+                "method": "fetchOrder",
+                "url": "https://openapi.digifinex.com/swap/v2/trade/order_info?instrument_id=LTCUSDTPERP&order_id=1699457638000",
+                "input": [
+                    "1699457638000",
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",
@@ -274,9 +294,29 @@
                         "type": "swap"
                     }
                 ]
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://openapi.digifinex.com/v3/margin/assets",
+                "input": [
+                    {
+                        "type": "margin"
+                    }
+                ]
             }
         ],
         "fetchPositions": [
+            {
+                "description": "Fetch spot position",
+                "method": "fetchPositions",
+                "url": "https://openapi.digifinex.com/v3/margin/positions?symbol=LTC_USDT",
+                "input": [
+                    [
+                        "LTC/USDT"
+                    ]
+                ]
+            },
             {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
@@ -285,6 +325,24 @@
                     [
                         "LTC/USDT:USDT"
                     ]
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "Fetch spot position",
+                "method": "fetchPosition",
+                "url": "https://openapi.digifinex.com/v3/margin/positions?symbol=LTC_USDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch linear position",
+                "method": "fetchPosition",
+                "url": "https://openapi.digifinex.com/swap/v2/account/positions?instrument_id=LTCUSDTPERP",
+                "input": [
+                    "LTC/USDT:USDT"
                 ]
             }
         ],
@@ -336,6 +394,19 @@
                 "input": [
                     "USDT"
                 ]
+            },
+            {
+                "description": "fetch USDT ledger",
+                "method": "fetchLedger",
+                "url": "https://openapi.digifinex.com/swap/v2/account/finance_record?currency=USDT",
+                "input": [
+                    "USDT",
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ]
             }
         ],
         "fetchDepositAddress": [
@@ -364,6 +435,138 @@
                 "method": "fetchCrossBorrowRates",
                 "url": "https://openapi.digifinex.com/v3/margin/assets",
                 "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch markets",
+                "method": "fetchMarkets",
+                "url": "https://openapi.digifinex.com/swap/v2/public/instruments",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch orderbook - spot",
+                "method": "fetchOrderBook",
+                "url": "https://openapi.digifinex.com/v3/order_book?symbol=LTC_USDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch orderbook - swap",
+                "method": "fetchOrderBook",
+                "url": "https://openapi.digifinex.com/swap/v2/public/depth?instrument_id=LTCUSDTPERP",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers - spot",
+                "method": "fetchTickers",
+                "url": "https://openapi.digifinex.com/v3/ticker",
+                "input": [
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch tickers - swap",
+                "method": "fetchTickers",
+                "url": "https://openapi.digifinex.com/swap/v2/public/tickers",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker - spot",
+                "method": "fetchTicker",
+                "url": "https://openapi.digifinex.com/v3/ticker?symbol=LTC_USDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch ticker - swap",
+                "method": "fetchTicker",
+                "url": "https://openapi.digifinex.com/swap/v2/public/ticker?instrument_id=LTCUSDTPERP",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades - spot",
+                "method": "fetchTrades",
+                "url": "https://openapi.digifinex.com/v3/trades?symbol=LTC_USDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch trades - swap",
+                "method": "fetchTrades",
+                "url": "https://openapi.digifinex.com/swap/v2/public/trades?instrument_id=LTCUSDTPERP",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV - spot",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.digifinex.com/v3/kline?end_time=1699457938&period=1&start_time=1699457638&symbol=LTC_USDT",
+                "input": [
+                    "LTC/USDT",
+                    "1m",
+                    1699457638000,
+                    5
+                ]
+            },
+            {
+                "description": "Fetch OHLCV - swap",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.digifinex.com/swap/v2/public/candles?granularity=1m&instrument_id=LTCUSDTPERP&limit=5",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "1m",
+                    1699457638000,
+                    5
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order - spot",
+                "method": "cancelOrder",
+                "url": "https://openapi.digifinex.com/v3/spot/order/cancel",
+                "input": [
+                    "1699457638000",
+                    "LTC/USDT"
+                ],
+                "output": "market=spot&order_id=1699457638000"
+            },
+            {
+                "description": "cancel order - swap",
+                "method": "cancelOrder",
+                "url": "https://openapi.digifinex.com/swap/v2/trade/cancel_order",
+                "input": [
+                    "1699457638000",
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"order_id\":\"1699457638000\",\"instrument_id\":\"LTCUSDTPERP\"}"
             }
         ]
     }

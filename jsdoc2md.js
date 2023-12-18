@@ -78,8 +78,6 @@ const groupedByMethod = templateData.reduce((acc, arr) => {
 }, {});
 
 const templateDataGroupedByMethod = Object.values(groupedByMethod).sort((a, b) =>a[0].name < b[0].name ? -1 : 1)
-console.log (templateDataGroupedByMethod)
-
 
 const outputs = await Promise.all (templateDataGroupedByMethod.map (data => jsdoc2md.render ({ template, data, partial, helper})))
 

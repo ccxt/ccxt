@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bitmex
- * @extends Exchange
+ * @augments Exchange
  */
 class bitmex extends bitmex$1 {
     describe() {
@@ -38,6 +38,8 @@ class bitmex extends bitmex$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
@@ -2245,7 +2247,7 @@ class bitmex extends bitmex$1 {
         const datetime = this.safeString(position, 'timestamp');
         const crossMargin = this.safeValue(position, 'crossMargin');
         const marginMode = (crossMargin === true) ? 'cross' : 'isolated';
-        const notionalString = Precise["default"].stringAbs(this.safeString(position, 'foreignNotional', 'homeNotional'));
+        const notionalString = Precise["default"].stringAbs(this.safeString2(position, 'foreignNotional', 'homeNotional'));
         const settleCurrencyCode = this.safeString(market, 'settle');
         const maintenanceMargin = this.convertToRealAmount(settleCurrencyCode, this.safeString(position, 'maintMargin'));
         const unrealisedPnl = this.convertToRealAmount(settleCurrencyCode, this.safeString(position, 'unrealisedPnl'));
