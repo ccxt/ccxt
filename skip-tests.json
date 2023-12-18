@@ -1290,6 +1290,7 @@
         }
     },
     "phemex": {
+        "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {
                 "contractSize": "broken for some markets",
