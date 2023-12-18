@@ -194,6 +194,7 @@ class poloniex extends poloniex$1 {
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
          * @param {string} [params.timeInForce] GTC (default), IOC, FOK
          * @param {string} [params.clientOrderId] Maximum 64-character length.*
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.amount] quote units for the order
@@ -217,25 +218,29 @@ class poloniex extends poloniex$1 {
             'type': type.toUpperCase(),
         };
         if ((uppercaseType === 'MARKET') && (uppercaseSide === 'BUY')) {
-            let quoteAmount = this.safeString(params, 'amount');
-            if ((quoteAmount === undefined) && (this.options['createMarketBuyOrderRequiresPrice'])) {
-                const cost = this.safeNumber(params, 'cost');
-                params = this.omit(params, 'cost');
-                if (price === undefined && cost === undefined) {
-                    throw new errors.ArgumentsRequired(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
+            let quoteAmount = undefined;
+            let createMarketBuyOrderRequiresPrice = true;
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber(params, 'cost');
+            params = this.omit(params, 'cost');
+            if (cost !== undefined) {
+                quoteAmount = this.costToPrecision(symbol, cost);
+            }
+            else if (createMarketBuyOrderRequiresPrice) {
+                if (price === undefined) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                 }
                 else {
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
-                    const quote = Precise["default"].stringMul(amountString, priceString);
-                    amount = (cost !== undefined) ? cost : this.parseNumber(quote);
-                    quoteAmount = this.costToPrecision(symbol, amount);
+                    const costRequest = Precise["default"].stringMul(amountString, priceString);
+                    quoteAmount = this.costToPrecision(symbol, costRequest);
                 }
             }
             else {
                 quoteAmount = this.costToPrecision(symbol, amount);
             }
-            request['amount'] = this.amountToPrecision(market['symbol'], quoteAmount);
+            request['amount'] = quoteAmount;
         }
         else {
             request['quantity'] = this.amountToPrecision(market['symbol'], amount);

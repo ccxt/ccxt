@@ -625,6 +625,7 @@ export default class coinbase extends Exchange {
         /**
          * @method
          * @name coinbase#fetchMySells
+         * @ignore
          * @description fetch sells
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-sells#list-sells
          * @param {string} symbol not used by coinbase fetchMySells ()
@@ -645,6 +646,7 @@ export default class coinbase extends Exchange {
         /**
          * @method
          * @name coinbase#fetchMyBuys
+         * @ignore
          * @description fetch buys
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-buys#list-buys
          * @param {string} symbol not used by coinbase fetchMyBuys ()

@@ -46,6 +46,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closePosition': True,
+                'closePositions': False,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
@@ -2295,3 +2297,33 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
+
+    async def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+        """
+        closes open positions for a market
+        :see: https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
+        :param str symbol: Unified CCXT market symbol
+        :param str side: not used by kucoinfutures closePositions
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.clientOrderId]: client order id of the order
+        :returns [dict]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        testOrder = self.safe_value(params, 'test', False)
+        params = self.omit(params, ['test', 'clientOrderId'])
+        if clientOrderId is None:
+            clientOrderId = self.number_to_string(self.nonce())
+        request = {
+            'symbol': market['id'],
+            'closeOrder': True,
+            'clientOid': clientOrderId,
+            'type': 'market',
+        }
+        response = None
+        if testOrder:
+            response = await self.futuresPrivatePostOrdersTest(self.extend(request, params))
+        else:
+            response = await self.futuresPrivatePostOrders(self.extend(request, params))
+        return self.parse_order(response, market)

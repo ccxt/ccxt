@@ -239,6 +239,43 @@
             "output": "timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderId\":\"x-xcKtGhcub371e14dda9e4fda804421\",\"newOrderRespType\":\"RESULT\",\"type\":\"LIMIT\",\"quantity\":\"0.1\",\"price\":\"60\",\"timeInForce\":\"GTC\"},{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderId\":\"x-xcKtGhcu2b5cffec484a42138cdf8e\",\"newOrderRespType\":\"RESULT\",\"type\":\"LIMIT\",\"quantity\":\"0.11\",\"price\":\"61\",\"timeInForce\":\"GTC\"}]&recvWindow=10000&signature=ce06633e6e16101cf7b4c3fd0f6a1afa3901206050382fafae81deddc1867f92"
           }
         ],
+        "createMarketOrderWithCost": [
+          {
+            "description": "Spot create market order with cost",
+            "method": "createMarketOrderWithCost",
+            "url": "https://testnet.binance.vision/api/v3/order",
+            "input": [
+              "BTC/USDT",
+              "buy",
+              10
+            ],
+            "output": "timestamp=1702677177092&symbol=BTCUSDT&side=BUY&newClientOrderId=x-R4BD3S82bbdbdf90c28b4c2a9dd885&newOrderRespType=FULL&type=MARKET&quoteOrderQty=10&recvWindow=10000&signature=e36681dea6e4baa6049a95b440fb76eb82c7b7a1906a8595ef8a6844273e0ef2"
+          }
+        ],
+        "createMarketBuyOrderWithCost": [
+          {
+            "description": "Spot create market buy order with cost",
+            "method": "createMarketBuyOrderWithCost",
+            "url": "https://testnet.binance.vision/api/v3/order",
+            "input": [
+              "BTC/USDT",
+              15
+            ],
+            "output": "timestamp=1702677315563&symbol=BTCUSDT&side=BUY&newClientOrderId=x-R4BD3S82166697aa19d7484fb68378&newOrderRespType=FULL&type=MARKET&quoteOrderQty=15&recvWindow=10000&signature=64f817d988900608171a22a906a68da7ef58b401b8ec6514c0e141f2c262c8fa"
+          }
+        ],
+        "createMarketSellOrderWithCost": [
+          {
+            "description": "Spot create market sell order with cost",
+            "method": "createMarketSellOrderWithCost",
+            "url": "https://testnet.binance.vision/api/v3/order",
+            "input": [
+              "BTC/USDT",
+              15
+            ],
+            "output": "timestamp=1702677379657&symbol=BTCUSDT&side=SELL&newClientOrderId=x-R4BD3S82e9114f80b9124f96817cc1&newOrderRespType=FULL&type=MARKET&quoteOrderQty=15&recvWindow=10000&signature=c71dc764642f5e6b7a96d04b7d820058ec204557ec43ce64ff102d25df4423b8"
+          }
+        ],
         "cancelOrder": [
           {
             "description": "Swap cancelOrder",

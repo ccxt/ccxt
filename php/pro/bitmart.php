@@ -54,7 +54,7 @@ class bitmart extends \ccxt\async\bitmart {
                 'defaultType' => 'spot',
                 'watchBalance' => array(
                     'fetchBalanceSnapshot' => true, // or false
-                    'awaitBalanceSnapshot' => true, // whether to wait for the balance snapshot before providing updates
+                    'awaitBalanceSnapshot' => false, // whether to wait for the balance snapshot before providing updates
                 ),
                 'watchOrderBook' => array(
                     'depth' => 'depth50', // depth5, depth20, depth50
@@ -135,9 +135,11 @@ class bitmart extends \ccxt\async\bitmart {
             $messageHash = 'balance:' . $type;
             $url = $this->implode_hostname($this->urls['api']['ws'][$type]['private']);
             $client = $this->client($url);
-            $this->set_balance_cache($client, $type);
-            $fetchBalanceSnapshot = $this->handle_option_and_params($this->options, 'watchBalance', 'fetchBalanceSnapshot', true);
-            $awaitBalanceSnapshot = $this->handle_option_and_params($this->options, 'watchBalance', 'awaitBalanceSnapshot', false);
+            $this->set_balance_cache($client, $type, $messageHash);
+            $fetchBalanceSnapshot = null;
+            $awaitBalanceSnapshot = null;
+            list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($this->options, 'watchBalance', 'fetchBalanceSnapshot', true);
+            list($awaitBalanceSnapshot, $params) = $this->handle_option_and_params($this->options, 'watchBalance', 'awaitBalanceSnapshot', false);
             if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
                 Async\await($client->future ($type . ':fetchBalanceSnapshot'));
             }
@@ -145,21 +147,21 @@ class bitmart extends \ccxt\async\bitmart {
         }) ();
     }
 
-    public function set_balance_cache(Client $client, $type) {
-        if (is_array($client->subscriptions) && array_key_exists($type, $client->subscriptions)) {
-            return null;
+    public function set_balance_cache(Client $client, $type, $subscribeHash) {
+        if (is_array($client->subscriptions) && array_key_exists($subscribeHash, $client->subscriptions)) {
+            return;
         }
         $options = $this->safe_value($this->options, 'watchBalance');
-        $fetchBalanceSnapshot = $this->handle_option_and_params($options, 'watchBalance', 'fetchBalanceSnapshot', true);
-        if ($fetchBalanceSnapshot) {
-            $messageHash = $type . ':fetchBalanceSnapshot';
+        $snapshot = $this->safe_value($options, 'fetchBalanceSnapshot', true);
+        if ($snapshot) {
+            $messageHash = $type . ':' . 'fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
                 $client->future ($messageHash);
                 $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash, $type);
             }
-        } else {
-            $this->balance[$type] = array();
         }
+        $this->balance[$type] = array();
+        // without this comment, transpilation breaks for some reason...
     }
 
     public function load_balance_snapshot($client, $messageHash, $type) {
@@ -210,15 +212,15 @@ class bitmart extends \ccxt\async\bitmart {
         }
         $isSpot = (mb_strpos($channel, 'spot') !== false);
         $type = $isSpot ? 'spot' : 'swap';
-        $this->balance['info'] = $message;
+        $this->balance[$type]['info'] = $message;
         if ($isSpot) {
             if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
                 return;
             }
             for ($i = 0; $i < count($data); $i++) {
                 $timestamp = $this->safe_integer($message, 'event_time');
-                $this->balance['timestamp'] = $timestamp;
-                $this->balance['datetime'] = $this->iso8601($timestamp);
+                $this->balance[$type]['timestamp'] = $timestamp;
+                $this->balance[$type]['datetime'] = $this->iso8601($timestamp);
                 $balanceDetails = $this->safe_value($data[$i], 'balance_details', array());
                 for ($ii = 0; $ii < count($balanceDetails); $ii++) {
                     $rawBalance = $balanceDetails[$i];
@@ -226,8 +228,8 @@ class bitmart extends \ccxt\async\bitmart {
                     $currencyId = $this->safe_string($rawBalance, 'ccy');
                     $code = $this->safe_currency_code($currencyId);
                     $account['free'] = $this->safe_string($rawBalance, 'av_bal');
-                    $account['total'] = $this->safe_string($rawBalance, 'fz_bal');
-                    $this->balance[$code] = $account;
+                    $account['used'] = $this->safe_string($rawBalance, 'fz_bal');
+                    $this->balance[$type][$code] = $account;
                 }
             }
         } else {

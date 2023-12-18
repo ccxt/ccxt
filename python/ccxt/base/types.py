@@ -156,6 +156,14 @@ class Order(TypedDict):
     trades: List[Trade]
     fee: Fee
 
+class Liquidation(TypedDict):
+    info: Dict[str, Any]
+    symbol: Str
+    timestamp: Int
+    datetime: Str
+    price: Num
+    baseValue: Num
+    quoteValue: Num
 
 class FundingHistory(TypedDict):
     info: Dict[str, Any]

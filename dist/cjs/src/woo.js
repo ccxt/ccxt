@@ -37,7 +37,10 @@ class woo extends woo$1 {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
+                'createMarketBuyOrderWithCost': true,
                 'createMarketOrder': false,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': false,
@@ -739,6 +742,25 @@ class woo extends woo$1 {
         }
         return result;
     }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name woo#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://docs.woo.org/#send-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -758,9 +780,11 @@ class woo extends woo$1 {
          * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @param {float} [params.algoType] 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only');
+        params = this.omit(params, ['reduceOnly', 'reduce_only']);
         const orderType = type.toUpperCase();
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -803,26 +827,29 @@ class woo extends woo$1 {
         if (isMarket && !isStop) {
             // for market buy it requires the amount of quote currency to spend
             if (market['spot'] && orderSide === 'BUY') {
-                const cost = this.safeNumber(params, 'cost');
-                if (this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true)) {
-                    if (cost === undefined) {
-                        if (price === undefined) {
-                            throw new errors.InvalidOrder(this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or alternatively, supply the total cost value in the 'order_amount' in  exchange-specific parameters");
-                        }
-                        else {
-                            const amountString = this.numberToString(amount);
-                            const priceString = this.numberToString(price);
-                            const orderAmount = Precise["default"].stringMul(amountString, priceString);
-                            request['order_amount'] = this.costToPrecision(symbol, orderAmount);
-                        }
+                let quoteAmount = undefined;
+                let createMarketBuyOrderRequiresPrice = true;
+                [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber2(params, 'cost', 'order_amount');
+                params = this.omit(params, ['cost', 'order_amount']);
+                if (cost !== undefined) {
+                    quoteAmount = this.costToPrecision(symbol, cost);
+                }
+                else if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                     }
                     else {
-                        request['order_amount'] = this.costToPrecision(symbol, cost);
+                        const amountString = this.numberToString(amount);
+                        const priceString = this.numberToString(price);
+                        const costRequest = Precise["default"].stringMul(amountString, priceString);
+                        quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
                 }
                 else {
-                    request['order_amount'] = this.costToPrecision(symbol, amount);
+                    quoteAmount = this.costToPrecision(symbol, amount);
                 }
+                request['order_amount'] = quoteAmount;
             }
             else {
                 request['order_quantity'] = this.amountToPrecision(symbol, amount);

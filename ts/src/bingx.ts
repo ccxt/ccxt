@@ -901,14 +901,19 @@ export default class bingx extends Exchange {
         const type = (cost === undefined) ? 'spot' : 'swap';
         const currencyId = this.safeString2 (trade, 'currency', 'N');
         const currencyCode = this.safeCurrencyCode (currencyId);
-        const m = this.safeValue (trade, 'm', false);
+        const m = this.safeValue (trade, 'm');
         const marketId = this.safeString (trade, 's');
         const isBuyerMaker = this.safeValue2 (trade, 'buyerMaker', 'isBuyerMaker');
-        let takeOrMaker = (isBuyerMaker || m) ? 'maker' : 'taker';
+        let takeOrMaker = undefined;
+        if ((isBuyerMaker !== undefined) || (m !== undefined)) {
+            takeOrMaker = (isBuyerMaker || m) ? 'maker' : 'taker';
+        }
         let side = this.safeStringLower2 (trade, 'side', 'S');
         if (side === undefined) {
-            side = (isBuyerMaker || m) ? 'sell' : 'buy';
-            takeOrMaker = 'taker';
+            if ((isBuyerMaker !== undefined) || (m !== undefined)) {
+                side = (isBuyerMaker || m) ? 'sell' : 'buy';
+                takeOrMaker = 'taker';
+            }
         }
         return this.safeTrade ({
             'id': this.safeStringN (trade, [ 'id', 't' ]),
@@ -921,7 +926,7 @@ export default class bingx extends Exchange {
             'side': this.parseOrderSide (side),
             'takerOrMaker': takeOrMaker,
             'price': this.safeString2 (trade, 'price', 'p'),
-            'amount': this.safeStringN (trade, [ 'qty', 'amount', 'q' ]),
+            'amount': this.safeStringN (trade, [ 'qty', 'volume', 'amount', 'q' ]),
             'cost': cost,
             'fee': {
                 'cost': this.parseNumber (Precise.stringAbs (this.safeString2 (trade, 'commission', 'n'))),
@@ -1364,7 +1369,7 @@ export default class bingx extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
-         * @name cryptocom#fetchBalance
+         * @name bingx#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
          * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information

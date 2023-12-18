@@ -10,8 +10,8 @@ from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderTyp
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
 
@@ -194,6 +194,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param dict [params]: extra parameters specific to the poloniex api endpoint
         :param str [params.timeInForce]: GTC(default), IOC, FOK
         :param str [params.clientOrderId]: Maximum 64-character length.*
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param str [params.amount]: quote units for the order
@@ -216,21 +217,24 @@ class poloniex(ccxt.async_support.poloniex):
             'type': type.upper(),
         }
         if (uppercaseType == 'MARKET') and (uppercaseSide == 'BUY'):
-            quoteAmount = self.safe_string(params, 'amount')
-            if (quoteAmount is None) and (self.options['createMarketBuyOrderRequiresPrice']):
-                cost = self.safe_number(params, 'cost')
-                params = self.omit(params, 'cost')
-                if price is None and cost is None:
-                    raise ArgumentsRequired(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False to supply the cost in the amount argument(the exchange-specific behaviour)')
+            quoteAmount = None
+            createMarketBuyOrderRequiresPrice = True
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            cost = self.safe_number(params, 'cost')
+            params = self.omit(params, 'cost')
+            if cost is not None:
+                quoteAmount = self.cost_to_precision(symbol, cost)
+            elif createMarketBuyOrderRequiresPrice:
+                if price is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
                 else:
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
-                    quote = Precise.string_mul(amountString, priceString)
-                    amount = cost if (cost is not None) else self.parse_number(quote)
-                    quoteAmount = self.cost_to_precision(symbol, amount)
+                    costRequest = Precise.string_mul(amountString, priceString)
+                    quoteAmount = self.cost_to_precision(symbol, costRequest)
             else:
                 quoteAmount = self.cost_to_precision(symbol, amount)
-            request['amount'] = self.amount_to_precision(market['symbol'], quoteAmount)
+            request['amount'] = quoteAmount
         else:
             request['quantity'] = self.amount_to_precision(market['symbol'], amount)
             if price is not None:
