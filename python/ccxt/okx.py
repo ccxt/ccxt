@@ -856,13 +856,22 @@ class okx(Exchange):
         result = []
         for i in range(0, len(data)):
             account = data[i]
-            accountId = self.safe_string(account, 'uid')
-            type = self.safe_string(account, 'acctLv')
+            _accountId = self.safe_string(account, 'uid')
+            _type = self.safe_string(account, 'acctLv')
+            position_mode = self.safe_string(account, 'posMode')
+            role_type = self.safe_string(account, 'roleType')
+            spot_role_type = self.safe_string(account, 'spotRoleType')
+            ips = self.safe_string(account, 'ip')
+            permissions = self.safe_string(account, 'perm')
             result.append({
-                'id': accountId,
-                'type': type,
+                'id': _accountId,
+                'type': _type,
                 'currency': None,
-                'info': account,
+                'position_mode': position_mode,
+                'role_type': role_type,
+                'spot_role_type': spot_role_type,
+                'ips': ips,
+                'permissions': permissions,
             })
         return result
 
