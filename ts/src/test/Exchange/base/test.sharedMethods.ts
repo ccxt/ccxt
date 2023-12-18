@@ -295,7 +295,7 @@ function assertTimestampOrder (exchange, method, codeOrSymbol, items, ascending 
             const nextTs = items[i]['timestamp'];
             if (currentTs !== undefined && nextTs !== undefined) {
                 const comparison = ascending ? (currentTs <= nextTs) : (currentTs >= nextTs);
-                assert (comparison, exchange.id + ' ' + method + ' ' + stringValue (codeOrSymbol) + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp, but ' + currentTs.toString () + ' conflicted with ' + nextTs.toString () + ' ' + exchange.json (items));
+                assert (comparison, exchange.id + ' ' + method + ' ' + stringValue (codeOrSymbol) + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp, but ' + currentTs.toString () + ' is opposite with its next ' + nextTs.toString () + ' ' + exchange.json (items));
             }
         }
     }
