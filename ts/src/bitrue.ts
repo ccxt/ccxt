@@ -1539,14 +1539,7 @@ export default class bitrue extends Exchange {
             const first = this.safeString (symbols, 0);
             const market = this.market (first);
             if (market['swap']) {
-                request['contractName'] = market['id'];
-                if (market['linear']) {
-                    response = await this.fapiV1PublicGetTicker (this.extend (request, params));
-                } else if (market['inverse']) {
-                    response = await this.dapiV1PublicGetTicker (this.extend (request, params));
-                }
-                response['symbol'] = market['id'];
-                data = [ response ];
+                throw new NotSupported (this.id + ' fetchTickers does not support swap markets, please use fetchTicker instead');
             } else if (market['spot']) {
                 response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
                 data = response;
