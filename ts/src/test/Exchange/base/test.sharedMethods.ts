@@ -291,12 +291,11 @@ function assertTimestampOrder (exchange, method, codeOrSymbol, items, ascending 
     for (let i = 0; i < items.length; i++) {
         if (i > 0) {
             const ascendingOrDescending = ascending ? 'ascending' : 'descending';
-            const firstIndex = ascending ? i - 1 : i;
-            const secondIndex = ascending ? i : i - 1;
-            const firstTs = items[firstIndex]['timestamp'];
-            const secondTs = items[secondIndex]['timestamp'];
-            if (firstTs !== undefined && secondTs !== undefined) {
-                assert (firstTs >= secondTs, exchange.id + ' ' + method + ' ' + stringValue (codeOrSymbol) + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp, but ' + firstTs.toString () + ' was not => ' + secondTs.toString () + exchange.json (items));
+            const currentTs = items[i - 1]['timestamp'];
+            const nextTs = items[i]['timestamp'];
+            if (currentTs !== undefined && nextTs !== undefined) {
+                const comparison = ascending ? (currentTs <= nextTs) : (currentTs >= nextTs);
+                assert (comparison, exchange.id + ' ' + method + ' ' + stringValue (codeOrSymbol) + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp, but ' + currentTs.toString () + ' conflicted with ' + nextTs.toString () + ' ' + exchange.json (items));
             }
         }
     }
