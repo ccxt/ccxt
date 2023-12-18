@@ -402,15 +402,11 @@ export default class testMainClass extends baseMainTestClass {
 
     async testSafe (methodName, exchange, args = [], isPublic = false) {
         // `testSafe` method does not throw an exception, instead mutes it.
-        // The reason we mute the thrown exceptions here is because if this test is part
-        // of "runPublicTests", then we don't want to stop the whole test if any single
-        // test-method fails. For example, if "fetchOrderBook" public test fails, we still
-        // want to run "fetchTickers" and other methods. However, independently this fact,
-        // from those test-methods we still echo-out (console.log/print...) the exception
-        // messages with specific formatted message "[TEST_FAILURE] ..." and that output is
-        // then regex-parsed by run-tests.js, so the exceptions are still printed out to
-        // console from there. So, even if some public tests fail, the script will continue
-        // doing other things (testing other spot/swap or private tests ...)
+        // The reason we mute the thrown exceptions here is because we don't want 
+        // to stop the whole tests queue if any single test-method fails. Instead, they 
+        // are echoed with formatted message "[TEST_FAILURE] ..." and that output is
+        // then regex-matched by run-tests.js, so the exceptions are still printed out to
+        // console from there.
         const maxRetries = 3;
         const argsStringified = exchange.json (args); // args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
         for (let i = 0; i < maxRetries; i++) {
@@ -421,12 +417,15 @@ export default class testMainClass extends baseMainTestClass {
                 const isAuthError = (e instanceof AuthenticationError);
                 const isNotSupported = (e instanceof NotSupported);
                 const isOperationFailed = (e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
-                const tempFailure = isOperationFailed && !isExchangeNotAvailable; // we do not mute specifically "ExchangeNotAvailable" excetpion (but its subtype "OnMaintenance" can be muted)
-                if (tempFailure) {
+                if (isOperationFailed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
                         dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified);
+                        // we do not mute specifically "ExchangeNotAvailable" exception, because it might be a hint about a change in API engine (but its subtype "OnMaintenance" can be muted)
+                        const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
+                        if (isExchangeNotAvailable) {
+                            return false;
+                        }
                     } else {
                         // wait and retry again
                         await exchange.sleep (i * 1000); // increase wait seconds on every retry
@@ -497,33 +496,38 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         this.publicTests = tests;
+        await this.displayTestResults (exchange, tests, true);
+    }
+
+    async displayTestResults (exchange: any, tests: any, isPublicTest:boolean){
         const testNames = Object.keys (tests);
         const promises = [];
         for (let i = 0; i < testNames.length; i++) {
             const testName = testNames[i];
             const testArgs = tests[testName];
-            promises.push (this.testSafe (testName, exchange, testArgs, true));
+            promises.push (this.testSafe (testName, exchange, testArgs, isPublicTest));
         }
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
         const results = await Promise.all (promises);
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
+        const errors = [];
+        for (let i = 0; i < testNames.length; i++) {
+            const testName = testNames[i];
+            const testReturnedValue = results[i];
+            if (!testReturnedValue) {
+                errors.push (testName);
+            }
+        }
+        const testPrefixString = isPublicTest ? 'PUBLIC_TESTS' : 'PRIVATE_TESTS';
+        let errorsInMessage = '';
+        if (errors.length) {
+            const errorsString = errors.join (', ');
+            errorsInMessage = ' | Failed methods : ' + errorsString;
+            dump ('[TEST_FAILURE]', 'Failed ' + testPrefixString + ' tests for ' + this.exchangeHint (exchange) + errorsInMessage);
+        }
         if (this.info) {
-            const errors = [];
-            for (let i = 0; i < testNames.length; i++) {
-                if (!results[i]) {
-                    errors.push (testNames[i]);
-                }
-            }
-            // we don't throw exception for public-tests, see comments under 'testSafe' method
-            let errorsInMessage = '';
-            if (errors.length) {
-                const failedMsg = errors.join (', ');
-                errorsInMessage = ' | Failed methods : ' + failedMsg;
-            }
-            const messageContent = '[INFO:PUBLIC_TESTS_END] ' + market['type'] + errorsInMessage;
-            const messageWithPadding = this.addPadding (messageContent, 25);
-            dump (messageWithPadding, this.exchangeHint (exchange));
+            dump ( this.addPadding ('[INFO:END ' + testPrefixString + '] ' + this.exchangeHint (exchange), 25));
         }
     }
 
@@ -854,32 +858,8 @@ export default class testMainClass extends baseMainTestClass {
                 tests['fetchFundingHistory'] = [ symbol ];
             }
         }
-        const combinedPublicPrivateTests = exchange.deepExtend (this.publicTests, tests);
-        const testNames = Object.keys (combinedPublicPrivateTests);
-        const promises = [];
-        for (let i = 0; i < testNames.length; i++) {
-            const testName = testNames[i];
-            const testArgs = combinedPublicPrivateTests[testName];
-            promises.push (this.testSafe (testName, exchange, testArgs, false));
-        }
-        const results = await Promise.all (promises);
-        const errors = [];
-        for (let i = 0; i < testNames.length; i++) {
-            const testName = testNames[i];
-            const success = results[i];
-            if (!success) {
-                errors.push (testName);
-            }
-        }
-        const errorsCnt = errors.length; // PHP transpile count($errors)
-        if (errorsCnt > 0) {
-            // throw new Error ('Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
-            dump ('[TEST_FAILURE]', 'Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
-        } else {
-            if (this.info) {
-                dump (this.addPadding ('[INFO:PRIVATE_TESTS_DONE]', 25), this.exchangeHint (exchange));
-            }
-        }
+        //const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
+        await this.displayTestResults (exchange, tests, false);
     }
 
     async testProxies (exchange) {
