@@ -436,12 +436,21 @@
                 ]
             },
             {
-                "description": "Swap fetchOrder",
+                "description": "Swap linear fetchOrder",
                 "method": "fetchOrder",
                 "url": "https://testnet.binancefuture.com/fapi/v1/order?timestamp=1699384317029&symbol=LTCUSDT&orderId=652124757&recvWindow=10000&signature=9f2120e58e884131b91f4193a94ea17a18ef4f3195b3e6f388d5f5e14e797414",
                 "input": [
                     652124757,
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap inverse fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://testnet.binancefuture.com/dapi/v1/order?timestamp=1699384317029&symbol=BTCUSD_PERP&orderId=652124757&recvWindow=10000&signature=9f2120e58e884131b91f4193a94ea17a18ef4f3195b3e6f388d5f5e14e797414",
+                "input": [
+                    652124757,
+                    "BTC/USD:BTC"
                 ]
             }
         ],
