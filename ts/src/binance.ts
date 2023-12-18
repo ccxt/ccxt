@@ -7870,19 +7870,19 @@ export default class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method: string;
-        if (market['linear']) {
-            method = 'fapiPrivatePostLeverage';
-        } else if (market['inverse']) {
-            method = 'dapiPrivatePostLeverage';
-        } else {
-            throw new NotSupported (this.id + ' setLeverage() supports linear and inverse contracts only');
-        }
         const request = {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['linear']) {
+            response = await this.fapiPrivatePostLeverage (this.extend (request, params));
+        } else if (market['inverse']) {
+            response = await this.dapiPrivatePostLeverage (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' setLeverage() supports linear and inverse contracts only');
+        }
+        return response;
     }
 
     async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
