@@ -217,7 +217,14 @@ const testExchange = async (exchange) => {
         return [];
     }
 
-    if (skipSettings[exchange] && skipSettings[exchange].skip) {
+    if (
+        skipSettings[exchange] && 
+        (
+            (skipSettings[exchange].skip && !wsFlag)
+                ||
+            (skipSettings[exchange].skipWs && wsFlag)
+        ) 
+    ) {
         if (!('until' in skipSettings[exchange])) {
             // if until not specified, skip forever
             numExchangesTested++;
