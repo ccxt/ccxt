@@ -858,7 +858,7 @@ export default class testMainClass extends baseMainTestClass {
                 tests['fetchFundingHistory'] = [ symbol ];
             }
         }
-        //const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
+        // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
         await this.displayTestResults (exchange, tests, false);
     }
 
