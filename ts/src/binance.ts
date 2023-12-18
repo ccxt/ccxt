@@ -7392,15 +7392,14 @@ export default class binance extends Exchange {
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, query, 'linear');
-        let method = undefined;
+        let response = undefined;
         if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateGetLeverageBracket';
+            response = await this.fapiPrivateGetLeverageBracket (query);
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPrivateV2GetLeverageBracket';
+            response = await this.dapiPrivateV2GetLeverageBracket (query);
         } else {
             throw new NotSupported (this.id + ' fetchLeverageTiers() supports linear and inverse contracts only');
         }
-        const response = await this[method] (query);
         //
         // usdm
         //
