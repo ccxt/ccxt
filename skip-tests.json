@@ -226,6 +226,9 @@
                 "ask":"broken bid-ask",
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "watchTrades": {
+                "timestamp": "ts order is reverted (descending)"
             }
         }
     },
