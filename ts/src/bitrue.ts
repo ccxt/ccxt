@@ -1548,7 +1548,6 @@ export default class bitrue extends Exchange {
                 response['symbol'] = market['id'];
                 data = [ response ];
             } else if (market['spot']) {
-                request['symbol'] = market['id'];
                 response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
                 data = response;
             } else {
@@ -1557,7 +1556,7 @@ export default class bitrue extends Exchange {
         } else {
             [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
             if (type !== 'spot') {
-                throw new NotSupported (this.id + ' fetchTickers only support spot when symbols is not set');
+                throw new NotSupported (this.id + ' fetchTickers only support spot when symbols are not proved');
             }
             response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
             data = response;
