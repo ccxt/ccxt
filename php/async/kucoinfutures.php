@@ -37,6 +37,8 @@ class kucoinfutures extends kucoin {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closePosition' => true,
+                'closePositions' => false,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
@@ -2439,5 +2441,40 @@ class kucoinfutures extends kucoin {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
+    }
+
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $side, $params) {
+            /**
+             * closes open positions for a $market
+             * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
+             * @param {string} $symbol Unified CCXT $market $symbol
+             * @param {string} $side not used by kucoinfutures closePositions
+             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {string} [$params->clientOrderId] client order id of the order
+             * @return {[array]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            $testOrder = $this->safe_value($params, 'test', false);
+            $params = $this->omit($params, array( 'test', 'clientOrderId' ));
+            if ($clientOrderId === null) {
+                $clientOrderId = $this->number_to_string($this->nonce());
+            }
+            $request = array(
+                'symbol' => $market['id'],
+                'closeOrder' => true,
+                'clientOid' => $clientOrderId,
+                'type' => 'market',
+            );
+            $response = null;
+            if ($testOrder) {
+                $response = Async\await($this->futuresPrivatePostOrdersTest (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->futuresPrivatePostOrders (array_merge($request, $params)));
+            }
+            return $this->parse_order($response, $market);
+        }) ();
     }
 }

@@ -7,7 +7,7 @@ import ccxt from '../../js/ccxt.js';
 
 async function example_proxyUrl () {
     const myEx = new ccxt.kucoin ();
-    myEx.proxyUrl = 'http://5.75.153.75:8090/proxy.php?url=';
+    myEx.proxyUrl = 'http://5.75.153.75:8090/proxy_url.php?caller=https://ccxt.com&url=';
     console.log (await myEx.fetch ('https://api.ipify.org/'));
 }
 

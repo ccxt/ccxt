@@ -296,6 +296,7 @@ class gemini extends Exchange {
 
     public function fetch_currencies_from_web($params = array ()) {
         /**
+         * @ignore
          * fetches all available currencies on an exchange
          * @param {array} [$params] extra parameters specific to the endpoint
          * @return {array} an associative dictionary of currencies

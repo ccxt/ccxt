@@ -18,6 +18,31 @@
                 "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_price=50&order_quantity=0.1&order_type=LIMIT&side=BUY&symbol=SPOT_LTC_USDT"
             },
             {
+                "description": "spot market buy",
+                "method": "createOrder",
+                "url": "https://api.woo.org/v1/order",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  10,
+                  1
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=10&order_price=1&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
+            },
+            {
+                "description": "spot market sell",
+                "method": "createOrder",
+                "url": "https://api.woo.org/v1/order",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0.1
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_quantity=0.1&order_type=MARKET&side=SELL&symbol=SPOT_LTC_USDT"
+            },
+            {
                 "description": "swap market buy",
                 "method": "createOrder",
                 "url": "https://api.woo.org/v1/order",
@@ -28,6 +53,34 @@
                     0.1
                 ],
                 "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_quantity=0.1&order_type=MARKET&side=BUY&symbol=PERP_LTC_USDT"
+            },
+            {
+                "description": "Swap market sell with reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.woo.org/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.1,
+                  null,
+                  {
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_quantity=0.1&order_type=MARKET&reduce_only=true&side=SELL&symbol=PERP_LTC_USDT"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "spot market buy with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.woo.org/v1/order",
+                "input": [
+                  "LTC/USDT",
+                  5
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=5&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
             }
         ],
         "fetchOrders": [

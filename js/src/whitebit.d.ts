@@ -1,8 +1,8 @@
 import Exchange from './abstract/whitebit.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class whitebit
- * @extends Exchange
+ * @augments Exchange
  */
 export default class whitebit extends Exchange {
     describe(): any;

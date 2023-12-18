@@ -524,9 +524,14 @@ class digifinex extends Exchange {
     public function fetch_markets_v2($params = array ()) {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchMarketsV2', $params);
-        $method = ($marginMode !== null) ? 'publicSpotGetMarginSymbols' : 'publicSpotGetTradesSymbols';
-        $promises = [ $this->$method ($query), $this->publicSwapGetPublicInstruments ($params) ];
-        $promises = $promises;
+        $promisesRaw = array();
+        if ($marginMode !== null) {
+            $promisesRaw[] = $this->publicSpotGetMarginSymbols ($query);
+        } else {
+            $promisesRaw[] = $this->publicSpotGetTradesSymbols ($query);
+        }
+        $promisesRaw[] = $this->publicSwapGetPublicInstruments ($params);
+        $promises = $promisesRaw;
         $spotMarkets = $promises[0];
         $swapMarkets = $promises[1];
         //
@@ -805,17 +810,18 @@ class digifinex extends Exchange {
         $this->load_markets();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotGetSpotAssets',
-            'margin' => 'privateSpotGetMarginAssets',
-            'swap' => 'privateSwapGetAccountBalance',
-        ));
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
-        if ($marginMode !== null) {
-            $method = 'privateSpotGetMarginAssets';
+        $response = null;
+        if ($marginMode !== null || $marketType === 'margin') {
             $marketType = 'margin';
+            $response = $this->privateSpotGetMarginAssets ($query);
+        } elseif ($marketType === 'spot') {
+            $response = $this->privateSpotGetSpotAssets ($query);
+        } elseif ($marketType === 'swap') {
+            $response = $this->privateSwapGetAccountBalance ($query);
+        } else {
+            throw new NotSupported($this->id . ' fetchBalance() not support this market type');
         }
-        $response = $this->$method ($query);
         //
         // spot and margin
         //
@@ -871,18 +877,17 @@ class digifinex extends Exchange {
         $market = $this->market($symbol);
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
         $request = array();
-        $method = null;
-        if ($marketType === 'swap') {
-            $method = 'publicSwapGetPublicDepth';
-            $request['instrument_id'] = $market['id'];
-        } else {
-            $method = 'publicSpotGetOrderBook';
-            $request['symbol'] = $market['id'];
-        }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if ($marketType === 'swap') {
+            $request['instrument_id'] = $market['id'];
+            $response = $this->publicSwapGetPublicDepth (array_merge($request, $query));
+        } else {
+            $request['symbol'] = $market['id'];
+            $response = $this->publicSpotGetOrderBook (array_merge($request, $query));
+        }
         //
         // spot
         //
@@ -951,12 +956,13 @@ class digifinex extends Exchange {
         }
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-        $method = 'publicSpotGetTicker';
         $request = array();
+        $response = null;
         if ($type === 'swap') {
-            $method = 'publicSwapGetPublicTickers';
+            $response = $this->publicSwapGetPublicTickers (array_merge($request, $params));
+        } else {
+            $response = $this->publicSpotGetTicker (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         // spot
         //
@@ -1030,15 +1036,15 @@ class digifinex extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $method = 'publicSpotGetTicker';
         $request = array();
+        $response = null;
         if ($market['swap']) {
-            $method = 'publicSwapGetPublicTicker';
             $request['instrument_id'] = $market['id'];
+            $response = $this->publicSwapGetPublicTicker (array_merge($request, $params));
         } else {
             $request['symbol'] = $market['id'];
+            $response = $this->publicSpotGetTicker (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         // spot
         //
@@ -1359,18 +1365,18 @@ class digifinex extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $method = 'publicSpotGetTrades';
         $request = array();
-        if ($market['swap']) {
-            $method = 'publicSwapGetPublicTrades';
-            $request['instrument_id'] = $market['id'];
-        } else {
-            $request['symbol'] = $market['id'];
-        }
         if ($limit !== null) {
             $request['limit'] = $market['swap'] ? min ($limit, 100) : $limit;
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($market['swap']) {
+            $request['instrument_id'] = $market['id'];
+            $response = $this->publicSwapGetPublicTrades (array_merge($request, $params));
+        } else {
+            $request['symbol'] = $market['id'];
+            $response = $this->publicSpotGetTrades (array_merge($request, $params));
+        }
         //
         // spot
         //
@@ -1462,15 +1468,15 @@ class digifinex extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $method = 'publicSpotGetKline';
         $request = array();
+        $response = null;
         if ($market['swap']) {
-            $method = 'publicSwapGetPublicCandles';
             $request['instrument_id'] = $market['id'];
             $request['granularity'] = $timeframe;
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
+            $response = $this->publicSwapGetPublicCandles (array_merge($request, $params));
         } else {
             $request['symbol'] = $market['id'];
             $request['period'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -1486,8 +1492,8 @@ class digifinex extends Exchange {
                 $duration = $this->parse_timeframe($timeframe);
                 $request['start_time'] = $this->sum($endTime, -$limit * $duration);
             }
+            $response = $this->publicSpotGetKline (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         // spot
         //
@@ -1587,7 +1593,7 @@ class digifinex extends Exchange {
          * create a list of trade $orders (all $orders should be of the same $symbol)
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-multiple-order
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchorder
-         * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -1812,19 +1818,9 @@ class digifinex extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
+        $id = (string) $id;
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotPostSpotOrderCancel',
-            'margin' => 'privateSpotPostMarginOrderCancel',
-            'swap' => 'privateSwapPostTradeCancelOrder',
-        ));
-        list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrder', $params);
-        if ($marginMode !== null) {
-            $method = 'privateSpotPostMarginOrderCancel';
-            $marketType = 'margin';
-        }
-        $id = (string) $id;
         $request = array(
             'order_id' => $id,
         );
@@ -1836,7 +1832,18 @@ class digifinex extends Exchange {
         } else {
             $request['market'] = $marketType;
         }
-        $response = $this->$method (array_merge($request, $query));
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrder', $params);
+        $response = null;
+        if ($marginMode !== null || $marketType === 'margin') {
+            $marketType = 'margin';
+            $response = $this->privateSpotPostMarginOrderCancel (array_merge($request, $query));
+        } elseif ($marketType === 'spot') {
+            $response = $this->privateSpotPostSpotOrderCancel (array_merge($request, $query));
+        } elseif ($marketType === 'swap') {
+            $response = $this->privateSwapPostTradeCancelOrder (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' cancelOrder() not support this $market type');
+        }
         //
         // spot and margin
         //
@@ -2075,16 +2082,7 @@ class digifinex extends Exchange {
         }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotGetSpotOrderCurrent',
-            'margin' => 'privateSpotGetMarginOrderCurrent',
-            'swap' => 'privateSwapGetTradeOpenOrders',
-        ));
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
-        if ($marginMode !== null) {
-            $method = 'privateSpotGetMarginOrderCurrent';
-            $marketType = 'margin';
-        }
         $request = array();
         $swap = ($marketType === 'swap');
         if ($swap) {
@@ -2101,7 +2099,17 @@ class digifinex extends Exchange {
             $marketIdRequest = $swap ? 'instrument_id' : 'symbol';
             $request[$marketIdRequest] = $market['id'];
         }
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if ($marginMode !== null || $marketType === 'margin') {
+            $marketType = 'margin';
+            $response = $this->privateSpotGetMarginOrderCurrent (array_merge($request, $query));
+        } elseif ($marketType === 'spot') {
+            $response = $this->privateSpotGetSpotOrderCurrent (array_merge($request, $query));
+        } elseif ($marketType === 'swap') {
+            $response = $this->privateSwapGetTradeOpenOrders (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' fetchOpenOrders() not support this $market type');
+        }
         //
         // spot and margin
         //
@@ -2175,16 +2183,7 @@ class digifinex extends Exchange {
         }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotGetSpotOrderHistory',
-            'margin' => 'privateSpotGetMarginOrderHistory',
-            'swap' => 'privateSwapGetTradeHistoryOrders',
-        ));
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrders', $params);
-        if ($marginMode !== null) {
-            $method = 'privateSpotGetMarginOrderHistory';
-            $marketType = 'margin';
-        }
         $request = array();
         if ($marketType === 'swap') {
             if ($since !== null) {
@@ -2203,7 +2202,17 @@ class digifinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if ($marginMode !== null || $marketType === 'margin') {
+            $marketType = 'margin';
+            $response = $this->privateSpotGetMarginOrderHistory (array_merge($request, $query));
+        } elseif ($marketType === 'spot') {
+            $response = $this->privateSpotGetSpotOrderHistory (array_merge($request, $query));
+        } elseif ($marketType === 'swap') {
+            $response = $this->privateSwapGetTradeHistoryOrders (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' fetchOrders() not support this $market type');
+        }
         //
         // spot and margin
         //
@@ -2276,16 +2285,7 @@ class digifinex extends Exchange {
         }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotGetSpotOrder',
-            'margin' => 'privateSpotGetMarginOrder',
-            'swap' => 'privateSwapGetTradeOrderInfo',
-        ));
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrder', $params);
-        if ($marginMode !== null) {
-            $method = 'privateSpotGetMarginOrder';
-            $marketType = 'margin';
-        }
         $request = array(
             'order_id' => $id,
         );
@@ -2296,7 +2296,17 @@ class digifinex extends Exchange {
         } else {
             $request['market'] = $marketType;
         }
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if (($marginMode !== null) || ($marketType === 'margin')) {
+            $marketType = 'margin';
+            $response = $this->privateSpotGetMarginOrder (array_merge($request, $query));
+        } elseif ($marketType === 'spot') {
+            $response = $this->privateSpotGetSpotOrder (array_merge($request, $query));
+        } elseif ($marketType === 'swap') {
+            $response = $this->privateSwapGetTradeOrderInfo (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' fetchOrder() not support this $market type');
+        }
         //
         // spot and margin
         //
@@ -2372,16 +2382,7 @@ class digifinex extends Exchange {
         }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotGetSpotMytrades',
-            'margin' => 'privateSpotGetMarginMytrades',
-            'swap' => 'privateSwapGetTradeHistoryTrades',
-        ));
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
-        if ($marginMode !== null) {
-            $method = 'privateSpotGetMarginMytrades';
-            $marketType = 'margin';
-        }
         if ($marketType === 'swap') {
             if ($since !== null) {
                 $request['start_timestamp'] = $since;
@@ -2399,7 +2400,17 @@ class digifinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if ($marginMode !== null || $marketType === 'margin') {
+            $marketType = 'margin';
+            $response = $this->privateSpotGetMarginMytrades (array_merge($request, $query));
+        } elseif ($marketType === 'spot') {
+            $response = $this->privateSpotGetSpotMytrades (array_merge($request, $query));
+        } elseif ($marketType === 'swap') {
+            $response = $this->privateSwapGetTradeHistoryTrades (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' fetchMyTrades() not support this $market type');
+        }
         //
         // spot and margin
         //
@@ -2518,16 +2529,7 @@ class digifinex extends Exchange {
         $request = array();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotGetSpotFinancelog',
-            'margin' => 'privateSpotGetMarginFinancelog',
-            'swap' => 'privateSwapGetAccountFinanceRecord',
-        ));
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchLedger', $params);
-        if ($marginMode !== null) {
-            $method = 'privateSpotGetMarginFinancelog';
-            $marketType = 'margin';
-        }
         if ($marketType === 'swap') {
             if ($since !== null) {
                 $request['start_timestamp'] = $since;
@@ -2547,7 +2549,17 @@ class digifinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if ($marginMode !== null || $marketType === 'margin') {
+            $marketType = 'margin';
+            $response = $this->privateSpotGetMarginFinancelog (array_merge($request, $query));
+        } elseif ($marketType === 'spot') {
+            $response = $this->privateSpotGetSpotFinancelog (array_merge($request, $query));
+        } elseif ($marketType === 'swap') {
+            $response = $this->privateSwapGetAccountFinanceRecord (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' fetchLedger() not support this market type');
+        }
         //
         // spot and margin
         //
@@ -2664,8 +2676,12 @@ class digifinex extends Exchange {
         if ($limit !== null) {
             $request['size'] = min (500, $limit);
         }
-        $method = ($type === 'deposit') ? 'privateSpotGetDepositHistory' : 'privateSpotGetWithdrawHistory';
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($type === 'deposit') {
+            $response = $this->privateSpotGetDepositHistory (array_merge($request, $params));
+        } else {
+            $response = $this->privateSpotGetWithdrawHistory (array_merge($request, $params));
+        }
         //
         //     {
         //         "code" => 200,
@@ -3297,12 +3313,14 @@ class digifinex extends Exchange {
             $marketIdRequest = ($marketType === 'swap') ? 'instrument_id' : 'symbol';
             $request[$marketIdRequest] = $market['id'];
         }
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotGetMarginPositions',
-            'margin' => 'privateSpotGetMarginPositions',
-            'swap' => 'privateSwapGetAccountPositions',
-        ));
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if ($marketType === 'spot' || $marketType === 'margin') {
+            $response = $this->privateSpotGetMarginPositions (array_merge($request, $query));
+        } elseif ($marketType === 'swap') {
+            $response = $this->privateSwapGetAccountPositions (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' fetchPositions() not support this $market type');
+        }
         //
         // swap
         //
@@ -3383,14 +3401,16 @@ class digifinex extends Exchange {
         if ($marginMode !== null) {
             $marketType = 'margin';
         }
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotGetMarginPositions',
-            'margin' => 'privateSpotGetMarginPositions',
-            'swap' => 'privateSwapGetAccountPositions',
-        ));
         $marketIdRequest = ($marketType === 'swap') ? 'instrument_id' : 'symbol';
         $request[$marketIdRequest] = $market['id'];
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if ($marketType === 'spot' || $marketType === 'margin') {
+            $response = $this->privateSpotGetMarginPositions (array_merge($request, $query));
+        } elseif ($marketType === 'swap') {
+            $response = $this->privateSwapGetAccountPositions (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' fetchPosition() not support this $market type');
+        }
         //
         // swap
         //
@@ -3827,7 +3847,7 @@ class digifinex extends Exchange {
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} the $marginMode in lowercase
+         * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);

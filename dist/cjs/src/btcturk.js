@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class btcturk
- * @extends Exchange
+ * @augments Exchange
  */
 class btcturk extends btcturk$1 {
     describe() {

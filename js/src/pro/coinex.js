@@ -409,7 +409,8 @@ export default class coinex extends coinexRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        return await this.watchTickers([symbol], params);
+        const tickers = await this.watchTickers([symbol], params);
+        return this.safeValue(tickers, symbol);
     }
     async watchTickers(symbols = undefined, params = {}) {
         /**
