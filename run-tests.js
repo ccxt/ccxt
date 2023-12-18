@@ -115,9 +115,9 @@ const exec = (bin, ...args) => {
 
         psSpawn.on ('exit', code => {
             // keep this commented code for a while (just in case), as the below avoids vscode false positive warnings from output: https://github.com/nodejs/node/issues/34799 during debugging
-            // const removeDebuger = (str) => str.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
-            // stderr = removeDebuger(stderr);
-            // output = removeDebuger(output);
+            const removeDebuger = (str) => str.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
+            stderr = removeDebuger(stderr);
+            output = removeDebuger(output);
 
             output = ansi.strip (output.trim ())
 
@@ -308,13 +308,16 @@ const testExchange = async (exchange) => {
     log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, logMessage)
 
     // independenly of the success result, show infos
-    if (debugKeys['--info'] && infos.length) {
-        // show info if enabled
-        log.indent (1).bright ((
-            '\n|-------------- INFO --------------|\n' +
-            infos.join('\n') +
-            '\n|--------------------------------------------|\n'
-        ).blue);
+    const displayInfos = false; // temporarily disable from run-tests, because they are still outputed in console from individual langs
+    if (displayInfos) {
+        if (debugKeys['--info'] && infos.length) {
+            // show info if enabled
+            log.indent (1).bright ((
+                '\n|-------------- INFO --------------|\n' +
+                infos.join('\n') +
+                '\n|--------------------------------------------|\n'
+            ).blue);
+        }
     }
 /*  Return collected data to main loop     */
 
@@ -334,7 +337,7 @@ const testExchange = async (exchange) => {
                 if (warnings.length) {
                     log.bright ('\nWARN'.yellow.inverse,     exchange.yellow, '(' + language + ' ' + wsFlag + '):\n')
                 }
-                log.indent (1) (output)
+                log.indent (1) ('\n', output)
             }
         }
     }

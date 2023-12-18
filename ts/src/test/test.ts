@@ -362,7 +362,7 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         // todo: temporary skip for py
-        if (methodName.indexOf ('proxies') >= 0 && this.ext === 'py' && !this.async) {
+        if (methodName.indexOf ('proxies') >= 0 && this.ext === 'py' && !this.isAsync) {
             return;
         }
         const isLoadMarkets = (methodName === 'loadMarkets');
