@@ -906,6 +906,24 @@
                     "BTC/USD:BTC"
                 ]
             }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch Funding Rate History - linear",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch Funding Rate History - inverse",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.binance.com/dapi/v1/fundingRate?symbol=BTCUSD_PERP",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
         ]
     }
 }
