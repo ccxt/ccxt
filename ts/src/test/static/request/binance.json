@@ -296,11 +296,19 @@
                 ]
             },
             {
-                "description": "Swap cancelAllOrders",
+                "description": "Swap linear cancelAllOrders",
                 "method": "cancelAllOrders",
                 "url": "https://testnet.binancefuture.com/fapi/v1/allOpenOrders?timestamp=1699384154326&symbol=LTCUSDT&recvWindow=10000&signature=6be9641d53bd8e041581dbbe9f9a10576253d6d661a755ccbced131b8dc3e56d",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap inverse cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://testnet.binancefuture.com/dapi/v1/allOpenOrders?timestamp=1699384154326&symbol=BTCUSD_PERP&recvWindow=10000&signature=6be9641d53bd8e041581dbbe9f9a10576253d6d661a755ccbced131b8dc3e56d",
+                "input": [
+                    "BTC/USD:BTC"
                 ]
             }
         ],
