@@ -1038,6 +1038,34 @@
                     "BTC/USD:BTC"
                 ]
             }
+        ],
+        "setPositionMode": [
+            {
+                "description": "Swap linear setPositionMode",
+                "method": "setPositionMode",
+                "url": "https://testnet.binancefuture.com/fapi/v1/positionSide/dual",
+                "input": [
+                    true,
+                    null,
+                    {
+                        "subType": "linear"
+                    }
+                ],
+                "output": "timestamp=1699440965441&dualSidePosition=true&recvWindow=10000&signature=500407a2dd13c20e6cef1a884fd1982fe494f2436761cd8c73c6de1aeeaf2a70"
+            },
+            {
+                "description": "Swap inverse setPositionMode",
+                "method": "setPositionMode",
+                "url": "https://fapi.binance.com/dapi/v1/positionSide/dual",
+                "input": [
+                    true,
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ],
+                "output": "timestamp=1699441011001&dualSidePosition=true&recvWindow=10000&signature=f932a4e8dd21ce1dcea84d8ab2fd9451c31b77c710d1adb9c51f54adc520cd90"
+            }
         ]
     }
 }
