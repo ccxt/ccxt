@@ -19,6 +19,7 @@
         "skip": "private endpoints"
     },
     "ascendex": {
+        "skipWs": "unknown https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2416",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -56,6 +57,9 @@
             "fetchCurrencies": {
                 "precision": "not provided in public api",
                 "networks": "not yet unified"
+            },
+            "watchTicker": {
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
             }
         }
     },
@@ -73,7 +77,10 @@
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
-            "fetchStatus": "private endpoints"
+            "fetchStatus": "private endpoints",
+            "watchTicker": {
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
+            }
         }
     },
     "binancecoinm": {
@@ -90,6 +97,9 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "watchTicker": {
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
             }
         }
     },
@@ -114,7 +124,10 @@
                 "code": "not provided",
                 "referenceId": "not provided"
             },
-            "fetchBalance": "tmp skip"
+            "fetchBalance": "tmp skip",
+            "watchTicker": {
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
+            }
         }
     },
     "bit2c": {
@@ -166,6 +179,9 @@
                 "symbol": "something broken with symbol",
                 "ask": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262965121#L3179",
                 "bid": "same"
+            },
+            "watchOrderBook":{
+                "symbol": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L3846"
             }
         }
     },
