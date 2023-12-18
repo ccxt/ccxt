@@ -1369,7 +1369,7 @@ export default class bingx extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
-         * @name cryptocom#fetchBalance
+         * @name bingx#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
          * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
