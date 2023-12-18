@@ -59,13 +59,25 @@ class BaseCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, 
         return lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $input))));
     }
 
-    // tmp support for type bcz of transpiler snake_case
-    public function __call($name, $arguments)
-    {
-        $camelCased = $this->convert_from_snake_to_camel_case($name);
-        if (method_exists($this, $camelCased)) {
-            return call_user_func_array(array($this, $camelCased), $arguments);
-        }
-        trigger_error('Call to undefined method '.__CLASS__.'::'.$name.'()', E_USER_ERROR);
+
+    // temporary we add explicit methods below instead of magic caller
+    //
+    // public function __call($name, $arguments)
+    // {
+    //     $camelCased = $this->convert_from_snake_to_camel_case($name);
+    //     if (method_exists($this, $camelCased)) {
+    //         return call_user_func_array(array($this, $camelCased), $arguments);
+    //     }
+    //     trigger_error('Call to undefined method '.__CLASS__.'::'.$name.'()', E_USER_ERROR);
+    // }
+
+    
+    // meant to be overriden
+    public function getLimit($symbol, $limit) {
+    }
+
+    // support transpiled snake_case calls
+    public function get_limit($symbol, $limit) {
+        return $this->getLimit($symbol, $limit);
     }
 }
