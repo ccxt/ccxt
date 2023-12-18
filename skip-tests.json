@@ -18,7 +18,7 @@
     },
     "alpaca": {
         "skip": "private endpoints",
-        "skipWs": true
+        "skipWs": "private endpoints"
     },
     "ascendex": {
         "skipWs": "unknown https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2416",
@@ -632,7 +632,7 @@
         }
     },
     "coinbase": {
-        "skipWs": true,
+        "skipWs": "needs auth",
         "skip": "private endpoints",
         "skipMethods": {
             "fetchCurrencies": {
@@ -642,7 +642,7 @@
         }
     },
     "coinbasepro": {
-        "skipWs": true,
+        "skipWs": "needs auth",
         "skipMethods": {
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
@@ -976,6 +976,7 @@
         }
     },
     "hollaex": {
+        "skipWs": "temp",
         "skipMethods": {
             "watchOrderBook": {
                 "nonce": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4957"
@@ -1166,6 +1167,7 @@
         }
     },
     "luno": {
+        "skipWs": "temp",
         "skipMethods": {
             "fetchOrderBook": "bid should be greater than next bid",
             "fetchL2OrderBook": "same"
@@ -1330,6 +1332,7 @@
         }
     },
     "okcoin": {
+        "skipWs": "temp",
         "skipMethods": {
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -1445,7 +1448,10 @@
                 "deposit": "undefined"
             },
             "fetchTickers": "timeouts this call specifically",
-            "fetchTicker": "timeouts this call specifically"
+            "fetchTicker": "timeouts this call specifically",
+            "watchTrades": {
+                "timestamp": "inversed order"
+            }
         },
         "timeout": 120000
     },
@@ -1571,7 +1577,7 @@
         }
     },
     "bingx": {
-        "skipWs": true,
+        "skipWs": "broken symbols returned",
         "skipMethods": {
             "loadMarkets": {
                 "taker": "is undefined",
