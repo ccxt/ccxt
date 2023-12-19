@@ -150,11 +150,12 @@ export default class bitteam extends Exchange {
                         'trade/api/orderbooks/{symbol}': 1, // not unified
                         'trade/api/orders': 1, // not unified
                         'trade/api/pair/{name}': 1,
-                        'trade/api/pairs': 1,
+                        'trade/api/pairs': 1, // not unified
                         'trade/api/pairs/precisions': 1, // not unified
                         'trade/api/rates': 1, // not unified
                         'trade/api/trade/{id}': 1, // not unified
                         'trade/api/trades': 1, // not unified
+                        'trade/api/ccxt/pairs': 1,
                         'trade/api/cmc/assets': 1,
                         'trade/api/cmc/orderbook/{pair}': 1,
                         'trade/api/cmc/summary': 1,
@@ -244,11 +245,11 @@ export default class bitteam extends Exchange {
          * @method
          * @name bitteam#fetchMarkets
          * @description retrieves data on all markets for bitteam
-         * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairs
+         * @see https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetTradeApiPairs (params);
+        const response = await this.publicGetTradeApiCcxtPairs (params);
         //
         //     {
         //         "ok": true,
@@ -341,23 +342,24 @@ export default class bitteam extends Exchange {
     }
 
     parseMarket (market): Market {
-        const id = this.safeString (market, 'name');
-        const numericId = this.safeInteger (market, 'id');
+        const matketInfo = this.safeValue (market, 'dataValues', {});
+        const id = this.safeString (matketInfo, 'name');
+        const numericId = this.safeInteger (matketInfo, 'id');
         const parts = id.split ('_');
         const baseId = this.safeString (parts, 0);
         const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const active = this.safeValue (market, 'active');
-        const amountPrecision = this.safeInteger (market, 'baseStep');
-        const pricePrecision = this.safeInteger (market, 'quoteStep');
-        const timeStart = this.safeString (market, 'timeStart');
+        const amountPrecision = this.safeInteger (matketInfo, 'baseStep');
+        const pricePrecision = this.safeInteger (matketInfo, 'quoteStep');
+        const timeStart = this.safeString (matketInfo, 'timeStart');
         const created = this.parse8601 (timeStart);
         let minCost = undefined;
         const currenciesValuedInUsd = this.safeValue (this.options, 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeValue (currenciesValuedInUsd, quote, false);
         if (quoteInUsd) {
-            const settings = this.safeValue (market, 'settings', {});
+            const settings = this.safeValue (matketInfo, 'settings', {});
             minCost = this.safeNumber (settings, 'limit_usd');
         }
         return this.safeMarketStructure ({
