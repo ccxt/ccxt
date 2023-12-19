@@ -461,6 +461,25 @@
         ],
         "fetchClosedOrders": [
             {
+              "description": "spot closed orders without symbol",
+              "method": "fetchClosedOrders",
+              "url": "https://api.bitget.com/api/v2/spot/trade/history-orders",
+              "input": []
+            },
+            {
+              "description": "swap closed orders without symbol",
+              "method": "fetchClosedOrders",
+              "url": "https://api.bitget.com/api/v2/mix/order/orders-history?productType=USDT-FUTURES",
+              "input": [
+                null,
+                null,
+                null,
+                {
+                  "type": "swap"
+                }
+              ]
+            },
+            {
                 "description": "Spot closed orders",
                 "method": "fetchClosedOrders",
                 "url": "https://api.bitget.com/api/v2/spot/trade/history-orders?symbol=BTCUSDT",
@@ -476,6 +495,43 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchCanceledOrders": [
+          {
+            "description": "spot canceled orders",
+            "method": "fetchCanceledOrders",
+            "url": "https://api.bitget.com/api/v2/spot/trade/history-orders",
+            "input": []
+          },
+          {
+            "description": "Swap canceled orders without symbol",
+            "method": "fetchCanceledOrders",
+            "url": "https://api.bitget.com/api/v2/mix/order/orders-history?productType=USDT-FUTURES",
+            "input": [
+              null,
+              null,
+              null,
+              {
+                "type": "swap"
+              }
+            ]
+          },
+          {
+            "description": "spot canceled orders with symbol",
+            "method": "fetchCanceledOrders",
+            "url": "https://api.bitget.com/api/v2/spot/trade/history-orders?symbol=LTCUSDT",
+            "input": [
+              "LTC/USDT"
+            ]
+          },
+          {
+            "description": "swap canceled orders with symbol",
+            "method": "fetchCanceledOrders",
+            "url": "https://api.bitget.com/api/v2/mix/order/orders-history?productType=USDT-FUTURES&symbol=LTCUSDT",
+            "input": [
+              "LTC/USDT:USDT"
+            ]
+          }
         ],
         "fetchBalance": [
             {
