@@ -54,24 +54,6 @@ class BaseCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, 
         return print_r($this->deque, true);
     }
 
-    public function convert_from_snake_to_camel_case($input)
-    {
-        return lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $input))));
-    }
-
-
-    // temporary we add explicit methods below instead of magic caller
-    //
-    // public function __call($name, $arguments)
-    // {
-    //     $camelCased = $this->convert_from_snake_to_camel_case($name);
-    //     if (method_exists($this, $camelCased)) {
-    //         return call_user_func_array(array($this, $camelCased), $arguments);
-    //     }
-    //     trigger_error('Call to undefined method '.__CLASS__.'::'.$name.'()', E_USER_ERROR);
-    // }
-
-    
     // meant to be overriden
     public function getLimit($symbol, $limit) {
     }
