@@ -45,7 +45,7 @@
                     "leverage": 5
                   }
                 ],
-                "output": "nonce=1702704715667&pair=XXBTZUSD&type=sell&ordertype=stop-loss-limit&volume=0.00012&price=35000&price2=34000&reduce_only=true&stopLossPrice=35000&leverage=5"
+                "output": "nonce=1702704715667&pair=XXBTZUSD&type=sell&ordertype=stop-loss-limit&volume=0.00012&price=35000&price2=34000&reduce_only=true&leverage=5"
             },
             {
                 "description": "Margin trailing stop price order",
