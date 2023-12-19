@@ -644,6 +644,39 @@
               "USDT"
             ]
           }
+        ],
+        "fetchTickers": [
+          {
+            "description": "spot fetch tickers with symbols",
+            "method": "fetchTickers",
+            "url": "https://testnet.binance.vision/api/v3/ticker/24hr?symbols=%5B%22BTCUSDT%22%2C%22LTCUSDT%22%5D",
+            "input": [
+              [
+                "BTC/USDT",
+                "LTC/USDT"
+              ]
+            ]
+          },
+          {
+            "description": "Swap tickers",
+            "method": "fetchTickers",
+            "url": "https://testnet.binancefuture.com/fapi/v1/ticker/24hr",
+            "input": [
+              [
+                "BTC/USDT:USDT"
+              ]
+            ]
+          },
+          {
+            "description": "Inverse tickers",
+            "method": "fetchTickers",
+            "url": "https://testnet.binancefuture.com/dapi/v1/ticker/24hr",
+            "input": [
+              [
+                "BTC/USD:BTC"
+              ]
+            ]
+          }
         ]
     }
 }
