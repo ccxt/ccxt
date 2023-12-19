@@ -633,6 +633,20 @@
                         "type": "swap"
                     }
                 ]
+            },
+            {
+                "description": "Fetch swap ledger",
+                "method": "fetchLedger",
+                "url": "https://fapi.binance.com/dapi/v1/income?timestamp=1699440856890&recvWindow=10000&signature=e921974f0fc79c71a0bf5c210bded9841b627248e89ca2659dd26616d2870bd9",
+                "input": [
+                    "USDT",
+                    null,
+                    null,
+                    {
+                        "type": "swap",
+                        "subType": "inverse"
+                    }
+                ]
             }
         ],
         "setLeverage": [
