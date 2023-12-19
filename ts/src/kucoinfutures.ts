@@ -1253,6 +1253,11 @@ export default class kucoinfutures extends kucoin {
         const request = {};
         let response = undefined;
         if (clientOrderId !== undefined) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument when cancelling by clientOrderId');
+            }
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
             request['clientOid'] = clientOrderId;
             response = await this.futuresPrivateDeleteOrdersClientOrderClientOid (this.extend (request, params));
         } else {
