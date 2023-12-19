@@ -120,6 +120,9 @@ class Exchange(BaseExchange):
             if self.own_session:
                 await self.session.close()
             self.session = None
+        if self.socks_proxy_session is not None:
+            await self.socks_proxy_session.close()
+            self.socks_proxy_session = None
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -134,7 +137,7 @@ class Exchange(BaseExchange):
             url = proxyUrl + url
         # proxy agents
         final_proxy = None  # set default
-        final_session = None
+        self.socks_proxy_session = None
         httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
         if httpProxy:
             final_proxy = httpProxy
@@ -154,7 +157,7 @@ class Exchange(BaseExchange):
                 enable_cleanup_closed=True
             )
             # override session
-            final_session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
+            self.socks_proxy_session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
             final_proxy = self.aiohttp_proxy
@@ -175,7 +178,8 @@ class Exchange(BaseExchange):
         request_body = body
         encoded_body = body.encode() if body else None
         self.open()
-        session_method = getattr(final_session if final_session is not None else self.session, method.lower())
+        final_session = self.socks_proxy_session if self.socks_proxy_session is not None else self.session
+        session_method = getattr(final_session, method.lower())
 
         http_response = None
         http_status_code = None
