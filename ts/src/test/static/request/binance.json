@@ -1080,6 +1080,24 @@
                 ],
                 "output": "timestamp=1699441011001&dualSidePosition=true&recvWindow=10000&signature=f932a4e8dd21ce1dcea84d8ab2fd9451c31b77c710d1adb9c51f54adc520cd90"
             }
+        ],
+        "fetchOpenInterestHistory": [
+            {
+                "description": "Fetch Open Interest History - linear",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://fapi.binance.com/futures/data/openInterestHist?period=5m&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch Open Interest History - inverse",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://dapi.binance.com/futures/data/openInterestHist?period=5m&pair=BTCUSD_PERP&contractType=CURRENT_QUARTER",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
         ]
     }
 }
