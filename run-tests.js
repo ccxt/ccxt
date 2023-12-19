@@ -332,11 +332,13 @@ const testExchange = async (exchange) => {
                 const fullSkip = output.indexOf('[SKIPPED]') >= 0;
                 if (fullSkip)
                     continue;
+                // if failed, then show full output (includes warnings)
                 if (failed) {
                     log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + ' ' + wsFlag + '):\n')
                     log.indent (1) ('\n', output)
                 }
-                if (warnings.length) {
+                // if not failed, but there are warnings, then show them
+                else if (warnings.length) {
                     log.bright ('\nWARN'.yellow.inverse,     exchange.yellow, '(' + language + ' ' + wsFlag + '):\n')
                     log.indent (1) ('\n', warnings.join ('\n'))
                 }

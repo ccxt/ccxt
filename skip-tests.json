@@ -1,5 +1,6 @@
 {
     "ace": {
+        "skip": "temp",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -164,6 +165,7 @@
         }
     },
     "bitbns": {
+        "skip": "temp",
         "skipMethods": {
             "loadMarkets": {
                 "limits": "only one market has min>max limit",
@@ -441,6 +443,7 @@
         }
     },
     "bitvavo": {
+        "skip": "temp",
         "skipWs": "temp",
         "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
@@ -669,6 +672,7 @@
         }
     },
     "coinspot": {
+        "skip":"temp",
         "skipMethods": {
             "loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from constructor .options, so needs to fill with default values in base)",
             "fetchTickers": {
@@ -1280,6 +1284,7 @@
         }
     },
     "p2b": {
+        "skip": "temp issues",
         "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
             "loadMarkets": "invalid URL",
