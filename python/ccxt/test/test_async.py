@@ -224,7 +224,7 @@ def init_exchange(exchangeId, args, is_ws=False):
     return getattr(ccxt, exchangeId)(args)
 
 
-async def set_test_files(holderClass, properties, ws = False):
+async def set_test_files(holderClass, properties, ws=False):
     finalPropList = properties + [proxyTestFileName]
     for i in range(0, len(finalPropList)):
         methodName = finalPropList[i]
