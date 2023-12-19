@@ -37,8 +37,6 @@ function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
 }
 
-const isWsTests = getCliArgValue ('--ws');
-
 const proxyTestFileName = 'proxies';
 class baseMainTestClass {
     lang = 'JS';
@@ -47,6 +45,7 @@ class baseMainTestClass {
     requestTestsFailed = false;
     responseTestsFailed = false;
     requestTests = false;
+    wsTests = false;
     responseTests = false;
     staticTests = false;
     info = false;
@@ -59,7 +58,6 @@ class baseMainTestClass {
     checkedPublicTests = {};
     testFiles = {};
     publicTests = {};
-    isWsTests = isWsTests;
     newLine = '\n';
     rootDir = DIR_NAME + '/../../../';
     rootDirForSkips = DIR_NAME + '/../../../';
@@ -149,8 +147,8 @@ async function importTestFile (filePath) {
     return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
 }
 
-async function setTestFiles (holderClass, properties) {
-    const path = isWsTests ? DIR_NAME + '../pro/test/' : DIR_NAME;
+async function setTestFiles (holderClass, properties, ws = false) {
+    const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
     const finalPropList = properties.concat ([ proxyTestFileName ]);
     for (let i = 0; i < finalPropList.length; i++) {
@@ -218,14 +216,14 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         const symbolStr = symbolArgv !== undefined ? symbolArgv : 'all';
-        dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.isWsTests }, this.newLine);
+        dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.wsTests }, this.newLine);
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
             'enableRateLimit': true,
             'timeout': 30000,
         };
-        const exchange = initExchange (exchangeId, exchangeArgs, this.isWsTests);
+        const exchange = initExchange (exchangeId, exchangeArgs, this.wsTests);
         await this.importFiles (exchange);
         assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         this.expandSettings (exchange);
@@ -262,7 +260,7 @@ export default class testMainClass extends baseMainTestClass {
         this.testFiles = {};
         const properties = Object.keys (exchange.has);
         properties.push ('loadMarkets');
-        await setTestFiles (this, properties);
+        await setTestFiles (this, properties, this.wsTests);
     }
 
     expandSettings (exchange) {
@@ -481,7 +479,7 @@ export default class testMainClass extends baseMainTestClass {
             'fetchStatus': [],
             'fetchTime': [],
         };
-        if (this.isWsTests) {
+        if (this.wsTests) {
             tests = {
                 // @ts-ignore
                 'watchOHLCV': [ symbol ],
@@ -492,7 +490,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         const market = exchange.market (symbol);
         const isSpot = market['spot'];
-        if (!this.isWsTests) {
+        if (!this.wsTests) {
             if (isSpot) {
                 tests['fetchCurrencies'] = [];
             } else {
@@ -838,7 +836,7 @@ export default class testMainClass extends baseMainTestClass {
             // 'transfer': [ ],
             // 'withdraw': [ ],
         };
-        if (this.isWsTests) {
+        if (this.wsTests) {
             tests = {
                 // @ts-ignore
                 'watchBalance': [ code ],
@@ -850,7 +848,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         const market = exchange.market (symbol);
         const isSpot = market['spot'];
-        if (!this.isWsTests) {
+        if (!this.wsTests) {
             if (isSpot) {
                 tests['fetchCurrencies'] = [ ];
             } else {
