@@ -453,7 +453,9 @@ export default class testMainClass extends baseMainTestClass {
                 } else {
                     // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
                     if (isNotSupported) {
-                        dump ('[INFO:NOT_SUPPORTED]', this.exchangeHint (exchange), methodName, argsStringified);
+                        if (this.info) {
+                            dump ('[INFO:NOT_SUPPORTED]', this.exchangeHint (exchange), methodName, argsStringified);
+                        }
                         return true; // why consider not supported as a failed test?
                     } else {
                         dump ('[TEST_FAILURE]', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
@@ -581,7 +583,7 @@ export default class testMainClass extends baseMainTestClass {
                 resultMsg = resultSymbols.join (', ');
             }
         }
-        dump ('[INFO] Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg);
+        dump ('[INFO:MAIN] Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg);
         return true;
     }
 
@@ -746,10 +748,10 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         if (spotSymbol !== undefined) {
-            dump ('[INFO] Selected SPOT SYMBOL:', spotSymbol);
+            dump ('[INFO:MAIN] Selected SPOT SYMBOL:', spotSymbol);
         }
         if (swapSymbol !== undefined) {
-            dump ('[INFO] Selected SWAP SYMBOL:', swapSymbol);
+            dump ('[INFO:MAIN] Selected SWAP SYMBOL:', swapSymbol);
         }
         if (!this.privateTestOnly) {
             // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['type']` setting
@@ -1249,10 +1251,10 @@ export default class testMainClass extends baseMainTestClass {
         const promises = [];
         let sum = 0;
         if (targetExchange) {
-            dump ("[INFO] Exchange to test: " + targetExchange);
+            dump ("[INFO:MAIN] Exchange to test: " + targetExchange);
         }
         if (testName) {
-            dump ("[INFO] Testing only: " + testName);
+            dump ("[INFO:MAIN] Testing only: " + testName);
         }
         for (let i = 0; i < exchanges.length; i++) {
             const exchangeName = exchanges[i];
