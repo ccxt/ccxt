@@ -308,6 +308,7 @@ const testExchange = async (exchange) => {
     log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, logMessage)
 
     // independenly of the success result, show infos
+    // ( these infos will be shown as soon as each exchange test is finished, and will not wait 100% of all tests to be finished )
     const displayInfos = false; // temporarily disable from run-tests, because they are still outputed in console from individual langs
     if (displayInfos) {
         if (debugKeys['--info'] && infos.length) {
@@ -333,11 +334,12 @@ const testExchange = async (exchange) => {
                     continue;
                 if (failed) {
                     log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + ' ' + wsFlag + '):\n')
+                    log.indent (1) ('\n', output)
                 }
                 if (warnings.length) {
                     log.bright ('\nWARN'.yellow.inverse,     exchange.yellow, '(' + language + ' ' + wsFlag + '):\n')
+                    log.indent (1) ('\n', warnings.join ('\n'))
                 }
-                log.indent (1) ('\n', output)
             }
         }
     }
