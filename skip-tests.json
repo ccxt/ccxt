@@ -441,6 +441,7 @@
         }
     },
     "bitvavo": {
+        "skipWs": "temp",
         "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
             "fetchCurrencies": {
@@ -858,6 +859,7 @@
         }
     },
     "gemini": {
+        "skipWs": "temporary",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
@@ -1237,6 +1239,7 @@
         }
     },
     "mexc": {
+        "skipWs": "temp",
         "skipMethods": {
             "loadMarkets":{
                 "currencyIdAndCode": "messed"
@@ -1449,9 +1452,7 @@
             },
             "fetchTickers": "timeouts this call specifically",
             "fetchTicker": "timeouts this call specifically",
-            "watchTrades": {
-                "timestamp": "inversed order"
-            }
+            "watchTrades": "reverse timestamps"
         },
         "timeout": 120000
     },
