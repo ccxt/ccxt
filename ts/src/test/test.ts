@@ -364,10 +364,6 @@ export default class testMainClass extends baseMainTestClass {
         if (methodName.indexOf ('OrderBook') >= 0 && this.ext === 'php') {
             return;
         }
-        // todo: temporary skip for py
-        if (methodName.indexOf ('proxies') >= 0 && this.ext === 'py' && this.isSynchronous) {
-            return;
-        }
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
         const isProxyTest = (methodName === this.proxyTestFileName);
@@ -894,6 +890,10 @@ export default class testMainClass extends baseMainTestClass {
     async testProxies (exchange) {
         // these tests should be synchronously executed, because of conflicting nature of proxy settings
         const proxyTestName = this.proxyTestFileName;
+        // todo: temporary skip for sync py
+        if (this.ext === 'py' && this.isSynchronous) {
+            return;
+        }
         // try proxy several times
         const maxRetries = 3;
         let exception = undefined;
