@@ -257,9 +257,27 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
     }
 }
 
+function equals(a, b) {
+    if (a.length !== b.length) {
+        return false;
+    }
+    for (const prop in a) {
+        if (Array.isArray(a[prop]) || typeof a[prop] === 'object') {
+            if (!equals(a[prop], b[prop])) {
+                return false;
+            }
+        }
+        else if (a[prop] !== b[prop]) {
+            return false;
+        }
+    }
+    return true;
+}
+
 export {
     ArrayCache,
     ArrayCacheByTimestamp,
     ArrayCacheBySymbolById,
     ArrayCacheBySymbolBySide,
+    equals,
 };
