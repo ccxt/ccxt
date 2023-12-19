@@ -30,6 +30,7 @@ class hitbtc extends Exchange {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closePosition' => false,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
@@ -2797,6 +2798,9 @@ class hitbtc extends Exchange {
         $marketType = null;
         $marginMode = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+        if ($marketType === 'spot') {
+            $marketType = 'swap';
+        }
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositions', $params);
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
@@ -3438,6 +3442,42 @@ class hitbtc extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): array {
+        /**
+         * closes open positions for a $market
+         * @see https://api.hitbtc.com/#close-all-futures-margin-positions
+         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {string} [$params->symbol] *required* unified $market $symbol
+         * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'
+         * @return {array} An ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('closePosition', $params, 'cross');
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'margin_mode' => $marginMode,
+        );
+        $response = $this->privateDeleteFuturesPositionMarginModeSymbol (array_merge($request, $params));
+        //
+        // {
+        //     "id":"202471640",
+        //     "symbol":"TRXUSDT_PERP",
+        //     "margin_mode":"Cross",
+        //     "leverage":"1.00",
+        //     "quantity":"0",
+        //     "price_entry":"0",
+        //     "price_margin_call":"0",
+        //     "price_liquidation":"0",
+        //     "pnl":"0.001234100000",
+        //     "created_at":"2023-10-29T14:46:13.235Z",
+        //     "updated_at":"2023-12-19T09:34:40.014Z"
+        // }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
