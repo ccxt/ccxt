@@ -1332,10 +1332,10 @@ export default class bingx extends Exchange {
         const close = this.safeString (ticker, 'lastPrice');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         const baseVolume = this.safeString (ticker, 'volume');
-        let percentage = this.safeString (ticker, 'priceChangePercent');
-        if (percentage !== undefined) {
-            percentage = percentage.replace ('%', '');
-        }
+        // let percentage = this.safeString (ticker, 'priceChangePercent');
+        // if (percentage !== undefined) {
+        //     percentage = percentage.replace ('%', '');
+        // } similarly to change, it's not ccxt's percentage because it does priceChange/open, and priceChange is high-low
         const ts = this.safeInteger (ticker, 'closeTime');
         const datetime = this.iso8601 (ts);
         const bid = this.safeString (ticker, 'bidPrice');
@@ -1358,7 +1358,7 @@ export default class bingx extends Exchange {
             'last': undefined,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': percentage,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
