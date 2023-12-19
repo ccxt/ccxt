@@ -111,7 +111,7 @@
                 "method": "cancelOrder",
                 "url": "https://api-futures.kucoin.com/api/v1/orders/client-order/order2?symbol=LTCUSDTM",
                 "input": [
-                  null,
+                  "",
                   "LTC/USDT:USDT",
                   {
                     "clientOrderId": "order2"
