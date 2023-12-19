@@ -880,10 +880,17 @@ export default class protondex extends Exchange {
             type = parts[0];
         }
         const side = this.safeString (order, 'order_side');
+        let filled = undefined;
         if (side === '1' && status === 'closed' && symbol !== undefined) {
             const precision = this.parseToInt (market.info.bid_token.precision);
             amountString = parseFloat (Precise.stringDiv (amountString, this.safeString (order, 'avgPrice'))).toFixed (precision);
             remainingString = parseFloat (Precise.stringDiv (remainingString, this.safeString (order, 'avgPrice'))).toFixed (precision);
+        } else if (status === 'canceled') {
+            if (order['quantity_init'] === order['quantity_change']) {
+                filled = '0';
+            } else {
+                filled = (order['quantity_init'] - order['quantity_change']).toString ();
+            }
         }
         const fee = this.safeValue (order, 'fee');
         return this.safeOrder ({
@@ -903,6 +910,7 @@ export default class protondex extends Exchange {
             'lastTradeTimestamp': timestamp,
             'average': this.safeString (order, 'avgPrice'),
             'fee': fee,
+            'filled': filled,
         }, market);
     }
 
