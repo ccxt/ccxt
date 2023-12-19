@@ -14,7 +14,7 @@ process.on ('uncaughtException', (e) => {
     // process.exit (1);
 });
 process.on ('unhandledRejection', (e: any) => {
-    if (e.message.includes('connection closed by remote server')) {
+    if (e.message.includes ('connection closed by remote server')) {
         // because of unbeknown reason, this error is happening somewhere in the middle of WS tests, and it's not caught by the try/catch block. so temporarily ignore it
         return;
     }
@@ -407,8 +407,8 @@ export default class testMainClass extends baseMainTestClass {
 
     async testSafe (methodName, exchange, args = [], isPublic = false) {
         // `testSafe` method does not throw an exception, instead mutes it.
-        // The reason we mute the thrown exceptions here is because we don't want 
-        // to stop the whole tests queue if any single test-method fails. Instead, they 
+        // The reason we mute the thrown exceptions here is because we don't want
+        // to stop the whole tests queue if any single test-method fails. Instead, they
         // are echoed with formatted message "[TEST_FAILURE] ..." and that output is
         // then regex-matched by run-tests.js, so the exceptions are still printed out to
         // console from there.
@@ -508,7 +508,7 @@ export default class testMainClass extends baseMainTestClass {
         await this.displayTestResults (exchange, tests, true);
     }
 
-    async displayTestResults (exchange: any, tests: any, isPublicTest:boolean){
+    async displayTestResults (exchange: any, tests: any, isPublicTest:boolean) {
         const testNames = Object.keys (tests);
         const promises = [];
         for (let i = 0; i < testNames.length; i++) {
@@ -534,7 +534,7 @@ export default class testMainClass extends baseMainTestClass {
             dump ('[TEST_FAILURE]', this.exchangeHint (exchange), testPrefixString, 'Failed methods : ' + errorsString);
         }
         if (this.info) {
-            dump ( this.addPadding ('[INFO] END ' + testPrefixString + ' ' + this.exchangeHint (exchange), 25));
+            dump (this.addPadding ('[INFO] END ' + testPrefixString + ' ' + this.exchangeHint (exchange), 25));
         }
     }
 
