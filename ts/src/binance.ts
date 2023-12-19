@@ -9152,13 +9152,14 @@ export default class binance extends Exchange {
         } else {
             request['symbol'] = market['id'];
         }
-        let method = 'fapiPublicGetOpenInterest';
+        let response = undefined;
         if (market['option']) {
-            method = 'eapiPublicGetOpenInterest';
+            response = await this.eapiPublicGetOpenInterest (this.extend (request, params));
         } else if (market['inverse']) {
-            method = 'dapiPublicGetOpenInterest';
+            response = await this.dapiPublicGetOpenInterest (this.extend (request, params));
+        } else {
+            response = await this.fapiPublicGetOpenInterest (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // futures (fapi)
         //

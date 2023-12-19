@@ -1098,6 +1098,24 @@
                     "BTC/USD:BTC"
                 ]
             }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "Fetch Open Interest - linear",
+                "method": "fetchOpenInterest",
+                "url": "https://fapi.binance.com/fapi/v1/openInterest?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch Open Interest - inverse",
+                "method": "fetchOpenInterest",
+                "url": "https://dapi.binance.com/dapi/v1/openInterest?symbol=BTCUSD_PERP",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
         ]
     }
 }
