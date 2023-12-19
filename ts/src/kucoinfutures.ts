@@ -1254,7 +1254,7 @@ export default class kucoinfutures extends kucoin {
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
-            response = await this.privateDeleteHfOrdersClientOrderClientOid (this.extend (request, params));
+            response = await this.futuresPrivateDeleteClientOrderClientOid (this.extend (request, params));
         } else {
             request['orderId'] = id;
             response = await this.futuresPrivateDeleteOrdersOrderId (this.extend (request, params));
