@@ -46,10 +46,10 @@ git fetch origin
 # git add php/test/ php/pro/test/
 # git add python/ccxt/test/ python/ccxt/pro/test/
 # git add -f python/LICENSE.txt python/package.json python/README.md
-if [ "$SHOULD_TAG" = "true" ]; then
-    echo "Pushing changelog..."
-    node build/changelog "${COMMIT_MESSAGE}"
-fi
+# if [ "$SHOULD_TAG" = "true" ]; then
+#     echo "Pushing changelog..."
+#     node build/changelog "${COMMIT_MESSAGE}"
+# fi
 git add . -A
 git status
 git commit -m "${COMMIT_MESSAGE}" -m '[ci skip]' || exit 0
@@ -59,9 +59,9 @@ fi
 node build/cleanup-old-tags --limit
 git push origin --tags HEAD:master
 echo "Done pushing generated files to Github"
-if [ "$SHOULD_TAG" = "true" ]; then
-    echo "Creating release..."
-    echo "${GITHUB_TOKEN}" | gh auth login --with-token
-    gh release create "${COMMIT_MESSAGE}" --generate-notes --verify-tag
-fi
+# if [ "$SHOULD_TAG" = "true" ]; then
+#     echo "Creating release..."
+#     gh auth login --with-token "${GITHUB_TOKEN}"
+#     gh release create "${COMMIT_MESSAGE}" --generate-notes --verify-tag
+# fi
 echo "Done executing build/push.sh"
