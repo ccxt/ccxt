@@ -375,13 +375,13 @@ export default class testMainClass extends baseMainTestClass {
         let skipMessage = undefined;
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
         if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests))) {
-            skipMessage = '[INFO:IGNORED_TEST]';
+            skipMessage = '[INFO] IGNORED_TEST';
         } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
-            skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
+            skipMessage = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
         } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
-            skipMessage = '[INFO:SKIPPED_TEST]';
+            skipMessage = '[INFO] SKIPPED_TEST';
         } else if (!(methodName in this.testFiles)) {
-            skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
+            skipMessage = '[INFO] UNIMPLEMENTED_TEST';
         }
         // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if (isLoadMarkets) {
@@ -395,7 +395,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         if (this.info) {
             const argsStringified = '(' + args.join (',') + ')';
-            dump (this.addPadding ('[INFO:TESTING]', 25), this.exchangeHint (exchange), methodName, argsStringified);
+            dump (this.addPadding ('[INFO] TESTING', 25), this.exchangeHint (exchange), methodName, argsStringified);
         }
         const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, {});
         await callMethod (this.testFiles, methodName, exchange, skippedProperties, args);
@@ -454,7 +454,7 @@ export default class testMainClass extends baseMainTestClass {
                     // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
                     if (isNotSupported) {
                         if (this.info) {
-                            dump ('[INFO:NOT_SUPPORTED]', this.exchangeHint (exchange), methodName, argsStringified);
+                            dump ('[INFO] NOT_SUPPORTED', this.exchangeHint (exchange), methodName, argsStringified);
                         }
                         return true; // why consider not supported as a failed test?
                     } else {
@@ -533,7 +533,7 @@ export default class testMainClass extends baseMainTestClass {
             dump ('[TEST_FAILURE]', this.exchangeHint (exchange), testPrefixString, 'Failed methods : ' + errorsString);
         }
         if (this.info) {
-            dump ( this.addPadding ('[INFO:END ' + testPrefixString + '] ' + this.exchangeHint (exchange), 25));
+            dump ( this.addPadding ('[INFO] END ' + testPrefixString + ' ' + this.exchangeHint (exchange), 25));
         }
     }
 
