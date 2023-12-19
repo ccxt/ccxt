@@ -425,9 +425,11 @@ export default class testMainClass extends baseMainTestClass {
                 if (isOperationFailed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
-                        dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified, exceptionMessage (e));
                         // we do not mute specifically "ExchangeNotAvailable" exception, because it might be a hint about a change in API engine (but its subtype "OnMaintenance" can be muted)
-                        if (!(e instanceof ExchangeNotAvailable)) {
+                        if (e instanceof ExchangeNotAvailable) {
+                            dump ('[TEST_FAILURE]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified, exceptionMessage (e));
+                        } else {
+                            dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified, exceptionMessage (e));
                             return true;
                         }
                     } else {
@@ -444,11 +446,10 @@ export default class testMainClass extends baseMainTestClass {
                 else if (isPublic && isAuthError) {
                     // in case of loadMarkets, it means that "tester" (developer or travis) does not have correct authentication, so it does not have a point to proceed at all
                     if (methodName === 'loadMarkets') {
-                        dump ('[TEST_WARNING]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
-                        return true;
-                    }
-                    if (this.info) {
+                        dump ('[TEST_FAILURE]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
+                    } else {
                         dump ('[TEST_WARNING]', 'Authentication problem for public method', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
+                        return true;
                     }
                 } else {
                     // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
@@ -456,7 +457,7 @@ export default class testMainClass extends baseMainTestClass {
                         if (this.info) {
                             dump ('[INFO] NOT_SUPPORTED', this.exchangeHint (exchange), methodName, argsStringified);
                         }
-                        return true; // why consider not supported as a failed test?
+                        return true; // let's don't consider not-supported as a failed test
                     } else {
                         dump ('[TEST_FAILURE]', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
                     }
@@ -519,17 +520,17 @@ export default class testMainClass extends baseMainTestClass {
         // promises.push (testThrottle ());
         const results = await Promise.all (promises);
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
-        const errors = [];
+        const failedMethods = [];
         for (let i = 0; i < testNames.length; i++) {
             const testName = testNames[i];
             const testReturnedValue = results[i];
             if (!testReturnedValue) {
-                errors.push (testName);
+                failedMethods.push (testName);
             }
         }
         const testPrefixString = isPublicTest ? 'PUBLIC_TESTS' : 'PRIVATE_TESTS';
-        if (errors.length) {
-            const errorsString = errors.join (', ');
+        if (failedMethods.length) {
+            const errorsString = failedMethods.join (', ');
             dump ('[TEST_FAILURE]', this.exchangeHint (exchange), testPrefixString, 'Failed methods : ' + errorsString);
         }
         if (this.info) {
