@@ -677,7 +677,6 @@ export default class Exchange {
         // http properties
         this.headers = {}
         // prepended to URL, like https://proxy.com/https://exchange.com/api...
-        this.proxy = ''
         this.forcedProxy = ''
         this.origin = '*' // CORS origin
         // underlying properties
