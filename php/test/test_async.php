@@ -246,8 +246,9 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
     return $newClass;
 }
 
-function set_test_files ($holderClass, $properties, $ws = false) {
-    return Async\async (function() use ($holderClass, $properties, $ws){
+function get_test_files ($properties, $ws = false) {
+    return Async\async (function() use ($properties, $ws){
+        $tests = array();
         $finalPropList = array_merge ($properties, [proxyTestFileName]);
         for ($i = 0; $i < count($finalPropList); $i++) {
             $methodName = $finalPropList[$i];
@@ -257,9 +258,10 @@ function set_test_files ($holderClass, $properties, $ws = false) {
             $test_file = $dir_to_test . $test_method_name . '.' . ext;
             if (io_file_exists ($test_file)) {
                 include_once $test_file;
-                $holderClass->test_files[$methodName] = $test_method_name;
+                $tests[$methodName] = $test_method_name;
             }
         }
+        return $tests;
     })();
 }
 
@@ -367,12 +369,10 @@ class testMainClass extends baseMainTestClass {
     }
 
     public function import_files($exchange) {
-        // exchange tests
         return Async\async(function () use ($exchange) {
-            $this->test_files = array();
             $properties = is_array($exchange->has) ? array_keys($exchange->has) : array();
             $properties[] = 'loadMarkets';
-            Async\await(set_test_files($this, $properties, $this->ws_tests));
+            $this->test_files = Async\await(get_test_files($properties, $this->ws_tests));
         }) ();
     }
 
@@ -519,12 +519,11 @@ class testMainClass extends baseMainTestClass {
     }
 
     public function test_safe($method_name, $exchange, $args = [], $is_public = false) {
-        // `testSafe` method does not throw an exception, instead mutes it.
-        // The reason we mute the thrown exceptions here is because we don't want
-        // to stop the whole tests queue if any single test-method fails. Instead, they
-        // are echoed with formatted message "[TEST_FAILURE] ..." and that output is
-        // then regex-matched by run-tests.js, so the exceptions are still printed out to
-        // console from there.
+        // `testSafe` method does not throw an exception, instead mutes it. The reason we
+        // mute the thrown exceptions here is because we don't want to stop the whole
+        // tests queue if any single test-method fails. Instead, they are echoed with
+        // formatted message "[TEST_FAILURE] ..." and that output is then regex-matched by
+        // run-tests.js, so the exceptions are still printed out to console from there.
         return Async\async(function () use ($method_name, $exchange, $args, $is_public) {
             $max_retries = 3;
             $args_stringified = $exchange->json($args); // args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
@@ -533,48 +532,61 @@ class testMainClass extends baseMainTestClass {
                     Async\await($this->test_method($method_name, $exchange, $args, $is_public));
                     return true;
                 } catch(\Throwable $e) {
+                    $is_load_markets = ($method_name === 'loadMarkets');
                     $is_auth_error = ($e instanceof AuthenticationError);
                     $is_not_supported = ($e instanceof NotSupported);
                     $is_operation_failed = ($e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
                     if ($is_operation_failed) {
                         // if last retry was gone with same `tempFailure` error, then let's eventually return false
                         if ($i === $max_retries - 1) {
+                            $should_fail = false;
                             // we do not mute specifically "ExchangeNotAvailable" exception, because it might be a hint about a change in API engine (but its subtype "OnMaintenance" can be muted)
-                            if ($e instanceof ExchangeNotAvailable) {
+                            if (($e instanceof ExchangeNotAvailable) && !($e instanceof OnMaintenance)) {
+                                $should_fail = true;
+                            } elseif ($is_load_markets) {
+                                $should_fail = true;
+                            } else {
+                                $should_fail = false;
+                            }
+                            // final step
+                            if ($should_fail) {
                                 dump('[TEST_FAILURE]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $this->exchange_hint($exchange), $method_name, $args_stringified, exception_message($e));
+                                return false;
                             } else {
                                 dump('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $this->exchange_hint($exchange), $method_name, $args_stringified, exception_message($e));
                                 return true;
                             }
                         } else {
                             // wait and retry again
-                            Async\await($exchange->sleep($i * 1000)); // increase wait seconds on every retry
+                            // (increase wait time on every retry)
+                            Async\await($exchange->sleep($i * 1000));
                             continue;
                         }
-                    } elseif ($e instanceof OnMaintenance) {
-                        // in case of maintenance, skip exchange (don't fail the test)
-                        dump('[TEST_WARNING] Exchange is on maintenance', $this->exchange_hint($exchange));
-                        return true;
-                    } elseif ($is_public && $is_auth_error) {
-                        // in case of loadMarkets, it means that "tester" (developer or travis) does not have correct authentication, so it does not have a point to proceed at all
-                        if ($method_name === 'loadMarkets') {
-                            dump('[TEST_FAILURE]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exception_message($e), $this->exchange_hint($exchange), $method_name, $args_stringified);
-                        } else {
-                            dump('[TEST_WARNING]', 'Authentication problem for public method', exception_message($e), $this->exchange_hint($exchange), $method_name, $args_stringified);
-                            return true;
-                        }
                     } else {
-                        // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
+                        // if it's loadMarkets, then fail test, because it's mandatory for tests
+                        if ($is_load_markets) {
+                            dump('[TEST_FAILURE]', 'Exchange can not load markets', exception_message($e), $this->exchange_hint($exchange), $method_name, $args_stringified);
+                            return false;
+                        }
+                        // if the specific arguments to the test method throws "NotSupported" exception
+                        // then let's don't fail the test
                         if ($is_not_supported) {
                             if ($this->info) {
-                                dump('[INFO] NOT_SUPPORTED', $this->exchange_hint($exchange), $method_name, $args_stringified);
+                                dump('[INFO] NOT_SUPPORTED', exception_message($e), $this->exchange_hint($exchange), $method_name, $args_stringified);
                             }
-                            return true;  // let's don't consider not-supported as a failed test
+                            return true;
+                        }
+                        // If public test faces authentication error, we don't break (see comments under `testSafe` method)
+                        if ($is_public && $is_auth_error) {
+                            if ($this->info) {
+                                dump('[INFO]', 'Authentication problem for public method', exception_message($e), $this->exchange_hint($exchange), $method_name, $args_stringified);
+                            }
+                            return true;
                         } else {
                             dump('[TEST_FAILURE]', exception_message($e), $this->exchange_hint($exchange), $method_name, $args_stringified);
+                            return false;
                         }
                     }
-                    return false;
                 }
             }
         }) ();

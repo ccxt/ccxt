@@ -147,16 +147,17 @@ async function importTestFile (filePath) {
     return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
 }
 
-async function setTestFiles (holderClass, properties, ws = false) {
+async function getTestFiles (properties, ws = false) {
     const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
+    const tests = {};
     const finalPropList = properties.concat ([ proxyTestFileName ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
         const filePathWoExt = path + 'Exchange/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-            holderClass.testFiles[name] = await importTestFile (filePathWoExt);
+            tests[name] = await importTestFile (filePathWoExt);
         }
     }
     // errors tests
@@ -166,9 +167,10 @@ async function setTestFiles (holderClass, properties, ws = false) {
         const filePathWoExt = path + '/base/errors/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-            holderClass.testFiles[name] = await importTestFile (filePathWoExt);
+            tests[name] = await importTestFile (filePathWoExt);
         }
     }
+    return tests;
 }
 
 function setFetchResponse (exchange: Exchange, mockResponse) {
@@ -255,15 +257,31 @@ export default class testMainClass extends baseMainTestClass {
         return symbolArgv;
     }
 
-    async importFiles (exchange) {
-        // exchange tests
-        this.testFiles = {};
+    async importFiles (exchange: Exchange) {
         const properties = Object.keys (exchange.has);
         properties.push ('loadMarkets');
-        await setTestFiles (this, properties, this.wsTests);
+        this.testFiles = await getTestFiles (properties, this.wsTests);
     }
 
-    expandSettings (exchange) {
+    loadCredentialsFromEnv (exchange: Exchange) {
+        const exchangeId = exchange.id;
+        const reqCreds = getExchangeProp (exchange, 're' + 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+        const objkeys = Object.keys (reqCreds);
+        for (let i = 0; i < objkeys.length; i++) {
+            const credential = objkeys[i];
+            const isRequired = reqCreds[credential];
+            if (isRequired && getExchangeProp (exchange, credential) === undefined) {
+                const fullKey = exchangeId + '_' + credential;
+                const credentialEnvName = fullKey.toUpperCase (); // example: KRAKEN_APIKEY
+                const credentialValue = (credentialEnvName in this.envVars) ? this.envVars[credentialEnvName] : undefined;
+                if (credentialValue) {
+                    setExchangeProp (exchange, credential, credentialValue);
+                }
+            }
+        }
+    }
+
+    expandSettings (exchange: Exchange) {
         const exchangeId = exchange.id;
         const keysGlobal = this.rootDir + 'keys.json';
         const keysLocal = this.rootDir + 'keys.local.json';
@@ -290,20 +308,7 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         // credentials
-        const reqCreds = getExchangeProp (exchange, 're' + 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
-        const objkeys = Object.keys (reqCreds);
-        for (let i = 0; i < objkeys.length; i++) {
-            const credential = objkeys[i];
-            const isRequired = reqCreds[credential];
-            if (isRequired && getExchangeProp (exchange, credential) === undefined) {
-                const fullKey = exchangeId + '_' + credential;
-                const credentialEnvName = fullKey.toUpperCase (); // example: KRAKEN_APIKEY
-                const credentialValue = (credentialEnvName in this.envVars) ? this.envVars[credentialEnvName] : undefined;
-                if (credentialValue) {
-                    setExchangeProp (exchange, credential, credentialValue);
-                }
-            }
-        }
+        this.loadCredentialsFromEnv (exchange);
         // skipped tests
         const skippedFile = this.rootDirForSkips + 'skip-tests.json';
         const skippedSettings = ioFileRead (skippedFile);
@@ -460,12 +465,12 @@ export default class testMainClass extends baseMainTestClass {
                         return false;
                     }
                     // if the specific arguments to the test method throws "NotSupported" exception
-                    // then let's don't fail the test 
+                    // then let's don't fail the test
                     if (isNotSupported) {
                         if (this.info) {
                             dump ('[INFO] NOT_SUPPORTED', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
                         }
-                        return true; 
+                        return true;
                     }
                     // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if (isPublic && isAuthError) {

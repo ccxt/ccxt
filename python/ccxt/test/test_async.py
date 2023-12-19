@@ -224,7 +224,8 @@ def init_exchange(exchangeId, args, is_ws=False):
     return getattr(ccxt, exchangeId)(args)
 
 
-async def set_test_files(holderClass, properties, ws=False):
+async def get_test_files(properties, ws=False):
+    tests = {}
     finalPropList = properties + [proxyTestFileName]
     for i in range(0, len(finalPropList)):
         methodName = finalPropList[i]
@@ -239,8 +240,8 @@ async def set_test_files(holderClass, properties, ws=False):
         filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
         if (io_file_exists (filePathWithExt)):
             imp = importlib.import_module(module_string)
-            holderClass.test_files[methodName] = imp  # getattr(imp, finalName)
-
+            tests[methodName] = imp  # getattr(imp, finalName)
+    return tests
 
 async def close(exchange):
     if (not is_synchronous and hasattr(exchange, 'close')):
