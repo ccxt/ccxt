@@ -48,7 +48,7 @@
                 "output": "nonce=1702704715667&pair=XXBTZUSD&type=sell&ordertype=stop-loss-limit&volume=0.00012&price=35000&price2=34000&reduce_only=true&stopLossPrice=35000&leverage=5"
             },
             {
-                "description": "Margin trailing stop loss price order",
+                "description": "Margin trailing stop price order",
                 "method": "createOrder",
                 "url": "https://api.kraken.com/0/private/AddOrder",
                 "input": [
@@ -58,7 +58,7 @@
                   0.00012,
                   null,
                   {
-                    "trailingStopLossPrice": 10,
+                    "trailingStopPrice": 10,
                     "leverage": 5
                   }
                 ],
