@@ -175,7 +175,7 @@ export default class kucoinfutures extends kucoin {
                         'orders': 4.44,
                         'stopOrders': 1,
                         'sub/api-key': 1,
-                        'client-order/{clientOid}': 1,
+                        'orders/client-order/{clientOid}': 1,
                     },
                 },
                 'webExchange': {
