@@ -404,63 +404,82 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async testSafe (methodName, exchange, args = [], isPublic = false) {
-        // `testSafe` method does not throw an exception, instead mutes it.
-        // The reason we mute the thrown exceptions here is because we don't want
-        // to stop the whole tests queue if any single test-method fails. Instead, they
-        // are echoed with formatted message "[TEST_FAILURE] ..." and that output is
-        // then regex-matched by run-tests.js, so the exceptions are still printed out to
-        // console from there.
+        // `testSafe` method does not throw an exception, instead mutes it. The reason we
+        // mute the thrown exceptions here is because we don't want to stop the whole
+        // tests queue if any single test-method fails. Instead, they are echoed with
+        // formatted message "[TEST_FAILURE] ..." and that output is then regex-matched by
+        // run-tests.js, so the exceptions are still printed out to console from there.
         const maxRetries = 3;
         const argsStringified = exchange.json (args); // args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
         for (let i = 0; i < maxRetries; i++) {
             try {
                 await this.testMethod (methodName, exchange, args, isPublic);
                 return true;
-            } catch (e) {
+            }
+            catch (e) {
+                const isLoadMarkets = (methodName === 'loadMarkets');
                 const isAuthError = (e instanceof AuthenticationError);
                 const isNotSupported = (e instanceof NotSupported);
                 const isOperationFailed = (e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
                 if (isOperationFailed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
+                        let shouldFail = false;
                         // we do not mute specifically "ExchangeNotAvailable" exception, because it might be a hint about a change in API engine (but its subtype "OnMaintenance" can be muted)
-                        if (e instanceof ExchangeNotAvailable) {
+                        if ((e instanceof ExchangeNotAvailable) && !(e instanceof OnMaintenance)) {
+                            shouldFail = true;
+                        }
+                        // if it's `loadMarkets` call (which is main request), then don't return the test as passed, because it's mandatory and we should fail the test
+                        else if (isLoadMarkets) {
+                            shouldFail = true;
+                        }
+                        else {
+                            shouldFail = false;
+                        }
+                        // final step
+                        if (shouldFail) {
                             dump ('[TEST_FAILURE]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified, exceptionMessage (e));
+                            return false;
                         } else {
                             dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified, exceptionMessage (e));
                             return true;
                         }
-                    } else {
+                    }
+                    else {
                         // wait and retry again
-                        await exchange.sleep (i * 1000); // increase wait seconds on every retry
+                        // (increase wait time on every retry)
+                        await exchange.sleep (i * 1000);
                         continue;
                     }
-                } else if (e instanceof OnMaintenance) {
-                    // in case of maintenance, skip exchange (don't fail the test)
-                    dump ('[TEST_WARNING] Exchange is on maintenance', this.exchangeHint (exchange));
-                    return true;
                 }
-                // If public test faces authentication error, we don't break (see comments under `testSafe` method)
-                else if (isPublic && isAuthError) {
-                    // in case of loadMarkets, it means that "tester" (developer or travis) does not have correct authentication, so it does not have a point to proceed at all
-                    if (methodName === 'loadMarkets') {
-                        dump ('[TEST_FAILURE]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
-                    } else {
-                        dump ('[TEST_WARNING]', 'Authentication problem for public method', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
-                        return true;
+                // if it's not temporary failure, then ...
+                else {
+                    // if it's loadMarkets, then fail test, because it's mandatory for tests
+                    if (isLoadMarkets) {
+                        dump ('[TEST_FAILURE]', 'Exchange can not load markets', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
+                        return false;
                     }
-                } else {
-                    // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
+                    // if the specific arguments to the test method throws "NotSupported" exception
+                    // then let's don't fail the test 
                     if (isNotSupported) {
                         if (this.info) {
-                            dump ('[INFO] NOT_SUPPORTED', this.exchangeHint (exchange), methodName, argsStringified);
+                            dump ('[INFO] NOT_SUPPORTED', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
                         }
-                        return true; // let's don't consider not-supported as a failed test
-                    } else {
+                        return true; 
+                    }
+                    // If public test faces authentication error, we don't break (see comments under `testSafe` method)
+                    if (isPublic && isAuthError) {
+                        if (this.info) {
+                            dump ('[INFO]', 'Authentication problem for public method', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
+                        }
+                        return true;
+                    }
+                    // in rest of the cases, fail the test
+                    else {
                         dump ('[TEST_FAILURE]', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
+                        return false;
                     }
                 }
-                return false;
             }
         }
     }
