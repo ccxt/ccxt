@@ -2399,7 +2399,7 @@ class Transpiler {
             [ /\/\* eslint-disable \*\/\n*/g, '' ],
             // [ /[^\n]+from[^\n]+\n/g, '' ],
             // [ /export default\s+[^\n]+;*\n*/g, '' ],
-            // [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
+            [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
         ]));
 
         const flatResult = await this.webworkerTranspile (allFiles, fileConfig, parserConfig);
@@ -2497,6 +2497,10 @@ class Transpiler {
             if (test.pyHeaders) {
                 pythonHeaderAsync = pythonHeaderAsync.concat (test.pyHeaders);
                 pythonHeaderSync = pythonHeaderSync.concat (test.pyHeaders);
+            }
+            if (test.phpHeaders) {
+                phpHeaderAsync = phpHeaderAsync.concat (test.phpHeaders);
+                phpHeaderSync = phpHeaderSync.concat (test.phpHeaders);
             }
 
             for (const eType of importedExceptionTypes) {
