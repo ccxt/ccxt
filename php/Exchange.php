@@ -2112,15 +2112,6 @@ class Exchange {
         $obj->$property = $defaultValue;
     }
 
-    function set_exchange_property ($propertyName, $value) {
-        // support both: camelCase & snake_case
-        $this->$propertyName = $value;
-        $snakeCasedPropertyName = $this->un_camel_case($propertyName);
-        if ($snakeCasedPropertyName !== $propertyName) {
-            $this->$snakeCasedPropertyName = $value;
-        }
-    }
-
     function un_camel_case($str){
         return self::underscore($str);
     }
