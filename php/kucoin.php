@@ -487,6 +487,7 @@ class kucoin extends Exchange {
             'commonCurrencies' => array(
                 'BIFI' => 'BIFIF',
                 'VAI' => 'VAIOT',
+                'WAX' => 'WAXP',
             ),
             'options' => array(
                 'version' => 'v1',

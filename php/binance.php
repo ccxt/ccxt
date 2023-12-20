@@ -35,6 +35,9 @@ class binance extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,  // exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
                 'createDepositAddress' => false,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => true,
+                'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createPostOnlyOrder' => true,
@@ -3090,7 +3093,7 @@ class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
          * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
          * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
@@ -3105,19 +3108,21 @@ class binance extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
-        $query = $this->omit($params, 'type');
-        $defaultMethod = null;
+        $response = null;
         if ($type === 'option') {
-            $defaultMethod = 'eapiPublicGetTicker';
+            $response = $this->eapiPublicGetTicker ($params);
         } elseif ($this->is_linear($type, $subType)) {
-            $defaultMethod = 'fapiPublicGetTicker24hr';
+            $response = $this->fapiPublicGetTicker24hr ($params);
         } elseif ($this->is_inverse($type, $subType)) {
-            $defaultMethod = 'dapiPublicGetTicker24hr';
+            $response = $this->dapiPublicGetTicker24hr ($params);
         } else {
-            $defaultMethod = 'publicGetTicker24hr';
+            $request = array();
+            if ($symbols !== null) {
+                $marketIds = $this->market_ids($symbols);
+                $request['symbols'] = $this->json($marketIds);
+            }
+            $response = $this->publicGetTicker24hr (array_merge($request, $params));
         }
-        $method = $this->safe_string($this->options, 'fetchTickersMethod', $defaultMethod);
-        $response = $this->$method ($query);
         return $this->parse_tickers($response, $symbols);
     }
 
@@ -4551,6 +4556,61 @@ class binance extends Exchange {
         }
         $requestParams = $this->omit($params, array( 'quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ));
         return array_merge($request, $requestParams);
+    }
+
+    public function create_market_order_with_cost(string $symbol, string $side, $cost, $params = array ()) {
+        /**
+         * create a $market order by providing the $symbol, $side and $cost
+         * @see https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketOrderWithCost() supports spot orders only');
+        }
+        $params['quoteOrderQty'] = $cost;
+        return $this->create_order($symbol, 'market', $side, $cost, null, $params);
+    }
+
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * create a $market buy order by providing the $symbol and $cost
+         * @see https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        $params['quoteOrderQty'] = $cost;
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+    }
+
+    public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * create a $market sell order by providing the $symbol and $cost
+         * @see https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot orders only');
+        }
+        $params['quoteOrderQty'] = $cost;
+        return $this->create_order($symbol, 'market', 'sell', $cost, null, $params);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {

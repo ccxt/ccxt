@@ -3,6 +3,7 @@
 var bingx$1 = require('../bingx.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var Precise = require('../base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -59,6 +60,10 @@ class bingx extends bingx$1 {
                         '1h': '60min',
                         '1d': '1day',
                     },
+                },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': true,
+                    'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
                 },
             },
             'streaming': {
@@ -547,7 +552,40 @@ class bingx extends bingx$1 {
                 'dataType': 'ACCOUNT_UPDATE',
             };
         }
+        const client = this.client(url);
+        this.setBalanceCache(client, type, subscriptionHash, params);
+        let fetchBalanceSnapshot = undefined;
+        let awaitBalanceSnapshot = undefined;
+        [fetchBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [awaitBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'awaitBalanceSnapshot', false);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future(type + ':fetchBalanceSnapshot');
+        }
         return await this.watch(url, messageHash, request, subscriptionHash);
+    }
+    setBalanceCache(client, type, subscriptionHash, params) {
+        if (subscriptionHash in client.subscriptions) {
+            return undefined;
+        }
+        const fetchBalanceSnapshot = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        if (fetchBalanceSnapshot) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future(messageHash);
+                this.spawn(this.loadBalanceSnapshot, client, messageHash, type);
+            }
+        }
+        else {
+            this.balance[type] = {};
+        }
+    }
+    async loadBalanceSnapshot(client, messageHash, type) {
+        const response = await this.fetchBalance({ 'type': type });
+        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve();
+        client.resolve(this.balance[type], type + ':balance');
     }
     handleErrorMessage(client, message) {
         //
@@ -831,9 +869,6 @@ class bingx extends bingx$1 {
         const data = this.safeValue(a, 'B', []);
         const timestamp = this.safeInteger2(message, 'T', 'E');
         const type = ('P' in a) ? 'swap' : 'spot';
-        if (!(type in this.balance)) {
-            this.balance[type] = {};
-        }
         this.balance[type]['info'] = data;
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601(timestamp);
@@ -841,8 +876,12 @@ class bingx extends bingx$1 {
             const balance = data[i];
             const currencyId = this.safeString(balance, 'a');
             const code = this.safeCurrencyCode(currencyId);
-            const account = (code in this.balance) ? this.balance[code] : this.account();
-            account['total'] = this.safeString(balance, 'wb');
+            const account = (code in this.balance[type]) ? this.balance[type][code] : this.account();
+            account['free'] = this.safeString(balance, 'wb');
+            const balanceChange = this.safeString(balance, 'bc');
+            if (account['used'] !== undefined) {
+                account['used'] = Precise["default"].stringSub(this.safeString(account, 'used'), balanceChange);
+            }
             this.balance[type][code] = account;
         }
         this.balance[type] = this.safeBalance(this.balance[type]);

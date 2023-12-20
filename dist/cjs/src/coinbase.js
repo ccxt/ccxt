@@ -197,6 +197,8 @@ class coinbase extends coinbase$1 {
                             'brokerage/products/{product_id}',
                             'brokerage/products/{product_id}/candles',
                             'brokerage/products/{product_id}/ticker',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/{portfolio_uuid}',
                             'brokerage/transaction_summary',
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
@@ -208,8 +210,16 @@ class coinbase extends coinbase$1 {
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                        ],
+                        'put': [
+                            'brokerage/portfolios/{portfolio_uuid}',
+                        ],
+                        'delete': [
+                            'brokerage/portfolios/{portfolio_uuid}',
                         ],
                     },
                 },
@@ -266,7 +276,9 @@ class coinbase extends coinbase$1 {
                     'invalid_scope': errors.AuthenticationError,
                     'not_found': errors.ExchangeError,
                     'rate_limit_exceeded': errors.RateLimitExceeded,
-                    'internal_server_error': errors.ExchangeError, // 500 Internal server error
+                    'internal_server_error': errors.ExchangeError,
+                    'UNSUPPORTED_ORDER_CONFIGURATION': errors.BadRequest,
+                    'INSUFFICIENT_FUND': errors.BadRequest,
                 },
                 'broad': {
                     'request timestamp expired': errors.InvalidNonce,
@@ -2271,6 +2283,8 @@ class coinbase extends coinbase$1 {
         params = this.omit(params, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time']);
         const response = await this.v3PrivatePostBrokerageOrders(this.extend(request, params));
         //
+        // successful order
+        //
         //     {
         //         "success": true,
         //         "failure_reason": "UNKNOWN_FAILURE_REASON",
@@ -2284,9 +2298,37 @@ class coinbase extends coinbase$1 {
         //         "order_configuration": null
         //     }
         //
+        // failed order
+        //
+        //     {
+        //         "success": false,
+        //         "failure_reason": "UNKNOWN_FAILURE_REASON",
+        //         "order_id": "",
+        //         "error_response": {
+        //             "error": "UNSUPPORTED_ORDER_CONFIGURATION",
+        //             "message": "source is not enabled for trading",
+        //             "error_details": "",
+        //             "new_order_failure_reason": "UNSUPPORTED_ORDER_CONFIGURATION"
+        //         },
+        //         "order_configuration": {
+        //             "limit_limit_gtc": {
+        //                 "base_size": "100",
+        //                 "limit_price": "40000",
+        //                 "post_only": false
+        //             }
+        //         }
+        //     }
+        //
         const success = this.safeValue(response, 'success');
         if (success !== true) {
-            throw new errors.BadRequest(this.id + ' createOrder() has failed, check your arguments and parameters');
+            const errorResponse = this.safeValue(response, 'error_response');
+            const errorTitle = this.safeString(errorResponse, 'error');
+            const errorMessage = this.safeString(errorResponse, 'message');
+            if (errorResponse !== undefined) {
+                this.throwExactlyMatchedException(this.exceptions['exact'], errorTitle, errorMessage);
+                this.throwBroadlyMatchedException(this.exceptions['broad'], errorTitle, errorMessage);
+                throw new errors.ExchangeError(errorMessage);
+            }
         }
         const data = this.safeValue(response, 'success_response', {});
         return this.parseOrder(data, market);

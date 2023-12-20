@@ -199,6 +199,8 @@ export default class coinbase extends Exchange {
                             'brokerage/products/{product_id}',
                             'brokerage/products/{product_id}/candles',
                             'brokerage/products/{product_id}/ticker',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/{portfolio_uuid}',
                             'brokerage/transaction_summary',
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
@@ -210,8 +212,16 @@ export default class coinbase extends Exchange {
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                        ],
+                        'put': [
+                            'brokerage/portfolios/{portfolio_uuid}',
+                        ],
+                        'delete': [
+                            'brokerage/portfolios/{portfolio_uuid}',
                         ],
                     },
                 },
@@ -269,6 +279,8 @@ export default class coinbase extends Exchange {
                     'not_found': ExchangeError, // 404 Resource not found
                     'rate_limit_exceeded': RateLimitExceeded, // 429 Rate limit exceeded
                     'internal_server_error': ExchangeError, // 500 Internal server error
+                    'UNSUPPORTED_ORDER_CONFIGURATION': BadRequest,
+                    'INSUFFICIENT_FUND': BadRequest,
                 },
                 'broad': {
                     'request timestamp expired': InvalidNonce, // {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
@@ -2292,6 +2304,8 @@ export default class coinbase extends Exchange {
         params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time' ]);
         const response = await this.v3PrivatePostBrokerageOrders (this.extend (request, params));
         //
+        // successful order
+        //
         //     {
         //         "success": true,
         //         "failure_reason": "UNKNOWN_FAILURE_REASON",
@@ -2305,9 +2319,37 @@ export default class coinbase extends Exchange {
         //         "order_configuration": null
         //     }
         //
+        // failed order
+        //
+        //     {
+        //         "success": false,
+        //         "failure_reason": "UNKNOWN_FAILURE_REASON",
+        //         "order_id": "",
+        //         "error_response": {
+        //             "error": "UNSUPPORTED_ORDER_CONFIGURATION",
+        //             "message": "source is not enabled for trading",
+        //             "error_details": "",
+        //             "new_order_failure_reason": "UNSUPPORTED_ORDER_CONFIGURATION"
+        //         },
+        //         "order_configuration": {
+        //             "limit_limit_gtc": {
+        //                 "base_size": "100",
+        //                 "limit_price": "40000",
+        //                 "post_only": false
+        //             }
+        //         }
+        //     }
+        //
         const success = this.safeValue (response, 'success');
         if (success !== true) {
-            throw new BadRequest (this.id + ' createOrder() has failed, check your arguments and parameters');
+            const errorResponse = this.safeValue (response, 'error_response');
+            const errorTitle = this.safeString (errorResponse, 'error');
+            const errorMessage = this.safeString (errorResponse, 'message');
+            if (errorResponse !== undefined) {
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorTitle, errorMessage);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], errorTitle, errorMessage);
+                throw new ExchangeError (errorMessage);
+            }
         }
         const data = this.safeValue (response, 'success_response', {});
         return this.parseOrder (data, market);

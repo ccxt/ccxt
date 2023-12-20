@@ -1514,16 +1514,8 @@ class bitrue extends Exchange {
             $first = $this->safe_string($symbols, 0);
             $market = $this->market($first);
             if ($market['swap']) {
-                $request['contractName'] = $market['id'];
-                if ($market['linear']) {
-                    $response = $this->fapiV1PublicGetTicker (array_merge($request, $params));
-                } elseif ($market['inverse']) {
-                    $response = $this->dapiV1PublicGetTicker (array_merge($request, $params));
-                }
-                $response['symbol'] = $market['id'];
-                $data = array( $response );
+                throw new NotSupported($this->id . ' fetchTickers does not support swap markets, please use fetchTicker instead');
             } elseif ($market['spot']) {
-                $request['symbol'] = $market['id'];
                 $response = $this->spotV1PublicGetTicker24hr (array_merge($request, $params));
                 $data = $response;
             } else {
@@ -1532,7 +1524,7 @@ class bitrue extends Exchange {
         } else {
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
             if ($type !== 'spot') {
-                throw new NotSupported($this->id . ' fetchTickers only support spot when $symbols is not set');
+                throw new NotSupported($this->id . ' fetchTickers only support spot when $symbols are not proved');
             }
             $response = $this->spotV1PublicGetTicker24hr (array_merge($request, $params));
             $data = $response;

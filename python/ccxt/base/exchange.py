@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.90'
+__version__ = '4.1.95'
 
 # -----------------------------------------------------------------------------
 
@@ -111,10 +111,12 @@ class Exchange(object):
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_proxy = None
+    ssl_context = None
     trust_env = False
     aiohttp_trust_env = False
     requests_trust_env = False
     session = None  # Session () by default
+    socks_proxy_sessions = None
     verify = True  # SSL verification
     validateServerSsl = True
     validateClientSsl = False
