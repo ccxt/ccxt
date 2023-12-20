@@ -37,6 +37,7 @@ interface Exchange {
     privatePostTradeCancelBatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostTradeCancelTpsl (params?: {}): Promise<implicitReturnType>;
     privatePostTradeClosePosition (params?: {}): Promise<implicitReturnType>;
+    privatePostAssetTransfer (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
