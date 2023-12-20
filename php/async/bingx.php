@@ -912,14 +912,19 @@ class bingx extends Exchange {
         $type = ($cost === null) ? 'spot' : 'swap';
         $currencyId = $this->safe_string_2($trade, 'currency', 'N');
         $currencyCode = $this->safe_currency_code($currencyId);
-        $m = $this->safe_value($trade, 'm', false);
+        $m = $this->safe_value($trade, 'm');
         $marketId = $this->safe_string($trade, 's');
         $isBuyerMaker = $this->safe_value_2($trade, 'buyerMaker', 'isBuyerMaker');
-        $takeOrMaker = ($isBuyerMaker || $m) ? 'maker' : 'taker';
+        $takeOrMaker = null;
+        if (($isBuyerMaker !== null) || ($m !== null)) {
+            $takeOrMaker = ($isBuyerMaker || $m) ? 'maker' : 'taker';
+        }
         $side = $this->safe_string_lower_2($trade, 'side', 'S');
         if ($side === null) {
-            $side = ($isBuyerMaker || $m) ? 'sell' : 'buy';
-            $takeOrMaker = 'taker';
+            if (($isBuyerMaker !== null) || ($m !== null)) {
+                $side = ($isBuyerMaker || $m) ? 'sell' : 'buy';
+                $takeOrMaker = 'taker';
+            }
         }
         return $this->safe_trade(array(
             'id' => $this->safe_string_n($trade, array( 'id', 't' )),
@@ -932,7 +937,7 @@ class bingx extends Exchange {
             'side' => $this->parse_order_side($side),
             'takerOrMaker' => $takeOrMaker,
             'price' => $this->safe_string_2($trade, 'price', 'p'),
-            'amount' => $this->safe_string_n($trade, array( 'qty', 'amount', 'q' )),
+            'amount' => $this->safe_string_n($trade, array( 'qty', 'volume', 'amount', 'q' )),
             'cost' => $cost,
             'fee' => array(
                 'cost' => $this->parse_number(Precise::string_abs($this->safe_string_2($trade, 'commission', 'n'))),
@@ -1326,7 +1331,7 @@ class bingx extends Exchange {
         //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $change = $this->safe_string($ticker, 'priceChange');
+        // $change = $this->safe_string($ticker, 'priceChange'); // this is not ccxt's $change because it does $high-$low instead of last-$open
         $lastQty = $this->safe_string($ticker, 'lastQty');
         // in spot markets, $lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
@@ -1338,10 +1343,10 @@ class bingx extends Exchange {
         $close = $this->safe_string($ticker, 'lastPrice');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         $baseVolume = $this->safe_string($ticker, 'volume');
-        $percentage = $this->safe_string($ticker, 'priceChangePercent');
-        if ($percentage !== null) {
-            $percentage = str_replace('%', '', $percentage);
-        }
+        // $percentage = $this->safe_string($ticker, 'priceChangePercent');
+        // if ($percentage !== null) {
+        //     $percentage = str_replace('%', '', $percentage);
+        // } similarly to $change, it's not ccxt's $percentage because it does priceChange/open, and priceChange is $high-$low
         $ts = $this->safe_integer($ticker, 'closeTime');
         $datetime = $this->iso8601($ts);
         $bid = $this->safe_string($ticker, 'bidPrice');
@@ -1363,8 +1368,8 @@ class bingx extends Exchange {
             'close' => $close,
             'last' => null,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
+            'change' => null,
+            'percentage' => null,
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,

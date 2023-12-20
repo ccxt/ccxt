@@ -877,14 +877,17 @@ class bingx(Exchange, ImplicitAPI):
         type = 'spot' if (cost is None) else 'swap'
         currencyId = self.safe_string_2(trade, 'currency', 'N')
         currencyCode = self.safe_currency_code(currencyId)
-        m = self.safe_value(trade, 'm', False)
+        m = self.safe_value(trade, 'm')
         marketId = self.safe_string(trade, 's')
         isBuyerMaker = self.safe_value_2(trade, 'buyerMaker', 'isBuyerMaker')
-        takeOrMaker = 'maker' if (isBuyerMaker or m) else 'taker'
+        takeOrMaker = None
+        if (isBuyerMaker is not None) or (m is not None):
+            takeOrMaker = 'maker' if (isBuyerMaker or m) else 'taker'
         side = self.safe_string_lower_2(trade, 'side', 'S')
         if side is None:
-            side = 'sell' if (isBuyerMaker or m) else 'buy'
-            takeOrMaker = 'taker'
+            if (isBuyerMaker is not None) or (m is not None):
+                side = 'sell' if (isBuyerMaker or m) else 'buy'
+                takeOrMaker = 'taker'
         return self.safe_trade({
             'id': self.safe_string_n(trade, ['id', 't']),
             'info': trade,
@@ -896,7 +899,7 @@ class bingx(Exchange, ImplicitAPI):
             'side': self.parse_order_side(side),
             'takerOrMaker': takeOrMaker,
             'price': self.safe_string_2(trade, 'price', 'p'),
-            'amount': self.safe_string_n(trade, ['qty', 'amount', 'q']),
+            'amount': self.safe_string_n(trade, ['qty', 'volume', 'amount', 'q']),
             'cost': cost,
             'fee': {
                 'cost': self.parse_number(Precise.string_abs(self.safe_string_2(trade, 'commission', 'n'))),
@@ -1258,7 +1261,7 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        change = self.safe_string(ticker, 'priceChange')
+        # change = self.safe_string(ticker, 'priceChange')  # self is not ccxt's change because it does high-low instead of last-open
         lastQty = self.safe_string(ticker, 'lastQty')
         # in spot markets, lastQty is not present
         # it's(bad, but) the only way we can check the tickers origin
@@ -1270,9 +1273,10 @@ class bingx(Exchange, ImplicitAPI):
         close = self.safe_string(ticker, 'lastPrice')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         baseVolume = self.safe_string(ticker, 'volume')
-        percentage = self.safe_string(ticker, 'priceChangePercent')
-        if percentage is not None:
-            percentage = percentage.replace('%', '')
+        # percentage = self.safe_string(ticker, 'priceChangePercent')
+        # if percentage is not None:
+        #     percentage = percentage.replace('%', '')
+        # } similarly to change, it's not ccxt's percentage because it does priceChange/open, and priceChange is high-low
         ts = self.safe_integer(ticker, 'closeTime')
         datetime = self.iso8601(ts)
         bid = self.safe_string(ticker, 'bidPrice')
@@ -1294,8 +1298,8 @@ class bingx(Exchange, ImplicitAPI):
             'close': close,
             'last': None,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
+            'change': None,
+            'percentage': None,
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,

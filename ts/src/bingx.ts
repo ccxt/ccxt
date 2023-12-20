@@ -1320,7 +1320,7 @@ export default class bingx extends Exchange {
         //    }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const change = this.safeString (ticker, 'priceChange');
+        // const change = this.safeString (ticker, 'priceChange'); // this is not ccxt's change because it does high-low instead of last-open
         const lastQty = this.safeString (ticker, 'lastQty');
         // in spot markets, lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
@@ -1332,10 +1332,10 @@ export default class bingx extends Exchange {
         const close = this.safeString (ticker, 'lastPrice');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         const baseVolume = this.safeString (ticker, 'volume');
-        let percentage = this.safeString (ticker, 'priceChangePercent');
-        if (percentage !== undefined) {
-            percentage = percentage.replace ('%', '');
-        }
+        // let percentage = this.safeString (ticker, 'priceChangePercent');
+        // if (percentage !== undefined) {
+        //     percentage = percentage.replace ('%', '');
+        // } similarly to change, it's not ccxt's percentage because it does priceChange/open, and priceChange is high-low
         const ts = this.safeInteger (ticker, 'closeTime');
         const datetime = this.iso8601 (ts);
         const bid = this.safeString (ticker, 'bidPrice');
@@ -1357,8 +1357,8 @@ export default class bingx extends Exchange {
             'close': close,
             'last': undefined,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
+            'change': undefined,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,

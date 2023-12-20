@@ -3093,7 +3093,7 @@ class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
          * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
          * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
@@ -3108,19 +3108,21 @@ class binance extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
-        $query = $this->omit($params, 'type');
-        $defaultMethod = null;
+        $response = null;
         if ($type === 'option') {
-            $defaultMethod = 'eapiPublicGetTicker';
+            $response = $this->eapiPublicGetTicker ($params);
         } elseif ($this->is_linear($type, $subType)) {
-            $defaultMethod = 'fapiPublicGetTicker24hr';
+            $response = $this->fapiPublicGetTicker24hr ($params);
         } elseif ($this->is_inverse($type, $subType)) {
-            $defaultMethod = 'dapiPublicGetTicker24hr';
+            $response = $this->dapiPublicGetTicker24hr ($params);
         } else {
-            $defaultMethod = 'publicGetTicker24hr';
+            $request = array();
+            if ($symbols !== null) {
+                $marketIds = $this->market_ids($symbols);
+                $request['symbols'] = $this->json($marketIds);
+            }
+            $response = $this->publicGetTicker24hr (array_merge($request, $params));
         }
-        $method = $this->safe_string($this->options, 'fetchTickersMethod', $defaultMethod);
-        $response = $this->$method ($query);
         return $this->parse_tickers($response, $symbols);
     }
 
