@@ -31,7 +31,7 @@
                 "output": "nonce=1698834105321&pair=LTCUSDT&type=sell&ordertype=market&volume=0.1"
             },
             {
-                "description": "Margin stopLossPrice order",
+                "description": "Margin stopLossPrice order (type 2)",
                 "method": "createOrder",
                 "url": "https://api.kraken.com/0/private/AddOrder",
                 "input": [
@@ -46,6 +46,23 @@
                   }
                 ],
                 "output": "nonce=1702704715667&pair=XXBTZUSD&type=sell&ordertype=stop-loss-limit&volume=0.00012&price=35000&price2=34000&reduce_only=true&leverage=5"
+            },
+            {
+                "description": "Margin takeProfitPrice order (type 2)",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "BTC/USD",
+                  "limit",
+                  "sell",
+                  0.0001,
+                  46000,
+                  {
+                    "takeProfitPrice": 45000,
+                    "leverage": 5
+                  }
+                ],
+                "output": "nonce=1703055164304&pair=XXBTZUSD&type=sell&ordertype=take-profit-limit&volume=0.0001&price=45000&price2=46000&reduce_only=true&leverage=5"
             },
             {
                 "description": "Margin trailing stop price order",

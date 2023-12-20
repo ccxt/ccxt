@@ -1378,8 +1378,8 @@ export default class kraken extends Exchange {
          * @param {bool} [params.reduceOnly] *margin only* indicates if this order is to reduce the size of a position
          * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
          * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
-         * @param {string} [params.trailingStopLossPrice] *margin only* the quote price away from the current market price
-         * @param {string} [params.trailingStopLossActivationPriceType] *margin only* the activation price type, 'last' or 'index', default is 'last'
+         * @param {string} [params.trailingStopPrice] *margin only* the quote amount to trail away from the current market price
+         * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1655,7 +1655,7 @@ export default class kraken extends Exchange {
             request['price2'] = this.priceToPrecision (symbol, price);
             reduceOnly = true;
         } else if (isTrailingStopPriceOrder) {
-            const trailingStopActivationPriceType = this.safeString (params, 'trailingStopActivationPriceType', 'last');
+            const trailingStopActivationPriceType = this.safeString (params, 'trigger', 'last');
             const trailingStopPriceString = '+' + trailingStopPrice;
             request['trigger'] = trailingStopActivationPriceType;
             reduceOnly = true;
@@ -1695,7 +1695,7 @@ export default class kraken extends Exchange {
         if (postOnly) {
             request['oflags'] = 'post';
         }
-        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingStopPrice', 'trailingStopActivationPriceType' ]);
+        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingStopPrice' ]);
         return [ request, params ];
     }
 
@@ -1715,7 +1715,7 @@ export default class kraken extends Exchange {
          * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
          * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
          * @param {string} [params.trailingStopPrice] *margin only* the quote price away from the current market price
-         * @param {string} [params.trailingStopActivationPriceType] *margin only* the activation price type, 'last' or 'index', default is 'last'
+         * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
