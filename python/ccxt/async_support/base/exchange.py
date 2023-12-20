@@ -89,7 +89,7 @@ class Exchange(BaseExchange):
         return self.session
 
     def __del__(self):
-        if self.session is not None:
+        if self.session is not None or self.socks_proxy_sessions is not None:
             self.logger.warning(self.id + " requires to release all resources with an explicit call to the .close() coroutine. If you are using the exchange instance with async coroutines, add `await exchange.close()` to your code into a place when you're done with the exchange and don't need the exchange instance anymore (at the end of your async coroutine).")
 
     if sys.version_info >= (3, 5):
@@ -123,12 +123,13 @@ class Exchange(BaseExchange):
             if self.own_session:
                 await self.session.close()
             self.session = None
-        if self.socks_proxy_session is not None:
-            await self.close_proxy_session()
+        await self.close_proxy_sessions()
     
-    async def close_proxy_session(self):
-        await self.socks_proxy_session.close()
-        self.socks_proxy_session = None
+    async def close_proxy_sessions(self):
+        if self.socks_proxy_sessions is not None:
+            for url in self.socks_proxy_sessions:
+                await self.socks_proxy_sessions[url].close()
+            self.socks_proxy_sessions = None
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -143,7 +144,7 @@ class Exchange(BaseExchange):
             url = proxyUrl + url
         # proxy agents
         final_proxy = None  # set default
-        self.socks_proxy_session = None
+        proxy_session = None
         httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
         if httpProxy:
             final_proxy = httpProxy
@@ -162,7 +163,11 @@ class Exchange(BaseExchange):
                 enable_cleanup_closed=True
             )
             # override session
-            self.socks_proxy_session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
+            if (self.socks_proxy_sessions is None):
+                self.socks_proxy_sessions = {}
+            if (socksProxy not in self.socks_proxy_sessions):
+                self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
+            proxy_session = self.socks_proxy_sessions[socksProxy]
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
             final_proxy = self.aiohttp_proxy
@@ -183,7 +188,7 @@ class Exchange(BaseExchange):
         request_body = body
         encoded_body = body.encode() if body else None
         self.open()
-        final_session = self.socks_proxy_session if self.socks_proxy_session is not None else self.session
+        final_session = proxy_session if proxy_session is not None else self.session
         session_method = getattr(final_session, method.lower())
 
         http_response = None
@@ -237,8 +242,6 @@ class Exchange(BaseExchange):
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
-        if self.socks_proxy_session is not None:
-            await self.close_proxy_session()
         if json_response is not None:
             return json_response
         if self.is_text_response(headers):
