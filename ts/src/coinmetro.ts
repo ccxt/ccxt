@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinmetro.js';
-import { ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, PermissionDenied } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { Balances, Currency, IndexType, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
@@ -232,9 +232,11 @@ export default class coinmetro extends Exchange {
                     'Invalid stop price!': InvalidOrder, // 422 Unprocessable Entity {"message":"Invalid stop price!"}
                     'Not enough balance': InsufficientFunds, // 422 Unprocessable Entity {"message":"Not enough balance!"}
                     'Not enough margin': InsufficientFunds, // todo: check 422 Unprocessable Entity {"message":"Not enough balance!"}
+                    'Order Not Found': OrderNotFound, // 404 Not Found {"message":"Order Not Found"}
                     'orderType missing': BadRequest, // 422 Unprocessable Entity {"message":"orderType missing!"}
                     'Time in force has to be IOC or FOK for market orders': InvalidOrder, // 422 Unprocessable Entity {"message":"Time in force has to be IOC or FOK for market orders!"}
                     'This pair is disabled on margin': BadSymbol, // 422 Unprocessable Entity {"message":"This pair is disabled on margin"}
+                    'Too many attempts': RateLimitExceeded, // 429 Too Many Requests {"message":"Too many attempts. Try again in 3 seconds"}
                 },
             },
         });
@@ -1009,31 +1011,175 @@ export default class coinmetro extends Exchange {
         }
         const response = await this.privateGetUsersWalletsHistorySince (this.extend (request, params));
         //
+        //     {
+        //         "list": [
+        //             {
+        //                 "currency": "USDC",
+        //                 "label": "USDC",
+        //                 "userId": "65671262d93d9525ac009e36",
+        //                 "balance": 0,
+        //                 "disabled": false,
+        //                 "balanceHistory": [
+        //                     {
+        //                         "description": "Deposit - 657973a9b6eadf0f33d70100",
+        //                         "JSONdata": {
+        //                             "fees": 0,
+        //                             "notes": "Via Crypto",
+        //                             "txHash": "0x2e4875185b0f312d8e24b2d26d46bf9877db798b608ad2ff97b2b8bc7d8134e5",
+        //                             "last4Digits": null,
+        //                             "IBAN": null,
+        //                             "alternativeChain": "polygon",
+        //                             "referenceId": "657973a9b6eadf0f33d70100",
+        //                             "status": "completed",
+        //                             "tracked": true
+        //                         },
+        //                         "amount": 99,
+        //                         "timestamp": "2023-12-13T09:04:51.270Z",
+        //                         "amountEUR": 91.79310117335974
+        //                     },
+        //                     {
+        //                         "description": "Order 65671262d93d9525ac009e36170257061073952c6423a8c5b4d6c SeqNum 10873722342",
+        //                         "JSONdata": {
+        //                             "price": "2282.00 ETH/USDC",
+        //                             "fees": 0,
+        //                             "notes": "Order 3a8c5b4d6c"
+        //                         },
+        //                         "amount": -4.564,
+        //                         "timestamp": "2023-12-14T16:16:50.760Z",
+        //                         "amountEUR": -4.150043849187587
+        //                     },
+        //                     ...
+        //                 ]
+        //             },
+        //             {
+        //                 "currency": "ETH",
+        //                 "label": "ETH",
+        //                 "userId": "65671262d93d9525ac009e36",
+        //                 "balance": 0,
+        //                 "disabled": false,
+        //                 "balanceHistory": [
+        //                     {
+        //                         "description": "Order 65671262d93d9525ac009e36170257061073952c6423a8c5b4d6c SeqNum 10873722342",
+        //                         "JSONdata": {
+        //                             "price": "2282.00 ETH/USDC",
+        //                             "fees": 0.000002,
+        //                             "notes": "Order 3a8c5b4d6c"
+        //                         },
+        //                         "amount": 0.001998,
+        //                         "timestamp": "2023-12-14T16:16:50.761Z",
+        //                         "amountEUR": 4.144849415806856
+        //                     },
+        //                     ...
+        //                 ]
+        //             },
+        //             {
+        //                 "currency": "DOGE",
+        //                 "label": "DOGE",
+        //                 "userId": "65671262d93d9525ac009e36",
+        //                 "balance": 0,
+        //                 "disabled": false,
+        //                 "balanceHistory": [
+        //                     {
+        //                         "description": "Order 65671262d93d9525ac009e361702905785319b5d9016dc20736034d13ca6a - Swap",
+        //                         "JSONdata": {
+        //                             "swap": true,
+        //                             "subtype": "swap",
+        //                             "fees": 0,
+        //                             "price": "0.0905469 DOGE/USDC",
+        //                             "notes": "Swap 034d13ca6a"
+        //                         },
+        //                         "amount": 70,
+        //                         "timestamp": "2023-12-18T13:23:05.836Z",
+        //                         "amountEUR": 5.643627624549227
+        //                     }
+        //                 ]
+        //             },
+        //             ...
+        //         ]
+        //     }
         //
-        const ledger = this.safeValue (response, 'transactions', []);
+        const ledgerByCurrencies = this.safeValue (response, 'list', []);
+        const ledger = [];
+        for (let i = 0; i < ledgerByCurrencies.length; i++) {
+            const currencyLedger = ledgerByCurrencies[i];
+            const currencyId = this.safeString (currencyLedger, 'currency');
+            const balanceHistory = this.safeValue (currencyLedger, 'balanceHistory', []);
+            for (let j = 0; j < balanceHistory.length; j++) {
+                const rawLedgerEntry = balanceHistory[j];
+                rawLedgerEntry['currencyId'] = currencyId;
+                ledger.push (rawLedgerEntry);
+            }
+        }
         return this.parseLedger (ledger, currency, since, limit);
     }
 
     parseLedgerEntry (item, currency: Currency = undefined) {
-        //
-        //
-        return {
+        const datetime = this.safeString (item, 'timestamp');
+        const currencyId = this.safeString (item, 'currencyId');
+        item = this.omit (item, 'currencyId');
+        currency = this.safeCurrency (currencyId, currency);
+        const description = this.safeString (item, 'description', '');
+        const [ type, referenceId ] = this.parseLedgerEntryDescription (description);
+        const JSONdata = this.safeValue (item, 'JSONdata', {});
+        const feeCost = this.safeString (JSONdata, 'fees');
+        const fee = {
+            'cost': feeCost,
+            'currency': undefined, // todo: or code?
+        };
+        let amount = this.safeString (item, 'amount');
+        let direction = undefined;
+        if (amount !== undefined) {
+            if (Precise.stringLt (amount, '0')) {
+                direction = 'out';
+                amount = Precise.stringAbs (amount);
+            } else if (Precise.stringGt (amount, '0')) {
+                direction = 'in';
+            }
+        }
+        return this.safeLedgerEntry ({
             'info': item,
             'id': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'direction': undefined,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime, // todo: check
+            'direction': direction,
             'account': undefined,
-            'referenceId': undefined,
+            'referenceId': referenceId,
             'referenceAccount': undefined,
-            'type': undefined,
-            'currency': undefined,
-            'amount': undefined,
+            'type': type,
+            'currency': currency,
+            'amount': amount,
             'before': undefined,
             'after': undefined,
             'status': undefined,
-            'fee': undefined,
+            'fee': fee,
+        }, currency);
+    }
+
+    parseLedgerEntryDescription (description) {
+        let descriptionArray = [];
+        if (description !== undefined) {
+            descriptionArray = description.split (' ');
+        }
+        let type = undefined;
+        let referenceId = undefined;
+        if (descriptionArray.length > 1) {
+            type = this.parseLedgerEntryType (descriptionArray[0]);
+            if (descriptionArray[1] !== '-') {
+                referenceId = descriptionArray[1];
+            } else {
+                referenceId = this.safeString (descriptionArray, 2);
+            }
+        }
+        return [ type, referenceId ];
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'Deposit': 'transaction',
+            'Withdrawal': 'transaction', // todo: check
+            'Order': 'trade',
         };
+        return this.safeString (types, type, type);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
@@ -1219,7 +1365,7 @@ export default class coinmetro extends Exchange {
         return this.parseOrder (response);
     }
 
-    async closePosition (symbol: string, side: OrderSide = undefined, marginMode: string = undefined, params = {}): Promise<Order> {
+    async closePosition (symbol: string, side: OrderSide = undefined, marginMode: string = undefined, params = {}) {
         /**
          * @method
          * @name coinmetro#cancelOrder
