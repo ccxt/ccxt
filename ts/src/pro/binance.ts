@@ -3,7 +3,7 @@
 
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { ExchangeError, ArgumentsRequired, BadRequest } from '../base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadRequest, NotFound, UnsubscribeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -41,6 +41,7 @@ export default class binance extends binanceRest {
                 'fetchOrdersWs': true,
                 'fetchBalanceWs': true,
                 'fetchMyTradesWs': true,
+                'unsubscribe': true,
             },
             'urls': {
                 'test': {
@@ -450,6 +451,17 @@ export default class binance extends binanceRest {
         return message;
     }
 
+    paramsBuilder (name, symbols) {
+        const subParams = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const currentMessageHash = market['lowercaseId'] + '@' + name;
+            subParams.push (currentMessageHash);
+        }
+        return subParams;
+    }
+
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
@@ -464,21 +476,15 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const options = this.safeValue (this.options, 'watchTradesForSymbols', {});
-        const name = this.safeString (options, 'name', 'trade');
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
-        const subParams = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const market = this.market (symbol);
-            const currentMessageHash = market['lowercaseId'] + '@' + name;
-            subParams.push (currentMessageHash);
-        }
+        const name = this.safeString (options, 'name', 'trade');
+        const subParams = this.paramsBuilder (name, symbols);
         const query = this.omit (params, 'type');
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'multipleTrades');
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'watchTradesForSymbols');
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -488,7 +494,8 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        const trades = await this.watchMultiple (url, subParams, this.extend (request, query), subParams, subscribe);
+        const methodHash = 'watchTradesForSymbols::' + symbols.join (',');
+        const trades = await this.watchMultipleWithUnsubscribe (url, subParams, this.extend (request, query), subParams, subscribe, methodHash);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -822,11 +829,12 @@ export default class binance extends binanceRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['lowercaseId'];
         let type = market['type'];
         if (market['contract']) {
             type = market['linear'] ? 'future' : 'delivery';
         }
+        const methodHash = 'watchTicker::' + symbol;
+        const marketId = market['lowercaseId'];
         const options = this.safeValue (this.options, 'watchTicker', {});
         let name = this.safeString (options, 'name', 'ticker');
         name = this.safeString (params, 'name', name);
@@ -844,7 +852,7 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
+        return await this.watchWithUnsubscribe (url, messageHash, this.extend (request, params), messageHash, subscribe, methodHash);
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -2546,6 +2554,92 @@ export default class binance extends binanceRest {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    // example: unsubscribe ('watchTicker::BTC/USD');
+    // example: unsubscribe ('watchTickers::BTC/USD,LTC/USD');
+    // example unsubscribe ('watchOrderBook::BTC/USDT::1m)
+    // example: unsubscribe ('watchOHLCV::BTC/USDT::1m)')
+    unsubscribe (methodHash: string, params = {}): void {
+        /**
+         * @method
+         * @name binance#unsubscribe
+         * @description unsubscribes from watch method
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         */
+        const parts = methodHash.split ('::');
+        const method = this.safeValue (parts, 0);
+        const args = this.safeValue (parts, 1, '');
+        const argsArray = args.split (',');
+        const symbol = this.safeString (argsArray, 0);
+        const firstMarket = this.market (symbol);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams (method, firstMarket, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams (method, firstMarket, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
+        // get hash to hash to unsubscibe
+        // binance is a bit of an exception due to binance streams. Usually the client is known and this part is ommited
+        // get url
+        const clients = Object.values (this.clients);
+        let url = undefined;
+        for (let i = 0; i < clients.length; i++) {
+            const calledMethods = clients[i]['calledMethods'];
+            const calledMethod = this.safeValue (calledMethods, methodHash);
+            if (calledMethod !== undefined) {
+                url = clients[i]['url'];
+                break;
+            }
+        }
+        if (url === undefined) {
+            throw new NotFound (this.id + 'unsubscribe ' + methodHash + ' methodHash not found');
+        }
+        const client = this.client (url);
+        const unsubscribeHashes = this.subscribeHashesToUnsubscribe (client, methodHash);
+        const requestId = this.requestId (url);
+        const request = {
+            'method': 'UNSUBSCRIBE',
+            'params': unsubscribeHashes,
+            'id': requestId,
+        };
+        const messageHash = 'unsubscribe:' + methodHash;
+        const subscription = {
+            'method': this.handleUnsubscribe,
+            'messageHash': messageHash,
+            'subscriptionsToUnsubscribe': unsubscribeHashes,
+            'methodHash': methodHash,
+        };
+        return this.unwatch (methodHash, url, messageHash, this.extend (request, params), requestId, subscription);
+    }
+
+    handleUnsubscribe (client: Client, message) {
+        //
+        //    {
+        //        "result": null,
+        //        "id": 312
+        //    }
+        //
+        const id = this.safeString (message, 'id');
+        const subscription = this.safeValue (client.subscriptions, id);
+        const messageHash = this.safeString (subscription, 'messageHash');
+        const methodHash = this.safeString (subscription, 'methodHash');
+        const unsubsribedSuscriptionHashes = this.safeValue (subscription, 'subscriptionsToUnsubscribe');
+        const unsubscibeMessageHashes = client.calledMethods[methodHash]['messageHashes'];
+        // delete called method
+        delete client.calledMethods[methodHash];
+        // resolve any waiting futures;
+        const unsubcribe = new UnsubscribeError (methodHash);
+        client.rejectMany (unsubcribe, unsubscibeMessageHashes);
+        // resolve unsubscribe
+        client.resolve (undefined, messageHash);
+        // delete subscription
+        for (let i = 0; i < unsubsribedSuscriptionHashes.length; i++) {
+            delete client.subscriptions[unsubsribedSuscriptionHashes[i]];
+        }
     }
 
     handleMyTrade (client: Client, message) {

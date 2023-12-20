@@ -7,6 +7,7 @@ import {
     isJsonEncodedObject,
     deepExtend,
     milliseconds,
+    isEmpty,
 } from '../../base/functions.js';
 import { utf8 } from '../../static_dependencies/scure-base/index.js';
 
@@ -14,6 +15,8 @@ export default class Client {
     connected: Promise<any>
 
     disconnected: ReturnType<typeof Future>
+
+    calledMethods: {}
 
     futures: {}
 
@@ -71,6 +74,7 @@ export default class Client {
             verbose: false, // verbose output
             protocols: undefined, // ws-specific protocols
             options: undefined, // ws-specific options
+            calledMethods: {},
             futures: {},
             subscriptions: {},
             rejections: {}, // so that we can reject things in the future
@@ -107,6 +111,26 @@ export default class Client {
             delete this.rejections[messageHash]
         }
         return future
+    }
+
+    resolveMany (result, messageHashes) {
+        if (messageHashes === undefined) {
+            return result;
+        }
+        for (let i = 0; i < messageHashes.length; i++) {
+            this.resolve (result, messageHashes[i]);
+        }
+        return result;
+    }
+
+    rejectMany (result, messageHashes) {
+        if (messageHashes === undefined) {
+            return result;
+        }
+        for (let i = 0; i < messageHashes.length; i++) {
+            this.reject (result, messageHashes[i]);
+        }
+        return result;
     }
 
     resolve (result, messageHash) {
