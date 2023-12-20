@@ -118,6 +118,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchOrderBooks': False,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchPermissions': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
                 'fetchPositionsRisk': True,
@@ -8917,4 +8918,26 @@ class binance(Exchange, ImplicitAPI):
             'lastPrice': None,
             'underlyingPrice': None,
             'info': greeks,
+        }
+
+    def fetch_permissions(self, params={}) -> ApiKeyPermission:
+        response = self.sapiGetAccountApiRestrictions(params)
+        # {
+        #   "ipRestrict":false,
+        #   "createTime":1698645219000,
+        #   "enableInternalTransfer":false,  # This option authorizes self key to transfer funds between your master account and your sub account instantly
+        #   "enableFutures":false,   #  The Futures API cannot be used if the API key was created before the Futures account was opened, or if you have enabled portfolio margin.
+        #   "enablePortfolioMarginTrading":true,  #  API Key created before your activate portfolio margin does not support portfolio margin API service
+        #   "enableVanillaOptions":false,  #  Authorizes self key to Vanilla options trading
+        #   "permitsUniversalTransfer":false,  # Authorizes self key to be used for a dedicated universal transfer API to transfer multiple supported currencies. Each business's own transfer API rights are not affected by self authorization
+        #   "enableReading":true,
+        #   "enableSpotAndMarginTrading":false,  # Spot and margin trading
+        #   "enableWithdrawals":false,  # This option allows you to withdraw via API. You must apply the IP Access Restriction filter in order to enable withdrawals
+        #   "enableMargin":false  #  This option can be adjusted after the Cross Margin account transfer is completed
+        # }
+        return {
+            'spotEnabled': self.safe_value(response, 'enableSpotAndMarginTrading', False),
+            'marginEnabled': self.safe_value(response, 'enableSpotAndMarginTrading', False),
+            'withdrawlsEnabled': self.safe_value(response, 'enableWithdrawals', False),
+            'futuresEnabled': self.safe_value(response, 'enableFutures', False),
         }

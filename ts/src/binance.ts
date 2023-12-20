@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface } from './base/types.js';
+import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, ApiKeyPermission } from './base/types.js';
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -99,6 +99,7 @@ export default class binance extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPermissions': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': true,
@@ -9618,6 +9619,29 @@ export default class binance extends Exchange {
             'lastPrice': undefined,
             'underlyingPrice': undefined,
             'info': greeks,
+        };
+    }
+
+    async fetchPermissions (params = {}): Promise<ApiKeyPermission> {
+        const response = await this.sapiGetAccountApiRestrictions (params);
+        // {
+        //   "ipRestrict":false,
+        //   "createTime":1698645219000,
+        //   "enableInternalTransfer":false,  // This option authorizes this key to transfer funds between your master account and your sub account instantly
+        //   "enableFutures":false,   //  The Futures API cannot be used if the API key was created before the Futures account was opened, or if you have enabled portfolio margin.
+        //   "enablePortfolioMarginTrading":true,  //  API Key created before your activate portfolio margin does not support portfolio margin API service
+        //   "enableVanillaOptions":false,  //  Authorizes this key to Vanilla options trading
+        //   "permitsUniversalTransfer":false, // Authorizes this key to be used for a dedicated universal transfer API to transfer multiple supported currencies. Each business's own transfer API rights are not affected by this authorization
+        //   "enableReading":true,
+        //   "enableSpotAndMarginTrading":false, // Spot and margin trading
+        //   "enableWithdrawals":false, // This option allows you to withdraw via API. You must apply the IP Access Restriction filter in order to enable withdrawals
+        //   "enableMargin":false  //  This option can be adjusted after the Cross Margin account transfer is completed
+        // }
+        return {
+            'spotEnabled': this.safeValue (response, 'enableSpotAndMarginTrading', false),
+            'marginEnabled': this.safeValue (response, 'enableSpotAndMarginTrading', false),
+            'withdrawlsEnabled': this.safeValue (response, 'enableWithdrawals', false),
+            'futuresEnabled': this.safeValue (response, 'enableFutures', false),
         };
     }
 }

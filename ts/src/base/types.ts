@@ -339,3 +339,10 @@ export type implicitReturnType = any;
 
 export type Market = MarketInterface | undefined;
 export type Currency = CurrencyInterface | undefined;
+
+export type ApiKeyPermission = {
+    spotEnabled: boolean;
+    marginEnabled: boolean;
+    futuresEnabled: boolean;
+    withdrawlsEnabled: boolean;
+};

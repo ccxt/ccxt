@@ -301,3 +301,9 @@ class CurrencyInterface(TypedDict):
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]
+
+class ApiKeyPermission(TypedDict):
+    spotEnabled: Bool
+    marginEnabled: Bool
+    futuresEnabled: Bool
+    withdrawlsEnabled: Bool
