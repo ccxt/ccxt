@@ -40,6 +40,7 @@
           { "blankLine": "always", "prev": "directive", "next": "*" },
           { "blankLine": "always", "prev": "*", "next": "cjs-export" },
       ],
-      "import/no-extraneous-dependencies": [ "error", { "devDependencies": true } ]
+      "import/no-extraneous-dependencies": [ "error", { "devDependencies": true } ],
+      "jsdoc/require-jsdoc": "off"
   }
 }
