@@ -2557,22 +2557,21 @@ export default class binance extends Exchange {
         let type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        let method = 'privateGetAccount';
+        let marginMode = undefined;
+        let query = undefined;
+        [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        query = this.omit (query, 'type');
+        let response = undefined;
         const request = {};
         if (this.isLinear (type, subType)) {
-            const options = this.safeValue (this.options, type, {});
-            const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
-            method = this.safeString (fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount');
             type = 'linear';
+            response = await this.fapiPrivateV2GetAccount (this.extend (request, query));
         } else if (this.isInverse (type, subType)) {
-            const options = this.safeValue (this.options, type, {});
-            const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
-            method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
             type = 'inverse';
+            response = await this.dapiPrivateGetAccount (this.extend (request, query));
         } else if (marginMode === 'isolated') {
-            method = 'sapiGetMarginIsolatedAccount';
             const paramSymbols = this.safeValue (params, 'symbols');
+            query = this.omit (query, 'symbols');
             if (paramSymbols !== undefined) {
                 let symbols = '';
                 if (Array.isArray (paramSymbols)) {
@@ -2587,15 +2586,16 @@ export default class binance extends Exchange {
                 }
                 request['symbols'] = symbols;
             }
+            response = await this.sapiGetMarginIsolatedAccount (this.extend (request, query));
         } else if ((type === 'margin') || (marginMode === 'cross')) {
-            method = 'sapiGetMarginAccount';
+            response = await this.sapiGetMarginAccount (this.extend (request, query));
         } else if (type === 'savings') {
-            method = 'sapiGetLendingUnionAccount';
+            response = await this.sapiGetLendingUnionAccount (this.extend (request, query));
         } else if (type === 'funding') {
-            method = 'sapiPostAssetGetFundingAsset';
+            response = await this.sapiPostAssetGetFundingAsset (this.extend (request, query));
+        } else {
+            response = await this.privateGetAccount (this.extend (request, query));
         }
-        const requestParams = this.omit (query, [ 'type', 'symbols' ]);
-        const response = await this[method] (this.extend (request, requestParams));
         //
         // spot
         //
