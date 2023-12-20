@@ -377,8 +377,8 @@ export default class coinmetro extends Exchange {
         // todo: check
         const basePrecisionAndLimits = this.parseMarketPrecisionAndLimits (baseId);
         const quotePrecisionAndLimits = this.parseMarketPrecisionAndLimits (quoteId);
-        const pricePrecision = this.safeInteger (market, 'precision');
         const margin = this.safeValue (market, 'margin', false);
+        const tradingFees = this.safeValue (this.fees, 'trading', {});
         return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
@@ -398,6 +398,8 @@ export default class coinmetro extends Exchange {
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
+            'taker': this.safeNumber (tradingFees, 'taker'),
+            'maker': this.safeNumber (tradingFees, 'maker'),
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -405,7 +407,9 @@ export default class coinmetro extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': basePrecisionAndLimits['precision'],
-                'price': pricePrecision,
+                'price': undefined,
+                'base': basePrecisionAndLimits['precision'],
+                'quote': quotePrecisionAndLimits['precision'],
             },
             'limits': {
                 'leverage': {
