@@ -690,7 +690,7 @@ export default class coinmetro extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const id = this.safeStringN (trade, [ '_id', 'seqNum', 'seqNumber' ]); // todo: check
-        const timestamp = this.safeString (trade, 'timestamp');
+        const timestamp = this.safeInteger (trade, 'timestamp');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
         const order = this.safeString (trade, 'orderID');
