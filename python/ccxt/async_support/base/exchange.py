@@ -107,11 +107,14 @@ class Exchange(BaseExchange):
             else:
                 self.asyncio_loop = asyncio.get_event_loop()
             self.throttle.loop = self.asyncio_loop
-        if self.own_session and self.session is None:
+        
+        if self.ssl_context is None:
             # Create our SSL context object with our CA cert file
-            context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+            self.ssl_context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+
+        if self.own_session and self.session is None:
             # Pass this SSL context to aiohttp and create a TCPConnector
-            connector = aiohttp.TCPConnector(ssl=context, loop=self.asyncio_loop, enable_cleanup_closed=True)
+            connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True)
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
@@ -121,8 +124,11 @@ class Exchange(BaseExchange):
                 await self.session.close()
             self.session = None
         if self.socks_proxy_session is not None:
-            await self.socks_proxy_session.close()
-            self.socks_proxy_session = None
+            await self.close_proxy_session()
+    
+    async def close_proxy_session(self):
+        await self.socks_proxy_session.close()
+        self.socks_proxy_session = None
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -147,12 +153,11 @@ class Exchange(BaseExchange):
             if ProxyConnector is None:
                 raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
             # Create our SSL context object with our CA cert file
-            context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
             self.open()  # ensure `asyncio_loop` is set
             connector = ProxyConnector.from_url(
                 socksProxy,
                 # extra args copied from self.open()
-                ssl=context,
+                ssl=self.ssl_context,
                 loop=self.asyncio_loop,
                 enable_cleanup_closed=True
             )
@@ -232,6 +237,8 @@ class Exchange(BaseExchange):
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
+        if self.socks_proxy_session is not None:
+            await self.close_proxy_session()
         if json_response is not None:
             return json_response
         if self.is_text_response(headers):
