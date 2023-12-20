@@ -2,10 +2,11 @@ import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
 import execute from 'rollup-plugin-execute';
 import nodeResolve from '@rollup/plugin-node-resolve'
+import typescript from '@rollup/plugin-typescript'
 
 export default [
   {
-    input: "./js/ccxt.js",
+    input: "./ts/ccxt.ts",
     output: [
       {
         dir: "./dist/cjs/",
@@ -19,6 +20,7 @@ export default [
       },
     ],
     plugins: [
+      typescript(),
       nodeResolve({
         preferBuiltins: true,
       }),
