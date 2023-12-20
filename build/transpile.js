@@ -2453,8 +2453,8 @@ class Transpiler {
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
 
             let importedExceptionTypes = imports.filter(x => Object.keys(errors).includes(x.name)).map(x => x.name); // returns 'OnMaintenance,ExchangeNotAvailable', etc...
-            
-            const findDirsAmountForPath = (langFolder, filePath, defaultDirs) => {
+
+            const getDirLevelForPath = (langFolder, filePath, defaultDirs) => {
                 let directoriesToPythonFile = undefined;
                 if(filePath && filePath.includes('/' + langFolder + '/')) {
                     directoriesToPythonFile = (filePath.split('/' + langFolder + '/')[1]?.match(/\//g)?.length || defaultDirs) + 1;
@@ -2462,8 +2462,8 @@ class Transpiler {
                 return directoriesToPythonFile;
             };
 
-            const pyDirsAmount = findDirsAmountForPath('python', test.pyFileAsync || test.pyFileSync, 3);
-            const phpDirsAmount = findDirsAmountForPath('php', test.phpFileAsync || test.phpFileSync, 2);
+            const pyDirsAmount = getDirLevelForPath('python', test.pyFileAsync || test.pyFileSync, 3);
+            const phpDirsAmount = getDirLevelForPath('php', test.phpFileAsync || test.phpFileSync, 2);
             const pythonPreamble = this.getPythonPreamble(pyDirsAmount);
             // In PHP preable, for specifically WS tests, we need to avoid php namespace differences for tests, for example, if WATCH methods use ccxt\\pro, then the inlcuded non-pro test methods (like "test_trade" etc) are under ccxt, causing the purely transpiled code to have namespace conflicts specifically in PHP. so, for now, let's just leave all watch method tests under `ccxt` namespace, not `ccxt\pro`
             // let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, isWs); 
