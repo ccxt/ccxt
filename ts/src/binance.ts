@@ -5998,7 +5998,8 @@ export default class binance extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         request['type'] = this.safeString (params, 'type');
-        let method = 'sapiPostAssetTransfer';
+        params = this.omit (params, 'type');
+        let response = undefined;
         if (request['type'] === undefined) {
             const symbol = this.safeString (params, 'symbol');
             if (symbol !== undefined) {
@@ -6035,15 +6036,15 @@ export default class binance extends Exchange {
                 if ((fromIsolated || toIsolated) && prohibitedWithIsolated) {
                     throw new BadRequest (this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
                 } else if (toSpot && fromIsolated) {
-                    method = 'sapiPostMarginIsolatedTransfer';
                     request['transFrom'] = 'ISOLATED_MARGIN';
                     request['transTo'] = 'SPOT';
                     request['symbol'] = fromId;
+                    response = await this.sapiPostMarginIsolatedTransfer (this.extend (request, params));
                 } else if (fromSpot && toIsolated) {
-                    method = 'sapiPostMarginIsolatedTransfer';
                     request['transFrom'] = 'SPOT';
                     request['transTo'] = 'ISOLATED_MARGIN';
                     request['symbol'] = toId;
+                    response = await this.sapiPostMarginIsolatedTransfer (this.extend (request, params));
                 } else {
                     if (fromIsolated) {
                         request['fromSymbol'] = fromId;
@@ -6059,8 +6060,9 @@ export default class binance extends Exchange {
                 request['type'] = fromId + '_' + toId;
             }
         }
-        params = this.omit (params, 'type');
-        const response = await this[method] (this.extend (request, params));
+        if (response === undefined) {
+            response = await this.sapiPostAssetTransfer (this.extend (request, params));
+        }
         //
         //     {
         //         "tranId":13526853623
