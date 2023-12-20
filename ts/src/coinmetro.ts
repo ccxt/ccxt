@@ -1365,7 +1365,7 @@ export default class coinmetro extends Exchange {
         return this.parseOrder (response);
     }
 
-    async closePosition (symbol: string, side: OrderSide = undefined, marginMode: string = undefined, params = {}) {
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}) {
         /**
          * @method
          * @name coinmetro#cancelOrder
@@ -1373,7 +1373,6 @@ export default class coinmetro extends Exchange {
          * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
          * @param {string} symbol not used by coinmetro closePosition ()
          * @param {string} [side] not used by coinmetro closePosition ()
-         * @param {string} [marginMode] not used by coinmetro closePosition ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.orderID] order id
          * @param {number} [params.fraction] fraction of order to close, between 0 and 1 (defaults to 1)
