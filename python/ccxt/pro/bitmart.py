@@ -57,7 +57,7 @@ class bitmart(ccxt.async_support.bitmart):
                 'defaultType': 'spot',
                 'watchBalance': {
                     'fetchBalanceSnapshot': True,  # or False
-                    'awaitBalanceSnapshot': True,  # whether to wait for the balance snapshot before providing updates
+                    'awaitBalanceSnapshot': False,  # whether to wait for the balance snapshot before providing updates
                 },
                 'watchOrderBook': {
                     'depth': 'depth50',  # depth5, depth20, depth50
@@ -131,25 +131,27 @@ class bitmart(ccxt.async_support.bitmart):
         messageHash = 'balance:' + type
         url = self.implode_hostname(self.urls['api']['ws'][type]['private'])
         client = self.client(url)
-        self.set_balance_cache(client, type)
-        fetchBalanceSnapshot = self.handle_option_and_params(self.options, 'watchBalance', 'fetchBalanceSnapshot', True)
-        awaitBalanceSnapshot = self.handle_option_and_params(self.options, 'watchBalance', 'awaitBalanceSnapshot', False)
+        self.set_balance_cache(client, type, messageHash)
+        fetchBalanceSnapshot = None
+        awaitBalanceSnapshot = None
+        fetchBalanceSnapshot, params = self.handle_option_and_params(self.options, 'watchBalance', 'fetchBalanceSnapshot', True)
+        awaitBalanceSnapshot, params = self.handle_option_and_params(self.options, 'watchBalance', 'awaitBalanceSnapshot', False)
         if fetchBalanceSnapshot and awaitBalanceSnapshot:
             await client.future(type + ':fetchBalanceSnapshot')
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    def set_balance_cache(self, client: Client, type):
-        if type in client.subscriptions:
-            return None
+    def set_balance_cache(self, client: Client, type, subscribeHash):
+        if subscribeHash in client.subscriptions:
+            return
         options = self.safe_value(self.options, 'watchBalance')
-        fetchBalanceSnapshot = self.handle_option_and_params(options, 'watchBalance', 'fetchBalanceSnapshot', True)
-        if fetchBalanceSnapshot:
-            messageHash = type + ':fetchBalanceSnapshot'
+        snapshot = self.safe_value(options, 'fetchBalanceSnapshot', True)
+        if snapshot:
+            messageHash = type + ':' + 'fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
                 self.spawn(self.load_balance_snapshot, client, messageHash, type)
-        else:
-            self.balance[type] = {}
+        self.balance[type] = {}
+        # without self comment, transpilation breaks for some reason...
 
     async def load_balance_snapshot(self, client, messageHash, type):
         response = await self.fetch_balance({'type': type})
@@ -195,14 +197,14 @@ class bitmart(ccxt.async_support.bitmart):
             return
         isSpot = (channel.find('spot') >= 0)
         type = 'spot' if isSpot else 'swap'
-        self.balance['info'] = message
+        self.balance[type]['info'] = message
         if isSpot:
             if not isinstance(data, list):
                 return
             for i in range(0, len(data)):
                 timestamp = self.safe_integer(message, 'event_time')
-                self.balance['timestamp'] = timestamp
-                self.balance['datetime'] = self.iso8601(timestamp)
+                self.balance[type]['timestamp'] = timestamp
+                self.balance[type]['datetime'] = self.iso8601(timestamp)
                 balanceDetails = self.safe_value(data[i], 'balance_details', [])
                 for ii in range(0, len(balanceDetails)):
                     rawBalance = balanceDetails[i]
@@ -210,8 +212,8 @@ class bitmart(ccxt.async_support.bitmart):
                     currencyId = self.safe_string(rawBalance, 'ccy')
                     code = self.safe_currency_code(currencyId)
                     account['free'] = self.safe_string(rawBalance, 'av_bal')
-                    account['total'] = self.safe_string(rawBalance, 'fz_bal')
-                    self.balance[code] = account
+                    account['used'] = self.safe_string(rawBalance, 'fz_bal')
+                    self.balance[type][code] = account
         else:
             currencyId = self.safe_string(data, 'currency')
             code = self.safe_currency_code(currencyId)

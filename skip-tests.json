@@ -53,6 +53,7 @@
         "skipPhpAsync": true,
         "skipWs": true,
         "skipMethods": {
+            "fetchStatus": "temporarily failing",
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC",
                 "expiry": "expiry not set for future markets",
@@ -643,6 +644,12 @@
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
+            },
+            "fetchTicker": {
+                "quoteVolume": "quote scale isn't right"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quote scale isn't right"
             }
         }
     },

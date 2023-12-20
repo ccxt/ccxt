@@ -93,4 +93,5 @@ export default class kucoinfutures extends kucoin {
         timestamp: number;
         datetime: string;
     };
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
 }

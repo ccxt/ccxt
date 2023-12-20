@@ -202,6 +202,8 @@ class coinbase extends Exchange {
                             'brokerage/products/{product_id}',
                             'brokerage/products/{product_id}/candles',
                             'brokerage/products/{product_id}/ticker',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/{portfolio_uuid}',
                             'brokerage/transaction_summary',
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
@@ -213,8 +215,16 @@ class coinbase extends Exchange {
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                        ),
+                        'put' => array(
+                            'brokerage/portfolios/{portfolio_uuid}',
+                        ),
+                        'delete' => array(
+                            'brokerage/portfolios/{portfolio_uuid}',
                         ),
                     ),
                 ),
@@ -272,6 +282,8 @@ class coinbase extends Exchange {
                     'not_found' => '\\ccxt\\ExchangeError', // 404 Resource not found
                     'rate_limit_exceeded' => '\\ccxt\\RateLimitExceeded', // 429 Rate limit exceeded
                     'internal_server_error' => '\\ccxt\\ExchangeError', // 500 Internal server error
+                    'UNSUPPORTED_ORDER_CONFIGURATION' => '\\ccxt\\BadRequest',
+                    'INSUFFICIENT_FUND' => '\\ccxt\\BadRequest',
                 ),
                 'broad' => array(
                     'request timestamp expired' => '\\ccxt\\InvalidNonce', // array("errors":[array("id":"authentication_error","message":"request timestamp expired")])
@@ -2318,6 +2330,8 @@ class coinbase extends Exchange {
             $params = $this->omit($params, array( 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time' ));
             $response = Async\await($this->v3PrivatePostBrokerageOrders (array_merge($request, $params)));
             //
+            // successful order
+            //
             //     {
             //         "success" => true,
             //         "failure_reason" => "UNKNOWN_FAILURE_REASON",
@@ -2331,9 +2345,37 @@ class coinbase extends Exchange {
             //         "order_configuration" => null
             //     }
             //
+            // failed order
+            //
+            //     {
+            //         "success" => false,
+            //         "failure_reason" => "UNKNOWN_FAILURE_REASON",
+            //         "order_id" => "",
+            //         "error_response" => array(
+            //             "error" => "UNSUPPORTED_ORDER_CONFIGURATION",
+            //             "message" => "source is not enabled for trading",
+            //             "error_details" => "",
+            //             "new_order_failure_reason" => "UNSUPPORTED_ORDER_CONFIGURATION"
+            //         ),
+            //         "order_configuration" => {
+            //             "limit_limit_gtc" => {
+            //                 "base_size" => "100",
+            //                 "limit_price" => "40000",
+            //                 "post_only" => false
+            //             }
+            //         }
+            //     }
+            //
             $success = $this->safe_value($response, 'success');
             if ($success !== true) {
-                throw new BadRequest($this->id . ' createOrder() has failed, check your arguments and parameters');
+                $errorResponse = $this->safe_value($response, 'error_response');
+                $errorTitle = $this->safe_string($errorResponse, 'error');
+                $errorMessage = $this->safe_string($errorResponse, 'message');
+                if ($errorResponse !== null) {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorTitle, $errorMessage);
+                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorTitle, $errorMessage);
+                    throw new ExchangeError($errorMessage);
+                }
             }
             $data = $this->safe_value($response, 'success_response', array());
             return $this->parse_order($data, $market);
