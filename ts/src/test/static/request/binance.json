@@ -330,6 +330,22 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Swap inverse cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://dapi.binance.com/dapi/v1/allOpenOrders?timestamp=1699384154326&symbol=BTCUSD_PERP&recvWindow=10000&signature=6be9641d53bd8e041581dbbe9f9a10576253d6d661a755ccbced131b8dc3e56d",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "Option cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://eapi.binance.com/eapi/v1/allOpenOrders?timestamp=1699384154326&symbol=ETH-231229-800-C&recvWindow=10000&signature=6be9641d53bd8e041581dbbe9f9a10576253d6d661a755ccbced131b8dc3e56d",
+                "input": [
+                    "ETH/USDT:USDT-231229-800-C"
+                ]
             }
         ],
         "fetchBalance": [
