@@ -4226,12 +4226,12 @@ export default class Exchange {
         if (takeProfit !== undefined) {
             params['takeProfit'] = {
                 'triggerPrice': takeProfit,
-            }
+            };
         }
         if (stopLoss !== undefined) {
             params['stopLoss'] = {
                 'triggerPrice': stopLoss,
-            }
+            };
         }
         if (this.has['createOrderWithTpAndSl']) {
             return await this.createOrder (symbol, type, side, amount, price, params);
