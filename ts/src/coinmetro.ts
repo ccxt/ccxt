@@ -220,13 +220,17 @@ export default class coinmetro extends Exchange {
                     'available to allocate as collateral': InsufficientFunds, // todo: check 403 Forbidden {"message":"Insufficient EUR available to allocate as collateral"}
                     'At least 5 EUR per operation': BadRequest, // 422 Unprocessable Entity {"message":"At least 5 EUR per operation"}
                     'collateral is not allowed': BadRequest, // 422 Unprocessable Entity {"message":"DOGE collateral is not allowed"}
+                    'Expiration date is in the past or too near in the future': InvalidOrder, // 422 Unprocessable Entity {"message":"Expiration date is in the past or too near in the future"}
                     'Forbidden': PermissionDenied, // 403 Forbidden {"message":"Forbidden"}
+                    'Insufficient liquidity to fill the FOK order completely': InvalidOrder, // todo: check 503 Service Unavailable {"message":"Insufficient liquidity to fill the FOK order completely."}
                     'Insufficient order size': InvalidOrder, // 422 Unprocessable Entity {"message":"Insufficient order size - min 0.002 ETH"}
+                    'Invalid quantity': InvalidOrder, // 422 Unprocessable Entity {"message":"Invalid quantity!"}
                     'Invalid Stop Loss': InvalidOrder, // 422 Unprocessable Entity {"message":"Invalid Stop Loss!"}
                     'Invalid stop price!': InvalidOrder, // 422 Unprocessable Entity {"message":"Invalid stop price!"}
                     'Not enough balance': InsufficientFunds, // 422 Unprocessable Entity {"message":"Not enough balance!"}
                     'Not enough margin': InsufficientFunds, // todo: check 422 Unprocessable Entity {"message":"Not enough balance!"}
                     'orderType missing': BadRequest, // 422 Unprocessable Entity {"message":"orderType missing!"}
+                    'Time in force has to be IOC or FOK for market orders': InvalidOrder, // 422 Unprocessable Entity {"message":"Time in force has to be IOC or FOK for market orders!"}
                     'This pair is disabled on margin': BadSymbol, // 422 Unprocessable Entity {"message":"This pair is disabled on margin"}
                 },
             },
@@ -664,10 +668,19 @@ export default class coinmetro extends Exchange {
         //         "orderID": "65671262d93d9525ac009e36170257061073952c6423a8c5b4d6c"
         //     }
         //
+        // fetchOrders
+        //     {
+        //         "_id": "657b31d360a9542449381bdc",
+        //         "seqNumber": 10873722343,
+        //         "timestamp": 1702570610747,
+        //         "qty": 0.002,
+        //         "price": 2282,
+        //         "side": "buy"
+        //     }
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const id = this.safeString2 (trade, 'seqNum', 'seqNumber'); // todo: check
+        const id = this.safeStringN (trade, [ '_id', 'seqNum', 'seqNumber' ]); // todo: check
         const timestamp = this.safeString (trade, 'timestamp');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
@@ -1072,10 +1085,16 @@ export default class coinmetro extends Exchange {
             this.handleCreateOrderSide (market['quoteId'], market['baseId'], precisedCost, precisedAmount, request);
         }
         const timeInForce = this.safeValue (params, 'timeInForce');
+        // todo: the exchange accepts limit IOC orders and cancels them, should we check it here and throw an exeption?
         if (timeInForce !== undefined) {
             params = this.omit (params, 'timeInForce');
             request['timeInForce'] = this.encodeOrderTimeInForce (timeInForce);
-            // todo: check the expiration time for GTD
+        }
+        const expirationTime = this.safeInteger (params, 'expirationTime');
+        if (expirationTime !== undefined) {
+            params = this.omit (params, 'expirationTime');
+            request['expirationTime'] = expirationTime;
+            // todo: expirationTime works both for GTC and GTD orders, should we check something here?
         }
         const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         if (stopPrice !== undefined) {
@@ -1087,7 +1106,7 @@ export default class coinmetro extends Exchange {
         if (margin === true) {
             request['margin'] = true;
         }
-        const userData = {};
+        const userData = this.safeValue (params, 'userData', {});
         const comment = this.safeString2 (params, 'clientOrderId', 'comment');
         if (comment !== undefined) {
             params = this.omit (params, [ 'clientOrderId', 'comment' ]);
@@ -1217,6 +1236,35 @@ export default class coinmetro extends Exchange {
             'orderID': orderId,
         };
         const response = await this.privatePostExchangeOrdersCloseOrderID (this.extend (request, params));
+        //
+        //     {
+        //         "userID": "65671262d93d9525ac009e36",
+        //         "orderID": "65671262d93d9525ac009e3617030152811996e5b352556d3d7d8_CL",
+        //         "orderType": "market",
+        //         "buyingCurrency": "ETH",
+        //         "sellingCurrency": "EUR",
+        //         "margin": true,
+        //         "buyingQty": 0.03,
+        //         "timeInForce": 4,
+        //         "boughtQty": 0.03,
+        //         "soldQty": 59.375,
+        //         "creationTime": 1703015488482,
+        //         "seqNumber": 10925321179,
+        //         "firstFillTime": 1703015488483,
+        //         "lastFillTime": 1703015488483,
+        //         "fills": [
+        //             {
+        //                 "seqNumber": 10925321178,
+        //                 "timestamp": 1703015488483,
+        //                 "qty": 0.03,
+        //                 "price": 1979.1666666666667,
+        //                 "side": "buy"
+        //             }
+        //         ],
+        //         "completionTime": 1703015488483,
+        //         "takerQty": 0.03
+        //     }
+        //
         return this.parseOrder (response);
     }
 
@@ -1277,113 +1325,6 @@ export default class coinmetro extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name coinmetro#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of closed order structures to retrieve (default 200, max 500)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const response = await this.fetchCanceledAndClosedOrders (symbol, since);
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const isCanceled = this.safeValue (entry, 'canceled');
-            if (isCanceled !== true) {
-                entry['status'] = 'closed';
-                result.push (entry);
-            }
-        }
-        return this.parseOrders (result, market, since, limit);
-    }
-
-    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinmetro#fetchCanceledOrders
-         * @description fetches information on multiple canceled orders made by the user
-         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of canceled order structures to retrieve (default 200, max 500)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const response = await this.fetchCanceledAndClosedOrders (symbol, since);
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const isCanceled = this.safeValue (entry, 'canceled');
-            if (isCanceled === true) {
-                result.push (entry);
-            }
-        }
-        return this.parseOrders (result, market, since, limit);
-    }
-
-    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        if (since !== undefined) {
-            request['since'] = since;
-        }
-        const response = await this.privateGetExchangeOrdersHistorySince (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "userID": "65671262d93d9525ac009e36",
-        //             "orderID": "65671262d93d9525ac009e36170257061073952c6423a8c5b4d6c",
-        //             "orderType": "market",
-        //             "buyingCurrency": "ETH",
-        //             "sellingCurrency": "USDC",
-        //             "buyingQty": 0.002,
-        //             "timeInForce": 4,
-        //             "boughtQty": 0.002,
-        //             "soldQty": 4.564,
-        //             "creationTime": 1702570610746,
-        //             "seqNumber": 10873722344,
-        //             "firstFillTime": 1702570610747,
-        //             "lastFillTime": 1702570610747,
-        //             "fills": [
-        //                 {
-        //                     "_id": "657b31d360a9542449381bdc",
-        //                     "seqNumber": 10873722343,
-        //                     "timestamp": 1702570610747,
-        //                     "qty": 0.002,
-        //                     "price": 2282,
-        //                     "side": "buy"
-        //                 }
-        //             ],
-        //             "completionTime": 1702570610747,
-        //             "takerQty": 0.002,
-        //             "fees": 0.000002,
-        //             "isAncillary": false,
-        //             "margin": false,
-        //             "trade": false,
-        //             "canceled": false,
-        //             "__v": 0
-        //         },
-        //         ...
-        //     ]
-        //
-        return response;
-    }
-
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
@@ -1440,7 +1381,7 @@ export default class coinmetro extends Exchange {
 
     parseOrder (order, market: Market = undefined): Order {
         //
-        // createOrder market order
+        // createOrder market
         //     {
         //         "userID": "65671262d93d9525ac009e36",
         //         "orderID": "65671262d93d9525ac009e36170257448481749b7ee2893bafec2",
@@ -1468,7 +1409,7 @@ export default class coinmetro extends Exchange {
         //         "takerQty": 0.002
         //     }
         //
-        // createOrder limit order
+        // createOrder limit
         //     {
         //         "userID": "65671262d93d9525ac009e36",
         //         "orderID": "65671262d93d9525ac009e3617026635256739c996fe17d7cd5d4",
@@ -1491,7 +1432,7 @@ export default class coinmetro extends Exchange {
         //         "trade": false
         //     }
         //
-        // fetchCanceledAndClosedOrders
+        // fetchOrders market
         //     {
         //         "userID": "65671262d93d9525ac009e36",
         //         "orderID": "65671262d93d9525ac009e36170257061073952c6423a8c5b4d6c",
@@ -1524,6 +1465,60 @@ export default class coinmetro extends Exchange {
         //         "trade": false,
         //         "canceled": false,
         //         "__v": 0
+        //     }
+        //
+        // fetchOrders margin
+        //     {
+        //         "userData": {
+        //             "takeProfit": 1700,
+        //             "stopLoss": 2100
+        //         },
+        //         "_id": "658201d060a95424499394a2",
+        //         "seqNumber": 10925300213,
+        //         "orderType": "limit",
+        //         "buyingCurrency": "EUR",
+        //         "sellingCurrency": "ETH",
+        //         "userID": "65671262d93d9525ac009e36",
+        //         "closedQty": 0.03,
+        //         "sellingQty": 0.03,
+        //         "buyingQty": 58.8,
+        //         "creationTime": 1703015281205,
+        //         "margin": true,
+        //         "timeInForce": 1,
+        //         "boughtQty": 59.31,
+        //         "orderID": "65671262d93d9525ac009e3617030152811996e5b352556d3d7d8",
+        //         "lastFillTime": 1703015281206,
+        //         "soldQty": 0.03,
+        //         "closedTime": 1703015488488,
+        //         "closedVal": 59.375,
+        //         "trade": true,
+        //         "takerQty": 59.31,
+        //         "firstFillTime": 1703015281206,
+        //         "completionTime": 1703015281206,
+        //         "fills": [
+        //             {
+        //                 "_id": "658201d060a95424499394a3",
+        //                 "seqNumber": 10925300212,
+        //                 "side": "sell",
+        //                 "price": 1977,
+        //                 "qty": 0.03,
+        //                 "timestamp": 1703015281206
+        //             },
+        //             {
+        //                 "_id": "658201d060a95424499394a4",
+        //                 "seqNumber": 10925321178,
+        //                 "timestamp": 1703015488483,
+        //                 "qty": 0.03,
+        //                 "price": 1979.1666666666667,
+        //                 "side": "buy"
+        //             }
+        //         ],
+        //         "fees": 0.11875000200000001,
+        //         "settledQtys": {
+        //             "ETH": -0.000092842104710025
+        //         },
+        //         "isAncillary": false,
+        //         "canceled": false
         //     }
         //
         // fetchOrder
@@ -1561,62 +1556,101 @@ export default class coinmetro extends Exchange {
         //         "canceled": false
         //     }
         //
-        const timestamp = this.safeInteger (order, 'creationTime');
+        let timestamp = this.safeInteger (order, 'creationTime');
+        const isCanceled = this.safeValue (order, 'canceled');
+        let status = undefined;
+        if (isCanceled === true) {
+            if (timestamp === undefined) {
+                timestamp = this.safeInteger (order, 'completionTime'); // todo: check - market orders with bad price gain TIF IOC - should we mark them as 'rejected'?
+                status = 'rejected'; // these orders don't have the 'creationTime` param and have 'canceled': true
+            } else {
+                status = 'canceled';
+            }
+        } else {
+            status = this.safeString (order, 'status');
+            order = this.omit (order, 'status'); // we mark orders from fetchOpenOrders with param 'status': 'open'
+        }
+        const type = this.safeString (order, 'orderType');
+        let buyingQty = this.safeString (order, 'buyingQty');
+        let sellingQty = this.safeString (order, 'sellingQty');
+        const boughtQty = this.safeString (order, 'boughtQty');
+        const soldQty = this.safeString (order, 'soldQty');
+        if (type === 'market') {
+            if ((buyingQty === undefined) && (boughtQty !== undefined) && (boughtQty !== '0')) {
+                buyingQty = boughtQty;
+            }
+            if ((sellingQty === undefined) && (soldQty !== undefined) && (soldQty !== '0')) {
+                sellingQty = soldQty;
+            }
+        }
         const buyingCurrencyId = this.safeString (order, 'buyingCurrency', '');
         const sellingCurrencyId = this.safeString (order, 'sellingCurrency', '');
-        const byuingPlusSelling = buyingCurrencyId + sellingCurrencyId;
-        const sellingPlusBuying = sellingCurrencyId + buyingCurrencyId;
+        const byuingIdPlusSellingId = buyingCurrencyId + sellingCurrencyId;
+        const sellingIdPlusBuyingId = sellingCurrencyId + buyingCurrencyId;
         let side = undefined;
         let marketId = undefined;
-        let baseAmount = this.safeString (order, 'buyingQty');
-        let quoteAmount = this.safeString (order, 'buyingQty');
+        let baseAmount = buyingQty;
+        let quoteAmount = buyingQty;
         let filled = undefined;
+        let cost = undefined;
+        let feeInBaseOrQuote = undefined;
         const marketsById = this.indexBy (this.markets, 'id');
-        if (this.safeValue (marketsById, byuingPlusSelling) !== undefined) {
+        if (this.safeValue (marketsById, byuingIdPlusSellingId) !== undefined) {
             side = 'buy';
-            marketId = byuingPlusSelling;
-            quoteAmount = this.safeString (order, 'sellingQty');
-            filled = this.safeString (order, 'boughtQty');
-        } else if (this.safeValue (marketsById, sellingPlusBuying) !== undefined) {
+            marketId = byuingIdPlusSellingId;
+            quoteAmount = sellingQty;
+            filled = boughtQty;
+            cost = soldQty;
+            feeInBaseOrQuote = 'base';
+        } else if (this.safeValue (marketsById, sellingIdPlusBuyingId) !== undefined) {
             side = 'sell';
-            marketId = sellingPlusBuying;
-            baseAmount = this.safeString (order, 'sellingQty');
-            filled = this.safeString (order, 'soldQty');
+            marketId = sellingIdPlusBuyingId;
+            baseAmount = sellingQty;
+            filled = soldQty;
+            cost = boughtQty;
+            feeInBaseOrQuote = 'quote';
         }
         let price = undefined;
         if ((baseAmount !== undefined) && (quoteAmount !== undefined)) {
             price = Precise.stringDiv (quoteAmount, baseAmount);
         }
         market = this.safeMarket (marketId, market);
-        const trades = this.safeValue (order, 'fills', []);
-        const isCanceled = this.safeValue (order, 'canceled');
-        let status = undefined;
-        if (isCanceled === true) {
-            status = 'canceled';
-        } else {
-            status = this.safeString (order, 'status');
-            order = this.omit (order, 'status');
+        let fee = undefined;
+        const feeCost = this.safeString (order, 'fees');
+        if ((feeCost !== undefined) && (feeInBaseOrQuote !== undefined)) {
+            fee = {
+                'currency': market[feeInBaseOrQuote],
+                'cost': feeCost,
+                'rate': undefined,
+            };
         }
+        const trades = this.safeValue (order, 'fills', []);
+        const userData = this.safeValue (order, 'userData', {});
+        const triggerPrice = this.safeString (order, 'stopPrice');
+        const clientOrderId = this.safeString (userData, 'comment');
+        const takeProfitPrice = this.safeString (userData, 'takeProfit');
+        const stopLossPrice = this.safeString (userData, 'stopLoss');
         return this.safeOrder ({
             'id': this.safeString (order, 'orderID'),
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': this.safeInteger (order, 'lastFillTime'),
             'status': status,
             'symbol': market['symbol'],
-            'type': this.safeString (order, 'orderType'),
+            'type': type,
             'timeInForce': this.parseOrderTimeInForce (this.safeInteger (order, 'timeInForce')),
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'triggerPrice': triggerPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'average': undefined,
             'amount': baseAmount,
-            'cost': undefined,
+            'cost': cost,
             'filled': filled,
             'remaining': undefined,
-            'fee': undefined,
+            'fee': fee,
             'fees': undefined,
             'trades': trades,
             'info': order,
