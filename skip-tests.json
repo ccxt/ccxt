@@ -1607,6 +1607,10 @@
             "loadMarkets": {
                 "taker": "is undefined",
                 "maker": "is undefined"
+            },
+            "fetchCurrencies": {
+                "deposit": "not provided",
+                "withdraw": "not provided"
             }
         }
     }
