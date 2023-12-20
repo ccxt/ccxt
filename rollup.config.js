@@ -5,13 +5,18 @@ import nodeResolve from '@rollup/plugin-node-resolve'
 
 export default [
   {
-    preserveModules: true,
     input: "./js/ccxt.js",
     output: [
       {
         dir: "./dist/cjs/",
         format: "cjs",
-      }
+        preserveModules: true,
+      },
+      {
+        file: "./dist/ccxt.bundle.cjs",
+        format: "cjs",
+        inlineDynamicImports: true,
+      },
     ],
     plugins: [
       nodeResolve({
@@ -32,27 +37,6 @@ export default [
       'socks-proxy-agent',
       // node resolve generate dist/cjs/js directory, treat ws, debug as external
       'ws', 'debug'
-    ]
-  },
-  {
-    inlineDynamicImports: true,
-    input: "./js/ccxt.js",
-    output: [
-      {
-        file: "./dist/ccxt.bundle.cjs",
-        format: "cjs",
-      },
-    ],
-    plugins: [
-      nodeResolve({ preferBuiltins: true }),
-      json(),
-      commonjs({
-        transformMixedEsModules: true,
-        dynamicRequireTargets: ["**/js/src/static_dependencies/**/*.cjs"],
-      }),
-    ],
-    external: [
-      'socks-proxy-agent'
     ]
   }
 ];
