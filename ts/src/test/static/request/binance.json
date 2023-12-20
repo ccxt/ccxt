@@ -724,6 +724,108 @@
                     ]
                 ]
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV - spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.binance.com/api/v3/klines?interval=1m&limit=5&symbol=BTCUSDT&startTime=1699381234000",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    1699381234000,
+                    5
+                ]
+            },
+            {
+                "description": "Fetch OHLCV - linear",
+                "method": "fetchOHLCV",
+                "url": "https://fapi.binance.com/fapi/v1/klines?interval=1m&limit=5&symbol=BTCUSDT&startTime=1699381234000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    1699381234000,
+                    5
+                ]
+            },
+            {
+                "description": "Fetch OHLCV - inverse",
+                "method": "fetchOHLCV",
+                "url": "https://dapi.binance.com/dapi/v1/klines?interval=1m&limit=5&symbol=BTCUSD_PERP&startTime=1699381234000&endTime=1699381533999",
+                "input": [
+                    "BTC/USD:BTC",
+                    "1m",
+                    1699381234000,
+                    5
+                ]
+            },
+            {
+                "description": "Fetch OHLCV - option",
+                "method": "fetchOHLCV",
+                "url": "https://eapi.binance.com/eapi/v1/klines?interval=1m&limit=5&symbol=ETH-231229-800-C&startTime=1699381234000",
+                "input": [
+                    "ETH/USDT:USDT-231229-800-C",
+                    "1m",
+                    1699381234000,
+                    5
+                ]
+            },
+            {
+                "description": "Fetch OHLCV - linear, price=mark",
+                "method": "fetchOHLCV",
+                "url": "https://fapi.binance.com/fapi/v1/markPriceKlines?interval=1m&limit=5&symbol=BTCUSDT&startTime=1699381234000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    1699381234000,
+                    5,
+                    {
+                        "price": "mark"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch OHLCV - inverse, price=mark",
+                "method": "fetchOHLCV",
+                "url": "https://dapi.binance.com/dapi/v1/markPriceKlines?interval=1m&limit=5&symbol=BTCUSD_PERP&startTime=1699381234000&endTime=1699381533999",
+                "input": [
+                    "BTC/USD:BTC",
+                    "1m",
+                    1699381234000,
+                    5,
+                    {
+                        "price": "mark"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch OHLCV - linear, price=index",
+                "method": "fetchOHLCV",
+                "url": "https://fapi.binance.com/fapi/v1/indexPriceKlines?interval=1m&limit=5&pair=BTCUSDT&startTime=1699381234000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    1699381234000,
+                    5,
+                    {
+                        "price": "index"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch OHLCV - inverse, price=index",
+                "method": "fetchOHLCV",
+                "url": "https://dapi.binance.com/dapi/v1/indexPriceKlines?interval=1m&limit=5&pair=BTCUSD_PERP&startTime=1699381234000&endTime=1699381533999",
+                "input": [
+                    "BTC/USD:BTC",
+                    "1m",
+                    1699381234000,
+                    5,
+                    {
+                        "price": "index"
+                    }
+                ]
+            }
         ]
     }
 }
