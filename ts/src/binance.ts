@@ -4752,19 +4752,6 @@ export default class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = 'privateGetAllOrders';
-        if (market['option']) {
-            method = 'eapiPrivateGetHistoryOrders';
-        } else if (market['linear']) {
-            method = 'fapiPrivateGetAllOrders';
-        } else if (market['inverse']) {
-            method = 'dapiPrivateGetAllOrders';
-        } else if (type === 'margin' || marginMode !== undefined) {
-            method = 'sapiGetMarginAllOrders';
-            if (marginMode === 'isolated') {
-                request['isIsolated'] = true;
-            }
-        }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             params = this.omit (params, 'until');
@@ -4776,7 +4763,21 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (market['option']) {
+            response = await this.eapiPrivateGetHistoryOrders (this.extend (request, query));
+        } else if (market['linear']) {
+            response = await this.fapiPrivateGetAllOrders (this.extend (request, query));
+        } else if (market['inverse']) {
+            response = await this.dapiPrivateGetAllOrders (this.extend (request, query));
+        } else if (type === 'margin' || marginMode !== undefined) {
+            if (marginMode === 'isolated') {
+                request['isIsolated'] = true;
+            }
+            response = await this.sapiGetMarginAllOrders (this.extend (request, query));
+        } else {
+            response = await this.privateGetAllOrders (this.extend (request, query));
+        }
         //
         //  spot
         //
