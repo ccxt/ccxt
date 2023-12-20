@@ -133,6 +133,7 @@ export default class bitteam extends Exchange {
                     'private': 'https://bit.team',
                 },
                 'www': 'https://bit.team/',
+                'referral': 'https://bit.team/auth/sign-up?ref=bitboy2023',
                 'doc': [
                     'https://bit.team/trade/api/documentation',
                 ],
