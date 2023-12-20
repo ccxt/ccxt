@@ -1309,8 +1309,12 @@ class kraken(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool params.postOnly:
-        :param bool params.reduceOnly:
+        :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
+        :param bool [params.reduceOnly]: *margin only* indicates if self order is to reduce the size of a position
+        :param float [params.stopLossPrice]: *margin only* the price that a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: *margin only* the price that a take profit order is triggered at
+        :param str [params.trailingStopPrice]: *margin only* the quote amount to trail away from the current market price
+        :param str [params.trigger]: *margin only* the activation price type, 'last' or 'index', default is 'last'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1543,40 +1547,40 @@ class kraken(Exchange, ImplicitAPI):
         params = self.omit(params, ['userref', 'clientOrderId'])
         if clientOrderId is not None:
             request['userref'] = clientOrderId
-        #
-        #     market
-        #     limit(price = limit price)
-        #     stop-loss(price = stop loss trigger price)
-        #     take-profit(price = take profit trigger price)
-        #     stop-loss-limit(price = stop loss trigger price, price2 = triggered limit price)
-        #     take-profit-limit(price = take profit trigger price, price2 = triggered limit price)
-        #     settle-position
-        #
+        stopLossTriggerPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_string(params, 'takeProfitPrice')
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
+        trailingStopPrice = self.safe_string(params, 'trailingStopPrice')
+        isTrailingStopPriceOrder = trailingStopPrice is not None
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
-        elif (type == 'stop-loss') or (type == 'take-profit'):
-            stopPrice = self.safe_number_2(params, 'price', 'stopPrice', price)
-            if stopPrice is None:
-                raise ArgumentsRequired(self.id + method + ' requires a price argument or a price/stopPrice parameter for a ' + type + ' order')
+        reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
+        if isStopLossOrTakeProfitTrigger:
+            if isStopLossTriggerOrder:
+                request['price'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                request['ordertype'] = 'stop-loss-limit'
+            elif isTakeProfitTriggerOrder:
+                request['price'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                request['ordertype'] = 'take-profit-limit'
+            request['price2'] = self.price_to_precision(symbol, price)
+            reduceOnly = True
+        elif isTrailingStopPriceOrder:
+            trailingStopActivationPriceType = self.safe_string(params, 'trigger', 'last')
+            trailingStopPriceString = '+' + trailingStopPrice
+            request['trigger'] = trailingStopActivationPriceType
+            reduceOnly = True
+            if type == 'limit':
+                trailingStopLimitPriceString = '+' + self.number_to_string(price)
+                request['price'] = trailingStopPriceString
+                request['price2'] = trailingStopLimitPriceString
+                request['ordertype'] = 'trailing-stop-limit'
             else:
-                request['price'] = self.price_to_precision(symbol, stopPrice)
-        elif (type == 'stop-loss-limit') or (type == 'take-profit-limit'):
-            stopPrice = self.safe_number_2(params, 'price', 'stopPrice')
-            limitPrice = self.safe_number(params, 'price2')
-            stopPriceDefined = (stopPrice is not None)
-            limitPriceDefined = (limitPrice is not None)
-            if stopPriceDefined and limitPriceDefined:
-                request['price'] = self.price_to_precision(symbol, stopPrice)
-                request['price2'] = self.price_to_precision(symbol, limitPrice)
-            elif (price is None) or (not(stopPriceDefined or limitPriceDefined)):
-                raise ArgumentsRequired(self.id + method + ' requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order')
-            else:
-                if stopPriceDefined:
-                    request['price'] = self.price_to_precision(symbol, stopPrice)
-                    request['price2'] = self.price_to_precision(symbol, price)
-                elif limitPriceDefined:
-                    request['price'] = self.price_to_precision(symbol, price)
-                    request['price2'] = self.price_to_precision(symbol, limitPrice)
+                request['price'] = trailingStopPriceString
+                request['ordertype'] = 'trailing-stop'
+        if reduceOnly:
+            request['reduce_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
         close = self.safe_value(params, 'close')
         if close is not None:
             close = self.extend({}, close)
@@ -1595,10 +1599,7 @@ class kraken(Exchange, ImplicitAPI):
         postOnly, params = self.handle_post_only(isMarket, False, params)
         if postOnly:
             request['oflags'] = 'post'
-        reduceOnly = self.safe_value(params, 'reduceOnly')
-        if reduceOnly:
-            request['reduce_only'] = True
-        params = self.omit(params, ['price', 'stopPrice', 'price2', 'close', 'timeInForce', 'reduceOnly'])
+        params = self.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingStopPrice'])
         return [request, params]
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
@@ -1612,6 +1613,10 @@ class kraken(Exchange, ImplicitAPI):
         :param float amount: how much of the currency you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.stopLossPrice]: *margin only* the price that a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: *margin only* the price that a take profit order is triggered at
+        :param str [params.trailingStopPrice]: *margin only* the quote price away from the current market price
+        :param str [params.trigger]: *margin only* the activation price type, 'last' or 'index', default is 'last'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
