@@ -7409,20 +7409,19 @@ export default class binance extends Exchange {
         // it contains useful stuff like the maintenance margin and initial margin for positions
         const leverageBrackets = this.safeValue (this.options, 'leverageBrackets');
         if ((leverageBrackets === undefined) || (reload)) {
-            let method = undefined;
             const defaultType = this.safeString (this.options, 'defaultType', 'future');
             const type = this.safeString (params, 'type', defaultType);
             const query = this.omit (params, 'type');
             let subType = undefined;
             [ subType, params ] = this.handleSubTypeAndParams ('loadLeverageBrackets', undefined, params, 'linear');
+            let response = undefined;
             if (this.isLinear (type, subType)) {
-                method = 'fapiPrivateGetLeverageBracket';
+                response = await this.fapiPrivateGetLeverageBracket (query);
             } else if (this.isInverse (type, subType)) {
-                method = 'dapiPrivateV2GetLeverageBracket';
+                response = await this.dapiPrivateV2GetLeverageBracket (query);
             } else {
                 throw new NotSupported (this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
             }
-            const response = await this[method] (query);
             this.options['leverageBrackets'] = {};
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
