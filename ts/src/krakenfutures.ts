@@ -866,10 +866,10 @@ export default class krakenfutures extends Exchange {
         if (clientOrderId !== undefined) {
             request['cliOrdId'] = clientOrderId;
         }
-        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const isTriggerOrder = triggerPrice !== undefined;
-        const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeNumber (params, 'takeProfitPrice');
+        const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeString (params, 'takeProfitPrice');
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
