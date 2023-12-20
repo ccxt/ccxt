@@ -53,6 +53,7 @@ export default class coinmetro extends Exchange {
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': false,
@@ -1270,38 +1271,6 @@ export default class coinmetro extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name coinmetro#fetchOrders
-         * @description fetches information on multiple orders made by the user
-         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#518afd7a-4338-439c-a651-d4fdaa964138
-         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve (default 200, max 500)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const openOrders = await this.privateGetExchangeOrdersActive (params);
-        for (let i = 0; i < openOrders.length; i++) {
-            const entry = openOrders[i];
-            entry['status'] = 'open';
-        }
-        const request = {};
-        if (since !== undefined) {
-            request['since'] = since;
-        }
-        const canceledAndClosedOrders = await this.privateGetExchangeOrdersHistorySince (this.extend (request, params));
-        const orders = this.arrayConcat (openOrders, canceledAndClosedOrders);
-        return this.parseOrders (orders, market, since, limit);
-    }
-
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
@@ -1320,10 +1289,36 @@ export default class coinmetro extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privateGetExchangeOrdersActive (params);
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            entry['status'] = 'open';
+        const orders = this.parseOrders (response, market, since, limit);
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            order['status'] = 'open';
         }
+        return orders;
+    }
+
+    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name coinmetro#fetchCanceledAndClosedOrders
+         * @description fetches information on multiple canceled and closed orders made by the user
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {};
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        const response = await this.privateGetExchangeOrdersHistorySince (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
