@@ -10,6 +10,7 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NetworkError
+from ccxt.base.precise import Precise
 
 
 class bingx(ccxt.async_support.bingx):
@@ -66,6 +67,10 @@ class bingx(ccxt.async_support.bingx):
                         '1h': '60min',
                         '1d': '1day',
                     },
+                },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': True,  # needed to be True to keep track of used and free balance
+                    'awaitBalanceSnapshot': False,  # whether to wait for the balance snapshot before providing updates
                 },
             },
             'streaming': {
@@ -510,7 +515,35 @@ class bingx(ccxt.async_support.bingx):
                 'id': uuid,
                 'dataType': 'ACCOUNT_UPDATE',
             }
+        client = self.client(url)
+        self.set_balance_cache(client, type, subscriptionHash, params)
+        fetchBalanceSnapshot = None
+        awaitBalanceSnapshot = None
+        fetchBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
+        awaitBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'awaitBalanceSnapshot', False)
+        if fetchBalanceSnapshot and awaitBalanceSnapshot:
+            await client.future(type + ':fetchBalanceSnapshot')
         return await self.watch(url, messageHash, request, subscriptionHash)
+
+    def set_balance_cache(self, client: Client, type, subscriptionHash, params):
+        if subscriptionHash in client.subscriptions:
+            return None
+        fetchBalanceSnapshot = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
+        if fetchBalanceSnapshot:
+            messageHash = type + ':fetchBalanceSnapshot'
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_balance_snapshot, client, messageHash, type)
+        else:
+            self.balance[type] = {}
+
+    async def load_balance_snapshot(self, client, messageHash, type):
+        response = await self.fetch_balance({'type': type})
+        self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
+        # don't remove the future from the .futures cache
+        future = client.futures[messageHash]
+        future.resolve()
+        client.resolve(self.balance[type], type + ':balance')
 
     def handle_error_message(self, client, message):
         #
@@ -783,8 +816,6 @@ class bingx(ccxt.async_support.bingx):
         data = self.safe_value(a, 'B', [])
         timestamp = self.safe_integer_2(message, 'T', 'E')
         type = 'swap' if ('P' in a) else 'spot'
-        if not (type in self.balance):
-            self.balance[type] = {}
         self.balance[type]['info'] = data
         self.balance[type]['timestamp'] = timestamp
         self.balance[type]['datetime'] = self.iso8601(timestamp)
@@ -792,8 +823,11 @@ class bingx(ccxt.async_support.bingx):
             balance = data[i]
             currencyId = self.safe_string(balance, 'a')
             code = self.safe_currency_code(currencyId)
-            account = self.balance[code] if (code in self.balance) else self.account()
-            account['total'] = self.safe_string(balance, 'wb')
+            account = self.balance[type][code] if (code in self.balance[type]) else self.account()
+            account['free'] = self.safe_string(balance, 'wb')
+            balanceChange = self.safe_string(balance, 'bc')
+            if account['used'] is not None:
+                account['used'] = Precise.string_sub(self.safe_string(account, 'used'), balanceChange)
             self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], type + ':balance')

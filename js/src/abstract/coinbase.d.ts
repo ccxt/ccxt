@@ -54,6 +54,8 @@ interface Exchange {
     v3PrivateGetBrokerageProductsProductId(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageProductsProductIdCandles(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageProductsProductIdTicker(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokeragePortfolios(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokeragePortfoliosPortfolioUuid(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageTransactionSummary(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageProductBook(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageBestBidAsk(params?: {}): Promise<implicitReturnType>;
@@ -63,8 +65,12 @@ interface Exchange {
     v3PrivatePostBrokerageOrdersBatchCancel(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEdit(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEditPreview(params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostBrokeragePortfolios(params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostBrokeragePortfoliosMoveFunds(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageConvertQuote(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageConvertTradeTradeId(params?: {}): Promise<implicitReturnType>;
+    v3PrivatePutBrokeragePortfoliosPortfolioUuid(params?: {}): Promise<implicitReturnType>;
+    v3PrivateDeleteBrokeragePortfoliosPortfolioUuid(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }
