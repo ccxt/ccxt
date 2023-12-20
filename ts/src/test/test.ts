@@ -321,6 +321,8 @@ export default class testMainClass extends baseMainTestClass {
         }
         exchange.httpProxy = exchange.safeString (skippedSettingsForExchange, 'httpProxy');
         exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
+        exchange.wsProxy = exchange.safeString (skippedSettingsForExchange, 'wsProxy');
+        exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
     }
