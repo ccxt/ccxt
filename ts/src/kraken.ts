@@ -1670,7 +1670,7 @@ export default class kraken extends Exchange {
             }
         }
         if (reduceOnly) {
-            request['reduce_only'] = true;
+            request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
         let close = this.safeValue (params, 'close');
         if (close !== undefined) {
