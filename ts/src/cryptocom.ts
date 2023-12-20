@@ -1915,7 +1915,7 @@ export default class cryptocom extends Exchange {
             'percentage': this.safeString (ticker, 'c'),
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'v'),
-            'quoteVolume': quote === 'USD' ? this.safeString (ticker, 'vv') : undefined,
+            'quoteVolume': (quote === 'USD') ? this.safeString (ticker, 'vv') : undefined,
             'info': ticker,
         }, market);
     }
