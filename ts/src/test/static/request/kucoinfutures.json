@@ -97,6 +97,28 @@
                 ]
             }
         ],
+        "cancelOrder": [
+            {
+                "description": "cancel order",
+                "method": "cancelOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders/126611245292855296",
+                "input": [
+                  "126611245292855296"
+                ]
+            },
+            {
+                "description": "Cancel order with clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders/client-order/order2?symbol=LTCUSDTM",
+                "input": [
+                  "",
+                  "LTC/USDT:USDT",
+                  {
+                    "clientOrderId": "order2"
+                  }
+                ]
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch spot Balance",
