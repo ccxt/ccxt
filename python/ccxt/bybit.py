@@ -3053,6 +3053,7 @@ class bybit(Exchange):
         takeProfitPrice = self.omit_zero(self.safe_string(order, 'takeProfit'))
         stopLossPrice = self.omit_zero(self.safe_string(order, 'stopLoss'))
         triggerDirection = self.safe_string(order, 'triggerDirection')
+        orderType = self.safe_string_lower(order, 'orderType')
         isAscending = (triggerDirection == '1')
         isStopOrderType2 = (stopPrice is not None) and reduceOnly
         if (stopLossPrice is None) and isStopOrderType2:
@@ -3071,7 +3072,9 @@ class bybit(Exchange):
             if not isAscending and (side == 'buy'):
                 # takeprofit order against a short position
                 takeProfitPrice = stopPrice
-
+        if side == 'buy' and orderType == 'market' and avgPrice:
+            amount = Precise.string_div(amount, avgPrice)
+            amount = self.amount_to_precision(symbol, amount)
         return self.safe_order({
             'info': order,
             'id': id,
