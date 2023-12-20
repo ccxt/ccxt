@@ -724,6 +724,40 @@
                     ]
                 ]
             }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "Fetch Trading Fees - spot",
+                "method": "fetchTradingFees",
+                "url": "https://api.binance.com/sapi/v1/asset/tradeFee?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch Trading Fees - linear",
+                "method": "fetchTradingFees",
+                "url": "https://api.binance.com/fapi/v2/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "input": [
+                    {
+                        "type": "swap",
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch Trading Fees - inverse",
+                "method": "fetchTradingFees",
+                "url": "https://api.binance.com/dapi/v1/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "input": [
+                    {
+                        "type": "swap",
+                        "subType": "inverse"
+                    }
+                ]
+            }
         ]
     }
 }
