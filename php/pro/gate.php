@@ -738,7 +738,7 @@ class gate extends \ccxt\async\gate {
         //   }
         //
         $result = $this->safe_value($message, 'result', array());
-        $timestamp = $this->safe_integer($message, 'time');
+        $timestamp = $this->safe_integer($message, 'time_ms');
         $this->balance['info'] = $result;
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
