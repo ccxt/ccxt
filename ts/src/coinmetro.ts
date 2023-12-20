@@ -193,6 +193,10 @@ export default class coinmetro extends Exchange {
                 'uid': true,
                 'token': true,
             },
+            // todo: check
+            'token': undefined,
+            'uid': undefined,
+            'twofa': undefined,
             'fees': {
                 // todo: add margin
                 'trading': {
@@ -209,8 +213,6 @@ export default class coinmetro extends Exchange {
                 'currenciesByIdForParseMarket': undefined,
                 'currencyIdsListForParseMarket': undefined,
             },
-            // todo: check
-            'token': undefined,
             'exceptions': {
                 // https://trade-docs.coinmetro.co/?javascript--nodejs#message-codes
                 'exact': {
@@ -1714,11 +1716,21 @@ export default class coinmetro extends Exchange {
         let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode (request);
         if (api === 'private') {
-            this.checkRequiredCredentials ();
-            headers = {
-                'Authorization': 'Bearer ' + this.token,
-                'X-Device-Id': this.uid,
-            };
+            if (url === 'https://api.coinmetro.com/jwt') { // handle with headers for login endpoint
+                headers['X-Device-Id'] = 'bypass';
+                if (this.twofa !== undefined) {
+                    headers['X-OTP'] = this.twofa;
+                }
+            } else if (url === 'https://api.coinmetro.com/jwtDevice') { // handle with headers for long lived token login endpoint
+                headers['X-Device-Id'] = this.uid;
+                if (this.twofa !== undefined) {
+                    headers['X-OTP'] = this.twofa;
+                }
+            } else {
+                this.checkRequiredCredentials ();
+                headers['Authorization'] = 'Bearer ' + this.token;
+                headers['X-Device-Id'] = this.uid;
+            }
             if ((method === 'POST') || (method === 'PUT')) {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
                 body = this.urlencode (request);
