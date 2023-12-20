@@ -1711,6 +1711,7 @@ export default class coinmetro extends Exchange {
         let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode (request);
         if (api === 'private') {
+            headers = {};
             if (url === 'https://api.coinmetro.com/jwt') { // handle with headers for login endpoint
                 headers['X-Device-Id'] = 'bypass';
                 if (this.twofa !== undefined) {
@@ -1721,7 +1722,7 @@ export default class coinmetro extends Exchange {
                 if (this.twofa !== undefined) {
                     headers['X-OTP'] = this.twofa;
                 }
-            } else {
+            } else { // handle with headers for other endpoints
                 this.checkRequiredCredentials ();
                 headers['Authorization'] = 'Bearer ' + this.token;
                 headers['X-Device-Id'] = this.uid;
