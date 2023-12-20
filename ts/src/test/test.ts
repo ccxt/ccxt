@@ -200,6 +200,7 @@ export default class testMainClass extends baseMainTestClass {
         this.privateTest = getCliArgValue ('--private');
         this.privateTestOnly = getCliArgValue ('--privateOnly');
         this.sandbox = getCliArgValue ('--sandbox');
+        this.wsTests = getCliArgValue ('--ws');
     }
 
     async init (exchangeId, symbolArgv) {
