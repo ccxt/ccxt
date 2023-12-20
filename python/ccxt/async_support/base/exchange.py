@@ -107,7 +107,7 @@ class Exchange(BaseExchange):
             else:
                 self.asyncio_loop = asyncio.get_event_loop()
             self.throttle.loop = self.asyncio_loop
-        
+
         if self.ssl_context is None:
             # Create our SSL context object with our CA cert file
             self.ssl_context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
@@ -124,7 +124,7 @@ class Exchange(BaseExchange):
                 await self.session.close()
             self.session = None
         await self.close_proxy_sessions()
-    
+
     async def close_proxy_sessions(self):
         if self.socks_proxy_sessions is not None:
             for url in self.socks_proxy_sessions:
