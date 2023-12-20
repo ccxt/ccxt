@@ -4943,25 +4943,33 @@ class bitget extends Exchange {
              * @param {string} [$params->isPlan] *swap only* 'plan' for $stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
             $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             $market = null;
-            if ($sandboxMode) {
-                $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
-                $market = $this->market($sandboxSymbol);
-            } else {
-                $market = $this->market($symbol);
-            }
+            $type = null;
+            $request = array();
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
+            if ($symbol !== null) {
+                if ($sandboxMode) {
+                    $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
+                    $market = $this->market($sandboxSymbol);
+                } else {
+                    $market = $this->market($symbol);
+                }
+                $request['symbol'] = $market['id'];
+                $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
+                $marketType = (is_array($market) && array_key_exists('type', $market)) ? $market['type'] : $defaultType;
+                $type = $this->safe_string($params, 'type', $marketType);
+            } else {
+                $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
+                $type = $this->safe_string($params, 'type', $defaultType);
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
             if ($paginate) {
                 $cursorReceived = null;
-                if ($market['spot']) {
+                if ($type === 'spot') {
                     if ($marginMode !== null) {
                         $cursorReceived = 'minId';
                     }
@@ -4970,9 +4978,6 @@ class bitget extends Exchange {
                 }
                 return Async\await($this->fetch_paginated_call_cursor('fetchOpenOrders', $symbol, $since, $limit, $params, $cursorReceived, 'idLessThan'));
             }
-            $request = array(
-                'symbol' => $market['id'],
-            );
             $response = null;
             $stop = $this->safe_value_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
@@ -4983,41 +4988,43 @@ class bitget extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            if (($market['swap']) || ($market['future']) || ($marginMode !== null)) {
+            if (($type === 'swap') || ($type === 'future') || ($marginMode !== null)) {
                 $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
                 $params = $this->omit($params, 'clientOrderId');
                 if ($clientOrderId !== null) {
                     $request['clientOid'] = $clientOrderId;
                 }
             }
-            if ($market['spot']) {
+            $query = null;
+            $query = $this->omit($params, array( 'type' ));
+            if ($type === 'spot') {
                 if ($marginMode !== null) {
                     if ($since === null) {
                         $since = $this->milliseconds() - 7776000000;
                         $request['startTime'] = $since;
                     }
                     if ($marginMode === 'isolated') {
-                        $response = Async\await($this->privateMarginGetV2MarginIsolatedOpenOrders (array_merge($request, $params)));
+                        $response = Async\await($this->privateMarginGetV2MarginIsolatedOpenOrders (array_merge($request, $query)));
                     } elseif ($marginMode === 'cross') {
-                        $response = Async\await($this->privateMarginGetV2MarginCrossedOpenOrders (array_merge($request, $params)));
+                        $response = Async\await($this->privateMarginGetV2MarginCrossedOpenOrders (array_merge($request, $query)));
                     }
                 } else {
                     if ($stop) {
-                        $response = Async\await($this->privateSpotGetV2SpotTradeCurrentPlanOrder (array_merge($request, $params)));
+                        $response = Async\await($this->privateSpotGetV2SpotTradeCurrentPlanOrder (array_merge($request, $query)));
                     } else {
-                        $response = Async\await($this->privateSpotGetV2SpotTradeUnfilledOrders (array_merge($request, $params)));
+                        $response = Async\await($this->privateSpotGetV2SpotTradeUnfilledOrders (array_merge($request, $query)));
                     }
                 }
             } else {
                 $productType = null;
-                list($productType, $params) = $this->handle_product_type_and_params($market, $params);
+                list($productType, $query) = $this->handle_product_type_and_params($market, $query);
                 $request['productType'] = $productType;
                 if ($stop) {
-                    $planType = $this->safe_string($params, 'planType', 'normal_plan');
+                    $planType = $this->safe_string($query, 'planType', 'normal_plan');
                     $request['planType'] = $planType;
-                    $response = Async\await($this->privateMixGetV2MixOrderOrdersPlanPending (array_merge($request, $params)));
+                    $response = Async\await($this->privateMixGetV2MixOrderOrdersPlanPending (array_merge($request, $query)));
                 } else {
-                    $response = Async\await($this->privateMixGetV2MixOrderOrdersPending (array_merge($request, $params)));
+                    $response = Async\await($this->privateMixGetV2MixOrderOrdersPending (array_merge($request, $query)));
                 }
             }
             //
@@ -5196,7 +5203,7 @@ class bitget extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data');
-            if ($market['spot']) {
+            if ($type === 'spot') {
                 if (($marginMode !== null) || $stop) {
                     $resultList = $this->safe_value($data, 'orderList', array());
                     return $this->parse_orders($resultList, $market, $since, $limit);
