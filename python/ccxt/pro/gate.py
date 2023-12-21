@@ -677,7 +677,7 @@ class gate(ccxt.async_support.gate):
         #   }
         #
         result = self.safe_value(message, 'result', [])
-        timestamp = self.safe_integer(message, 'time')
+        timestamp = self.safe_integer(message, 'time_ms')
         self.balance['info'] = result
         self.balance['timestamp'] = timestamp
         self.balance['datetime'] = self.iso8601(timestamp)
