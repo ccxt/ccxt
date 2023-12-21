@@ -464,22 +464,15 @@ export default class blofin extends Exchange {
     parseMarket (market): Market {
         const id = this.safeString (market, 'instId');
         let type = this.safeStringLower (market, 'instType');
-        if (type === 'futures') {
-            type = 'future';
-        }
         const spot = (type === 'spot');
         const future = (type === 'future');
         const swap = (type === 'swap');
         const option = (type === 'option');
         const contract = swap || future;
-        let baseId = this.safeString (market, 'baseCurrency');
-        let quoteId = this.safeString (market, 'quoteCurrency');
-        const underlying = this.safeString (market, 'uly');
-        if ((underlying !== undefined) && !spot) {
-            const parts = underlying.split ('-');
-            baseId = this.safeString (parts, 0);
-            quoteId = this.safeString (parts, 1);
-        }
+        const baseId = this.safeString (market, 'baseCurrency');
+        const quoteId = this.safeString (market, 'quoteCurrency');
+        const settleId = this.safeString (market, 'quoteCurrency');
+        const settle = this.safeCurrencyCode (settleId);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
@@ -488,14 +481,10 @@ export default class blofin extends Exchange {
         const optionType = undefined;
         if (contract) {
             expiry = this.safeInteger (market, 'expireTime');
-            if (future) {
-                const ymd = this.yymmdd (expiry);
-                symbol = symbol + '-' + ymd;
-            }
         }
         const tickSize = this.safeString (market, 'tickSize');
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
-        let maxLeverage = this.safeString (market, 'maxLeverage', '1');
+        let maxLeverage = this.safeString (market, 'maxLeverage', '100');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         return this.extend (fees, {
             'id': id,
@@ -504,6 +493,8 @@ export default class blofin extends Exchange {
             'quote': quote,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settle': settle,
+            'settleId': settleId,
             'type': type,
             'spot': spot,
             'option': option,
