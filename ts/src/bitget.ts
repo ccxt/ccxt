@@ -5262,6 +5262,7 @@ export default class bitget extends Exchange {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
          * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+         * @param {boolean} [params.trailingStop] set to true if you want to fetch trailing stop orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -5300,6 +5301,7 @@ export default class bitget extends Exchange {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
          * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+         * @param {boolean} [params.trailingStop] set to true if you want to fetch trailing stop orders
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -5352,8 +5354,9 @@ export default class bitget extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchCanceledAndClosedOrders', symbol, since, limit, params, cursorReceived, 'idLessThan') as Order[];
         }
         let response = undefined;
+        const trailingStop = this.safeValue (params, 'trailingStop');
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        params = this.omit (params, [ 'stop', 'trigger', 'trailingStop' ]);
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;
@@ -5403,7 +5406,11 @@ export default class bitget extends Exchange {
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
-            if (stop) {
+            if (trailingStop) {
+                const planType = this.safeString (params, 'planType', 'track_plan');
+                request['planType'] = planType;
+                response = await this.privateMixGetV2MixOrderOrdersPlanHistory (this.extend (request, params));
+            } else if (stop) {
                 const planType = this.safeString (params, 'planType', 'normal_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanHistory (this.extend (request, params));
