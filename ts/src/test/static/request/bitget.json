@@ -800,6 +800,19 @@
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1112204653770715137\"}"
+            },
+            {
+              "description": "Swap cancel trailing stop order",
+              "method": "cancelOrder",
+              "url": "https://api.bitget.com/api/v2/mix/order/cancel-plan-order",
+              "input": [
+                "1121635717619453955",
+                "BTC/USDT:USDT",
+                {
+                  "trailingStop": true
+                }
+              ],
+              "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1121635717619453955\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"orderId\":\"1121635717619453955\"}],\"planType\":\"track_plan\"}"
             }
         ],
         "cancelOrders": [
