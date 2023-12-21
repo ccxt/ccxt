@@ -138,35 +138,23 @@ class Client {
                     $value;
         }
 
-
         $this->connected = new Future();
-        $this->set_ws_connector(null);
     }
 
     public function set_ws_connector($proxy_address = null, $proxy_conenctor = null) {
         // set default connector
         if (!$proxy_address) {
-            if (array_key_exists('default_connector', $this->proxy_ws_connectors)) {
-                $this->connector = $this->proxy_ws_connectors['default_connector'];
+            $react_default_connector = new React\Socket\Connector();
+            if ($this->noOriginHeader) {
+                $this->connector = new NoOriginHeaderConnector(Loop::get(), $react_default_connector);
             } else {
-                $react_default_connector = new React\Socket\Connector();
-                if ($this->noOriginHeader) {
-                    $this->connector = new NoOriginHeaderConnector(Loop::get(), $react_default_connector);
-                } else {
-                    $this->connector = new Connector(Loop::get(), $react_default_connector);
-                }
-                $this->proxy_ws_connectors['default_connector'] = $this->connector;
+                $this->connector = new Connector(Loop::get(), $react_default_connector);
             }
         } else {
-            if (array_key_exists($proxy_address, $this->proxy_ws_connectors)) {
-                $this->connector = $this->proxy_ws_connectors[$proxy_address];
+            if ($this->noOriginHeader) {
+                $this->connector = new NoOriginHeaderConnector(Loop::get(), $proxy_conenctor);
             } else {
-                if ($this->noOriginHeader) {
-                    $this->connector = new NoOriginHeaderConnector(Loop::get(), $proxy_conenctor);
-                } else {
-                    $this->connector = new Connector(Loop::get(), $proxy_conenctor);
-                }
-                $this->proxy_ws_connectors[$proxy_address] = $this->connector;
+                $this->connector = new Connector(Loop::get(), $proxy_conenctor);
             }
         }
     }
