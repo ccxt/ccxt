@@ -2541,22 +2541,21 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
+        $marginMode = null;
+        $query = null;
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
-        $method = 'privateGetAccount';
+        $query = $this->omit($query, 'type');
+        $response = null;
         $request = array();
         if ($this->is_linear($type, $subType)) {
-            $options = $this->safe_value($this->options, $type, array());
-            $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
-            $method = $this->safe_string($fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount');
             $type = 'linear';
+            $response = $this->fapiPrivateV2GetAccount (array_merge($request, $query));
         } elseif ($this->is_inverse($type, $subType)) {
-            $options = $this->safe_value($this->options, $type, array());
-            $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
-            $method = $this->safe_string($fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
             $type = 'inverse';
+            $response = $this->dapiPrivateGetAccount (array_merge($request, $query));
         } elseif ($marginMode === 'isolated') {
-            $method = 'sapiGetMarginIsolatedAccount';
             $paramSymbols = $this->safe_value($params, 'symbols');
+            $query = $this->omit($query, 'symbols');
             if ($paramSymbols !== null) {
                 $symbols = '';
                 if (gettype($paramSymbols) === 'array' && array_keys($paramSymbols) === array_keys(array_keys($paramSymbols))) {
@@ -2571,15 +2570,16 @@ class binance extends Exchange {
                 }
                 $request['symbols'] = $symbols;
             }
+            $response = $this->sapiGetMarginIsolatedAccount (array_merge($request, $query));
         } elseif (($type === 'margin') || ($marginMode === 'cross')) {
-            $method = 'sapiGetMarginAccount';
+            $response = $this->sapiGetMarginAccount (array_merge($request, $query));
         } elseif ($type === 'savings') {
-            $method = 'sapiGetLendingUnionAccount';
+            $response = $this->sapiGetLendingUnionAccount (array_merge($request, $query));
         } elseif ($type === 'funding') {
-            $method = 'sapiPostAssetGetFundingAsset';
+            $response = $this->sapiPostAssetGetFundingAsset (array_merge($request, $query));
+        } else {
+            $response = $this->privateGetAccount (array_merge($request, $query));
         }
-        $requestParams = $this->omit($query, array( 'type', 'symbols' ));
-        $response = $this->$method (array_merge($request, $requestParams));
         //
         // spot
         //
