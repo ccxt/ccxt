@@ -2557,22 +2557,21 @@ export default class binance extends Exchange {
         let type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        let method = 'privateGetAccount';
+        let marginMode = undefined;
+        let query = undefined;
+        [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        query = this.omit (query, 'type');
+        let response = undefined;
         const request = {};
         if (this.isLinear (type, subType)) {
-            const options = this.safeValue (this.options, type, {});
-            const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
-            method = this.safeString (fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount');
             type = 'linear';
+            response = await this.fapiPrivateV2GetAccount (this.extend (request, query));
         } else if (this.isInverse (type, subType)) {
-            const options = this.safeValue (this.options, type, {});
-            const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
-            method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
             type = 'inverse';
+            response = await this.dapiPrivateGetAccount (this.extend (request, query));
         } else if (marginMode === 'isolated') {
-            method = 'sapiGetMarginIsolatedAccount';
             const paramSymbols = this.safeValue (params, 'symbols');
+            query = this.omit (query, 'symbols');
             if (paramSymbols !== undefined) {
                 let symbols = '';
                 if (Array.isArray (paramSymbols)) {
@@ -2587,15 +2586,16 @@ export default class binance extends Exchange {
                 }
                 request['symbols'] = symbols;
             }
+            response = await this.sapiGetMarginIsolatedAccount (this.extend (request, query));
         } else if ((type === 'margin') || (marginMode === 'cross')) {
-            method = 'sapiGetMarginAccount';
+            response = await this.sapiGetMarginAccount (this.extend (request, query));
         } else if (type === 'savings') {
-            method = 'sapiGetLendingUnionAccount';
+            response = await this.sapiGetLendingUnionAccount (this.extend (request, query));
         } else if (type === 'funding') {
-            method = 'sapiPostAssetGetFundingAsset';
+            response = await this.sapiPostAssetGetFundingAsset (this.extend (request, query));
+        } else {
+            response = await this.privateGetAccount (this.extend (request, query));
         }
-        const requestParams = this.omit (query, [ 'type', 'symbols' ]);
-        const response = await this[method] (this.extend (request, requestParams));
         //
         // spot
         //
@@ -3119,7 +3119,7 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
          * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
          * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -3134,19 +3134,21 @@ export default class binance extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
-        const query = this.omit (params, 'type');
-        let defaultMethod = undefined;
+        let response = undefined;
         if (type === 'option') {
-            defaultMethod = 'eapiPublicGetTicker';
+            response = await this.eapiPublicGetTicker (params);
         } else if (this.isLinear (type, subType)) {
-            defaultMethod = 'fapiPublicGetTicker24hr';
+            response = await this.fapiPublicGetTicker24hr (params);
         } else if (this.isInverse (type, subType)) {
-            defaultMethod = 'dapiPublicGetTicker24hr';
+            response = await this.dapiPublicGetTicker24hr (params);
         } else {
-            defaultMethod = 'publicGetTicker24hr';
+            const request = {};
+            if (symbols !== undefined) {
+                const marketIds = this.marketIds (symbols);
+                request['symbols'] = this.json (marketIds);
+            }
+            response = await this.publicGetTicker24hr (this.extend (request, params));
         }
-        const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
-        const response = await this[method] (query);
         return this.parseTickers (response, symbols);
     }
 

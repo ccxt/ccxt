@@ -43,7 +43,7 @@ class bitget extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'closeAllPositions' => true,
-                'closePosition' => false,
+                'closePosition' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
@@ -3560,7 +3560,7 @@ class bitget extends Exchange {
 
     public function parse_order($order, ?array $market = null): array {
         //
-        // createOrder, editOrder
+        // createOrder, editOrder, closePosition
         //
         //     {
         //         "clientOid" => "abe95dbe-6081-4a6f-a2d3-ae49601cd479",
@@ -3838,8 +3838,13 @@ class bitget extends Exchange {
                 'status' => 'rejected',
             ), $market);
         }
+        $isContractOrder = (is_array($order) && array_key_exists('posSide', $order));
+        $marketType = $isContractOrder ? 'contract' : 'spot';
+        if ($market !== null) {
+            $marketType = $market['type'];
+        }
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, $marketType);
         $timestamp = $this->safe_integer_2($order, 'cTime', 'ctime');
         $updateTimestamp = $this->safe_integer($order, 'uTime');
         $rawStatus = $this->safe_string_2($order, 'status', 'state');
@@ -4938,25 +4943,33 @@ class bitget extends Exchange {
              * @param {string} [$params->isPlan] *swap only* 'plan' for $stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
             $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             $market = null;
-            if ($sandboxMode) {
-                $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
-                $market = $this->market($sandboxSymbol);
-            } else {
-                $market = $this->market($symbol);
-            }
+            $type = null;
+            $request = array();
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
+            if ($symbol !== null) {
+                if ($sandboxMode) {
+                    $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
+                    $market = $this->market($sandboxSymbol);
+                } else {
+                    $market = $this->market($symbol);
+                }
+                $request['symbol'] = $market['id'];
+                $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
+                $marketType = (is_array($market) && array_key_exists('type', $market)) ? $market['type'] : $defaultType;
+                $type = $this->safe_string($params, 'type', $marketType);
+            } else {
+                $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
+                $type = $this->safe_string($params, 'type', $defaultType);
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
             if ($paginate) {
                 $cursorReceived = null;
-                if ($market['spot']) {
+                if ($type === 'spot') {
                     if ($marginMode !== null) {
                         $cursorReceived = 'minId';
                     }
@@ -4965,9 +4978,6 @@ class bitget extends Exchange {
                 }
                 return Async\await($this->fetch_paginated_call_cursor('fetchOpenOrders', $symbol, $since, $limit, $params, $cursorReceived, 'idLessThan'));
             }
-            $request = array(
-                'symbol' => $market['id'],
-            );
             $response = null;
             $stop = $this->safe_value_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
@@ -4978,41 +4988,43 @@ class bitget extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            if (($market['swap']) || ($market['future']) || ($marginMode !== null)) {
+            if (($type === 'swap') || ($type === 'future') || ($marginMode !== null)) {
                 $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
                 $params = $this->omit($params, 'clientOrderId');
                 if ($clientOrderId !== null) {
                     $request['clientOid'] = $clientOrderId;
                 }
             }
-            if ($market['spot']) {
+            $query = null;
+            $query = $this->omit($params, array( 'type' ));
+            if ($type === 'spot') {
                 if ($marginMode !== null) {
                     if ($since === null) {
                         $since = $this->milliseconds() - 7776000000;
                         $request['startTime'] = $since;
                     }
                     if ($marginMode === 'isolated') {
-                        $response = Async\await($this->privateMarginGetV2MarginIsolatedOpenOrders (array_merge($request, $params)));
+                        $response = Async\await($this->privateMarginGetV2MarginIsolatedOpenOrders (array_merge($request, $query)));
                     } elseif ($marginMode === 'cross') {
-                        $response = Async\await($this->privateMarginGetV2MarginCrossedOpenOrders (array_merge($request, $params)));
+                        $response = Async\await($this->privateMarginGetV2MarginCrossedOpenOrders (array_merge($request, $query)));
                     }
                 } else {
                     if ($stop) {
-                        $response = Async\await($this->privateSpotGetV2SpotTradeCurrentPlanOrder (array_merge($request, $params)));
+                        $response = Async\await($this->privateSpotGetV2SpotTradeCurrentPlanOrder (array_merge($request, $query)));
                     } else {
-                        $response = Async\await($this->privateSpotGetV2SpotTradeUnfilledOrders (array_merge($request, $params)));
+                        $response = Async\await($this->privateSpotGetV2SpotTradeUnfilledOrders (array_merge($request, $query)));
                     }
                 }
             } else {
                 $productType = null;
-                list($productType, $params) = $this->handle_product_type_and_params($market, $params);
+                list($productType, $query) = $this->handle_product_type_and_params($market, $query);
                 $request['productType'] = $productType;
                 if ($stop) {
-                    $planType = $this->safe_string($params, 'planType', 'normal_plan');
+                    $planType = $this->safe_string($query, 'planType', 'normal_plan');
                     $request['planType'] = $planType;
-                    $response = Async\await($this->privateMixGetV2MixOrderOrdersPlanPending (array_merge($request, $params)));
+                    $response = Async\await($this->privateMixGetV2MixOrderOrdersPlanPending (array_merge($request, $query)));
                 } else {
-                    $response = Async\await($this->privateMixGetV2MixOrderOrdersPending (array_merge($request, $params)));
+                    $response = Async\await($this->privateMixGetV2MixOrderOrdersPending (array_merge($request, $query)));
                 }
             }
             //
@@ -5191,7 +5203,7 @@ class bitget extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data');
-            if ($market['spot']) {
+            if ($type === 'spot') {
                 if (($marginMode !== null) || $stop) {
                     $resultList = $this->safe_value($data, 'orderList', array());
                     return $this->parse_orders($resultList, $market, $since, $limit);
@@ -5221,13 +5233,14 @@ class bitget extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {string} [$params->isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+             * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
             $response = Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
@@ -5258,13 +5271,14 @@ class bitget extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {string} [$params->isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+             * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
             $response = Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
@@ -5284,18 +5298,25 @@ class bitget extends Exchange {
             $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
-                $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
-                $market = $this->market($sandboxSymbol);
-            } else {
-                $market = $this->market($symbol);
+                if ($symbol !== null) {
+                    $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
+                    $symbol = $sandboxSymbol;
+                }
             }
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchCanceledAndClosedOrders', $market, $params);
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchCanceledAndClosedOrders', $params);
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate');
             if ($paginate) {
                 $cursorReceived = null;
-                if ($market['spot']) {
+                if ($marketType === 'spot') {
                     if ($marginMode !== null) {
                         $cursorReceived = 'minId';
                     }
@@ -5304,9 +5325,6 @@ class bitget extends Exchange {
                 }
                 return Async\await($this->fetch_paginated_call_cursor('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $params, $cursorReceived, 'idLessThan'));
             }
-            $request = array(
-                'symbol' => $market['id'],
-            );
             $response = null;
             $stop = $this->safe_value_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
@@ -5317,7 +5335,7 @@ class bitget extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            if (($market['swap']) || ($market['future']) || ($marginMode !== null)) {
+            if (($marketType === 'swap') || ($marketType === 'future') || ($marginMode !== null)) {
                 $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
                 $params = $this->omit($params, 'clientOrderId');
                 if ($clientOrderId !== null) {
@@ -5325,7 +5343,7 @@ class bitget extends Exchange {
                 }
             }
             $now = $this->milliseconds();
-            if ($market['spot']) {
+            if ($marketType === 'spot') {
                 if ($marginMode !== null) {
                     if ($since === null) {
                         $since = $now - 7776000000;
@@ -5338,6 +5356,9 @@ class bitget extends Exchange {
                     }
                 } else {
                     if ($stop) {
+                        if ($symbol === null) {
+                            throw new ArgumentsRequired($this->id . ' fetchCanceledAndClosedOrders() requires a $symbol argument');
+                        }
                         $endTime = $this->safe_integer_n($params, array( 'endTime', 'until', 'till' ));
                         $params = $this->omit($params, array( 'until', 'till' ));
                         if ($since === null) {
@@ -5543,7 +5564,7 @@ class bitget extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            if ($market['spot']) {
+            if ($marketType === 'spot') {
                 if (($marginMode !== null) || $stop) {
                     return $this->safe_value($data, 'orderList', array());
                 }
@@ -6226,11 +6247,10 @@ class bitget extends Exchange {
         //
         // closeAllPositions
         //
-        //    {
-        //        "symbol" => "XRPUSDT_UMCBL",
-        //        "orderId" => "1111861847410757635",
-        //        "clientOid" => "1111861847410757637"
-        //    }
+        //     {
+        //         "orderId" => "1120923953904893955",
+        //         "clientOid" => "1120923953904893956"
+        //     }
         //
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market, null, 'contract');
@@ -6296,7 +6316,7 @@ class bitget extends Exchange {
         $percentage = Precise::string_mul(Precise::string_div($unrealizedPnl, $initialMargin, 4), '100');
         return $this->safe_position(array(
             'info' => $position,
-            'id' => null,
+            'id' => $this->safe_string($position, 'orderId'),
             'symbol' => $symbol,
             'notional' => $this->parse_number($notional),
             'marginMode' => $marginMode,
@@ -7941,62 +7961,93 @@ class bitget extends Exchange {
         );
     }
 
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $side, $params) {
+            /**
+             * closes an open position for a $market
+             * @see https://www.bitget.com/api-doc/contract/trade/Flash-Close-Position
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {string} [$side] one-way mode => 'buy' or 'sell', hedge-mode => 'long' or 'short'
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             */
+            Async\await($this->load_markets());
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $market = null;
+            if ($sandboxMode) {
+                $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
+                $market = $this->market($sandboxSymbol);
+            } else {
+                $market = $this->market($symbol);
+            }
+            $productType = null;
+            list($productType, $params) = $this->handle_product_type_and_params($market, $params);
+            $request = array(
+                'symbol' => $market['id'],
+                'productType' => $productType,
+            );
+            if ($side !== null) {
+                $request['holdSide'] = $side;
+            }
+            $response = Async\await($this->privateMixPostV2MixOrderClosePositions (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1702975017017,
+            //         "data" => {
+            //             "successList" => array(
+            //                 {
+            //                     "orderId" => "1120923953904893955",
+            //                     "clientOid" => "1120923953904893956"
+            //                 }
+            //             ),
+            //             "failureList" => array(),
+            //             "result" => false
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $order = $this->safe_value($data, 'successList', array());
+            return $this->parse_order($order[0], $market);
+        }) ();
+    }
+
     public function close_all_positions($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * closes open positions for a market
-             * @see https://bitgetlimited.github.io/apidoc/en/mix/#close-all-position
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
-             * @param {string} [$params->subType] 'linear' or 'inverse'
-             * @param {string} [$params->settle] *required and only valid when $params->subType === "linear"* 'USDT' or 'USDC'
-             * @return {array[]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+             * closes all open positions for a market type
+             * @see https://www.bitget.com/api-doc/contract/trade/Flash-Close-Position
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+             * @return {array[]} A list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
              */
             Async\await($this->load_markets());
-            $subType = null;
-            $settle = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('closeAllPositions', null, $params);
-            $settle = $this->safe_string($params, 'settle', 'USDT');
-            $params = $this->omit($params, array( 'settle' ));
-            $productType = $this->safe_string($params, 'productType');
-            $request = array();
-            if ($productType === null) {
-                $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
-                $localProductType = null;
-                if ($subType === 'inverse') {
-                    $localProductType = 'dmcbl';
-                } else {
-                    if ($settle === 'USDT') {
-                        $localProductType = 'umcbl';
-                    } elseif ($settle === 'USDC') {
-                        $localProductType = 'cmcbl';
-                    }
-                }
-                if ($sandboxMode) {
-                    $localProductType = 's' . $localProductType;
-                }
-                $request['productType'] = $localProductType;
-            }
-            $response = Async\await($this->privateMixPostMixV1OrderCloseAllPositions (array_merge($request, $params)));
+            $productType = null;
+            list($productType, $params) = $this->handle_product_type_and_params(null, $params);
+            $request = array(
+                'productType' => $productType,
+            );
+            $response = Async\await($this->privateMixPostV2MixOrderClosePositions (array_merge($request, $params)));
             //
-            //    {
-            //        "code" => "00000",
-            //        "msg" => "success",
-            //        "requestTime" => 1700814442466,
-            //        "data" => {
-            //            "orderInfo" => array(
-            //                array(
-            //                    "symbol" => "XRPUSDT_UMCBL",
-            //                    "orderId" => "1111861847410757635",
-            //                    "clientOid" => "1111861847410757637"
-            //                ),
-            //            ),
-            //            "failure" => array(),
-            //            "result" => true
-            //        }
-            //    }
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1702975017017,
+            //         "data" => {
+            //             "successList" => array(
+            //                 {
+            //                     "orderId" => "1120923953904893955",
+            //                     "clientOid" => "1120923953904893956"
+            //                 }
+            //             ),
+            //             "failureList" => array(),
+            //             "result" => false
+            //         }
+            //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $orderInfo = $this->safe_value($data, 'orderInfo', array());
+            $orderInfo = $this->safe_value($data, 'successList', array());
             return $this->parse_positions($orderInfo, null, $params);
         }) ();
     }

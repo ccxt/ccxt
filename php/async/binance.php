@@ -2561,22 +2561,21 @@ class binance extends Exchange {
             $type = $this->safe_string($params, 'type', $defaultType);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
+            $marginMode = null;
+            $query = null;
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
-            $method = 'privateGetAccount';
+            $query = $this->omit($query, 'type');
+            $response = null;
             $request = array();
             if ($this->is_linear($type, $subType)) {
-                $options = $this->safe_value($this->options, $type, array());
-                $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
-                $method = $this->safe_string($fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount');
                 $type = 'linear';
+                $response = Async\await($this->fapiPrivateV2GetAccount (array_merge($request, $query)));
             } elseif ($this->is_inverse($type, $subType)) {
-                $options = $this->safe_value($this->options, $type, array());
-                $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
-                $method = $this->safe_string($fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
                 $type = 'inverse';
+                $response = Async\await($this->dapiPrivateGetAccount (array_merge($request, $query)));
             } elseif ($marginMode === 'isolated') {
-                $method = 'sapiGetMarginIsolatedAccount';
                 $paramSymbols = $this->safe_value($params, 'symbols');
+                $query = $this->omit($query, 'symbols');
                 if ($paramSymbols !== null) {
                     $symbols = '';
                     if (gettype($paramSymbols) === 'array' && array_keys($paramSymbols) === array_keys(array_keys($paramSymbols))) {
@@ -2591,15 +2590,16 @@ class binance extends Exchange {
                     }
                     $request['symbols'] = $symbols;
                 }
+                $response = Async\await($this->sapiGetMarginIsolatedAccount (array_merge($request, $query)));
             } elseif (($type === 'margin') || ($marginMode === 'cross')) {
-                $method = 'sapiGetMarginAccount';
+                $response = Async\await($this->sapiGetMarginAccount (array_merge($request, $query)));
             } elseif ($type === 'savings') {
-                $method = 'sapiGetLendingUnionAccount';
+                $response = Async\await($this->sapiGetLendingUnionAccount (array_merge($request, $query)));
             } elseif ($type === 'funding') {
-                $method = 'sapiPostAssetGetFundingAsset';
+                $response = Async\await($this->sapiPostAssetGetFundingAsset (array_merge($request, $query)));
+            } else {
+                $response = Async\await($this->privateGetAccount (array_merge($request, $query)));
             }
-            $requestParams = $this->omit($query, array( 'type', 'symbols' ));
-            $response = Async\await($this->$method (array_merge($request, $requestParams)));
             //
             // spot
             //
@@ -3123,7 +3123,7 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
              * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
              * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
@@ -3138,19 +3138,21 @@ class binance extends Exchange {
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
-            $query = $this->omit($params, 'type');
-            $defaultMethod = null;
+            $response = null;
             if ($type === 'option') {
-                $defaultMethod = 'eapiPublicGetTicker';
+                $response = Async\await($this->eapiPublicGetTicker ($params));
             } elseif ($this->is_linear($type, $subType)) {
-                $defaultMethod = 'fapiPublicGetTicker24hr';
+                $response = Async\await($this->fapiPublicGetTicker24hr ($params));
             } elseif ($this->is_inverse($type, $subType)) {
-                $defaultMethod = 'dapiPublicGetTicker24hr';
+                $response = Async\await($this->dapiPublicGetTicker24hr ($params));
             } else {
-                $defaultMethod = 'publicGetTicker24hr';
+                $request = array();
+                if ($symbols !== null) {
+                    $marketIds = $this->market_ids($symbols);
+                    $request['symbols'] = $this->json($marketIds);
+                }
+                $response = Async\await($this->publicGetTicker24hr (array_merge($request, $params)));
             }
-            $method = $this->safe_string($this->options, 'fetchTickersMethod', $defaultMethod);
-            $response = Async\await($this->$method ($query));
             return $this->parse_tickers($response, $symbols);
         }) ();
     }

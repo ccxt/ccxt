@@ -1484,15 +1484,8 @@ class bitrue(Exchange, ImplicitAPI):
             first = self.safe_string(symbols, 0)
             market = self.market(first)
             if market['swap']:
-                request['contractName'] = market['id']
-                if market['linear']:
-                    response = await self.fapiV1PublicGetTicker(self.extend(request, params))
-                elif market['inverse']:
-                    response = await self.dapiV1PublicGetTicker(self.extend(request, params))
-                response['symbol'] = market['id']
-                data = [response]
+                raise NotSupported(self.id + ' fetchTickers does not support swap markets, please use fetchTicker instead')
             elif market['spot']:
-                request['symbol'] = market['id']
                 response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
                 data = response
             else:
@@ -1500,7 +1493,7 @@ class bitrue(Exchange, ImplicitAPI):
         else:
             type, params = self.handle_market_type_and_params('fetchTickers', None, params)
             if type != 'spot':
-                raise NotSupported(self.id + ' fetchTickers only support spot when symbols is not set')
+                raise NotSupported(self.id + ' fetchTickers only support spot when symbols are not proved')
             response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
             data = response
         #

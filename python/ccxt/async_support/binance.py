@@ -2504,22 +2504,21 @@ class binance(Exchange, ImplicitAPI):
         type = self.safe_string(params, 'type', defaultType)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
+        marginMode = None
+        query = None
         marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
-        method = 'privateGetAccount'
+        query = self.omit(query, 'type')
+        response = None
         request = {}
         if self.is_linear(type, subType):
-            options = self.safe_value(self.options, type, {})
-            fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
-            method = self.safe_string(fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount')
             type = 'linear'
+            response = await self.fapiPrivateV2GetAccount(self.extend(request, query))
         elif self.is_inverse(type, subType):
-            options = self.safe_value(self.options, type, {})
-            fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
-            method = self.safe_string(fetchBalanceOptions, 'method', 'dapiPrivateGetAccount')
             type = 'inverse'
+            response = await self.dapiPrivateGetAccount(self.extend(request, query))
         elif marginMode == 'isolated':
-            method = 'sapiGetMarginIsolatedAccount'
             paramSymbols = self.safe_value(params, 'symbols')
+            query = self.omit(query, 'symbols')
             if paramSymbols is not None:
                 symbols = ''
                 if isinstance(paramSymbols, list):
@@ -2531,14 +2530,15 @@ class binance(Exchange, ImplicitAPI):
                 else:
                     symbols = paramSymbols
                 request['symbols'] = symbols
+            response = await self.sapiGetMarginIsolatedAccount(self.extend(request, query))
         elif (type == 'margin') or (marginMode == 'cross'):
-            method = 'sapiGetMarginAccount'
+            response = await self.sapiGetMarginAccount(self.extend(request, query))
         elif type == 'savings':
-            method = 'sapiGetLendingUnionAccount'
+            response = await self.sapiGetLendingUnionAccount(self.extend(request, query))
         elif type == 'funding':
-            method = 'sapiPostAssetGetFundingAsset'
-        requestParams = self.omit(query, ['type', 'symbols'])
-        response = await getattr(self, method)(self.extend(request, requestParams))
+            response = await self.sapiPostAssetGetFundingAsset(self.extend(request, query))
+        else:
+            response = await self.privateGetAccount(self.extend(request, query))
         #
         # spot
         #
@@ -3036,7 +3036,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      # swap
         :see: https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
         :see: https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     # option
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -3050,18 +3050,19 @@ class binance(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
-        query = self.omit(params, 'type')
-        defaultMethod = None
+        response = None
         if type == 'option':
-            defaultMethod = 'eapiPublicGetTicker'
+            response = await self.eapiPublicGetTicker(params)
         elif self.is_linear(type, subType):
-            defaultMethod = 'fapiPublicGetTicker24hr'
+            response = await self.fapiPublicGetTicker24hr(params)
         elif self.is_inverse(type, subType):
-            defaultMethod = 'dapiPublicGetTicker24hr'
+            response = await self.dapiPublicGetTicker24hr(params)
         else:
-            defaultMethod = 'publicGetTicker24hr'
-        method = self.safe_string(self.options, 'fetchTickersMethod', defaultMethod)
-        response = await getattr(self, method)(query)
+            request = {}
+            if symbols is not None:
+                marketIds = self.market_ids(symbols)
+                request['symbols'] = self.json(marketIds)
+            response = await self.publicGetTicker24hr(self.extend(request, params))
         return self.parse_tickers(response, symbols)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:

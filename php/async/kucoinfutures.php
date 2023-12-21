@@ -159,6 +159,7 @@ class kucoinfutures extends kucoin {
                         'positions' => 4.44,
                         'funding-history' => 4.44,
                         'sub/api-key' => 1,
+                        'trade-statistics' => 1,
                     ),
                     'post' => array(
                         'withdrawals' => 1,
@@ -180,6 +181,7 @@ class kucoinfutures extends kucoin {
                         'orders' => 4.44,
                         'stopOrders' => 1,
                         'sub/api-key' => 1,
+                        'orders/client-order/{clientOid}' => 1,
                     ),
                 ),
                 'webExchange' => array(
@@ -1245,15 +1247,28 @@ class kucoinfutures extends kucoin {
              * cancels an open order
              * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-futures-order-by-orderid
              * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the market the order was made in
+             * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->clientOrderId] cancel order by client order $id
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $request = array(
-                'orderId' => $id,
-            );
-            $response = Async\await($this->futuresPrivateDeleteOrdersOrderId (array_merge($request, $params)));
+            $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
+            $params = $this->omit($params, array( 'clientOrderId' ));
+            $request = array();
+            $response = null;
+            if ($clientOrderId !== null) {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument when cancelling by clientOrderId');
+                }
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+                $request['clientOid'] = $clientOrderId;
+                $response = Async\await($this->futuresPrivateDeleteOrdersClientOrderClientOid (array_merge($request, $params)));
+            } else {
+                $request['orderId'] = $id;
+                $response = Async\await($this->futuresPrivateDeleteOrdersOrderId (array_merge($request, $params)));
+            }
             //
             //   {
             //       "code" => "200000",

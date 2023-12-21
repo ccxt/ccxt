@@ -29,14 +29,14 @@ class kucoinfutures extends kucoinfutures$1 {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closePosition': true,
+                'closePositions': false,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
-                'closePosition': true,
-                'closePositions': false,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
@@ -151,6 +151,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'positions': 4.44,
                         'funding-history': 4.44,
                         'sub/api-key': 1,
+                        'trade-statistics': 1,
                     },
                     'post': {
                         'withdrawals': 1,
@@ -172,6 +173,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'orders': 4.44,
                         'stopOrders': 1,
                         'sub/api-key': 1,
+                        'orders/client-order/{clientOid}': 1,
                     },
                 },
                 'webExchange': {
@@ -1234,13 +1236,27 @@ class kucoinfutures extends kucoinfutures$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] cancel order by client order id
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        const request = {
-            'orderId': id,
-        };
-        const response = await this.futuresPrivateDeleteOrdersOrderId(this.extend(request, params));
+        const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
+        params = this.omit(params, ['clientOrderId']);
+        const request = {};
+        let response = undefined;
+        if (clientOrderId !== undefined) {
+            if (symbol === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument when cancelling by clientOrderId');
+            }
+            const market = this.market(symbol);
+            request['symbol'] = market['id'];
+            request['clientOid'] = clientOrderId;
+            response = await this.futuresPrivateDeleteOrdersClientOrderClientOid(this.extend(request, params));
+        }
+        else {
+            request['orderId'] = id;
+            response = await this.futuresPrivateDeleteOrdersOrderId(this.extend(request, params));
+        }
         //
         //   {
         //       "code": "200000",
