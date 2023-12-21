@@ -1,0 +1,34 @@
+{
+    "exchange": "ace",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://bit.team/trade/api/ccxt/balance",
+                "input": []
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "spot trades",
+                "method": "fetchMyTrades",
+                "url": "https://bit.team/trade/api/ccxt/tradesOfUser",
+                "input": []
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetch orders",
+                "method": "fetchOrders",
+                "url": "https://bit.team/trade/api/ccxt/ordersOfUser?type=all",
+                "input": []
+            }
+        ]
+    }
+}
