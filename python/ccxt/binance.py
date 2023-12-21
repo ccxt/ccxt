@@ -2503,22 +2503,21 @@ class binance(Exchange, ImplicitAPI):
         type = self.safe_string(params, 'type', defaultType)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
+        marginMode = None
+        query = None
         marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
-        method = 'privateGetAccount'
+        query = self.omit(query, 'type')
+        response = None
         request = {}
         if self.is_linear(type, subType):
-            options = self.safe_value(self.options, type, {})
-            fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
-            method = self.safe_string(fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount')
             type = 'linear'
+            response = self.fapiPrivateV2GetAccount(self.extend(request, query))
         elif self.is_inverse(type, subType):
-            options = self.safe_value(self.options, type, {})
-            fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
-            method = self.safe_string(fetchBalanceOptions, 'method', 'dapiPrivateGetAccount')
             type = 'inverse'
+            response = self.dapiPrivateGetAccount(self.extend(request, query))
         elif marginMode == 'isolated':
-            method = 'sapiGetMarginIsolatedAccount'
             paramSymbols = self.safe_value(params, 'symbols')
+            query = self.omit(query, 'symbols')
             if paramSymbols is not None:
                 symbols = ''
                 if isinstance(paramSymbols, list):
@@ -2530,14 +2529,15 @@ class binance(Exchange, ImplicitAPI):
                 else:
                     symbols = paramSymbols
                 request['symbols'] = symbols
+            response = self.sapiGetMarginIsolatedAccount(self.extend(request, query))
         elif (type == 'margin') or (marginMode == 'cross'):
-            method = 'sapiGetMarginAccount'
+            response = self.sapiGetMarginAccount(self.extend(request, query))
         elif type == 'savings':
-            method = 'sapiGetLendingUnionAccount'
+            response = self.sapiGetLendingUnionAccount(self.extend(request, query))
         elif type == 'funding':
-            method = 'sapiPostAssetGetFundingAsset'
-        requestParams = self.omit(query, ['type', 'symbols'])
-        response = getattr(self, method)(self.extend(request, requestParams))
+            response = self.sapiPostAssetGetFundingAsset(self.extend(request, query))
+        else:
+            response = self.privateGetAccount(self.extend(request, query))
         #
         # spot
         #

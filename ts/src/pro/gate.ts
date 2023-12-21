@@ -736,7 +736,7 @@ export default class gate extends gateRest {
         //   }
         //
         const result = this.safeValue (message, 'result', []);
-        const timestamp = this.safeInteger (message, 'time');
+        const timestamp = this.safeInteger (message, 'time_ms');
         this.balance['info'] = result;
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);
@@ -813,7 +813,7 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions[type], symbols, since, limit, true);
     }
 
     setPositionsCache (client: Client, type, symbols: Strings = undefined) {
