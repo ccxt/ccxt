@@ -382,7 +382,7 @@ class Exchange(BaseExchange):
             self.clients[url].proxy = self.select_chosen_ws_proxy()
         return self.clients[url]
 
-    def select_chosen_ws_proxy(self, url):
+    def select_chosen_ws_proxy(self):
         final_proxy = None  # set default
         httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
         if httpProxy:
