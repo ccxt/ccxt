@@ -4166,10 +4166,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createTriggerOrder() is not supported yet');
     }
 
-    async createSlOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, stopLossPrice, params = {}): Promise<Order> {
+    async createStopLossOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, stopLossPrice, params = {}): Promise<Order> {
         /**
          * @method
-         * @name createSlOrder
+         * @name createStopLossOrder
          * @description create a trigger stop loss order (type 2)
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -4181,16 +4181,16 @@ export default class Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         params['stopLossPrice'] = stopLossPrice;
-        if (this.has['createSlOrder']) {
+        if (this.has['createStopLossOrder']) {
             return await this.createOrder (symbol, type, side, amount, price, params);
         }
-        throw new NotSupported (this.id + ' createSlOrder() is not supported yet');
+        throw new NotSupported (this.id + ' createStopLossOrder() is not supported yet');
     }
 
-    async createTpOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, takeProfitPrice, params = {}): Promise<Order> {
+    async createTakeProfitOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, takeProfitPrice, params = {}): Promise<Order> {
         /**
          * @method
-         * @name createTpOrder
+         * @name createTakeProfitOrder
          * @description create a trigger take profit order (type 2)
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -4202,16 +4202,16 @@ export default class Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         params['takeProfitPrice'] = takeProfitPrice;
-        if (this.has['createTpOrder']) {
+        if (this.has['createTakeProfitOrder']) {
             return await this.createOrder (symbol, type, side, amount, price, params);
         }
-        throw new NotSupported (this.id + ' createTpOrder() is not supported yet');
+        throw new NotSupported (this.id + ' createTakeProfitOrder() is not supported yet');
     }
 
-    async createOrderWithTpAndSl (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, takeProfit = undefined, stopLoss = undefined, params = {}): Promise<Order> {
+    async createOrderWithTakeProfitAndStopLoss (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, takeProfit = undefined, stopLoss = undefined, params = {}): Promise<Order> {
         /**
          * @method
-         * @name createOrderWithTpAndSl
+         * @name createOrderWithTakeProfitAndStopLoss
          * @description create an order with a stop loss or take profit attached (type 3)
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -4233,10 +4233,10 @@ export default class Exchange {
                 'triggerPrice': stopLoss,
             };
         }
-        if (this.has['createOrderWithTpAndSl']) {
+        if (this.has['createOrderWithTakeProfitAndStopLoss']) {
             return await this.createOrder (symbol, type, side, amount, price, params);
         }
-        throw new NotSupported (this.id + ' createOrderWithTpAndSl() is not supported yet');
+        throw new NotSupported (this.id + ' createOrderWithTakeProfitAndStopLoss() is not supported yet');
     }
 
     async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {

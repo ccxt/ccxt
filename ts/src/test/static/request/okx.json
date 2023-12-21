@@ -825,10 +825,10 @@
             "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"trigger\",\"sz\":\"1\",\"tdMode\":\"cross\",\"triggerPx\":\"49000\",\"orderPx\":\"50000\",\"clOrdId\":\"e847386590ce4dBC7eba5daba4bc902c\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
           }
         ],
-        "createTpOrder": [
+        "createTakeProfitOrder": [
           {
-            "description": "Swap create a take profit trigger order using the createTpOrder method (type 2)",
-            "method": "createTpOrder",
+            "description": "Swap create a take profit trigger order using the createTakeProfitOrder method (type 2)",
+            "method": "createTakeProfitOrder",
             "url": "https://www.okx.com/api/v5/trade/order-algo",
             "input": [
               "BTC/USDT:USDT",
@@ -845,10 +845,10 @@
             "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"tpTriggerPx\":\"49000\",\"tpOrdPx\":\"50000\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC8a51e4172402892a\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
           }
         ],
-        "createSlOrder": [
+        "createStopLossOrder": [
           {
-            "description": "Swap create a stop loss trigger order using the createSlOrder method (type 2)",
-            "method": "createSlOrder",
+            "description": "Swap create a stop loss trigger order using the createStopLossOrder method (type 2)",
+            "method": "createStopLossOrder",
             "url": "https://www.okx.com/api/v5/trade/order-algo",
             "input": [
               "BTC/USDT:USDT",
@@ -865,10 +865,10 @@
             "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"slTriggerPx\":\"30000\",\"slOrdPx\":\"31000\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC062a009804dcb58e\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
           }
         ],
-        "createOrderWithTpAndSl": [
+        "createOrderWithTakeProfitAndStopLoss": [
           {
-            "description": "Swap create an order with a take profit and stop loss attached using the createOrderWithTpAndSl method (type 3)",
-            "method": "createOrderWithTpAndSl",
+            "description": "Swap create an order with a take profit and stop loss attached using the createOrderWithTakeProfitAndStopLoss method (type 3)",
+            "method": "createOrderWithTakeProfitAndStopLoss",
             "url": "https://www.okx.com/api/v5/trade/batch-orders",
             "input": [
               "LTC/USDT:USDT",
