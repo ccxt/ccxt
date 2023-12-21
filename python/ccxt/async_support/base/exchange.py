@@ -379,10 +379,10 @@ class Exchange(BaseExchange):
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
-            self.configure_proxy_client(self.clients[url])
+            self.clients[url].proxy = self.select_chosen_proxy()
         return self.clients[url]
 
-    def configure_proxy_client(self, url):
+    def select_chosen_proxy(self, url):
         final_proxy = None  # set default
         httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
         if httpProxy:
@@ -391,10 +391,7 @@ class Exchange(BaseExchange):
             final_proxy = httpsProxy
         elif socksProxy:
             final_proxy = socksProxy
-        if (final_proxy):
-            self.clients[url].proxy = final_proxy
-        else:
-            self.clients[url].proxy = None
+        return final_proxy
 
     def delay(self, timeout, method, *args):
         return self.asyncio_loop.call_later(timeout / 1000, self.spawn, method, *args)
