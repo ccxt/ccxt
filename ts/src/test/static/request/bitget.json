@@ -189,7 +189,7 @@
                 null,
                 {
                   "trailingStopPercent": "10",
-                  "triggerPrice": "45000",
+                  "trailingStopTriggerPrice": "45000",
                   "reduceOnly": true
                 }
               ],
