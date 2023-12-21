@@ -389,6 +389,24 @@
               }
             ],
             "output": "{\"orderId\":\"1113286462953558017\",\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"executePrice\":\"25000\",\"triggerPrice\":\"27000\"}"
+          },
+          {
+            "description": "Swap edit a trailing stop order",
+            "method": "editOrder",
+            "url": "https://api.bitget.com/api/v2/mix/order/modify-plan-order",
+            "input": [
+              "1121635717619453955",
+              "BTC/USDT:USDT",
+              "market",
+              "sell",
+              0.002,
+              null,
+              {
+                "trailingStopPercent": "5",
+                "trailingStopTriggerPrice": "46000"
+              }
+            ],
+            "output": "{\"orderId\":\"1121635717619453955\",\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"newSize\":\"0.002\",\"newTriggerPrice\":\"46000\",\"newCallbackRatio\":\"5\"}"
           }
       ],
         "fetchMyTrades": [
