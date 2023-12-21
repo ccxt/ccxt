@@ -41,13 +41,13 @@ export default class blofin extends Exchange {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
-                'createPostOnlyOrder': true,
-                'createReduceOnlyOrder': true,
-                'createStopLimitOrder': true,
-                'createStopMarketOrder': true,
+                'createPostOnlyOrder': false,
+                'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
                 'createStopOrder': false,
-                'editOrder': true,
-                'fetchAccounts': true,
+                'editOrder': false,
+                'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': false,
@@ -60,19 +60,19 @@ export default class blofin extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
                 'fetchDeposit': true,
-                'fetchDepositAddress': true,
+                'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
-                'fetchDepositAddressesByNetwork': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
-                'fetchDepositWithdrawFees': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchGreeks': false,
-                'fetchIndexOHLCV': true,
+                'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': false,
@@ -81,8 +81,8 @@ export default class blofin extends Exchange {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarketLeverageTiers': false,
-                'fetchMarkets': true,
-                'fetchMarkOHLCV': true,
+                'fetchMarkets': false,
+                'fetchMarkOHLCV': false,
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -107,7 +107,7 @@ export default class blofin extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
-                'fetchTradingFee': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
@@ -450,12 +450,12 @@ export default class blofin extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        // const types = this.safeValue (this.options, 'fetchMarkets');
-        // let promises = [];
-        // let result = [];
-        // for (let i = 0; i < types.length; i++) {
-        //     promises.push (this.fetchMarketsByType (types[i], params));
-        // }
+            // const types = this.safeValue (this.options, 'fetchMarkets');
+            // let promises = [];
+            // let result = [];
+            // for (let i = 0; i < types.length; i++) {
+            //     promises.push (this.fetchMarketsByType (types[i], params));
+            // }
         const response = await this.publicGetMarketInstruments (params);
         const data = this.safeValue (response, 'data', []);
         return this.parseMarkets (data);
@@ -1817,7 +1817,7 @@ export default class blofin extends Exchange {
         return this.parseTransfer (data);
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer) {
         const id = this.safeString (transfer, 'transferId');
         const clientId = this.safeString (transfer, 'clientTransferId');
         return {
@@ -2163,7 +2163,7 @@ export default class blofin extends Exchange {
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            const timestamp = this.iso8601 (this.milliseconds ());
+            const timestamp = this.milliseconds ();
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-PASSPHRASE': this.password,
@@ -2185,7 +2185,7 @@ export default class blofin extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
             const auth = request + method + timestamp + timestamp + sign_body;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
+            const signature = this.stringToBase64 (this.hmac (this.encode (auth), this.encode (this.secret), sha256));
             headers['ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
