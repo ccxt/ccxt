@@ -5017,21 +5017,22 @@ export default class binance extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        let method = 'privateDeleteOrder';
+        const requestParams = this.omit (query, [ 'type', 'origClientOrderId', 'clientOrderId' ]);
+        let response = undefined;
         if (market['option']) {
-            method = 'eapiPrivateDeleteOrder';
+            response = await this.eapiPrivateDeleteOrder (this.extend (request, requestParams));
         } else if (market['linear']) {
-            method = 'fapiPrivateDeleteOrder';
+            response = await this.fapiPrivateDeleteOrder (this.extend (request, requestParams));
         } else if (market['inverse']) {
-            method = 'dapiPrivateDeleteOrder';
+            response = await this.dapiPrivateDeleteOrder (this.extend (request, requestParams));
         } else if (type === 'margin' || marginMode !== undefined) {
-            method = 'sapiDeleteMarginOrder';
             if (marginMode === 'isolated') {
                 request['isIsolated'] = true;
             }
+            response = await this.sapiDeleteMarginOrder (this.extend (request, requestParams));
+        } else {
+            response = await this.privateDeleteOrder (this.extend (request, requestParams));
         }
-        const requestParams = this.omit (query, [ 'type', 'origClientOrderId', 'clientOrderId' ]);
-        const response = await this[method] (this.extend (request, requestParams));
         return this.parseOrder (response, market);
     }
 

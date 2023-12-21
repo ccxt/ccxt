@@ -299,6 +299,36 @@
                     464950,
                     "LTC/USDT"
                 ]
+            },
+            {
+                "description": "Swap inverse cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://dapi.binance.com/dapi/v1/order?timestamp=1699382897679&symbol=BTCUSD_PERP&orderId=652509009&recvWindow=10000&signature=02d0287d26b9b0603902e299840941f6738f9fbb3f497390b29d7077c42c318b",
+                "input": [
+                    652509009,
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "Option cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://eapi.binance.com/eapi/v1/order?timestamp=1699382897679&symbol=ETH-231229-800-C&orderId=652509009&recvWindow=10000&signature=02d0287d26b9b0603902e299840941f6738f9fbb3f497390b29d7077c42c318b",
+                "input": [
+                    652509009,
+                    "ETH/USDT:USDT-231229-800-C"
+                ]
+            },
+            {
+                "description": "cancel swap order with clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order?timestamp=1703181445987&symbol=BTCUSDT&origClientOrderId=myswap&recvWindow=10000&signature=169048840e9612fc90a33b39894e882fc3f73950a02374b544ddecb344467929",
+                "input": [
+                  "",
+                  "BTC/USDT:USDT",
+                  {
+                    "clientOrderId": "myswap"
+                  }
+                ]
             }
         ],
         "cancelOrders": [
