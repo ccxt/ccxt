@@ -59,7 +59,7 @@ export default class blofin extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
-                'fetchDeposit': true,
+                'fetchDeposit': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -81,7 +81,7 @@ export default class blofin extends Exchange {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarketLeverageTiers': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
@@ -117,7 +117,7 @@ export default class blofin extends Exchange {
                 'fetchTransfers': false,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
-                'fetchWithdrawal': true,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
@@ -450,12 +450,12 @@ export default class blofin extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-            // const types = this.safeValue (this.options, 'fetchMarkets');
-            // let promises = [];
-            // let result = [];
-            // for (let i = 0; i < types.length; i++) {
-            //     promises.push (this.fetchMarketsByType (types[i], params));
-            // }
+        // const types = this.safeValue (this.options, 'fetchMarkets');
+        // let promises = [];
+        // let result = [];
+        // for (let i = 0; i < types.length; i++) {
+        //     promises.push (this.fetchMarketsByType (types[i], params));
+        // }
         const response = await this.publicGetMarketInstruments (params);
         const data = this.safeValue (response, 'data', []);
         return this.parseMarkets (data);
@@ -1814,10 +1814,10 @@ export default class blofin extends Exchange {
             });
         }
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransfer (data);
+        return this.parseTransfer (data, undefined);
     }
 
-    parseTransfer (transfer) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         const id = this.safeString (transfer, 'transferId');
         const clientId = this.safeString (transfer, 'clientTransferId');
         return {
