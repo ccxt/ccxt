@@ -652,12 +652,12 @@
             {
                 "description": "Swap inverse setLeverage",
                 "method": "setLeverage",
-                "url": "https://fapi.binance.com/fapi/v1/leverage",
+                "url": "https://dapi.binance.com/dapi/v1/leverage",
                 "input": [
                     5,
-                    "LTC/USDT:USDT"
+                    "BTC/USD:BTC"
                 ],
-                "output": "timestamp=1699441011001&symbol=LTCUSDT&leverage=5&recvWindow=10000&signature=f932a4e8dd21ce1dcea84d8ab2fd9451c31b77c710d1adb9c51f54adc520cd90"
+                "output": "timestamp=1699441011001&symbol=BTCUSD_PERP&leverage=5&recvWindow=10000&signature=f932a4e8dd21ce1dcea84d8ab2fd9451c31b77c710d1adb9c51f54adc520cd90"
             }
         ],
         "setMarginMode": [
