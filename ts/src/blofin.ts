@@ -463,7 +463,7 @@ export default class blofin extends Exchange {
 
     parseMarket (market): Market {
         const id = this.safeString (market, 'instId');
-        let type = this.safeStringLower (market, 'instType');
+        const type = this.safeStringLower (market, 'instType');
         const spot = (type === 'spot');
         const future = (type === 'future');
         const swap = (type === 'swap');
@@ -475,7 +475,7 @@ export default class blofin extends Exchange {
         const settle = this.safeCurrencyCode (settleId);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        let symbol = base + '/' + quote;
+        const symbol = base + '/' + quote;
         let expiry = undefined;
         const strikePrice = undefined;
         const optionType = undefined;
