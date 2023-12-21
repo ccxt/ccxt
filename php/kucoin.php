@@ -32,6 +32,8 @@ class kucoin extends Exchange {
                 'borrowIsolatedMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createOrders' => true,
@@ -484,9 +486,6 @@ class kucoin extends Exchange {
             ),
             'commonCurrencies' => array(
                 'BIFI' => 'BIFIF',
-                'EDGE' => 'DADI', // https://github.com/ccxt/ccxt/issues/5756
-                'HOT' => 'HOTNOW',
-                'TRY' => 'Trias',
                 'VAI' => 'VAIOT',
                 'WAX' => 'WAXP',
             ),
@@ -1913,7 +1912,7 @@ class kucoin extends Exchange {
          * create a list of trade $orders
          * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-$orders
          * @see https://www.kucoin.com/docs/rest/spot-trading/spot-$hf-trade-pro-account/place-multiple-$hf-$orders
-         * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params]  extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->hf] false, // true for $hf $orders
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -2432,7 +2431,7 @@ class kucoin extends Exchange {
                 $response = $this->privateGetOrdersOrderId (array_merge($request, $params));
             }
         }
-        $responseData = $this->safe_value($response, 'data');
+        $responseData = $this->safe_value($response, 'data', array());
         if (gettype($responseData) === 'array' && array_keys($responseData) === array_keys(array_keys($responseData))) {
             $responseData = $this->safe_value($responseData, 0);
         }

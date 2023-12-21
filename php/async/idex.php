@@ -38,6 +38,8 @@ class idex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
@@ -1614,7 +1616,14 @@ class idex extends Exchange {
             // )
             $method = $params['method'];
             $params = $this->omit($params, 'method');
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($method === 'privateGetDeposits') {
+                $response = Async\await($this->privateGetDeposits (array_merge($request, $params)));
+            } elseif ($method === 'privateGetWithdrawals') {
+                $response = Async\await($this->privateGetWithdrawals (array_merge($request, $params)));
+            } else {
+                throw new NotSupported($this->id . ' fetchTransactionsHelper() not support this method');
+            }
             return $this->parse_transactions($response, $currency, $since, $limit);
         }) ();
     }

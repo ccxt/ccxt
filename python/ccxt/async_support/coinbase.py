@@ -45,11 +45,16 @@ class coinbase(Exchange, ImplicitAPI):
                 'addMargin': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': True,
                 'createLimitBuyOrder': True,
                 'createLimitSellOrder': True,
                 'createMarketBuyOrder': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
                 'createMarketSellOrder': True,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': False,
@@ -202,18 +207,29 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/products/{product_id}',
                             'brokerage/products/{product_id}/candles',
                             'brokerage/products/{product_id}/ticker',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/{portfolio_uuid}',
                             'brokerage/transaction_summary',
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
                             'brokerage/convert/trade/{trade_id}',
+                            'brokerage/time',
                         ],
                         'post': [
                             'brokerage/orders',
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                        ],
+                        'put': [
+                            'brokerage/portfolios/{portfolio_uuid}',
+                        ],
+                        'delete': [
+                            'brokerage/portfolios/{portfolio_uuid}',
                         ],
                     },
                 },
@@ -271,6 +287,8 @@ class coinbase(Exchange, ImplicitAPI):
                     'not_found': ExchangeError,  # 404 Resource not found
                     'rate_limit_exceeded': RateLimitExceeded,  # 429 Rate limit exceeded
                     'internal_server_error': ExchangeError,  # 500 Internal server error
+                    'UNSUPPORTED_ORDER_CONFIGURATION': BadRequest,
+                    'INSUFFICIENT_FUND': BadRequest,
                 },
                 'broad': {
                     'request timestamp expired': InvalidNonce,  # {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
@@ -603,6 +621,7 @@ class coinbase(Exchange, ImplicitAPI):
 
     async def fetch_my_sells(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
+         * @ignore
         fetch sells
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-sells#list-sells
         :param str symbol: not used by coinbase fetchMySells()
@@ -620,6 +639,7 @@ class coinbase(Exchange, ImplicitAPI):
 
     async def fetch_my_buys(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
+         * @ignore
         fetch buys
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-buys#list-buys
         :param str symbol: not used by coinbase fetchMyBuys()
@@ -881,6 +901,9 @@ class coinbase(Exchange, ImplicitAPI):
         else:
             cost = costString
         feeCurrencyId = self.safe_string(feeObject, 'currency')
+        feeCost = self.safe_number(feeObject, 'amount', self.parse_number(v3FeeCost))
+        if (feeCurrencyId is None) and (market is not None) and (feeCost is not None):
+            feeCurrencyId = market['quote']
         datetime = self.safe_string_n(trade, ['created_at', 'trade_time', 'time'])
         side = self.safe_string_lower_2(trade, 'resource', 'side')
         takerOrMaker = self.safe_string_lower(trade, 'liquidity_indicator')
@@ -898,7 +921,7 @@ class coinbase(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': cost,
             'fee': {
-                'cost': self.safe_number(feeObject, 'amount', self.parse_number(v3FeeCost)),
+                'cost': feeCost,
                 'currency': self.safe_currency_code(feeCurrencyId),
             },
         })
@@ -2008,6 +2031,22 @@ class coinbase(Exchange, ImplicitAPI):
             request['limit'] = limit
         return request
 
+    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
@@ -2026,6 +2065,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.timeInForce]: 'GTC', 'IOC', 'GTD' or 'PO'
         :param str [params.stop_direction]: 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
         :param str [params.end_time]: '2023-05-25T17:01:05.092Z' for 'GTD' orders
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2112,18 +2152,23 @@ class coinbase(Exchange, ImplicitAPI):
             if isStop or isStopLoss or isTakeProfit:
                 raise NotSupported(self.id + ' createOrder() only stop limit orders are supported')
             if side == 'buy':
-                createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
                 total = None
-                if createMarketBuyOrderRequiresPrice:
+                createMarketBuyOrderRequiresPrice = True
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                cost = self.safe_number(params, 'cost')
+                params = self.omit(params, 'cost')
+                if cost is not None:
+                    total = self.cost_to_precision(symbol, cost)
+                elif createMarketBuyOrderRequiresPrice:
                     if price is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+                        raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
-                        cost = self.parse_number(Precise.string_mul(amountString, priceString))
-                        total = self.price_to_precision(symbol, cost)
+                        costRequest = Precise.string_mul(amountString, priceString)
+                        total = self.cost_to_precision(symbol, costRequest)
                 else:
-                    total = self.price_to_precision(symbol, amount)
+                    total = self.cost_to_precision(symbol, amount)
                 request['order_configuration'] = {
                     'market_market_ioc': {
                         'quote_size': total,
@@ -2138,6 +2183,8 @@ class coinbase(Exchange, ImplicitAPI):
         params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time'])
         response = await self.v3PrivatePostBrokerageOrders(self.extend(request, params))
         #
+        # successful order
+        #
         #     {
         #         "success": True,
         #         "failure_reason": "UNKNOWN_FAILURE_REASON",
@@ -2151,9 +2198,36 @@ class coinbase(Exchange, ImplicitAPI):
         #         "order_configuration": null
         #     }
         #
+        # failed order
+        #
+        #     {
+        #         "success": False,
+        #         "failure_reason": "UNKNOWN_FAILURE_REASON",
+        #         "order_id": "",
+        #         "error_response": {
+        #             "error": "UNSUPPORTED_ORDER_CONFIGURATION",
+        #             "message": "source is not enabled for trading",
+        #             "error_details": "",
+        #             "new_order_failure_reason": "UNSUPPORTED_ORDER_CONFIGURATION"
+        #         },
+        #         "order_configuration": {
+        #             "limit_limit_gtc": {
+        #                 "base_size": "100",
+        #                 "limit_price": "40000",
+        #                 "post_only": False
+        #             }
+        #         }
+        #     }
+        #
         success = self.safe_value(response, 'success')
         if success is not True:
-            raise BadRequest(self.id + ' createOrder() has failed, check your arguments and parameters')
+            errorResponse = self.safe_value(response, 'error_response')
+            errorTitle = self.safe_string(errorResponse, 'error')
+            errorMessage = self.safe_string(errorResponse, 'message')
+            if errorResponse is not None:
+                self.throw_exactly_matched_exception(self.exceptions['exact'], errorTitle, errorMessage)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], errorTitle, errorMessage)
+                raise ExchangeError(errorMessage)
         data = self.safe_value(response, 'success_response', {})
         return self.parse_order(data, market)
 
@@ -2244,6 +2318,10 @@ class coinbase(Exchange, ImplicitAPI):
         else:
             amount = self.safe_string(marketIOC, 'base_size')
         datetime = self.safe_string(order, 'created_time')
+        totalFees = self.safe_string(order, 'total_fees')
+        currencyFee = None
+        if (totalFees is not None) and (market is not None):
+            currencyFee = market['quote']
         return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'order_id'),
@@ -2267,7 +2345,7 @@ class coinbase(Exchange, ImplicitAPI):
             'status': self.parse_order_status(self.safe_string(order, 'status')),
             'fee': {
                 'cost': self.safe_string(order, 'total_fees'),
-                'currency': None,
+                'currency': currencyFee,
             },
             'trades': None,
         }, market)

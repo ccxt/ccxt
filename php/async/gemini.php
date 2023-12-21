@@ -37,6 +37,8 @@ class gemini extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => true,
                 'createMarketOrder' => false,
                 'createOrder' => true,
@@ -305,6 +307,7 @@ class gemini extends Exchange {
     public function fetch_currencies_from_web($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             * @ignore
              * fetches all available currencies on an exchange
              * @param {array} [$params] extra parameters specific to the endpoint
              * @return {array} an associative dictionary of currencies
@@ -347,26 +350,28 @@ class gemini extends Exchange {
                 $networks = array();
                 $networkId = $this->safe_string($currency, 9);
                 $networkCode = $this->network_id_to_code($networkId);
-                $networks[$networkCode] = array(
-                    'info' => $currency,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'precision' => $precision,
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
+                if ($networkCode !== null) {
+                    $networks[$networkCode] = array(
+                        'info' => $currency,
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'active' => null,
+                        'deposit' => null,
+                        'withdraw' => null,
+                        'fee' => null,
+                        'precision' => $precision,
+                        'limits' => array(
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
                         ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                );
+                    );
+                }
                 $result[$code] = array(
                     'info' => $currency,
                     'id' => $id,

@@ -13,7 +13,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitrue
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitrue extends Exchange {
     describe() {
@@ -35,6 +35,9 @@ export default class bitrue extends Exchange {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -1541,18 +1544,9 @@ export default class bitrue extends Exchange {
             const first = this.safeString(symbols, 0);
             const market = this.market(first);
             if (market['swap']) {
-                request['contractName'] = market['id'];
-                if (market['linear']) {
-                    response = await this.fapiV1PublicGetTicker(this.extend(request, params));
-                }
-                else if (market['inverse']) {
-                    response = await this.dapiV1PublicGetTicker(this.extend(request, params));
-                }
-                response['symbol'] = market['id'];
-                data = [response];
+                throw new NotSupported(this.id + ' fetchTickers does not support swap markets, please use fetchTicker instead');
             }
             else if (market['spot']) {
-                request['symbol'] = market['id'];
                 response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
                 data = response;
             }
@@ -1563,7 +1557,7 @@ export default class bitrue extends Exchange {
         else {
             [type, params] = this.handleMarketTypeAndParams('fetchTickers', undefined, params);
             if (type !== 'spot') {
-                throw new NotSupported(this.id + ' fetchTickers only support spot when symbols is not set');
+                throw new NotSupported(this.id + ' fetchTickers only support spot when symbols are not proved');
             }
             response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
             data = response;
@@ -1889,6 +1883,26 @@ export default class bitrue extends Exchange {
             'trades': fills,
         }, market);
     }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name bitrue#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports swap orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -1912,6 +1926,7 @@ export default class bitrue extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {decimal} [params.icebergQty]
          * @param {long} [params.recvWindow]
+         * @param {float} [params.cost] *swap market buy only* the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1948,7 +1963,9 @@ export default class bitrue extends Exchange {
                 request['type'] = 'IOC';
             }
             request['contractName'] = market['id'];
-            if (isMarket && (side === 'buy') && (this.options['createMarketBuyOrderRequiresPrice'])) {
+            let createMarketBuyOrderRequiresPrice = true;
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            if (isMarket && (side === 'buy') && createMarketBuyOrderRequiresPrice) {
                 const cost = this.safeString(params, 'cost');
                 params = this.omit(params, 'cost');
                 if (price === undefined && cost === undefined) {

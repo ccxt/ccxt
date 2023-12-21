@@ -14,6 +14,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -38,6 +39,9 @@ class bigone(Exchange, ImplicitAPI):
                 'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -1104,6 +1108,22 @@ class bigone(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
+    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+        :see: https://open.big.one/docs/spot_orders.html#create-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
@@ -1117,6 +1137,7 @@ class bigone(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param str operator: *stop order only* GTE or LTE(default)
@@ -1129,7 +1150,7 @@ class bigone(Exchange, ImplicitAPI):
         requestSide = 'BID' if isBuy else 'ASK'
         uppercaseType = type.upper()
         isLimit = uppercaseType == 'LIMIT'
-        exchangeSpecificParam = self.safe_value(params, 'post_only')
+        exchangeSpecificParam = self.safe_value(params, 'post_only', False)
         postOnly = None
         postOnly, params = self.handle_post_only((uppercaseType == 'MARKET'), exchangeSpecificParam, params)
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
@@ -1150,16 +1171,26 @@ class bigone(Exchange, ImplicitAPI):
                     request['immediate_or_cancel'] = True
                 if postOnly:
                     request['post_only'] = True
+            request['amount'] = self.amount_to_precision(symbol, amount)
         else:
-            createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice')
-            if createMarketBuyOrderRequiresPrice and (side == 'buy'):
-                if price is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+            if isBuy:
+                createMarketBuyOrderRequiresPrice = True
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                cost = self.safe_number(params, 'cost')
+                params = self.omit(params, 'cost')
+                if createMarketBuyOrderRequiresPrice:
+                    if (price is None) and (cost is None):
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                    else:
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        quoteAmount = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
+                        costRequest = cost if (cost is not None) else quoteAmount
+                        request['amount'] = self.cost_to_precision(symbol, costRequest)
                 else:
-                    amountString = self.number_to_string(amount)
-                    priceString = self.number_to_string(price)
-                    amount = self.parse_number(Precise.string_mul(amountString, priceString))
-        request['amount'] = self.amount_to_precision(symbol, amount)
+                    request['amount'] = self.cost_to_precision(symbol, amount)
+            else:
+                request['amount'] = self.amount_to_precision(symbol, amount)
         if triggerPrice is not None:
             request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
             request['operator'] = 'GTE' if isBuy else 'LTE'

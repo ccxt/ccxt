@@ -46,6 +46,8 @@ class gemini(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': True,
                 'createMarketOrder': False,
                 'createOrder': True,
@@ -309,6 +311,7 @@ class gemini(Exchange, ImplicitAPI):
 
     def fetch_currencies_from_web(self, params={}):
         """
+         * @ignore
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the endpoint
         :returns dict: an associative dictionary of currencies
@@ -350,26 +353,27 @@ class gemini(Exchange, ImplicitAPI):
             networks = {}
             networkId = self.safe_string(currency, 9)
             networkCode = self.network_id_to_code(networkId)
-            networks[networkCode] = {
-                'info': currency,
-                'id': networkId,
-                'network': networkCode,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': precision,
-                'limits': {
-                    'deposit': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': currency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
+                    'precision': precision,
+                    'limits': {
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-            }
+                }
             result[code] = {
                 'info': currency,
                 'id': id,

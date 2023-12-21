@@ -9,7 +9,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class indodax
- * @extends Exchange
+ * @augments Exchange
  */
 class indodax extends indodax$1 {
     describe() {
@@ -31,6 +31,8 @@ class indodax extends indodax$1 {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,

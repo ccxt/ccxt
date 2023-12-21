@@ -6,13 +6,13 @@ import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class zaif
- * @extends Exchange
+ * @augments Exchange
  */
 export default class zaif extends Exchange {
     describe () {
@@ -309,15 +309,14 @@ export default class zaif extends Exchange {
         // }
         //
         const symbol = this.safeSymbol (undefined, market);
-        const timestamp = this.milliseconds ();
         const vwap = this.safeString (ticker, 'vwap');
         const baseVolume = this.safeString (ticker, 'volume');
         const quoteVolume = Precise.stringMul (baseVolume, vwap);
         const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString (ticker, 'high'),
             'low': this.safeString (ticker, 'low'),
             'bid': this.safeString (ticker, 'bid'),

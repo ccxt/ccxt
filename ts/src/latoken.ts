@@ -2,16 +2,16 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/latoken.js';
-import { ExchangeError, AuthenticationError, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, AuthenticationError, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class latoken
- * @extends Exchange
+ * @augments Exchange
  */
 export default class latoken extends Exchange {
     describe () {
@@ -30,6 +30,8 @@ export default class latoken extends Exchange {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -837,13 +839,17 @@ export default class latoken extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
-        let method = this.safeString (params, 'method');
+        const options = this.safeValue (this.options, 'fetchTradingFee', {});
+        const defaultMethod = this.safeString (options, 'method', 'fetchPrivateTradingFee');
+        const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
-        if (method === undefined) {
-            const options = this.safeValue (this.options, 'fetchTradingFee', {});
-            method = this.safeString (options, 'method', 'fetchPrivateTradingFee');
+        if (method === 'fetchPrivateTradingFee') {
+            return await this.fetchPrivateTradingFee (symbol, params);
+        } else if (method === 'fetchPublicTradingFee') {
+            return await this.fetchPublicTradingFee (symbol, params);
+        } else {
+            throw new NotSupported (this.id + ' not support this method');
         }
-        return await this[method] (symbol, params);
     }
 
     async fetchPublicTradingFee (symbol: string, params = {}) {
@@ -912,18 +918,19 @@ export default class latoken extends Exchange {
             // 'from': this.milliseconds (),
             // 'limit': limit, // default '100'
         };
-        let method = 'privateGetAuthTrade';
         let market = undefined;
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100
+        }
+        let response = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            method = 'privateGetAuthTradePairCurrencyQuote';
+            response = await this.privateGetAuthTradePairCurrencyQuote (this.extend (request, params));
+        } else {
+            response = await this.privateGetAuthTrade (this.extend (request, params));
         }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 100
-        }
-        const response = await this[method] (this.extend (request, params));
         //
         //     [
         //         {
@@ -1091,7 +1098,7 @@ export default class latoken extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] true if fetching trigger orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -1594,20 +1601,19 @@ export default class latoken extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let method = undefined;
-        if (toAccount.indexOf ('@') >= 0) {
-            method = 'privatePostAuthTransferEmail';
-        } else if (toAccount.length === 36) {
-            method = 'privatePostAuthTransferId';
-        } else {
-            method = 'privatePostAuthTransferPhone';
-        }
         const request = {
             'currency': currency['id'],
             'recipient': toAccount,
             'value': this.currencyToPrecision (code, amount),
         };
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (toAccount.indexOf ('@') >= 0) {
+            response = await this.privatePostAuthTransferEmail (this.extend (request, params));
+        } else if (toAccount.length === 36) {
+            response = await this.privatePostAuthTransferId (this.extend (request, params));
+        } else {
+            response = await this.privatePostAuthTransferPhone (this.extend (request, params));
+        }
         //
         //     {
         //         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",

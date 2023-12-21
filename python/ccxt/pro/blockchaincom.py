@@ -5,8 +5,9 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, IndexType, Str
+from ccxt.base.types import Balances, Int, Order, OrderBook, IndexType, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
@@ -57,7 +58,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             },
         })
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :see: https://exchange.blockchain.com/api/#balances
@@ -121,7 +122,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         self.balance = self.safe_balance(result)
         client.resolve(self.balance, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market.
         :see: https://exchange.blockchain.com/api/#prices
@@ -194,7 +195,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         else:
             raise NotSupported(self.id + ' ' + self.json(message))
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://exchange.blockchain.com/api/#ticker
@@ -296,7 +297,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             'info': self.extend(self.safe_value(lastTicker, 'info', {}), ticker),
         }, market)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://exchange.blockchain.com/api/#trades
@@ -391,7 +392,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             'info': trade,
         }, market)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
         :see: https://exchange.blockchain.com/api/#mass-order-status-request-ordermassstatusrequest
@@ -594,7 +595,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         }
         return self.safe_string(statuses, status, status)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://exchange.blockchain.com/api/#l2-order-book

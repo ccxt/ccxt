@@ -204,6 +204,8 @@ class kraken extends Exchange {
                         'Withdraw' => 3,
                         'WithdrawCancel' => 3,
                         'WithdrawInfo' => 3,
+                        'WithdrawMethods' => 3,
+                        'WithdrawAddresses' => 3,
                         'WithdrawStatus' => 3,
                         'WalletTransfer' => 3,
                         // sub accounts
@@ -333,6 +335,91 @@ class kraken extends Exchange {
                     'YFI' => 'YFI',
                     'ZEC' => 'Zcash (Transparent)',
                     'ZRX' => '0x (ZRX)',
+                ),
+                'withdrawMethods' => array(   // keeping it here because deposit and withdraw return different networks codes
+                    'Lightning' => 'Lightning',
+                    'Bitcoin' => 'BTC',
+                    'Ripple' => 'XRP',
+                    'Litecoin' => 'LTC',
+                    'Dogecoin' => 'DOGE',
+                    'Stellar' => 'XLM',
+                    'Ethereum' => 'ERC20',
+                    'Arbitrum One' => 'Arbitrum',
+                    'Polygon' => 'MATIC',
+                    'Arbitrum Nova' => 'Arbitrum',
+                    'Optimism' => 'Optimism',
+                    'zkSync Era' => 'zkSync',
+                    'Ethereum Classic' => 'ETC',
+                    'Zcash' => 'ZEC',
+                    'Monero' => 'XMR',
+                    'Tron' => 'TRC20',
+                    'Solana' => 'SOL',
+                    'EOS' => 'EOS',
+                    'Bitcoin Cash' => 'BCH',
+                    'Cardano' => 'ADA',
+                    'Qtum' => 'QTUM',
+                    'Tezos' => 'XTZ',
+                    'Cosmos' => 'ATOM',
+                    'Nano' => 'NANO',
+                    'Siacoin' => 'SC',
+                    'Lisk' => 'LSK',
+                    'Waves' => 'WAVES',
+                    'ICON' => 'ICX',
+                    'Algorand' => 'ALGO',
+                    'Polygon - USDC.e' => 'MATIC',
+                    'Arbitrum One - USDC.e' => 'Arbitrum',
+                    'Polkadot' => 'DOT',
+                    'Kava' => 'KAVA',
+                    'Filecoin' => 'FIL',
+                    'Kusama' => 'KSM',
+                    'Flow' => 'FLOW',
+                    'Energy Web' => 'EW',
+                    'Mina' => 'MINA',
+                    'Centrifuge' => 'CFG',
+                    'Karura' => 'KAR',
+                    'Moonriver' => 'MOVR',
+                    'Shiden' => 'SDN',
+                    'Khala' => 'PHA',
+                    'Bifrost Kusama' => 'BNC',
+                    'Songbird' => 'SGB',
+                    'Terra classic' => 'LUNC',
+                    'KILT' => 'KILT',
+                    'Basilisk' => 'BSX',
+                    'Flare' => 'FLR',
+                    'Avalanche C-Chain' => 'AVAX',
+                    'Kintsugi' => 'KINT',
+                    'Altair' => 'AIR',
+                    'Moonbeam' => 'GLMR',
+                    'Acala' => 'ACA',
+                    'Astar' => 'ASTR',
+                    'Akash' => 'AKT',
+                    'Robonomics' => 'XRT',
+                    'Fantom' => 'FTM',
+                    'Elrond' => 'EGLD',
+                    'THORchain' => 'RUNE',
+                    'Secret' => 'SCRT',
+                    'Near' => 'NEAR',
+                    'Internet Computer Protocol' => 'ICP',
+                    'Picasso' => 'PICA',
+                    'Crust Shadow' => 'CSM',
+                    'Integritee' => 'TEER',
+                    'Parallel Finance' => 'PARA',
+                    'HydraDX' => 'HDX',
+                    'Interlay' => 'INTR',
+                    'Fetch.ai' => 'FET',
+                    'NYM' => 'NYM',
+                    'Terra 2.0' => 'LUNA2',
+                    'Juno' => 'JUNO',
+                    'Nodle' => 'NODL',
+                    'Stacks' => 'STX',
+                    'Ethereum PoW' => 'ETHW',
+                    'Aptos' => 'APT',
+                    'Sui' => 'SUI',
+                    'Genshiro' => 'GENS',
+                    'Aventus' => 'AVT',
+                    'Sei' => 'SEI',
+                    'OriginTrail' => 'OTP',
+                    'Celestia' => 'TIA',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -1299,8 +1386,12 @@ class kraken extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} $params->postOnly
-             * @param {bool} $params->reduceOnly
+             * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
+             * @param {bool} [$params->reduceOnly] *margin only* indicates if this order is to reduce the size of a position
+             * @param {float} [$params->stopLossPrice] *margin only* the $price that a stop loss order is triggered at
+             * @param {float} [$params->takeProfitPrice] *margin only* the $price that a take profit order is triggered at
+             * @param {string} [$params->trailingStopPrice] *margin only* the quote $amount to trail away from the current $market $price
+             * @param {string} [$params->trigger] *margin only* the activation $price $type, 'last' or 'index', default is 'last'
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1555,43 +1646,44 @@ class kraken extends Exchange {
         if ($clientOrderId !== null) {
             $request['userref'] = $clientOrderId;
         }
-        //
-        //     market
-        //     limit ($price = limit $price)
-        //     stop-loss ($price = stop loss trigger $price)
-        //     take-profit ($price = take profit trigger $price)
-        //     stop-loss-limit ($price = stop loss trigger $price, price2 = triggered limit $price)
-        //     take-profit-limit ($price = take profit trigger $price, price2 = triggered limit $price)
-        //     settle-position
-        //
+        $stopLossTriggerPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_string($params, 'takeProfitPrice');
+        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
+        $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
+        $trailingStopPrice = $this->safe_string($params, 'trailingStopPrice');
+        $isTrailingStopPriceOrder = $trailingStopPrice !== null;
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
-        } elseif (($type === 'stop-loss') || ($type === 'take-profit')) {
-            $stopPrice = $this->safe_number_2($params, 'price', 'stopPrice', $price);
-            if ($stopPrice === null) {
-                throw new ArgumentsRequired($this->id . $method . ' requires a $price argument or a price/stopPrice parameter for a ' . $type . ' order');
-            } else {
-                $request['price'] = $this->price_to_precision($symbol, $stopPrice);
+        }
+        $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
+        if ($isStopLossOrTakeProfitTrigger) {
+            if ($isStopLossTriggerOrder) {
+                $request['price'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                $request['ordertype'] = 'stop-loss-limit';
+            } elseif ($isTakeProfitTriggerOrder) {
+                $request['price'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                $request['ordertype'] = 'take-profit-limit';
             }
-        } elseif (($type === 'stop-loss-limit') || ($type === 'take-profit-limit')) {
-            $stopPrice = $this->safe_number_2($params, 'price', 'stopPrice');
-            $limitPrice = $this->safe_number($params, 'price2');
-            $stopPriceDefined = ($stopPrice !== null);
-            $limitPriceDefined = ($limitPrice !== null);
-            if ($stopPriceDefined && $limitPriceDefined) {
-                $request['price'] = $this->price_to_precision($symbol, $stopPrice);
-                $request['price2'] = $this->price_to_precision($symbol, $limitPrice);
-            } elseif (($price === null) || (!($stopPriceDefined || $limitPriceDefined))) {
-                throw new ArgumentsRequired($this->id . $method . ' requires a $price argument and/or price/stopPrice/price2 parameters for a ' . $type . ' order');
+            $request['price2'] = $this->price_to_precision($symbol, $price);
+            $reduceOnly = true;
+        } elseif ($isTrailingStopPriceOrder) {
+            $trailingStopActivationPriceType = $this->safe_string($params, 'trigger', 'last');
+            $trailingStopPriceString = '+' . $trailingStopPrice;
+            $request['trigger'] = $trailingStopActivationPriceType;
+            $reduceOnly = true;
+            if ($type === 'limit') {
+                $trailingStopLimitPriceString = '+' . $this->number_to_string($price);
+                $request['price'] = $trailingStopPriceString;
+                $request['price2'] = $trailingStopLimitPriceString;
+                $request['ordertype'] = 'trailing-stop-limit';
             } else {
-                if ($stopPriceDefined) {
-                    $request['price'] = $this->price_to_precision($symbol, $stopPrice);
-                    $request['price2'] = $this->price_to_precision($symbol, $price);
-                } elseif ($limitPriceDefined) {
-                    $request['price'] = $this->price_to_precision($symbol, $price);
-                    $request['price2'] = $this->price_to_precision($symbol, $limitPrice);
-                }
+                $request['price'] = $trailingStopPriceString;
+                $request['ordertype'] = 'trailing-stop';
             }
+        }
+        if ($reduceOnly) {
+            $request['reduce_only'] = 'true'; // not using property_exists($this, boolean) case, because the urlencodedNested transforms it into 'True' string
         }
         $close = $this->safe_value($params, 'close');
         if ($close !== null) {
@@ -1600,7 +1692,7 @@ class kraken extends Exchange {
             if ($closePrice !== null) {
                 $close['price'] = $this->price_to_precision($symbol, $closePrice);
             }
-            $closePrice2 = $this->safe_value($close, 'price2'); // $stopPrice
+            $closePrice2 = $this->safe_value($close, 'price2'); // stopPrice
             if ($closePrice2 !== null) {
                 $close['price2'] = $this->price_to_precision($symbol, $closePrice2);
             }
@@ -1616,11 +1708,7 @@ class kraken extends Exchange {
         if ($postOnly) {
             $request['oflags'] = 'post';
         }
-        $reduceOnly = $this->safe_value($params, 'reduceOnly');
-        if ($reduceOnly) {
-            $request['reduce_only'] = true;
-        }
-        $params = $this->omit($params, array( 'price', 'stopPrice', 'price2', 'close', 'timeInForce', 'reduceOnly' ));
+        $params = $this->omit($params, array( 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingStopPrice' ));
         return array( $request, $params );
     }
 
@@ -1636,6 +1724,10 @@ class kraken extends Exchange {
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->stopLossPrice] *margin only* the $price that a stop loss order is triggered at
+             * @param {float} [$params->takeProfitPrice] *margin only* the $price that a take profit order is triggered at
+             * @param {string} [$params->trailingStopPrice] *margin only* the quote $price away from the current $market $price
+             * @param {string} [$params->trigger] *margin only* the activation $price $type, 'last' or 'index', default is 'last'
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -2103,6 +2195,11 @@ class kraken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function parse_network($network) {
+        $withdrawMethods = $this->safe_value($this->options, 'withdrawMethods', array());
+        return $this->safe_string($withdrawMethods, $network, $network);
+    }
+
     public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
@@ -2153,6 +2250,8 @@ class kraken extends Exchange {
         //         "fee" => "0.0050000000",
         //         "time" =>  1530481750,
         //         "status" => "Success"
+        //         "key":"Huobi wallet",
+        //         "network":"Tron"
         //         $status-prop => 'on-hold' // this field might not be present in some cases
         //     }
         //
@@ -2189,7 +2288,7 @@ class kraken extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
-            'network' => null,
+            'network' => $this->parse_network($this->safe_string($transaction, 'network')),
             'address' => $address,
             'addressTo' => null,
             'addressFrom' => null,
@@ -2296,19 +2395,28 @@ class kraken extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->end] End timestamp, withdrawals created strictly after will be not be included in the $response
+             * @param {boolean} [$params->paginate]  default false, when true will automatically $paginate by calling this endpoint multiple times
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
-            // https://www.kraken.com/en-us/help/api#withdraw-status
-            if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
-            }
             Async\await($this->load_markets());
-            $currency = $this->currency($code);
-            $request = array(
-                'asset' => $currency['id'],
-            );
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
+            if ($paginate) {
+                $params['cursor'] = true;
+                return Async\await($this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, $limit, $params, 'next_cursor', 'cursor'));
+            }
+            $request = array();
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['asset'] = $currency['id'];
+            }
+            if ($since !== null) {
+                $request['since'] = (string) $since;
+            }
             $response = Async\await($this->privatePostWithdrawStatus (array_merge($request, $params)));
             //
+            // with no pagination
             //     {  error => array(),
             //       "result" => array( { "method" => "Ether",
             //                     "aclass" => "currency",
@@ -2320,9 +2428,52 @@ class kraken extends Exchange {
             //                        "fee" => "0.0050000000",
             //                       "time" =>  1530481750,
             //                     "status" => "Success"                                                             } ) }
+            // with pagination
+            //    {
+            //        "error":array(),
+            //        "result":{
+            //           "withdrawals":array(
+            //              array(
+            //                 "method":"Tether USD (TRC20)",
+            //                 "aclass":"currency",
+            //                 "asset":"USDT",
+            //                 "refid":"BSNFZU2-MEFN4G-J3NEZV",
+            //                 "txid":"1c7a642fb7387bbc2c6a2c509fd1ae146937f4cf793b4079a4f0715e3a02615a",
+            //                 "info":"TQmdxSuC16EhFg8FZWtYgrfFRosoRF7bCp",
+            //                 "amount":"1996.50000000",
+            //                 "fee":"2.50000000",
+            //                 "time":1669126657,
+            //                 "status":"Success",
+            //                 "key":"poloniex",
+            //                 "network":"Tron"
+            //              ),
+            //             ...
+            //           ),
+            //           "next_cursor":"HgAAAAAAAABGVFRSd3k1LVF4Y0JQY05Gd0xRY0NxenFndHpybkwBAQH2AwEBAAAAAQAAAAAAAAABAAAAAAAZAAAAAAAAAA=="
+            //        }
+            //     }
             //
-            return $this->parse_transactions_by_type('withdrawal', $response['result'], $code, $since, $limit);
+            $rawWithdrawals = null;
+            $result = $this->safe_value($response, 'result');
+            if (gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result))) {
+                $rawWithdrawals = $this->add_pagination_cursor_to_result($result);
+            } else {
+                $rawWithdrawals = $result;
+            }
+            return $this->parse_transactions_by_type('withdrawal', $rawWithdrawals, $code, $since, $limit);
         }) ();
+    }
+
+    public function add_pagination_cursor_to_result($result) {
+        $cursor = $this->safe_string($result, 'next_cursor');
+        $data = $this->safe_value($result, 'withdrawals');
+        $dataLength = count($data);
+        if ($cursor !== null && $dataLength > 0) {
+            $last = $data[$dataLength - 1];
+            $last['next_cursor'] = $cursor;
+            $data[$dataLength - 1] = $last;
+        }
+        return $data;
     }
 
     public function create_deposit_address(string $code, $params = array ()) {

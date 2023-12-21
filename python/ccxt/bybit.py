@@ -50,6 +50,10 @@ class bybit(Exchange, ImplicitAPI):
                 'borrowCrossMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,
                 'createPostOnlyOrder': True,
@@ -307,6 +311,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
                         'v5/account/info': 5,
                         'v5/account/transaction-log': 1,
+                        'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
                         # asset
                         'v5/asset/exchange/order-record': 5,  # 10/s => cost = 50 / 10 = 5
@@ -355,6 +360,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/lending/account': 5,
                         # broker
                         'v5/broker/earning-record': 5,
+                        'v5/broker/earnings-info': 5,
+                        'v5/broker/account-info': 5,
                     },
                     'post': {
                         # Legacy option USDC
@@ -455,6 +462,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/position/confirm-pending-mmr': 5,
                         # account
                         'v5/account/upgrade-to-uta': 5,
+                        'v5/account/quick-repayment': 5,
                         'v5/account/set-margin-mode': 5,
                         'v5/account/set-hedging-mode': 5,
                         'v5/account/mmp-modify': 5,
@@ -952,6 +960,7 @@ class bybit(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
                 'createMarketBuyOrderRequiresPrice': True,
@@ -1418,21 +1427,29 @@ class bybit(Exchange, ImplicitAPI):
         """
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
-        promisesUnresolved = [
-            self.fetch_spot_markets(params),
-            self.fetch_future_markets({'category': 'linear'}),
-            self.fetch_future_markets({'category': 'inverse'}),
-            self.fetch_option_markets({'baseCoin': 'BTC'}),
-            self.fetch_option_markets({'baseCoin': 'ETH'}),
-            self.fetch_option_markets({'baseCoin': 'SOL'}),
-        ]
+        promisesUnresolved = []
+        fetchMarkets = self.safe_value(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
+        for i in range(0, len(fetchMarkets)):
+            marketType = fetchMarkets[i]
+            if marketType == 'spot':
+                promisesUnresolved.append(self.fetch_spot_markets(params))
+            elif marketType == 'linear':
+                promisesUnresolved.append(self.fetch_future_markets({'category': 'linear'}))
+            elif marketType == 'inverse':
+                promisesUnresolved.append(self.fetch_future_markets({'category': 'inverse'}))
+            elif marketType == 'option':
+                promisesUnresolved.append(self.fetch_option_markets({'baseCoin': 'BTC'}))
+                promisesUnresolved.append(self.fetch_option_markets({'baseCoin': 'ETH'}))
+                promisesUnresolved.append(self.fetch_option_markets({'baseCoin': 'SOL'}))
+            else:
+                raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         promises = promisesUnresolved
-        spotMarkets = promises[0]
-        linearMarkets = promises[1]
-        inverseMarkets = promises[2]
-        btcOptionMarkets = promises[3]
-        ethOptionMarkets = promises[4]
-        solOptionMarkets = promises[5]
+        spotMarkets = self.safe_value(promises, 0, [])
+        linearMarkets = self.safe_value(promises, 1, [])
+        inverseMarkets = self.safe_value(promises, 2, [])
+        btcOptionMarkets = self.safe_value(promises, 3, [])
+        ethOptionMarkets = self.safe_value(promises, 4, [])
+        solOptionMarkets = self.safe_value(promises, 5, [])
         futureMarkets = self.array_concat(linearMarkets, inverseMarkets)
         optionMarkets = self.array_concat(btcOptionMarkets, ethOptionMarkets)
         optionMarkets = self.array_concat(optionMarkets, solOptionMarkets)
@@ -2034,8 +2051,9 @@ class bybit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        parsedSymbols = []
+        parsedSymbols = None
         if symbols is not None:
+            parsedSymbols = []
             marketTypeInfo = self.handle_market_type_and_params('fetchTickers', None, params)
             defaultType = marketTypeInfo[0]  # don't omit here
             # we can't use marketSymbols here due to the conflicing ids between markets
@@ -2888,7 +2906,7 @@ class bybit(Exchange, ImplicitAPI):
         :see: https://bybit-exchange.github.io/docs/v5/account/wallet-balance
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: wallet type, ['spot', 'swap', 'fund']
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
         request = {}
@@ -3281,6 +3299,22 @@ class bybit(Exchange, ImplicitAPI):
             raise InvalidOrder(self.id + ' returned more than one order')
         return self.safe_value(result, 0)
 
+    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        :see: https://bybit-exchange.github.io/docs/v5/order/create-order
+        create a market buy order by providing the symbol and cost
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        return self.create_order(symbol, 'market', 'buy', cost, None, params)
+
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
@@ -3373,17 +3407,19 @@ class bybit(Exchange, ImplicitAPI):
             request['category'] = 'option'
         if market['spot'] and (type == 'market') and (side == 'buy'):
             # for market buy it requires the amount of quote currency to spend
-            if self.options['createMarketBuyOrderRequiresPrice']:
-                cost = self.safe_number(params, 'cost')
-                params = self.omit(params, 'cost')
-                if price is None and cost is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False to supply the cost in the amount argument(the exchange-specific behaviour)')
+            createMarketBuyOrderRequiresPrice = True
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            cost = self.safe_number(params, 'cost')
+            params = self.omit(params, 'cost')
+            if createMarketBuyOrderRequiresPrice:
+                if (price is None) and (cost is None):
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                 else:
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
                     quoteAmount = Precise.string_mul(amountString, priceString)
-                    amount = cost if (cost is not None) else self.parse_number(quoteAmount)
-                    request['qty'] = self.cost_to_precision(symbol, amount)
+                    costRequest = cost if (cost is not None) else quoteAmount
+                    request['qty'] = self.cost_to_precision(symbol, costRequest)
             else:
                 request['qty'] = self.cost_to_precision(symbol, amount)
         else:
@@ -3459,7 +3495,7 @@ class bybit(Exchange, ImplicitAPI):
         """
         create a list of trade orders
         :see: https://bybit-exchange.github.io/docs/v5/order/batch-place
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -4389,7 +4425,6 @@ class bybit(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
-         *
         """
         request = {}
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
@@ -4653,12 +4688,11 @@ class bybit(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of deposits structures to retrieve, default = 50, max = 50
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch deposits for, default = 30 days after since
-         *
          * EXCHANGE SPECIFIC PARAMETERS
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.cursor]: used for pagination
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
-       """
+        """
         self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
@@ -5340,8 +5374,10 @@ class bybit(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
             elif symbolsLength == 1:
                 symbol = symbols[0]
+            symbols = self.market_symbols(symbols)
         elif symbols is not None:
             symbol = symbols
+            symbols = [self.symbol(symbol)]
         self.load_markets()
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
@@ -5350,12 +5386,11 @@ class bybit(Exchange, ImplicitAPI):
         isUsdcSettled = False
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['symbol'] = market['id']
             isUsdcSettled = market['settle'] == 'USDC'
         type = None
         type, params = self.get_bybit_type('fetchPositions', market, params)
-        if type == 'spot':
-            raise NotSupported(self.id + ' fetchPositions() not support spot market')
         if type == 'linear' or type == 'inverse':
             baseCoin = self.safe_string(params, 'baseCoin')
             if type == 'linear':

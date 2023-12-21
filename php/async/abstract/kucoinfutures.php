@@ -505,6 +505,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     public function futuresprivate_get_sub_api_key($params = array()) {
         return $this->request('sub/api-key', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function futuresprivate_get_trade_statistics($params = array()) {
+        return $this->request('trade-statistics', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function futuresprivate_post_transfer_out($params = array()) {
         return $this->request('transfer-out', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -555,6 +558,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     }
     public function futuresprivate_delete_sub_api_key($params = array()) {
         return $this->request('sub/api-key', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function futuresprivate_delete_orders_client_order_clientoid($params = array()) {
+        return $this->request('orders/client-order/{clientOid}', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function webexchange_get_currency_currency_chain_info($params = array()) {
         return $this->request('currency/currency/chain-info', 'webExchange', 'GET', $params, null, null, array("cost" => 1));
@@ -1060,6 +1066,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     public function futuresPrivateGetSubApiKey($params = array()) {
         return $this->request('sub/api-key', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function futuresPrivateGetTradeStatistics($params = array()) {
+        return $this->request('trade-statistics', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function futuresPrivatePostTransferOut($params = array()) {
         return $this->request('transfer-out', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1110,6 +1119,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     }
     public function futuresPrivateDeleteSubApiKey($params = array()) {
         return $this->request('sub/api-key', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function futuresPrivateDeleteOrdersClientOrderClientOid($params = array()) {
+        return $this->request('orders/client-order/{clientOid}', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function webExchangeGetCurrencyCurrencyChainInfo($params = array()) {
         return $this->request('currency/currency/chain-info', 'webExchange', 'GET', $params, null, null, array("cost" => 1));

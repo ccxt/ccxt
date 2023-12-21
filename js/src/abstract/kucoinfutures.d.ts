@@ -167,6 +167,7 @@ interface kucoin {
     futuresPrivateGetWithdrawalsQuotas(params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetWithdrawalList(params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetSubApiKey(params?: {}): Promise<implicitReturnType>;
+    futuresPrivateGetTradeStatistics(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferOut(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferIn(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostOrders(params?: {}): Promise<implicitReturnType>;
@@ -184,6 +185,7 @@ interface kucoin {
     futuresPrivateDeleteWithdrawalsWithdrawalId(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteCancelTransferOut(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteSubApiKey(params?: {}): Promise<implicitReturnType>;
+    futuresPrivateDeleteOrdersClientOrderClientOid(params?: {}): Promise<implicitReturnType>;
     webExchangeGetCurrencyCurrencyChainInfo(params?: {}): Promise<implicitReturnType>;
     webExchangeGetContractSymbolFundingRates(params?: {}): Promise<implicitReturnType>;
 }

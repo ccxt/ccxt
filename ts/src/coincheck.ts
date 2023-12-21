@@ -5,13 +5,13 @@ import Exchange from './abstract/coincheck.js';
 import { BadSymbol, ExchangeError, AuthenticationError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class coincheck
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coincheck extends Exchange {
     describe () {
@@ -29,6 +29,8 @@ export default class coincheck extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,

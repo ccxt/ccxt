@@ -31,6 +31,9 @@ class huobijp extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
@@ -1350,6 +1353,23 @@ class huobijp extends Exchange {
         ), $market);
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * create a $market buy order by providing the $symbol and $cost
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        $params['createMarketBuyOrderRequiresPrice'] = false;
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
@@ -1379,24 +1399,31 @@ class huobijp extends Exchange {
         }
         $params = $this->omit($params, array( 'clientOrderId', 'client-order-id' ));
         if (($type === 'market') && ($side === 'buy')) {
-            if ($this->options['createMarketBuyOrderRequiresPrice']) {
+            $quoteAmount = null;
+            $createMarketBuyOrderRequiresPrice = true;
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            $cost = $this->safe_number($params, 'cost');
+            $params = $this->omit($params, 'cost');
+            if ($cost !== null) {
+                $quoteAmount = $this->amount_to_precision($symbol, $cost);
+            } elseif ($createMarketBuyOrderRequiresPrice) {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . " $market buy order requires $price argument to calculate cost (total $amount of quote currency to spend for buying, $amount * $price). To switch off this warning exception and specify cost in the $amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
                 } else {
-                    // despite that cost = $amount * $price is in quote currency and should have quote precision
-                    // the exchange API requires the cost supplied in 'amount' to be of base precision
+                    // despite that $cost = $amount * $price is in quote currency and should have quote precision
+                    // the exchange API requires the $cost supplied in 'amount' to be of base precision
                     // more about it here:
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
-                    // we use amountToPrecision here because the exchange requires cost in base precision
+                    // we use amountToPrecision here because the exchange requires $cost in base precision
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
-                    $baseAmount = Precise::string_mul($amountString, $priceString);
-                    $request['amount'] = $this->cost_to_precision($symbol, $baseAmount);
+                    $quoteAmount = $this->amount_to_precision($symbol, Precise::string_mul($amountString, $priceString));
                 }
             } else {
-                $request['amount'] = $this->cost_to_precision($symbol, $amount);
+                $quoteAmount = $this->amount_to_precision($symbol, $amount);
             }
+            $request['amount'] = $quoteAmount;
         } else {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
         }

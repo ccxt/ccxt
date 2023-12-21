@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.1.72'
+__version__ = '4.1.95'
 
 # ----------------------------------------------------------------------------
 
@@ -105,7 +105,6 @@ from ccxt.bitpanda import bitpanda                                    # noqa: F4
 from ccxt.bitrue import bitrue                                        # noqa: F401
 from ccxt.bitso import bitso                                          # noqa: F401
 from ccxt.bitstamp import bitstamp                                    # noqa: F401
-from ccxt.bittrex import bittrex                                      # noqa: F401
 from ccxt.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.bl3p import bl3p                                            # noqa: F401
 from ccxt.blockchaincom import blockchaincom                          # noqa: F401
@@ -116,7 +115,6 @@ from ccxt.btcturk import btcturk                                      # noqa: F4
 from ccxt.bybit import bybit                                          # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
 from ccxt.coinbase import coinbase                                    # noqa: F401
-from ccxt.coinbaseprime import coinbaseprime                          # noqa: F401
 from ccxt.coinbasepro import coinbasepro                              # noqa: F401
 from ccxt.coincheck import coincheck                                  # noqa: F401
 from ccxt.coinex import coinex                                        # noqa: F401
@@ -166,7 +164,6 @@ from ccxt.phemex import phemex                                        # noqa: F4
 from ccxt.poloniex import poloniex                                    # noqa: F401
 from ccxt.poloniexfutures import poloniexfutures                      # noqa: F401
 from ccxt.probit import probit                                        # noqa: F401
-from ccxt.tidex import tidex                                          # noqa: F401
 from ccxt.timex import timex                                          # noqa: F401
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
 from ccxt.upbit import upbit                                          # noqa: F401
@@ -207,7 +204,6 @@ exchanges = [
     'bitrue',
     'bitso',
     'bitstamp',
-    'bittrex',
     'bitvavo',
     'bl3p',
     'blockchaincom',
@@ -218,7 +214,6 @@ exchanges = [
     'bybit',
     'cex',
     'coinbase',
-    'coinbaseprime',
     'coinbasepro',
     'coincheck',
     'coinex',
@@ -268,7 +263,6 @@ exchanges = [
     'poloniex',
     'poloniexfutures',
     'probit',
-    'tidex',
     'timex',
     'tokocrypto',
     'upbit',

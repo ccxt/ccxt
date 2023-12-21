@@ -11,7 +11,7 @@ var rsa = require('./base/functions/rsa.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bybit
- * @extends Exchange
+ * @augments Exchange
  */
 class bybit extends bybit$1 {
     describe() {
@@ -35,6 +35,10 @@ class bybit extends bybit$1 {
                 'borrowCrossMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': true,
@@ -292,6 +296,7 @@ class bybit extends bybit$1 {
                         'v5/account/fee-rate': 10,
                         'v5/account/info': 5,
                         'v5/account/transaction-log': 1,
+                        'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
                         // asset
                         'v5/asset/exchange/order-record': 5,
@@ -340,6 +345,8 @@ class bybit extends bybit$1 {
                         'v5/lending/account': 5,
                         // broker
                         'v5/broker/earning-record': 5,
+                        'v5/broker/earnings-info': 5,
+                        'v5/broker/account-info': 5,
                     },
                     'post': {
                         // Legacy option USDC
@@ -440,6 +447,7 @@ class bybit extends bybit$1 {
                         'v5/position/confirm-pending-mmr': 5,
                         // account
                         'v5/account/upgrade-to-uta': 5,
+                        'v5/account/quick-repayment': 5,
                         'v5/account/set-margin-mode': 5,
                         'v5/account/set-hedging-mode': 5,
                         'v5/account/mmp-modify': 5,
@@ -937,6 +945,7 @@ class bybit extends bybit$1 {
             },
             'precisionMode': number.TICK_SIZE,
             'options': {
+                'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
                 'createMarketBuyOrderRequiresPrice': true,
@@ -1442,21 +1451,35 @@ class bybit extends bybit$1 {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference();
         }
-        const promisesUnresolved = [
-            this.fetchSpotMarkets(params),
-            this.fetchFutureMarkets({ 'category': 'linear' }),
-            this.fetchFutureMarkets({ 'category': 'inverse' }),
-            this.fetchOptionMarkets({ 'baseCoin': 'BTC' }),
-            this.fetchOptionMarkets({ 'baseCoin': 'ETH' }),
-            this.fetchOptionMarkets({ 'baseCoin': 'SOL' }),
-        ];
+        const promisesUnresolved = [];
+        const fetchMarkets = this.safeValue(this.options, 'fetchMarkets', ['spot', 'linear', 'inverse']);
+        for (let i = 0; i < fetchMarkets.length; i++) {
+            const marketType = fetchMarkets[i];
+            if (marketType === 'spot') {
+                promisesUnresolved.push(this.fetchSpotMarkets(params));
+            }
+            else if (marketType === 'linear') {
+                promisesUnresolved.push(this.fetchFutureMarkets({ 'category': 'linear' }));
+            }
+            else if (marketType === 'inverse') {
+                promisesUnresolved.push(this.fetchFutureMarkets({ 'category': 'inverse' }));
+            }
+            else if (marketType === 'option') {
+                promisesUnresolved.push(this.fetchOptionMarkets({ 'baseCoin': 'BTC' }));
+                promisesUnresolved.push(this.fetchOptionMarkets({ 'baseCoin': 'ETH' }));
+                promisesUnresolved.push(this.fetchOptionMarkets({ 'baseCoin': 'SOL' }));
+            }
+            else {
+                throw new errors.ExchangeError(this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
+            }
+        }
         const promises = await Promise.all(promisesUnresolved);
-        const spotMarkets = promises[0];
-        const linearMarkets = promises[1];
-        const inverseMarkets = promises[2];
-        const btcOptionMarkets = promises[3];
-        const ethOptionMarkets = promises[4];
-        const solOptionMarkets = promises[5];
+        const spotMarkets = this.safeValue(promises, 0, []);
+        const linearMarkets = this.safeValue(promises, 1, []);
+        const inverseMarkets = this.safeValue(promises, 2, []);
+        const btcOptionMarkets = this.safeValue(promises, 3, []);
+        const ethOptionMarkets = this.safeValue(promises, 4, []);
+        const solOptionMarkets = this.safeValue(promises, 5, []);
         const futureMarkets = this.arrayConcat(linearMarkets, inverseMarkets);
         let optionMarkets = this.arrayConcat(btcOptionMarkets, ethOptionMarkets);
         optionMarkets = this.arrayConcat(optionMarkets, solOptionMarkets);
@@ -2087,8 +2110,9 @@ class bybit extends bybit$1 {
          */
         await this.loadMarkets();
         let market = undefined;
-        const parsedSymbols = [];
+        let parsedSymbols = undefined;
         if (symbols !== undefined) {
+            parsedSymbols = [];
             const marketTypeInfo = this.handleMarketTypeAndParams('fetchTickers', undefined, params);
             const defaultType = marketTypeInfo[0]; // don't omit here
             // we can't use marketSymbols here due to the conflicing ids between markets
@@ -3027,7 +3051,7 @@ class bybit extends bybit$1 {
          * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] wallet type, ['spot', 'swap', 'fund']
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -3446,6 +3470,25 @@ class bybit extends bybit$1 {
         }
         return this.safeValue(result, 0);
     }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name bybit#createMarketBuyOrderWithCost
+         * @see https://bybit-exchange.github.io/docs/v5/order/create-order
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -3546,18 +3589,20 @@ class bybit extends bybit$1 {
         }
         if (market['spot'] && (type === 'market') && (side === 'buy')) {
             // for market buy it requires the amount of quote currency to spend
-            if (this.options['createMarketBuyOrderRequiresPrice']) {
-                const cost = this.safeNumber(params, 'cost');
-                params = this.omit(params, 'cost');
-                if (price === undefined && cost === undefined) {
-                    throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
+            let createMarketBuyOrderRequiresPrice = true;
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber(params, 'cost');
+            params = this.omit(params, 'cost');
+            if (createMarketBuyOrderRequiresPrice) {
+                if ((price === undefined) && (cost === undefined)) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 }
                 else {
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
                     const quoteAmount = Precise["default"].stringMul(amountString, priceString);
-                    amount = (cost !== undefined) ? cost : this.parseNumber(quoteAmount);
-                    request['qty'] = this.costToPrecision(symbol, amount);
+                    const costRequest = (cost !== undefined) ? cost : quoteAmount;
+                    request['qty'] = this.costToPrecision(symbol, costRequest);
                 }
             }
             else {
@@ -3661,7 +3706,7 @@ class bybit extends bybit$1 {
          * @name bybit#createOrders
          * @description create a list of trade orders
          * @see https://bybit-exchange.github.io/docs/v5/order/batch-place
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -4699,7 +4744,6 @@ class bybit extends bybit$1 {
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         *
          */
         const request = {};
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'orderLinkId');
@@ -4985,12 +5029,11 @@ class bybit extends bybit$1 {
          * @param {int} [limit] the maximum number of deposits structures to retrieve, default = 50, max = 50
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch deposits for, default = 30 days after since
-         *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {string} [params.cursor] used for pagination
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
+         */
         await this.loadMarkets();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
@@ -5713,9 +5756,11 @@ class bybit extends bybit$1 {
             else if (symbolsLength === 1) {
                 symbol = symbols[0];
             }
+            symbols = this.marketSymbols(symbols);
         }
         else if (symbols !== undefined) {
             symbol = symbols;
+            symbols = [this.symbol(symbol)];
         }
         await this.loadMarkets();
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
@@ -5725,14 +5770,12 @@ class bybit extends bybit$1 {
         let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market(symbol);
+            symbol = market['symbol'];
             request['symbol'] = market['id'];
             isUsdcSettled = market['settle'] === 'USDC';
         }
         let type = undefined;
         [type, params] = this.getBybitType('fetchPositions', market, params);
-        if (type === 'spot') {
-            throw new errors.NotSupported(this.id + ' fetchPositions() not support spot market');
-        }
         if (type === 'linear' || type === 'inverse') {
             const baseCoin = this.safeString(params, 'baseCoin');
             if (type === 'linear') {

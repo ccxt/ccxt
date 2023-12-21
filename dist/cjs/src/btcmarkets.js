@@ -10,7 +10,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class btcmarkets
- * @extends Exchange
+ * @augments Exchange
  */
 class btcmarkets extends btcmarkets$1 {
     describe() {
@@ -30,6 +30,8 @@ class btcmarkets extends btcmarkets$1 {
                 'addMargin': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,

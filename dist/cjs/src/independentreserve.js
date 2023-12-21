@@ -9,7 +9,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class independentreserve
- * @extends Exchange
+ * @augments Exchange
  */
 class independentreserve extends independentreserve$1 {
     describe() {
@@ -28,6 +28,8 @@ class independentreserve extends independentreserve$1 {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,

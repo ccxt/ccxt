@@ -11,7 +11,7 @@ var totp = require('./base/functions/totp.js');
 // ---------------------------------------------------------------------------
 /**
  * @class ndax
- * @extends Exchange
+ * @augments Exchange
  */
 class ndax extends ndax$1 {
     describe() {
@@ -31,6 +31,8 @@ class ndax extends ndax$1 {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,

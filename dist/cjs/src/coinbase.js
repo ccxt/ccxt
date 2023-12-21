@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 // ----------------------------------------------------------------------------
 /**
  * @class coinbase
- * @extends Exchange
+ * @augments Exchange
  */
 class coinbase extends coinbase$1 {
     describe() {
@@ -35,11 +35,16 @@ class coinbase extends coinbase$1 {
                 'addMargin': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': true,
                 'createLimitBuyOrder': true,
                 'createLimitSellOrder': true,
                 'createMarketBuyOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
                 'createMarketSellOrder': true,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
@@ -192,18 +197,29 @@ class coinbase extends coinbase$1 {
                             'brokerage/products/{product_id}',
                             'brokerage/products/{product_id}/candles',
                             'brokerage/products/{product_id}/ticker',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/{portfolio_uuid}',
                             'brokerage/transaction_summary',
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
                             'brokerage/convert/trade/{trade_id}',
+                            'brokerage/time',
                         ],
                         'post': [
                             'brokerage/orders',
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                        ],
+                        'put': [
+                            'brokerage/portfolios/{portfolio_uuid}',
+                        ],
+                        'delete': [
+                            'brokerage/portfolios/{portfolio_uuid}',
                         ],
                     },
                 },
@@ -260,7 +276,9 @@ class coinbase extends coinbase$1 {
                     'invalid_scope': errors.AuthenticationError,
                     'not_found': errors.ExchangeError,
                     'rate_limit_exceeded': errors.RateLimitExceeded,
-                    'internal_server_error': errors.ExchangeError, // 500 Internal server error
+                    'internal_server_error': errors.ExchangeError,
+                    'UNSUPPORTED_ORDER_CONFIGURATION': errors.BadRequest,
+                    'INSUFFICIENT_FUND': errors.BadRequest,
                 },
                 'broad': {
                     'request timestamp expired': errors.InvalidNonce,
@@ -610,6 +628,7 @@ class coinbase extends coinbase$1 {
         /**
          * @method
          * @name coinbase#fetchMySells
+         * @ignore
          * @description fetch sells
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-sells#list-sells
          * @param {string} symbol not used by coinbase fetchMySells ()
@@ -629,6 +648,7 @@ class coinbase extends coinbase$1 {
         /**
          * @method
          * @name coinbase#fetchMyBuys
+         * @ignore
          * @description fetch buys
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-buys#list-buys
          * @param {string} symbol not used by coinbase fetchMyBuys ()
@@ -902,7 +922,11 @@ class coinbase extends coinbase$1 {
         else {
             cost = costString;
         }
-        const feeCurrencyId = this.safeString(feeObject, 'currency');
+        let feeCurrencyId = this.safeString(feeObject, 'currency');
+        const feeCost = this.safeNumber(feeObject, 'amount', this.parseNumber(v3FeeCost));
+        if ((feeCurrencyId === undefined) && (market !== undefined) && (feeCost !== undefined)) {
+            feeCurrencyId = market['quote'];
+        }
         const datetime = this.safeStringN(trade, ['created_at', 'trade_time', 'time']);
         const side = this.safeStringLower2(trade, 'resource', 'side');
         const takerOrMaker = this.safeStringLower(trade, 'liquidity_indicator');
@@ -920,7 +944,7 @@ class coinbase extends coinbase$1 {
             'amount': amountString,
             'cost': cost,
             'fee': {
-                'cost': this.safeNumber(feeObject, 'amount', this.parseNumber(v3FeeCost)),
+                'cost': feeCost,
                 'currency': this.safeCurrencyCode(feeCurrencyId),
             },
         });
@@ -2078,6 +2102,25 @@ class coinbase extends coinbase$1 {
         }
         return request;
     }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name coinbase#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -2098,6 +2141,7 @@ class coinbase extends coinbase$1 {
          * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
          * @param {string} [params.stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
          * @param {string} [params.end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2200,21 +2244,27 @@ class coinbase extends coinbase$1 {
                 throw new errors.NotSupported(this.id + ' createOrder() only stop limit orders are supported');
             }
             if (side === 'buy') {
-                const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
                 let total = undefined;
-                if (createMarketBuyOrderRequiresPrice) {
+                let createMarketBuyOrderRequiresPrice = true;
+                [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber(params, 'cost');
+                params = this.omit(params, 'cost');
+                if (cost !== undefined) {
+                    total = this.costToPrecision(symbol, cost);
+                }
+                else if (createMarketBuyOrderRequiresPrice) {
                     if (price === undefined) {
-                        throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                        throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     }
                     else {
                         const amountString = this.numberToString(amount);
                         const priceString = this.numberToString(price);
-                        const cost = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
-                        total = this.priceToPrecision(symbol, cost);
+                        const costRequest = Precise["default"].stringMul(amountString, priceString);
+                        total = this.costToPrecision(symbol, costRequest);
                     }
                 }
                 else {
-                    total = this.priceToPrecision(symbol, amount);
+                    total = this.costToPrecision(symbol, amount);
                 }
                 request['order_configuration'] = {
                     'market_market_ioc': {
@@ -2233,6 +2283,8 @@ class coinbase extends coinbase$1 {
         params = this.omit(params, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time']);
         const response = await this.v3PrivatePostBrokerageOrders(this.extend(request, params));
         //
+        // successful order
+        //
         //     {
         //         "success": true,
         //         "failure_reason": "UNKNOWN_FAILURE_REASON",
@@ -2246,9 +2298,37 @@ class coinbase extends coinbase$1 {
         //         "order_configuration": null
         //     }
         //
+        // failed order
+        //
+        //     {
+        //         "success": false,
+        //         "failure_reason": "UNKNOWN_FAILURE_REASON",
+        //         "order_id": "",
+        //         "error_response": {
+        //             "error": "UNSUPPORTED_ORDER_CONFIGURATION",
+        //             "message": "source is not enabled for trading",
+        //             "error_details": "",
+        //             "new_order_failure_reason": "UNSUPPORTED_ORDER_CONFIGURATION"
+        //         },
+        //         "order_configuration": {
+        //             "limit_limit_gtc": {
+        //                 "base_size": "100",
+        //                 "limit_price": "40000",
+        //                 "post_only": false
+        //             }
+        //         }
+        //     }
+        //
         const success = this.safeValue(response, 'success');
         if (success !== true) {
-            throw new errors.BadRequest(this.id + ' createOrder() has failed, check your arguments and parameters');
+            const errorResponse = this.safeValue(response, 'error_response');
+            const errorTitle = this.safeString(errorResponse, 'error');
+            const errorMessage = this.safeString(errorResponse, 'message');
+            if (errorResponse !== undefined) {
+                this.throwExactlyMatchedException(this.exceptions['exact'], errorTitle, errorMessage);
+                this.throwBroadlyMatchedException(this.exceptions['broad'], errorTitle, errorMessage);
+                throw new errors.ExchangeError(errorMessage);
+            }
         }
         const data = this.safeValue(response, 'success_response', {});
         return this.parseOrder(data, market);
@@ -2344,6 +2424,11 @@ class coinbase extends coinbase$1 {
             amount = this.safeString(marketIOC, 'base_size');
         }
         const datetime = this.safeString(order, 'created_time');
+        const totalFees = this.safeString(order, 'total_fees');
+        let currencyFee = undefined;
+        if ((totalFees !== undefined) && (market !== undefined)) {
+            currencyFee = market['quote'];
+        }
         return this.safeOrder({
             'info': order,
             'id': this.safeString(order, 'order_id'),
@@ -2367,7 +2452,7 @@ class coinbase extends coinbase$1 {
             'status': this.parseOrderStatus(this.safeString(order, 'status')),
             'fee': {
                 'cost': this.safeString(order, 'total_fees'),
-                'currency': undefined,
+                'currency': currencyFee,
             },
             'trades': undefined,
         }, market);

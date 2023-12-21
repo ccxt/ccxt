@@ -48,6 +48,8 @@ class idex(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
@@ -1492,7 +1494,13 @@ class idex(Exchange, ImplicitAPI):
         # ]
         method = params['method']
         params = self.omit(params, 'method')
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetDeposits':
+            response = await self.privateGetDeposits(self.extend(request, params))
+        elif method == 'privateGetWithdrawals':
+            response = await self.privateGetWithdrawals(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchTransactionsHelper() not support self method')
         return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction_status(self, status):

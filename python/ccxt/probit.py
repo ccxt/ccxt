@@ -43,7 +43,10 @@ class probit(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
+                'createMarketBuyOrderWithCost': True,
                 'createMarketOrder': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
@@ -328,6 +331,7 @@ class probit(Exchange, ImplicitAPI):
             'precision': {
                 'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_precision'))),
                 'price': self.safe_number(market, 'price_increment'),
+                'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'cost_precision'))),
             },
             'limits': {
                 'leverage': {
@@ -440,14 +444,20 @@ class probit(Exchange, ImplicitAPI):
                     platform = network
                 precision = self.parse_precision(self.safe_string(network, 'precision'))
                 withdrawFee = self.safe_value(network, 'withdrawal_fee', [])
-                networkfee = self.safe_value(withdrawFee, 0, {})
+                networkFee = self.safe_value(withdrawFee, 0, {})
+                for k in range(0, len(withdrawFee)):
+                    withdrawPlatform = withdrawFee[k]
+                    feeCurrencyId = self.safe_string(withdrawPlatform, 'currency_id')
+                    if feeCurrencyId == id:
+                        networkFee = withdrawPlatform
+                        break
                 networkList[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
                     'active': currentActive,
                     'deposit': currentDeposit,
                     'withdraw': currentWithdraw,
-                    'fee': self.safe_number(networkfee, 'amount'),
+                    'fee': self.safe_number(networkFee, 'amount'),
                     'precision': self.parse_number(precision),
                     'limits': {
                         'withdraw': {
@@ -1129,14 +1139,15 @@ class probit(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        :see: https://docs-en.probit.com/reference/order-1
         create a trade order
+        :see: https://docs-en.probit.com/reference/order-1
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
+        :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1153,27 +1164,30 @@ class probit(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-        costToPrecision = None
+        quoteAmount = None
         if type == 'limit':
             request['limit_price'] = self.price_to_precision(symbol, price)
             request['quantity'] = self.amount_to_precision(symbol, amount)
         elif type == 'market':
             # for market buy it requires the amount of quote currency to spend
             if side == 'buy':
-                cost = self.safe_number(params, 'cost')
-                createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
-                if createMarketBuyOrderRequiresPrice:
-                    if price is not None:
-                        if cost is None:
-                            amountString = self.number_to_string(amount)
-                            priceString = self.number_to_string(price)
-                            cost = self.parse_number(Precise.string_mul(amountString, priceString))
-                    elif cost is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False and supply the total cost value in the "amount" argument or in the "cost" extra parameter(the exchange-specific behaviour)')
+                createMarketBuyOrderRequiresPrice = True
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                cost = self.safe_string(params, 'cost')
+                params = self.omit(params, 'cost')
+                if cost is not None:
+                    quoteAmount = self.cost_to_precision(symbol, cost)
+                elif createMarketBuyOrderRequiresPrice:
+                    if price is None:
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                    else:
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        costRequest = Precise.string_mul(amountString, priceString)
+                        quoteAmount = self.cost_to_precision(symbol, costRequest)
                 else:
-                    cost = amount if (cost is None) else cost
-                costToPrecision = self.cost_to_precision(symbol, cost)
-                request['cost'] = costToPrecision
+                    quoteAmount = self.cost_to_precision(symbol, amount)
+                request['cost'] = quoteAmount
             else:
                 request['quantity'] = self.amount_to_precision(symbol, amount)
         query = self.omit(params, ['timeInForce', 'time_in_force', 'clientOrderId', 'client_order_id'])
@@ -1205,7 +1219,7 @@ class probit(Exchange, ImplicitAPI):
         # returned by the exchange on market buys
         if (type == 'market') and (side == 'buy'):
             order['amount'] = None
-            order['cost'] = self.parse_number(costToPrecision)
+            order['cost'] = self.parse_number(quoteAmount)
             order['remaining'] = None
         return order
 

@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 // ----------------------------------------------------------------------------
 /**
  * @class bitvavo
- * @extends Exchange
+ * @augments Exchange
  */
 class bitvavo extends bitvavo$1 {
     describe() {
@@ -32,6 +32,8 @@ class bitvavo extends bitvavo$1 {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,

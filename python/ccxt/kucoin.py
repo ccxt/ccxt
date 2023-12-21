@@ -53,6 +53,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createOrders': True,
@@ -505,9 +507,6 @@ class kucoin(Exchange, ImplicitAPI):
             },
             'commonCurrencies': {
                 'BIFI': 'BIFIF',
-                'EDGE': 'DADI',  # https://github.com/ccxt/ccxt/issues/5756
-                'HOT': 'HOTNOW',
-                'TRY': 'Trias',
                 'VAI': 'VAIOT',
                 'WAX': 'WAXP',
             },
@@ -1879,7 +1878,7 @@ class kucoin(Exchange, ImplicitAPI):
         create a list of trade orders
         :see: https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders
         :see: https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]:  extra parameters specific to the exchange API endpoint
         :param bool [params.hf]: False,  # True for hf orders
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2347,7 +2346,7 @@ class kucoin(Exchange, ImplicitAPI):
                 response = self.privateGetHfOrdersOrderId(self.extend(request, params))
             else:
                 response = self.privateGetOrdersOrderId(self.extend(request, params))
-        responseData = self.safe_value(response, 'data')
+        responseData = self.safe_value(response, 'data', {})
         if isinstance(responseData, list):
             responseData = self.safe_value(responseData, 0)
         return self.parse_order(responseData, market)

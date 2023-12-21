@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class upbit extends \ccxt\async\upbit {
 
@@ -56,7 +57,7 @@ class upbit extends \ccxt\async\upbit {
         }) ();
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -68,7 +69,7 @@ class upbit extends \ccxt\async\upbit {
         }) ();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -88,7 +89,7 @@ class upbit extends \ccxt\async\upbit {
         }) ();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data

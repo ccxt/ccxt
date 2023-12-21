@@ -13,7 +13,7 @@ import { DECIMAL_PLACES } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class wavesexchange
- * @extends Exchange
+ * @augments Exchange
  */
 export default class wavesexchange extends Exchange {
     describe() {
@@ -32,6 +32,8 @@ export default class wavesexchange extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,

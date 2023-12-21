@@ -6,13 +6,13 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class kucoin
- * @extends Exchange
+ * @augments Exchange
  */
 export default class kucoin extends Exchange {
     describe () {
@@ -37,6 +37,8 @@ export default class kucoin extends Exchange {
                 'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createOrders': true,
@@ -205,6 +207,10 @@ export default class kucoin extends Exchange {
                         'stop-order': 8, // 8SW
                         'stop-order/{orderId}': 3, // 3SW
                         'stop-order/queryOrderByClientOid': 3, // 3SW
+                        'oco/order/{orderId}': 2, // 2SW
+                        'oco/order/details/{orderId}': 2, // 2SW
+                        'oco/client-order/{clientOid}': 2, // 2SW
+                        'oco/orders': 2, // 2SW
                         // margin trading
                         'hf/margin/orders/active': 4, // 4SW
                         'hf/margin/orders/done': 10, // 10SW
@@ -212,7 +218,8 @@ export default class kucoin extends Exchange {
                         'hf/margin/orders/client-order/{clientOid}': 5, // 5SW
                         'hf/margin/fills': 5, // 5SW
                         'etf/info': 25, // 25SW
-                        'risk/limit/strategy': 20, // 20SW
+                        'margin/currencies': 20, // 20SW
+                        'risk/limit/strategy': 20, // 20SW (Deprecate)
                         'isolated/symbols': 20, // 20SW
                         'isolated/account/{symbol}': 50, // 50SW
                         'margin/borrow': 15, // 15SW
@@ -247,6 +254,7 @@ export default class kucoin extends Exchange {
                         'orders/test': 2, // 2SW
                         'orders/multi': 3, // 3SW
                         'stop-order': 2, // 2SW
+                        'oco/order': 2, // 2SW
                         // margin trading
                         'hf/margin/order': 5, // 5SW
                         'hf/margin/order/test': 5, // 5SW
@@ -272,12 +280,16 @@ export default class kucoin extends Exchange {
                         'hf/orders/sync/client-order/{clientOid}': 1, // 1SW
                         'hf/orders/cancel/{orderId}': 2, // 2SW
                         'hf/orders': 2, // 2SW
+                        'hf/orders/cancelAll': 30, // 30SW
                         'orders/{orderId}': 3, // 3SW
                         'order/client-order/{clientOid}': 5, // 5SW
                         'orders': 20, // 20SW
                         'stop-order/{orderId}': 3, // 3SW
                         'stop-order/cancelOrderByClientOid': 5, // 5SW
                         'stop-order/cancel': 3, // 3SW
+                        'oco/order/{orderId}': 3, // 3SW
+                        'oco/client-order/{clientOid}': 3, // 3SW
+                        'oco/orders': 3, // 3SW
                         // margin trading
                         'hf/margin/orders/{orderId}': 5, // 5SW
                         'hf/margin/orders/client-order/{clientOid}': 5, // 5SW
@@ -298,6 +310,7 @@ export default class kucoin extends Exchange {
                         'index/query': 3, // 2PW
                         'mark-price/{symbol}/current': 4.5, // 3PW
                         'premium/query': 4.5, // 3PW
+                        'trade-statistics': 4.5, // 3PW
                         'funding-rate/{symbol}/current': 3, // 2PW
                         'timestamp': 3, // 2PW
                         'status': 6, // 4PW
@@ -346,6 +359,7 @@ export default class kucoin extends Exchange {
                     },
                     'delete': {
                         'orders/{orderId}': 1.5, // 1FW
+                        'orders/client-order/{clientOid}': 1.5, // 1FW
                         'orders': 45, // 30FW
                         'stopOrders': 22.5, // 15FW
                     },
@@ -489,9 +503,6 @@ export default class kucoin extends Exchange {
             },
             'commonCurrencies': {
                 'BIFI': 'BIFIF',
-                'EDGE': 'DADI', // https://github.com/ccxt/ccxt/issues/5756
-                'HOT': 'HOTNOW',
-                'TRY': 'Trias',
                 'VAI': 'VAIOT',
                 'WAX': 'WAXP',
             },
@@ -536,6 +547,10 @@ export default class kucoin extends Exchange {
                             'market/orderbook/level2': 'v3',
                             'market/orderbook/level3': 'v3',
                             'market/orderbook/level{level}': 'v3',
+                            'oco/order/{orderId}': 'v3',
+                            'oco/order/details/{orderId}': 'v3',
+                            'oco/client-order/{clientOid}': 'v3',
+                            'oco/orders': 'v3',
                             // margin trading
                             'hf/margin/orders/active': 'v3',
                             'hf/margin/orders/done': 'v3',
@@ -543,6 +558,7 @@ export default class kucoin extends Exchange {
                             'hf/margin/orders/client-order/{clientOid}': 'v3',
                             'hf/margin/fills': 'v3',
                             'etf/info': 'v3',
+                            'margin/currencies': 'v3',
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
                             'project/list': 'v3',
@@ -559,6 +575,7 @@ export default class kucoin extends Exchange {
                             'accounts/inner-transfer': 'v2',
                             'transfer-out': 'v3',
                             // spot trading
+                            'oco/order': 'v3',
                             // margin trading
                             'hf/margin/order': 'v3',
                             'hf/margin/order/test': 'v3',
@@ -575,6 +592,9 @@ export default class kucoin extends Exchange {
                             'hf/margin/orders/{orderId}': 'v3',
                             'hf/margin/orders/client-order/{clientOid}': 'v3',
                             'hf/margin/orders': 'v3',
+                            'oco/order/{orderId}': 'v3',
+                            'oco/client-order/{clientOid}': 'v3',
+                            'oco/orders': 'v3',
                             // margin trading
                         },
                     },
@@ -1950,7 +1970,7 @@ export default class kucoin extends Exchange {
          * @description create a list of trade orders
          * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders
          * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params]  extra parameters specific to the exchange API endpoint
          * @param {bool} [params.hf] false, // true for hf orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2483,7 +2503,7 @@ export default class kucoin extends Exchange {
                 response = await this.privateGetOrdersOrderId (this.extend (request, params));
             }
         }
-        let responseData = this.safeValue (response, 'data');
+        let responseData = this.safeValue (response, 'data', {});
         if (Array.isArray (responseData)) {
             responseData = this.safeValue (responseData, 0);
         }

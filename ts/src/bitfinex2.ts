@@ -4,13 +4,13 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex2.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
 /**
  * @class bitfinex2
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitfinex2 extends Exchange {
     describe () {
@@ -1076,15 +1076,14 @@ export default class bitfinex2 extends Exchange {
         //         FRR_AMOUNT_AVAILABLE
         //     ]
         //
-        const timestamp = this.milliseconds ();
         const symbol = this.safeSymbol (undefined, market);
         const length = ticker.length;
         const last = this.safeString (ticker, length - 4);
         const percentage = this.safeString (ticker, length - 5);
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString (ticker, length - 2),
             'low': this.safeString (ticker, length - 1),
             'bid': this.safeString (ticker, length - 10),

@@ -10,7 +10,7 @@ var number = require('./base/functions/number.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class wavesexchange
- * @extends Exchange
+ * @augments Exchange
  */
 class wavesexchange extends wavesexchange$1 {
     describe() {
@@ -29,6 +29,8 @@ class wavesexchange extends wavesexchange$1 {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,

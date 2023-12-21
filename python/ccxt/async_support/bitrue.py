@@ -53,6 +53,9 @@ class bitrue(Exchange, ImplicitAPI):
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -1481,15 +1484,8 @@ class bitrue(Exchange, ImplicitAPI):
             first = self.safe_string(symbols, 0)
             market = self.market(first)
             if market['swap']:
-                request['contractName'] = market['id']
-                if market['linear']:
-                    response = await self.fapiV1PublicGetTicker(self.extend(request, params))
-                elif market['inverse']:
-                    response = await self.dapiV1PublicGetTicker(self.extend(request, params))
-                response['symbol'] = market['id']
-                data = [response]
+                raise NotSupported(self.id + ' fetchTickers does not support swap markets, please use fetchTicker instead')
             elif market['spot']:
-                request['symbol'] = market['id']
                 response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
                 data = response
             else:
@@ -1497,7 +1493,7 @@ class bitrue(Exchange, ImplicitAPI):
         else:
             type, params = self.handle_market_type_and_params('fetchTickers', None, params)
             if type != 'spot':
-                raise NotSupported(self.id + ' fetchTickers only support spot when symbols is not set')
+                raise NotSupported(self.id + ' fetchTickers only support spot when symbols are not proved')
             response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
             data = response
         #
@@ -1804,6 +1800,23 @@ class bitrue(Exchange, ImplicitAPI):
             'trades': fills,
         }, market)
 
+    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+        :see: https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports swap orders only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
@@ -1825,6 +1838,7 @@ class bitrue(Exchange, ImplicitAPI):
          * EXCHANGE SPECIFIC PARAMETERS
         :param decimal [params.icebergQty]:
         :param long [params.recvWindow]:
+        :param float [params.cost]: *swap market buy only* the quote quantity that can be used alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1856,7 +1870,9 @@ class bitrue(Exchange, ImplicitAPI):
             elif timeInForce == 'ioc':
                 request['type'] = 'IOC'
             request['contractName'] = market['id']
-            if isMarket and (side == 'buy') and (self.options['createMarketBuyOrderRequiresPrice']):
+            createMarketBuyOrderRequiresPrice = True
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            if isMarket and (side == 'buy') and createMarketBuyOrderRequiresPrice:
                 cost = self.safe_string(params, 'cost')
                 params = self.omit(params, 'cost')
                 if price is None and cost is None:

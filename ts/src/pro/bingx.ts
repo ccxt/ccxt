@@ -4,8 +4,9 @@
 import bingxRest from '../bingx.js';
 import { BadRequest, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, OHLCV, Str } from '../base/types.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import Precise from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -63,6 +64,10 @@ export default class bingx extends bingxRest {
                         '1d': '1day',
                     },
                 },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': true, // needed to be true to keep track of used and free balance
+                    'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
+                },
             },
             'streaming': {
                 'keepAlive': 1800000, // 30 minutes
@@ -70,7 +75,7 @@ export default class bingx extends bingxRest {
         });
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bingx#watchTrades
@@ -190,7 +195,7 @@ export default class bingx extends bingxRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bingx#watchOrderBook
@@ -392,7 +397,7 @@ export default class bingx extends bingxRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bingx#watchOHLCV
@@ -431,7 +436,7 @@ export default class bingx extends bingxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bingx#watchOrders
@@ -479,7 +484,7 @@ export default class bingx extends bingxRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bingx#watchMyTrades
@@ -527,7 +532,7 @@ export default class bingx extends bingxRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bingx#watchBalance
@@ -535,7 +540,7 @@ export default class bingx extends bingxRest {
          * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         await this.authenticate ();
@@ -557,7 +562,41 @@ export default class bingx extends bingxRest {
                 'dataType': 'ACCOUNT_UPDATE',
             };
         }
+        const client = this.client (url);
+        this.setBalanceCache (client, type, subscriptionHash, params);
+        let fetchBalanceSnapshot = undefined;
+        let awaitBalanceSnapshot = undefined;
+        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [ awaitBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'awaitBalanceSnapshot', false);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future (type + ':fetchBalanceSnapshot');
+        }
         return await this.watch (url, messageHash, request, subscriptionHash);
+    }
+
+    setBalanceCache (client: Client, type, subscriptionHash, params) {
+        if (subscriptionHash in client.subscriptions) {
+            return undefined;
+        }
+        const fetchBalanceSnapshot = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        if (fetchBalanceSnapshot) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
+            }
+        } else {
+            this.balance[type] = {};
+        }
+    }
+
+    async loadBalanceSnapshot (client, messageHash, type) {
+        const response = await this.fetchBalance ({ 'type': type });
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve ();
+        client.resolve (this.balance[type], type + ':balance');
     }
 
     handleErrorMessage (client, message) {
@@ -844,9 +883,6 @@ export default class bingx extends bingxRest {
         const data = this.safeValue (a, 'B', []);
         const timestamp = this.safeInteger2 (message, 'T', 'E');
         const type = ('P' in a) ? 'swap' : 'spot';
-        if (!(type in this.balance)) {
-            this.balance[type] = {};
-        }
         this.balance[type]['info'] = data;
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601 (timestamp);
@@ -854,8 +890,12 @@ export default class bingx extends bingxRest {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'a');
             const code = this.safeCurrencyCode (currencyId);
-            const account = (code in this.balance) ? this.balance[code] : this.account ();
-            account['total'] = this.safeString (balance, 'wb');
+            const account = (code in this.balance[type]) ? this.balance[type][code] : this.account ();
+            account['free'] = this.safeString (balance, 'wb');
+            const balanceChange = this.safeString (balance, 'bc');
+            if (account['used'] !== undefined) {
+                account['used'] = Precise.stringSub (this.safeString (account, 'used'), balanceChange);
+            }
             this.balance[type][code] = account;
         }
         this.balance[type] = this.safeBalance (this.balance[type]);

@@ -6,13 +6,13 @@ import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrd
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class gemini
- * @extends Exchange
+ * @augments Exchange
  */
 export default class gemini extends Exchange {
     describe () {
@@ -34,6 +34,8 @@ export default class gemini extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': true,
                 'createMarketOrder': false,
                 'createOrder': true,
@@ -303,6 +305,7 @@ export default class gemini extends Exchange {
         /**
          * @method
          * @name gemini#fetchCurrenciesFromWeb
+         * @ignore
          * @description fetches all available currencies on an exchange
          * @param {object} [params] extra parameters specific to the endpoint
          * @returns {object} an associative dictionary of currencies
@@ -345,26 +348,28 @@ export default class gemini extends Exchange {
             const networks = {};
             const networkId = this.safeString (currency, 9);
             const networkCode = this.networkIdToCode (networkId);
-            networks[networkCode] = {
-                'info': currency,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': precision,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': currency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': precision,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
             result[code] = {
                 'info': currency,
                 'id': id,

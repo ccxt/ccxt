@@ -53,6 +53,7 @@
         "skipPhpAsync": true,
         "skipWs": true,
         "skipMethods": {
+            "fetchStatus": "temporarily failing",
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC",
                 "expiry": "expiry not set for future markets",
@@ -77,7 +78,8 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            }
+            },
+            "fetchStatus": "private endpoints"
         }
     },
     "binancecoinm": {
@@ -135,6 +137,10 @@
                 "taker": "not provided",
                 "maker": "not provided",
                 "info":"null"
+            },
+            "fetchOrderBook": {
+                "bid":"sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540",
+                "ask":"same"
             }
         }
     },
@@ -345,7 +351,9 @@
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "baseVolume": "quoteVolume >= baseVolume * low is failing",
+                "bid": "bid ask crossed",
+                "ask": "bid ask crossed"
             },
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -460,19 +468,6 @@
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "fetchOHLCV": "open might be greater than high"
-        }
-    },
-    "bittrex": {
-        "skipWs": true,
-        "skipMethods": {
-            "fetchStatus": "frequent rate limit for this endpoint",
-            "fetchTickers": "bid might be set to 0",
-            "fetchTicker": "same",
-            "fetchCurrencies": {
-                "withdraw": "not provided",
-                "deposit": "not provided",
-                "networks":"missing"
-            }
         }
     },
     "btcbox": {
@@ -649,6 +644,12 @@
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
+            },
+            "fetchTicker": {
+                "quoteVolume": "quote scale isn't right"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quote scale isn't right"
             }
         }
     },

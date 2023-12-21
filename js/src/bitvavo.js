@@ -13,7 +13,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
 /**
  * @class bitvavo
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitvavo extends Exchange {
     describe() {
@@ -35,6 +35,8 @@ export default class bitvavo extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,

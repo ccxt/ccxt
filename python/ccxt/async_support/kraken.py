@@ -212,6 +212,8 @@ class kraken(Exchange, ImplicitAPI):
                         'Withdraw': 3,
                         'WithdrawCancel': 3,
                         'WithdrawInfo': 3,
+                        'WithdrawMethods': 3,
+                        'WithdrawAddresses': 3,
                         'WithdrawStatus': 3,
                         'WalletTransfer': 3,
                         # sub accounts
@@ -341,6 +343,91 @@ class kraken(Exchange, ImplicitAPI):
                     'YFI': 'YFI',
                     'ZEC': 'Zcash(Transparent)',
                     'ZRX': '0x(ZRX)',
+                },
+                'withdrawMethods': {  # keeping it here because deposit and withdraw return different networks codes
+                    'Lightning': 'Lightning',
+                    'Bitcoin': 'BTC',
+                    'Ripple': 'XRP',
+                    'Litecoin': 'LTC',
+                    'Dogecoin': 'DOGE',
+                    'Stellar': 'XLM',
+                    'Ethereum': 'ERC20',
+                    'Arbitrum One': 'Arbitrum',
+                    'Polygon': 'MATIC',
+                    'Arbitrum Nova': 'Arbitrum',
+                    'Optimism': 'Optimism',
+                    'zkSync Era': 'zkSync',
+                    'Ethereum Classic': 'ETC',
+                    'Zcash': 'ZEC',
+                    'Monero': 'XMR',
+                    'Tron': 'TRC20',
+                    'Solana': 'SOL',
+                    'EOS': 'EOS',
+                    'Bitcoin Cash': 'BCH',
+                    'Cardano': 'ADA',
+                    'Qtum': 'QTUM',
+                    'Tezos': 'XTZ',
+                    'Cosmos': 'ATOM',
+                    'Nano': 'NANO',
+                    'Siacoin': 'SC',
+                    'Lisk': 'LSK',
+                    'Waves': 'WAVES',
+                    'ICON': 'ICX',
+                    'Algorand': 'ALGO',
+                    'Polygon - USDC.e': 'MATIC',
+                    'Arbitrum One - USDC.e': 'Arbitrum',
+                    'Polkadot': 'DOT',
+                    'Kava': 'KAVA',
+                    'Filecoin': 'FIL',
+                    'Kusama': 'KSM',
+                    'Flow': 'FLOW',
+                    'Energy Web': 'EW',
+                    'Mina': 'MINA',
+                    'Centrifuge': 'CFG',
+                    'Karura': 'KAR',
+                    'Moonriver': 'MOVR',
+                    'Shiden': 'SDN',
+                    'Khala': 'PHA',
+                    'Bifrost Kusama': 'BNC',
+                    'Songbird': 'SGB',
+                    'Terra classic': 'LUNC',
+                    'KILT': 'KILT',
+                    'Basilisk': 'BSX',
+                    'Flare': 'FLR',
+                    'Avalanche C-Chain': 'AVAX',
+                    'Kintsugi': 'KINT',
+                    'Altair': 'AIR',
+                    'Moonbeam': 'GLMR',
+                    'Acala': 'ACA',
+                    'Astar': 'ASTR',
+                    'Akash': 'AKT',
+                    'Robonomics': 'XRT',
+                    'Fantom': 'FTM',
+                    'Elrond': 'EGLD',
+                    'THORchain': 'RUNE',
+                    'Secret': 'SCRT',
+                    'Near': 'NEAR',
+                    'Internet Computer Protocol': 'ICP',
+                    'Picasso': 'PICA',
+                    'Crust Shadow': 'CSM',
+                    'Integritee': 'TEER',
+                    'Parallel Finance': 'PARA',
+                    'HydraDX': 'HDX',
+                    'Interlay': 'INTR',
+                    'Fetch.ai': 'FET',
+                    'NYM': 'NYM',
+                    'Terra 2.0': 'LUNA2',
+                    'Juno': 'JUNO',
+                    'Nodle': 'NODL',
+                    'Stacks': 'STX',
+                    'Ethereum PoW': 'ETHW',
+                    'Aptos': 'APT',
+                    'Sui': 'SUI',
+                    'Genshiro': 'GENS',
+                    'Aventus': 'AVT',
+                    'Sei': 'SEI',
+                    'OriginTrail': 'OTP',
+                    'Celestia': 'TIA',
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -1222,8 +1309,12 @@ class kraken(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool params.postOnly:
-        :param bool params.reduceOnly:
+        :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
+        :param bool [params.reduceOnly]: *margin only* indicates if self order is to reduce the size of a position
+        :param float [params.stopLossPrice]: *margin only* the price that a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: *margin only* the price that a take profit order is triggered at
+        :param str [params.trailingStopPrice]: *margin only* the quote amount to trail away from the current market price
+        :param str [params.trigger]: *margin only* the activation price type, 'last' or 'index', default is 'last'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1456,40 +1547,40 @@ class kraken(Exchange, ImplicitAPI):
         params = self.omit(params, ['userref', 'clientOrderId'])
         if clientOrderId is not None:
             request['userref'] = clientOrderId
-        #
-        #     market
-        #     limit(price = limit price)
-        #     stop-loss(price = stop loss trigger price)
-        #     take-profit(price = take profit trigger price)
-        #     stop-loss-limit(price = stop loss trigger price, price2 = triggered limit price)
-        #     take-profit-limit(price = take profit trigger price, price2 = triggered limit price)
-        #     settle-position
-        #
+        stopLossTriggerPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_string(params, 'takeProfitPrice')
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
+        trailingStopPrice = self.safe_string(params, 'trailingStopPrice')
+        isTrailingStopPriceOrder = trailingStopPrice is not None
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
-        elif (type == 'stop-loss') or (type == 'take-profit'):
-            stopPrice = self.safe_number_2(params, 'price', 'stopPrice', price)
-            if stopPrice is None:
-                raise ArgumentsRequired(self.id + method + ' requires a price argument or a price/stopPrice parameter for a ' + type + ' order')
+        reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
+        if isStopLossOrTakeProfitTrigger:
+            if isStopLossTriggerOrder:
+                request['price'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                request['ordertype'] = 'stop-loss-limit'
+            elif isTakeProfitTriggerOrder:
+                request['price'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                request['ordertype'] = 'take-profit-limit'
+            request['price2'] = self.price_to_precision(symbol, price)
+            reduceOnly = True
+        elif isTrailingStopPriceOrder:
+            trailingStopActivationPriceType = self.safe_string(params, 'trigger', 'last')
+            trailingStopPriceString = '+' + trailingStopPrice
+            request['trigger'] = trailingStopActivationPriceType
+            reduceOnly = True
+            if type == 'limit':
+                trailingStopLimitPriceString = '+' + self.number_to_string(price)
+                request['price'] = trailingStopPriceString
+                request['price2'] = trailingStopLimitPriceString
+                request['ordertype'] = 'trailing-stop-limit'
             else:
-                request['price'] = self.price_to_precision(symbol, stopPrice)
-        elif (type == 'stop-loss-limit') or (type == 'take-profit-limit'):
-            stopPrice = self.safe_number_2(params, 'price', 'stopPrice')
-            limitPrice = self.safe_number(params, 'price2')
-            stopPriceDefined = (stopPrice is not None)
-            limitPriceDefined = (limitPrice is not None)
-            if stopPriceDefined and limitPriceDefined:
-                request['price'] = self.price_to_precision(symbol, stopPrice)
-                request['price2'] = self.price_to_precision(symbol, limitPrice)
-            elif (price is None) or (not(stopPriceDefined or limitPriceDefined)):
-                raise ArgumentsRequired(self.id + method + ' requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order')
-            else:
-                if stopPriceDefined:
-                    request['price'] = self.price_to_precision(symbol, stopPrice)
-                    request['price2'] = self.price_to_precision(symbol, price)
-                elif limitPriceDefined:
-                    request['price'] = self.price_to_precision(symbol, price)
-                    request['price2'] = self.price_to_precision(symbol, limitPrice)
+                request['price'] = trailingStopPriceString
+                request['ordertype'] = 'trailing-stop'
+        if reduceOnly:
+            request['reduce_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
         close = self.safe_value(params, 'close')
         if close is not None:
             close = self.extend({}, close)
@@ -1508,10 +1599,7 @@ class kraken(Exchange, ImplicitAPI):
         postOnly, params = self.handle_post_only(isMarket, False, params)
         if postOnly:
             request['oflags'] = 'post'
-        reduceOnly = self.safe_value(params, 'reduceOnly')
-        if reduceOnly:
-            request['reduce_only'] = True
-        params = self.omit(params, ['price', 'stopPrice', 'price2', 'close', 'timeInForce', 'reduceOnly'])
+        params = self.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingStopPrice'])
         return [request, params]
 
     async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
@@ -1525,6 +1613,10 @@ class kraken(Exchange, ImplicitAPI):
         :param float amount: how much of the currency you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.stopLossPrice]: *margin only* the price that a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: *margin only* the price that a take profit order is triggered at
+        :param str [params.trailingStopPrice]: *margin only* the quote price away from the current market price
+        :param str [params.trigger]: *margin only* the activation price type, 'last' or 'index', default is 'last'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1937,6 +2029,10 @@ class kraken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
+    def parse_network(self, network):
+        withdrawMethods = self.safe_value(self.options, 'withdrawMethods', {})
+        return self.safe_string(withdrawMethods, network, network)
+
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
@@ -1987,6 +2083,8 @@ class kraken(Exchange, ImplicitAPI):
         #         "fee": "0.0050000000",
         #         "time":  1530481750,
         #         "status": "Success"
+        #         "key":"Huobi wallet",
+        #         "network":"Tron"
         #         status-prop: 'on-hold'  # self field might not be present in some cases
         #     }
         #
@@ -2020,7 +2118,7 @@ class kraken(Exchange, ImplicitAPI):
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': None,
+            'network': self.parse_network(self.safe_string(transaction, 'network')),
             'address': address,
             'addressTo': None,
             'addressFrom': None,
@@ -2115,18 +2213,25 @@ class kraken(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.end]: End timestamp, withdrawals created strictly after will be not be included in the response
+        :param boolean [params.paginate]:  default False, when True will automatically paginate by calling self endpoint multiple times
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        # https://www.kraken.com/en-us/help/api#withdraw-status
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'asset': currency['id'],
-        }
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
+        if paginate:
+            params['cursor'] = True
+            return await self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, params, 'next_cursor', 'cursor')
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
+        if since is not None:
+            request['since'] = str(since)
         response = await self.privatePostWithdrawStatus(self.extend(request, params))
         #
+        # with no pagination
         #     { error: [],
         #       "result": [{"method": "Ether",
         #                     "aclass": "currency",
@@ -2138,8 +2243,48 @@ class kraken(Exchange, ImplicitAPI):
         #                        "fee": "0.0050000000",
         #                       "time":  1530481750,
         #                     "status": "Success"                                                             }]}
+        # with pagination
+        #    {
+        #        "error":[],
+        #        "result":{
+        #           "withdrawals":[
+        #              {
+        #                 "method":"Tether USD(TRC20)",
+        #                 "aclass":"currency",
+        #                 "asset":"USDT",
+        #                 "refid":"BSNFZU2-MEFN4G-J3NEZV",
+        #                 "txid":"1c7a642fb7387bbc2c6a2c509fd1ae146937f4cf793b4079a4f0715e3a02615a",
+        #                 "info":"TQmdxSuC16EhFg8FZWtYgrfFRosoRF7bCp",
+        #                 "amount":"1996.50000000",
+        #                 "fee":"2.50000000",
+        #                 "time":1669126657,
+        #                 "status":"Success",
+        #                 "key":"poloniex",
+        #                 "network":"Tron"
+        #              },
+        #             ...
+        #           ],
+        #           "next_cursor":"HgAAAAAAAABGVFRSd3k1LVF4Y0JQY05Gd0xRY0NxenFndHpybkwBAQH2AwEBAAAAAQAAAAAAAAABAAAAAAAZAAAAAAAAAA=="
+        #        }
+        #     }
         #
-        return self.parse_transactions_by_type('withdrawal', response['result'], code, since, limit)
+        rawWithdrawals = None
+        result = self.safe_value(response, 'result')
+        if not isinstance(result, list):
+            rawWithdrawals = self.add_pagination_cursor_to_result(result)
+        else:
+            rawWithdrawals = result
+        return self.parse_transactions_by_type('withdrawal', rawWithdrawals, code, since, limit)
+
+    def add_pagination_cursor_to_result(self, result):
+        cursor = self.safe_string(result, 'next_cursor')
+        data = self.safe_value(result, 'withdrawals')
+        dataLength = len(data)
+        if cursor is not None and dataLength > 0:
+            last = data[dataLength - 1]
+            last['next_cursor'] = cursor
+            data[dataLength - 1] = last
+        return data
 
     async def create_deposit_address(self, code: str, params={}):
         """

@@ -9,7 +9,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 // ---------------------------------------------------------------------------
 /**
  * @class bl3p
- * @extends Exchange
+ * @augments Exchange
  */
 class bl3p extends bl3p$1 {
     describe() {
@@ -30,6 +30,8 @@ class bl3p extends bl3p$1 {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,

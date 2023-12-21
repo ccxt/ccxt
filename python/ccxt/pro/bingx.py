@@ -5,10 +5,12 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, Str
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
+from typing import List
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NetworkError
+from ccxt.base.precise import Precise
 
 
 class bingx(ccxt.async_support.bingx):
@@ -66,13 +68,17 @@ class bingx(ccxt.async_support.bingx):
                         '1d': '1day',
                     },
                 },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': True,  # needed to be True to keep track of used and free balance
+                    'awaitBalanceSnapshot': False,  # whether to wait for the balance snapshot before providing updates
+                },
             },
             'streaming': {
                 'keepAlive': 1800000,  # 30 minutes
             },
         })
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
         :see: https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20to%20tick-by-tick
@@ -182,7 +188,7 @@ class bingx(ccxt.async_support.bingx):
             stored.append(trades[j])
         client.resolve(stored, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
@@ -367,7 +373,7 @@ class bingx(ccxt.async_support.bingx):
             stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://bingx-api.github.io/docs/#/spot/socket/market.html#K%E7%BA%BF%20Streams
@@ -400,7 +406,7 @@ class bingx(ccxt.async_support.bingx):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
         :see: https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
@@ -441,7 +447,7 @@ class bingx(ccxt.async_support.bingx):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
         :see: https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
@@ -482,13 +488,13 @@ class bingx(ccxt.async_support.bingx):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
         :see: https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
         :see: https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         await self.authenticate()
@@ -509,7 +515,35 @@ class bingx(ccxt.async_support.bingx):
                 'id': uuid,
                 'dataType': 'ACCOUNT_UPDATE',
             }
+        client = self.client(url)
+        self.set_balance_cache(client, type, subscriptionHash, params)
+        fetchBalanceSnapshot = None
+        awaitBalanceSnapshot = None
+        fetchBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
+        awaitBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'awaitBalanceSnapshot', False)
+        if fetchBalanceSnapshot and awaitBalanceSnapshot:
+            await client.future(type + ':fetchBalanceSnapshot')
         return await self.watch(url, messageHash, request, subscriptionHash)
+
+    def set_balance_cache(self, client: Client, type, subscriptionHash, params):
+        if subscriptionHash in client.subscriptions:
+            return None
+        fetchBalanceSnapshot = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
+        if fetchBalanceSnapshot:
+            messageHash = type + ':fetchBalanceSnapshot'
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_balance_snapshot, client, messageHash, type)
+        else:
+            self.balance[type] = {}
+
+    async def load_balance_snapshot(self, client, messageHash, type):
+        response = await self.fetch_balance({'type': type})
+        self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
+        # don't remove the future from the .futures cache
+        future = client.futures[messageHash]
+        future.resolve()
+        client.resolve(self.balance[type], type + ':balance')
 
     def handle_error_message(self, client, message):
         #
@@ -782,8 +816,6 @@ class bingx(ccxt.async_support.bingx):
         data = self.safe_value(a, 'B', [])
         timestamp = self.safe_integer_2(message, 'T', 'E')
         type = 'swap' if ('P' in a) else 'spot'
-        if not (type in self.balance):
-            self.balance[type] = {}
         self.balance[type]['info'] = data
         self.balance[type]['timestamp'] = timestamp
         self.balance[type]['datetime'] = self.iso8601(timestamp)
@@ -791,8 +823,11 @@ class bingx(ccxt.async_support.bingx):
             balance = data[i]
             currencyId = self.safe_string(balance, 'a')
             code = self.safe_currency_code(currencyId)
-            account = self.balance[code] if (code in self.balance) else self.account()
-            account['total'] = self.safe_string(balance, 'wb')
+            account = self.balance[type][code] if (code in self.balance[type]) else self.account()
+            account['free'] = self.safe_string(balance, 'wb')
+            balanceChange = self.safe_string(balance, 'bc')
+            if account['used'] is not None:
+                account['used'] = Precise.string_sub(self.safe_string(account, 'used'), balanceChange)
             self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], type + ':balance')

@@ -12,7 +12,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class luno
- * @extends Exchange
+ * @augments Exchange
  */
 export default class luno extends Exchange {
     describe() {
@@ -33,6 +33,8 @@ export default class luno extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchAccounts': true,

@@ -12,7 +12,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitpanda
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitpanda extends Exchange {
     describe() {
@@ -35,6 +35,8 @@ export default class bitpanda extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,

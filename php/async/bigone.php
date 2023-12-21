@@ -10,6 +10,7 @@ use ccxt\async\abstract\bigone as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -32,6 +33,9 @@ class bigone extends Exchange {
                 'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -1158,6 +1162,26 @@ class bigone extends Exchange {
         ), $market);
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a $market buy order by providing the $symbol and $cost
+             * @see https://open.big.one/docs/spot_orders.html#create-order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+            }
+            $params['createMarketBuyOrderRequiresPrice'] = false;
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+        }) ();
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -1172,6 +1196,7 @@ class bigone extends Exchange {
              * @param {float} [$params->triggerPrice] the $price at which a trigger $order is triggered at
              * @param {bool} [$params->postOnly] if true, the $order will only be posted to the $order book and not executed immediately
              * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
+             * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {string} operator *stop $order only* GTE or LTE (default)
@@ -1184,7 +1209,7 @@ class bigone extends Exchange {
             $requestSide = $isBuy ? 'BID' : 'ASK';
             $uppercaseType = strtoupper($type);
             $isLimit = $uppercaseType === 'LIMIT';
-            $exchangeSpecificParam = $this->safe_value($params, 'post_only');
+            $exchangeSpecificParam = $this->safe_value($params, 'post_only', false);
             $postOnly = null;
             list($postOnly, $params) = $this->handle_post_only(($uppercaseType === 'MARKET'), $exchangeSpecificParam, $params);
             $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
@@ -1208,19 +1233,30 @@ class bigone extends Exchange {
                         $request['post_only'] = true;
                     }
                 }
+                $request['amount'] = $this->amount_to_precision($symbol, $amount);
             } else {
-                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice');
-                if ($createMarketBuyOrderRequiresPrice && ($side === 'buy')) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the $amount parameter');
+                if ($isBuy) {
+                    $createMarketBuyOrderRequiresPrice = true;
+                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    $cost = $this->safe_number($params, 'cost');
+                    $params = $this->omit($params, 'cost');
+                    if ($createMarketBuyOrderRequiresPrice) {
+                        if (($price === null) && ($cost === null)) {
+                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                        } else {
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $quoteAmount = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
+                            $costRequest = ($cost !== null) ? $cost : $quoteAmount;
+                            $request['amount'] = $this->cost_to_precision($symbol, $costRequest);
+                        }
                     } else {
-                        $amountString = $this->number_to_string($amount);
-                        $priceString = $this->number_to_string($price);
-                        $amount = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                        $request['amount'] = $this->cost_to_precision($symbol, $amount);
                     }
+                } else {
+                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
                 }
             }
-            $request['amount'] = $this->amount_to_precision($symbol, $amount);
             if ($triggerPrice !== null) {
                 $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
                 $request['operator'] = $isBuy ? 'GTE' : 'LTE';

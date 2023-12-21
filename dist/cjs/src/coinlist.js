@@ -8,7 +8,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 /**
  * @class coinlist
- * @extends Exchange
+ * @augments Exchange
  */
 class coinlist extends coinlist$1 {
     describe() {
@@ -28,10 +28,11 @@ class coinlist extends coinlist$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -105,7 +106,8 @@ class coinlist extends coinlist$1 {
                 'fetchWithdrawals': false,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,

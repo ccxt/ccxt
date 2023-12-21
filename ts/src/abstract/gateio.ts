@@ -224,10 +224,13 @@ interface gate {
     privateOptionsPostOrders (params?: {}): Promise<implicitReturnType>;
     privateOptionsDeleteOrders (params?: {}): Promise<implicitReturnType>;
     privateOptionsDeleteOrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    privateEarnGetUniCurrencies (params?: {}): Promise<implicitReturnType>;
+    privateEarnGetUniCurrenciesCurrency (params?: {}): Promise<implicitReturnType>;
     privateEarnGetUniLends (params?: {}): Promise<implicitReturnType>;
     privateEarnGetUniLendRecords (params?: {}): Promise<implicitReturnType>;
     privateEarnGetUniInterestsCurrency (params?: {}): Promise<implicitReturnType>;
     privateEarnGetUniInterestRecords (params?: {}): Promise<implicitReturnType>;
+    privateEarnGetUniInterestStatusCurrency (params?: {}): Promise<implicitReturnType>;
     privateEarnPostUniLends (params?: {}): Promise<implicitReturnType>;
     privateEarnPutUniInterestReinvest (params?: {}): Promise<implicitReturnType>;
     privateEarnPatchUniLends (params?: {}): Promise<implicitReturnType>;

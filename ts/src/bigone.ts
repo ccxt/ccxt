@@ -2,18 +2,18 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bigone.js';
-import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class bigone
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bigone extends Exchange {
     describe () {
@@ -32,6 +32,9 @@ export default class bigone extends Exchange {
                 'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -1158,6 +1161,26 @@ export default class bigone extends Exchange {
         }, market);
     }
 
+    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+        /**
+         * @method
+         * @name bigone#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://open.big.one/docs/spot_orders.html#create-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -1173,6 +1196,7 @@ export default class bigone extends Exchange {
          * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} operator *stop order only* GTE or LTE (default)
@@ -1185,7 +1209,7 @@ export default class bigone extends Exchange {
         const requestSide = isBuy ? 'BID' : 'ASK';
         let uppercaseType = type.toUpperCase ();
         const isLimit = uppercaseType === 'LIMIT';
-        const exchangeSpecificParam = this.safeValue (params, 'post_only');
+        const exchangeSpecificParam = this.safeValue (params, 'post_only', false);
         let postOnly = undefined;
         [ postOnly, params ] = this.handlePostOnly ((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
@@ -1209,19 +1233,30 @@ export default class bigone extends Exchange {
                     request['post_only'] = true;
                 }
             }
+            request['amount'] = this.amountToPrecision (symbol, amount);
         } else {
-            const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice');
-            if (createMarketBuyOrderRequiresPrice && (side === 'buy')) {
-                if (price === undefined) {
-                    throw new InvalidOrder (this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+            if (isBuy) {
+                let createMarketBuyOrderRequiresPrice = true;
+                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber (params, 'cost');
+                params = this.omit (params, 'cost');
+                if (createMarketBuyOrderRequiresPrice) {
+                    if ((price === undefined) && (cost === undefined)) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                    } else {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const quoteAmount = this.parseToNumeric (Precise.stringMul (amountString, priceString));
+                        const costRequest = (cost !== undefined) ? cost : quoteAmount;
+                        request['amount'] = this.costToPrecision (symbol, costRequest);
+                    }
                 } else {
-                    const amountString = this.numberToString (amount);
-                    const priceString = this.numberToString (price);
-                    amount = this.parseNumber (Precise.stringMul (amountString, priceString));
+                    request['amount'] = this.costToPrecision (symbol, amount);
                 }
+            } else {
+                request['amount'] = this.amountToPrecision (symbol, amount);
             }
         }
-        request['amount'] = this.amountToPrecision (symbol, amount);
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['operator'] = isBuy ? 'GTE' : 'LTE';

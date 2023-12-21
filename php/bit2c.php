@@ -26,6 +26,8 @@ class bit2c extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
@@ -336,7 +338,12 @@ class bit2c extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // max 100000
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($method === 'public_get_exchanges_pair_trades') {
+            $response = $this->publicGetExchangesPairTrades (array_merge($request, $params));
+        } else {
+            $response = $this->publicGetExchangesPairLasttrades (array_merge($request, $params));
+        }
         //
         //     array(
         //         array("date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018),
@@ -421,7 +428,7 @@ class bit2c extends Exchange {
             $request['Price'] = $price;
             $amountString = $this->number_to_string($amount);
             $priceString = $this->number_to_string($price);
-            $request['Total'] = $this->parse_number(Precise::string_mul($amountString, $priceString));
+            $request['Total'] = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
             $request['IsBid'] = ($side === 'buy');
         }
         $response = $this->$method (array_merge($request, $params));

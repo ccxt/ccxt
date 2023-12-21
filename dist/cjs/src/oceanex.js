@@ -10,7 +10,7 @@ var rsa = require('./base/functions/rsa.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class oceanex
- * @extends Exchange
+ * @augments Exchange
  */
 class oceanex extends oceanex$1 {
     describe() {
