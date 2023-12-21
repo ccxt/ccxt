@@ -1134,7 +1134,7 @@ export default class phemex extends Exchange {
     }
 
     toEn (n, scale) {
-        const stringN = n.toString ();
+        const stringN = this.numberToString (n);
         const precise = new Precise (stringN);
         precise.decimals = precise.decimals - scale;
         precise.reduce ();
@@ -2526,10 +2526,10 @@ export default class phemex extends Exchange {
                     }
                 }
                 cost = (cost === undefined) ? amount : cost;
-                const costString = cost.toString ();
+                const costString = this.numberToString (cost);
                 request['quoteQtyEv'] = this.toEv (costString, market);
             } else {
-                const amountString = amount.toString ();
+                const amountString = this.numberToString (amount);
                 request['baseQtyEv'] = this.toEv (amountString, market);
             }
         } else if (market['swap']) {
