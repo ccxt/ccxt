@@ -724,6 +724,30 @@
                     ]
                 ]
             }
+        ],
+        "fetchPositionsRisk": [
+            {
+                "description": "Fetch Positions Risk - linear",
+                "method": "fetchPositionsRisk",
+                "url": "https://fapi.binance.com/fapi/v2/positionRisk?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "input": [
+                    null,
+                    {
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch Positions Risk - inverse",
+                "method": "fetchPositionsRisk",
+                "url": "https://dapi.binance.com/dapi/v1/positionRisk?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "input": [
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            }
         ]
     }
 }
