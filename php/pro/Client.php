@@ -62,9 +62,6 @@ class Client {
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;
-    public $default_ws_connector = null;
-    public $default_ws_connector_with_origin = null;
-    public $default_ws_connector_without_origin = null;
     public $proxy_ws_connectors = [];
 
 
