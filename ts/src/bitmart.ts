@@ -2321,7 +2321,7 @@ export default class bitmart extends Exchange {
         const mode = this.safeInteger (params, 'mode'); // only for swap
         const isMarketOrder = type === 'market';
         let postOnly = undefined;
-        let reduceOnly = this.safeValue (params, 'reduceOnly');
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
         const isExchangeSpecificPo = (mode === 4);
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, isExchangeSpecificPo, params);
         const ioc = ((timeInForce === 'IOC') || (mode === 3));
