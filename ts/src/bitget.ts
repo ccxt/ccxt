@@ -4534,6 +4534,7 @@ export default class bitget extends Exchange {
          * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
          * @param {boolean} [params.stop] set to true for canceling trigger orders
          * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
+         * @param {boolean} [params.trailingStop] set to true if you want to cancel a trailing stop order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -4552,8 +4553,9 @@ export default class bitget extends Exchange {
         let response = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         const request = {};
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, 'stop');
+        const trailingStop = this.safeValue (params, 'trailingStop');
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger', 'trailingStop' ]);
         if (!(market['spot'] && stop)) {
             request['symbol'] = market['id'];
         }
@@ -4564,13 +4566,19 @@ export default class bitget extends Exchange {
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
-            if (stop) {
+            if (stop || trailingStop) {
                 const orderIdList = [];
                 const orderId = {
                     'orderId': id,
                 };
                 orderIdList.push (orderId);
                 request['orderIdList'] = orderIdList;
+            }
+            if (trailingStop) {
+                const planType = this.safeString (params, 'planType', 'track_plan');
+                request['planType'] = planType;
+                response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
+            } else if (stop) {
                 response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
             } else {
                 response = await this.privateMixPostV2MixOrderCancelOrder (this.extend (request, params));
