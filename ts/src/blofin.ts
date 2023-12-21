@@ -693,27 +693,11 @@ export default class blofin extends Exchange {
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (trade, 'ts');
-        const price = this.safeString2 (trade, 'fillPx', 'px');
-        const amount = this.safeString2 (trade, 'fillSz', 'sz');
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'size');
         const side = this.safeString (trade, 'side');
-        const orderId = this.safeString (trade, 'ordId');
-        const feeCostString = this.safeString (trade, 'fee');
-        let fee = undefined;
-        if (feeCostString !== undefined) {
-            const feeCostSigned = Precise.stringNeg (feeCostString);
-            const feeCurrencyId = this.safeString (trade, 'feeCcy');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            fee = {
-                'cost': feeCostSigned,
-                'currency': feeCurrencyCode,
-            };
-        }
-        let takerOrMaker = this.safeString (trade, 'execType');
-        if (takerOrMaker === 'T') {
-            takerOrMaker = 'taker';
-        } else if (takerOrMaker === 'M') {
-            takerOrMaker = 'maker';
-        }
+        const orderId = this.safeString (trade, 'orderId');
+        const fee = undefined;
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -722,7 +706,7 @@ export default class blofin extends Exchange {
             'id': id,
             'order': orderId,
             'type': undefined,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'side': side,
             'price': price,
             'amount': amount,
