@@ -60,8 +60,8 @@ trait ClientTrait {
                 'throttle' => new Throttler($this->tokenBucket),
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
+            $this->configure_proxy_client($this->clients[$url]);
         }
-        $this->configure_proxy_client($this->clients[$url]);
         return $this->clients[$url];
     }
 
