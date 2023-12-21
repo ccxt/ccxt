@@ -476,12 +476,9 @@ export default class blofin extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        let expiry = undefined;
+        const expiry = undefined;
         const strikePrice = undefined;
         const optionType = undefined;
-        if (contract) {
-            expiry = this.safeInteger (market, 'expireTime');
-        }
         const tickSize = this.safeString (market, 'tickSize');
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
         let maxLeverage = this.safeString (market, 'maxLeverage', '100');
@@ -507,7 +504,7 @@ export default class blofin extends Exchange {
             'contract': contract,
             'contractSize': contract ? this.safeNumber (market, 'contractValue') : undefined,
             'expiry': expiry,
-            'expiryDatetime': this.iso8601 (expiry),
+            'expiryDatetime': expiry,
             'strike': strikePrice,
             'optionType': optionType,
             'created': this.safeInteger (market, 'listTime'),
