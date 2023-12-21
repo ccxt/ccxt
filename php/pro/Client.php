@@ -138,9 +138,6 @@ class Client {
                     $value;
         }
 
-        $react_default_connector = new React\Socket\Connector();
-        $this->default_ws_connector_without_origin = new NoOriginHeaderConnector(Loop::get(), $react_default_connector);
-        $this->default_ws_connector_with_origin = new Connector(Loop::get(), $react_default_connector);
 
         $this->connected = new Future();
         $this->set_ws_connector(null);
@@ -149,10 +146,16 @@ class Client {
     public function set_ws_connector($proxy_address = null, $proxy_conenctor = null) {
         // set default connector
         if (!$proxy_address) {
-            if ($this->noOriginHeader) {
-                $this->connector = $this->default_ws_connector_without_origin;
+            if (array_key_exists('default_connector', $this->proxy_ws_connectors)) {
+                $this->connector = $this->proxy_ws_connectors['default_connector'];
             } else {
-                $this->connector = $this->default_ws_connector_with_origin;
+                $react_default_connector = new React\Socket\Connector();
+                if ($this->noOriginHeader) {
+                    $this->connector = new NoOriginHeaderConnector(Loop::get(), $react_default_connector);
+                } else {
+                    $this->connector = new Connector(Loop::get(), $react_default_connector);
+                }
+                $this->proxy_ws_connectors['default_connector'] = $this->connector;
             }
         } else {
             if (array_key_exists($proxy_address, $this->proxy_ws_connectors)) {
