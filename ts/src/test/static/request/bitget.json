@@ -549,6 +549,19 @@
                 "input": [
                   "BTC/USDT:USDT"
                 ]
+            },
+            {
+              "description": "Swap closed trailing stop orders",
+              "method": "fetchClosedOrders",
+              "url": "https://api.bitget.com/api/v2/mix/order/orders-plan-history?planType=track_plan&productType=USDT-FUTURES&symbol=BTCUSDT",
+              "input": [
+                "BTC/USDT:USDT",
+                null,
+                null,
+                {
+                  "trailingStop": true
+                }
+              ]
             }
         ],
         "fetchCanceledOrders": [
@@ -585,6 +598,19 @@
             "url": "https://api.bitget.com/api/v2/mix/order/orders-history?productType=USDT-FUTURES&symbol=LTCUSDT",
             "input": [
               "LTC/USDT:USDT"
+            ]
+          },
+          {
+            "description": "swap canceled trailing stop orders",
+            "method": "fetchCanceledOrders",
+            "url": "https://api.bitget.com/api/v2/mix/order/orders-plan-history?planType=track_plan&productType=USDT-FUTURES&symbol=BTCUSDT",
+            "input": [
+              "BTC/USDT:USDT",
+              null,
+              null,
+              {
+                "trailingStop": true
+              }
             ]
           }
         ],
