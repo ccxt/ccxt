@@ -5001,26 +5001,35 @@ class bitget extends bitget$1 {
          * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
         await this.loadMarkets();
         const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
         let market = undefined;
-        if (sandboxMode) {
-            const sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        }
-        else {
-            market = this.market(symbol);
-        }
+        let type = undefined;
+        let request = {};
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrders', params);
+        if (symbol !== undefined) {
+            if (sandboxMode) {
+                const sandboxSymbol = this.convertSymbolForSandbox(symbol);
+                market = this.market(sandboxSymbol);
+            }
+            else {
+                market = this.market(symbol);
+            }
+            request['symbol'] = market['id'];
+            const defaultType = this.safeString2(this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+            const marketType = ('type' in market) ? market['type'] : defaultType;
+            type = this.safeString(params, 'type', marketType);
+        }
+        else {
+            const defaultType = this.safeString2(this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+            type = this.safeString(params, 'type', defaultType);
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
             let cursorReceived = undefined;
-            if (market['spot']) {
+            if (type === 'spot') {
                 if (marginMode !== undefined) {
                     cursorReceived = 'minId';
                 }
@@ -5030,9 +5039,6 @@ class bitget extends bitget$1 {
             }
             return await this.fetchPaginatedCallCursor('fetchOpenOrders', symbol, since, limit, params, cursorReceived, 'idLessThan');
         }
-        let request = {
-            'symbol': market['id'],
-        };
         let response = undefined;
         const stop = this.safeValue2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
@@ -5043,46 +5049,48 @@ class bitget extends bitget$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if ((market['swap']) || (market['future']) || (marginMode !== undefined)) {
+        if ((type === 'swap') || (type === 'future') || (marginMode !== undefined)) {
             const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
             params = this.omit(params, 'clientOrderId');
             if (clientOrderId !== undefined) {
                 request['clientOid'] = clientOrderId;
             }
         }
-        if (market['spot']) {
+        let query = undefined;
+        query = this.omit(params, ['type']);
+        if (type === 'spot') {
             if (marginMode !== undefined) {
                 if (since === undefined) {
                     since = this.milliseconds() - 7776000000;
                     request['startTime'] = since;
                 }
                 if (marginMode === 'isolated') {
-                    response = await this.privateMarginGetV2MarginIsolatedOpenOrders(this.extend(request, params));
+                    response = await this.privateMarginGetV2MarginIsolatedOpenOrders(this.extend(request, query));
                 }
                 else if (marginMode === 'cross') {
-                    response = await this.privateMarginGetV2MarginCrossedOpenOrders(this.extend(request, params));
+                    response = await this.privateMarginGetV2MarginCrossedOpenOrders(this.extend(request, query));
                 }
             }
             else {
                 if (stop) {
-                    response = await this.privateSpotGetV2SpotTradeCurrentPlanOrder(this.extend(request, params));
+                    response = await this.privateSpotGetV2SpotTradeCurrentPlanOrder(this.extend(request, query));
                 }
                 else {
-                    response = await this.privateSpotGetV2SpotTradeUnfilledOrders(this.extend(request, params));
+                    response = await this.privateSpotGetV2SpotTradeUnfilledOrders(this.extend(request, query));
                 }
             }
         }
         else {
             let productType = undefined;
-            [productType, params] = this.handleProductTypeAndParams(market, params);
+            [productType, query] = this.handleProductTypeAndParams(market, query);
             request['productType'] = productType;
             if (stop) {
-                const planType = this.safeString(params, 'planType', 'normal_plan');
+                const planType = this.safeString(query, 'planType', 'normal_plan');
                 request['planType'] = planType;
-                response = await this.privateMixGetV2MixOrderOrdersPlanPending(this.extend(request, params));
+                response = await this.privateMixGetV2MixOrderOrdersPlanPending(this.extend(request, query));
             }
             else {
-                response = await this.privateMixGetV2MixOrderOrdersPending(this.extend(request, params));
+                response = await this.privateMixGetV2MixOrderOrdersPending(this.extend(request, query));
             }
         }
         //
@@ -5261,7 +5269,7 @@ class bitget extends bitget$1 {
         //     }
         //
         const data = this.safeValue(response, 'data');
-        if (market['spot']) {
+        if (type === 'spot') {
             if ((marginMode !== undefined) || stop) {
                 const resultList = this.safeValue(data, 'orderList', []);
                 return this.parseOrders(resultList, market, since, limit);

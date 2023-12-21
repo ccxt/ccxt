@@ -720,7 +720,7 @@ class gate extends gate$1 {
         //   }
         //
         const result = this.safeValue(message, 'result', []);
-        const timestamp = this.safeInteger(message, 'time');
+        const timestamp = this.safeInteger(message, 'time_ms');
         this.balance['info'] = result;
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601(timestamp);
