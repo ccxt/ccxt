@@ -176,6 +176,24 @@
                 }
               ],
               "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"side\":\"buy\",\"size\":\"8\"}"
+            },
+            {
+              "description": "Swap trailing stop order using trailingStopPercent and setting reduceOnly to true",
+              "method": "createOrder",
+              "url": "https://api.bitget.com/api/v2/mix/order/place-plan-order",
+              "input": [
+                "BTC/USDT:USDT",
+                "market",
+                "sell",
+                0.002,
+                null,
+                {
+                  "trailingStopPercent": "10",
+                  "triggerPrice": "45000",
+                  "reduceOnly": true
+                }
+              ],
+              "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.002\",\"productType\":\"USDT-FUTURES\",\"triggerType\":\"mark_price\",\"planType\":\"track_plan\",\"triggerPrice\":\"45000\",\"callbackRatio\":\"10\",\"marginMode\":\"crossed\",\"reduceOnly\":\"YES\",\"tradeSide\":\"Close\",\"side\":\"buy\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
