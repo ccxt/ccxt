@@ -8273,21 +8273,9 @@ export default class binance extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        let method = undefined;
         const request = {};
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLedger', undefined, params);
-        if (type === 'option') {
-            this.checkRequiredArgument ('fetchLedger', code, 'code');
-            request['currency'] = currency['id'];
-            method = 'eapiPrivateGetBill';
-        } else if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateGetIncome';
-        } else if (this.isInverse (type, subType)) {
-            method = 'dapiPrivateGetIncome';
-        } else {
-            throw new NotSupported (this.id + ' fetchLedger() supports contract wallets only');
-        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -8299,7 +8287,18 @@ export default class binance extends Exchange {
             params = this.omit (params, 'until');
             request['endTime'] = until;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (type === 'option') {
+            this.checkRequiredArgument ('fetchLedger', code, 'code');
+            request['currency'] = currency['id'];
+            response = await this.eapiPrivateGetBill (this.extend (request, params));
+        } else if (this.isLinear (type, subType)) {
+            response = await this.fapiPrivateGetIncome (this.extend (request, params));
+        } else if (this.isInverse (type, subType)) {
+            response = await this.dapiPrivateGetIncome (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchLedger() supports contract wallets only');
+        }
         //
         // options (eapi)
         //
