@@ -3988,6 +3988,7 @@ export default class bitget extends Exchange {
          * @param {float} [params.takeProfit.price] *swap only* the execution price for a take profit attached to a trigger order
          * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
          * @param {string} [params.takeProfit.type] *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+         * @param {string} [params.trailingStopPercent] *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3997,6 +3998,8 @@ export default class bitget extends Exchange {
         const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
         const stopLossTriggerPrice = this.safeValue (params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeValue (params, 'takeProfitPrice');
+        const trailingStopPercent = this.safeString2 (params, 'trailingStopPercent', 'callbackRatio');
+        const isTrailingStopPercentOrder = trailingStopPercent !== undefined;
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
@@ -4014,7 +4017,7 @@ export default class bitget extends Exchange {
                 response = await this.privateSpotPostV2SpotTradePlaceOrder (request);
             }
         } else {
-            if (isTriggerOrder) {
+            if (isTriggerOrder || isTrailingStopPercentOrder) {
                 response = await this.privateMixPostV2MixOrderPlacePlanOrder (request);
             } else if (isStopLossOrTakeProfitTrigger) {
                 response = await this.privateMixPostV2MixOrderPlaceTpslOrder (request);
@@ -4067,8 +4070,10 @@ export default class bitget extends Exchange {
         const isTakeProfit = takeProfit !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const isStopLossOrTakeProfit = isStopLoss || isTakeProfit;
-        if (this.sum (isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder) > 1) {
-            throw new ExchangeError (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice');
+        const trailingStopPercent = this.safeString2 (params, 'trailingStopPercent', 'callbackRatio');
+        const isTrailingStopPercentOrder = trailingStopPercent !== undefined;
+        if (this.sum (isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingStopPercentOrder) > 1) {
+            throw new ExchangeError (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingStopPercent');
         }
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -4090,7 +4095,7 @@ export default class bitget extends Exchange {
         } else if (timeInForce === 'IOC') {
             request['force'] = 'IOC';
         }
-        params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly', 'clientOrderId' ]);
+        params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly', 'clientOrderId', 'trailingStopPercent' ]);
         if ((marketType === 'swap') || (marketType === 'future')) {
             request['marginCoin'] = market['settleId'];
             request['size'] = this.amountToPrecision (symbol, amount);
@@ -4100,32 +4105,23 @@ export default class bitget extends Exchange {
             if (clientOrderId !== undefined) {
                 request['clientOid'] = clientOrderId;
             }
-            if (isTriggerOrder || isStopLossOrTakeProfitTrigger) {
+            if (isTriggerOrder || isStopLossOrTakeProfitTrigger || isTrailingStopPercentOrder) {
                 request['triggerType'] = triggerType;
             }
-            if (isStopLossOrTakeProfitTrigger) {
+            if (isTrailingStopPercentOrder) {
                 if (!isMarketOrder) {
-                    throw new ExchangeError (this.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders');
+                    throw new BadRequest (this.id + ' createOrder() bitget trailing stop orders must be market orders');
                 }
-                request['holdSide'] = (side === 'buy') ? 'long' : 'short';
-            } else {
-                if (marginMode === undefined) {
-                    marginMode = 'cross';
+                if (price !== undefined) {
+                    throw new BadRequest (this.id + ' createOrder() bitget trailing stop orders must have the price undefined');
                 }
-                const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
-                request['marginMode'] = marginModeRequest;
-                let requestSide = side;
-                if (reduceOnly) {
-                    request['reduceOnly'] = 'YES';
-                    request['tradeSide'] = 'Close';
-                    // on bitget if the position is long the side is always buy, and if the position is short the side is always sell
-                    requestSide = (side === 'buy') ? 'sell' : 'buy';
-                } else {
-                    request['tradeSide'] = 'Open';
+                if (triggerPrice === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() bitget trailing stop orders must have a triggerPrice param');
                 }
-                request['side'] = requestSide;
-            }
-            if (isTriggerOrder) {
+                request['planType'] = 'track_plan';
+                request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+                request['callbackRatio'] = trailingStopPercent;
+            } else if (isTriggerOrder) {
                 request['planType'] = 'normal_plan';
                 request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
                 if (price !== undefined) {
@@ -4148,6 +4144,10 @@ export default class bitget extends Exchange {
                     request['stopSurplusTriggerType'] = tpType;
                 }
             } else if (isStopLossOrTakeProfitTrigger) {
+                if (!isMarketOrder) {
+                    throw new ExchangeError (this.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders');
+                }
+                request['holdSide'] = (side === 'buy') ? 'long' : 'short';
                 if (isStopLossTriggerOrder) {
                     request['triggerPrice'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
                     request['planType'] = 'pos_loss';
@@ -4164,6 +4164,23 @@ export default class bitget extends Exchange {
                     const tpTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
                     request['presetStopSurplusPrice'] = this.priceToPrecision (symbol, tpTriggerPrice);
                 }
+            }
+            if (!isStopLossOrTakeProfitTrigger) {
+                if (marginMode === undefined) {
+                    marginMode = 'cross';
+                }
+                const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
+                request['marginMode'] = marginModeRequest;
+                let requestSide = side;
+                if (reduceOnly) {
+                    request['reduceOnly'] = 'YES';
+                    request['tradeSide'] = 'Close';
+                    // on bitget if the position is long the side is always buy, and if the position is short the side is always sell
+                    requestSide = (side === 'buy') ? 'sell' : 'buy';
+                } else {
+                    request['tradeSide'] = 'Open';
+                }
+                request['side'] = requestSide;
             }
         } else if (marketType === 'spot') {
             if (isStopLossOrTakeProfitTrigger || isStopLossOrTakeProfit) {
