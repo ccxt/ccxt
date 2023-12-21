@@ -2484,7 +2484,7 @@ class kucoin extends Exchange {
                     $response = Async\await($this->privateGetOrdersOrderId (array_merge($request, $params)));
                 }
             }
-            $responseData = $this->safe_value($response, 'data');
+            $responseData = $this->safe_value($response, 'data', array());
             if (gettype($responseData) === 'array' && array_keys($responseData) === array_keys(array_keys($responseData))) {
                 $responseData = $this->safe_value($responseData, 0);
             }
