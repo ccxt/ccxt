@@ -390,6 +390,16 @@
                     }
                 ],
                 "output": "timestamp=1702624225422&recvWindow=10000&signature=9dbc6d2f649bd8522187b3ac2643e2eec3c50e48d5d44e925eb225e108c133ee"
+            },
+            {
+                "description": "fetch isolated balance",
+                "method": "fetchBalance",
+                "url": "https://api.binance.com/sapi/v1/margin/isolated/account?timestamp=1703072784927&recvWindow=10000&signature=96c89d509bf6e5a630b1e7dd84dce9f011cb07caf25cf6eaa90a8a4400793826",
+                "input": [
+                  {
+                    "marginMode": "isolated"
+                  }
+                ]
             }
         ],
         "fetchMyTrades": [

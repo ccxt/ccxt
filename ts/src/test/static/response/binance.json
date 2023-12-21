@@ -413,6 +413,234 @@
           }
         ]
       }
+    ],
+    "fetchBalance": [
+      {
+        "description": "Spot balance",
+        "method": "fetchBalance",
+        "input": [],
+        "httpResponse": {
+          "makerCommission": "10",
+          "takerCommission": "10",
+          "buyerCommission": "0",
+          "sellerCommission": "0",
+          "commissionRates": {
+            "maker": "0.00100000",
+            "taker": "0.00100000",
+            "buyer": "0.00000000",
+            "seller": "0.00000000"
+          },
+          "canTrade": true,
+          "canWithdraw": true,
+          "canDeposit": true,
+          "brokered": false,
+          "requireSelfTradePrevention": false,
+          "preventSor": false,
+          "updateTime": "1701856395927",
+          "accountType": "SPOT",
+          "balances": [
+            {
+              "asset": "BTC",
+              "free": "0.00000000",
+              "locked": "0.00000000"
+            },
+            {
+              "asset": "LTC",
+              "free": "0.91974100",
+              "locked": "0.00000000"
+            },
+            {
+              "asset": "ETH",
+              "free": "0.02229833",
+              "locked": "0.00000000"
+            }
+          ],
+          "permissions": [
+            "SPOT"
+          ],
+          "uid": "365859102"
+        },
+        "parsedResponse": {
+          "info": {
+            "makerCommission": "10",
+            "takerCommission": "10",
+            "buyerCommission": "0",
+            "sellerCommission": "0",
+            "commissionRates": {
+              "maker": "0.00100000",
+              "taker": "0.00100000",
+              "buyer": "0.00000000",
+              "seller": "0.00000000"
+            },
+            "canTrade": true,
+            "canWithdraw": true,
+            "canDeposit": true,
+            "brokered": false,
+            "requireSelfTradePrevention": false,
+            "preventSor": false,
+            "updateTime": "1701856395927",
+            "accountType": "SPOT",
+            "balances": [
+              {
+                "asset": "BTC",
+                "free": "0.00000000",
+                "locked": "0.00000000"
+              },
+              {
+                "asset": "LTC",
+                "free": "0.91974100",
+                "locked": "0.00000000"
+              },
+              {
+                "asset": "ETH",
+                "free": "0.02229833",
+                "locked": "0.00000000"
+              }
+            ],
+            "permissions": [
+              "SPOT"
+            ],
+            "uid": "365859102"
+          },
+          "BTC": {
+            "free": 0,
+            "used": 0,
+            "total": 0
+          },
+          "LTC": {
+            "free": 0.919741,
+            "used": 0,
+            "total": 0.919741
+          },
+          "ETH": {
+            "free": 0.02229833,
+            "used": 0,
+            "total": 0.02229833
+          },
+          "timestamp": 1701856395927,
+          "datetime": "2023-12-06T09:53:15.927Z",
+          "free": {
+            "BTC": 0,
+            "LTC": 0.919741,
+            "ETH": 0.02229833
+          },
+          "used": {
+            "BTC": 0,
+            "LTC": 0,
+            "ETH": 0
+          },
+          "total": {
+            "BTC": 0,
+            "LTC": 0.919741,
+            "ETH": 0.02229833
+          }
+        }
+      },
+      {
+        "description": "Linear swap balance",
+        "method": "fetchBalance",
+        "input": [
+          {
+            "type": "swap"
+          }
+        ],
+        "httpResponse": {
+          "feeTier": "0",
+          "canTrade": true,
+          "canDeposit": true,
+          "canWithdraw": true,
+          "tradeGroupId": "-1",
+          "updateTime": "0",
+          "multiAssetsMargin": false,
+          "totalInitialMargin": "0.00000000",
+          "totalMaintMargin": "0.00000000",
+          "totalWalletBalance": "31.02261200",
+          "totalUnrealizedProfit": "0.00000000",
+          "totalMarginBalance": "31.02261200",
+          "totalPositionInitialMargin": "0.00000000",
+          "totalOpenOrderInitialMargin": "0.00000000",
+          "totalCrossWalletBalance": "31.02261200",
+          "totalCrossUnPnl": "0.00000000",
+          "availableBalance": "31.02261200",
+          "maxWithdrawAmount": "31.02261200",
+          "assets": [
+            {
+              "asset": "USDT",
+              "walletBalance": "31.02261200",
+              "unrealizedProfit": "0.00000000",
+              "marginBalance": "31.02261200",
+              "maintMargin": "0.00000000",
+              "initialMargin": "0.00000000",
+              "positionInitialMargin": "0.00000000",
+              "openOrderInitialMargin": "0.00000000",
+              "maxWithdrawAmount": "31.02261200",
+              "crossWalletBalance": "31.02261200",
+              "crossUnPnl": "0.00000000",
+              "availableBalance": "31.02261200",
+              "marginAvailable": true,
+              "updateTime": "1701270042059"
+            }
+          ],
+          "positions": []
+        },
+        "parsedResponse": {
+          "info": {
+            "feeTier": "0",
+            "canTrade": true,
+            "canDeposit": true,
+            "canWithdraw": true,
+            "tradeGroupId": "-1",
+            "updateTime": "0",
+            "multiAssetsMargin": false,
+            "totalInitialMargin": "0.00000000",
+            "totalMaintMargin": "0.00000000",
+            "totalWalletBalance": "31.02261200",
+            "totalUnrealizedProfit": "0.00000000",
+            "totalMarginBalance": "31.02261200",
+            "totalPositionInitialMargin": "0.00000000",
+            "totalOpenOrderInitialMargin": "0.00000000",
+            "totalCrossWalletBalance": "31.02261200",
+            "totalCrossUnPnl": "0.00000000",
+            "availableBalance": "31.02261200",
+            "maxWithdrawAmount": "31.02261200",
+            "assets": [
+              {
+                "asset": "USDT",
+                "walletBalance": "31.02261200",
+                "unrealizedProfit": "0.00000000",
+                "marginBalance": "31.02261200",
+                "maintMargin": "0.00000000",
+                "initialMargin": "0.00000000",
+                "positionInitialMargin": "0.00000000",
+                "openOrderInitialMargin": "0.00000000",
+                "maxWithdrawAmount": "31.02261200",
+                "crossWalletBalance": "31.02261200",
+                "crossUnPnl": "0.00000000",
+                "availableBalance": "31.02261200",
+                "marginAvailable": true,
+                "updateTime": "1701270042059"
+              }
+            ],
+            "positions": []
+          },
+          "USDT": {
+            "free": 31.022612,
+            "used": 0,
+            "total": 31.022612
+          },
+          "timestamp": null,
+          "datetime": null,
+          "free": {
+            "USDT": 31.022612
+          },
+          "used": {
+            "USDT": 0
+          },
+          "total": {
+            "USDT": 31.022612
+          }
+        }
+      }
     ]
   }
 }

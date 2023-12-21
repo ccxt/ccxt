@@ -26,6 +26,51 @@
                     "buy",
                     0.1
                 ]
+            },
+            {
+                "description": "Swap stop buy order using the triggerPrice param (type 1)",
+                "method": "createOrder",
+                "url": "https://demo-futures.kraken.com/derivatives/api/v3/sendorder?symbol=PF_XBTUSD&side=buy&size=0.0001&triggerSignal=last&stopPrice=45000&orderType=stp&limitPrice=46000",
+                "input": [
+                  "BTC/USD:USD",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  46000,
+                  {
+                    "triggerPrice": 45000
+                  }
+                ]
+            },
+            {
+                "description": "Swap stopLossPrice order (type 2)",
+                "method": "createOrder",
+                "url": "https://demo-futures.kraken.com/derivatives/api/v3/sendorder?symbol=PF_XBTUSD&side=sell&size=0.01&triggerSignal=last&reduceOnly=true&stopPrice=38000&orderType=stp&limitPrice=37000",
+                "input": [
+                  "BTC/USD:USD",
+                  "limit",
+                  "sell",
+                  0.01,
+                  37000,
+                  {
+                    "stopLossPrice": 38000
+                  }
+                ]
+            },
+            {
+                "description": "Swap takeProfitPrice order (type 2)",
+                "method": "createOrder",
+                "url": "https://demo-futures.kraken.com/derivatives/api/v3/sendorder?symbol=PF_XBTUSD&side=sell&size=0.01&triggerSignal=last&reduceOnly=true&stopPrice=49000&orderType=take_profit&limitPrice=50000",
+                "input": [
+                  "BTC/USD:USD",
+                  "limit",
+                  "sell",
+                  0.01,
+                  50000,
+                  {
+                    "takeProfitPrice": 49000
+                  }
+                ]
             }
         ],
         "transfer": [
