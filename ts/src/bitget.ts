@@ -4969,6 +4969,7 @@ export default class bitget extends Exchange {
          * @param {boolean} [params.stop] set to true for fetching trigger orders
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+         * @param {boolean} [params.trailingStop] set to true if you want to fetch trailing stop orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -5007,8 +5008,9 @@ export default class bitget extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchOpenOrders', symbol, since, limit, params, cursorReceived, 'idLessThan') as Order[];
         }
         let response = undefined;
+        const trailingStop = this.safeValue (params, 'trailingStop');
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        params = this.omit (params, [ 'stop', 'trigger', 'trailingStop' ]);
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;
@@ -5047,7 +5049,11 @@ export default class bitget extends Exchange {
             let productType = undefined;
             [ productType, query ] = this.handleProductTypeAndParams (market, query);
             request['productType'] = productType;
-            if (stop) {
+            if (trailingStop) {
+                const planType = this.safeString (params, 'planType', 'track_plan');
+                request['planType'] = planType;
+                response = await this.privateMixGetV2MixOrderOrdersPlanPending (this.extend (request, query));
+            } else if (stop) {
                 const planType = this.safeString (query, 'planType', 'normal_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanPending (this.extend (request, query));
