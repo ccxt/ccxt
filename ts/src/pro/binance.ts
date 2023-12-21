@@ -955,13 +955,12 @@ export default class binance extends binanceRest {
             event = 'ticker';
         }
         let timestamp = undefined;
-        const now = this.milliseconds ();
         if (event === 'bookTicker') {
             // take the event timestamp, if available, for spot tickers it is not
-            timestamp = this.safeInteger (message, 'E', now);
+            timestamp = this.safeInteger (message, 'E');
         } else {
             // take the timestamp of the closing price for candlestick streams
-            timestamp = this.safeInteger (message, 'C', now);
+            timestamp = this.safeInteger (message, 'C');
         }
         const marketId = this.safeString (message, 's');
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
