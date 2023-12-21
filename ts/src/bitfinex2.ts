@@ -1076,15 +1076,14 @@ export default class bitfinex2 extends Exchange {
         //         FRR_AMOUNT_AVAILABLE
         //     ]
         //
-        const timestamp = this.milliseconds ();
         const symbol = this.safeSymbol (undefined, market);
         const length = ticker.length;
         const last = this.safeString (ticker, length - 4);
         const percentage = this.safeString (ticker, length - 5);
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString (ticker, length - 2),
             'low': this.safeString (ticker, length - 1),
             'bid': this.safeString (ticker, length - 10),
