@@ -7984,21 +7984,19 @@ export default class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = undefined;
-        if (market['linear']) {
-            method = 'fapiPrivatePostMarginType';
-        } else if (market['inverse']) {
-            method = 'dapiPrivatePostMarginType';
-        } else {
-            throw new NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
-        }
         const request = {
             'symbol': market['id'],
             'marginType': marginMode,
         };
         let response = undefined;
         try {
-            response = await this[method] (this.extend (request, params));
+            if (market['linear']) {
+                response = await this.fapiPrivatePostMarginType (this.extend (request, params));
+            } else if (market['inverse']) {
+                response = await this.dapiPrivatePostMarginType (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
+            }
         } catch (e) {
             // not an error
             // https://github.com/ccxt/ccxt/issues/11268
