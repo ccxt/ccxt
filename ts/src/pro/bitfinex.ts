@@ -217,7 +217,6 @@ export default class bitfinex extends bitfinexRest {
         //         220.05,        // 10 LOW float Daily low
         //     ]
         //
-        const timestamp = this.milliseconds ();
         const marketId = this.safeString (subscription, 'pair');
         const symbol = this.safeSymbol (marketId);
         const channel = 'ticker';
@@ -230,8 +229,8 @@ export default class bitfinex extends bitfinexRest {
         }
         const result = {
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeFloat (message, 9),
             'low': this.safeFloat (message, 10),
             'bid': this.safeFloat (message, 1),
