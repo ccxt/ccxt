@@ -87,9 +87,9 @@ trait ClientTrait {
 
     private function configure_proxy_client($client) {
         [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_ws_proxy_settings();
-        $selected_proxy = $httpProxy ? $httpProxy : ($httpsProxy ? $httpsProxy : $socksProxy );
+        $selected_proxy_address = $httpProxy ? $httpProxy : ($httpsProxy ? $httpsProxy : $socksProxy );
         $proxy_connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
-        $client->set_ws_connector($selected_proxy, $proxy_connector);
+        $client->set_ws_connector($selected_proxy_address, $proxy_connector);
     }
 
     public function watch_multiple($url, $message_hashes, $message = null, $subscribe_hashes = null, $subscription = null) {
