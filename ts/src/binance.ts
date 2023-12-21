@@ -7454,18 +7454,18 @@ export default class binance extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, query, 'linear');
-        let method = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params, 'linear');
+        let response = undefined;
         if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateGetLeverageBracket';
+            response = await this.fapiPrivateGetLeverageBracket (params);
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPrivateV2GetLeverageBracket';
+            response = await this.dapiPrivateV2GetLeverageBracket (params);
         } else {
             throw new NotSupported (this.id + ' fetchLeverageTiers() supports linear and inverse contracts only');
         }
-        const response = await this[method] (query);
         //
         // usdm
         //

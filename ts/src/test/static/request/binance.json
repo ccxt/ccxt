@@ -724,6 +724,30 @@
                     ]
                 ]
             }
+        ],
+        "fetchLeverageTiers": [
+            {
+                "description": "Fetch Leverage Tiers - linear",
+                "method": "fetchLeverageTiers",
+                "url": "https://fapi.binance.com/fapi/v1/leverageBracket?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "input": [
+                    null,
+                    {
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch Leverage Tiers - inverse",
+                "method": "fetchLeverageTiers",
+                "url": "https://dapi.binance.com/dapi/v2/leverageBracket?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "input": [
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            }
         ]
     }
 }
