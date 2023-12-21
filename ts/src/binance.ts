@@ -6605,7 +6605,6 @@ export default class binance extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        let method = undefined;
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         let subType = undefined;
@@ -6613,14 +6612,14 @@ export default class binance extends Exchange {
         const isSpotOrMargin = (type === 'spot') || (type === 'margin');
         const isLinear = this.isLinear (type, subType);
         const isInverse = this.isInverse (type, subType);
+        let response = undefined;
         if (isSpotOrMargin) {
-            method = 'sapiGetAssetTradeFee';
+            response = await this.sapiGetAssetTradeFee (params);
         } else if (isLinear) {
-            method = 'fapiPrivateV2GetAccount';
+            response = await this.fapiPrivateV2GetAccount (params);
         } else if (isInverse) {
-            method = 'dapiPrivateGetAccount';
+            response = await this.dapiPrivateGetAccount (params);
         }
-        const response = await this[method] (params);
         //
         // sapi / spot
         //
