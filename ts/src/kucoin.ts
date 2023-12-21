@@ -2250,9 +2250,10 @@ export default class kucoin extends Exchange {
             response = await this.privateDeleteStopOrderCancel (this.extend (request, query));
         } else if (hf) {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol parameter for hf orders');
+                response = await this.privateDeleteHfOrdersCancelAll (this.extend (request, query));
+            } else {
+                response = await this.privateDeleteHfOrders (this.extend (request, query));
             }
-            response = await this.privateDeleteHfOrders (this.extend (request, query));
         } else {
             response = await this.privateDeleteOrders (this.extend (request, query));
         }
