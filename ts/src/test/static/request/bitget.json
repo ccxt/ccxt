@@ -512,6 +512,19 @@
                   "type": "swap"
                 }
               ]
+            },
+            {
+              "description": "Swap open trailing stop orders",
+              "method": "fetchOpenOrders",
+              "url": "https://api.bitget.com/api/v2/mix/order/orders-plan-pending?planType=track_plan&productType=USDT-FUTURES&symbol=BTCUSDT",
+              "input": [
+                "BTC/USDT:USDT",
+                null,
+                null,
+                {
+                  "trailingStop": true
+                }
+              ]
             }
         ],
         "fetchClosedOrders": [
