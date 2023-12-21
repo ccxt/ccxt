@@ -508,6 +508,30 @@
                     652124757,
                     "ETH/USDT:USDT-231229-800-C"
                 ]
+            },
+            {
+                "description": "Spot cross order",
+                "method": "fetchOrder",
+                "url": "https://api.binance.com/sapi/v1/margin/order?timestamp=1703159386293&symbol=LTCUSDT&orderId=3103603561&recvWindow=10000&signature=dc62a3b4d2125eb456629bdbb70eee5cddfc1c2836b050e072dc5bec635bf5e8",
+                "input": [
+                  3103603561,
+                  "LTC/USDT",
+                  {
+                    "marginMode": "cross"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch isolated order",
+                "method": "fetchOrder",
+                "url": "https://api.binance.com/sapi/v1/margin/order?timestamp=1703159655585&symbol=LTCUSDT&isIsolated=true&orderId=3807830610&recvWindow=10000&signature=67f6cbaff42d879c7af414d5669b542c8ff536689d52ade8ca17a3406f665175",
+                "input": [
+                  3807830610,
+                  "LTC/USDT",
+                  {
+                    "marginMode": "isolated"
+                  }
+                ]
             }
         ],
         "fetchOpenOrders": [
