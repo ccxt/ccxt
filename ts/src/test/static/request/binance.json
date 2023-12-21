@@ -317,6 +317,18 @@
                     652509009,
                     "ETH/USDT:USDT-231229-800-C"
                 ]
+            },
+            {
+                "description": "cancel swap order with clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order?timestamp=1703181445987&symbol=BTCUSDT&origClientOrderId=myswap&recvWindow=10000&signature=169048840e9612fc90a33b39894e882fc3f73950a02374b544ddecb344467929",
+                "input": [
+                  "",
+                  "BTC/USDT:USDT",
+                  {
+                    "clientOrderId": "myswap"
+                  }
+                ]
             }
         ],
         "cancelOrders": [
