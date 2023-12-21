@@ -62,7 +62,10 @@ class Client {
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;
-    public $default_connector = null;
+    public $default_ws_connector = null;
+    public $default_ws_connector_with_origin = null;
+    public $default_ws_connector_without_origin = null;
+    public $proxy_ws_connectors = [];
 
 
     // ------------------------------------------------------------------------
@@ -135,16 +138,33 @@ class Client {
                     $value;
         }
 
-        $this->default_connector = new React\Socket\Connector();
+        $react_default_connector = new React\Socket\Connector();
+        $this->default_ws_connector_without_origin = new NoOriginHeaderConnector(Loop::get(), $react_default_connector);
+        $this->default_ws_connector_with_origin = new Connector(Loop::get(), $react_default_connector);
+
         $this->connected = new Future();
-        $this->set_ws_connector($this->default_connector);
+        $this->set_ws_connector(null);
     }
 
-    public function set_ws_connector($connector = null) {
-        if ($this->noOriginHeader) {
-            $this->connector = new NoOriginHeaderConnector(Loop::get(), $connector);
+    public function set_ws_connector($proxy_address = null, $proxy_conenctor = null) {
+        // set default connector
+        if (!$proxy_address) {
+            if ($this->noOriginHeader) {
+                $this->connector = $this->default_ws_connector_without_origin;
+            } else {
+                $this->connector = $this->default_ws_connector_with_origin;
+            }
         } else {
-            $this->connector = new Connector(Loop::get(), $connector);
+            if (array_key_exists($proxy_address, $this->proxy_ws_connectors)) {
+                $this->connector = $this->proxy_ws_connectors[$proxy_address];
+            } else {
+                if ($this->noOriginHeader) {
+                    $this->connector = new NoOriginHeaderConnector(Loop::get(), $proxy_conenctor);
+                } else {
+                    $this->connector = new Connector(Loop::get(), $proxy_conenctor);
+                }
+                $this->proxy_ws_connectors[$proxy_address] = $this->connector;
+            }
         }
     }
 
