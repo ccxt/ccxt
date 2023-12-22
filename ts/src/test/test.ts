@@ -21,7 +21,7 @@ const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] =
 const AuthenticationError = ccxt.AuthenticationError;
 const NotSupported = ccxt.NotSupported;
 const NetworkError = ccxt.NetworkError;
-const BadRequest = ccxt.BadRequest;
+const ProxyError = ccxt.ProxyError;
 const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
@@ -1095,7 +1095,7 @@ export default class testMainClass extends baseMainTestClass {
             await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
         } catch (e) {
             const exceptionText = exceptionMessageText (e);
-            if (!(e instanceof BadRequest) || !(exceptionText.indexOf ('multiple conflicting proxy settings') >= 0)) {
+            if (!(e instanceof ProxyError) || !(exceptionText.indexOf ('multiple conflicting proxy settings') >= 0)) {
                 // if it's not a BadRequest, it means our request was not created succesfully
                 // so we might have an error in the request creation
                 throw e;
