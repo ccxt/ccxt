@@ -252,6 +252,7 @@ function set_fetch_response($exchange, $data) {
 
 // Required imports
 use ccxt\NotSupported;
+use ccxt\ProxyError;
 use ccxt\NetworkError;
 use ccxt\BadRequest;
 use ccxt\ExchangeNotAvailable;
