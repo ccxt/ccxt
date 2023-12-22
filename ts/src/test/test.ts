@@ -112,6 +112,10 @@ function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.stack.slice (0, LOG_CHARS_LENGTH);
 }
 
+function exceptionMessageText (exc) {
+    return exc.message;
+}
+
 function exitScript (code = 0) {
     process.exit (code);
 }
@@ -1090,7 +1094,8 @@ export default class testMainClass extends baseMainTestClass {
         try {
             await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
         } catch (e) {
-            if (!(e instanceof BadRequest)) {
+            const exceptionText = exceptionMessageText (e);
+            if (!(e instanceof BadRequest) || !(exceptionText.indexOf ('multiple conflicting proxy settings') >= 0)) {
                 // if it's not a BadRequest, it means our request was not created succesfully
                 // so we might have an error in the request creation
                 throw e;
