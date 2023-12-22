@@ -698,7 +698,7 @@ class cex(ccxt.async_support.cex):
                 'currency': quote,
                 'rate': None,
             }
-        timestamp = self.safe_integer(data, 'time', self.milliseconds())
+        timestamp = self.safe_integer(data, 'time')
         order['timestamp'] = timestamp
         order['datetime'] = self.iso8601(timestamp)
         order = self.safe_order(order)

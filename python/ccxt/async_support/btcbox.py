@@ -177,13 +177,12 @@ class btcbox(Exchange, ImplicitAPI):
         return self.parse_order_book(response, market['symbol'])
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
-        timestamp = self.milliseconds()
         symbol = self.safe_symbol(None, market)
         last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_string(ticker, 'high'),
             'low': self.safe_string(ticker, 'low'),
             'bid': self.safe_string(ticker, 'buy'),

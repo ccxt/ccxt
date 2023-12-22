@@ -818,7 +818,7 @@ class okx extends \ccxt\async\okx {
             'side' => $this->safe_string($order, 'side'),
             'price' => $this->safe_number($info, 'fillPx'),
             'amount' => $this->safe_number($info, 'fillSz'),
-            'cost' => null,
+            'cost' => $this->safe_number($order, 'cost'),
             'fee' => array(
                 'cost' => $this->safe_number($info, 'fillFee'),
                 'currency' => $this->safe_currency_code($feeMarketId),
@@ -1229,7 +1229,7 @@ class okx extends \ccxt\async\okx {
             $messageHash = (string) $this->nonce();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'op', 'batch-orders');
-            $args = $this->createOrderRequest ($symbol, $type, $side, $amount, $price, $params);
+            $args = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $ordType = $this->safe_string($args, 'ordType');
             if (($ordType === 'trigger') || ($ordType === 'conditional') || ($type === 'oco') || ($type === 'move_order_stop') || ($type === 'iceberg') || ($type === 'twap')) {
                 throw new BadRequest($this->id . ' createOrderWs() does not support algo trading. $this->options["createOrderWs"]["op"] must be either order or batch-order');
@@ -1300,7 +1300,7 @@ class okx extends \ccxt\async\okx {
             $messageHash = (string) $this->nonce();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'editOrderWs', 'op', 'amend-order');
-            $args = $this->editOrderRequest ($id, $symbol, $type, $side, $amount, $price, $params);
+            $args = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
             $request = array(
                 'id' => $messageHash,
                 'op' => $op,

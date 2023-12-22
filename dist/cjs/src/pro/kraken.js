@@ -322,11 +322,10 @@ class kraken extends kraken$1 {
             quoteVolume = Precise["default"].stringMul(baseVolume, vwap);
         }
         const last = this.safeString(ticker['c'], 0);
-        const timestamp = this.milliseconds();
         const result = this.safeTicker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString(ticker['h'], 0),
             'low': this.safeString(ticker['l'], 0),
             'bid': this.safeString(ticker['b'], 0),
