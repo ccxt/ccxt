@@ -1626,13 +1626,11 @@ export default class bitmex extends Exchange {
         let fee = undefined;
         const feeCostString = this.numberToString (this.convertFromRawCost (symbol, this.safeString (trade, 'execComm')));
         if (feeCostString !== undefined) {
-            const currencyId = this.safeString (trade, 'settlCurrency');
-            const feeCurrencyCode = this.safeCurrencyCode (currencyId);
-            const feeRateString = this.safeString (trade, 'commission');
+            const currencyId = this.safeString2 (trade, 'settlCurrency', 'currency');
             fee = {
-                'cost': Precise.stringAbs (feeCostString),
-                'currency': feeCurrencyCode,
-                'rate': Precise.stringAbs (feeRateString),
+                'cost': feeCostString,
+                'currency': this.safeCurrencyCode (currencyId),
+                'rate': this.safeString (trade, 'commission'),
             };
         }
         // Trade or Funding
