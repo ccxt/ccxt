@@ -1010,7 +1010,7 @@ export default class bitvavo extends Exchange {
          * @method
          * @name bitvavo#createOrder
          * @description create a trade order
-         * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1139,6 +1139,25 @@ export default class bitvavo extends Exchange {
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitvavo#editOrder
+         * @description edit a trade order
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/put
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+         * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+         * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {string} [params.selfTradePrevention] "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+         * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1151,7 +1170,8 @@ export default class bitvavo extends Exchange {
             request['orderId'] = id;
         }
         const amountRemaining = this.safeNumber (params, 'amountRemaining');
-        params = this.omit (params, [ 'amountRemaining', 'clientOid', 'clientOrderId' ]);
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
+        params = this.omit (params, [ 'amountRemaining', 'triggerPrice', 'stopPrice', 'triggerAmount', 'clientOid', 'clientOrderId' ]);
         let updateRequest = {};
         if (price !== undefined) {
             updateRequest['price'] = this.priceToPrecision (symbol, price);
@@ -1161,6 +1181,9 @@ export default class bitvavo extends Exchange {
         }
         if (amountRemaining !== undefined) {
             updateRequest['amountRemaining'] = this.amountToPrecision (symbol, amountRemaining);
+        }
+        if (triggerPrice !== undefined) {
+            updateRequest['triggerAmount'] = this.priceToPrecision (symbol, triggerPrice);
         }
         updateRequest = this.extend (updateRequest, params);
         if (Object.keys (updateRequest).length) {
@@ -1292,7 +1315,7 @@ export default class bitvavo extends Exchange {
         /**
          * @method
          * @name bitvavo#fetchOrders
-         * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
