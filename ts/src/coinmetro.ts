@@ -90,7 +90,7 @@ export default class coinmetro extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositions': false,
@@ -118,7 +118,7 @@ export default class coinmetro extends Exchange {
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'signIn': true,
+                'signIn': false,
                 'transfer': false,
                 'withdraw': false,
                 'ws': false,
@@ -195,14 +195,7 @@ export default class coinmetro extends Exchange {
                 'uid': true,
                 'token': true,
             },
-            // todo: check
-            'token': undefined,
-            'tokenBackup': undefined,
-            'uid': undefined,
-            'twofa': undefined,
-            'demoToken': undefined,
             'fees': {
-                // todo: add margin
                 'trading': {
                     'feeSide': 'get',
                     'tierBased': false,
@@ -229,7 +222,6 @@ export default class coinmetro extends Exchange {
                     'Insufficient balance': InsufficientFunds, // 422 - "Insufficient balance"
                     'Expiration date is in the past or too near in the future': InvalidOrder, // 422 Unprocessable Entity {"message":"Expiration date is in the past or too near in the future"}
                     'Forbidden': PermissionDenied, // 403 Forbidden {"message":"Forbidden"}
-                    'Insufficient liquidity to fill the FOK order completely': InvalidOrder, // todo: check 503 Service Unavailable {"message":"Insufficient liquidity to fill the FOK order completely."}
                     'Order Not Found': OrderNotFound, // 404 Not Found {"message":"Order Not Found"}
                     'This pair is disabled on margin': BadSymbol, // 422 Unprocessable Entity {"message":"This pair is disabled on margin"}
                 },
@@ -238,6 +230,7 @@ export default class coinmetro extends Exchange {
                     'available to allocate as collateral': InsufficientFunds, // todo: check 403 Forbidden {"message":"Insufficient EUR available to allocate as collateral"}
                     'At least': BadRequest, // 422 Unprocessable Entity {"message":"At least 5 EUR per operation"}
                     'collateral is not allowed': BadRequest, // 422 Unprocessable Entity {"message":"DOGE collateral is not allowed"}
+                    'Insufficient liquidity': InvalidOrder, // todo: check 503 Service Unavailable {"message":"Insufficient liquidity to fill the FOK order completely."}
                     'Insufficient order size': InvalidOrder, // 422 Unprocessable Entity {"message":"Insufficient order size - min 0.002 ETH"}
                     'Invalid quantity': InvalidOrder, // 422 Unprocessable Entity {"message":"Invalid quantity!"}
                     'Invalid Stop Loss': InvalidOrder, // 422 Unprocessable Entity {"message":"Invalid Stop Loss!"}
@@ -514,7 +507,7 @@ export default class coinmetro extends Exchange {
             request['from'] = since;
             if (limit !== undefined) {
                 const duration = this.parseTimeframe (timeframe) * 1000;
-                // todo: the exchange returns candles including the last (with timestamp equals param 'to') should we substract 1 from duration?
+                // todo: the exchange returns candles including the last one (with timestamp equals param 'to') should we substract 1 from duration?
                 request['to'] = this.sum (since, duration * (limit));
             }
         } else {
@@ -1721,7 +1714,7 @@ export default class coinmetro extends Exchange {
         let status = undefined;
         if (isCanceled === true) {
             if (timestamp === undefined) {
-                timestamp = this.safeInteger (order, 'completionTime'); // todo: check - market orders with bad price gain TIF IOC - should we mark them as 'rejected'?
+                timestamp = this.safeInteger (order, 'completionTime'); // todo: check - market orders with bad price gain IOC - should we mark them as 'rejected'?
                 status = 'rejected'; // these orders don't have the 'creationTime` param and have 'canceled': true
             } else {
                 status = 'canceled';
@@ -1887,10 +1880,10 @@ export default class coinmetro extends Exchange {
                 if (this.twofa !== undefined) {
                     headers['X-OTP'] = this.twofa;
                 }
-            } else { // handle with headers for other endpoints
-                this.checkRequiredCredentials ();
+            } else {
                 headers['Authorization'] = 'Bearer ' + this.token;
                 if (!url.startsWith ('https://api.coinmetro.com/open')) { // if not sandbox endpoint
+                    this.checkRequiredCredentials ();
                     headers['X-Device-Id'] = this.uid;
                 }
             }
