@@ -1090,6 +1090,10 @@ export default class bitvavo extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
         const response = await this.privatePostOrder (this.extend (request, params));
         //
         //      {
