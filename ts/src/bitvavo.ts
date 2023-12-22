@@ -1270,9 +1270,15 @@ export default class bitvavo extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'orderId': id,
             'market': market['id'],
         };
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         const response = await this.privateGetOrder (this.extend (request, params));
         //
         //     {
