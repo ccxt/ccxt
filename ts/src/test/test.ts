@@ -21,6 +21,7 @@ const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] =
 const AuthenticationError = ccxt.AuthenticationError;
 const NotSupported = ccxt.NotSupported;
 const NetworkError = ccxt.NetworkError;
+const BadRequest = ccxt.BadRequest;
 const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
@@ -1089,8 +1090,8 @@ export default class testMainClass extends baseMainTestClass {
         try {
             await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
         } catch (e) {
-            if (!(e instanceof NetworkError)) {
-                // if it's not a network error, it means our request was not created succesfully
+            if (!(e instanceof BadRequest)) {
+                // if it's not a BadRequest, it means our request was not created succesfully
                 // so we might have an error in the request creation
                 throw e;
             }
