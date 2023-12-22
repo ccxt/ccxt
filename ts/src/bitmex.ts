@@ -646,11 +646,6 @@ export default class bitmex extends Exchange {
         const maxOrderQty = this.safeNumber (market, 'maxOrderQty');
         const initMargin = this.safeString (market, 'initMargin', '1');
         const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
-        let amountPrecisionString = this.safeString (market, 'lotSize');
-        const multiplier = this.safeString (market, 'underlyingToPositionMultiplier');
-        if (multiplier !== undefined) {
-            amountPrecisionString = Precise.stringDiv (amountPrecisionString, multiplier);
-        }
         return {
             'id': id,
             'symbol': symbol,
@@ -679,7 +674,7 @@ export default class bitmex extends Exchange {
             'strike': this.safeNumber (market, 'optionStrikePrice'),
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber (amountPrecisionString),
+                'amount': this.safeNumber (market, 'lotSize'),
                 'price': this.safeNumber (market, 'tickSize'),
             },
             'limits': {
