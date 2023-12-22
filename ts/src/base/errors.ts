@@ -209,7 +209,7 @@ class OperationFailed extends BaseError {
         this.name = 'OperationFailed';
     }
 }
-class ProxyError extends OperationFailed {
+class ProxyError extends ExchangeError {
     constructor (message) {
         super (message);
         this.name = 'OperationFailed';
