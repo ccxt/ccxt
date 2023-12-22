@@ -85,6 +85,7 @@ require_once PATH_TO_CCXT . 'OrderNotFillable.php';
 require_once PATH_TO_CCXT . 'DuplicateOrderId.php';
 require_once PATH_TO_CCXT . 'ContractUnavailable.php';
 require_once PATH_TO_CCXT . 'NotSupported.php';
+require_once PATH_TO_CCXT . 'ProxyError.php';
 require_once PATH_TO_CCXT . 'OperationFailed.php';
 require_once PATH_TO_CCXT . 'NetworkError.php';
 require_once PATH_TO_CCXT . 'DDoSProtection.php';

@@ -912,7 +912,7 @@ class testMainClass(baseMainTestClass):
         try:
             await call_exchange_method_dynamically(exchange, method, self.sanitize_data_input(data['input']))
         except Exception as e:
-            if not (isinstance(e, NetworkError)):
+            if not (isinstance(e, ProxyError)):
                 raise e
             output = exchange.last_request_body
             request_url = exchange.last_request_url
@@ -943,6 +943,7 @@ class testMainClass(baseMainTestClass):
             'markets': markets,
             'enableRateLimit': False,
             'rateLimit': 1,
+            'httpProxy': 'http://fake:8080',
             'httpsProxy': 'http://fake:8080',
             'apiKey': 'key',
             'secret': 'secretsecret',
