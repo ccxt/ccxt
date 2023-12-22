@@ -2145,6 +2145,7 @@ export default class Exchange {
             fee['cost'] = this.safeNumber (fee, 'cost');
         }
         const timestamp = this.safeInteger (entry, 'timestamp');
+        const info = this.safeValue (entry, 'info', {});
         return {
             'id': this.safeString (entry, 'id'),
             'timestamp': timestamp,
@@ -2160,7 +2161,7 @@ export default class Exchange {
             'after': this.parseNumber (after),
             'status': this.safeString (entry, 'status'),
             'fee': fee,
-            'info': entry,
+            'info': info,
         };
     }
 
