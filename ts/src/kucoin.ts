@@ -46,6 +46,9 @@ export default class kucoin extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -1961,6 +1964,53 @@ export default class kucoin extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost, params = {}) {
+        /**
+         * @method
+         * @name kucoin#createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        params['cost'] = cost;
+        return await this.createOrder (symbol, 'market', side, cost, undefined, params);
+    }
+
+    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+        /**
+         * @method
+         * @name kucoin#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        return await this.createMarketOrderWithCost (symbol, 'buy', cost, params);
+    }
+
+    async createMarketSellOrderWithCost (symbol: string, cost, params = {}) {
+        /**
+         * @method
+         * @name kucoin#createMarketSellOrderWithCost
+         * @description create a market sell order by providing the symbol and cost
+         * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        return await this.createMarketOrderWithCost (symbol, 'sell', cost, params);
     }
 
     async createOrders (orders: OrderRequest[], params = {}) {
