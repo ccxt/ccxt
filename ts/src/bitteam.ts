@@ -343,24 +343,23 @@ export default class bitteam extends Exchange {
     }
 
     parseMarket (market): Market {
-        const matketInfo = this.safeValue (market, 'dataValues', {});
-        const id = this.safeString (matketInfo, 'name');
-        const numericId = this.safeInteger (matketInfo, 'id');
+        const id = this.safeString (market, 'name');
+        const numericId = this.safeInteger (market, 'id');
         const parts = id.split ('_');
         const baseId = this.safeString (parts, 0);
         const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const active = this.safeValue (market, 'active');
-        const amountPrecision = this.safeInteger (matketInfo, 'baseStep');
-        const pricePrecision = this.safeInteger (matketInfo, 'quoteStep');
-        const timeStart = this.safeString (matketInfo, 'timeStart');
+        const amountPrecision = this.safeInteger (market, 'baseStep');
+        const pricePrecision = this.safeInteger (market, 'quoteStep');
+        const timeStart = this.safeString (market, 'timeStart');
         const created = this.parse8601 (timeStart);
         let minCost = undefined;
         const currenciesValuedInUsd = this.safeValue (this.options, 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeValue (currenciesValuedInUsd, quote, false);
         if (quoteInUsd) {
-            const settings = this.safeValue (matketInfo, 'settings', {});
+            const settings = this.safeValue (market, 'settings', {});
             minCost = this.safeNumber (settings, 'limit_usd');
         }
         return this.safeMarketStructure ({
