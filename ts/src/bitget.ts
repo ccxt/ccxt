@@ -3989,7 +3989,7 @@ export default class bitget extends Exchange {
          * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
          * @param {string} [params.takeProfit.type] *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
          * @param {string} [params.trailingStopPercent] *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
-         * @param {string} [params.trailingStopTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
+         * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
          * @param {string} [params.triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -4072,7 +4072,7 @@ export default class bitget extends Exchange {
         const isTakeProfit = takeProfit !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const isStopLossOrTakeProfit = isStopLoss || isTakeProfit;
-        const trailingStopTriggerPrice = this.safeString (params, 'trailingStopTriggerPrice', price);
+        const trailingTriggerPrice = this.safeString (params, 'trailingTriggerPrice', price);
         const trailingStopPercent = this.safeString2 (params, 'trailingStopPercent', 'callbackRatio');
         const isTrailingStopPercentOrder = trailingStopPercent !== undefined;
         if (this.sum (isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingStopPercentOrder) > 1) {
@@ -4098,7 +4098,7 @@ export default class bitget extends Exchange {
         } else if (timeInForce === 'IOC') {
             request['force'] = 'IOC';
         }
-        params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly', 'clientOrderId', 'trailingStopPercent', 'trailingStopTriggerPrice' ]);
+        params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly', 'clientOrderId', 'trailingStopPercent', 'trailingTriggerPrice' ]);
         if ((marketType === 'swap') || (marketType === 'future')) {
             request['marginCoin'] = market['settleId'];
             request['size'] = this.amountToPrecision (symbol, amount);
@@ -4115,11 +4115,11 @@ export default class bitget extends Exchange {
                 if (!isMarketOrder) {
                     throw new BadRequest (this.id + ' createOrder() bitget trailing stop orders must be market orders');
                 }
-                if (trailingStopTriggerPrice === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder() bitget trailing stop orders must have a trailingStopTriggerPrice param');
+                if (trailingTriggerPrice === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() bitget trailing stop orders must have a trailingTriggerPrice param');
                 }
                 request['planType'] = 'track_plan';
-                request['triggerPrice'] = this.priceToPrecision (symbol, trailingStopTriggerPrice);
+                request['triggerPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
                 request['callbackRatio'] = trailingStopPercent;
             } else if (isTriggerOrder) {
                 request['planType'] = 'normal_plan';
@@ -4377,7 +4377,7 @@ export default class bitget extends Exchange {
          * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
          * @param {string} [params.takeProfit.type] *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
          * @param {string} [params.trailingStopPercent] *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
-         * @param {string} [params.trailingStopTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
+         * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
          * @param {string} [params.newTriggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -4404,7 +4404,7 @@ export default class bitget extends Exchange {
         const takeProfit = this.safeValue (params, 'takeProfit');
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
-        const trailingStopTriggerPrice = this.safeString (params, 'trailingStopTriggerPrice', price);
+        const trailingTriggerPrice = this.safeString (params, 'trailingTriggerPrice', price);
         const trailingStopPercent = this.safeString2 (params, 'trailingStopPercent', 'newCallbackRatio');
         const isTrailingStopPercentOrder = trailingStopPercent !== undefined;
         if (this.sum (isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingStopPercentOrder) > 1) {
@@ -4414,7 +4414,7 @@ export default class bitget extends Exchange {
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
         }
-        params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingStopTriggerPrice', 'trailingStopPercent' ]);
+        params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingStopPercent' ]);
         let response = undefined;
         if (market['spot']) {
             const editMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'editMarketBuyOrderRequiresPrice', true);
@@ -4452,8 +4452,8 @@ export default class bitget extends Exchange {
                 if (!isMarketOrder) {
                     throw new BadRequest (this.id + ' editOrder() bitget trailing stop orders must be market orders');
                 }
-                if (trailingStopTriggerPrice !== undefined) {
-                    request['newTriggerPrice'] = this.priceToPrecision (symbol, trailingStopTriggerPrice);
+                if (trailingTriggerPrice !== undefined) {
+                    request['newTriggerPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
                 }
                 request['newCallbackRatio'] = trailingStopPercent;
                 response = await this.privateMixPostV2MixOrderModifyPlanOrder (this.extend (request, params));

@@ -189,7 +189,7 @@
                 null,
                 {
                   "trailingStopPercent": "10",
-                  "trailingStopTriggerPrice": "45000",
+                  "trailingTriggerPrice": "45000",
                   "reduceOnly": true
                 }
               ],
@@ -403,7 +403,7 @@
               null,
               {
                 "trailingStopPercent": "5",
-                "trailingStopTriggerPrice": "46000"
+                "trailingTriggerPrice": "46000"
               }
             ],
             "output": "{\"orderId\":\"1121635717619453955\",\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"newSize\":\"0.002\",\"newTriggerPrice\":\"46000\",\"newCallbackRatio\":\"5\"}"
