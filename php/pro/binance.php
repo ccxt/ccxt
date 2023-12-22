@@ -42,6 +42,7 @@ class binance extends \ccxt\async\binance {
                 'fetchBalanceWs' => true,
                 'fetchMyTradesWs' => true,
                 'watchLeverageUpdates' => true,
+                'watchFundingFee' => true,
             ),
             'urls' => array(
                 'test' => array(
@@ -2694,6 +2695,36 @@ class binance extends \ccxt\async\binance {
     public function handle_acount_update($client, $message) {
         $this->handle_balance($client, $message);
         $this->handle_positions($client, $message);
+        $this->handle_funding_fee($client, $message);
+    }
+
+    public function watch_funding_fee($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $url = $this->urls['api']['ws']['future'] . '/' . $this->options['future']['listenKey'];
+            $messageHash = 'future:fundingFee';
+            $message = null;
+            return Async\await($this->watch($url, $messageHash, $message, 'future'));
+        }) ();
+    }
+
+    public function handle_funding_fee($client, $message) {
+        $a = $this->safe_value($message, 'a');
+        $m = $this->safe_string($a, 'm');
+        if ($m !== 'FUNDING_FEE') {
+            return;
+        }
+        $B = $this->safe_value($a, 'B');
+        $fee = array(
+            'quote' => $this->safe_string($B[0], 'a'),
+            'fee' => $this->safe_float($B[0], 'bc'),
+        );
+        $P = $this->safe_value($a, 'P');
+        if (strlen($P) > 0) {
+            $fee['symbol'] = $this->safe_string($P[0], 's');
+        }
+        $client->resolve ($fee, 'future:fundingFee');
     }
 
     public function handle_ws_error(Client $client, $message) {

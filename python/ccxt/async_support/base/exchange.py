@@ -600,6 +600,9 @@ class Exchange(BaseExchange):
     async def watch_leverage_updates(self, params={}):
         raise NotSupported(self.id + ' watchLeverageUpdates() is not supported yet')
 
+    async def watch_funding_fee(self, params={}):
+        raise NotSupported(self.id + ' watchFundingFee() is not supported yet')
+
     async def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 

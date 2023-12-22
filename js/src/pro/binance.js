@@ -42,6 +42,7 @@ export default class binance extends binanceRest {
                 'fetchBalanceWs': true,
                 'fetchMyTradesWs': true,
                 'watchLeverageUpdates': true,
+                'watchFundingFee': true,
             },
             'urls': {
                 'test': {
@@ -2664,6 +2665,32 @@ export default class binance extends binanceRest {
     handleAcountUpdate(client, message) {
         this.handleBalance(client, message);
         this.handlePositions(client, message);
+        this.handleFundingFee(client, message);
+    }
+    async watchFundingFee(params = {}) {
+        await this.loadMarkets();
+        await this.authenticate();
+        const url = this.urls['api']['ws']['future'] + '/' + this.options['future']['listenKey'];
+        const messageHash = 'future:fundingFee';
+        const message = undefined;
+        return await this.watch(url, messageHash, message, 'future');
+    }
+    handleFundingFee(client, message) {
+        const a = this.safeValue(message, 'a');
+        const m = this.safeString(a, 'm');
+        if (m !== 'FUNDING_FEE') {
+            return;
+        }
+        const B = this.safeValue(a, 'B');
+        const fee = {
+            'quote': this.safeString(B[0], 'a'),
+            'fee': this.safeFloat(B[0], 'bc'),
+        };
+        const P = this.safeValue(a, 'P');
+        if (P.length > 0) {
+            fee['symbol'] = this.safeString(P[0], 's');
+        }
+        client.resolve(fee, 'future:fundingFee');
     }
     handleWsError(client, message) {
         //

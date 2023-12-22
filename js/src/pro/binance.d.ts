@@ -1,5 +1,5 @@
 import binanceRest from '../binance.js';
-import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, LeverageUpdates } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, LeverageUpdates, FundingFee } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class binance extends binanceRest {
     describe(): any;
@@ -82,6 +82,8 @@ export default class binance extends binanceRest {
     handleMyTrade(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;
     handleAcountUpdate(client: any, message: any): void;
+    watchFundingFee(params?: {}): Promise<FundingFee>;
+    handleFundingFee(client: any, message: any): void;
     handleWsError(client: Client, message: any): void;
     handleMessage(client: Client, message: any): any;
 }
