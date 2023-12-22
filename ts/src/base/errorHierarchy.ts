@@ -31,6 +31,7 @@ const errorHierarchy = {
                 'ContractUnavailable': {},
             },
             'NotSupported': {},
+            'ProxyError': {},
         },
         'OperationFailed': {
             'NetworkError': {
@@ -42,8 +43,7 @@ const errorHierarchy = {
                 },
                 'InvalidNonce': {},
                 'RequestTimeout': {},
-            },
-            'ProxyError': {},
+            }
         },
     },
 };
