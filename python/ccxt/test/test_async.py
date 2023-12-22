@@ -26,7 +26,6 @@ import asyncio
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ProxyError
 from ccxt.base.errors import NetworkError
-from ccxt.base.errors import BadRequest
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import AuthenticationError
@@ -188,9 +187,6 @@ def exception_message(exc):
         message = message[0:LOG_CHARS_LENGTH]
     return message
 
-
-def exception_message_text(exc):
-    return str(exc)
 
 def exit_script(code=0):
     exit(code)
