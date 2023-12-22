@@ -186,7 +186,7 @@
                     "leverage": "10",
                     "marginMode": "isolated",
                     "trailingStopPercent": "10",
-                    "trailingStopTriggerPrice": "50000",
+                    "trailingTriggerPrice": "50000",
                     "reduceOnly": true
                   }
                 ],
