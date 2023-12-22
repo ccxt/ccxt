@@ -188,6 +188,9 @@ def exception_message(exc):
     return message
 
 
+def exception_message_text(exc):
+    return str(exc)
+
 def exit_script(code=0):
     exit(code)
 
