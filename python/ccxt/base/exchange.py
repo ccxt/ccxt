@@ -2138,6 +2138,7 @@ class Exchange(object):
         if fee is not None:
             fee['cost'] = self.safe_number(fee, 'cost')
         timestamp = self.safe_integer(entry, 'timestamp')
+        info = self.safe_value(entry, 'info', {})
         return {
             'id': self.safe_string(entry, 'id'),
             'timestamp': timestamp,
@@ -2153,7 +2154,7 @@ class Exchange(object):
             'after': self.parse_number(after),
             'status': self.safe_string(entry, 'status'),
             'fee': fee,
-            'info': entry,
+            'info': info,
         }
 
     def safe_currency_structure(self, currency: object):
