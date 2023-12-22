@@ -75,6 +75,39 @@
                 "input": [
                     "LTC/USDT"
                 ]
+            },
+            {
+                "description": "Cancel spot orders - stop order",
+                "method": "cancelAllOrders",
+                "url": "https://api.kucoin.com/api/v1/stop-order/cancel?symbol=LTC-USDT",
+                "input": [
+                    "LTC/USDT",
+                    {
+                        "stop": true
+                    }
+                ]
+            },
+            {
+                "description": "Cancel spot orders - hf order with symbol",
+                "method": "cancelAllOrders",
+                "url": "https://api.kucoin.com/api/v1/hf/orders?symbol=LTC-USDT",
+                "input": [
+                    "LTC/USDT",
+                    {
+                        "hf": true
+                    }
+                ]
+            },
+            {
+                "description": "Cancel spot orders - hf order",
+                "method": "cancelAllOrders",
+                "url": "https://api.kucoin.com/api/v1/hf/orders/cancelAll",
+                "input": [
+                    null,
+                    {
+                        "hf": true
+                    }
+                ]
             }
         ],
         "cancelOrder": [
