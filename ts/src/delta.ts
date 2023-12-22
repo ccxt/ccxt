@@ -3241,7 +3241,8 @@ export default class delta extends Exchange {
         //
         // {"result":{},"success":true}
         //
-        return response;
+        const position = this.parsePosition (this.safeValue (response, 'result', {}));
+        return [ position ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
