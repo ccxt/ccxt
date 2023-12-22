@@ -1137,23 +1137,30 @@ export default class bitvavo extends Exchange {
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {};
+        const request = {
+            'market': market['id'],
+        };
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
         const amountRemaining = this.safeNumber (params, 'amountRemaining');
-        params = this.omit (params, 'amountRemaining');
+        params = this.omit (params, [ 'amountRemaining', 'clientOid', 'clientOrderId' ]);
+        let updateRequest = {};
         if (price !== undefined) {
-            request['price'] = this.priceToPrecision (symbol, price);
+            updateRequest['price'] = this.priceToPrecision (symbol, price);
         }
         if (amount !== undefined) {
-            request['amount'] = this.amountToPrecision (symbol, amount);
+            updateRequest['amount'] = this.amountToPrecision (symbol, amount);
         }
         if (amountRemaining !== undefined) {
-            request['amountRemaining'] = this.amountToPrecision (symbol, amountRemaining);
+            updateRequest['amountRemaining'] = this.amountToPrecision (symbol, amountRemaining);
         }
-        request = this.extend (request, params);
-        if (Object.keys (request).length) {
-            request['orderId'] = id;
-            request['market'] = market['id'];
-            const response = await this.privatePutOrder (this.extend (request, params));
+        updateRequest = this.extend (updateRequest, params);
+        if (Object.keys (updateRequest).length) {
+            const response = await this.privatePutOrder (this.extend (request, updateRequest));
             return this.parseOrder (response, market);
         } else {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument, or a price argument, or non-empty params');
