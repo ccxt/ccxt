@@ -43,7 +43,7 @@ const errorHierarchy = {
                 },
                 'InvalidNonce': {},
                 'RequestTimeout': {},
-            }
+            },
         },
     },
 };
