@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinmetro.js';
-import { ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, ExchangeError, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { Balances, Currency, IndexType, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
@@ -149,6 +149,7 @@ export default class coinmetro extends Exchange {
             'api': {
                 'public': {
                     'get': {
+                        'demo/temp': 1,
                         'exchange/candles/{pair}/{timeframe}/{from}/{to}': 1,
                         'exchange/prices': 1,
                         'exchange/ticks/{pair}/{from}': 1,
@@ -196,8 +197,10 @@ export default class coinmetro extends Exchange {
             },
             // todo: check
             'token': undefined,
+            'tokenBackup': undefined,
             'uid': undefined,
             'twofa': undefined,
+            'demoToken': undefined,
             'fees': {
                 // todo: add margin
                 'trading': {
@@ -217,25 +220,33 @@ export default class coinmetro extends Exchange {
             'exceptions': {
                 // https://trade-docs.coinmetro.co/?javascript--nodejs#message-codes
                 'exact': {
+                    'Both buyingCurrency and sellingCurrency are required': InvalidOrder, // 422 - "Both buyingCurrency and sellingCurrency are required"
+                    'One and only one of buyingQty and sellingQty is required': InvalidOrder, // 422 - "One and only one of buyingQty and sellingQty is required"
+                    'Invalid buyingCurrency': InvalidOrder, // 422 - "Invalid buyingCurrency"
+                    'Invalid sellingCurrency': InvalidOrder, // 422 - "Invalid sellingCurrency"
+                    'Invalid buyingQty': InvalidOrder, // 422 - "Invalid buyingQty"
+                    'Invalid sellingQty': InvalidOrder, // 422 - "Invalid sellingQty"
+                    'Insufficient balance': InsufficientFunds, // 422 - "Insufficient balance"
+                    'Expiration date is in the past or too near in the future': InvalidOrder, // 422 Unprocessable Entity {"message":"Expiration date is in the past or too near in the future"}
+                    'Forbidden': PermissionDenied, // 403 Forbidden {"message":"Forbidden"}
+                    'Insufficient liquidity to fill the FOK order completely': InvalidOrder, // todo: check 503 Service Unavailable {"message":"Insufficient liquidity to fill the FOK order completely."}
+                    'Order Not Found': OrderNotFound, // 404 Not Found {"message":"Order Not Found"}
+                    'This pair is disabled on margin': BadSymbol, // 422 Unprocessable Entity {"message":"This pair is disabled on margin"}
                 },
                 'broad': {
                     'accessing from a new IP': PermissionDenied, // 403 Forbidden {"message":"You're accessing from a new IP. Please check your email."}
                     'available to allocate as collateral': InsufficientFunds, // todo: check 403 Forbidden {"message":"Insufficient EUR available to allocate as collateral"}
-                    'At least 5 EUR per operation': BadRequest, // 422 Unprocessable Entity {"message":"At least 5 EUR per operation"}
+                    'At least': BadRequest, // 422 Unprocessable Entity {"message":"At least 5 EUR per operation"}
                     'collateral is not allowed': BadRequest, // 422 Unprocessable Entity {"message":"DOGE collateral is not allowed"}
-                    'Expiration date is in the past or too near in the future': InvalidOrder, // 422 Unprocessable Entity {"message":"Expiration date is in the past or too near in the future"}
-                    'Forbidden': PermissionDenied, // 403 Forbidden {"message":"Forbidden"}
-                    'Insufficient liquidity to fill the FOK order completely': InvalidOrder, // todo: check 503 Service Unavailable {"message":"Insufficient liquidity to fill the FOK order completely."}
                     'Insufficient order size': InvalidOrder, // 422 Unprocessable Entity {"message":"Insufficient order size - min 0.002 ETH"}
                     'Invalid quantity': InvalidOrder, // 422 Unprocessable Entity {"message":"Invalid quantity!"}
                     'Invalid Stop Loss': InvalidOrder, // 422 Unprocessable Entity {"message":"Invalid Stop Loss!"}
                     'Invalid stop price!': InvalidOrder, // 422 Unprocessable Entity {"message":"Invalid stop price!"}
                     'Not enough balance': InsufficientFunds, // 422 Unprocessable Entity {"message":"Not enough balance!"}
-                    'Not enough margin': InsufficientFunds, // todo: check 422 Unprocessable Entity {"message":"Not enough balance!"}
-                    'Order Not Found': OrderNotFound, // 404 Not Found {"message":"Order Not Found"}
+                    'Not enough margin': InsufficientFunds, // todo: check 422 Unprocessable Entity {"message":"Not enough margin!"}
                     'orderType missing': BadRequest, // 422 Unprocessable Entity {"message":"orderType missing!"}
+                    'Server Timeout': ExchangeError, // todo: check 503 Service Unavailable {"message":"Server Timeout!"}
                     'Time in force has to be IOC or FOK for market orders': InvalidOrder, // 422 Unprocessable Entity {"message":"Time in force has to be IOC or FOK for market orders!"}
-                    'This pair is disabled on margin': BadSymbol, // 422 Unprocessable Entity {"message":"This pair is disabled on margin"}
                     'Too many attempts': RateLimitExceeded, // 429 Too Many Requests {"message":"Too many attempts. Try again in 3 seconds"}
                 },
             },
@@ -323,6 +334,12 @@ export default class coinmetro extends Exchange {
                 'networks': {},
             });
         }
+        // todo: check
+        if (this.safeValue (this.options, 'currenciesByIdForParseMarket') === undefined) {
+            const currenciesById = this.indexBy (result, 'id');
+            this.options['currenciesByIdForParseMarket'] = currenciesById;
+            this.options['currencyIdsListForParseMarket'] = Object.keys (currenciesById);
+        }
         return result;
     }
 
@@ -338,10 +355,7 @@ export default class coinmetro extends Exchange {
         const response = await this.publicGetMarkets (params);
         // todo: check
         if (this.safeValue (this.options, 'currenciesByIdForParseMarket') === undefined) {
-            const currencies = await this.fetchCurrencies ();
-            const currenciesById = this.indexBy (currencies, 'id');
-            this.options['currenciesByIdForParseMarket'] = currenciesById;
-            this.options['currencyIdsListForParseMarket'] = Object.keys (currenciesById);
+            await this.fetchCurrencies ();
         }
         //
         //     [
@@ -500,7 +514,7 @@ export default class coinmetro extends Exchange {
             request['from'] = since;
             if (limit !== undefined) {
                 const duration = this.parseTimeframe (timeframe) * 1000;
-                // todo: should we substract 1 from duration?
+                // todo: the exchange returns candles including the last (with timestamp equals param 'to') should we substract 1 from duration?
                 request['to'] = this.sum (since, duration * (limit));
             }
         } else {
@@ -1860,7 +1874,9 @@ export default class coinmetro extends Exchange {
         let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode (request);
         if (api === 'private') {
-            headers = {};
+            if (headers === undefined) {
+                headers = {};
+            }
             if (url === 'https://api.coinmetro.com/jwt') { // handle with headers for login endpoint
                 headers['X-Device-Id'] = 'bypass';
                 if (this.twofa !== undefined) {
@@ -1874,7 +1890,9 @@ export default class coinmetro extends Exchange {
             } else { // handle with headers for other endpoints
                 this.checkRequiredCredentials ();
                 headers['Authorization'] = 'Bearer ' + this.token;
-                headers['X-Device-Id'] = this.uid;
+                if (!url.startsWith ('https://api.coinmetro.com/open')) { // if not sandbox endpoint
+                    headers['X-Device-Id'] = this.uid;
+                }
             }
             if ((method === 'POST') || (method === 'PUT')) {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -1887,5 +1905,19 @@ export default class coinmetro extends Exchange {
             url = url.slice (0, url.length - 1);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined;
+        }
+        if ((code !== 200) && (code !== 202)) {
+            const feedback = this.id + ' ' + body;
+            const message = this.safeString (response, 'message');
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            throw new ExchangeError (feedback);
+        }
+        return undefined;
     }
 }
