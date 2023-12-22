@@ -6995,7 +6995,7 @@ export default class gate extends Exchange {
     async closePosition(symbol, side = undefined, params = {}) {
         /**
          * @method
-         * @name gate#closePositions
+         * @name gate#closePosition
          * @description closes open positions for a market
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2
@@ -7003,7 +7003,7 @@ export default class gate extends Exchange {
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} side 'buy' or 'sell'
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         const request = {
             'close': true,

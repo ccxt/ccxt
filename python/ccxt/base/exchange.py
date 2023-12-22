@@ -1966,6 +1966,9 @@ class Exchange(object):
     def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOrderBookForSymbols() is not supported yet')
 
+    def watch_leverage_updates(self, params={}):
+        raise NotSupported(self.id + ' watchLeverageUpdates() is not supported yet')
+
     def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 

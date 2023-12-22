@@ -789,7 +789,7 @@ class okx extends okx$1 {
             'side': this.safeString(order, 'side'),
             'price': this.safeNumber(info, 'fillPx'),
             'amount': this.safeNumber(info, 'fillSz'),
-            'cost': undefined,
+            'cost': this.safeNumber(order, 'cost'),
             'fee': {
                 'cost': this.safeNumber(info, 'fillFee'),
                 'currency': this.safeCurrencyCode(feeMarketId),

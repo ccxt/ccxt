@@ -652,6 +652,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchOrderBookForSymbols() is not supported yet');
     }
 
+    public function watch_leverage_updates($params = array ()) {
+        throw new NotSupported($this->id . ' watchLeverageUpdates() is not supported yet');
+    }
+
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDepositAddresses() is not supported yet');
     }

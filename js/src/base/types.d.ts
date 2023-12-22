@@ -314,3 +314,7 @@ export declare type ApiKeyPermission = {
     futuresEnabled: boolean;
     withdrawlsEnabled: boolean;
 };
+export declare type LeverageUpdates = {
+    symbol: string;
+    leverage: number;
+};

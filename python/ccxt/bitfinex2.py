@@ -1046,15 +1046,14 @@ class bitfinex2(Exchange, ImplicitAPI):
         #         FRR_AMOUNT_AVAILABLE
         #     ]
         #
-        timestamp = self.milliseconds()
         symbol = self.safe_symbol(None, market)
         length = len(ticker)
         last = self.safe_string(ticker, length - 4)
         percentage = self.safe_string(ticker, length - 5)
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_string(ticker, length - 2),
             'low': self.safe_string(ticker, length - 1),
             'bid': self.safe_string(ticker, length - 10),
