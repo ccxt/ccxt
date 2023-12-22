@@ -43,6 +43,7 @@ const errorHierarchy = {
                 'InvalidNonce': {},
                 'RequestTimeout': {},
             },
+            'ProxyError': {},
         },
     },
 };
