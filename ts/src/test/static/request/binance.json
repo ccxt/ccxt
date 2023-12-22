@@ -424,6 +424,32 @@
                 "input": [
                     "ETH/USDT:USDT-231229-800-C"
                 ]
+            },
+            {
+                "description": "Spot margin cross",
+                "method": "fetchMyTrades",
+                "url": "https://api.binance.com/sapi/v1/margin/myTrades?timestamp=1703241051088&symbol=LTCUSDT&limit=1&recvWindow=10000&signature=141057bfeccdf9ba9d99838058dc0fb77b9331ed06ef43216867952c6e1e874a",
+                "input": [
+                  "LTC/USDT",
+                  null,
+                  1,
+                  {
+                    "marginMode": "cross"
+                  }
+                ]
+            },
+            {
+                "description": "Spot margin isolated",
+                "method": "fetchMyTrades",
+                "url": "https://api.binance.com/sapi/v1/margin/myTrades?timestamp=1703241081711&symbol=LTCUSDT&limit=1&isIsolated=true&recvWindow=10000&signature=46f94e4f43408cb782d20c97be4bbdd2837cfb552091312206d49822d1065613",
+                "input": [
+                  "LTC/USDT",
+                  null,
+                  1,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ]
             }
         ],
         "fetchOrders": [
