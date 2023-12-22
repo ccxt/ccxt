@@ -79,6 +79,18 @@
                   "42a876f3-400d-4686-980f-3d6983f251c2",
                   "BTC/EUR"
                 ]
+            },
+            {
+                "description": "Cancel Order",
+                "method": "cancelOrder",
+                "url": "https://api.bitvavo.com/v2/order?clientOrderId=42a876f3-400d-4686-980f-3d6983f251c2&market=BTC-EUR",
+                "input": [
+                  "",
+                  "BTC/EUR",
+                  {
+                    "clientOrderId": "42a876f3-400d-4686-980f-3d6983f251c2"
+                  }
+                ]
             }
         ],
         "editOrder": [
