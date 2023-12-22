@@ -2363,6 +2363,12 @@ class coinbase extends coinbase$1 {
         //                 "base_size": "0.2",
         //                 "limit_price": "0.006",
         //                 "post_only": false
+        //             },
+        //             "stop_limit_stop_limit_gtc": {
+        //                 "base_size": "48.54",
+        //                 "limit_price": "6.998",
+        //                 "stop_price": "7.0687",
+        //                 "stop_direction": "STOP_DIRECTION_STOP_DOWN"
         //             }
         //         },
         //         "side": "SELL",
@@ -2396,11 +2402,11 @@ class coinbase extends coinbase$1 {
             market = this.market(symbol);
         }
         const orderConfiguration = this.safeValue(order, 'order_configuration', {});
-        const limitGTC = this.safeValue(orderConfiguration, 'limit_limit_gtc', {});
-        const limitGTD = this.safeValue(orderConfiguration, 'limit_limit_gtd', {});
-        const stopLimitGTC = this.safeValue(orderConfiguration, 'stop_limit_stop_limit_gtc', {});
-        const stopLimitGTD = this.safeValue(orderConfiguration, 'stop_limit_stop_limit_gtd', {});
-        const marketIOC = this.safeValue(orderConfiguration, 'market_market_ioc', {});
+        const limitGTC = this.safeValue(orderConfiguration, 'limit_limit_gtc');
+        const limitGTD = this.safeValue(orderConfiguration, 'limit_limit_gtd');
+        const stopLimitGTC = this.safeValue(orderConfiguration, 'stop_limit_stop_limit_gtc');
+        const stopLimitGTD = this.safeValue(orderConfiguration, 'stop_limit_stop_limit_gtd');
+        const marketIOC = this.safeValue(orderConfiguration, 'market_market_ioc');
         const isLimit = ((limitGTC !== undefined) || (limitGTD !== undefined));
         const isStop = ((stopLimitGTC !== undefined) || (stopLimitGTD !== undefined));
         let price = undefined;

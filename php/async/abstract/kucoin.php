@@ -190,6 +190,18 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function private_get_stop_order_queryorderbyclientoid($params = array()) {
         return $this->request('stop-order/queryOrderByClientOid', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function private_get_oco_order_orderid($params = array()) {
+        return $this->request('oco/order/{orderId}', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_get_oco_order_details_orderid($params = array()) {
+        return $this->request('oco/order/details/{orderId}', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_get_oco_client_order_clientoid($params = array()) {
+        return $this->request('oco/client-order/{clientOid}', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_get_oco_orders($params = array()) {
+        return $this->request('oco/orders', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_get_hf_margin_orders_active($params = array()) {
         return $this->request('hf/margin/orders/active', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -207,6 +219,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function private_get_etf_info($params = array()) {
         return $this->request('etf/info', 'private', 'GET', $params, null, null, array("cost" => 25));
+    }
+    public function private_get_margin_currencies($params = array()) {
+        return $this->request('margin/currencies', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function private_get_risk_limit_strategy($params = array()) {
         return $this->request('risk/limit/strategy', 'private', 'GET', $params, null, null, array("cost" => 20));
@@ -298,6 +313,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function private_post_stop_order($params = array()) {
         return $this->request('stop-order', 'private', 'POST', $params, null, null, array("cost" => 2));
     }
+    public function private_post_oco_order($params = array()) {
+        return $this->request('oco/order', 'private', 'POST', $params, null, null, array("cost" => 2));
+    }
     public function private_post_hf_margin_order($params = array()) {
         return $this->request('hf/margin/order', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -352,6 +370,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function private_delete_hf_orders($params = array()) {
         return $this->request('hf/orders', 'private', 'DELETE', $params, null, null, array("cost" => 2));
     }
+    public function private_delete_hf_orders_cancelall($params = array()) {
+        return $this->request('hf/orders/cancelAll', 'private', 'DELETE', $params, null, null, array("cost" => 30));
+    }
     public function private_delete_orders_orderid($params = array()) {
         return $this->request('orders/{orderId}', 'private', 'DELETE', $params, null, null, array("cost" => 3));
     }
@@ -369,6 +390,15 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function private_delete_stop_order_cancel($params = array()) {
         return $this->request('stop-order/cancel', 'private', 'DELETE', $params, null, null, array("cost" => 3));
+    }
+    public function private_delete_oco_order_orderid($params = array()) {
+        return $this->request('oco/order/{orderId}', 'private', 'DELETE', $params, null, null, array("cost" => 3));
+    }
+    public function private_delete_oco_client_order_clientoid($params = array()) {
+        return $this->request('oco/client-order/{clientOid}', 'private', 'DELETE', $params, null, null, array("cost" => 3));
+    }
+    public function private_delete_oco_orders($params = array()) {
+        return $this->request('oco/orders', 'private', 'DELETE', $params, null, null, array("cost" => 3));
     }
     public function private_delete_hf_margin_orders_orderid($params = array()) {
         return $this->request('hf/margin/orders/{orderId}', 'private', 'DELETE', $params, null, null, array("cost" => 5));
@@ -414,6 +444,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function futurespublic_get_premium_query($params = array()) {
         return $this->request('premium/query', 'futuresPublic', 'GET', $params, null, null, array("cost" => 4.5));
+    }
+    public function futurespublic_get_trade_statistics($params = array()) {
+        return $this->request('trade-statistics', 'futuresPublic', 'GET', $params, null, null, array("cost" => 4.5));
     }
     public function futurespublic_get_funding_rate_symbol_current($params = array()) {
         return $this->request('funding-rate/{symbol}/current', 'futuresPublic', 'GET', $params, null, null, array("cost" => 3));
@@ -504,6 +537,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function futuresprivate_delete_orders_orderid($params = array()) {
         return $this->request('orders/{orderId}', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1.5));
+    }
+    public function futuresprivate_delete_orders_client_order_clientoid($params = array()) {
+        return $this->request('orders/client-order/{clientOid}', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1.5));
     }
     public function futuresprivate_delete_orders($params = array()) {
         return $this->request('orders', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 45));
@@ -697,6 +733,18 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function privateGetStopOrderQueryOrderByClientOid($params = array()) {
         return $this->request('stop-order/queryOrderByClientOid', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function privateGetOcoOrderOrderId($params = array()) {
+        return $this->request('oco/order/{orderId}', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateGetOcoOrderDetailsOrderId($params = array()) {
+        return $this->request('oco/order/details/{orderId}', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateGetOcoClientOrderClientOid($params = array()) {
+        return $this->request('oco/client-order/{clientOid}', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateGetOcoOrders($params = array()) {
+        return $this->request('oco/orders', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function privateGetHfMarginOrdersActive($params = array()) {
         return $this->request('hf/margin/orders/active', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -714,6 +762,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function privateGetEtfInfo($params = array()) {
         return $this->request('etf/info', 'private', 'GET', $params, null, null, array("cost" => 25));
+    }
+    public function privateGetMarginCurrencies($params = array()) {
+        return $this->request('margin/currencies', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateGetRiskLimitStrategy($params = array()) {
         return $this->request('risk/limit/strategy', 'private', 'GET', $params, null, null, array("cost" => 20));
@@ -805,6 +856,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function privatePostStopOrder($params = array()) {
         return $this->request('stop-order', 'private', 'POST', $params, null, null, array("cost" => 2));
     }
+    public function privatePostOcoOrder($params = array()) {
+        return $this->request('oco/order', 'private', 'POST', $params, null, null, array("cost" => 2));
+    }
     public function privatePostHfMarginOrder($params = array()) {
         return $this->request('hf/margin/order', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -859,6 +913,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function privateDeleteHfOrders($params = array()) {
         return $this->request('hf/orders', 'private', 'DELETE', $params, null, null, array("cost" => 2));
     }
+    public function privateDeleteHfOrdersCancelAll($params = array()) {
+        return $this->request('hf/orders/cancelAll', 'private', 'DELETE', $params, null, null, array("cost" => 30));
+    }
     public function privateDeleteOrdersOrderId($params = array()) {
         return $this->request('orders/{orderId}', 'private', 'DELETE', $params, null, null, array("cost" => 3));
     }
@@ -876,6 +933,15 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function privateDeleteStopOrderCancel($params = array()) {
         return $this->request('stop-order/cancel', 'private', 'DELETE', $params, null, null, array("cost" => 3));
+    }
+    public function privateDeleteOcoOrderOrderId($params = array()) {
+        return $this->request('oco/order/{orderId}', 'private', 'DELETE', $params, null, null, array("cost" => 3));
+    }
+    public function privateDeleteOcoClientOrderClientOid($params = array()) {
+        return $this->request('oco/client-order/{clientOid}', 'private', 'DELETE', $params, null, null, array("cost" => 3));
+    }
+    public function privateDeleteOcoOrders($params = array()) {
+        return $this->request('oco/orders', 'private', 'DELETE', $params, null, null, array("cost" => 3));
     }
     public function privateDeleteHfMarginOrdersOrderId($params = array()) {
         return $this->request('hf/margin/orders/{orderId}', 'private', 'DELETE', $params, null, null, array("cost" => 5));
@@ -921,6 +987,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function futuresPublicGetPremiumQuery($params = array()) {
         return $this->request('premium/query', 'futuresPublic', 'GET', $params, null, null, array("cost" => 4.5));
+    }
+    public function futuresPublicGetTradeStatistics($params = array()) {
+        return $this->request('trade-statistics', 'futuresPublic', 'GET', $params, null, null, array("cost" => 4.5));
     }
     public function futuresPublicGetFundingRateSymbolCurrent($params = array()) {
         return $this->request('funding-rate/{symbol}/current', 'futuresPublic', 'GET', $params, null, null, array("cost" => 3));
@@ -1011,6 +1080,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function futuresPrivateDeleteOrdersOrderId($params = array()) {
         return $this->request('orders/{orderId}', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1.5));
+    }
+    public function futuresPrivateDeleteOrdersClientOrderClientOid($params = array()) {
+        return $this->request('orders/client-order/{clientOid}', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1.5));
     }
     public function futuresPrivateDeleteOrders($params = array()) {
         return $this->request('orders', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 45));

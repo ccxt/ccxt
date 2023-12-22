@@ -6986,7 +6986,7 @@ class gate extends Exchange {
              * @param {string} $symbol Unified CCXT market $symbol
              * @param {string} $side 'buy' or 'sell'
              * @param {array} [$params] extra parameters specific to the okx api endpoint
-             * @return {[array]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+             * @return {array[]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
              */
             $request = array(
                 'close' => true,

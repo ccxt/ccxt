@@ -2319,7 +2319,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str side: not used by kucoinfutures closePositions
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.clientOrderId]: client order id of the order
-        :returns [dict]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         market = self.market(symbol)

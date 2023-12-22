@@ -23,6 +23,7 @@ import ccxt  # noqa: E402
 # from typing import Optional
 # from typing import List
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import ProxyError
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
@@ -910,7 +911,7 @@ class testMainClass(baseMainTestClass):
         try:
             call_exchange_method_dynamically(exchange, method, self.sanitize_data_input(data['input']))
         except Exception as e:
-            if not (isinstance(e, NetworkError)):
+            if not (isinstance(e, ProxyError)):
                 raise e
             output = exchange.last_request_body
             request_url = exchange.last_request_url
@@ -941,6 +942,7 @@ class testMainClass(baseMainTestClass):
             'markets': markets,
             'enableRateLimit': False,
             'rateLimit': 1,
+            'httpProxy': 'http://fake:8080',
             'httpsProxy': 'http://fake:8080',
             'apiKey': 'key',
             'secret': 'secretsecret',
