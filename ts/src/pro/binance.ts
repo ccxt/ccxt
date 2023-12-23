@@ -859,14 +859,14 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const marketIds = this.marketIds (symbols);
-        let market = undefined;
+        let firstMarket = undefined;
         let type = undefined;
         if (symbols !== undefined) {
-            market = this.market (symbols[0]);
+            firstMarket = this.market (symbols[0]);
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', firstMarket, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchTickers', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchTickers', firstMarket, params);
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
@@ -876,8 +876,13 @@ export default class binance extends binanceRest {
         let name = this.safeString (options, 'name', 'ticker');
         name = this.safeString (params, 'name', name);
         params = this.omit (params, 'name');
-        let wsParams = [];
-        const messageHash = 'tickers';
+        const subParams = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const messageHash = market['lowercaseId'] + '@' + name;
+            subParams.push (messageHash);
+        }
         if (name === 'bookTicker') {
             if (marketIds === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols for bookTicker');
@@ -901,7 +906,7 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        const newTickers = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
+        const newTickers = await this.watchMultiple (url, messageHash, this.extend (request, params), messageHash, subscribe);
         if (this.newUpdates) {
             return newTickers;
         }
