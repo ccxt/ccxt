@@ -463,6 +463,8 @@ class Exchange {
                 'watchOHLCVForSymbols': undefined,
                 'watchBalance': undefined,
                 'watchOHLCV': undefined,
+                'watchLeverageUpdates': undefined,
+                'watchFundingFee': undefined,
             },
             'urls': {
                 'logo': undefined,
@@ -1623,6 +1625,12 @@ class Exchange {
     }
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchOrderBookForSymbols() is not supported yet');
+    }
+    async watchLeverageUpdates(params = {}) {
+        throw new errors.NotSupported(this.id + ' watchLeverageUpdates() is not supported yet');
+    }
+    async watchFundingFee(params = {}) {
+        throw new errors.NotSupported(this.id + ' watchFundingFee() is not supported yet');
     }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');

@@ -143,8 +143,8 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account, ApiKeyPermission } from './types.js';
-export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks, ApiKeyPermission } from './types.js'
+import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account, ApiKeyPermission, LeverageUpdates, FundingFee } from './types.js';
+export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks, ApiKeyPermission, LeverageUpdates, FundingFee } from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
@@ -574,6 +574,8 @@ export default class Exchange {
                 'watchOHLCVForSymbols': undefined,
                 'watchBalance': undefined,
                 'watchOHLCV': undefined,
+                'watchLeverageUpdates': undefined,
+                'watchFundingFee': undefined,
             },
             'urls': {
                 'logo': undefined,
@@ -1921,6 +1923,14 @@ export default class Exchange {
 
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         throw new NotSupported (this.id + ' watchOrderBookForSymbols() is not supported yet');
+    }
+
+    async watchLeverageUpdates (params = {}): Promise<LeverageUpdates> {
+        throw new NotSupported (this.id + ' watchLeverageUpdates() is not supported yet');
+    }
+
+    async watchFundingFee (params = {}): Promise<FundingFee> {
+        throw new NotSupported (this.id + ' watchFundingFee() is not supported yet');
     }
 
     async fetchDepositAddresses (codes: string[] = undefined, params = {}): Promise<any> {

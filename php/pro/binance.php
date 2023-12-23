@@ -41,6 +41,8 @@ class binance extends \ccxt\async\binance {
                 'fetchOrdersWs' => true,
                 'fetchBalanceWs' => true,
                 'fetchMyTradesWs' => true,
+                'watchLeverageUpdates' => true,
+                'watchFundingFee' => true,
             ),
             'urls' => array(
                 'test' => array(
@@ -812,6 +814,38 @@ class binance extends \ccxt\async\binance {
         $client->resolve ($stored, $messageHash);
     }
 
+    public function watch_leverage_updates(?array () $params): PromiseInterface {
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $url = $this->urls['api']['ws']['future'] . '/' . $this->options['future']['listenKey'];
+            $messageHash = 'future:leverageUpdates';
+            $message = null;
+            return Async\await($this->watch($url, $messageHash, $message, 'future'));
+        }) ();
+    }
+
+    public function handle_leverage_updates(Client $client, $message) {
+        // {
+        //     "e":"ACCOUNT_CONFIG_UPDATE",       // Event Type
+        //     "E":1611646737479,                 // Event Time
+        //     "T":1611646737476,                 // Transaction Time
+        //     "ac":{
+        //     "s":"BTCUSDT",                     // symbol
+        //     "l":25                             // leverage
+        //     }
+        // }
+        $ac = $this->safe_value($message, 'ac');
+        if (!$ac) {
+            return;
+        }
+        $update = array(
+            'symbol' => $this->safe_string($ac, 's'),
+            'leverage' => $this->safe_integer($ac, 'l'),
+        );
+        $client->resolve ($update, 'future:leverageUpdates');
+    }
+
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
@@ -957,13 +991,12 @@ class binance extends \ccxt\async\binance {
             $event = 'ticker';
         }
         $timestamp = null;
-        $now = $this->milliseconds();
         if ($event === 'bookTicker') {
             // take the $event $timestamp, if available, for spot tickers it is not
-            $timestamp = $this->safe_integer($message, 'E', $now);
+            $timestamp = $this->safe_integer($message, 'E');
         } else {
             // take the $timestamp of the closing price for candlestick streams
-            $timestamp = $this->safe_integer($message, 'C', $now);
+            $timestamp = $this->safe_integer($message, 'C');
         }
         $marketId = $this->safe_string($message, 's');
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
@@ -2662,6 +2695,36 @@ class binance extends \ccxt\async\binance {
     public function handle_acount_update($client, $message) {
         $this->handle_balance($client, $message);
         $this->handle_positions($client, $message);
+        $this->handle_funding_fee($client, $message);
+    }
+
+    public function watch_funding_fee($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $url = $this->urls['api']['ws']['future'] . '/' . $this->options['future']['listenKey'];
+            $messageHash = 'future:fundingFee';
+            $message = null;
+            return Async\await($this->watch($url, $messageHash, $message, 'future'));
+        }) ();
+    }
+
+    public function handle_funding_fee($client, $message) {
+        $a = $this->safe_value($message, 'a');
+        $m = $this->safe_string($a, 'm');
+        if ($m !== 'FUNDING_FEE') {
+            return;
+        }
+        $B = $this->safe_value($a, 'B');
+        $fee = array(
+            'quote' => $this->safe_string($B[0], 'a'),
+            'fee' => $this->safe_float($B[0], 'bc'),
+        );
+        $P = $this->safe_value($a, 'P');
+        if (strlen($P) > 0) {
+            $fee['symbol'] = $this->safe_string($P[0], 's');
+        }
+        $client->resolve ($fee, 'future:fundingFee');
     }
 
     public function handle_ws_error(Client $client, $message) {
@@ -2735,6 +2798,7 @@ class binance extends \ccxt\async\binance {
             'ACCOUNT_UPDATE' => array($this, 'handle_acount_update'),
             'executionReport' => array($this, 'handle_order_update'),
             'ORDER_TRADE_UPDATE' => array($this, 'handle_order_update'),
+            'ACCOUNT_CONFIG_UPDATE' => array($this, 'handle_leverage_updates'),
         );
         $event = $this->safe_string($message, 'e');
         if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {

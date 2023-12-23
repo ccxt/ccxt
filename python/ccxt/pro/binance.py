@@ -43,6 +43,8 @@ class binance(ccxt.async_support.binance):
                 'fetchOrdersWs': True,
                 'fetchBalanceWs': True,
                 'fetchMyTradesWs': True,
+                'watchLeverageUpdates': True,
+                'watchFundingFee': True,
             },
             'urls': {
                 'test': {
@@ -742,6 +744,33 @@ class binance(ccxt.async_support.binance):
         stored.append(parsed)
         client.resolve(stored, messageHash)
 
+    async def watch_leverage_updates(self, params: {}) -> LeverageUpdates:
+        await self.load_markets()
+        await self.authenticate()
+        url = self.urls['api']['ws']['future'] + '/' + self.options['future']['listenKey']
+        messageHash = 'future:leverageUpdates'
+        message = None
+        return await self.watch(url, messageHash, message, 'future')
+
+    async def handle_leverage_updates(self, client: Client, message):
+        # {
+        #     "e":"ACCOUNT_CONFIG_UPDATE",       # Event Type
+        #     "E":1611646737479,                 # Event Time
+        #     "T":1611646737476,                 # Transaction Time
+        #     "ac":{
+        #     "s":"BTCUSDT",                     # symbol
+        #     "l":25                             # leverage
+        #     }
+        # }
+        ac = self.safe_value(message, 'ac')
+        if not ac:
+            return
+        update = {
+            'symbol': self.safe_string(ac, 's'),
+            'leverage': self.safe_integer(ac, 'l'),
+        }
+        client.resolve(update, 'future:leverageUpdates')
+
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -873,13 +902,12 @@ class binance(ccxt.async_support.binance):
         if event == '24hrTicker':
             event = 'ticker'
         timestamp = None
-        now = self.milliseconds()
         if event == 'bookTicker':
             # take the event timestamp, if available, for spot tickers it is not
-            timestamp = self.safe_integer(message, 'E', now)
+            timestamp = self.safe_integer(message, 'E')
         else:
             # take the timestamp of the closing price for candlestick streams
-            timestamp = self.safe_integer(message, 'C', now)
+            timestamp = self.safe_integer(message, 'C')
         marketId = self.safe_string(message, 's')
         symbol = self.safe_symbol(marketId, None, None, marketType)
         last = self.safe_float(message, 'c')
@@ -2411,6 +2439,30 @@ class binance(ccxt.async_support.binance):
     def handle_acount_update(self, client, message):
         self.handle_balance(client, message)
         self.handle_positions(client, message)
+        self.handle_funding_fee(client, message)
+
+    async def watch_funding_fee(self, params={}) -> FundingFee:
+        await self.load_markets()
+        await self.authenticate()
+        url = self.urls['api']['ws']['future'] + '/' + self.options['future']['listenKey']
+        messageHash = 'future:fundingFee'
+        message = None
+        return await self.watch(url, messageHash, message, 'future')
+
+    def handle_funding_fee(self, client, message):
+        a = self.safe_value(message, 'a')
+        m = self.safe_string(a, 'm')
+        if m != 'FUNDING_FEE':
+            return
+        B = self.safe_value(a, 'B')
+        fee = {
+            'quote': self.safe_string(B[0], 'a'),
+            'fee': self.safe_float(B[0], 'bc'),
+        }
+        P = self.safe_value(a, 'P')
+        if len(P) > 0:
+            fee['symbol'] = self.safe_string(P[0], 's')
+        client.resolve(fee, 'future:fundingFee')
 
     def handle_ws_error(self, client: Client, message):
         #
@@ -2475,6 +2527,7 @@ class binance(ccxt.async_support.binance):
             'ACCOUNT_UPDATE': self.handle_acount_update,
             'executionReport': self.handle_order_update,
             'ORDER_TRADE_UPDATE': self.handle_order_update,
+            'ACCOUNT_CONFIG_UPDATE': self.handle_leverage_updates,
         }
         event = self.safe_string(message, 'e')
         if isinstance(message, list):

@@ -1,5 +1,5 @@
 import binanceRest from '../binance.js';
-import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, LeverageUpdates, FundingFee } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class binance extends binanceRest {
     describe(): any;
@@ -20,6 +20,8 @@ export default class binance extends binanceRest {
     handleTrade(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): void;
+    watchLeverageUpdates(params?: {}): Promise<LeverageUpdates>;
+    handleLeverageUpdates(client: Client, message: any): Promise<void>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseWsTicker(message: any, marketType: any): {
@@ -80,6 +82,8 @@ export default class binance extends binanceRest {
     handleMyTrade(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;
     handleAcountUpdate(client: any, message: any): void;
+    watchFundingFee(params?: {}): Promise<FundingFee>;
+    handleFundingFee(client: any, message: any): void;
     handleWsError(client: Client, message: any): void;
     handleMessage(client: Client, message: any): any;
 }

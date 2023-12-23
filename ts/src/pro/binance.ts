@@ -5,7 +5,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, LeverageUpdates, FundingFee } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -41,6 +41,8 @@ export default class binance extends binanceRest {
                 'fetchOrdersWs': true,
                 'fetchBalanceWs': true,
                 'fetchMyTradesWs': true,
+                'watchLeverageUpdates': true,
+                'watchFundingFee': true,
             },
             'urls': {
                 'test': {
@@ -808,6 +810,36 @@ export default class binance extends binanceRest {
         }
         stored.append (parsed);
         client.resolve (stored, messageHash);
+    }
+
+    async watchLeverageUpdates (params?: {}): Promise<LeverageUpdates> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const url = this.urls['api']['ws']['future'] + '/' + this.options['future']['listenKey'];
+        const messageHash = 'future:leverageUpdates';
+        const message = undefined;
+        return await this.watch (url, messageHash, message, 'future');
+    }
+
+    async handleLeverageUpdates (client: Client, message) {
+        // {
+        //     "e":"ACCOUNT_CONFIG_UPDATE",       // Event Type
+        //     "E":1611646737479,                 // Event Time
+        //     "T":1611646737476,                 // Transaction Time
+        //     "ac":{
+        //     "s":"BTCUSDT",                     // symbol
+        //     "l":25                             // leverage
+        //     }
+        // }
+        const ac = this.safeValue (message, 'ac');
+        if (!ac) {
+            return;
+        }
+        const update = {
+            'symbol': this.safeString (ac, 's'),
+            'leverage': this.safeInteger (ac, 'l'),
+        };
+        client.resolve (update, 'future:leverageUpdates');
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -2652,6 +2684,34 @@ export default class binance extends binanceRest {
     handleAcountUpdate (client, message) {
         this.handleBalance (client, message);
         this.handlePositions (client, message);
+        this.handleFundingFee (client, message);
+    }
+
+    async watchFundingFee (params = {}): Promise<FundingFee> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const url = this.urls['api']['ws']['future'] + '/' + this.options['future']['listenKey'];
+        const messageHash = 'future:fundingFee';
+        const message = undefined;
+        return await this.watch (url, messageHash, message, 'future');
+    }
+
+    handleFundingFee (client, message) {
+        const a = this.safeValue (message, 'a');
+        const m = this.safeString (a, 'm');
+        if (m !== 'FUNDING_FEE') {
+            return;
+        }
+        const B = this.safeValue (a, 'B');
+        const fee = {
+            'quote': this.safeString (B[0], 'a'),
+            'fee': this.safeFloat (B[0], 'bc'),
+        };
+        const P = this.safeValue (a, 'P');
+        if (P.length > 0) {
+            fee['symbol'] = this.safeString (P[0], 's');
+        }
+        client.resolve (fee, 'future:fundingFee');
     }
 
     handleWsError (client: Client, message) {
@@ -2725,6 +2785,7 @@ export default class binance extends binanceRest {
             'ACCOUNT_UPDATE': this.handleAcountUpdate,
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
+            'ACCOUNT_CONFIG_UPDATE': this.handleLeverageUpdates,
         };
         let event = this.safeString (message, 'e');
         if (Array.isArray (message)) {
