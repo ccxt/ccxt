@@ -1076,6 +1076,30 @@
                     "BTC/USD:BTC"
                 ]
             }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "Fetch Funding Rates - linear",
+                "method": "fetchFundingRates",
+                "url": "https://api.binance.com/fapi/v1/premiumIndex",
+                "input": [
+                    null,
+                    {
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch Funding Rates - inverse",
+                "method": "fetchFundingRates",
+                "url": "https://api.binance.com/dapi/v1/premiumIndex",
+                "input": [
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            }
         ]
     }
 }
