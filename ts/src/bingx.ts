@@ -1746,7 +1746,7 @@ export default class bingx extends Exchange {
             } else if (isTrailing) {
                 request['type'] = 'TRAILING_STOP_MARKET';
                 if (isTrailingAmountOrder) {
-                    request['price'] = trailingAmount;
+                    request['price'] = this.parseToNumeric (trailingAmount);
                 } else if (isTrailingPercentOrder) {
                     const requestTrailingPercent = Precise.stringDiv (trailingPercent, '100');
                     request['priceRate'] = this.parseToNumeric (requestTrailingPercent);
