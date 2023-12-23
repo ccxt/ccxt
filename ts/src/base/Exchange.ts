@@ -3995,8 +3995,11 @@ export default class Exchange {
         /**
          * @ignore
          * @method
+         * @description checks this.options and params for a value set for marginMode or defaultMarginMode
+         * @param {string} methodName the name of the method being called
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Array} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
+         * @param {string} [defaultValue] the default value to be returned if there is no value provided by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
+         * @returns {[string, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
          */
         const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
         const methodOptions = this.safeValue (this.options, methodName, {});
