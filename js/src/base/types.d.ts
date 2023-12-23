@@ -318,3 +318,8 @@ export declare type LeverageUpdates = {
     symbol: string;
     leverage: number;
 };
+export declare type FundingFee = {
+    symbol?: string;
+    fee: number;
+    quote: string;
+};

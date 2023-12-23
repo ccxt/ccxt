@@ -44,6 +44,7 @@ class binance(ccxt.async_support.binance):
                 'fetchBalanceWs': True,
                 'fetchMyTradesWs': True,
                 'watchLeverageUpdates': True,
+                'watchFundingFee': True,
             },
             'urls': {
                 'test': {
@@ -2438,6 +2439,30 @@ class binance(ccxt.async_support.binance):
     def handle_acount_update(self, client, message):
         self.handle_balance(client, message)
         self.handle_positions(client, message)
+        self.handle_funding_fee(client, message)
+
+    async def watch_funding_fee(self, params={}) -> FundingFee:
+        await self.load_markets()
+        await self.authenticate()
+        url = self.urls['api']['ws']['future'] + '/' + self.options['future']['listenKey']
+        messageHash = 'future:fundingFee'
+        message = None
+        return await self.watch(url, messageHash, message, 'future')
+
+    def handle_funding_fee(self, client, message):
+        a = self.safe_value(message, 'a')
+        m = self.safe_string(a, 'm')
+        if m != 'FUNDING_FEE':
+            return
+        B = self.safe_value(a, 'B')
+        fee = {
+            'quote': self.safe_string(B[0], 'a'),
+            'fee': self.safe_float(B[0], 'bc'),
+        }
+        P = self.safe_value(a, 'P')
+        if len(P) > 0:
+            fee['symbol'] = self.safe_string(P[0], 's')
+        client.resolve(fee, 'future:fundingFee')
 
     def handle_ws_error(self, client: Client, message):
         #
