@@ -3478,6 +3478,12 @@ export default class bingx extends Exchange {
             'dualSidePosition': dualSidePosition,
         };
         //
+        //     {
+        //         code: '0',
+        //         msg: '',
+        //         timeStamp: '1703327432734',
+        //         data: { dualSidePosition: 'false' }
+        //     }
         //
         return await this.swapV1PrivatePostPositionSideDual (this.extend (request, params));
     }
