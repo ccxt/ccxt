@@ -80,6 +80,7 @@ class bybit extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
+                'fetchPermissions' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => true,
@@ -7491,5 +7492,75 @@ class bybit extends Exchange {
             throw new ExchangeError($feedback); // unknown message
         }
         return null;
+    }
+
+    public function fetch_permissions(?array () $params): ApiKeyPermission {
+        $this->load_markets();
+        $response = $this->privateGetV5UserQueryApi ();
+        //  {
+        //     "retCode" => 0,
+        //     "retMsg" => "",
+        //     "result" => array(
+        //         "id" => "13770661",
+        //         "note" => "readwrite api key",
+        //         "apiKey" => "XXXXXX",
+        //         "readOnly" => 0,
+        //         "secret" => "",
+        //         "permissions" => array(
+        //             "ContractTrade" => array(
+        //                 "Order",
+        //                 "Position"
+        //             ),
+        //             "Spot" => array(
+        //                 "SpotTrade"
+        //             ),
+        //             "Wallet" => array(
+        //                 "AccountTransfer",
+        //                 "SubMemberTransfer"
+        //             ),
+        //             "Options" => array(
+        //                 "OptionsTrade"
+        //             ),
+        //             "Derivatives" => array(),
+        //             "CopyTrading" => array(),
+        //             "BlockTrade" => array(),
+        //             "Exchange" => array(),
+        //             "NFT" => array(),
+        //             "Affiliate" => array()
+        //         ),
+        //         "ips" => array(
+        //             "*"
+        //         ),
+        //         "type" => 1,
+        //         "deadlineDay" => 66,
+        //         "expiredAt" => "2023-12-22T07:20:25Z",
+        //         "createdAt" => "2022-10-16T02:24:40Z",
+        //         "unified" => 0,
+        //         "uta" => 0,
+        //         "userID" => 24617703,
+        //         "inviterID" => 0,
+        //         "vipLevel" => "No VIP",
+        //         "mktMakerLevel" => "0",
+        //         "affiliateID" => 0,
+        //         "rsaPublicKey" => "",
+        //         "isMaster" => true,
+        //         "parentUid" => "0",
+        //         "kycLevel" => "LEVEL_DEFAULT",
+        //         "kycRegion" => ""
+        //     ),
+        //     "retExtInfo" => array(),
+        //     "time" => 1697525990798
+        // }
+        $result = $this->safe_value($response, 'result');
+        $permissions = $this->safe_value($result, 'permissions');
+        $futuresPermissions = $this->safe_value($permissions, 'ContractTrade');
+        $spotPermissions = $this->safe_value($permissions, 'Spot');
+        $withdrawlPermissions = $this->safe_value($permissions, 'Wallet');
+        return array(
+            'spotEnabled' => mb_strpos($spotPermissions, 'SpotTrade') > -1,
+            'marginEnabled' => false,
+            'withdrawlsEnabled' => mb_strpos($withdrawlPermissions, 'Withdraw') > -1,
+            'futuresEnabled' => mb_strpos($futuresPermissions, 'Order') > -1 && mb_strpos($futuresPermissions, 'Contract') > -1,
+        );
     }
 }

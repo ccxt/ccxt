@@ -62,7 +62,7 @@ export default class coinbasepro extends Exchange {
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(transaction: any): "ok" | "canceled" | "failed" | "pending";
+    parseTransactionStatus(transaction: any): "ok" | "canceled" | "pending" | "failed";
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;

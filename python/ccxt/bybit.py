@@ -99,6 +99,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchPermissions': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': True,
@@ -7084,3 +7085,72 @@ class bybit(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
         return None
+
+    def fetch_permissions(self, params: {}) -> ApiKeyPermission:
+        self.load_markets()
+        response = self.privateGetV5UserQueryApi()
+        #  {
+        #     "retCode": 0,
+        #     "retMsg": "",
+        #     "result": {
+        #         "id": "13770661",
+        #         "note": "readwrite api key",
+        #         "apiKey": "XXXXXX",
+        #         "readOnly": 0,
+        #         "secret": "",
+        #         "permissions": {
+        #             "ContractTrade": [
+        #                 "Order",
+        #                 "Position"
+        #             ],
+        #             "Spot": [
+        #                 "SpotTrade"
+        #             ],
+        #             "Wallet": [
+        #                 "AccountTransfer",
+        #                 "SubMemberTransfer"
+        #             ],
+        #             "Options": [
+        #                 "OptionsTrade"
+        #             ],
+        #             "Derivatives": [],
+        #             "CopyTrading": [],
+        #             "BlockTrade": [],
+        #             "Exchange": [],
+        #             "NFT": [],
+        #             "Affiliate": []
+        #         },
+        #         "ips": [
+        #             "*"
+        #         ],
+        #         "type": 1,
+        #         "deadlineDay": 66,
+        #         "expiredAt": "2023-12-22T07:20:25Z",
+        #         "createdAt": "2022-10-16T02:24:40Z",
+        #         "unified": 0,
+        #         "uta": 0,
+        #         "userID": 24617703,
+        #         "inviterID": 0,
+        #         "vipLevel": "No VIP",
+        #         "mktMakerLevel": "0",
+        #         "affiliateID": 0,
+        #         "rsaPublicKey": "",
+        #         "isMaster": True,
+        #         "parentUid": "0",
+        #         "kycLevel": "LEVEL_DEFAULT",
+        #         "kycRegion": ""
+        #     },
+        #     "retExtInfo": {},
+        #     "time": 1697525990798
+        # }
+        result = self.safe_value(response, 'result')
+        permissions = self.safe_value(result, 'permissions')
+        futuresPermissions = self.safe_value(permissions, 'ContractTrade')
+        spotPermissions = self.safe_value(permissions, 'Spot')
+        withdrawlPermissions = self.safe_value(permissions, 'Wallet')
+        return {
+            'spotEnabled': spotPermissions.find('SpotTrade') > -1,
+            'marginEnabled': False,
+            'withdrawlsEnabled': withdrawlPermissions.find('Withdraw') > -1,
+            'futuresEnabled': futuresPermissions.find('Order') > -1 and futuresPermissions.find('Contract') > -1,
+        }

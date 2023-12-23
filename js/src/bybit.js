@@ -108,6 +108,7 @@ export default class bybit extends Exchange {
                 'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true,
+                'fetchPermissions': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -7621,5 +7622,74 @@ export default class bybit extends Exchange {
             throw new ExchangeError(feedback); // unknown message
         }
         return undefined;
+    }
+    async fetchPermissions(params) {
+        await this.loadMarkets();
+        const response = await this.privateGetV5UserQueryApi();
+        //  {
+        //     "retCode": 0,
+        //     "retMsg": "",
+        //     "result": {
+        //         "id": "13770661",
+        //         "note": "readwrite api key",
+        //         "apiKey": "XXXXXX",
+        //         "readOnly": 0,
+        //         "secret": "",
+        //         "permissions": {
+        //             "ContractTrade": [
+        //                 "Order",
+        //                 "Position"
+        //             ],
+        //             "Spot": [
+        //                 "SpotTrade"
+        //             ],
+        //             "Wallet": [
+        //                 "AccountTransfer",
+        //                 "SubMemberTransfer"
+        //             ],
+        //             "Options": [
+        //                 "OptionsTrade"
+        //             ],
+        //             "Derivatives": [],
+        //             "CopyTrading": [],
+        //             "BlockTrade": [],
+        //             "Exchange": [],
+        //             "NFT": [],
+        //             "Affiliate": []
+        //         },
+        //         "ips": [
+        //             "*"
+        //         ],
+        //         "type": 1,
+        //         "deadlineDay": 66,
+        //         "expiredAt": "2023-12-22T07:20:25Z",
+        //         "createdAt": "2022-10-16T02:24:40Z",
+        //         "unified": 0,
+        //         "uta": 0,
+        //         "userID": 24617703,
+        //         "inviterID": 0,
+        //         "vipLevel": "No VIP",
+        //         "mktMakerLevel": "0",
+        //         "affiliateID": 0,
+        //         "rsaPublicKey": "",
+        //         "isMaster": true,
+        //         "parentUid": "0",
+        //         "kycLevel": "LEVEL_DEFAULT",
+        //         "kycRegion": ""
+        //     },
+        //     "retExtInfo": {},
+        //     "time": 1697525990798
+        // }
+        const result = this.safeValue(response, 'result');
+        const permissions = this.safeValue(result, 'permissions');
+        const futuresPermissions = this.safeValue(permissions, 'ContractTrade');
+        const spotPermissions = this.safeValue(permissions, 'Spot');
+        const withdrawlPermissions = this.safeValue(permissions, 'Wallet');
+        return {
+            'spotEnabled': spotPermissions.indexOf('SpotTrade') > -1,
+            'marginEnabled': false,
+            'withdrawlsEnabled': withdrawlPermissions.indexOf('Withdraw') > -1,
+            'futuresEnabled': futuresPermissions.indexOf('Order') > -1 && futuresPermissions.indexOf('Contract') > -1,
+        };
     }
 }
