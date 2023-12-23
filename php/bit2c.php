@@ -273,14 +273,13 @@ class bit2c extends Exchange {
 
     public function parse_ticker($ticker, ?array $market = null): array {
         $symbol = $this->safe_symbol(null, $market);
-        $timestamp = $this->milliseconds();
         $averagePrice = $this->safe_string($ticker, 'av');
         $baseVolume = $this->safe_string($ticker, 'a');
         $last = $this->safe_string($ticker, 'll');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => null,
             'low' => null,
             'bid' => $this->safe_string($ticker, 'h'),

@@ -844,20 +844,12 @@ export default class krakenfutures extends Exchange {
         });
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        const market = this.market(symbol);
         type = this.safeString(params, 'orderType', type);
         const timeInForce = this.safeString(params, 'timeInForce');
-        const stopPrice = this.safeString(params, 'stopPrice');
         let postOnly = false;
         [postOnly, params] = this.handlePostOnly(type === 'market', type === 'post', params);
-        const clientOrderId = this.safeString2(params, 'clientOrderId', 'cliOrdId');
-        params = this.omit(params, ['clientOrderId', 'cliOrdId']);
-        if ((type === 'stp' || type === 'take_profit') && stopPrice === undefined) {
-            throw new ArgumentsRequired(this.id + ' createOrder requires params.stopPrice when type is ' + type);
-        }
-        if (stopPrice !== undefined && type !== 'take_profit') {
-            type = 'stp';
-        }
-        else if (postOnly) {
+        if (postOnly) {
             type = 'post';
         }
         else if (timeInForce === 'ioc') {
@@ -870,17 +862,49 @@ export default class krakenfutures extends Exchange {
             type = 'mkt';
         }
         const request = {
-            'orderType': type,
-            'symbol': this.marketId(symbol),
+            'symbol': market['id'],
             'side': side,
             'size': amount,
         };
-        if (price !== undefined) {
-            request['limitPrice'] = price;
-        }
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'cliOrdId');
         if (clientOrderId !== undefined) {
             request['cliOrdId'] = clientOrderId;
         }
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+        const isTriggerOrder = triggerPrice !== undefined;
+        const stopLossTriggerPrice = this.safeString(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeString(params, 'takeProfitPrice');
+        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
+        const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
+        const triggerSignal = this.safeString(params, 'triggerSignal', 'last');
+        let reduceOnly = this.safeValue(params, 'reduceOnly');
+        if (isStopLossOrTakeProfitTrigger || isTriggerOrder) {
+            request['triggerSignal'] = triggerSignal;
+        }
+        if (isTriggerOrder) {
+            type = 'stp';
+            request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
+        }
+        else if (isStopLossOrTakeProfitTrigger) {
+            reduceOnly = true;
+            if (isStopLossTriggerOrder) {
+                type = 'stp';
+                request['stopPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+            }
+            else if (isTakeProfitTriggerOrder) {
+                type = 'take_profit';
+                request['stopPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+            }
+        }
+        if (reduceOnly) {
+            request['reduceOnly'] = true;
+        }
+        request['orderType'] = type;
+        if (price !== undefined) {
+            request['limitPrice'] = price;
+        }
+        params = this.omit(params, ['clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
         return this.extend(request, params);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -888,19 +912,22 @@ export default class krakenfutures extends Exchange {
          * @method
          * @name krakenfutures#createOrder
          * @description Create an order on the exchange
-         * @param {string} symbol market symbol
-         * @param {string} type One of 'limit', 'market', 'take_profit'
-         * @param {string} side buy or sell
-         * @param {int} amount Contract quantity
-         * @param {float} [price] Limit order price
-         * @param {float} [params.stopPrice] The stop price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
-         * @param {bool} [params.reduceOnly] Set as true if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default false,
-         * @param {bool} [params.postOnly] Set as true if you wish to make a postOnly order, Default false
-         * @param {string} [params.triggerSignal] If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
-         * @param {string} [params.cliOrdId] UUID The order identity that is specified from the user, It must be globally unique
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order
+         * @param {string} symbol unified market symbol
+         * @param {string} type 'limit' or 'market'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount number of contracts
+         * @param {float} [price] limit order price
+         * @param {bool} [params.reduceOnly] set as true if you wish the order to only reduce an existing position, any order which increases an existing position will be rejected, default is false
+         * @param {bool} [params.postOnly] set as true if you wish to make a postOnly order, default is false
          * @param {string} [params.clientOrderId] UUID The order identity that is specified from the user, It must be globally unique
+         * @param {float} [params.triggerPrice] the price that a stop order is triggered at
+         * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
+         * @param {string} [params.triggerSignal] for triggerPrice, stopLossPrice and takeProfitPrice orders, the trigger price type, 'last', 'mark' or 'index', default is 'last'
          */
         await this.loadMarkets();
+        const market = this.market(symbol);
         const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params);
         const response = await this.privatePostSendorder(orderRequest);
         //
@@ -936,7 +963,7 @@ export default class krakenfutures extends Exchange {
         const sendStatus = this.safeValue(response, 'sendStatus');
         const status = this.safeString(sendStatus, 'status');
         this.verifyOrderActionSuccess(status, 'createOrder', ['filled']);
-        return this.parseOrder(sendStatus);
+        return this.parseOrder(sendStatus, market);
     }
     async createOrders(orders, params = {}) {
         /**

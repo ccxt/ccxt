@@ -171,13 +171,12 @@ class btcbox extends Exchange {
     }
 
     public function parse_ticker($ticker, ?array $market = null): array {
-        $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
         $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $this->safe_string($ticker, 'high'),
             'low' => $this->safe_string($ticker, 'low'),
             'bid' => $this->safe_string($ticker, 'buy'),
@@ -481,7 +480,7 @@ class btcbox extends Exchange {
          * fetches information on multiple orders made by the user
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */

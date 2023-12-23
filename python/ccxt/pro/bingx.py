@@ -85,7 +85,7 @@ class bingx(ccxt.async_support.bingx):
         :see: https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
@@ -295,8 +295,11 @@ class bingx(ccxt.async_support.bingx):
         #        "t": 1696687440000
         #    }
         #
+        # for spot, opening-time(t) is used instead of closing-time(T), to be compatible with fetchOHLCV
+        # for swap,(T) is the opening time
+        timestamp = 't' if (market['spot']) else 'T'
         return [
-            self.safe_integer(ohlcv, 't'),  # needs to be opening-time(t) instead of closing-time(T), to be compatible with fetchOHLCV
+            self.safe_integer(ohlcv, timestamp),
             self.safe_number(ohlcv, 'o'),
             self.safe_number(ohlcv, 'h'),
             self.safe_number(ohlcv, 'l'),
@@ -413,7 +416,7 @@ class bingx(ccxt.async_support.bingx):
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """

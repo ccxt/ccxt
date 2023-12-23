@@ -451,12 +451,31 @@
                 ]
             },
             {
+              "description": "Spot open orders without symbol",
+              "method": "fetchOpenOrders",
+              "url": "https://api.bitget.com/api/v2/spot/trade/unfilled-orders",
+              "input": []
+            },
+            {
                 "description": "Swap open orders",
                 "method": "fetchOpenOrders",
                 "url": "https://api.bitget.com/api/v2/mix/order/orders-pending?productType=USDT-FUTURES&symbol=BTCUSDT",
                 "input": [
                   "BTC/USDT:USDT"
                 ]
+            },
+            {
+              "description": "Swap open orders without symbol",
+              "method": "fetchOpenOrders",
+              "url": "https://api.bitget.com/api/v2/mix/order/orders-pending?productType=USDT-FUTURES&startTime=0&limit=0",
+              "input": [
+                null,
+                0,
+                0,
+                {
+                  "type": "swap"
+                }
+              ]
             }
         ],
         "fetchClosedOrders": [

@@ -31,6 +31,7 @@ const errorHierarchy = {
                 'ContractUnavailable': {},
             },
             'NotSupported': {},
+            'ProxyError': {},
         },
         'OperationFailed': {
             'NetworkError': {

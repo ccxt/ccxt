@@ -70,12 +70,17 @@ interface Exchange {
     privateGetStopOrder (params?: {}): Promise<implicitReturnType>;
     privateGetStopOrderOrderId (params?: {}): Promise<implicitReturnType>;
     privateGetStopOrderQueryOrderByClientOid (params?: {}): Promise<implicitReturnType>;
+    privateGetOcoOrderOrderId (params?: {}): Promise<implicitReturnType>;
+    privateGetOcoOrderDetailsOrderId (params?: {}): Promise<implicitReturnType>;
+    privateGetOcoClientOrderClientOid (params?: {}): Promise<implicitReturnType>;
+    privateGetOcoOrders (params?: {}): Promise<implicitReturnType>;
     privateGetHfMarginOrdersActive (params?: {}): Promise<implicitReturnType>;
     privateGetHfMarginOrdersDone (params?: {}): Promise<implicitReturnType>;
     privateGetHfMarginOrdersOrderId (params?: {}): Promise<implicitReturnType>;
     privateGetHfMarginOrdersClientOrderClientOid (params?: {}): Promise<implicitReturnType>;
     privateGetHfMarginFills (params?: {}): Promise<implicitReturnType>;
     privateGetEtfInfo (params?: {}): Promise<implicitReturnType>;
+    privateGetMarginCurrencies (params?: {}): Promise<implicitReturnType>;
     privateGetRiskLimitStrategy (params?: {}): Promise<implicitReturnType>;
     privateGetIsolatedSymbols (params?: {}): Promise<implicitReturnType>;
     privateGetIsolatedAccountSymbol (params?: {}): Promise<implicitReturnType>;
@@ -106,6 +111,7 @@ interface Exchange {
     privatePostOrdersTest (params?: {}): Promise<implicitReturnType>;
     privatePostOrdersMulti (params?: {}): Promise<implicitReturnType>;
     privatePostStopOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostOcoOrder (params?: {}): Promise<implicitReturnType>;
     privatePostHfMarginOrder (params?: {}): Promise<implicitReturnType>;
     privatePostHfMarginOrderTest (params?: {}): Promise<implicitReturnType>;
     privatePostMarginOrder (params?: {}): Promise<implicitReturnType>;
@@ -124,12 +130,16 @@ interface Exchange {
     privateDeleteHfOrdersSyncClientOrderClientOid (params?: {}): Promise<implicitReturnType>;
     privateDeleteHfOrdersCancelOrderId (params?: {}): Promise<implicitReturnType>;
     privateDeleteHfOrders (params?: {}): Promise<implicitReturnType>;
+    privateDeleteHfOrdersCancelAll (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrdersOrderId (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrderClientOrderClientOid (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteStopOrderOrderId (params?: {}): Promise<implicitReturnType>;
     privateDeleteStopOrderCancelOrderByClientOid (params?: {}): Promise<implicitReturnType>;
     privateDeleteStopOrderCancel (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOcoOrderOrderId (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOcoClientOrderClientOid (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOcoOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteHfMarginOrdersOrderId (params?: {}): Promise<implicitReturnType>;
     privateDeleteHfMarginOrdersClientOrderClientOid (params?: {}): Promise<implicitReturnType>;
     privateDeleteHfMarginOrders (params?: {}): Promise<implicitReturnType>;
@@ -145,6 +155,7 @@ interface Exchange {
     futuresPublicGetIndexQuery (params?: {}): Promise<implicitReturnType>;
     futuresPublicGetMarkPriceSymbolCurrent (params?: {}): Promise<implicitReturnType>;
     futuresPublicGetPremiumQuery (params?: {}): Promise<implicitReturnType>;
+    futuresPublicGetTradeStatistics (params?: {}): Promise<implicitReturnType>;
     futuresPublicGetFundingRateSymbolCurrent (params?: {}): Promise<implicitReturnType>;
     futuresPublicGetTimestamp (params?: {}): Promise<implicitReturnType>;
     futuresPublicGetStatus (params?: {}): Promise<implicitReturnType>;
@@ -175,6 +186,7 @@ interface Exchange {
     futuresPrivatePostPositionRiskLimitLevelChange (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostBulletPrivate (params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteOrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    futuresPrivateDeleteOrdersClientOrderClientOid (params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteOrders (params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteStopOrders (params?: {}): Promise<implicitReturnType>;
     webExchangeGetCurrencyCurrencyChainInfo (params?: {}): Promise<implicitReturnType>;
