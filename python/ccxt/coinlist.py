@@ -1179,7 +1179,7 @@ class coinlist(Exchange, ImplicitAPI):
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve(default 200, max 500)
+        :param int [limit]: the maximum number of order structures to retrieve(default 200, max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param string|str[] [params.status]: the status of the order - 'accepted', 'done', 'canceled', 'rejected', 'pending'(default ['accepted', 'done', 'canceled', 'rejected', 'pending'])
