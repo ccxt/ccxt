@@ -7885,7 +7885,6 @@ export default class binance extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        let method = undefined;
         const request = {
             'incomeType': 'FUNDING_FEE', // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
         };
@@ -7907,14 +7906,14 @@ export default class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchFundingHistory', 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
+        let response = undefined;
         if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateGetIncome';
+            response = await this.fapiPrivateGetIncome (this.extend (request, params));
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPrivateGetIncome';
+            response = await this.dapiPrivateGetIncome (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
         }
-        const response = await this[method] (this.extend (request, params));
         return this.parseIncomes (response, market, since, limit);
     }
 
