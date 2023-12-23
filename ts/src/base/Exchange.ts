@@ -4001,7 +4001,7 @@ export default class Exchange {
          * @param {string} [defaultValue] the default value to be returned if there is no value provided by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
          * @returns {[string, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
          */
-        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
+        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode', defaultValue);
         const methodOptions = this.safeValue (this.options, methodName, {});
         const methodMarginMode = this.safeString2 (methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode);
         const marginMode = this.safeStringLower2 (params, 'marginMode', 'defaultMarginMode', methodMarginMode);
