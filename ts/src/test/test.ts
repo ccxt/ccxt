@@ -32,7 +32,7 @@ const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
 const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
-const exchangeSymbolFinal = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
+const sanitizedSymnol = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
 // non-transpiled part, but shared names among langs
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
@@ -1567,4 +1567,4 @@ export default class testMainClass extends baseMainTestClass {
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass ()).init (exchangeIdFromArgv, exchangeSymbolFinal);
+(new testMainClass ()).init (exchangeIdFromArgv, sanitizedSymnol);
