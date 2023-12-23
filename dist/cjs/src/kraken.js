@@ -824,7 +824,6 @@ class kraken extends kraken$1 {
         //         "o":"2571.56000"
         //     }
         //
-        const timestamp = this.milliseconds();
         const symbol = this.safeSymbol(undefined, market);
         const v = this.safeValue(ticker, 'v', []);
         const baseVolume = this.safeString(v, 1);
@@ -839,8 +838,8 @@ class kraken extends kraken$1 {
         const ask = this.safeValue(ticker, 'a', []);
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString(high, 1),
             'low': this.safeString(low, 1),
             'bid': this.safeString(bid, 0),

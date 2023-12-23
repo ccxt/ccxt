@@ -338,11 +338,10 @@ class kraken extends \ccxt\async\kraken {
             $quoteVolume = Precise::string_mul($baseVolume, $vwap);
         }
         $last = $this->safe_string($ticker['c'], 0);
-        $timestamp = $this->milliseconds();
         $result = $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $this->safe_string($ticker['h'], 0),
             'low' => $this->safe_string($ticker['l'], 0),
             'bid' => $this->safe_string($ticker['b'], 0),

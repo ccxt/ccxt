@@ -1071,7 +1071,7 @@ class bitmart extends Exchange {
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        $timestamp = $this->safe_integer($ticker, 'timestamp', $this->milliseconds());
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
         $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];

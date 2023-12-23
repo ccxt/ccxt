@@ -796,7 +796,7 @@ class gate extends gate$1 {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.positions[type], symbols, since, limit, true);
     }
     setPositionsCache(client, type, symbols = undefined) {
         if (this.positions === undefined) {

@@ -177,13 +177,12 @@ export default class btcbox extends Exchange {
         return this.parseOrderBook(response, market['symbol']);
     }
     parseTicker(ticker, market = undefined) {
-        const timestamp = this.milliseconds();
         const symbol = this.safeSymbol(undefined, market);
         const last = this.safeString(ticker, 'last');
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString(ticker, 'high'),
             'low': this.safeString(ticker, 'low'),
             'bid': this.safeString(ticker, 'buy'),

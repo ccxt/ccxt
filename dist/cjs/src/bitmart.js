@@ -1077,7 +1077,7 @@ class bitmart extends bitmart$1 {
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        const timestamp = this.safeInteger(ticker, 'timestamp', this.milliseconds());
+        const timestamp = this.safeInteger(ticker, 'timestamp');
         const marketId = this.safeString2(ticker, 'symbol', 'contract_symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];

@@ -279,14 +279,13 @@ export default class bit2c extends Exchange {
     }
     parseTicker(ticker, market = undefined) {
         const symbol = this.safeSymbol(undefined, market);
-        const timestamp = this.milliseconds();
         const averagePrice = this.safeString(ticker, 'av');
         const baseVolume = this.safeString(ticker, 'a');
         const last = this.safeString(ticker, 'll');
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': undefined,
             'low': undefined,
             'bid': this.safeString(ticker, 'h'),

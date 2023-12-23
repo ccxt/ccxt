@@ -171,13 +171,12 @@ class btcbox extends Exchange {
     }
 
     public function parse_ticker($ticker, ?array $market = null): array {
-        $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
         $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $this->safe_string($ticker, 'high'),
             'low' => $this->safe_string($ticker, 'low'),
             'bid' => $this->safe_string($ticker, 'buy'),

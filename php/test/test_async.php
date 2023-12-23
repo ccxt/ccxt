@@ -286,6 +286,7 @@ function set_fetch_response($exchange, $data) {
 
 // Required imports
 use ccxt\NotSupported;
+use ccxt\ProxyError;
 use ccxt\NetworkError;
 use ccxt\OperationFailed;
 use ccxt\ExchangeNotAvailable;
@@ -1184,8 +1185,8 @@ class testMainClass extends baseMainTestClass {
             $request_url = null;
             try {
                 Async\await(call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input'])));
-            } catch(\Throwable $e) {
-                if (!($e instanceof NetworkError)) {
+            } catch(Throwable $e) {
+                if (!($e instanceof ProxyError)) {
                     throw $e;
                 }
                 $output = $exchange->last_request_body;
@@ -1225,6 +1226,7 @@ class testMainClass extends baseMainTestClass {
             'markets' => $markets,
             'enableRateLimit' => false,
             'rateLimit' => 1,
+            'httpProxy' => 'http://fake:8080',
             'httpsProxy' => 'http://fake:8080',
             'apiKey' => 'key',
             'secret' => 'secretsecret',

@@ -360,7 +360,7 @@
         }
     },
     "bitrue": {
-        "skipWs": "timeouts",
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
