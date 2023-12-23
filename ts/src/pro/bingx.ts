@@ -314,8 +314,11 @@ export default class bingx extends bingxRest {
         //        "t": 1696687440000
         //    }
         //
+        // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
+        // for swap, (T) is the opening time
+        const timestamp = (market['spot']) ? 't' : 'T';
         return [
-            this.safeInteger (ohlcv, 't'), // needs to be opening-time (t) instead of closing-time (T), to be compatible with fetchOHLCV
+            this.safeInteger (ohlcv, timestamp),
             this.safeNumber (ohlcv, 'o'),
             this.safeNumber (ohlcv, 'h'),
             this.safeNumber (ohlcv, 'l'),
