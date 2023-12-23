@@ -983,7 +983,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         //    }
         //
         const data = this.safeString (message, 'data', '');
-        if (data === "token is expired") {
+        if (data === 'token is expired') {
             const type = client.url.substring (client.url.indexOf ('connectId=') + 10);
             this.options['urls'][type] = undefined;
         }
