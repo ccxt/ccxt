@@ -2128,7 +2128,7 @@ export default class bitmart extends Exchange {
         if (priceString === 'market price') {
             priceString = undefined;
         }
-        const trailingStopActivationPrice = this.safeNumber (order, 'activation_price');
+        const trailingActivationPrice = this.safeNumber (order, 'activation_price');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': this.safeString (order, 'client_order_id'),
@@ -2142,8 +2142,8 @@ export default class bitmart extends Exchange {
             'postOnly': postOnly,
             'side': this.parseOrderSide (this.safeString (order, 'side')),
             'price': this.omitZero (priceString),
-            'stopPrice': trailingStopActivationPrice,
-            'triggerPrice': trailingStopActivationPrice,
+            'stopPrice': trailingActivationPrice,
+            'triggerPrice': trailingActivationPrice,
             'amount': this.omitZero (this.safeString (order, 'size')),
             'cost': this.safeString2 (order, 'filled_notional', 'filledNotional'),
             'average': this.safeStringN (order, [ 'price_avg', 'priceAvg', 'deal_avg_price' ]),
@@ -2234,9 +2234,9 @@ export default class bitmart extends Exchange {
          * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
          * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
          * @param {int} [params.price_way] *swap only* 1: price way long, 2: price way short
-         * @param {int} [params.activation_price_type] *swap trailing stop order only* 1: last price, 2: fair price, default is 1
-         * @param {string} [params.trailingStopPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
-         * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing stop order, default uses the price argument
+         * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
+         * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
+         * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2306,9 +2306,9 @@ export default class bitmart extends Exchange {
          * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
          * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
          * @param {int} [params.price_way] *swap only* 1: price way long, 2: price way short
-         * @param {int} [params.activation_price_type] *swap trailing stop order only* 1: last price, 2: fair price, default is 1
-         * @param {string} [params.trailingStopPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
-         * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing stop order, default uses the price argument
+         * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
+         * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
+         * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const market = this.market (symbol);
@@ -2339,12 +2339,12 @@ export default class bitmart extends Exchange {
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'trigger_price' ]);
         const isTriggerOrder = triggerPrice !== undefined;
         const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activation_price', price);
-        const trailingStopPercent = this.safeString2 (params, 'trailingStopPercent', 'callback_rate');
-        const isTrailingStopPercentOrder = trailingStopPercent !== undefined;
+        const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callback_rate');
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         if (isLimitOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
-        } else if (type === 'trailing' || isTrailingStopPercentOrder) {
-            request['callback_rate'] = trailingStopPercent;
+        } else if (type === 'trailing' || isTrailingPercentOrder) {
+            request['callback_rate'] = trailingPercent;
             request['activation_price'] = this.priceToPrecision (symbol, trailingTriggerPrice);
             request['activation_price_type'] = this.safeInteger (params, 'activation_price_type', 1);
         }
@@ -2388,7 +2388,7 @@ export default class bitmart extends Exchange {
             request['client_order_id'] = clientOrderId;
         }
         const leverage = this.safeInteger (params, 'leverage', 1);
-        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingStopPercent', 'triggerPrice', 'stopPrice' ]);
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice' ]);
         request['leverage'] = this.numberToString (leverage);
         return this.extend (request, params);
     }
@@ -2677,7 +2677,7 @@ export default class bitmart extends Exchange {
          * @param {string} [params.type] *swap* order type, 'limit' or 'market'
          * @param {string} [params.order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
          * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
-         * @param {boolean} [params.trailingStop] *swap only* set to true if you want to fetch trailing stop orders
+         * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2709,10 +2709,10 @@ export default class bitmart extends Exchange {
             }
             response = await this.privatePostSpotV4QueryOpenOrders (this.extend (request, params));
         } else if (type === 'swap') {
-            const trailingStop = this.safeValue (params, 'trailingStop', false);
+            const trailing = this.safeValue (params, 'trailing', false);
             let orderType = this.safeString (params, 'orderType');
-            params = this.omit (params, [ 'orderType', 'trailingStop' ]);
-            if (trailingStop) {
+            params = this.omit (params, [ 'orderType', 'trailing' ]);
+            if (trailing) {
                 orderType = 'trailing';
             }
             if (orderType !== undefined) {
@@ -2861,7 +2861,7 @@ export default class bitmart extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] *spot* fetch the order by client order id instead of order id
          * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
-         * @param {boolean} [params.trailingStop] *swap only* set to true if you want to fetch a trailing stop order
+         * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch a trailing order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2887,10 +2887,10 @@ export default class bitmart extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
             }
-            const trailingStop = this.safeValue (params, 'trailingStop', false);
+            const trailing = this.safeValue (params, 'trailing', false);
             let orderType = this.safeString (params, 'orderType');
-            params = this.omit (params, [ 'orderType', 'trailingStop' ]);
-            if (trailingStop) {
+            params = this.omit (params, [ 'orderType', 'trailing' ]);
+            if (trailing) {
                 orderType = 'trailing';
             }
             if (orderType !== undefined) {

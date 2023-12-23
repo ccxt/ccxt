@@ -173,7 +173,7 @@
                 "output": "{\"symbol\":\"BTC_USDT\",\"side\":\"buy\",\"type\":\"market\",\"notional\":\"5\"}"
             },
             {
-                "description": "Swap trailing stop order",
+                "description": "Swap trailing order",
                 "method": "createOrder",
                 "url": "https://api-cloud.bitmart.com/contract/private/submit-order",
                 "input": [
@@ -185,7 +185,7 @@
                   {
                     "leverage": "10",
                     "marginMode": "isolated",
-                    "trailingStopPercent": "10",
+                    "trailingPercent": "10",
                     "trailingTriggerPrice": "50000",
                     "reduceOnly": true
                   }
@@ -263,7 +263,7 @@
                 ]
             },
             {
-                "description": "Swap open trailing stop orders",
+                "description": "Swap open trailing orders",
                 "method": "fetchOpenOrders",
                 "url": "https://api-cloud.bitmart.com/contract/private/get-open-orders?symbol=BTCUSDT&type=trailing",
                 "input": [
@@ -278,7 +278,7 @@
         ],
         "fetchOrder": [
             {
-                "description": "Swap trailing stop order by id",
+                "description": "Swap trailing order by id",
                 "method": "fetchOrder",
                 "url": "https://api-cloud.bitmart.com/contract/private/order?type=trailing&symbol=BTCUSDT&order_id=2312139250106560",
                 "input": [
