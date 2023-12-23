@@ -2541,22 +2541,21 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
+        $marginMode = null;
+        $query = null;
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
-        $method = 'privateGetAccount';
+        $query = $this->omit($query, 'type');
+        $response = null;
         $request = array();
         if ($this->is_linear($type, $subType)) {
-            $options = $this->safe_value($this->options, $type, array());
-            $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
-            $method = $this->safe_string($fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount');
             $type = 'linear';
+            $response = $this->fapiPrivateV2GetAccount (array_merge($request, $query));
         } elseif ($this->is_inverse($type, $subType)) {
-            $options = $this->safe_value($this->options, $type, array());
-            $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
-            $method = $this->safe_string($fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
             $type = 'inverse';
+            $response = $this->dapiPrivateGetAccount (array_merge($request, $query));
         } elseif ($marginMode === 'isolated') {
-            $method = 'sapiGetMarginIsolatedAccount';
             $paramSymbols = $this->safe_value($params, 'symbols');
+            $query = $this->omit($query, 'symbols');
             if ($paramSymbols !== null) {
                 $symbols = '';
                 if (gettype($paramSymbols) === 'array' && array_keys($paramSymbols) === array_keys(array_keys($paramSymbols))) {
@@ -2571,15 +2570,16 @@ class binance extends Exchange {
                 }
                 $request['symbols'] = $symbols;
             }
+            $response = $this->sapiGetMarginIsolatedAccount (array_merge($request, $query));
         } elseif (($type === 'margin') || ($marginMode === 'cross')) {
-            $method = 'sapiGetMarginAccount';
+            $response = $this->sapiGetMarginAccount (array_merge($request, $query));
         } elseif ($type === 'savings') {
-            $method = 'sapiGetLendingUnionAccount';
+            $response = $this->sapiGetLendingUnionAccount (array_merge($request, $query));
         } elseif ($type === 'funding') {
-            $method = 'sapiPostAssetGetFundingAsset';
+            $response = $this->sapiPostAssetGetFundingAsset (array_merge($request, $query));
+        } else {
+            $response = $this->privateGetAccount (array_merge($request, $query));
         }
-        $requestParams = $this->omit($query, array( 'type', 'symbols' ));
-        $response = $this->$method (array_merge($request, $requestParams));
         //
         // spot
         //
@@ -3253,27 +3253,28 @@ class binance extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $method = 'publicGetKlines';
+        $response = null;
         if ($market['option']) {
-            $method = 'eapiPublicGetKlines';
+            $response = $this->eapiPublicGetKlines (array_merge($request, $params));
         } elseif ($price === 'mark') {
             if ($market['inverse']) {
-                $method = 'dapiPublicGetMarkPriceKlines';
+                $response = $this->dapiPublicGetMarkPriceKlines (array_merge($request, $params));
             } else {
-                $method = 'fapiPublicGetMarkPriceKlines';
+                $response = $this->fapiPublicGetMarkPriceKlines (array_merge($request, $params));
             }
         } elseif ($price === 'index') {
             if ($market['inverse']) {
-                $method = 'dapiPublicGetIndexPriceKlines';
+                $response = $this->dapiPublicGetIndexPriceKlines (array_merge($request, $params));
             } else {
-                $method = 'fapiPublicGetIndexPriceKlines';
+                $response = $this->fapiPublicGetIndexPriceKlines (array_merge($request, $params));
             }
         } elseif ($market['linear']) {
-            $method = 'fapiPublicGetKlines';
+            $response = $this->fapiPublicGetKlines (array_merge($request, $params));
         } elseif ($market['inverse']) {
-            $method = 'dapiPublicGetKlines';
+            $response = $this->dapiPublicGetKlines (array_merge($request, $params));
+        } else {
+            $response = $this->publicGetKlines (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         //     [
         //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
@@ -4637,19 +4638,6 @@ class binance extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $method = 'privateGetOrder';
-        if ($market['option']) {
-            $method = 'eapiPrivateGetOrder';
-        } elseif ($market['linear']) {
-            $method = 'fapiPrivateGetOrder';
-        } elseif ($market['inverse']) {
-            $method = 'dapiPrivateGetOrder';
-        } elseif ($type === 'margin' || $marginMode !== null) {
-            $method = 'sapiGetMarginOrder';
-            if ($marginMode === 'isolated') {
-                $request['isIsolated'] = true;
-            }
-        }
         $clientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
         if ($clientOrderId !== null) {
             if ($market['option']) {
@@ -4661,7 +4649,21 @@ class binance extends Exchange {
             $request['orderId'] = $id;
         }
         $requestParams = $this->omit($query, array( 'type', 'clientOrderId', 'origClientOrderId' ));
-        $response = $this->$method (array_merge($request, $requestParams));
+        $response = null;
+        if ($market['option']) {
+            $response = $this->eapiPrivateGetOrder (array_merge($request, $requestParams));
+        } elseif ($market['linear']) {
+            $response = $this->fapiPrivateGetOrder (array_merge($request, $requestParams));
+        } elseif ($market['inverse']) {
+            $response = $this->dapiPrivateGetOrder (array_merge($request, $requestParams));
+        } elseif ($type === 'margin' || $marginMode !== null) {
+            if ($marginMode === 'isolated') {
+                $request['isIsolated'] = true;
+            }
+            $response = $this->sapiGetMarginOrder (array_merge($request, $requestParams));
+        } else {
+            $response = $this->privateGetOrder (array_merge($request, $requestParams));
+        }
         return $this->parse_order($response, $market);
     }
 
@@ -4698,19 +4700,6 @@ class binance extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $method = 'privateGetAllOrders';
-        if ($market['option']) {
-            $method = 'eapiPrivateGetHistoryOrders';
-        } elseif ($market['linear']) {
-            $method = 'fapiPrivateGetAllOrders';
-        } elseif ($market['inverse']) {
-            $method = 'dapiPrivateGetAllOrders';
-        } elseif ($type === 'margin' || $marginMode !== null) {
-            $method = 'sapiGetMarginAllOrders';
-            if ($marginMode === 'isolated') {
-                $request['isIsolated'] = true;
-            }
-        }
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
             $params = $this->omit($params, 'until');
@@ -4722,7 +4711,21 @@ class binance extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if ($market['option']) {
+            $response = $this->eapiPrivateGetHistoryOrders (array_merge($request, $query));
+        } elseif ($market['linear']) {
+            $response = $this->fapiPrivateGetAllOrders (array_merge($request, $query));
+        } elseif ($market['inverse']) {
+            $response = $this->dapiPrivateGetAllOrders (array_merge($request, $query));
+        } elseif ($type === 'margin' || $marginMode !== null) {
+            if ($marginMode === 'isolated') {
+                $request['isIsolated'] = true;
+            }
+            $response = $this->sapiGetMarginAllOrders (array_merge($request, $query));
+        } else {
+            $response = $this->privateGetAllOrders (array_merge($request, $query));
+        }
         //
         //  spot
         //
@@ -4836,7 +4839,7 @@ class binance extends Exchange {
             $symbols = $this->symbols;
             $numSymbols = count($symbols);
             $fetchOpenOrdersRateLimit = $this->parse_to_int($numSymbols / 2);
-            throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this $method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+            throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         } else {
             $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
             $type = $this->safe_string($query, 'type', $defaultType);
@@ -4844,29 +4847,30 @@ class binance extends Exchange {
         $subType = null;
         list($subType, $query) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $query);
         $requestParams = $this->omit($query, 'type');
-        $method = 'privateGetOpenOrders';
+        $response = null;
         if ($type === 'option') {
-            $method = 'eapiPrivateGetOpenOrders';
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
+            $response = $this->eapiPrivateGetOpenOrders (array_merge($request, $requestParams));
         } elseif ($this->is_linear($type, $subType)) {
-            $method = 'fapiPrivateGetOpenOrders';
+            $response = $this->fapiPrivateGetOpenOrders (array_merge($request, $requestParams));
         } elseif ($this->is_inverse($type, $subType)) {
-            $method = 'dapiPrivateGetOpenOrders';
+            $response = $this->dapiPrivateGetOpenOrders (array_merge($request, $requestParams));
         } elseif ($type === 'margin' || $marginMode !== null) {
-            $method = 'sapiGetMarginOpenOrders';
             if ($marginMode === 'isolated') {
                 $request['isIsolated'] = true;
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for isolated markets');
                 }
             }
+            $response = $this->sapiGetMarginOpenOrders (array_merge($request, $requestParams));
+        } else {
+            $response = $this->privateGetOpenOrders (array_merge($request, $requestParams));
         }
-        $response = $this->$method (array_merge($request, $requestParams));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -4952,21 +4956,22 @@ class binance extends Exchange {
         } else {
             $request['orderId'] = $id;
         }
-        $method = 'privateDeleteOrder';
+        $requestParams = $this->omit($query, array( 'type', 'origClientOrderId', 'clientOrderId' ));
+        $response = null;
         if ($market['option']) {
-            $method = 'eapiPrivateDeleteOrder';
+            $response = $this->eapiPrivateDeleteOrder (array_merge($request, $requestParams));
         } elseif ($market['linear']) {
-            $method = 'fapiPrivateDeleteOrder';
+            $response = $this->fapiPrivateDeleteOrder (array_merge($request, $requestParams));
         } elseif ($market['inverse']) {
-            $method = 'dapiPrivateDeleteOrder';
+            $response = $this->dapiPrivateDeleteOrder (array_merge($request, $requestParams));
         } elseif ($type === 'margin' || $marginMode !== null) {
-            $method = 'sapiDeleteMarginOrder';
             if ($marginMode === 'isolated') {
                 $request['isIsolated'] = true;
             }
+            $response = $this->sapiDeleteMarginOrder (array_merge($request, $requestParams));
+        } else {
+            $response = $this->privateDeleteOrder (array_merge($request, $requestParams));
         }
-        $requestParams = $this->omit($query, array( 'type', 'origClientOrderId', 'clientOrderId' ));
-        $response = $this->$method (array_merge($request, $requestParams));
         return $this->parse_order($response, $market);
     }
 
@@ -4994,20 +4999,21 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $market['type']);
         $params = $this->omit($params, array( 'type' ));
         list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
-        $method = 'privateDeleteOpenOrders';
+        $response = null;
         if ($market['option']) {
-            $method = 'eapiPrivateDeleteAllOpenOrders';
+            $response = $this->eapiPrivateDeleteAllOpenOrders (array_merge($request, $query));
         } elseif ($market['linear']) {
-            $method = 'fapiPrivateDeleteAllOpenOrders';
+            $response = $this->fapiPrivateDeleteAllOpenOrders (array_merge($request, $query));
         } elseif ($market['inverse']) {
-            $method = 'dapiPrivateDeleteAllOpenOrders';
+            $response = $this->dapiPrivateDeleteAllOpenOrders (array_merge($request, $query));
         } elseif (($type === 'margin') || ($marginMode !== null)) {
-            $method = 'sapiDeleteMarginOpenOrders';
             if ($marginMode === 'isolated') {
                 $request['isIsolated'] = true;
             }
+            $response = $this->sapiDeleteMarginOpenOrders (array_merge($request, $query));
+        } else {
+            $response = $this->privateDeleteOpenOrders (array_merge($request, $query));
         }
-        $response = $this->$method (array_merge($request, $query));
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             return $this->parse_orders($response, $market);
         } else {
@@ -5139,34 +5145,12 @@ class binance extends Exchange {
         $request = array();
         $market = null;
         $type = null;
-        $method = null;
         $marginMode = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
         list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
-        if ($type === 'option') {
-            $method = 'eapiPrivateGetUserTrades';
-        } else {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-            }
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
-            if ($type === 'spot' || $type === 'margin') {
-                $method = 'privateGetMyTrades';
-                if (($type === 'margin') || ($marginMode !== null)) {
-                    $method = 'sapiGetMarginMyTrades';
-                    if ($marginMode === 'isolated') {
-                        $request['isIsolated'] = true;
-                    }
-                }
-            } elseif ($market['linear']) {
-                $method = 'fapiPrivateGetUserTrades';
-            } elseif ($market['inverse']) {
-                $method = 'dapiPrivateGetUserTrades';
-            }
-        }
         $endTime = $this->safe_integer_2($params, 'until', 'endTime');
         if ($since !== null) {
             $startTime = $since;
@@ -5194,7 +5178,29 @@ class binance extends Exchange {
             }
             $request['limit'] = $limit;
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($type === 'option') {
+            $response = $this->eapiPrivateGetUserTrades (array_merge($request, $params));
+        } else {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            }
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
+            if ($type === 'spot' || $type === 'margin') {
+                if (($type === 'margin') || ($marginMode !== null)) {
+                    if ($marginMode === 'isolated') {
+                        $request['isIsolated'] = true;
+                    }
+                    $response = $this->sapiGetMarginMyTrades (array_merge($request, $params));
+                } else {
+                    $response = $this->privateGetMyTrades (array_merge($request, $params));
+                }
+            } elseif ($market['linear']) {
+                $response = $this->fapiPrivateGetUserTrades (array_merge($request, $params));
+            } elseif ($market['inverse']) {
+                $response = $this->dapiPrivateGetUserTrades (array_merge($request, $params));
+            }
+        }
         //
         // spot trade
         //
@@ -6510,7 +6516,6 @@ class binance extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market $symbols
          */
         $this->load_markets();
-        $method = null;
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
         $subType = null;
@@ -6518,14 +6523,14 @@ class binance extends Exchange {
         $isSpotOrMargin = ($type === 'spot') || ($type === 'margin');
         $isLinear = $this->is_linear($type, $subType);
         $isInverse = $this->is_inverse($type, $subType);
+        $response = null;
         if ($isSpotOrMargin) {
-            $method = 'sapiGetAssetTradeFee';
+            $response = $this->sapiGetAssetTradeFee ($params);
         } elseif ($isLinear) {
-            $method = 'fapiPrivateV2GetAccount';
+            $response = $this->fapiPrivateV2GetAccount ($params);
         } elseif ($isInverse) {
-            $method = 'dapiPrivateGetAccount';
+            $response = $this->dapiPrivateGetAccount ($params);
         }
-        $response = $this->$method ($params);
         //
         // sapi / spot
         //
@@ -6719,15 +6724,14 @@ class binance extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $method = null;
+        $response = null;
         if ($market['linear']) {
-            $method = 'fapiPublicGetPremiumIndex';
+            $response = $this->fapiPublicGetPremiumIndex (array_merge($request, $params));
         } elseif ($market['inverse']) {
-            $method = 'dapiPublicGetPremiumIndex';
+            $response = $this->dapiPublicGetPremiumIndex (array_merge($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchFundingRate() supports linear and inverse contracts only');
         }
-        $response = $this->$method (array_merge($request, $params));
         if ($market['inverse']) {
             $response = $response[0];
         }
@@ -7352,18 +7356,18 @@ class binance extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
          */
         $this->load_markets();
-        list($type, $query) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverageTiers', null, $query, 'linear');
-        $method = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverageTiers', null, $params, 'linear');
+        $response = null;
         if ($this->is_linear($type, $subType)) {
-            $method = 'fapiPrivateGetLeverageBracket';
+            $response = $this->fapiPrivateGetLeverageBracket ($params);
         } elseif ($this->is_inverse($type, $subType)) {
-            $method = 'dapiPrivateV2GetLeverageBracket';
+            $response = $this->dapiPrivateV2GetLeverageBracket ($params);
         } else {
             throw new NotSupported($this->id . ' fetchLeverageTiers() supports linear and inverse contracts only');
         }
-        $response = $this->$method ($query);
         //
         // usdm
         //
@@ -7809,7 +7813,7 @@ class binance extends Exchange {
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} response from the exchange
+         * @return {array} $response from the exchange
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
@@ -7821,18 +7825,19 @@ class binance extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['linear']) {
-            $method = 'fapiPrivatePostLeverage';
-        } elseif ($market['inverse']) {
-            $method = 'dapiPrivatePostLeverage';
-        } else {
-            throw new NotSupported($this->id . ' setLeverage() supports linear and inverse contracts only');
-        }
         $request = array(
             'symbol' => $market['id'],
             'leverage' => $leverage,
         );
-        return $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($market['linear']) {
+            $response = $this->fapiPrivatePostLeverage (array_merge($request, $params));
+        } elseif ($market['inverse']) {
+            $response = $this->dapiPrivatePostLeverage (array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' setLeverage() supports linear and inverse contracts only');
+        }
+        return $response;
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
@@ -7864,21 +7869,19 @@ class binance extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $method = null;
-        if ($market['linear']) {
-            $method = 'fapiPrivatePostMarginType';
-        } elseif ($market['inverse']) {
-            $method = 'dapiPrivatePostMarginType';
-        } else {
-            throw new NotSupported($this->id . ' setMarginMode() supports linear and inverse contracts only');
-        }
         $request = array(
             'symbol' => $market['id'],
             'marginType' => $marginMode,
         );
         $response = null;
         try {
-            $response = $this->$method (array_merge($request, $params));
+            if ($market['linear']) {
+                $response = $this->fapiPrivatePostMarginType (array_merge($request, $params));
+            } elseif ($market['inverse']) {
+                $response = $this->dapiPrivatePostMarginType (array_merge($request, $params));
+            } else {
+                throw new NotSupported($this->id . ' setMarginMode() supports linear and inverse contracts only');
+            }
         } catch (Exception $e) {
             // not an error
             // https://github.com/ccxt/ccxt/issues/11268
