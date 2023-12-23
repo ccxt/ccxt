@@ -200,6 +200,38 @@
                         "stopLossPrice": "40000"
                     }
                 ]
+            },
+            {
+                "description": "Swap trailing amount order",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&price=100&quantity=0.0001&side=SELL&symbol=BTC-USDT&timestamp=1703311717708&type=TRAILING_STOP_MARKET&signature=af450249b24a125292d4a81bbcda3445ea20a85dd858734e6ddacf36e999cf21",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "trailingAmount": 100,
+                    "reduceOnly": true
+                  }
+                ]
+            },
+            {
+                "description": "Swap trailing percent order",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&priceRate=0.1&quantity=0.0001&side=SELL&symbol=BTC-USDT&timestamp=1703312086044&type=TRAILING_STOP_MARKET&signature=d2f180a1a328e08f679de56f255c452d9ad469f4eb445659397ef297390e6cfe",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "trailingPercent": 10,
+                    "reduceOnly": true
+                  }
+                ]
             }
         ],
         "createOrders": [
