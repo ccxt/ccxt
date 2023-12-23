@@ -144,6 +144,16 @@ export default class bingx extends Exchange {
                     },
                 },
                 'swap': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'positionSide/dual': 1,
+                            },
+                            'post': {
+                                'positionSide/dual': 1,
+                            },
+                        },
+                    },
                     'v2': {
                         'public': {
                             'get': {
@@ -3445,6 +3455,37 @@ export default class bingx extends Exchange {
             positions.push (position);
         }
         return positions;
+    }
+
+    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#setPositionMode
+         * @description set hedged to true or false for a market
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+         * @param {bool} hedged set to true to use dualSidePosition
+         * @param {string} symbol not used by bingx setPositionMode ()
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        let dualSidePosition = undefined;
+        if (hedged) {
+            dualSidePosition = 'true';
+        } else {
+            dualSidePosition = 'false';
+        }
+        const request = {
+            'dualSidePosition': dualSidePosition,
+        };
+        //
+        //     {
+        //         code: '0',
+        //         msg: '',
+        //         timeStamp: '1703327432734',
+        //         data: { dualSidePosition: 'false' }
+        //     }
+        //
+        return await this.swapV1PrivatePostPositionSideDual (this.extend (request, params));
     }
 
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
