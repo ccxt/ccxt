@@ -26,7 +26,6 @@ import asyncio
 # from typing import List
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ProxyError
-from ccxt.base.errors import NetworkError
 from ccxt.base.errors import OperationFailed
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ExchangeNotAvailable
