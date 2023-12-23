@@ -2467,7 +2467,7 @@ class kucoinfutures extends kucoin {
              * @param {string} $side not used by kucoinfutures closePositions
              * @param {array} [$params] extra parameters specific to the okx api endpoint
              * @param {string} [$params->clientOrderId] client order id of the order
-             * @return {[array]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+             * @return {array[]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

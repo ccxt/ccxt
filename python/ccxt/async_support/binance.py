@@ -8885,6 +8885,7 @@ class binance(Exchange, ImplicitAPI):
         }
 
     async def fetch_permissions(self, params={}) -> ApiKeyPermission:
+        await self.load_markets()
         response = await self.sapiGetAccountApiRestrictions(params)
         # {
         #   "ipRestrict":false,

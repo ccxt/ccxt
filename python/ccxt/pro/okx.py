@@ -747,7 +747,7 @@ class okx(ccxt.async_support.okx):
             'side': self.safe_string(order, 'side'),
             'price': self.safe_number(info, 'fillPx'),
             'amount': self.safe_number(info, 'fillSz'),
-            'cost': None,
+            'cost': self.safe_number(order, 'cost'),
             'fee': {
                 'cost': self.safe_number(info, 'fillFee'),
                 'currency': self.safe_currency_code(feeMarketId),

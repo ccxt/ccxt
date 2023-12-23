@@ -818,7 +818,7 @@ class okx extends \ccxt\async\okx {
             'side' => $this->safe_string($order, 'side'),
             'price' => $this->safe_number($info, 'fillPx'),
             'amount' => $this->safe_number($info, 'fillSz'),
-            'cost' => null,
+            'cost' => $this->safe_number($order, 'cost'),
             'fee' => array(
                 'cost' => $this->safe_number($info, 'fillFee'),
                 'currency' => $this->safe_currency_code($feeMarketId),
