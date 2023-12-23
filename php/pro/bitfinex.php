@@ -221,7 +221,6 @@ class bitfinex extends \ccxt\async\bitfinex {
         //         220.05,        // 10 LOW float Daily low
         //     )
         //
-        $timestamp = $this->milliseconds();
         $marketId = $this->safe_string($subscription, 'pair');
         $symbol = $this->safe_symbol($marketId);
         $channel = 'ticker';
@@ -234,8 +233,8 @@ class bitfinex extends \ccxt\async\bitfinex {
         }
         $result = array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $this->safe_float($message, 9),
             'low' => $this->safe_float($message, 10),
             'bid' => $this->safe_float($message, 1),
@@ -477,7 +476,7 @@ class bitfinex extends \ccxt\async\bitfinex {
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */

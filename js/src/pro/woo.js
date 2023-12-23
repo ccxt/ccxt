@@ -146,11 +146,10 @@ export default class woo extends wooRest {
         //         "count": 3689
         //     }
         //
-        const timestamp = this.safeInteger(ticker, 'date', this.milliseconds());
         return this.safeTicker({
             'symbol': this.safeSymbol(undefined, market),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString(ticker, 'high'),
             'low': this.safeString(ticker, 'low'),
             'bid': undefined,

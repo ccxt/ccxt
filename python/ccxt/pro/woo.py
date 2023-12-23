@@ -149,11 +149,10 @@ class woo(ccxt.async_support.woo):
         #         "count": 3689
         #     }
         #
-        timestamp = self.safe_integer(ticker, 'date', self.milliseconds())
         return self.safe_ticker({
             'symbol': self.safe_symbol(None, market),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_string(ticker, 'high'),
             'low': self.safe_string(ticker, 'low'),
             'bid': None,

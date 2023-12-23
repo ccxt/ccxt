@@ -328,11 +328,10 @@ class kraken(ccxt.async_support.kraken):
         if baseVolume is not None and vwap is not None:
             quoteVolume = Precise.string_mul(baseVolume, vwap)
         last = self.safe_string(ticker['c'], 0)
-        timestamp = self.milliseconds()
         result = self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_string(ticker['h'], 0),
             'low': self.safe_string(ticker['l'], 0),
             'bid': self.safe_string(ticker['b'], 0),
@@ -941,7 +940,7 @@ class kraken(ccxt.async_support.kraken):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params]: maximum number of orderic to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return await self.watch_private('openOrders', symbol, since, limit, params)

@@ -158,6 +158,16 @@ class bingx(Exchange, ImplicitAPI):
                     },
                 },
                 'swap': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'positionSide/dual': 1,
+                            },
+                            'post': {
+                                'positionSide/dual': 1,
+                            },
+                        },
+                    },
                     'v2': {
                         'public': {
                             'get': {
@@ -344,6 +354,7 @@ class bingx(Exchange, ImplicitAPI):
                     '100202': InsufficientFunds,
                     '100204': BadRequest,
                     '100400': BadRequest,
+                    '100421': BadSymbol,  # {"code":100421,"msg":"This pair is currently restricted from API trading","debugMsg":""}
                     '100440': ExchangeError,
                     '100500': ExchangeError,
                     '100503': ExchangeError,
@@ -1261,7 +1272,7 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        change = self.safe_string(ticker, 'priceChange')
+        # change = self.safe_string(ticker, 'priceChange')  # self is not ccxt's change because it does high-low instead of last-open
         lastQty = self.safe_string(ticker, 'lastQty')
         # in spot markets, lastQty is not present
         # it's(bad, but) the only way we can check the tickers origin
@@ -1273,9 +1284,10 @@ class bingx(Exchange, ImplicitAPI):
         close = self.safe_string(ticker, 'lastPrice')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         baseVolume = self.safe_string(ticker, 'volume')
-        percentage = self.safe_string(ticker, 'priceChangePercent')
-        if percentage is not None:
-            percentage = percentage.replace('%', '')
+        # percentage = self.safe_string(ticker, 'priceChangePercent')
+        # if percentage is not None:
+        #     percentage = percentage.replace('%', '')
+        # } similarly to change, it's not ccxt's percentage because it does priceChange/open, and priceChange is high-low
         ts = self.safe_integer(ticker, 'closeTime')
         datetime = self.iso8601(ts)
         bid = self.safe_string(ticker, 'bidPrice')
@@ -1297,8 +1309,8 @@ class bingx(Exchange, ImplicitAPI):
             'close': close,
             'last': None,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
+            'change': None,
+            'percentage': None,
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -2335,7 +2347,7 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
         :param boolean [params.standard]: whether to fetch standard contract orders
@@ -3209,6 +3221,33 @@ class bingx(Exchange, ImplicitAPI):
             position = self.parse_position({'positionId': success[i]})
             positions.append(position)
         return positions
+
+    async def set_position_mode(self, hedged, symbol: Str = None, params={}):
+        """
+        set hedged to True or False for a market
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+        :param bool hedged: set to True to use dualSidePosition
+        :param str symbol: not used by bingx setPositionMode()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        dualSidePosition = None
+        if hedged:
+            dualSidePosition = 'true'
+        else:
+            dualSidePosition = 'false'
+        request = {
+            'dualSidePosition': dualSidePosition,
+        }
+        #
+        #     {
+        #         code: '0',
+        #         msg: '',
+        #         timeStamp: '1703327432734',
+        #         data: {dualSidePosition: 'false'}
+        #     }
+        #
+        return await self.swapV1PrivatePostPositionSideDual(self.extend(request, params))
 
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]
