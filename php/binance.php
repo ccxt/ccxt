@@ -9435,6 +9435,7 @@ class binance extends Exchange {
     }
 
     public function fetch_permissions($params = array ()): ApiKeyPermission {
+        $this->load_markets();
         $response = $this->sapiGetAccountApiRestrictions ($params);
         // {
         //   "ipRestrict":false,

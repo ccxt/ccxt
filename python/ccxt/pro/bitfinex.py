@@ -202,7 +202,6 @@ class bitfinex(ccxt.async_support.bitfinex):
         #         220.05,        # 10 LOW float Daily low
         #     ]
         #
-        timestamp = self.milliseconds()
         marketId = self.safe_string(subscription, 'pair')
         symbol = self.safe_symbol(marketId)
         channel = 'ticker'
@@ -214,8 +213,8 @@ class bitfinex(ccxt.async_support.bitfinex):
             open = Precise.string_sub(last, change)
         result = {
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_float(message, 9),
             'low': self.safe_float(message, 10),
             'bid': self.safe_float(message, 1),

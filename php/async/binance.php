@@ -9601,6 +9601,7 @@ class binance extends Exchange {
 
     public function fetch_permissions($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
             $response = Async\await($this->sapiGetAccountApiRestrictions ($params));
             // {
             //   "ipRestrict":false,

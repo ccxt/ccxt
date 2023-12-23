@@ -745,7 +745,7 @@ class gate(ccxt.async_support.gate):
         positions = await self.subscribe_private(url, messageHash, payload, channel, query, True)
         if self.newUpdates:
             return positions
-        return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
+        return self.filter_by_symbols_since_limit(self.positions[type], symbols, since, limit, True)
 
     def set_positions_cache(self, client: Client, type, symbols: Strings = None):
         if self.positions is None:

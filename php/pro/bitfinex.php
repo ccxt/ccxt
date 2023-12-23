@@ -221,7 +221,6 @@ class bitfinex extends \ccxt\async\bitfinex {
         //         220.05,        // 10 LOW float Daily low
         //     )
         //
-        $timestamp = $this->milliseconds();
         $marketId = $this->safe_string($subscription, 'pair');
         $symbol = $this->safe_symbol($marketId);
         $channel = 'ticker';
@@ -234,8 +233,8 @@ class bitfinex extends \ccxt\async\bitfinex {
         }
         $result = array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $this->safe_float($message, 9),
             'low' => $this->safe_float($message, 10),
             'bid' => $this->safe_float($message, 1),

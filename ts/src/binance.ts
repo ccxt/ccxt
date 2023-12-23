@@ -9594,6 +9594,7 @@ export default class binance extends Exchange {
     }
 
     async fetchPermissions (params = {}): Promise<ApiKeyPermission> {
+        await this.loadMarkets ();
         const response = await this.sapiGetAccountApiRestrictions (params);
         // {
         //   "ipRestrict":false,

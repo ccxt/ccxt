@@ -821,7 +821,6 @@ class kraken extends Exchange {
         //         "o":"2571.56000"
         //     }
         //
-        $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
         $v = $this->safe_value($ticker, 'v', array());
         $baseVolume = $this->safe_string($v, 1);
@@ -836,8 +835,8 @@ class kraken extends Exchange {
         $ask = $this->safe_value($ticker, 'a', array());
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $this->safe_string($high, 1),
             'low' => $this->safe_string($low, 1),
             'bid' => $this->safe_string($bid, 0),

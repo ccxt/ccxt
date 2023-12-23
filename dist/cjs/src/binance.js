@@ -9675,6 +9675,7 @@ class binance extends binance$1 {
         };
     }
     async fetchPermissions(params = {}) {
+        await this.loadMarkets();
         const response = await this.sapiGetAccountApiRestrictions(params);
         // {
         //   "ipRestrict":false,
