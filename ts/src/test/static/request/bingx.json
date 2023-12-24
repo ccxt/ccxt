@@ -18,6 +18,16 @@
                 ]
             }
         ],
+        "closePosition": [
+            {
+                "description": "close linear position",
+                "method": "closePosition",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/closeAllPositions?symbol=LTC-USDT&timestamp=1703414588459&signature=f42b4b61669032b0d38c746d6d9bb156f24355c7ca8055942aa61b9b512e40ae",
+                "input": [
+                  "LTC/USDT:USDT"
+                ]
+              }
+        ],
         "createOrder": [
             {
                 "description": "Spot market buy",
