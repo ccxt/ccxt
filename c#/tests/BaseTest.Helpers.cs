@@ -36,18 +36,27 @@ public partial class testMainClass : BaseTest
     public bool requestTests = false;
     public bool requestTestsFailed = false;
     public bool staticTests = false;
+    public bool wsTests = false;
     public bool idTests = false;
+
+    public bool isSynchronous = false;
 
     public object onlySpecificTests = null;
     public object proxyTestFileName = null;
 
     public string lang = "C#";
 
+    public object newLine = "\n";
+
     public static int TICK_SIZE = Exchange.TICK_SIZE;
 
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
-    public static Exchange initExchange(object exchangeId, object exchangeArgs = null)
+    public static Exchange initExchange(object exchangeId, object exchangeArgs = null, bool isWs = false)
     {
+        if (isWs)
+        {
+            exchangeId = (string)exchangeId + "Ws";
+        }
         var exchange = Exchange.MagicallyCreateInstance((string)exchangeId, exchangeArgs);
         return exchange;
     }
@@ -66,10 +75,11 @@ public partial class testMainClass : BaseTest
 
     }
 
-    async Task setTestFiles(object exchange, object properties)
+    async Task<dict> getTestFiles(object properties, bool ws = false)
     {
         // var hasDict = properties as dict;
         // var hasKeys = hasDict.Keys;
+        var testFiles = new dict();
         var hasKeys = properties as List<object>;
         foreach (var key2 in hasKeys)
         {
@@ -82,6 +92,7 @@ public partial class testMainClass : BaseTest
                 testFiles[methodName] = testMethod;
             }
         }
+        return testFiles;
     }
 
     public object jsonStringify(object a)

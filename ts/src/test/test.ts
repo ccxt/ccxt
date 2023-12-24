@@ -400,7 +400,7 @@ export default class testMainClass extends baseMainTestClass {
             if (this.info) {
                 dump (this.addPadding (skipMessage, 25), this.exchangeHint (exchange), methodName);
             }
-            return undefined;
+            return;
         }
         if (this.info) {
             const argsStringified = '(' + args.join (',') + ')';
@@ -412,7 +412,7 @@ export default class testMainClass extends baseMainTestClass {
         if (isPublic) {
             this.checkedPublicTests[methodName] = true;
         }
-        return undefined;
+        return;
     }
 
     async testSafe (methodName, exchange, args = [], isPublic = false) {
@@ -919,7 +919,8 @@ export default class testMainClass extends baseMainTestClass {
         }
         // if exception was set, then throw it
         if (exception) {
-            throw new ExchangeError ('[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception));
+            const errorMessage = '[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception);
+            throw new ExchangeError (errorMessage.toString ()); // toString is a c# requirement for now
         }
     }
 
