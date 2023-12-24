@@ -177,13 +177,12 @@ class btcbox(Exchange, ImplicitAPI):
         return self.parse_order_book(response, market['symbol'])
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
-        timestamp = self.milliseconds()
         symbol = self.safe_symbol(None, market)
         last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_string(ticker, 'high'),
             'low': self.safe_string(ticker, 'low'),
             'bid': self.safe_string(ticker, 'buy'),
@@ -467,7 +466,7 @@ class btcbox(Exchange, ImplicitAPI):
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """

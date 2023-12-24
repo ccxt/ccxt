@@ -844,7 +844,6 @@ class kraken extends Exchange {
         //         "o":"2571.56000"
         //     }
         //
-        $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
         $v = $this->safe_value($ticker, 'v', array());
         $baseVolume = $this->safe_string($v, 1);
@@ -859,8 +858,8 @@ class kraken extends Exchange {
         $ask = $this->safe_value($ticker, 'a', array());
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $this->safe_string($high, 1),
             'low' => $this->safe_string($low, 1),
             'bid' => $this->safe_string($bid, 0),
@@ -2115,7 +2114,7 @@ class kraken extends Exchange {
              * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest entry
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~

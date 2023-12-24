@@ -732,7 +732,7 @@ class cex extends cex$1 {
                 'rate': undefined,
             };
         }
-        const timestamp = this.safeInteger(data, 'time', this.milliseconds());
+        const timestamp = this.safeInteger(data, 'time');
         order['timestamp'] = timestamp;
         order['datetime'] = this.iso8601(timestamp);
         order = this.safeOrder(order);

@@ -41,6 +41,9 @@ export default class kucoin extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': true,
@@ -208,6 +211,10 @@ export default class kucoin extends Exchange {
                         'stop-order': 8,
                         'stop-order/{orderId}': 3,
                         'stop-order/queryOrderByClientOid': 3,
+                        'oco/order/{orderId}': 2,
+                        'oco/order/details/{orderId}': 2,
+                        'oco/client-order/{clientOid}': 2,
+                        'oco/orders': 2,
                         // margin trading
                         'hf/margin/orders/active': 4,
                         'hf/margin/orders/done': 10,
@@ -215,6 +222,7 @@ export default class kucoin extends Exchange {
                         'hf/margin/orders/client-order/{clientOid}': 5,
                         'hf/margin/fills': 5,
                         'etf/info': 25,
+                        'margin/currencies': 20,
                         'risk/limit/strategy': 20,
                         'isolated/symbols': 20,
                         'isolated/account/{symbol}': 50,
@@ -250,6 +258,7 @@ export default class kucoin extends Exchange {
                         'orders/test': 2,
                         'orders/multi': 3,
                         'stop-order': 2,
+                        'oco/order': 2,
                         // margin trading
                         'hf/margin/order': 5,
                         'hf/margin/order/test': 5,
@@ -275,12 +284,16 @@ export default class kucoin extends Exchange {
                         'hf/orders/sync/client-order/{clientOid}': 1,
                         'hf/orders/cancel/{orderId}': 2,
                         'hf/orders': 2,
+                        'hf/orders/cancelAll': 30,
                         'orders/{orderId}': 3,
                         'order/client-order/{clientOid}': 5,
                         'orders': 20,
                         'stop-order/{orderId}': 3,
                         'stop-order/cancelOrderByClientOid': 5,
                         'stop-order/cancel': 3,
+                        'oco/order/{orderId}': 3,
+                        'oco/client-order/{clientOid}': 3,
+                        'oco/orders': 3,
                         // margin trading
                         'hf/margin/orders/{orderId}': 5,
                         'hf/margin/orders/client-order/{clientOid}': 5,
@@ -301,6 +314,7 @@ export default class kucoin extends Exchange {
                         'index/query': 3,
                         'mark-price/{symbol}/current': 4.5,
                         'premium/query': 4.5,
+                        'trade-statistics': 4.5,
                         'funding-rate/{symbol}/current': 3,
                         'timestamp': 3,
                         'status': 6,
@@ -349,6 +363,7 @@ export default class kucoin extends Exchange {
                     },
                     'delete': {
                         'orders/{orderId}': 1.5,
+                        'orders/client-order/{clientOid}': 1.5,
                         'orders': 45,
                         'stopOrders': 22.5, // 15FW
                     },
@@ -536,6 +551,10 @@ export default class kucoin extends Exchange {
                             'market/orderbook/level2': 'v3',
                             'market/orderbook/level3': 'v3',
                             'market/orderbook/level{level}': 'v3',
+                            'oco/order/{orderId}': 'v3',
+                            'oco/order/details/{orderId}': 'v3',
+                            'oco/client-order/{clientOid}': 'v3',
+                            'oco/orders': 'v3',
                             // margin trading
                             'hf/margin/orders/active': 'v3',
                             'hf/margin/orders/done': 'v3',
@@ -543,6 +562,7 @@ export default class kucoin extends Exchange {
                             'hf/margin/orders/client-order/{clientOid}': 'v3',
                             'hf/margin/fills': 'v3',
                             'etf/info': 'v3',
+                            'margin/currencies': 'v3',
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
                             'project/list': 'v3',
@@ -559,6 +579,7 @@ export default class kucoin extends Exchange {
                             'accounts/inner-transfer': 'v2',
                             'transfer-out': 'v3',
                             // spot trading
+                            'oco/order': 'v3',
                             // margin trading
                             'hf/margin/order': 'v3',
                             'hf/margin/order/test': 'v3',
@@ -575,6 +596,9 @@ export default class kucoin extends Exchange {
                             'hf/margin/orders/{orderId}': 'v3',
                             'hf/margin/orders/client-order/{clientOid}': 'v3',
                             'hf/margin/orders': 'v3',
+                            'oco/order/{orderId}': 'v3',
+                            'oco/client-order/{clientOid}': 'v3',
+                            'oco/orders': 'v3',
                             // margin trading
                         },
                     },
@@ -1930,6 +1954,50 @@ export default class kucoin extends Exchange {
         const data = this.safeValue(response, 'data', {});
         return this.parseOrder(data, market);
     }
+    async createMarketOrderWithCost(symbol, side, cost, params = {}) {
+        /**
+         * @method
+         * @name kucoin#createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', side, cost, undefined, params);
+    }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name kucoin#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        return await this.createMarketOrderWithCost(symbol, 'buy', cost, params);
+    }
+    async createMarketSellOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name kucoin#createMarketSellOrderWithCost
+         * @description create a market sell order by providing the symbol and cost
+         * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        return await this.createMarketOrderWithCost(symbol, 'sell', cost, params);
+    }
     async createOrders(orders, params = {}) {
         /**
          * @method
@@ -2228,9 +2296,11 @@ export default class kucoin extends Exchange {
         }
         else if (hf) {
             if (symbol === undefined) {
-                throw new ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol parameter for hf orders');
+                response = await this.privateDeleteHfOrdersCancelAll(this.extend(request, query));
             }
-            response = await this.privateDeleteHfOrders(this.extend(request, query));
+            else {
+                response = await this.privateDeleteHfOrders(this.extend(request, query));
+            }
         }
         else {
             response = await this.privateDeleteOrders(this.extend(request, query));
@@ -2366,7 +2436,7 @@ export default class kucoin extends Exchange {
          * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.till] end time in ms
          * @param {string} [params.side] buy or sell

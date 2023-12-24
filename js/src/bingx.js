@@ -33,7 +33,7 @@ export default class bingx extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': true,
-                'closePosition': false,
+                'closePosition': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': true,
@@ -145,6 +145,16 @@ export default class bingx extends Exchange {
                     },
                 },
                 'swap': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'positionSide/dual': 1,
+                            },
+                            'post': {
+                                'positionSide/dual': 1,
+                            },
+                        },
+                    },
                     'v2': {
                         'public': {
                             'get': {
@@ -331,6 +341,7 @@ export default class bingx extends Exchange {
                     '100202': InsufficientFunds,
                     '100204': BadRequest,
                     '100400': BadRequest,
+                    '100421': BadSymbol,
                     '100440': ExchangeError,
                     '100500': ExchangeError,
                     '100503': ExchangeError,
@@ -2472,7 +2483,7 @@ export default class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
          * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for
          * @param {boolean} [params.standard] whether to fetch standard contract orders
@@ -3371,12 +3382,44 @@ export default class bingx extends Exchange {
             'datetime': this.iso8601(timestamp),
         });
     }
+    async closePosition(symbol, side = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#closePosition
+         * @description closes open positions for a market
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} [side] not used by bingx
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, params));
+        //
+        //    {
+        //        "code": 0,
+        //        "msg": "",
+        //        "data": {
+        //            "success": [
+        //                1727686766700486656,
+        //            ],
+        //            "failed": null
+        //        }
+        //    }
+        //
+        const data = this.safeValue(response, 'data');
+        return this.parseOrder(data);
+    }
     async closeAllPositions(params = {}) {
         /**
          * @method
          * @name bitget#closePositions
          * @description closes open positions for a market
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#close-all-position
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.recvWindow] request valid time window value
          * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -3414,6 +3457,37 @@ export default class bingx extends Exchange {
             positions.push(position);
         }
         return positions;
+    }
+    async setPositionMode(hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#setPositionMode
+         * @description set hedged to true or false for a market
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+         * @param {bool} hedged set to true to use dualSidePosition
+         * @param {string} symbol not used by bingx setPositionMode ()
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        let dualSidePosition = undefined;
+        if (hedged) {
+            dualSidePosition = 'true';
+        }
+        else {
+            dualSidePosition = 'false';
+        }
+        const request = {
+            'dualSidePosition': dualSidePosition,
+        };
+        //
+        //     {
+        //         code: '0',
+        //         msg: '',
+        //         timeStamp: '1703327432734',
+        //         data: { dualSidePosition: 'false' }
+        //     }
+        //
+        return await this.swapV1PrivatePostPositionSideDual(this.extend(request, params));
     }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = section[0];

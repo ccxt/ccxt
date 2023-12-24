@@ -799,7 +799,7 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.positions[type], symbols, since, limit, true);
     }
     setPositionsCache(client, type, symbols = undefined) {
         if (this.positions === undefined) {
@@ -894,7 +894,7 @@ export default class gate extends gateRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
          * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts

@@ -822,7 +822,6 @@ class kraken(Exchange, ImplicitAPI):
         #         "o":"2571.56000"
         #     }
         #
-        timestamp = self.milliseconds()
         symbol = self.safe_symbol(None, market)
         v = self.safe_value(ticker, 'v', [])
         baseVolume = self.safe_string(v, 1)
@@ -837,8 +836,8 @@ class kraken(Exchange, ImplicitAPI):
         ask = self.safe_value(ticker, 'a', [])
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_string(high, 1),
             'low': self.safe_string(low, 1),
             'bid': self.safe_string(bid, 0),
@@ -1955,7 +1954,7 @@ class kraken(Exchange, ImplicitAPI):
         :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest entry
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`

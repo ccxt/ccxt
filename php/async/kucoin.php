@@ -43,6 +43,9 @@ class kucoin extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createDepositAddress' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => true,
+                'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createPostOnlyOrder' => true,
@@ -210,6 +213,10 @@ class kucoin extends Exchange {
                         'stop-order' => 8, // 8SW
                         'stop-order/{orderId}' => 3, // 3SW
                         'stop-order/queryOrderByClientOid' => 3, // 3SW
+                        'oco/order/{orderId}' => 2, // 2SW
+                        'oco/order/details/{orderId}' => 2, // 2SW
+                        'oco/client-order/{clientOid}' => 2, // 2SW
+                        'oco/orders' => 2, // 2SW
                         // margin trading
                         'hf/margin/orders/active' => 4, // 4SW
                         'hf/margin/orders/done' => 10, // 10SW
@@ -217,7 +224,8 @@ class kucoin extends Exchange {
                         'hf/margin/orders/client-order/{clientOid}' => 5, // 5SW
                         'hf/margin/fills' => 5, // 5SW
                         'etf/info' => 25, // 25SW
-                        'risk/limit/strategy' => 20, // 20SW
+                        'margin/currencies' => 20, // 20SW
+                        'risk/limit/strategy' => 20, // 20SW (Deprecate)
                         'isolated/symbols' => 20, // 20SW
                         'isolated/account/{symbol}' => 50, // 50SW
                         'margin/borrow' => 15, // 15SW
@@ -252,6 +260,7 @@ class kucoin extends Exchange {
                         'orders/test' => 2, // 2SW
                         'orders/multi' => 3, // 3SW
                         'stop-order' => 2, // 2SW
+                        'oco/order' => 2, // 2SW
                         // margin trading
                         'hf/margin/order' => 5, // 5SW
                         'hf/margin/order/test' => 5, // 5SW
@@ -277,12 +286,16 @@ class kucoin extends Exchange {
                         'hf/orders/sync/client-order/{clientOid}' => 1, // 1SW
                         'hf/orders/cancel/{orderId}' => 2, // 2SW
                         'hf/orders' => 2, // 2SW
+                        'hf/orders/cancelAll' => 30, // 30SW
                         'orders/{orderId}' => 3, // 3SW
                         'order/client-order/{clientOid}' => 5, // 5SW
                         'orders' => 20, // 20SW
                         'stop-order/{orderId}' => 3, // 3SW
                         'stop-order/cancelOrderByClientOid' => 5, // 5SW
                         'stop-order/cancel' => 3, // 3SW
+                        'oco/order/{orderId}' => 3, // 3SW
+                        'oco/client-order/{clientOid}' => 3, // 3SW
+                        'oco/orders' => 3, // 3SW
                         // margin trading
                         'hf/margin/orders/{orderId}' => 5, // 5SW
                         'hf/margin/orders/client-order/{clientOid}' => 5, // 5SW
@@ -303,6 +316,7 @@ class kucoin extends Exchange {
                         'index/query' => 3, // 2PW
                         'mark-price/{symbol}/current' => 4.5, // 3PW
                         'premium/query' => 4.5, // 3PW
+                        'trade-statistics' => 4.5, // 3PW
                         'funding-rate/{symbol}/current' => 3, // 2PW
                         'timestamp' => 3, // 2PW
                         'status' => 6, // 4PW
@@ -351,6 +365,7 @@ class kucoin extends Exchange {
                     ),
                     'delete' => array(
                         'orders/{orderId}' => 1.5, // 1FW
+                        'orders/client-order/{clientOid}' => 1.5, // 1FW
                         'orders' => 45, // 30FW
                         'stopOrders' => 22.5, // 15FW
                     ),
@@ -538,6 +553,10 @@ class kucoin extends Exchange {
                             'market/orderbook/level2' => 'v3',
                             'market/orderbook/level3' => 'v3',
                             'market/orderbook/level{level}' => 'v3',
+                            'oco/order/{orderId}' => 'v3',
+                            'oco/order/details/{orderId}' => 'v3',
+                            'oco/client-order/{clientOid}' => 'v3',
+                            'oco/orders' => 'v3',
                             // margin trading
                             'hf/margin/orders/active' => 'v3',
                             'hf/margin/orders/done' => 'v3',
@@ -545,6 +564,7 @@ class kucoin extends Exchange {
                             'hf/margin/orders/client-order/{clientOid}' => 'v3',
                             'hf/margin/fills' => 'v3',
                             'etf/info' => 'v3',
+                            'margin/currencies' => 'v3',
                             'margin/borrow' => 'v3',
                             'margin/repay' => 'v3',
                             'project/list' => 'v3',
@@ -561,6 +581,7 @@ class kucoin extends Exchange {
                             'accounts/inner-transfer' => 'v2',
                             'transfer-out' => 'v3',
                             // spot trading
+                            'oco/order' => 'v3',
                             // margin trading
                             'hf/margin/order' => 'v3',
                             'hf/margin/order/test' => 'v3',
@@ -577,6 +598,9 @@ class kucoin extends Exchange {
                             'hf/margin/orders/{orderId}' => 'v3',
                             'hf/margin/orders/client-order/{clientOid}' => 'v3',
                             'hf/margin/orders' => 'v3',
+                            'oco/order/{orderId}' => 'v3',
+                            'oco/client-order/{clientOid}' => 'v3',
+                            'oco/orders' => 'v3',
                             // margin trading
                         ),
                     ),
@@ -1945,6 +1969,53 @@ class kucoin extends Exchange {
         }) ();
     }
 
+    public function create_market_order_with_cost(string $symbol, string $side, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $cost, $params) {
+            /**
+             * create a market order by providing the $symbol, $side and $cost
+             * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $params['cost'] = $cost;
+            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $params));
+        }) ();
+    }
+
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market buy order by providing the $symbol and $cost
+             * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            return Async\await($this->create_market_order_with_cost($symbol, 'buy', $cost, $params));
+        }) ();
+    }
+
+    public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market sell order by providing the $symbol and $cost
+             * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            return Async\await($this->create_market_order_with_cost($symbol, 'sell', $cost, $params));
+        }) ();
+    }
+
     public function create_orders(array $orders, $params = array ()) {
         return Async\async(function () use ($orders, $params) {
             /**
@@ -2231,9 +2302,10 @@ class kucoin extends Exchange {
                 $response = Async\await($this->privateDeleteStopOrderCancel (array_merge($request, $query)));
             } elseif ($hf) {
                 if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol parameter for $hf orders');
+                    $response = Async\await($this->privateDeleteHfOrdersCancelAll (array_merge($request, $query)));
+                } else {
+                    $response = Async\await($this->privateDeleteHfOrders (array_merge($request, $query)));
                 }
-                $response = Async\await($this->privateDeleteHfOrders (array_merge($request, $query)));
             } else {
                 $response = Async\await($this->privateDeleteOrders (array_merge($request, $query)));
             }
@@ -2366,7 +2438,7 @@ class kucoin extends Exchange {
              * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->till] end time in ms
              * @param {string} [$params->side] buy or sell

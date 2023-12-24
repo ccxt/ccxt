@@ -827,7 +827,6 @@ export default class kraken extends Exchange {
         //         "o":"2571.56000"
         //     }
         //
-        const timestamp = this.milliseconds();
         const symbol = this.safeSymbol(undefined, market);
         const v = this.safeValue(ticker, 'v', []);
         const baseVolume = this.safeString(v, 1);
@@ -842,8 +841,8 @@ export default class kraken extends Exchange {
         const ask = this.safeValue(ticker, 'a', []);
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString(high, 1),
             'low': this.safeString(low, 1),
             'bid': this.safeString(bid, 0),
@@ -2084,7 +2083,7 @@ export default class kraken extends Exchange {
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest entry
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

@@ -745,7 +745,7 @@ class gate(ccxt.async_support.gate):
         positions = await self.subscribe_private(url, messageHash, payload, channel, query, True)
         if self.newUpdates:
             return positions
-        return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
+        return self.filter_by_symbols_since_limit(self.positions[type], symbols, since, limit, True)
 
     def set_positions_cache(self, client: Client, type, symbols: Strings = None):
         if self.positions is None:
@@ -829,7 +829,7 @@ class gate(ccxt.async_support.gate):
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: spot, margin, swap, future, or option. Required if listening to all symbols.
         :param boolean [params.isInverse]: if future, listen to inverse or linear contracts
