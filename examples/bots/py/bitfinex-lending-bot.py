@@ -72,11 +72,11 @@ async def bot():
             
             if not paper_trading:
                 order = await exchange.private_post_auth_w_funding_offer_submit({
-                    'type': ' LIMIT',
+                    'type': 'LIMIT',
                     'symbol': currency,
-                    'amount': order_size,
-                    'rate': fundingInfo['rate'],
-                    'period': fundingInfo['averagePeriod'],
+                    'amount': str(order_size),
+                    'rate': str(fundingInfo['rate']),
+                    'period': 2,
                     'flags': 0
                 })
         else:
