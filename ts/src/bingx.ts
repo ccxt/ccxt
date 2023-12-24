@@ -3421,20 +3421,11 @@ export default class bingx extends Exchange {
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} [side] not used by bingx
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @param {string} [params.recvWindow] request valid time window value
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
-        const recvWindow = this.safeInteger (this.parseParams, 'recvWindow', defaultRecvWindow);
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('closeAllPositions', undefined, params);
-        if (marketType === 'margin') {
-            throw new BadRequest (this.id + ' closePositions () cannot be used for ' + marketType + ' markets');
-        }
         const market = this.market (symbol);
         const request = {
-            'recvWindow': recvWindow,
             'symbol': market['id'],
         };
         const response = await this.swapV2PrivatePostTradeCloseAllPositions (this.extend (request, params));

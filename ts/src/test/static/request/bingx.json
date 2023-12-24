@@ -20,13 +20,13 @@
         ],
         "closePosition": [
             {
-                "description": "Close swap position for XRP/USDT:USDT market",
+                "description": "close linear position",
                 "method": "closePosition",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/closeAllPositions?recvWindow=5000&symbol=XRP-USDT&timestamp=1703399977533&signature=978b426ec518a5643bbdb05377d4c3ac93f046b25cc5d96ce8a5b0ee4ccdfc57",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/closeAllPositions?symbol=LTC-USDT&timestamp=1703414588459&signature=f42b4b61669032b0d38c746d6d9bb156f24355c7ca8055942aa61b9b512e40ae",
                 "input": [
-                    "XRP/USDT:USDT"
+                  "LTC/USDT:USDT"
                 ]
-            }
+              }
         ],
         "createOrder": [
             {
