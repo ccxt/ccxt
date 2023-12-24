@@ -1571,7 +1571,7 @@ class Transpiler {
                 signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
             }
 
-            let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::[^{]+)?\s*{/ // signature line
+            let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::([^{]+))?{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
 
             if (!matches) {
@@ -1594,6 +1594,9 @@ class Transpiler {
 
             // return type
             let returnType = matches[4]
+            if (returnType !== undefined) {
+                returnType = returnType.trim ()
+            }
 
             // extract argument names and local variables
             args = args.length ? args.split (',').map (x => x.trim ()) : []
