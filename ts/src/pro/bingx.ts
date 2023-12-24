@@ -174,7 +174,8 @@ export default class bingx extends bingxRest {
         const data = this.safeValue (message, 'data', []);
         const messageHash = this.safeString (message, 'dataType');
         const marketId = messageHash.split ('@')[0];
-        const marketType = client.url.indexOf ('swap') >= 0 ? 'swap' : 'spot';
+        const isSwap = client.url.indexOf ('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         let trades = undefined;
@@ -289,7 +290,8 @@ export default class bingx extends bingxRest {
         const data = this.safeValue (message, 'data', []);
         const messageHash = this.safeString (message, 'dataType');
         const marketId = messageHash.split ('@')[0];
-        const marketType = client.url.indexOf ('swap') >= 0 ? 'swap' : 'spot';
+        const isSwap = client.url.indexOf ('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -382,7 +384,8 @@ export default class bingx extends bingxRest {
         const messageHash = this.safeString (message, 'dataType');
         const timeframeId = messageHash.split ('_')[1];
         const marketId = messageHash.split ('@')[0];
-        const marketType = client.url.indexOf ('swap') >= 0 ? 'swap' : 'spot';
+        const isSwap = client.url.indexOf ('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
