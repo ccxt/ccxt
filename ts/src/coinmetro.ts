@@ -216,6 +216,7 @@ export default class coinmetro extends Exchange {
                     'Both buyingCurrency and sellingCurrency are required': InvalidOrder, // 422 - "Both buyingCurrency and sellingCurrency are required"
                     'One and only one of buyingQty and sellingQty is required': InvalidOrder, // 422 - "One and only one of buyingQty and sellingQty is required"
                     'Invalid buyingCurrency': InvalidOrder, // 422 - "Invalid buyingCurrency"
+                    // todo: add this one - 422 Unprocessable Entity {"message":"Invalid 'from'"}
                     'Invalid sellingCurrency': InvalidOrder, // 422 - "Invalid sellingCurrency"
                     'Invalid buyingQty': InvalidOrder, // 422 - "Invalid buyingQty"
                     'Invalid sellingQty': InvalidOrder, // 422 - "Invalid sellingQty"
@@ -223,6 +224,7 @@ export default class coinmetro extends Exchange {
                     'Expiration date is in the past or too near in the future': InvalidOrder, // 422 Unprocessable Entity {"message":"Expiration date is in the past or too near in the future"}
                     'Forbidden': PermissionDenied, // 403 Forbidden {"message":"Forbidden"}
                     'Order Not Found': OrderNotFound, // 404 Not Found {"message":"Order Not Found"}
+                    'since must be a millisecond timestamp': BadRequest, // 422 Unprocessable Entity {"message":"since must be a millisecond timestamp"}
                     'This pair is disabled on margin': BadSymbol, // 422 Unprocessable Entity {"message":"This pair is disabled on margin"}
                 },
                 'broad': {
@@ -620,7 +622,7 @@ export default class coinmetro extends Exchange {
         //     }
         //
         const tickHistory = this.safeValue (response, 'tickHistory', []);
-        return this.parseTrades (tickHistory, market, since, limit);
+        return this.parseTrades (tickHistory, market, since, limit);  // todo: check - returns an empty array if since = 0
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1012,6 +1014,7 @@ export default class coinmetro extends Exchange {
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
+        await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
             request['since'] = since;
@@ -1124,7 +1127,7 @@ export default class coinmetro extends Exchange {
                 ledger.push (rawLedgerEntry);
             }
         }
-        return this.parseLedger (ledger, currency, since, limit);
+        return this.parseLedger (ledger, currency, since, limit); // todo: check - returns an empty array if since = 0
     }
 
     parseLedgerEntry (item, currency: Currency = undefined) {
