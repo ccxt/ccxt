@@ -4285,8 +4285,8 @@ export default class phemex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        if ((leverage < -100) || (leverage > 100) || ((leverage < 1) && (leverage > -1))) {
-            throw new BadRequest (this.id + ' setLeverage() leverage should be between -100 and 100, and should not be between -1 and 1');
+        if ((leverage < -100) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between -100 and 100');
         }
         await this.loadMarkets ();
         const isHedged = this.safeValue (params, 'hedged', false);
