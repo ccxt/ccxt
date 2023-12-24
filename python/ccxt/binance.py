@@ -5646,7 +5646,8 @@ class binance(Exchange, ImplicitAPI):
             'amount': self.currency_to_precision(code, amount),
         }
         request['type'] = self.safe_string(params, 'type')
-        method = 'sapiPostAssetTransfer'
+        params = self.omit(params, 'type')
+        response = None
         if request['type'] is None:
             symbol = self.safe_string(params, 'symbol')
             if symbol is not None:
@@ -5678,15 +5679,15 @@ class binance(Exchange, ImplicitAPI):
                 if (fromIsolated or toIsolated) and prohibitedWithIsolated:
                     raise BadRequest(self.id + ' transfer() does not allow transfers between ' + fromAccount + ' and ' + toAccount)
                 elif toSpot and fromIsolated:
-                    method = 'sapiPostMarginIsolatedTransfer'
                     request['transFrom'] = 'ISOLATED_MARGIN'
                     request['transTo'] = 'SPOT'
                     request['symbol'] = fromId
+                    response = self.sapiPostMarginIsolatedTransfer(self.extend(request, params))
                 elif fromSpot and toIsolated:
-                    method = 'sapiPostMarginIsolatedTransfer'
                     request['transFrom'] = 'SPOT'
                     request['transTo'] = 'ISOLATED_MARGIN'
                     request['symbol'] = toId
+                    response = self.sapiPostMarginIsolatedTransfer(self.extend(request, params))
                 else:
                     if fromIsolated:
                         request['fromSymbol'] = fromId
@@ -5697,8 +5698,8 @@ class binance(Exchange, ImplicitAPI):
                     request['type'] = fromId + '_' + toId
             else:
                 request['type'] = fromId + '_' + toId
-        params = self.omit(params, 'type')
-        response = getattr(self, method)(self.extend(request, params))
+        if response is None:
+            response = self.sapiPostAssetTransfer(self.extend(request, params))
         #
         #     {
         #         "tranId":13526853623
@@ -6431,7 +6432,6 @@ class binance(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request = {}
-        method = None
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
@@ -6446,12 +6446,6 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchFundingRateHistory', market, params, 'linear')
         params = self.omit(params, 'type')
-        if self.is_linear(type, subType):
-            method = 'fapiPublicGetFundingRate'
-        elif self.is_inverse(type, subType):
-            method = 'dapiPublicGetFundingRate'
-        if method is None:
-            raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported for ' + type + ' markets')
         if since is not None:
             request['startTime'] = since
         until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
@@ -6461,7 +6455,13 @@ class binance(Exchange, ImplicitAPI):
             request['endTime'] = endTime
         if limit is not None:
             request['limit'] = limit
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if self.is_linear(type, subType):
+            response = self.fapiPublicGetFundingRate(self.extend(request, params))
+        elif self.is_inverse(type, subType):
+            response = self.dapiPublicGetFundingRate(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported for ' + type + ' markets')
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -6494,19 +6494,18 @@ class binance(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        method = None
         defaultType = self.safe_string_2(self.options, 'fetchFundingRates', 'defaultType', 'future')
         type = self.safe_string(params, 'type', defaultType)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchFundingRates', None, params, 'linear')
         query = self.omit(params, 'type')
+        response = None
         if self.is_linear(type, subType):
-            method = 'fapiPublicGetPremiumIndex'
+            response = self.fapiPublicGetPremiumIndex(query)
         elif self.is_inverse(type, subType):
-            method = 'dapiPublicGetPremiumIndex'
+            response = self.dapiPublicGetPremiumIndex(query)
         else:
             raise NotSupported(self.id + ' fetchFundingRates() supports linear and inverse contracts only')
-        response = getattr(self, method)(query)
         result = []
         for i in range(0, len(response)):
             entry = response[i]
@@ -6937,19 +6936,18 @@ class binance(Exchange, ImplicitAPI):
         # it contains useful stuff like the maintenance margin and initial margin for positions
         leverageBrackets = self.safe_value(self.options, 'leverageBrackets')
         if (leverageBrackets is None) or (reload):
-            method = None
             defaultType = self.safe_string(self.options, 'defaultType', 'future')
             type = self.safe_string(params, 'type', defaultType)
             query = self.omit(params, 'type')
             subType = None
             subType, params = self.handle_sub_type_and_params('loadLeverageBrackets', None, params, 'linear')
+            response = None
             if self.is_linear(type, subType):
-                method = 'fapiPrivateGetLeverageBracket'
+                response = self.fapiPrivateGetLeverageBracket(query)
             elif self.is_inverse(type, subType):
-                method = 'dapiPrivateV2GetLeverageBracket'
+                response = self.dapiPrivateV2GetLeverageBracket(query)
             else:
                 raise NotSupported(self.id + ' loadLeverageBrackets() supports linear and inverse contracts only')
-            response = getattr(self, method)(query)
             self.options['leverageBrackets'] = {}
             for i in range(0, len(response)):
                 entry = response[i]
@@ -7367,7 +7365,6 @@ class binance(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        method = None
         request = {
             'incomeType': 'FUNDING_FEE',  # "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
         }
@@ -7385,13 +7382,13 @@ class binance(Exchange, ImplicitAPI):
         defaultType = self.safe_string_2(self.options, 'fetchFundingHistory', 'defaultType', 'future')
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
+        response = None
         if self.is_linear(type, subType):
-            method = 'fapiPrivateGetIncome'
+            response = self.fapiPrivateGetIncome(self.extend(request, params))
         elif self.is_inverse(type, subType):
-            method = 'dapiPrivateGetIncome'
+            response = self.dapiPrivateGetIncome(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchFundingHistory() supports linear and inverse contracts only')
-        response = getattr(self, method)(self.extend(request, params))
         return self.parse_incomes(response, market, since, limit)
 
     def set_leverage(self, leverage, symbol: Str = None, params={}):
@@ -8034,15 +8031,14 @@ class binance(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'amount': amount,
         }
-        method = None
+        response = None
         code = None
         if market['linear']:
-            method = 'fapiPrivatePostPositionMargin'
             code = market['quote']
+            response = self.fapiPrivatePostPositionMargin(self.extend(request, params))
         else:
-            method = 'dapiPrivatePostPositionMargin'
             code = market['base']
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.dapiPrivatePostPositionMargin(self.extend(request, params))
         #
         #     {
         #         "code": 200,

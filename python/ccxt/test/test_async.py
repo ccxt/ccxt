@@ -269,6 +269,7 @@ class testMainClass(baseMainTestClass):
         self.private_test = get_cli_arg_value('--private')
         self.private_test_only = get_cli_arg_value('--privateOnly')
         self.sandbox = get_cli_arg_value('--sandbox')
+        self.ws_tests = get_cli_arg_value('--ws')
 
     async def init(self, exchange_id, symbol_argv):
         self.parse_cli_args()
@@ -318,11 +319,23 @@ class testMainClass(baseMainTestClass):
         return symbol_argv
 
     async def import_files(self, exchange):
-        # exchange tests
-        self.test_files = {}
         properties = list(exchange.has.keys())
         properties.append('loadMarkets')
-        await set_test_files(self, properties, self.ws_tests)
+        self.test_files = await get_test_files(properties, self.ws_tests)
+
+    def load_credentials_from_env(self, exchange):
+        exchange_id = exchange.id
+        req_creds = get_exchange_prop(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+        objkeys = list(req_creds.keys())
+        for i in range(0, len(objkeys)):
+            credential = objkeys[i]
+            is_required = req_creds[credential]
+            if is_required and get_exchange_prop(exchange, credential) is None:
+                full_key = exchange_id + '_' + credential
+                credential_env_name = full_key.upper()  # example: KRAKEN_APIKEY
+                credential_value = self.env_vars[credential_env_name] if (credential_env_name in self.env_vars) else None
+                if credential_value:
+                    set_exchange_prop(exchange, credential, credential_value)
 
     def expand_settings(self, exchange):
         exchange_id = exchange.id
@@ -347,17 +360,7 @@ class testMainClass(baseMainTestClass):
                         final_value = exchange_settings[key]
                     set_exchange_prop(exchange, key, final_value)
         # credentials
-        req_creds = get_exchange_prop(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
-        objkeys = list(req_creds.keys())
-        for i in range(0, len(objkeys)):
-            credential = objkeys[i]
-            is_required = req_creds[credential]
-            if is_required and get_exchange_prop(exchange, credential) is None:
-                full_key = exchange_id + '_' + credential
-                credential_env_name = full_key.upper()  # example: KRAKEN_APIKEY
-                credential_value = self.env_vars[credential_env_name] if (credential_env_name in self.env_vars) else None
-                if credential_value:
-                    set_exchange_prop(exchange, credential, credential_value)
+        self.load_credentials_from_env(exchange)
         # skipped tests
         skipped_file = self.root_dir_for_skips + 'skip-tests.json'
         skipped_settings = io_file_read(skipped_file)
@@ -368,6 +371,8 @@ class testMainClass(baseMainTestClass):
             exchange.timeout = timeout
         exchange.http_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpProxy')
         exchange.https_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpsProxy')
+        exchange.ws_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wsProxy')
+        exchange.wss_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wssProxy')
         self.skipped_methods = exchange.safe_value(skipped_settings_for_exchange, 'skipMethods', {})
         self.checked_public_tests = {}
 
@@ -403,9 +408,6 @@ class testMainClass(baseMainTestClass):
         # todo: temporary skip for php
         if 'OrderBook' in method_name and self.ext == 'php':
             return
-        # todo: temporary skip for py
-        if 'proxies' in method_name and self.ext == 'py' and self.is_synchronous:
-            return
         is_load_markets = (method_name == 'loadMarkets')
         is_fetch_currencies = (method_name == 'fetchCurrencies')
         is_proxy_test = (method_name == self.proxy_test_file_name)
@@ -439,12 +441,11 @@ class testMainClass(baseMainTestClass):
             self.checked_public_tests[method_name] = True
 
     async def test_safe(self, method_name, exchange, args=[], is_public=False):
-        # `testSafe` method does not throw an exception, instead mutes it.
-        # The reason we mute the thrown exceptions here is because we don't want
-        # to stop the whole tests queue if any single test-method fails. Instead, they
-        # are echoed with formatted message "[TEST_FAILURE] ..." and that output is
-        # then regex-matched by run-tests.js, so the exceptions are still printed out to
-        # console from there.
+        # `testSafe` method does not throw an exception, instead mutes it. The reason we
+        # mute the thrown exceptions here is because we don't want to stop the whole
+        # tests queue if any single test-method fails. Instead, they are echoed with
+        # formatted message "[TEST_FAILURE] ..." and that output is then regex-matched by
+        # run-tests.js, so the exceptions are still printed out to console from there.
         max_retries = 3
         args_stringified = exchange.json(args)  # args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
         for i in range(0, max_retries):
@@ -452,42 +453,52 @@ class testMainClass(baseMainTestClass):
                 await self.test_method(method_name, exchange, args, is_public)
                 return True
             except Exception as e:
+                is_load_markets = (method_name == 'loadMarkets')
                 is_auth_error = (isinstance(e, AuthenticationError))
                 is_not_supported = (isinstance(e, NotSupported))
                 is_operation_failed = (isinstance(e, OperationFailed))  # includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
                 if is_operation_failed:
                     # if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if i == max_retries - 1:
+                        should_fail = False
                         # we do not mute specifically "ExchangeNotAvailable" exception, because it might be a hint about a change in API engine (but its subtype "OnMaintenance" can be muted)
-                        if isinstance(e, ExchangeNotAvailable):
+                        if (isinstance(e, ExchangeNotAvailable)) and not (isinstance(e, OnMaintenance)):
+                            should_fail = True
+                        elif is_load_markets:
+                            should_fail = True
+                        else:
+                            should_fail = False
+                        # final step
+                        if should_fail:
                             dump('[TEST_FAILURE]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', self.exchange_hint(exchange), method_name, args_stringified, exception_message(e))
+                            return False
                         else:
                             dump('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', self.exchange_hint(exchange), method_name, args_stringified, exception_message(e))
                             return True
                     else:
                         # wait and retry again
-                        await exchange.sleep(i * 1000)  # increase wait seconds on every retry
+                        # (increase wait time on every retry)
+                        await exchange.sleep(i * 1000)
                         continue
-                elif isinstance(e, OnMaintenance):
-                    # in case of maintenance, skip exchange (don't fail the test)
-                    dump('[TEST_WARNING] Exchange is on maintenance', self.exchange_hint(exchange))
-                    return True
-                elif is_public and is_auth_error:
-                    # in case of loadMarkets, it means that "tester" (developer or travis) does not have correct authentication, so it does not have a point to proceed at all
-                    if method_name == 'loadMarkets':
-                        dump('[TEST_FAILURE]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
-                    else:
-                        dump('[TEST_WARNING]', 'Authentication problem for public method', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
-                        return True
                 else:
-                    # if not a temporary connectivity issue, then mark test as failed (no need to re-try)
+                    # if it's loadMarkets, then fail test, because it's mandatory for tests
+                    if is_load_markets:
+                        dump('[TEST_FAILURE]', 'Exchange can not load markets', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
+                        return False
+                    # if the specific arguments to the test method throws "NotSupported" exception
+                    # then let's don't fail the test
                     if is_not_supported:
                         if self.info:
-                            dump('[INFO] NOT_SUPPORTED', self.exchange_hint(exchange), method_name, args_stringified)
-                        return True   # let's don't consider not-supported as a failed test
+                            dump('[INFO] NOT_SUPPORTED', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
+                        return True
+                    # If public test faces authentication error, we don't break (see comments under `testSafe` method)
+                    if is_public and is_auth_error:
+                        if self.info:
+                            dump('[INFO]', 'Authentication problem for public method', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
+                        return True
                     else:
                         dump('[TEST_FAILURE]', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
-                return False
+                        return False
 
     async def run_public_tests(self, exchange, symbol):
         tests = {
@@ -745,6 +756,9 @@ class testMainClass(baseMainTestClass):
     async def test_proxies(self, exchange):
         # these tests should be synchronously executed, because of conflicting nature of proxy settings
         proxy_test_name = self.proxy_test_file_name
+        # todo: temporary skip for sync py
+        if self.ext == 'py' and self.is_synchronous:
+            return
         # try proxy several times
         max_retries = 3
         exception = None

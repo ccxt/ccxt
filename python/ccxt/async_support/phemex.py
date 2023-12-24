@@ -3995,7 +3995,7 @@ class phemex(Exchange, ImplicitAPI):
         """
         set the level of leverage for a market
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#set-leverage
-        :param float leverage: the rate of leverage
+        :param float leverage: the rate of leverage, 100 > leverage > -100 excluding numbers between -1 to 1
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.hedged]: set to True if hedged position mode is enabled(by default long and short leverage are set to the same value)
@@ -4007,8 +4007,8 @@ class phemex(Exchange, ImplicitAPI):
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
-        if (leverage < 1) or (leverage > 100):
-            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
+        if (leverage < -100) or (leverage > 100):
+            raise BadRequest(self.id + ' setLeverage() leverage should be between -100 and 100')
         await self.load_markets()
         isHedged = self.safe_value(params, 'hedged', False)
         longLeverageRr = self.safe_integer(params, 'longLeverageRr')

@@ -6004,7 +6004,8 @@ class binance extends Exchange {
                 'amount' => $this->currency_to_precision($code, $amount),
             );
             $request['type'] = $this->safe_string($params, 'type');
-            $method = 'sapiPostAssetTransfer';
+            $params = $this->omit($params, 'type');
+            $response = null;
             if ($request['type'] === null) {
                 $symbol = $this->safe_string($params, 'symbol');
                 if ($symbol !== null) {
@@ -6041,15 +6042,15 @@ class binance extends Exchange {
                     if (($fromIsolated || $toIsolated) && $prohibitedWithIsolated) {
                         throw new BadRequest($this->id . ' transfer () does not allow transfers between ' . $fromAccount . ' and ' . $toAccount);
                     } elseif ($toSpot && $fromIsolated) {
-                        $method = 'sapiPostMarginIsolatedTransfer';
                         $request['transFrom'] = 'ISOLATED_MARGIN';
                         $request['transTo'] = 'SPOT';
                         $request['symbol'] = $fromId;
+                        $response = Async\await($this->sapiPostMarginIsolatedTransfer (array_merge($request, $params)));
                     } elseif ($fromSpot && $toIsolated) {
-                        $method = 'sapiPostMarginIsolatedTransfer';
                         $request['transFrom'] = 'SPOT';
                         $request['transTo'] = 'ISOLATED_MARGIN';
                         $request['symbol'] = $toId;
+                        $response = Async\await($this->sapiPostMarginIsolatedTransfer (array_merge($request, $params)));
                     } else {
                         if ($fromIsolated) {
                             $request['fromSymbol'] = $fromId;
@@ -6065,8 +6066,9 @@ class binance extends Exchange {
                     $request['type'] = $fromId . '_' . $toId;
                 }
             }
-            $params = $this->omit($params, 'type');
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            if ($response === null) {
+                $response = Async\await($this->sapiPostAssetTransfer (array_merge($request, $params)));
+            }
             //
             //     {
             //         "tranId":13526853623
@@ -6863,7 +6865,6 @@ class binance extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $method = null;
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
             if ($paginate) {
@@ -6880,14 +6881,6 @@ class binance extends Exchange {
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingRateHistory', $market, $params, 'linear');
             $params = $this->omit($params, 'type');
-            if ($this->is_linear($type, $subType)) {
-                $method = 'fapiPublicGetFundingRate';
-            } elseif ($this->is_inverse($type, $subType)) {
-                $method = 'dapiPublicGetFundingRate';
-            }
-            if ($method === null) {
-                throw new NotSupported($this->id . ' fetchFundingRateHistory() is not supported for ' . $type . ' markets');
-            }
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
@@ -6900,7 +6893,14 @@ class binance extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($this->is_linear($type, $subType)) {
+                $response = Async\await($this->fapiPublicGetFundingRate (array_merge($request, $params)));
+            } elseif ($this->is_inverse($type, $subType)) {
+                $response = Async\await($this->dapiPublicGetFundingRate (array_merge($request, $params)));
+            } else {
+                throw new NotSupported($this->id . ' fetchFundingRateHistory() is not supported for ' . $type . ' markets');
+            }
             //
             //     {
             //         "symbol" => "BTCUSDT",
@@ -6937,20 +6937,19 @@ class binance extends Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $method = null;
             $defaultType = $this->safe_string_2($this->options, 'fetchFundingRates', 'defaultType', 'future');
             $type = $this->safe_string($params, 'type', $defaultType);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingRates', null, $params, 'linear');
             $query = $this->omit($params, 'type');
+            $response = null;
             if ($this->is_linear($type, $subType)) {
-                $method = 'fapiPublicGetPremiumIndex';
+                $response = Async\await($this->fapiPublicGetPremiumIndex ($query));
             } elseif ($this->is_inverse($type, $subType)) {
-                $method = 'dapiPublicGetPremiumIndex';
+                $response = Async\await($this->dapiPublicGetPremiumIndex ($query));
             } else {
                 throw new NotSupported($this->id . ' fetchFundingRates() supports linear and inverse contracts only');
             }
-            $response = Async\await($this->$method ($query));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
                 $entry = $response[$i];
@@ -7415,20 +7414,19 @@ class binance extends Exchange {
             // it contains useful stuff like the maintenance margin and initial margin for positions
             $leverageBrackets = $this->safe_value($this->options, 'leverageBrackets');
             if (($leverageBrackets === null) || ($reload)) {
-                $method = null;
                 $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
                 $type = $this->safe_string($params, 'type', $defaultType);
                 $query = $this->omit($params, 'type');
                 $subType = null;
                 list($subType, $params) = $this->handle_sub_type_and_params('loadLeverageBrackets', null, $params, 'linear');
+                $response = null;
                 if ($this->is_linear($type, $subType)) {
-                    $method = 'fapiPrivateGetLeverageBracket';
+                    $response = Async\await($this->fapiPrivateGetLeverageBracket ($query));
                 } elseif ($this->is_inverse($type, $subType)) {
-                    $method = 'dapiPrivateV2GetLeverageBracket';
+                    $response = Async\await($this->dapiPrivateV2GetLeverageBracket ($query));
                 } else {
                     throw new NotSupported($this->id . ' loadLeverageBrackets() supports linear and inverse contracts only');
                 }
-                $response = Async\await($this->$method ($query));
                 $this->options['leverageBrackets'] = array();
                 for ($i = 0; $i < count($response); $i++) {
                     $entry = $response[$i];
@@ -7888,7 +7886,6 @@ class binance extends Exchange {
              */
             Async\await($this->load_markets());
             $market = null;
-            $method = null;
             $request = array(
                 'incomeType' => 'FUNDING_FEE', // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
             );
@@ -7910,14 +7907,14 @@ class binance extends Exchange {
             $defaultType = $this->safe_string_2($this->options, 'fetchFundingHistory', 'defaultType', 'future');
             $type = $this->safe_string($params, 'type', $defaultType);
             $params = $this->omit($params, 'type');
+            $response = null;
             if ($this->is_linear($type, $subType)) {
-                $method = 'fapiPrivateGetIncome';
+                $response = Async\await($this->fapiPrivateGetIncome (array_merge($request, $params)));
             } elseif ($this->is_inverse($type, $subType)) {
-                $method = 'dapiPrivateGetIncome';
+                $response = Async\await($this->dapiPrivateGetIncome (array_merge($request, $params)));
             } else {
                 throw new NotSupported($this->id . ' fetchFundingHistory() supports linear and inverse contracts only');
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             return $this->parse_incomes($response, $market, $since, $limit);
         }) ();
     }
@@ -8663,16 +8660,15 @@ class binance extends Exchange {
                 'symbol' => $market['id'],
                 'amount' => $amount,
             );
-            $method = null;
+            $response = null;
             $code = null;
             if ($market['linear']) {
-                $method = 'fapiPrivatePostPositionMargin';
                 $code = $market['quote'];
+                $response = Async\await($this->fapiPrivatePostPositionMargin (array_merge($request, $params)));
             } else {
-                $method = 'dapiPrivatePostPositionMargin';
                 $code = $market['base'];
+                $response = Async\await($this->dapiPrivatePostPositionMargin (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "code" => 200,

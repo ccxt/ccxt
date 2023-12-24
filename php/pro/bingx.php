@@ -177,7 +177,8 @@ class bingx extends \ccxt\async\bingx {
         $data = $this->safe_value($message, 'data', array());
         $messageHash = $this->safe_string($message, 'dataType');
         $marketId = explode('@', $messageHash)[0];
-        $marketType = mb_strpos($client->url, 'swap') !== false ? 'swap' : 'spot';
+        $isSwap = mb_strpos($client->url, 'swap') !== false;
+        $marketType = $isSwap ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $trades = null;
@@ -292,7 +293,8 @@ class bingx extends \ccxt\async\bingx {
         $data = $this->safe_value($message, 'data', array());
         $messageHash = $this->safe_string($message, 'dataType');
         $marketId = explode('@', $messageHash)[0];
-        $marketType = mb_strpos($client->url, 'swap') !== false ? 'swap' : 'spot';
+        $isSwap = mb_strpos($client->url, 'swap') !== false;
+        $marketType = $isSwap ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
@@ -385,7 +387,8 @@ class bingx extends \ccxt\async\bingx {
         $messageHash = $this->safe_string($message, 'dataType');
         $timeframeId = explode('_', $messageHash)[1];
         $marketId = explode('@', $messageHash)[0];
-        $marketType = mb_strpos($client->url, 'swap') !== false ? 'swap' : 'spot';
+        $isSwap = mb_strpos($client->url, 'swap') !== false;
+        $marketType = $isSwap ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());

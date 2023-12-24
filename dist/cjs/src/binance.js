@@ -6076,7 +6076,8 @@ class binance extends binance$1 {
             'amount': this.currencyToPrecision(code, amount),
         };
         request['type'] = this.safeString(params, 'type');
-        let method = 'sapiPostAssetTransfer';
+        params = this.omit(params, 'type');
+        let response = undefined;
         if (request['type'] === undefined) {
             const symbol = this.safeString(params, 'symbol');
             if (symbol !== undefined) {
@@ -6116,16 +6117,16 @@ class binance extends binance$1 {
                     throw new errors.BadRequest(this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
                 }
                 else if (toSpot && fromIsolated) {
-                    method = 'sapiPostMarginIsolatedTransfer';
                     request['transFrom'] = 'ISOLATED_MARGIN';
                     request['transTo'] = 'SPOT';
                     request['symbol'] = fromId;
+                    response = await this.sapiPostMarginIsolatedTransfer(this.extend(request, params));
                 }
                 else if (fromSpot && toIsolated) {
-                    method = 'sapiPostMarginIsolatedTransfer';
                     request['transFrom'] = 'SPOT';
                     request['transTo'] = 'ISOLATED_MARGIN';
                     request['symbol'] = toId;
+                    response = await this.sapiPostMarginIsolatedTransfer(this.extend(request, params));
                 }
                 else {
                     if (fromIsolated) {
@@ -6143,8 +6144,9 @@ class binance extends binance$1 {
                 request['type'] = fromId + '_' + toId;
             }
         }
-        params = this.omit(params, 'type');
-        const response = await this[method](this.extend(request, params));
+        if (response === undefined) {
+            response = await this.sapiPostAssetTransfer(this.extend(request, params));
+        }
         //
         //     {
         //         "tranId":13526853623
@@ -6937,7 +6939,6 @@ class binance extends binance$1 {
          */
         await this.loadMarkets();
         const request = {};
-        let method = undefined;
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -6954,15 +6955,6 @@ class binance extends binance$1 {
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchFundingRateHistory', market, params, 'linear');
         params = this.omit(params, 'type');
-        if (this.isLinear(type, subType)) {
-            method = 'fapiPublicGetFundingRate';
-        }
-        else if (this.isInverse(type, subType)) {
-            method = 'dapiPublicGetFundingRate';
-        }
-        if (method === undefined) {
-            throw new errors.NotSupported(this.id + ' fetchFundingRateHistory() is not supported for ' + type + ' markets');
-        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -6975,7 +6967,16 @@ class binance extends binance$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (this.isLinear(type, subType)) {
+            response = await this.fapiPublicGetFundingRate(this.extend(request, params));
+        }
+        else if (this.isInverse(type, subType)) {
+            response = await this.dapiPublicGetFundingRate(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchFundingRateHistory() is not supported for ' + type + ' markets');
+        }
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -7011,22 +7012,21 @@ class binance extends binance$1 {
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        let method = undefined;
         const defaultType = this.safeString2(this.options, 'fetchFundingRates', 'defaultType', 'future');
         const type = this.safeString(params, 'type', defaultType);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchFundingRates', undefined, params, 'linear');
         const query = this.omit(params, 'type');
+        let response = undefined;
         if (this.isLinear(type, subType)) {
-            method = 'fapiPublicGetPremiumIndex';
+            response = await this.fapiPublicGetPremiumIndex(query);
         }
         else if (this.isInverse(type, subType)) {
-            method = 'dapiPublicGetPremiumIndex';
+            response = await this.dapiPublicGetPremiumIndex(query);
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchFundingRates() supports linear and inverse contracts only');
         }
-        const response = await this[method](query);
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -7494,22 +7494,21 @@ class binance extends binance$1 {
         // it contains useful stuff like the maintenance margin and initial margin for positions
         const leverageBrackets = this.safeValue(this.options, 'leverageBrackets');
         if ((leverageBrackets === undefined) || (reload)) {
-            let method = undefined;
             const defaultType = this.safeString(this.options, 'defaultType', 'future');
             const type = this.safeString(params, 'type', defaultType);
             const query = this.omit(params, 'type');
             let subType = undefined;
             [subType, params] = this.handleSubTypeAndParams('loadLeverageBrackets', undefined, params, 'linear');
+            let response = undefined;
             if (this.isLinear(type, subType)) {
-                method = 'fapiPrivateGetLeverageBracket';
+                response = await this.fapiPrivateGetLeverageBracket(query);
             }
             else if (this.isInverse(type, subType)) {
-                method = 'dapiPrivateV2GetLeverageBracket';
+                response = await this.dapiPrivateV2GetLeverageBracket(query);
             }
             else {
                 throw new errors.NotSupported(this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
             }
-            const response = await this[method](query);
             this.options['leverageBrackets'] = {};
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
@@ -7971,7 +7970,6 @@ class binance extends binance$1 {
          */
         await this.loadMarkets();
         let market = undefined;
-        let method = undefined;
         const request = {
             'incomeType': 'FUNDING_FEE', // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
         };
@@ -7993,16 +7991,16 @@ class binance extends binance$1 {
         const defaultType = this.safeString2(this.options, 'fetchFundingHistory', 'defaultType', 'future');
         const type = this.safeString(params, 'type', defaultType);
         params = this.omit(params, 'type');
+        let response = undefined;
         if (this.isLinear(type, subType)) {
-            method = 'fapiPrivateGetIncome';
+            response = await this.fapiPrivateGetIncome(this.extend(request, params));
         }
         else if (this.isInverse(type, subType)) {
-            method = 'dapiPrivateGetIncome';
+            response = await this.dapiPrivateGetIncome(this.extend(request, params));
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
         }
-        const response = await this[method](this.extend(request, params));
         return this.parseIncomes(response, market, since, limit);
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
@@ -8756,17 +8754,16 @@ class binance extends binance$1 {
             'symbol': market['id'],
             'amount': amount,
         };
-        let method = undefined;
+        let response = undefined;
         let code = undefined;
         if (market['linear']) {
-            method = 'fapiPrivatePostPositionMargin';
             code = market['quote'];
+            response = await this.fapiPrivatePostPositionMargin(this.extend(request, params));
         }
         else {
-            method = 'dapiPrivatePostPositionMargin';
             code = market['base'];
+            response = await this.dapiPrivatePostPositionMargin(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         //     {
         //         "code": 200,

@@ -171,7 +171,8 @@ class bingx(ccxt.async_support.bingx):
         data = self.safe_value(message, 'data', [])
         messageHash = self.safe_string(message, 'dataType')
         marketId = messageHash.split('@')[0]
-        marketType = client.url.find('swap') >= 'swap' if 0 else 'spot'
+        isSwap = client.url.find('swap') >= 0
+        marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         trades = None
@@ -272,7 +273,8 @@ class bingx(ccxt.async_support.bingx):
         data = self.safe_value(message, 'data', [])
         messageHash = self.safe_string(message, 'dataType')
         marketId = messageHash.split('@')[0]
-        marketType = client.url.find('swap') >= 'swap' if 0 else 'spot'
+        isSwap = client.url.find('swap') >= 0
+        marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         orderbook = self.safe_value(self.orderbooks, symbol)
@@ -361,7 +363,8 @@ class bingx(ccxt.async_support.bingx):
         messageHash = self.safe_string(message, 'dataType')
         timeframeId = messageHash.split('_')[1]
         marketId = messageHash.split('@')[0]
-        marketType = client.url.find('swap') >= 'swap' if 0 else 'spot'
+        isSwap = client.url.find('swap') >= 0
+        marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})

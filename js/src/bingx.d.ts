@@ -133,6 +133,7 @@ export default class bingx extends Exchange {
     parseParams(params: any): {};
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): import("./base/types.js").Liquidation;
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     closeAllPositions(params?: {}): Promise<Position[]>;
     setPositionMode(hedged: any, symbol?: Str, params?: {}): Promise<any>;
     sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {

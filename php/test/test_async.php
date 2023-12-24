@@ -307,6 +307,7 @@ class testMainClass extends baseMainTestClass {
         $this->private_test = get_cli_arg_value('--private');
         $this->private_test_only = get_cli_arg_value('--privateOnly');
         $this->sandbox = get_cli_arg_value('--sandbox');
+        $this->ws_tests = get_cli_arg_value('--ws');
     }
 
     public function init($exchange_id, $symbol_argv) {
@@ -377,6 +378,24 @@ class testMainClass extends baseMainTestClass {
         }) ();
     }
 
+    public function load_credentials_from_env($exchange) {
+        $exchange_id = $exchange->id;
+        $req_creds = get_exchange_prop($exchange, 're' . 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+        $objkeys = is_array($req_creds) ? array_keys($req_creds) : array();
+        for ($i = 0; $i < count($objkeys); $i++) {
+            $credential = $objkeys[$i];
+            $is_required = $req_creds[$credential];
+            if ($is_required && get_exchange_prop($exchange, $credential) === null) {
+                $full_key = $exchange_id . '_' . $credential;
+                $credential_env_name = strtoupper($full_key); // example: KRAKEN_APIKEY
+                $credential_value = (is_array($this->env_vars) && array_key_exists($credential_env_name, $this->env_vars)) ? $this->env_vars[$credential_env_name] : null;
+                if ($credential_value) {
+                    set_exchange_prop($exchange, $credential, $credential_value);
+                }
+            }
+        }
+    }
+
     public function expand_settings($exchange) {
         $exchange_id = $exchange->id;
         $keys_global = $this->root_dir . 'keys.json';
@@ -404,20 +423,7 @@ class testMainClass extends baseMainTestClass {
             }
         }
         // credentials
-        $req_creds = get_exchange_prop($exchange, 're' . 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
-        $objkeys = is_array($req_creds) ? array_keys($req_creds) : array();
-        for ($i = 0; $i < count($objkeys); $i++) {
-            $credential = $objkeys[$i];
-            $is_required = $req_creds[$credential];
-            if ($is_required && get_exchange_prop($exchange, $credential) === null) {
-                $full_key = $exchange_id . '_' . $credential;
-                $credential_env_name = strtoupper($full_key); // example: KRAKEN_APIKEY
-                $credential_value = (is_array($this->env_vars) && array_key_exists($credential_env_name, $this->env_vars)) ? $this->env_vars[$credential_env_name] : null;
-                if ($credential_value) {
-                    set_exchange_prop($exchange, $credential, $credential_value);
-                }
-            }
-        }
+        $this->load_credentials_from_env($exchange);
         // skipped tests
         $skipped_file = $this->root_dir_for_skips . 'skip-tests.json';
         $skipped_settings = io_file_read($skipped_file);
@@ -429,6 +435,8 @@ class testMainClass extends baseMainTestClass {
         }
         $exchange->http_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpProxy');
         $exchange->https_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpsProxy');
+        $exchange->ws_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'wsProxy');
+        $exchange->wss_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'wssProxy');
         $this->skipped_methods = $exchange->safe_value($skipped_settings_for_exchange, 'skipMethods', array());
         $this->checked_public_tests = array();
     }
@@ -472,10 +480,6 @@ class testMainClass extends baseMainTestClass {
         // todo: temporary skip for php
         return Async\async(function () use ($method_name, $exchange, $args, $is_public) {
             if (mb_strpos($method_name, 'OrderBook') !== false && $this->ext === 'php') {
-                return;
-            }
-            // todo: temporary skip for py
-            if (mb_strpos($method_name, 'proxies') !== false && $this->ext === 'py' && $this->is_synchronous) {
                 return;
             }
             $is_load_markets = ($method_name === 'loadMarkets');
@@ -916,6 +920,10 @@ class testMainClass extends baseMainTestClass {
         // these tests should be synchronously executed, because of conflicting nature of proxy settings
         return Async\async(function () use ($exchange) {
             $proxy_test_name = $this->proxy_test_file_name;
+            // todo: temporary skip for sync py
+            if ($this->ext === 'py' && $this->is_synchronous) {
+                return;
+            }
             // try proxy several times
             $max_retries = 3;
             $exception = null;
@@ -1185,7 +1193,7 @@ class testMainClass extends baseMainTestClass {
             $request_url = null;
             try {
                 Async\await(call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input'])));
-            } catch(Throwable $e) {
+            } catch(\Throwable $e) {
                 if (!($e instanceof ProxyError)) {
                     throw $e;
                 }
