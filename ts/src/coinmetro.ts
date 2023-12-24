@@ -501,26 +501,29 @@ export default class coinmetro extends Exchange {
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
-            'timeframe': this.safeString (this.timeframes, timeframe),
+            'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
+        let until = undefined;
         if (since !== undefined) {
+            if ((since < 0) || (!Number.isInteger (since))) {
+                throw new BadRequest (this.id + ' fetchOHLCV() param "since" must be an integer greater than 0 or equal to 0'); // the exchange returns 422 "No more than 1000 candles per call" for float or negative values
+            }
             request['from'] = since;
             if (limit !== undefined) {
                 const duration = this.parseTimeframe (timeframe) * 1000;
                 // todo: the exchange returns candles including the last one (with timestamp equals param 'to') should we substract 1 from duration?
-                request['to'] = this.sum (since, duration * (limit));
+                until = this.sum (since, duration * (limit));
             }
         } else {
-            request['from'] = ':from';
+            request['from'] = ':from'; // this endpoint doesn't accept empty from and to params (set them into the value described in the documentation)
         }
-        const until = this.safeInteger2 (params, 'till', 'until');
+        until = this.safeInteger2 (params, 'till', 'until', until);
         if (until !== undefined) {
             params = this.omit (params, [ 'till', 'until' ]);
             request['to'] = until;
         } else {
             request['to'] = ':to';
         }
-        // this endpoint doesn't accept empty from and to params (setting them into the value described in the documentation)
         const response = await this.publicGetExchangeCandlesPairTimeframeFromTo (this.extend (request, params));
         //
         //     {
@@ -1187,7 +1190,7 @@ export default class coinmetro extends Exchange {
     parseLedgerEntryType (type) {
         const types = {
             'Deposit': 'transaction',
-            'Withdrawal': 'transaction', // todo: check
+            'Withdraw': 'transaction',
             'Order': 'trade',
         };
         return this.safeString (types, type, type);
