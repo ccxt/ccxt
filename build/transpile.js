@@ -1567,7 +1567,7 @@ class Transpiler {
             // example: async fetchTickers(): Promise<any> { ---> async fetchTickers() {
             // and remove parameters types
             // example: myFunc (name: string | number = undefined) ---> myFunc(name = undefined)
-            if (className === 'Exchange') {
+            if (className === 'Exchange') { // removes return types for base exchange class
                 signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
             }
 
