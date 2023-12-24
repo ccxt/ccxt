@@ -517,7 +517,7 @@ export default class coinmetro extends Exchange {
                 until = this.sum (since, duration * (limit));
             }
         } else {
-            request['from'] = ':from'; // this endpoint doesn't accept empty from and to params (set them into the value described in the documentation)
+            request['from'] = ':from'; // this endpoint doesn't accept empty from and to params (setting them into the value described in the documentation)
         }
         until = this.safeInteger2 (params, 'till', 'until', until);
         if (until !== undefined) {
@@ -1441,7 +1441,7 @@ export default class coinmetro extends Exchange {
          * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#518afd7a-4338-439c-a651-d4fdaa964138
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of open order structures to retrieve (default 200, max 500)
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1467,7 +1467,7 @@ export default class coinmetro extends Exchange {
          * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve (default 200, max 500)
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
