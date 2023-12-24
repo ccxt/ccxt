@@ -4221,6 +4221,15 @@ export default class binance extends Exchange {
         }
         const stopPriceString = this.safeString (order, 'stopPrice');
         const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
+        const feeCost = this.safeNumber (order, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': this.safeString (order, 'quoteAsset'),
+                'cost': feeCost,
+                'rate': undefined,
+            };
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -4243,11 +4252,7 @@ export default class binance extends Exchange {
             'filled': filled,
             'remaining': undefined,
             'status': status,
-            'fee': {
-                'currency': this.safeString (order, 'quoteAsset'),
-                'cost': this.safeNumber (order, 'fee'),
-                'rate': undefined,
-            },
+            'fee': fee,
             'trades': fills,
         }, market);
     }
