@@ -940,7 +940,7 @@ class kraken(ccxt.async_support.kraken):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params]: maximum number of orderic to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return await self.watch_private('openOrders', symbol, since, limit, params)

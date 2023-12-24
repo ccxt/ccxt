@@ -157,6 +157,16 @@ class bingx(Exchange, ImplicitAPI):
                     },
                 },
                 'swap': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'positionSide/dual': 1,
+                            },
+                            'post': {
+                                'positionSide/dual': 1,
+                            },
+                        },
+                    },
                     'v2': {
                         'public': {
                             'get': {
@@ -2336,7 +2346,7 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
         :param boolean [params.standard]: whether to fetch standard contract orders
@@ -3210,6 +3220,33 @@ class bingx(Exchange, ImplicitAPI):
             position = self.parse_position({'positionId': success[i]})
             positions.append(position)
         return positions
+
+    def set_position_mode(self, hedged, symbol: Str = None, params={}):
+        """
+        set hedged to True or False for a market
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+        :param bool hedged: set to True to use dualSidePosition
+        :param str symbol: not used by bingx setPositionMode()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        dualSidePosition = None
+        if hedged:
+            dualSidePosition = 'true'
+        else:
+            dualSidePosition = 'false'
+        request = {
+            'dualSidePosition': dualSidePosition,
+        }
+        #
+        #     {
+        #         code: '0',
+        #         msg: '',
+        #         timeStamp: '1703327432734',
+        #         data: {dualSidePosition: 'false'}
+        #     }
+        #
+        return self.swapV1PrivatePostPositionSideDual(self.extend(request, params))
 
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]

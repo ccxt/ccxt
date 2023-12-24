@@ -1058,6 +1058,66 @@
                     }
                 ]
             }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch Funding Rate History - linear",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch Funding Rate History - inverse",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.binance.com/dapi/v1/fundingRate?symbol=BTCUSD_PERP",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "Fetch Funding Rates - linear",
+                "method": "fetchFundingRates",
+                "url": "https://api.binance.com/fapi/v1/premiumIndex",
+                "input": [
+                    null,
+                    {
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch Funding Rates - inverse",
+                "method": "fetchFundingRates",
+                "url": "https://api.binance.com/dapi/v1/premiumIndex",
+                "input": [
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "Fetch Funding History - linear",
+                "method": "fetchFundingHistory",
+                "url": "https://api.binance.com/fapi/v1/income?timestamp=1702887258875&incomeType=FUNDING_FEE&symbol=BTCUSDT&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch Funding History - inverse",
+                "method": "fetchFundingHistory",
+                "url": "https://api.binance.com/dapi/v1/income?timestamp=1702887258875&incomeType=FUNDING_FEE&symbol=BTCUSD_PERP&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
         ]
     }
 }
