@@ -35,7 +35,8 @@ function testOrderBook (exchange, skippedProperties, method, entry, symbol) {
         const nextI = i + 1;
         if (bidsLength > nextI) {
             const nextBidString = exchange.safeString (bids[nextI], 0);
-            assert (Precise.stringGt (currentBidString, nextBidString), 'current bid should be > than the next one: ' + currentBidString + '>' + nextBidString + logText);
+            const hasCorrectOrder = Precise.stringGt (currentBidString, nextBidString);
+            assert (hasCorrectOrder, 'current bid should be > than the next one: ' + currentBidString + '>' + nextBidString + logText);
         }
         testSharedMethods.assertGreater (exchange, skippedProperties, method, bids[i], 0, '0');
         testSharedMethods.assertGreater (exchange, skippedProperties, method, bids[i], 1, '0');
@@ -47,7 +48,8 @@ function testOrderBook (exchange, skippedProperties, method, entry, symbol) {
         const nextI = i + 1;
         if (asksLength > nextI) {
             const nextAskString = exchange.safeString (asks[nextI], 0);
-            assert (Precise.stringLt (currentAskString, nextAskString), 'current ask should be < than the next one: ' + currentAskString + '<' + nextAskString + logText);
+            const hasCorrectOrder = Precise.stringLt (currentAskString, nextAskString);
+            assert (hasCorrectOrder, 'current ask should be < than the next one: ' + currentAskString + '<' + nextAskString + logText);
         }
         testSharedMethods.assertGreater (exchange, skippedProperties, method, asks[i], 0, '0');
         testSharedMethods.assertGreater (exchange, skippedProperties, method, asks[i], 1, '0');
