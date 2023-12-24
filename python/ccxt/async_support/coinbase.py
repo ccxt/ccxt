@@ -207,6 +207,8 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/products/{product_id}',
                             'brokerage/products/{product_id}/candles',
                             'brokerage/products/{product_id}/ticker',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/{portfolio_uuid}',
                             'brokerage/transaction_summary',
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
@@ -218,8 +220,16 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                        ],
+                        'put': [
+                            'brokerage/portfolios/{portfolio_uuid}',
+                        ],
+                        'delete': [
+                            'brokerage/portfolios/{portfolio_uuid}',
                         ],
                     },
                 },
@@ -2251,6 +2261,12 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "base_size": "0.2",
         #                 "limit_price": "0.006",
         #                 "post_only": False
+        #             },
+        #             "stop_limit_stop_limit_gtc": {
+        #                 "base_size": "48.54",
+        #                 "limit_price": "6.998",
+        #                 "stop_price": "7.0687",
+        #                 "stop_direction": "STOP_DIRECTION_STOP_DOWN"
         #             }
         #         },
         #         "side": "SELL",
@@ -2283,11 +2299,11 @@ class coinbase(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         orderConfiguration = self.safe_value(order, 'order_configuration', {})
-        limitGTC = self.safe_value(orderConfiguration, 'limit_limit_gtc', {})
-        limitGTD = self.safe_value(orderConfiguration, 'limit_limit_gtd', {})
-        stopLimitGTC = self.safe_value(orderConfiguration, 'stop_limit_stop_limit_gtc', {})
-        stopLimitGTD = self.safe_value(orderConfiguration, 'stop_limit_stop_limit_gtd', {})
-        marketIOC = self.safe_value(orderConfiguration, 'market_market_ioc', {})
+        limitGTC = self.safe_value(orderConfiguration, 'limit_limit_gtc')
+        limitGTD = self.safe_value(orderConfiguration, 'limit_limit_gtd')
+        stopLimitGTC = self.safe_value(orderConfiguration, 'stop_limit_stop_limit_gtc')
+        stopLimitGTD = self.safe_value(orderConfiguration, 'stop_limit_stop_limit_gtd')
+        marketIOC = self.safe_value(orderConfiguration, 'market_market_ioc')
         isLimit = ((limitGTC is not None) or (limitGTD is not None))
         isStop = ((stopLimitGTC is not None) or (stopLimitGTD is not None))
         price = None

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.93'
+__version__ = '4.1.97'
 
 # -----------------------------------------------------------------------------
 
@@ -23,6 +23,7 @@ from ccxt.base.errors import NullResponse
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadResponse
+from ccxt.base.errors import ProxyError
 
 # -----------------------------------------------------------------------------
 
@@ -111,11 +112,12 @@ class Exchange(object):
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_proxy = None
+    ssl_context = None
     trust_env = False
     aiohttp_trust_env = False
     requests_trust_env = False
     session = None  # Session () by default
-    socks_proxy_session = None
+    socks_proxy_sessions = None
     verify = True  # SSL verification
     validateServerSsl = True
     validateClientSsl = False
@@ -1767,7 +1769,7 @@ class Exchange(object):
         length = len(usedProxies)
         if length > 1:
             joinedProxyNames = ','.join(usedProxies)
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy_url settings(' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback')
+            raise ProxyError(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback')
         return proxyUrl
 
     def check_proxy_settings(self, url=None, method=None, headers=None, body=None):
@@ -1818,7 +1820,7 @@ class Exchange(object):
         length = len(usedProxies)
         if length > 1:
             joinedProxyNames = ','.join(usedProxies)
-            raise ExchangeError(self.id + ' you have multiple conflicting settings(' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback')
+            raise ProxyError(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback')
         return [httpProxy, httpsProxy, socksProxy]
 
     def check_ws_proxy_settings(self):
@@ -1851,12 +1853,12 @@ class Exchange(object):
         length = len(usedProxies)
         if length > 1:
             joinedProxyNames = ','.join(usedProxies)
-            raise ExchangeError(self.id + ' you have multiple conflicting settings(' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy')
+            raise ProxyError(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy')
         return [wsProxy, wssProxy, wsSocksProxy]
 
     def check_conflicting_proxies(self, proxyAgentSet, proxyUrlSet):
         if proxyAgentSet and proxyUrlSet:
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
+            raise ProxyError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
 
     def find_message_hashes(self, client, element: str):
         result = []
@@ -2136,6 +2138,7 @@ class Exchange(object):
         if fee is not None:
             fee['cost'] = self.safe_number(fee, 'cost')
         timestamp = self.safe_integer(entry, 'timestamp')
+        info = self.safe_value(entry, 'info', {})
         return {
             'id': self.safe_string(entry, 'id'),
             'timestamp': timestamp,
@@ -2151,7 +2154,7 @@ class Exchange(object):
             'after': self.parse_number(after),
             'status': self.safe_string(entry, 'status'),
             'fee': fee,
-            'info': entry,
+            'info': info,
         }
 
     def safe_currency_structure(self, currency: object):

@@ -444,7 +444,7 @@ export default class bitmart extends bitmartRest {
         const symbolKeys = Object.keys (symbols);
         for (let i = 0; i < symbolKeys.length; i++) {
             const symbol = symbolKeys[i];
-            const symbolSpecificMessageHash = messageHash + ':' + symbol;
+            const symbolSpecificMessageHash = messageHash + '::' + symbol;
             client.resolve (newOrders, symbolSpecificMessageHash);
         }
         client.resolve (newOrders, messageHash);

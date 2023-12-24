@@ -194,6 +194,8 @@ class coinbase extends Exchange {
                             'brokerage/products/{product_id}',
                             'brokerage/products/{product_id}/candles',
                             'brokerage/products/{product_id}/ticker',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/{portfolio_uuid}',
                             'brokerage/transaction_summary',
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
@@ -205,8 +207,16 @@ class coinbase extends Exchange {
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                        ),
+                        'put' => array(
+                            'brokerage/portfolios/{portfolio_uuid}',
+                        ),
+                        'delete' => array(
+                            'brokerage/portfolios/{portfolio_uuid}',
                         ),
                     ),
                 ),
@@ -2340,6 +2350,12 @@ class coinbase extends Exchange {
         //                 "base_size" => "0.2",
         //                 "limit_price" => "0.006",
         //                 "post_only" => false
+        //             ),
+        //             "stop_limit_stop_limit_gtc" => array(
+        //                 "base_size" => "48.54",
+        //                 "limit_price" => "6.998",
+        //                 "stop_price" => "7.0687",
+        //                 "stop_direction" => "STOP_DIRECTION_STOP_DOWN"
         //             }
         //         ),
         //         "side" => "SELL",
@@ -2373,11 +2389,11 @@ class coinbase extends Exchange {
             $market = $this->market($symbol);
         }
         $orderConfiguration = $this->safe_value($order, 'order_configuration', array());
-        $limitGTC = $this->safe_value($orderConfiguration, 'limit_limit_gtc', array());
-        $limitGTD = $this->safe_value($orderConfiguration, 'limit_limit_gtd', array());
-        $stopLimitGTC = $this->safe_value($orderConfiguration, 'stop_limit_stop_limit_gtc', array());
-        $stopLimitGTD = $this->safe_value($orderConfiguration, 'stop_limit_stop_limit_gtd', array());
-        $marketIOC = $this->safe_value($orderConfiguration, 'market_market_ioc', array());
+        $limitGTC = $this->safe_value($orderConfiguration, 'limit_limit_gtc');
+        $limitGTD = $this->safe_value($orderConfiguration, 'limit_limit_gtd');
+        $stopLimitGTC = $this->safe_value($orderConfiguration, 'stop_limit_stop_limit_gtc');
+        $stopLimitGTD = $this->safe_value($orderConfiguration, 'stop_limit_stop_limit_gtd');
+        $marketIOC = $this->safe_value($orderConfiguration, 'market_market_ioc');
         $isLimit = (($limitGTC !== null) || ($limitGTD !== null));
         $isStop = (($stopLimitGTC !== null) || ($stopLimitGTD !== null));
         $price = null;
