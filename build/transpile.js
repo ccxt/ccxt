@@ -1571,7 +1571,7 @@ class Transpiler {
                 signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
             }
 
-            let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::\s+(\S+))?\s*{/ // signature line
+            let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::[^{]+)?\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
 
             if (!matches) {
