@@ -1240,6 +1240,24 @@
                     "BTC/USD:BTC"
                 ]
             }
+        ],
+        "fetchOpenInterestHistory": [
+            {
+                "description": "Fetch Open Interest History - linear",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://fapi.binance.com/futures/data/openInterestHist?period=5m&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch Open Interest History - inverse",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://dapi.binance.com/futures/data/openInterestHist?period=5m&pair=BTCUSD_PERP&contractType=CURRENT_QUARTER",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
         ]
     }
 }
