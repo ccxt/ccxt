@@ -1028,6 +1028,7 @@ export default class bitvavo extends Exchange {
          * @param {string} [params.selfTradePrevention] "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
          * @param {bool} [params.disableMarketProtection] don't cancel if the next fill price is 10% worse than the best fill price
          * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
+         * @param {string} [params.clientOrderId] An ID supplied by the client that must be unique among all open orders for the same market
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1089,10 +1090,6 @@ export default class bitvavo extends Exchange {
         }
         if (postOnly) {
             request['postOnly'] = true;
-        }
-        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
         }
         const response = await this.privatePostOrder (this.extend (request, params));
         //
@@ -1156,6 +1153,7 @@ export default class bitvavo extends Exchange {
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {string} [params.selfTradePrevention] "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
          * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
+         * @param {string} [params.clientOrderId] An ID supplied by the client
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1163,15 +1161,13 @@ export default class bitvavo extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
-        } else {
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
         const amountRemaining = this.safeNumber (params, 'amountRemaining');
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
-        params = this.omit (params, [ 'amountRemaining', 'triggerPrice', 'stopPrice', 'triggerAmount', 'clientOid', 'clientOrderId' ]);
+        params = this.omit (params, [ 'amountRemaining', 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
         let updateRequest = {};
         if (price !== undefined) {
             updateRequest['price'] = this.priceToPrecision (symbol, price);
@@ -1199,6 +1195,7 @@ export default class bitvavo extends Exchange {
          * @method
          * @name bitvavo#cancelOrder
          * @description cancels an open order
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/delete
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1212,13 +1209,10 @@ export default class bitvavo extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
-        } else {
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         const response = await this.privateDeleteOrder (this.extend (request, params));
         //
         //     {
@@ -1260,6 +1254,7 @@ export default class bitvavo extends Exchange {
          * @method
          * @name bitvavo#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1272,13 +1267,10 @@ export default class bitvavo extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
-        } else {
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         const response = await this.privateGetOrder (this.extend (request, params));
         //
         //     {
