@@ -7814,15 +7814,15 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         await this.loadLeverageBrackets (false, params);
         const request = {};
-        let method = undefined;
         let defaultType = 'future';
         defaultType = this.safeString (this.options, 'defaultType', defaultType);
         const type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsRisk', undefined, params, 'linear');
         params = this.omit (params, 'type');
+        let response = undefined;
         if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateV2GetPositionRisk';
+            response = await this.fapiPrivateV2GetPositionRisk (this.extend (request, params));
             // ### Response examples ###
             //
             // For One-way position mode:
@@ -7878,11 +7878,10 @@ export default class binance extends Exchange {
             //         }
             //     ]
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPrivateGetPositionRisk';
+            response = await this.dapiPrivateGetPositionRisk (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchPositionsRisk() supports linear and inverse contracts only');
         }
-        const response = await this[method] (this.extend (request, params));
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const parsed = this.parsePositionRisk (response[i]);
