@@ -679,7 +679,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $params = $this->createOrderRequest ($symbol, $type, $side, $amount, $price, $params);
+            $params = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $request = array(
                 'method' => 'private/create-order',
                 'params' => $params,

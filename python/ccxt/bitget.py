@@ -1299,12 +1299,12 @@ class bitget(Exchange, ImplicitAPI):
                         '30m': '30min',
                         '1h': '1h',
                         '4h': '4h',
-                        '6h': '6h',
-                        '12h': '12h',
-                        '1d': '1day',
-                        '3d': '3day',
-                        '1w': '1week',
-                        '1M': '1M',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                     'swap': {
                         '1m': '1m',
@@ -1315,12 +1315,12 @@ class bitget(Exchange, ImplicitAPI):
                         '1h': '1H',
                         '2h': '2H',
                         '4h': '4H',
-                        '6h': '6H',
-                        '12h': '12H',
-                        '1d': '1D',
-                        '3d': '3D',
-                        '1w': '1W',
-                        '1M': '1M',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                 },
                 'fetchMarkets': [
@@ -2821,7 +2821,7 @@ class bitget(Exchange, ImplicitAPI):
             currencyCode = self.safe_currency_code(self.safe_string(feeStructure, 'feeCoin'))
             fee = {
                 'currency': currencyCode,
-                'cost': Precise.string_neg(self.safe_string(feeStructure, 'totalFee')),
+                'cost': Precise.string_abs(self.safe_string(feeStructure, 'totalFee')),
             }
         return self.safe_trade({
             'info': trade,
@@ -4694,31 +4694,36 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.isPlan]: *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         market = None
-        if sandboxMode:
-            sandboxSymbol = self.convert_symbol_for_sandbox(symbol)
-            market = self.market(sandboxSymbol)
-        else:
-            market = self.market(symbol)
+        type = None
+        request = {}
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
+        if symbol is not None:
+            if sandboxMode:
+                sandboxSymbol = self.convert_symbol_for_sandbox(symbol)
+                market = self.market(sandboxSymbol)
+            else:
+                market = self.market(symbol)
+            request['symbol'] = market['id']
+            defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
+            marketType = market['type'] if ('type' in market) else defaultType
+            type = self.safe_string(params, 'type', marketType)
+        else:
+            defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
+            type = self.safe_string(params, 'type', defaultType)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
         if paginate:
             cursorReceived = None
-            if market['spot']:
+            if type == 'spot':
                 if marginMode is not None:
                     cursorReceived = 'minId'
             else:
                 cursorReceived = 'endId'
             return self.fetch_paginated_call_cursor('fetchOpenOrders', symbol, since, limit, params, cursorReceived, 'idLessThan')
-        request = {
-            'symbol': market['id'],
-        }
         response = None
         stop = self.safe_value_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
@@ -4727,35 +4732,37 @@ class bitget(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        if (market['swap']) or (market['future']) or (marginMode is not None):
+        if (type == 'swap') or (type == 'future') or (marginMode is not None):
             clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
             params = self.omit(params, 'clientOrderId')
             if clientOrderId is not None:
                 request['clientOid'] = clientOrderId
-        if market['spot']:
+        query = None
+        query = self.omit(params, ['type'])
+        if type == 'spot':
             if marginMode is not None:
                 if since is None:
                     since = self.milliseconds() - 7776000000
                     request['startTime'] = since
                 if marginMode == 'isolated':
-                    response = self.privateMarginGetV2MarginIsolatedOpenOrders(self.extend(request, params))
+                    response = self.privateMarginGetV2MarginIsolatedOpenOrders(self.extend(request, query))
                 elif marginMode == 'cross':
-                    response = self.privateMarginGetV2MarginCrossedOpenOrders(self.extend(request, params))
+                    response = self.privateMarginGetV2MarginCrossedOpenOrders(self.extend(request, query))
             else:
                 if stop:
-                    response = self.privateSpotGetV2SpotTradeCurrentPlanOrder(self.extend(request, params))
+                    response = self.privateSpotGetV2SpotTradeCurrentPlanOrder(self.extend(request, query))
                 else:
-                    response = self.privateSpotGetV2SpotTradeUnfilledOrders(self.extend(request, params))
+                    response = self.privateSpotGetV2SpotTradeUnfilledOrders(self.extend(request, query))
         else:
             productType = None
-            productType, params = self.handle_product_type_and_params(market, params)
+            productType, query = self.handle_product_type_and_params(market, query)
             request['productType'] = productType
             if stop:
-                planType = self.safe_string(params, 'planType', 'normal_plan')
+                planType = self.safe_string(query, 'planType', 'normal_plan')
                 request['planType'] = planType
-                response = self.privateMixGetV2MixOrderOrdersPlanPending(self.extend(request, params))
+                response = self.privateMixGetV2MixOrderOrdersPlanPending(self.extend(request, query))
             else:
-                response = self.privateMixGetV2MixOrderOrdersPending(self.extend(request, params))
+                response = self.privateMixGetV2MixOrderOrdersPending(self.extend(request, query))
         #
         # spot
         #
@@ -4932,7 +4939,7 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data')
-        if market['spot']:
+        if type == 'spot':
             if (marginMode is not None) or stop:
                 resultList = self.safe_value(data, 'orderList', [])
                 return self.parse_orders(resultList, market, since, limit)

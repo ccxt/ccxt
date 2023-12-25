@@ -31,7 +31,7 @@ class bingx extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'closeAllPositions' => true,
-                'closePosition' => false,
+                'closePosition' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => true,
                 'createMarketSellOrderWithCost' => true,
@@ -143,6 +143,16 @@ class bingx extends Exchange {
                     ),
                 ),
                 'swap' => array(
+                    'v1' => array(
+                        'private' => array(
+                            'get' => array(
+                                'positionSide/dual' => 1,
+                            ),
+                            'post' => array(
+                                'positionSide/dual' => 1,
+                            ),
+                        ),
+                    ),
                     'v2' => array(
                         'public' => array(
                             'get' => array(
@@ -329,6 +339,7 @@ class bingx extends Exchange {
                     '100202' => '\\ccxt\\InsufficientFunds',
                     '100204' => '\\ccxt\\BadRequest',
                     '100400' => '\\ccxt\\BadRequest',
+                    '100421' => '\\ccxt\\BadSymbol', // array("code":100421,"msg":"This pair is currently restricted from API trading","debugMsg":"")
                     '100440' => '\\ccxt\\ExchangeError',
                     '100500' => '\\ccxt\\ExchangeError',
                     '100503' => '\\ccxt\\ExchangeError',
@@ -1297,7 +1308,7 @@ class bingx extends Exchange {
         //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $change = $this->safe_string($ticker, 'priceChange');
+        // $change = $this->safe_string($ticker, 'priceChange'); // this is not ccxt's $change because it does $high-$low instead of last-$open
         $lastQty = $this->safe_string($ticker, 'lastQty');
         // in spot markets, $lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
@@ -1309,10 +1320,10 @@ class bingx extends Exchange {
         $close = $this->safe_string($ticker, 'lastPrice');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         $baseVolume = $this->safe_string($ticker, 'volume');
-        $percentage = $this->safe_string($ticker, 'priceChangePercent');
-        if ($percentage !== null) {
-            $percentage = str_replace('%', '', $percentage);
-        }
+        // $percentage = $this->safe_string($ticker, 'priceChangePercent');
+        // if ($percentage !== null) {
+        //     $percentage = str_replace('%', '', $percentage);
+        // } similarly to $change, it's not ccxt's $percentage because it does priceChange/open, and priceChange is $high-$low
         $ts = $this->safe_integer($ticker, 'closeTime');
         $datetime = $this->iso8601($ts);
         $bid = $this->safe_string($ticker, 'bidPrice');
@@ -1334,8 +1345,8 @@ class bingx extends Exchange {
             'close' => $close,
             'last' => null,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
+            'change' => null,
+            'percentage' => null,
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
@@ -2430,7 +2441,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
          * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch $orders for
          * @param {boolean} [$params->standard] whether to fetch $standard contract $orders
@@ -3324,10 +3335,41 @@ class bingx extends Exchange {
         ));
     }
 
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): array {
+        /**
+         * closes open positions for a $market
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {string} [$side] not used by bingx
+         * @param {array} [$params] extra parameters specific to the bingx api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->swapV2PrivatePostTradeCloseAllPositions (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => 0,
+        //        "msg" => "",
+        //        "data" => {
+        //            "success" => array(
+        //                1727686766700486656,
+        //            ),
+        //            "failed" => null
+        //        }
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_order($data);
+    }
+
     public function close_all_positions($params = array ()): array {
         /**
          * closes open $positions for a market
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#close-all-$position
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @param {string} [$params->recvWindow] $request valid time window value
          * @return {array[]} ~@link https://docs.ccxt.com/#/?id=$position-structure A list of $position structures~
@@ -3365,6 +3407,35 @@ class bingx extends Exchange {
             $positions[] = $position;
         }
         return $positions;
+    }
+
+    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
+        /**
+         * set $hedged to true or false for a market
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+         * @param {bool} $hedged set to true to use $dualSidePosition
+         * @param {string} $symbol not used by bingx setPositionMode ()
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} response from the exchange
+         */
+        $dualSidePosition = null;
+        if ($hedged) {
+            $dualSidePosition = 'true';
+        } else {
+            $dualSidePosition = 'false';
+        }
+        $request = array(
+            'dualSidePosition' => $dualSidePosition,
+        );
+        //
+        //     {
+        //         code => '0',
+        //         msg => '',
+        //         timeStamp => '1703327432734',
+        //         data => array( $dualSidePosition => 'false' )
+        //     }
+        //
+        return $this->swapV1PrivatePostPositionSideDual (array_merge($request, $params));
     }
 
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
