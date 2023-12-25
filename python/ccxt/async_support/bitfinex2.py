@@ -1046,15 +1046,14 @@ class bitfinex2(Exchange, ImplicitAPI):
         #         FRR_AMOUNT_AVAILABLE
         #     ]
         #
-        timestamp = self.milliseconds()
         symbol = self.safe_symbol(None, market)
         length = len(ticker)
         last = self.safe_string(ticker, length - 4)
         percentage = self.safe_string(ticker, length - 5)
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_string(ticker, length - 2),
             'low': self.safe_string(ticker, length - 1),
             'bid': self.safe_string(ticker, length - 10),
@@ -1736,7 +1735,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         :see: https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)

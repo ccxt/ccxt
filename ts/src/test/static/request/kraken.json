@@ -29,6 +29,57 @@
                     0.1
                 ],
                 "output": "nonce=1698834105321&pair=LTCUSDT&type=sell&ordertype=market&volume=0.1"
+            },
+            {
+                "description": "Margin stopLossPrice order (type 2)",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "BTC/USD",
+                  "limit",
+                  "sell",
+                  0.00012,
+                  34000,
+                  {
+                    "stopLossPrice": 35000,
+                    "leverage": 5
+                  }
+                ],
+                "output": "nonce=1702704715667&pair=XXBTZUSD&type=sell&ordertype=stop-loss-limit&volume=0.00012&price=35000&price2=34000&reduce_only=true&leverage=5"
+            },
+            {
+                "description": "Margin takeProfitPrice order (type 2)",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "BTC/USD",
+                  "limit",
+                  "sell",
+                  0.0001,
+                  46000,
+                  {
+                    "takeProfitPrice": 45000,
+                    "leverage": 5
+                  }
+                ],
+                "output": "nonce=1703055164304&pair=XXBTZUSD&type=sell&ordertype=take-profit-limit&volume=0.0001&price=45000&price2=46000&reduce_only=true&leverage=5"
+            },
+            {
+                "description": "Margin trailing stop price order",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "BTC/USD",
+                  "market",
+                  "sell",
+                  0.00012,
+                  null,
+                  {
+                    "trailingStopPrice": 10,
+                    "leverage": 5
+                  }
+                ],
+                "output": "nonce=1702712084560&pair=XXBTZUSD&type=sell&ordertype=trailing-stop&volume=0.00012&trigger=last&price=%2B10&reduce_only=true&leverage=5"
             }
         ],
         "fetchMyTrades": [

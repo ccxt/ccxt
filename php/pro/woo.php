@@ -160,11 +160,10 @@ class woo extends \ccxt\async\woo {
         //         "count" => 3689
         //     }
         //
-        $timestamp = $this->safe_integer($ticker, 'date', $this->milliseconds());
         return $this->safe_ticker(array(
             'symbol' => $this->safe_symbol(null, $market),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $this->safe_string($ticker, 'high'),
             'low' => $this->safe_string($ticker, 'low'),
             'bid' => null,

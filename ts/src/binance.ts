@@ -342,6 +342,16 @@ export default class binance extends Exchange {
                         'lending/union/interestHistory': 0.1,
                         'lending/project/list': 0.1,
                         'lending/project/position/list': 0.1,
+                        // eth-staking
+                        'eth-staking/eth/history/stakingHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/redemptionHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/rewardsHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/quota': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/rateHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/account': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/wbeth/history/wrapHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/wbeth/history/unwrapHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/wbethRewardsHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
                         // mining endpoints
                         'mining/pub/algoList': 0.1,
                         'mining/pub/coinList': 0.1,
@@ -543,6 +553,13 @@ export default class binance extends Exchange {
                         'staking/purchase': 0.1,
                         'staking/redeem': 0.1,
                         'staking/setAutoStaking': 0.1,
+                        // eth-staking
+                        'eth-staking/eth/stake': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/redeem': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/wbeth/wrap': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        // mining endpoints
+                        'mining/hash-transfer/config': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
+                        'mining/hash-transfer/config/cancel': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
                         'portfolio/repay': 20.001,
                         'loan/vip/renew': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/vip/borrow': 40.002,
@@ -596,11 +613,13 @@ export default class binance extends Exchange {
                 },
                 'sapiV2': {
                     'get': {
+                        'eth-staking/account': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
                         'sub-account/futures/account': 0.1,
                         'sub-account/futures/accountSummary': 1,
                         'sub-account/futures/positionRisk': 0.1,
                     },
                     'post': {
+                        'eth-staking/eth/stake': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
                         'sub-account/subAccountApi/ipRestriction': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                     },
                 },
@@ -3281,27 +3300,28 @@ export default class binance extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        let method = 'publicGetKlines';
+        let response = undefined;
         if (market['option']) {
-            method = 'eapiPublicGetKlines';
+            response = await this.eapiPublicGetKlines (this.extend (request, params));
         } else if (price === 'mark') {
             if (market['inverse']) {
-                method = 'dapiPublicGetMarkPriceKlines';
+                response = await this.dapiPublicGetMarkPriceKlines (this.extend (request, params));
             } else {
-                method = 'fapiPublicGetMarkPriceKlines';
+                response = await this.fapiPublicGetMarkPriceKlines (this.extend (request, params));
             }
         } else if (price === 'index') {
             if (market['inverse']) {
-                method = 'dapiPublicGetIndexPriceKlines';
+                response = await this.dapiPublicGetIndexPriceKlines (this.extend (request, params));
             } else {
-                method = 'fapiPublicGetIndexPriceKlines';
+                response = await this.fapiPublicGetIndexPriceKlines (this.extend (request, params));
             }
         } else if (market['linear']) {
-            method = 'fapiPublicGetKlines';
+            response = await this.fapiPublicGetKlines (this.extend (request, params));
         } else if (market['inverse']) {
-            method = 'dapiPublicGetKlines';
+            response = await this.dapiPublicGetKlines (this.extend (request, params));
+        } else {
+            response = await this.publicGetKlines (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     [
         //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
@@ -4219,6 +4239,15 @@ export default class binance extends Exchange {
         }
         const stopPriceString = this.safeString (order, 'stopPrice');
         const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
+        const feeCost = this.safeNumber (order, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': this.safeString (order, 'quoteAsset'),
+                'cost': feeCost,
+                'rate': undefined,
+            };
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -4241,11 +4270,7 @@ export default class binance extends Exchange {
             'filled': filled,
             'remaining': undefined,
             'status': status,
-            'fee': {
-                'currency': this.safeString (order, 'quoteAsset'),
-                'cost': this.safeNumber (order, 'fee'),
-                'rate': undefined,
-            },
+            'fee': fee,
             'trades': fills,
         }, market);
     }
@@ -4687,19 +4712,6 @@ export default class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = 'privateGetOrder';
-        if (market['option']) {
-            method = 'eapiPrivateGetOrder';
-        } else if (market['linear']) {
-            method = 'fapiPrivateGetOrder';
-        } else if (market['inverse']) {
-            method = 'dapiPrivateGetOrder';
-        } else if (type === 'margin' || marginMode !== undefined) {
-            method = 'sapiGetMarginOrder';
-            if (marginMode === 'isolated') {
-                request['isIsolated'] = true;
-            }
-        }
         const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             if (market['option']) {
@@ -4711,7 +4723,21 @@ export default class binance extends Exchange {
             request['orderId'] = id;
         }
         const requestParams = this.omit (query, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
-        const response = await this[method] (this.extend (request, requestParams));
+        let response = undefined;
+        if (market['option']) {
+            response = await this.eapiPrivateGetOrder (this.extend (request, requestParams));
+        } else if (market['linear']) {
+            response = await this.fapiPrivateGetOrder (this.extend (request, requestParams));
+        } else if (market['inverse']) {
+            response = await this.dapiPrivateGetOrder (this.extend (request, requestParams));
+        } else if (type === 'margin' || marginMode !== undefined) {
+            if (marginMode === 'isolated') {
+                request['isIsolated'] = true;
+            }
+            response = await this.sapiGetMarginOrder (this.extend (request, requestParams));
+        } else {
+            response = await this.privateGetOrder (this.extend (request, requestParams));
+        }
         return this.parseOrder (response, market);
     }
 
@@ -4750,19 +4776,6 @@ export default class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = 'privateGetAllOrders';
-        if (market['option']) {
-            method = 'eapiPrivateGetHistoryOrders';
-        } else if (market['linear']) {
-            method = 'fapiPrivateGetAllOrders';
-        } else if (market['inverse']) {
-            method = 'dapiPrivateGetAllOrders';
-        } else if (type === 'margin' || marginMode !== undefined) {
-            method = 'sapiGetMarginAllOrders';
-            if (marginMode === 'isolated') {
-                request['isIsolated'] = true;
-            }
-        }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             params = this.omit (params, 'until');
@@ -4774,7 +4787,21 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (market['option']) {
+            response = await this.eapiPrivateGetHistoryOrders (this.extend (request, query));
+        } else if (market['linear']) {
+            response = await this.fapiPrivateGetAllOrders (this.extend (request, query));
+        } else if (market['inverse']) {
+            response = await this.dapiPrivateGetAllOrders (this.extend (request, query));
+        } else if (type === 'margin' || marginMode !== undefined) {
+            if (marginMode === 'isolated') {
+                request['isIsolated'] = true;
+            }
+            response = await this.sapiGetMarginAllOrders (this.extend (request, query));
+        } else {
+            response = await this.privateGetAllOrders (this.extend (request, query));
+        }
         //
         //  spot
         //
@@ -4898,29 +4925,30 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, query);
         const requestParams = this.omit (query, 'type');
-        let method = 'privateGetOpenOrders';
+        let response = undefined;
         if (type === 'option') {
-            method = 'eapiPrivateGetOpenOrders';
             if (since !== undefined) {
                 request['startTime'] = since;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
+            response = await this.eapiPrivateGetOpenOrders (this.extend (request, requestParams));
         } else if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateGetOpenOrders';
+            response = await this.fapiPrivateGetOpenOrders (this.extend (request, requestParams));
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPrivateGetOpenOrders';
+            response = await this.dapiPrivateGetOpenOrders (this.extend (request, requestParams));
         } else if (type === 'margin' || marginMode !== undefined) {
-            method = 'sapiGetMarginOpenOrders';
             if (marginMode === 'isolated') {
                 request['isIsolated'] = true;
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument for isolated markets');
                 }
             }
+            response = await this.sapiGetMarginOpenOrders (this.extend (request, requestParams));
+        } else {
+            response = await this.privateGetOpenOrders (this.extend (request, requestParams));
         }
-        const response = await this[method] (this.extend (request, requestParams));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -5012,21 +5040,22 @@ export default class binance extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        let method = 'privateDeleteOrder';
+        const requestParams = this.omit (query, [ 'type', 'origClientOrderId', 'clientOrderId' ]);
+        let response = undefined;
         if (market['option']) {
-            method = 'eapiPrivateDeleteOrder';
+            response = await this.eapiPrivateDeleteOrder (this.extend (request, requestParams));
         } else if (market['linear']) {
-            method = 'fapiPrivateDeleteOrder';
+            response = await this.fapiPrivateDeleteOrder (this.extend (request, requestParams));
         } else if (market['inverse']) {
-            method = 'dapiPrivateDeleteOrder';
+            response = await this.dapiPrivateDeleteOrder (this.extend (request, requestParams));
         } else if (type === 'margin' || marginMode !== undefined) {
-            method = 'sapiDeleteMarginOrder';
             if (marginMode === 'isolated') {
                 request['isIsolated'] = true;
             }
+            response = await this.sapiDeleteMarginOrder (this.extend (request, requestParams));
+        } else {
+            response = await this.privateDeleteOrder (this.extend (request, requestParams));
         }
-        const requestParams = this.omit (query, [ 'type', 'origClientOrderId', 'clientOrderId' ]);
-        const response = await this[method] (this.extend (request, requestParams));
         return this.parseOrder (response, market);
     }
 
@@ -5056,20 +5085,21 @@ export default class binance extends Exchange {
         const type = this.safeString (params, 'type', market['type']);
         params = this.omit (params, [ 'type' ]);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
-        let method = 'privateDeleteOpenOrders';
+        let response = undefined;
         if (market['option']) {
-            method = 'eapiPrivateDeleteAllOpenOrders';
+            response = await this.eapiPrivateDeleteAllOpenOrders (this.extend (request, query));
         } else if (market['linear']) {
-            method = 'fapiPrivateDeleteAllOpenOrders';
+            response = await this.fapiPrivateDeleteAllOpenOrders (this.extend (request, query));
         } else if (market['inverse']) {
-            method = 'dapiPrivateDeleteAllOpenOrders';
+            response = await this.dapiPrivateDeleteAllOpenOrders (this.extend (request, query));
         } else if ((type === 'margin') || (marginMode !== undefined)) {
-            method = 'sapiDeleteMarginOpenOrders';
             if (marginMode === 'isolated') {
                 request['isIsolated'] = true;
             }
+            response = await this.sapiDeleteMarginOpenOrders (this.extend (request, query));
+        } else {
+            response = await this.privateDeleteOpenOrders (this.extend (request, query));
         }
-        const response = await this[method] (this.extend (request, query));
         if (Array.isArray (response)) {
             return this.parseOrders (response, market);
         } else {
@@ -5207,34 +5237,12 @@ export default class binance extends Exchange {
         const request = {};
         let market = undefined;
         let type = undefined;
-        let method = undefined;
         let marginMode = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        if (type === 'option') {
-            method = 'eapiPrivateGetUserTrades';
-        } else {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-            }
-            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
-            if (type === 'spot' || type === 'margin') {
-                method = 'privateGetMyTrades';
-                if ((type === 'margin') || (marginMode !== undefined)) {
-                    method = 'sapiGetMarginMyTrades';
-                    if (marginMode === 'isolated') {
-                        request['isIsolated'] = true;
-                    }
-                }
-            } else if (market['linear']) {
-                method = 'fapiPrivateGetUserTrades';
-            } else if (market['inverse']) {
-                method = 'dapiPrivateGetUserTrades';
-            }
-        }
         let endTime = this.safeInteger2 (params, 'until', 'endTime');
         if (since !== undefined) {
             const startTime = since;
@@ -5262,7 +5270,29 @@ export default class binance extends Exchange {
             }
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (type === 'option') {
+            response = await this.eapiPrivateGetUserTrades (this.extend (request, params));
+        } else {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+            }
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+            if (type === 'spot' || type === 'margin') {
+                if ((type === 'margin') || (marginMode !== undefined)) {
+                    if (marginMode === 'isolated') {
+                        request['isIsolated'] = true;
+                    }
+                    response = await this.sapiGetMarginMyTrades (this.extend (request, params));
+                } else {
+                    response = await this.privateGetMyTrades (this.extend (request, params));
+                }
+            } else if (market['linear']) {
+                response = await this.fapiPrivateGetUserTrades (this.extend (request, params));
+            } else if (market['inverse']) {
+                response = await this.dapiPrivateGetUserTrades (this.extend (request, params));
+            }
+        }
         //
         // spot trade
         //
@@ -5996,7 +6026,8 @@ export default class binance extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         request['type'] = this.safeString (params, 'type');
-        let method = 'sapiPostAssetTransfer';
+        params = this.omit (params, 'type');
+        let response = undefined;
         if (request['type'] === undefined) {
             const symbol = this.safeString (params, 'symbol');
             if (symbol !== undefined) {
@@ -6033,15 +6064,15 @@ export default class binance extends Exchange {
                 if ((fromIsolated || toIsolated) && prohibitedWithIsolated) {
                     throw new BadRequest (this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
                 } else if (toSpot && fromIsolated) {
-                    method = 'sapiPostMarginIsolatedTransfer';
                     request['transFrom'] = 'ISOLATED_MARGIN';
                     request['transTo'] = 'SPOT';
                     request['symbol'] = fromId;
+                    response = await this.sapiPostMarginIsolatedTransfer (this.extend (request, params));
                 } else if (fromSpot && toIsolated) {
-                    method = 'sapiPostMarginIsolatedTransfer';
                     request['transFrom'] = 'SPOT';
                     request['transTo'] = 'ISOLATED_MARGIN';
                     request['symbol'] = toId;
+                    response = await this.sapiPostMarginIsolatedTransfer (this.extend (request, params));
                 } else {
                     if (fromIsolated) {
                         request['fromSymbol'] = fromId;
@@ -6057,8 +6088,9 @@ export default class binance extends Exchange {
                 request['type'] = fromId + '_' + toId;
             }
         }
-        params = this.omit (params, 'type');
-        const response = await this[method] (this.extend (request, params));
+        if (response === undefined) {
+            response = await this.sapiPostAssetTransfer (this.extend (request, params));
+        }
         //
         //     {
         //         "tranId":13526853623
@@ -6600,7 +6632,6 @@ export default class binance extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        let method = undefined;
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         let subType = undefined;
@@ -6608,14 +6639,14 @@ export default class binance extends Exchange {
         const isSpotOrMargin = (type === 'spot') || (type === 'margin');
         const isLinear = this.isLinear (type, subType);
         const isInverse = this.isInverse (type, subType);
+        let response = undefined;
         if (isSpotOrMargin) {
-            method = 'sapiGetAssetTradeFee';
+            response = await this.sapiGetAssetTradeFee (params);
         } else if (isLinear) {
-            method = 'fapiPrivateV2GetAccount';
+            response = await this.fapiPrivateV2GetAccount (params);
         } else if (isInverse) {
-            method = 'dapiPrivateGetAccount';
+            response = await this.dapiPrivateGetAccount (params);
         }
-        const response = await this[method] (params);
         //
         // sapi / spot
         //
@@ -6813,15 +6844,14 @@ export default class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = undefined;
+        let response = undefined;
         if (market['linear']) {
-            method = 'fapiPublicGetPremiumIndex';
+            response = await this.fapiPublicGetPremiumIndex (this.extend (request, params));
         } else if (market['inverse']) {
-            method = 'dapiPublicGetPremiumIndex';
+            response = await this.dapiPublicGetPremiumIndex (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchFundingRate() supports linear and inverse contracts only');
         }
-        let response = await this[method] (this.extend (request, params));
         if (market['inverse']) {
             response = response[0];
         }
@@ -6857,7 +6887,6 @@ export default class binance extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        let method = undefined;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -6874,14 +6903,6 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRateHistory', market, params, 'linear');
         params = this.omit (params, 'type');
-        if (this.isLinear (type, subType)) {
-            method = 'fapiPublicGetFundingRate';
-        } else if (this.isInverse (type, subType)) {
-            method = 'dapiPublicGetFundingRate';
-        }
-        if (method === undefined) {
-            throw new NotSupported (this.id + ' fetchFundingRateHistory() is not supported for ' + type + ' markets');
-        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -6894,7 +6915,14 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (this.isLinear (type, subType)) {
+            response = await this.fapiPublicGetFundingRate (this.extend (request, params));
+        } else if (this.isInverse (type, subType)) {
+            response = await this.dapiPublicGetFundingRate (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRateHistory() is not supported for ' + type + ' markets');
+        }
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -6931,20 +6959,19 @@ export default class binance extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let method = undefined;
         const defaultType = this.safeString2 (this.options, 'fetchFundingRates', 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', undefined, params, 'linear');
         const query = this.omit (params, 'type');
+        let response = undefined;
         if (this.isLinear (type, subType)) {
-            method = 'fapiPublicGetPremiumIndex';
+            response = await this.fapiPublicGetPremiumIndex (query);
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPublicGetPremiumIndex';
+            response = await this.dapiPublicGetPremiumIndex (query);
         } else {
             throw new NotSupported (this.id + ' fetchFundingRates() supports linear and inverse contracts only');
         }
-        const response = await this[method] (query);
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -7407,20 +7434,19 @@ export default class binance extends Exchange {
         // it contains useful stuff like the maintenance margin and initial margin for positions
         const leverageBrackets = this.safeValue (this.options, 'leverageBrackets');
         if ((leverageBrackets === undefined) || (reload)) {
-            let method = undefined;
             const defaultType = this.safeString (this.options, 'defaultType', 'future');
             const type = this.safeString (params, 'type', defaultType);
             const query = this.omit (params, 'type');
             let subType = undefined;
             [ subType, params ] = this.handleSubTypeAndParams ('loadLeverageBrackets', undefined, params, 'linear');
+            let response = undefined;
             if (this.isLinear (type, subType)) {
-                method = 'fapiPrivateGetLeverageBracket';
+                response = await this.fapiPrivateGetLeverageBracket (query);
             } else if (this.isInverse (type, subType)) {
-                method = 'dapiPrivateV2GetLeverageBracket';
+                response = await this.dapiPrivateV2GetLeverageBracket (query);
             } else {
                 throw new NotSupported (this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
             }
-            const response = await this[method] (query);
             this.options['leverageBrackets'] = {};
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
@@ -7452,18 +7478,18 @@ export default class binance extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, query, 'linear');
-        let method = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params, 'linear');
+        let response = undefined;
         if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateGetLeverageBracket';
+            response = await this.fapiPrivateGetLeverageBracket (params);
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPrivateV2GetLeverageBracket';
+            response = await this.dapiPrivateV2GetLeverageBracket (params);
         } else {
             throw new NotSupported (this.id + ' fetchLeverageTiers() supports linear and inverse contracts only');
         }
-        const response = await this[method] (query);
         //
         // usdm
         //
@@ -7881,7 +7907,6 @@ export default class binance extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        let method = undefined;
         const request = {
             'incomeType': 'FUNDING_FEE', // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
         };
@@ -7903,14 +7928,14 @@ export default class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchFundingHistory', 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
+        let response = undefined;
         if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateGetIncome';
+            response = await this.fapiPrivateGetIncome (this.extend (request, params));
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPrivateGetIncome';
+            response = await this.dapiPrivateGetIncome (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
         }
-        const response = await this[method] (this.extend (request, params));
         return this.parseIncomes (response, market, since, limit);
     }
 
@@ -7936,19 +7961,19 @@ export default class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method: string;
-        if (market['linear']) {
-            method = 'fapiPrivatePostLeverage';
-        } else if (market['inverse']) {
-            method = 'dapiPrivatePostLeverage';
-        } else {
-            throw new NotSupported (this.id + ' setLeverage() supports linear and inverse contracts only');
-        }
         const request = {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['linear']) {
+            response = await this.fapiPrivatePostLeverage (this.extend (request, params));
+        } else if (market['inverse']) {
+            response = await this.dapiPrivatePostLeverage (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' setLeverage() supports linear and inverse contracts only');
+        }
+        return response;
     }
 
     async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
@@ -7982,21 +8007,19 @@ export default class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = undefined;
-        if (market['linear']) {
-            method = 'fapiPrivatePostMarginType';
-        } else if (market['inverse']) {
-            method = 'dapiPrivatePostMarginType';
-        } else {
-            throw new NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
-        }
         const request = {
             'symbol': market['id'],
             'marginType': marginMode,
         };
         let response = undefined;
         try {
-            response = await this[method] (this.extend (request, params));
+            if (market['linear']) {
+                response = await this.fapiPrivatePostMarginType (this.extend (request, params));
+            } else if (market['inverse']) {
+                response = await this.dapiPrivatePostMarginType (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
+            }
         } catch (e) {
             // not an error
             // https://github.com/ccxt/ccxt/issues/11268
@@ -8654,16 +8677,15 @@ export default class binance extends Exchange {
             'symbol': market['id'],
             'amount': amount,
         };
-        let method = undefined;
+        let response = undefined;
         let code = undefined;
         if (market['linear']) {
-            method = 'fapiPrivatePostPositionMargin';
             code = market['quote'];
+            response = await this.fapiPrivatePostPositionMargin (this.extend (request, params));
         } else {
-            method = 'dapiPrivatePostPositionMargin';
             code = market['base'];
+            response = await this.dapiPrivatePostPositionMargin (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": 200,
