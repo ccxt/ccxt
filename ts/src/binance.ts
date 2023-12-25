@@ -9198,11 +9198,12 @@ export default class binance extends Exchange {
             const duration = this.parseTimeframe (timeframe);
             request['endTime'] = this.sum (since, duration * limit * 1000);
         }
-        let method = 'fapiDataGetOpenInterestHist';
+        let response = undefined;
         if (market['inverse']) {
-            method = 'dapiDataGetOpenInterestHist';
+            response = await this.dapiDataGetOpenInterestHist (this.extend (request, params));
+        } else {
+            response = await this.fapiDataGetOpenInterestHist (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //  [
         //      {
