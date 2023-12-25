@@ -2295,6 +2295,11 @@ class Exchange {
             if ('rate' in tradeFee) {
                 tradeFee['rate'] = this.safeNumber(tradeFee, 'rate');
             }
+            const entryFees = this.safeValue(entry, 'fees', []);
+            for (let j = 0; j < entryFees.length; j++) {
+                entryFees[j]['cost'] = this.safeNumber(entryFees[j], 'cost');
+            }
+            entry['fees'] = entryFees;
             entry['fee'] = tradeFee;
         }
         let timeInForce = this.safeString(order, 'timeInForce');

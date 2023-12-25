@@ -84,6 +84,7 @@ class bybit extends bybit$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPermissions': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': true,
@@ -105,7 +106,6 @@ class bybit extends bybit$1 {
                 'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true,
-                'fetchPermissions': true,
             },
             'timeframes': {
                 '1m': '1',

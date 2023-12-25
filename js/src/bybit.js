@@ -87,6 +87,7 @@ export default class bybit extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPermissions': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': true,
@@ -108,7 +109,6 @@ export default class bybit extends Exchange {
                 'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true,
-                'fetchPermissions': true,
             },
             'timeframes': {
                 '1m': '1',

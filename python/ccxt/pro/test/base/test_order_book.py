@@ -282,7 +282,7 @@ asks = None
 order_book = OrderBook(order_book_input)
 
 
-limited = OrderBook(order_book_input, 5)
+limited = OrderBook(order_book_input,5)
 
 
 order_book.limit()
@@ -349,7 +349,7 @@ assert equals(limited, limited_deleted_order_book_target)
 indexed_order_book = IndexedOrderBook(indexed_order_book_input)
 
 
-limited_indexed_order_book = IndexedOrderBook(indexed_order_book_input, 5)
+limited_indexed_order_book = IndexedOrderBook(indexed_order_book_input,5)
 
 
 indexed_order_book.limit()
@@ -425,7 +425,7 @@ assert equals(indexed_order_book, overwrite1244)
 counted_order_book = CountedOrderBook(counted_order_book_input)
 
 
-limited_counted_order_book = CountedOrderBook(counted_order_book_input, 5)
+limited_counted_order_book = CountedOrderBook(counted_order_book_input,5)
 
 
 counted_order_book.limit()

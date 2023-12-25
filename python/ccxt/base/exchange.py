@@ -2544,6 +2544,10 @@ class Exchange(object):
             tradeFee['cost'] = self.safe_number(tradeFee, 'cost')
             if 'rate' in tradeFee:
                 tradeFee['rate'] = self.safe_number(tradeFee, 'rate')
+            entryFees = self.safe_value(entry, 'fees', [])
+            for j in range(0, len(entryFees)):
+                entryFees[j]['cost'] = self.safe_number(entryFees[j], 'cost')
+            entry['fees'] = entryFees
             entry['fee'] = tradeFee
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = self.safe_value(order, 'postOnly')

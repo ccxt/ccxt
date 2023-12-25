@@ -3171,6 +3171,11 @@ class Exchange {
             if (is_array($tradeFee) && array_key_exists('rate', $tradeFee)) {
                 $tradeFee['rate'] = $this->safe_number($tradeFee, 'rate');
             }
+            $entryFees = $this->safe_value($entry, 'fees', array());
+            for ($j = 0; $j < count($entryFees); $j++) {
+                $entryFees[$j]['cost'] = $this->safe_number($entryFees[$j], 'cost');
+            }
+            $entry['fees'] = $entryFees;
             $entry['fee'] = $tradeFee;
         }
         $timeInForce = $this->safe_string($order, 'timeInForce');
