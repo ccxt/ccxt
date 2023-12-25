@@ -210,6 +210,8 @@ export default class coinex extends Exchange {
                     },
                     'put': {
                         'balance/deposit/address/{coin_type}': 40,
+                        'sub_account/unfrozen': 40,
+                        'sub_account/frozen': 40,
                         'sub_account/auth/api/{user_auth_id}': 40,
                         'v1/account/settings': 40,
                     },
@@ -219,7 +221,10 @@ export default class coinex extends Exchange {
                         'order/pending': 13.334,
                         'order/stop/pending': 40,
                         'order/stop/pending/{id}': 13.334,
+                        'order/pending/by_client_id': 40,
+                        'order/stop/pending/by_client_id': 40,
                         'sub_account/auth/api/{user_auth_id}': 40,
+                        'sub_account/authorize/{id}': 40,
                     },
                 },
                 'perpetualPublic': {
@@ -233,12 +238,12 @@ export default class coinex extends Exchange {
                         'market/depth': 1,
                         'market/deals': 1,
                         'market/funding_history': 1,
-                        'market/user_deals': 1,
                         'market/kline': 1,
                     },
                 },
                 'perpetualPrivate': {
                     'get': {
+                        'market/user_deals': 1,
                         'asset/query': 40,
                         'order/pending': 8,
                         'order/finished': 40,
@@ -248,6 +253,10 @@ export default class coinex extends Exchange {
                         'order/stop_status': 8,
                         'position/pending': 40,
                         'position/funding': 40,
+                        'position/adl_history': 40,
+                        'market/preference': 40,
+                        'position/margin_history': 40,
+                        'position/settle_history': 40,
                     },
                     'post': {
                         'market/adjust_leverage': 1,
@@ -269,6 +278,9 @@ export default class coinex extends Exchange {
                         'position/stop_loss': 20,
                         'position/take_profit': 20,
                         'position/market_close': 20,
+                        'order/cancel/by_client_id': 20,
+                        'order/cancel_stop/by_client_id': 20,
+                        'market/preference': 20,
                     },
                 },
             },
@@ -3354,16 +3366,11 @@ export default class coinex extends Exchange {
         }
         let response = undefined;
         if (swap) {
-            const side = this.safeInteger (params, 'side');
-            if (side === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a side parameter for swap markets');
-            }
             if (since !== undefined) {
                 request['start_time'] = since;
             }
-            request['side'] = side;
-            params = this.omit (params, 'side');
-            response = await this.perpetualPublicGetMarketUserDeals (this.extend (request, params));
+            request['side'] = 0;
+            response = await this.perpetualPrivateGetMarketUserDeals (this.extend (request, params));
         } else {
             request['page'] = 1;
             response = await this.privateGetOrderUserDeals (this.extend (request, params));
@@ -5317,7 +5324,7 @@ export default class coinex extends Exchange {
                 }
             }
         }
-        if (api === 'perpetualPrivate' || url === 'https://api.coinex.com/perpetual/v1/market/user_deals') {
+        if (api === 'perpetualPrivate') {
             this.checkRequiredCredentials ();
             query = this.extend ({
                 'access_id': this.apiKey,
