@@ -278,14 +278,13 @@ class bit2c(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         symbol = self.safe_symbol(None, market)
-        timestamp = self.milliseconds()
         averagePrice = self.safe_string(ticker, 'av')
         baseVolume = self.safe_string(ticker, 'a')
         last = self.safe_string(ticker, 'll')
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': None,
             'low': None,
             'bid': self.safe_string(ticker, 'h'),

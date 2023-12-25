@@ -451,7 +451,7 @@ class bitmart extends \ccxt\async\bitmart {
         $symbolKeys = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($symbolKeys); $i++) {
             $symbol = $symbolKeys[$i];
-            $symbolSpecificMessageHash = $messageHash . ':' . $symbol;
+            $symbolSpecificMessageHash = $messageHash . '::' . $symbol;
             $client->resolve ($newOrders, $symbolSpecificMessageHash);
         }
         $client->resolve ($newOrders, $messageHash);

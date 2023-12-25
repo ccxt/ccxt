@@ -815,18 +815,12 @@ class krakenfutures(Exchange, ImplicitAPI):
         })
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+        market = self.market(symbol)
         type = self.safe_string(params, 'orderType', type)
         timeInForce = self.safe_string(params, 'timeInForce')
-        stopPrice = self.safe_string(params, 'stopPrice')
         postOnly = False
         postOnly, params = self.handle_post_only(type == 'market', type == 'post', params)
-        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'cliOrdId')
-        params = self.omit(params, ['clientOrderId', 'cliOrdId'])
-        if (type == 'stp' or type == 'take_profit') and stopPrice is None:
-            raise ArgumentsRequired(self.id + ' createOrder requires params.stopPrice when type is ' + type)
-        if stopPrice is not None and type != 'take_profit':
-            type = 'stp'
-        elif postOnly:
+        if postOnly:
             type = 'post'
         elif timeInForce == 'ioc':
             type = 'ioc'
@@ -835,33 +829,62 @@ class krakenfutures(Exchange, ImplicitAPI):
         elif type == 'market':
             type = 'mkt'
         request = {
-            'orderType': type,
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'side': side,
             'size': amount,
         }
-        if price is not None:
-            request['limitPrice'] = price
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'cliOrdId')
         if clientOrderId is not None:
             request['cliOrdId'] = clientOrderId
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        isTriggerOrder = triggerPrice is not None
+        stopLossTriggerPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_string(params, 'takeProfitPrice')
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
+        triggerSignal = self.safe_string(params, 'triggerSignal', 'last')
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        if isStopLossOrTakeProfitTrigger or isTriggerOrder:
+            request['triggerSignal'] = triggerSignal
+        if isTriggerOrder:
+            type = 'stp'
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
+        elif isStopLossOrTakeProfitTrigger:
+            reduceOnly = True
+            if isStopLossTriggerOrder:
+                type = 'stp'
+                request['stopPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+            elif isTakeProfitTriggerOrder:
+                type = 'take_profit'
+                request['stopPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+        if reduceOnly:
+            request['reduceOnly'] = True
+        request['orderType'] = type
+        if price is not None:
+            request['limitPrice'] = price
+        params = self.omit(params, ['clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         return self.extend(request, params)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
-        :param str symbol: market symbol
-        :param str type: One of 'limit', 'market', 'take_profit'
-        :param str side: buy or sell
-        :param int amount: Contract quantity
-        :param float [price]: Limit order price
-        :param float [params.stopPrice]: The stop price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
-        :param bool [params.reduceOnly]: Set if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default False,
-        :param bool [params.postOnly]: Set if you wish to make a postOnly order, Default False
-        :param str [params.triggerSignal]: If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
-        :param str [params.cliOrdId]: UUID The order identity that is specified from the user, It must be globally unique
+        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order
+        :param str symbol: unified market symbol
+        :param str type: 'limit' or 'market'
+        :param str side: 'buy' or 'sell'
+        :param float amount: number of contracts
+        :param float [price]: limit order price
+        :param bool [params.reduceOnly]: set if you wish the order to only reduce an existing position, any order which increases an existing position will be rejected, default is False
+        :param bool [params.postOnly]: set if you wish to make a postOnly order, default is False
         :param str [params.clientOrderId]: UUID The order identity that is specified from the user, It must be globally unique
+        :param float [params.triggerPrice]: the price that a stop order is triggered at
+        :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
+        :param str [params.triggerSignal]: for triggerPrice, stopLossPrice and takeProfitPrice orders, the trigger price type, 'last', 'mark' or 'index', default is 'last'
         """
         await self.load_markets()
+        market = self.market(symbol)
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params)
         response = await self.privatePostSendorder(orderRequest)
         #
@@ -897,7 +920,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         sendStatus = self.safe_value(response, 'sendStatus')
         status = self.safe_string(sendStatus, 'status')
         self.verify_order_action_success(status, 'createOrder', ['filled'])
-        return self.parse_order(sendStatus)
+        return self.parse_order(sendStatus, market)
 
     async def create_orders(self, orders: List[OrderRequest], params={}):
         """

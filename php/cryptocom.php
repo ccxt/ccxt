@@ -1849,6 +1849,7 @@ class cryptocom extends Exchange {
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 'i');
         $market = $this->safe_market($marketId, $market, '_');
+        $quote = $this->safe_string($market, 'quote');
         $last = $this->safe_string($ticker, 'a');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
@@ -1869,7 +1870,7 @@ class cryptocom extends Exchange {
             'percentage' => $this->safe_string($ticker, 'c'),
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'v'),
-            'quoteVolume' => $this->safe_string($ticker, 'vv'),
+            'quoteVolume' => ($quote === 'USD') ? $this->safe_string($ticker, 'vv') : null,
             'info' => $ticker,
         ), $market);
     }

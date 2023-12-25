@@ -180,13 +180,12 @@ export default class btcbox extends Exchange {
     }
 
     parseTicker (ticker, market: Market = undefined): Ticker {
-        const timestamp = this.milliseconds ();
         const symbol = this.safeSymbol (undefined, market);
         const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString (ticker, 'high'),
             'low': this.safeString (ticker, 'low'),
             'bid': this.safeString (ticker, 'buy'),
@@ -502,7 +501,7 @@ export default class btcbox extends Exchange {
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
