@@ -3611,19 +3611,6 @@ export default class binance extends Exchange {
             // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit': 500,     // default = 500, maximum = 1000
         };
-        let method = this.safeString (this.options, 'fetchTradesMethod');
-        method = this.safeString2 (params, 'fetchTradesMethod', 'method', method);
-        if (method === undefined) {
-            if (market['option']) {
-                method = 'eapiPublicGetTrades';
-            } else if (market['linear']) {
-                method = 'fapiPublicGetAggTrades';
-            } else if (market['inverse']) {
-                method = 'dapiPublicGetAggTrades';
-            } else {
-                method = 'publicGetAggTrades';
-            }
-        }
         if (!market['option']) {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -3640,7 +3627,19 @@ export default class binance extends Exchange {
             const isFutureOrSwap = (market['swap'] || market['future']);
             request['limit'] = isFutureOrSwap ? Math.min (limit, 1000) : limit; // default = 500, maximum = 1000
         }
+        let method = this.safeString (this.options, 'fetchTradesMethod');
+        method = this.safeString2 (params, 'fetchTradesMethod', 'method', method);
         params = this.omit (params, [ 'until', 'fetchTradesMethod' ]);
+        let response = undefined;
+        if (market['option'] || method === 'eapiPublicGetTrades') {
+            response = await this.eapiPublicGetTrades (this.extend (request, params));
+        } else if (market['linear'] || method === 'fapiPublicGetAggTrades') {
+            response = await this.fapiPublicGetAggTrades (this.extend (request, params));
+        } else if (market['inverse'] || method === 'dapiPublicGetAggTrades') {
+            response = await this.dapiPublicGetAggTrades (this.extend (request, params));
+        } else {
+            response = await this.publicGetAggTrades (this.extend (request, params));
+        }
         //
         // Caveats:
         // - default limit (500) applies only if no other parameters set, trades up
@@ -3650,7 +3649,6 @@ export default class binance extends Exchange {
         // - "tradeId" accepted and returned by this method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
-        const response = await this[method] (this.extend (request, params));
         //
         // aggregate trades
         //
