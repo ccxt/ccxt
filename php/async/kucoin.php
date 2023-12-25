@@ -43,6 +43,9 @@ class kucoin extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createDepositAddress' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => true,
+                'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createPostOnlyOrder' => true,
@@ -1966,6 +1969,53 @@ class kucoin extends Exchange {
         }) ();
     }
 
+    public function create_market_order_with_cost(string $symbol, string $side, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $cost, $params) {
+            /**
+             * create a market order by providing the $symbol, $side and $cost
+             * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $params['cost'] = $cost;
+            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $params));
+        }) ();
+    }
+
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market buy order by providing the $symbol and $cost
+             * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            return Async\await($this->create_market_order_with_cost($symbol, 'buy', $cost, $params));
+        }) ();
+    }
+
+    public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market sell order by providing the $symbol and $cost
+             * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            return Async\await($this->create_market_order_with_cost($symbol, 'sell', $cost, $params));
+        }) ();
+    }
+
     public function create_orders(array $orders, $params = array ()) {
         return Async\async(function () use ($orders, $params) {
             /**
@@ -2252,9 +2302,10 @@ class kucoin extends Exchange {
                 $response = Async\await($this->privateDeleteStopOrderCancel (array_merge($request, $query)));
             } elseif ($hf) {
                 if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol parameter for $hf orders');
+                    $response = Async\await($this->privateDeleteHfOrdersCancelAll (array_merge($request, $query)));
+                } else {
+                    $response = Async\await($this->privateDeleteHfOrders (array_merge($request, $query)));
                 }
-                $response = Async\await($this->privateDeleteHfOrders (array_merge($request, $query)));
             } else {
                 $response = Async\await($this->privateDeleteOrders (array_merge($request, $query)));
             }
@@ -2387,7 +2438,7 @@ class kucoin extends Exchange {
              * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->till] end time in ms
              * @param {string} [$params->side] buy or sell

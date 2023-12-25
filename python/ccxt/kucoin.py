@@ -56,6 +56,9 @@ class kucoin(Exchange, ImplicitAPI):
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createDepositAddress': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': True,
+                'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createOrders': True,
                 'createPostOnlyOrder': True,
@@ -1894,6 +1897,44 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
+    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost, params={}):
+        """
+        create a market order by providing the symbol, side and cost
+        :see: https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str side: 'buy' or 'sell'
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        params['cost'] = cost
+        return self.create_order(symbol, 'market', side, cost, None, params)
+
+    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+        :see: https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        return self.create_market_order_with_cost(symbol, 'buy', cost, params)
+
+    def create_market_sell_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        create a market sell order by providing the symbol and cost
+        :see: https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        return self.create_market_order_with_cost(symbol, 'sell', cost, params)
+
     def create_orders(self, orders: List[OrderRequest], params={}):
         """
         create a list of trade orders
@@ -2145,8 +2186,9 @@ class kucoin(Exchange, ImplicitAPI):
             response = self.privateDeleteStopOrderCancel(self.extend(request, query))
         elif hf:
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol parameter for hf orders')
-            response = self.privateDeleteHfOrders(self.extend(request, query))
+                response = self.privateDeleteHfOrdersCancelAll(self.extend(request, query))
+            else:
+                response = self.privateDeleteHfOrders(self.extend(request, query))
         else:
             response = self.privateDeleteOrders(self.extend(request, query))
         return response
@@ -2265,7 +2307,7 @@ class kucoin(Exchange, ImplicitAPI):
         :see: https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.till]: end time in ms
         :param str [params.side]: buy or sell

@@ -38,6 +38,9 @@ class kucoin extends kucoin$1 {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': true,
@@ -1948,6 +1951,50 @@ class kucoin extends kucoin$1 {
         const data = this.safeValue(response, 'data', {});
         return this.parseOrder(data, market);
     }
+    async createMarketOrderWithCost(symbol, side, cost, params = {}) {
+        /**
+         * @method
+         * @name kucoin#createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', side, cost, undefined, params);
+    }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name kucoin#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        return await this.createMarketOrderWithCost(symbol, 'buy', cost, params);
+    }
+    async createMarketSellOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name kucoin#createMarketSellOrderWithCost
+         * @description create a market sell order by providing the symbol and cost
+         * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        return await this.createMarketOrderWithCost(symbol, 'sell', cost, params);
+    }
     async createOrders(orders, params = {}) {
         /**
          * @method
@@ -2246,9 +2293,11 @@ class kucoin extends kucoin$1 {
         }
         else if (hf) {
             if (symbol === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol parameter for hf orders');
+                response = await this.privateDeleteHfOrdersCancelAll(this.extend(request, query));
             }
-            response = await this.privateDeleteHfOrders(this.extend(request, query));
+            else {
+                response = await this.privateDeleteHfOrders(this.extend(request, query));
+            }
         }
         else {
             response = await this.privateDeleteOrders(this.extend(request, query));
@@ -2384,7 +2433,7 @@ class kucoin extends kucoin$1 {
          * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.till] end time in ms
          * @param {string} [params.side] buy or sell

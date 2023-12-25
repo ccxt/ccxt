@@ -1281,12 +1281,12 @@ export default class bitget extends Exchange {
                         '30m': '30min',
                         '1h': '1h',
                         '4h': '4h',
-                        '6h': '6h',
-                        '12h': '12h',
-                        '1d': '1day',
-                        '3d': '3day',
-                        '1w': '1week',
-                        '1M': '1M',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                     'swap': {
                         '1m': '1m',
@@ -1297,12 +1297,12 @@ export default class bitget extends Exchange {
                         '1h': '1H',
                         '2h': '2H',
                         '4h': '4H',
-                        '6h': '6H',
-                        '12h': '12H',
-                        '1d': '1D',
-                        '3d': '3D',
-                        '1w': '1W',
-                        '1M': '1M',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                 },
                 'fetchMarkets': [
@@ -2904,7 +2904,7 @@ export default class bitget extends Exchange {
             const currencyCode = this.safeCurrencyCode(this.safeString(feeStructure, 'feeCoin'));
             fee = {
                 'currency': currencyCode,
-                'cost': Precise.stringNeg(this.safeString(feeStructure, 'totalFee')),
+                'cost': Precise.stringAbs(this.safeString(feeStructure, 'totalFee')),
             };
         }
         return this.safeTrade({

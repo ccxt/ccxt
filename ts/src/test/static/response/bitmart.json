@@ -163,6 +163,105 @@
           }
         ]
       }
+    ],
+    "createOrder": [
+      {
+        "description": "spot create limit buy order",
+        "method": "createOrder",
+        "input": [
+          "LTC/USDT",
+          "limit",
+          "buy",
+          0.1,
+          50
+        ],
+        "httpResponse": {
+          "message": "OK",
+          "code": "1000",
+          "trace": "c749335273a64c5b8698e4e2a662d185.76.17033755834924989",
+          "data": {
+            "order_id": "209626977087068257"
+          }
+        },
+        "parsedResponse": {
+          "id": "209626977087068257",
+          "clientOrderId": null,
+          "info": {
+            "order_id": "209626977087068257"
+          },
+          "timestamp": null,
+          "datetime": null,
+          "lastTradeTimestamp": null,
+          "symbol": "LTC/USDT",
+          "type": "limit",
+          "timeInForce": null,
+          "postOnly": null,
+          "side": "buy",
+          "price": 50,
+          "stopPrice": null,
+          "triggerPrice": null,
+          "amount": 0.1,
+          "cost": null,
+          "average": null,
+          "filled": null,
+          "remaining": null,
+          "status": null,
+          "fee": null,
+          "trades": [],
+          "fees": [],
+          "lastUpdateTimestamp": null,
+          "reduceOnly": null,
+          "takeProfitPrice": null,
+          "stopLossPrice": null
+        }
+      }
+    ],
+    "cancelOrder": [
+      {
+        "description": "spot cancel order",
+        "method": "cancelOrder",
+        "input": [
+          "209628171087991494",
+          "LTC/USDT"
+        ],
+        "httpResponse": {
+          "message": "OK",
+          "code": "1000",
+          "trace": "fde85afe772c423684c1a0715bdb918d.72.17033755220918623",
+          "data": {
+            "result": true
+          }
+        },
+        "parsedResponse": {
+          "id": "209628171087991494",
+          "clientOrderId": null,
+          "info": {},
+          "timestamp": null,
+          "datetime": null,
+          "lastTradeTimestamp": null,
+          "symbol": "LTC/USDT",
+          "type": null,
+          "timeInForce": null,
+          "postOnly": null,
+          "side": null,
+          "price": null,
+          "stopPrice": null,
+          "triggerPrice": null,
+          "amount": null,
+          "cost": null,
+          "average": null,
+          "filled": null,
+          "remaining": null,
+          "status": null,
+          "fee": null,
+          "trades": [],
+          "fees": [],
+          "lastUpdateTimestamp": null,
+          "reduceOnly": null,
+          "takeProfitPrice": null,
+          "stopLossPrice": null
+        }
+      }
     ]
   }
 }

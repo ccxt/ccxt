@@ -1299,12 +1299,12 @@ class bitget(Exchange, ImplicitAPI):
                         '30m': '30min',
                         '1h': '1h',
                         '4h': '4h',
-                        '6h': '6h',
-                        '12h': '12h',
-                        '1d': '1day',
-                        '3d': '3day',
-                        '1w': '1week',
-                        '1M': '1M',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                     'swap': {
                         '1m': '1m',
@@ -1315,12 +1315,12 @@ class bitget(Exchange, ImplicitAPI):
                         '1h': '1H',
                         '2h': '2H',
                         '4h': '4H',
-                        '6h': '6H',
-                        '12h': '12H',
-                        '1d': '1D',
-                        '3d': '3D',
-                        '1w': '1W',
-                        '1M': '1M',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                 },
                 'fetchMarkets': [
@@ -2821,7 +2821,7 @@ class bitget(Exchange, ImplicitAPI):
             currencyCode = self.safe_currency_code(self.safe_string(feeStructure, 'feeCoin'))
             fee = {
                 'currency': currencyCode,
-                'cost': Precise.string_neg(self.safe_string(feeStructure, 'totalFee')),
+                'cost': Precise.string_abs(self.safe_string(feeStructure, 'totalFee')),
             }
         return self.safe_trade({
             'info': trade,
