@@ -19,6 +19,7 @@ export default class binance extends binanceRest {
     parseTrade(trade: any, market?: any): Trade;
     handleTrade(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchMultipleOHLCV(symbols: string[], timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
     watchLeverageUpdates(params?: {}): Promise<LeverageUpdates>;
     handleLeverageUpdates(client: Client, message: any): Promise<void>;

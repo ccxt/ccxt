@@ -4055,6 +4055,14 @@ class binance(Exchange, ImplicitAPI):
             type = 'limit'
         stopPriceString = self.safe_string(order, 'stopPrice')
         stopPrice = self.parse_number(self.omit_zero(stopPriceString))
+        feeCost = self.safe_number(order, 'fee')
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': self.safe_string(order, 'quoteAsset'),
+                'cost': feeCost,
+                'rate': None,
+            }
         return self.safe_order({
             'info': order,
             'id': id,
@@ -4077,11 +4085,7 @@ class binance(Exchange, ImplicitAPI):
             'filled': filled,
             'remaining': None,
             'status': status,
-            'fee': {
-                'currency': self.safe_string(order, 'quoteAsset'),
-                'cost': self.safe_number(order, 'fee'),
-                'rate': None,
-            },
+            'fee': fee,
             'trades': fills,
         }, market)
 

@@ -4226,6 +4226,15 @@ class binance extends Exchange {
         }
         $stopPriceString = $this->safe_string($order, 'stopPrice');
         $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
+        $feeCost = $this->safe_number($order, 'fee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'currency' => $this->safe_string($order, 'quoteAsset'),
+                'cost' => $feeCost,
+                'rate' => null,
+            );
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -4248,11 +4257,7 @@ class binance extends Exchange {
             'filled' => $filled,
             'remaining' => null,
             'status' => $status,
-            'fee' => array(
-                'currency' => $this->safe_string($order, 'quoteAsset'),
-                'cost' => $this->safe_number($order, 'fee'),
-                'rate' => null,
-            ),
+            'fee' => $fee,
             'trades' => $fills,
         ), $market);
     }
