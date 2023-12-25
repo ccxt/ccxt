@@ -8053,6 +8053,8 @@ export default class binance extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, [ 'type' ]);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', undefined, params);
         let dualSidePosition = undefined;
         if (hedged) {
             dualSidePosition = 'true';
@@ -8062,12 +8064,12 @@ export default class binance extends Exchange {
         const request = {
             'dualSidePosition': dualSidePosition,
         };
-        let method = undefined;
-        if (this.isInverse (type)) {
-            method = 'dapiPrivatePostPositionSideDual';
+        let response = undefined;
+        if (this.isInverse (type, subType)) {
+            response = await this.dapiPrivatePostPositionSideDual (this.extend (request, params));
         } else {
             // default to future
-            method = 'fapiPrivatePostPositionSideDual';
+            response = await this.fapiPrivatePostPositionSideDual (this.extend (request, params));
         }
         //
         //     {
@@ -8075,7 +8077,7 @@ export default class binance extends Exchange {
         //       "msg": "success"
         //     }
         //
-        return await this[method] (this.extend (request, params));
+        return response;
     }
 
     async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
