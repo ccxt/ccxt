@@ -251,6 +251,7 @@ export default class coinex extends Exchange {
                         'order/stop_pending': 8,
                         'order/status': 8,
                         'order/stop_status': 8,
+                        'position/finished': 40,
                         'position/pending': 40,
                         'position/funding': 40,
                         'position/adl_history': 40,
