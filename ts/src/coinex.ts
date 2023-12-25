@@ -2587,11 +2587,17 @@ export default class coinex extends Exchange {
          * @description cancels an open order
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade024_cancel_order_by_client_id
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade025_cancel_stop_order_by_client_id
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http023_cancel_stop_order
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021_cancel_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http042_cancel_order_by_client_id
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http043_cancel_stop_order_by_client_id
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] client order id, defaults to id if not passed
+         * @param {boolean} [params.stop] if stop order = true, default = false
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2604,29 +2610,47 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const idRequest = swap ? 'order_id' : 'id';
-        request[idRequest] = id;
         const accountId = this.safeInteger (params, 'account_id');
         const defaultType = this.safeString (this.options, 'defaultType');
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
         if (defaultType === 'margin') {
             if (accountId === undefined) {
                 throw new BadRequest (this.id + ' cancelOrder() requires an account_id parameter for margin orders');
             }
             request['account_id'] = accountId;
         }
-        const query = this.omit (params, [ 'stop', 'account_id' ]);
+        const query = this.omit (params, [ 'stop', 'account_id', 'clientOid', 'clientOrderId' ]);
         let response = undefined;
-        if (stop) {
-            if (swap) {
-                response = await this.perpetualPrivatePostOrderCancelStop (this.extend (request, query));
+        if (clientOrderId !== undefined) {
+            request['client_id'] = clientOrderId;
+            if (stop) {
+                if (swap) {
+                    response = await this.perpetualPrivatePostOrderCancelStopByClientId (this.extend (request, query));
+                } else {
+                    response = await this.privateDeleteOrderStopPendingByClientId (this.extend (request, query));
+                }
             } else {
-                response = await this.privateDeleteOrderStopPendingId (this.extend (request, query));
+                if (swap) {
+                    response = await this.perpetualPrivatePostOrderCancelByClientId (this.extend (request, query));
+                } else {
+                    response = await this.privateDeleteOrderPendingByClientId (this.extend (request, query));
+                }
             }
         } else {
-            if (swap) {
-                response = await this.perpetualPrivatePostOrderCancel (this.extend (request, query));
+            const idRequest = swap ? 'order_id' : 'id';
+            request[idRequest] = id;
+            if (stop) {
+                if (swap) {
+                    response = await this.perpetualPrivatePostOrderCancelStop (this.extend (request, query));
+                } else {
+                    response = await this.privateDeleteOrderStopPendingId (this.extend (request, query));
+                }
             } else {
-                response = await this.privateDeleteOrderPending (this.extend (request, query));
+                if (swap) {
+                    response = await this.perpetualPrivatePostOrderCancel (this.extend (request, query));
+                } else {
+                    response = await this.privateDeleteOrderPending (this.extend (request, query));
+                }
             }
         }
         //
