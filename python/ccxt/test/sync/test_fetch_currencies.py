@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_currency  # noqa E402
-
 
 def test_fetch_currencies(exchange, skipped_properties):
     method = 'fetchCurrencies'
