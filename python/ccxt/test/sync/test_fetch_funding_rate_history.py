@@ -12,10 +12,8 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_funding_rate_history  # noqa E402
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_fetch_funding_rate_history(exchange, skipped_properties, symbol):
     method = 'fetchFundingRateHistory'

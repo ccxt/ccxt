@@ -738,7 +738,7 @@ class gate extends \ccxt\async\gate {
         //   }
         //
         $result = $this->safe_value($message, 'result', array());
-        $timestamp = $this->safe_integer($message, 'time');
+        $timestamp = $this->safe_integer($message, 'time_ms');
         $this->balance['info'] = $result;
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
@@ -814,7 +814,7 @@ class gate extends \ccxt\async\gate {
             if ($this->newUpdates) {
                 return $positions;
             }
-            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+            return $this->filter_by_symbols_since_limit($this->positions[$type], $symbols, $since, $limit, true);
         }) ();
     }
 
@@ -914,7 +914,7 @@ class gate extends \ccxt\async\gate {
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] spot, margin, swap, future, or option. Required if listening to all symbols.
              * @param {boolean} [$params->isInverse] if future, listen to inverse or linear contracts
