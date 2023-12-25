@@ -23,7 +23,7 @@ export default class bitso extends Exchange {
         after: number;
         status: string;
         fee: any;
-        info: object;
+        info: any;
     };
     fetchMarkets(params?: {}): Promise<any[]>;
     parseBalance(response: any): Balances;

@@ -1077,7 +1077,7 @@ class bitmart extends bitmart$1 {
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        const timestamp = this.safeInteger(ticker, 'timestamp', this.milliseconds());
+        const timestamp = this.safeInteger(ticker, 'timestamp');
         const marketId = this.safeString2(ticker, 'symbol', 'contract_symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
@@ -2752,7 +2752,7 @@ class bitmart extends bitmart$1 {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest entry
          * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated', for margin trading

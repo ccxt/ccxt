@@ -406,7 +406,7 @@ class bitmart(ccxt.async_support.bitmart):
         symbolKeys = list(symbols.keys())
         for i in range(0, len(symbolKeys)):
             symbol = symbolKeys[i]
-            symbolSpecificMessageHash = messageHash + ':' + symbol
+            symbolSpecificMessageHash = messageHash + '::' + symbol
             client.resolve(newOrders, symbolSpecificMessageHash)
         client.resolve(newOrders, messageHash)
 

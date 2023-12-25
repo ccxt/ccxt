@@ -1301,7 +1301,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :see: https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.till]: end time in ms
         :param str [params.side]: buy or sell
