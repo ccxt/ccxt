@@ -1035,7 +1035,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
-            list($request, $params) = $this->createOrderRequest ($market, $marketType, $type, $side, $amount, $price, $marginMode, $params);
+            list($request, $params) = $this->create_order_request($market, $marketType, $type, $side, $amount, $price, $marginMode, $params);
             $request = array_merge($request, $params);
             if ($marketType === 'swap') {
                 return Async\await($this->trade_request('futures_new_order', $request));

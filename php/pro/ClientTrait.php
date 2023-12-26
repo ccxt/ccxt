@@ -60,6 +60,7 @@ trait ClientTrait {
                 'throttle' => new Throttler($this->tokenBucket),
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
+            $this->configure_proxy_client($this->clients[$url]);
         }
         return $this->clients[$url];
     }
@@ -84,14 +85,11 @@ trait ClientTrait {
         });
     }
 
-    private function checkProxyClient($client) {
+    private function configure_proxy_client($client) {
         [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_ws_proxy_settings();
-        $connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
-        if ($connector) {
-            $client->set_ws_connector($connector);
-        } else {
-            $client->set_ws_connector($client->default_connector);
-        }
+        $selected_proxy_address = $httpProxy ? $httpProxy : ($httpsProxy ? $httpsProxy : $socksProxy );
+        $proxy_connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
+        $client->set_ws_connector($selected_proxy_address, $proxy_connector);
     }
 
     public function watch_multiple($url, $message_hashes, $message = null, $subscribe_hashes = null, $subscription = null) {

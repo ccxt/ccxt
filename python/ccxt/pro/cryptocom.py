@@ -604,7 +604,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        params = self.createOrderRequest(symbol, type, side, amount, price, params)
+        params = self.create_order_request(symbol, type, side, amount, price, params)
         request = {
             'method': 'private/create-order',
             'params': params,

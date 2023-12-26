@@ -959,7 +959,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         marketType, params = self.handle_market_type_and_params('createOrder', market, params)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
-        request, params = self.createOrderRequest(market, marketType, type, side, amount, price, marginMode, params)
+        request, params = self.create_order_request(market, marketType, type, side, amount, price, marginMode, params)
         request = self.extend(request, params)
         if marketType == 'swap':
             return await self.trade_request('futures_new_order', request)
