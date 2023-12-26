@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.98'
+__version__ = '4.1.99'
 
 # -----------------------------------------------------------------------------
 
@@ -2538,6 +2538,10 @@ class Exchange(object):
             tradeFee['cost'] = self.safe_number(tradeFee, 'cost')
             if 'rate' in tradeFee:
                 tradeFee['rate'] = self.safe_number(tradeFee, 'rate')
+            entryFees = self.safe_value(entry, 'fees', [])
+            for j in range(0, len(entryFees)):
+                entryFees[j]['cost'] = self.safe_number(entryFees[j], 'cost')
+            entry['fees'] = entryFees
             entry['fee'] = tradeFee
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = self.safe_value(order, 'postOnly')
@@ -3799,6 +3803,9 @@ class Exchange(object):
     def fetch_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
+    def fetch_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchOrdersWs() is not supported yet')
+
     def fetch_order_trades(self, id: str, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderTrades() is not supported yet')
 
@@ -3806,13 +3813,28 @@ class Exchange(object):
         raise NotSupported(self.id + ' watchOrders() is not supported yet')
 
     def fetch_open_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrders']:
+            orders = self.fetch_orders(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'open')
         raise NotSupported(self.id + ' fetchOpenOrders() is not supported yet')
 
     def fetch_open_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrdersWs']:
+            orders = self.fetchOrdersWs(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'open')
         raise NotSupported(self.id + ' fetchOpenOrdersWs() is not supported yet')
 
     def fetch_closed_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrders']:
+            orders = self.fetch_orders(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'closed')
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
+
+    def fetch_closed_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrdersWs']:
+            orders = self.fetchOrdersWs(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'closed')
+        raise NotSupported(self.id + ' fetchClosedOrdersWs() is not supported yet')
 
     def fetch_my_trades(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')

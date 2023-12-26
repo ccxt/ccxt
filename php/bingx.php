@@ -1678,15 +1678,20 @@ class bingx extends Exchange {
             } elseif ($timeInForce === 'FOK') {
                 $request['timeInForce'] = 'FOK';
             }
-            if (($type === 'LIMIT') || ($type === 'TRIGGER_LIMIT') || ($type === 'STOP') || ($type === 'TAKE_PROFIT')) {
-                $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
-            }
-            $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
-            $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
-            $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
+            $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
+            $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+            $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+            $trailingAmount = $this->safe_string($params, 'trailingAmount');
+            $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'priceRate');
             $isTriggerOrder = $triggerPrice !== null;
             $isStopLossPriceOrder = $stopLossPrice !== null;
             $isTakeProfitPriceOrder = $takeProfitPrice !== null;
+            $isTrailingAmountOrder = $trailingAmount !== null;
+            $isTrailingPercentOrder = $trailingPercent !== null;
+            $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
+            if ((($type === 'LIMIT') || ($type === 'TRIGGER_LIMIT') || ($type === 'STOP') || ($type === 'TAKE_PROFIT')) && !$isTrailing) {
+                $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
+            }
             $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
             if ($isTriggerOrder) {
                 $request['stopPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $triggerPrice));
@@ -1713,6 +1718,14 @@ class bingx extends Exchange {
                         $request['type'] = 'TAKE_PROFIT';
                     }
                 }
+            } elseif ($isTrailing) {
+                $request['type'] = 'TRAILING_STOP_MARKET';
+                if ($isTrailingAmountOrder) {
+                    $request['price'] = $this->parse_to_numeric($trailingAmount);
+                } elseif ($isTrailingPercentOrder) {
+                    $requestTrailingPercent = Precise::string_div($trailingPercent, '100');
+                    $request['priceRate'] = $this->parse_to_numeric($requestTrailingPercent);
+                }
             }
             $positionSide = null;
             if ($reduceOnly) {
@@ -1722,7 +1735,7 @@ class bingx extends Exchange {
             }
             $request['positionSide'] = $positionSide;
             $request['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
-            $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+            $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent' ));
         }
         return array_merge($request, $params);
     }
@@ -1744,6 +1757,8 @@ class bingx extends Exchange {
          * @param {float} [$params->stopLossPrice] *swap only* stop loss trigger $price
          * @param {float} [$params->takeProfitPrice] *swap only* take profit trigger $price
          * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
+         * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();

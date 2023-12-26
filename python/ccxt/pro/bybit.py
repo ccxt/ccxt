@@ -34,7 +34,7 @@ class bybit(ccxt.async_support.bybit):
                 'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
-                'watchOHLCVForSymbols': True,
+                'watchOHLCVForSymbols': False,
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,

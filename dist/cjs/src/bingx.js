@@ -1697,15 +1697,20 @@ class bingx extends bingx$1 {
             else if (timeInForce === 'FOK') {
                 request['timeInForce'] = 'FOK';
             }
-            if ((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) {
-                request['price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
-            }
-            const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
-            const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
-            const takeProfitPrice = this.safeNumber(params, 'takeProfitPrice');
+            const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
+            const stopLossPrice = this.safeString(params, 'stopLossPrice');
+            const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+            const trailingAmount = this.safeString(params, 'trailingAmount');
+            const trailingPercent = this.safeString2(params, 'trailingPercent', 'priceRate');
             const isTriggerOrder = triggerPrice !== undefined;
             const isStopLossPriceOrder = stopLossPrice !== undefined;
             const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
+            const isTrailingAmountOrder = trailingAmount !== undefined;
+            const isTrailingPercentOrder = trailingPercent !== undefined;
+            const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
+            if (((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) && !isTrailing) {
+                request['price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
+            }
             let reduceOnly = this.safeValue(params, 'reduceOnly', false);
             if (isTriggerOrder) {
                 request['stopPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
@@ -1738,6 +1743,16 @@ class bingx extends bingx$1 {
                     }
                 }
             }
+            else if (isTrailing) {
+                request['type'] = 'TRAILING_STOP_MARKET';
+                if (isTrailingAmountOrder) {
+                    request['price'] = this.parseToNumeric(trailingAmount);
+                }
+                else if (isTrailingPercentOrder) {
+                    const requestTrailingPercent = Precise["default"].stringDiv(trailingPercent, '100');
+                    request['priceRate'] = this.parseToNumeric(requestTrailingPercent);
+                }
+            }
             let positionSide = undefined;
             if (reduceOnly) {
                 positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
@@ -1747,7 +1762,7 @@ class bingx extends bingx$1 {
             }
             request['positionSide'] = positionSide;
             request['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
-            params = this.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
+            params = this.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent']);
         }
         return this.extend(request, params);
     }
@@ -1770,6 +1785,8 @@ class bingx extends bingx$1 {
          * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
          * @param {float} [params.takeProfitPrice] *swap only* take profit trigger price
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
+         * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
+         * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
