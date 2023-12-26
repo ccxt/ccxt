@@ -78,9 +78,17 @@
           "filled": 0.1,
           "remaining": 0,
           "status": "closed",
-          "fee": null,
+          "fee": {
+            "currency": null,
+            "cost": null,
+            "rate": null
+          },
           "trades": [],
-          "fees": [],
+          "fees": [{
+            "currency": null,
+            "cost": null,
+            "rate": null
+          }],
           "stopPrice": null,
           "takeProfitPrice": null,
           "stopLossPrice": null
@@ -164,9 +172,17 @@
             "filled": 0,
             "remaining": 0.2,
             "status": "open",
-            "fee": null,
+            "fee": {
+              "currency": null,
+              "cost": null,
+              "rate": null
+            },
             "trades": [],
-            "fees": [],
+            "fees": [{
+              "currency": null,
+              "cost": null,
+              "rate": null
+            }],
             "stopPrice": null,
             "takeProfitPrice": null,
             "stopLossPrice": null
