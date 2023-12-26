@@ -1109,9 +1109,10 @@ export default class coinex extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 'market');
-        const defaultType = this.safeString (this.options, 'defaultType');
+        const marketType = this.safeString (trade, 'market_type');
+        const defaultType = (marketType === undefined) ? 'spot' : 'swap';
         market = this.safeMarket (marketId, market, undefined, defaultType);
-        const symbol = this.safeSymbol (marketId, market, undefined, defaultType);
+        const symbol = market['symbol'];
         const costString = this.safeString (trade, 'deal_money');
         let fee = undefined;
         const feeCostString = this.safeString2 (trade, 'fee', 'deal_fee');
