@@ -1956,11 +1956,12 @@ export default class bitteam extends Exchange {
             'cost': feeCost,
             'rate': undefined,
         };
+        const intTs = this.parseToInt (timestamp);
         return this.safeTrade ({
             'id': id,
             'order': order,
-            'timestamp': this.parseToInt (timestamp),
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': intTs,
+            'datetime': this.iso8601 (intTs),
             'symbol': symbol,
             'type': undefined,
             'side': side,
