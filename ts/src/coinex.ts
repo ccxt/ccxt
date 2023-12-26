@@ -2613,14 +2613,14 @@ export default class coinex extends Exchange {
         };
         const accountId = this.safeInteger (params, 'account_id');
         const defaultType = this.safeString (this.options, 'defaultType');
-        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'client_id', 'clientOrderId');
         if (defaultType === 'margin') {
             if (accountId === undefined) {
                 throw new BadRequest (this.id + ' cancelOrder() requires an account_id parameter for margin orders');
             }
             request['account_id'] = accountId;
         }
-        const query = this.omit (params, [ 'stop', 'account_id', 'clientOid', 'clientOrderId' ]);
+        const query = this.omit (params, [ 'stop', 'account_id', 'clientOrderId' ]);
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
