@@ -1703,10 +1703,10 @@ export default class bingx extends Exchange {
             } else if (timeInForce === 'FOK') {
                 request['timeInForce'] = 'FOK';
             }
-            const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
-            const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
-            const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
-            const trailingAmount = this.safeNumber (params, 'trailingAmount');
+            const triggerPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
+            const stopLossPrice = this.safeString (params, 'stopLossPrice');
+            const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+            const trailingAmount = this.safeString (params, 'trailingAmount');
             const trailingPercent = this.safeString2 (params, 'trailingPercent', 'priceRate');
             const isTriggerOrder = triggerPrice !== undefined;
             const isStopLossPriceOrder = stopLossPrice !== undefined;
