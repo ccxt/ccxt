@@ -63,8 +63,9 @@ export default class kucoinfutures extends kucoinfuturesRest {
     negotiate (privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue (this.options, 'urls', {});
-        if (connectId in urls) {
-            return urls[connectId];
+        const spawaned = this.safeValue (urls, connectId);
+        if (spawaned !== undefined) {
+            return spawaned;
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
@@ -982,6 +983,13 @@ export default class kucoinfutures extends kucoinfuturesRest {
         //    }
         //
         const data = this.safeString (message, 'data', '');
+        if (data === 'token is expired') {
+            let type = 'public';
+            if (client.url.indexOf ('connectId=private') >= 0) {
+                type = 'private';
+            }
+            this.options['urls'][type] = undefined;
+        }
         this.handleErrors (undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
     }
 
