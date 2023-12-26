@@ -65,21 +65,41 @@
                 "output": "nonce=1703055164304&pair=XXBTZUSD&type=sell&ordertype=take-profit-limit&volume=0.0001&price=45000&price2=46000&reduce_only=true&leverage=5"
             },
             {
-                "description": "Margin trailing stop price order",
+                "description": "Margin trailing order",
                 "method": "createOrder",
                 "url": "https://api.kraken.com/0/private/AddOrder",
                 "input": [
                   "BTC/USD",
                   "market",
                   "sell",
-                  0.00012,
+                  0.0002,
                   null,
                   {
-                    "trailingStopPrice": 10,
-                    "leverage": 5
+                    "trailingAmount": 100,
+                    "leverage": 5,
+                    "reduceOnly": true
                   }
                 ],
-                "output": "nonce=1702712084560&pair=XXBTZUSD&type=sell&ordertype=trailing-stop&volume=0.00012&trigger=last&price=%2B10&reduce_only=true&leverage=5"
+                "output": "nonce=1703236727221&pair=XXBTZUSD&type=sell&ordertype=trailing-stop&volume=0.0002&trigger=last&price=%2B100&reduce_only=true&leverage=5"
+            },
+            {
+                "description": "Margin trailing limit order",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "BTC/USD",
+                  "limit",
+                  "sell",
+                  0.0002,
+                  null,
+                  {
+                    "trailingAmount": 100,
+                    "trailingLimitAmount": 100,
+                    "leverage": 5,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "nonce=1703236604802&pair=XXBTZUSD&type=sell&ordertype=trailing-stop-limit&volume=0.0002&trigger=last&price=%2B100&price2=-100&reduce_only=true&leverage=5"
             }
         ],
         "fetchMyTrades": [

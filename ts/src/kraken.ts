@@ -1377,7 +1377,9 @@ export default class kraken extends Exchange {
          * @param {bool} [params.reduceOnly] *margin only* indicates if this order is to reduce the size of a position
          * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
          * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
-         * @param {string} [params.trailingStopPrice] *margin only* the quote amount to trail away from the current market price
+         * @param {string} [params.trailingAmount] *margin only* the quote amount to trail away from the current market price
+         * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
+         * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
          * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1637,9 +1639,10 @@ export default class kraken extends Exchange {
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
-        const trailingStopPrice = this.safeString (params, 'trailingStopPrice');
-        const isTrailingStopPriceOrder = trailingStopPrice !== undefined;
-        if (type === 'limit') {
+        const trailingAmount = this.safeString (params, 'trailingAmount');
+        const trailingLimitAmount = this.safeString (params, 'trailingLimitAmount');
+        const isTrailingAmountOrder = trailingAmount !== undefined;
+        if ((type === 'limit') && !isTrailingAmountOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         let reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
@@ -1653,18 +1656,18 @@ export default class kraken extends Exchange {
             }
             request['price2'] = this.priceToPrecision (symbol, price);
             reduceOnly = true;
-        } else if (isTrailingStopPriceOrder) {
-            const trailingStopActivationPriceType = this.safeString (params, 'trigger', 'last');
-            const trailingStopPriceString = '+' + trailingStopPrice;
-            request['trigger'] = trailingStopActivationPriceType;
-            reduceOnly = true;
-            if (type === 'limit') {
-                const trailingStopLimitPriceString = '+' + this.numberToString (price);
-                request['price'] = trailingStopPriceString;
-                request['price2'] = trailingStopLimitPriceString;
+        } else if (isTrailingAmountOrder) {
+            const trailingActivationPriceType = this.safeString (params, 'trigger', 'last');
+            const trailingAmountString = '+' + trailingAmount;
+            request['trigger'] = trailingActivationPriceType;
+            if ((type === 'limit') || (trailingLimitAmount !== undefined)) {
+                const offset = this.safeString (params, 'offset', '-');
+                const trailingLimitAmountString = offset + this.numberToString (trailingLimitAmount);
+                request['price'] = trailingAmountString;
+                request['price2'] = trailingLimitAmountString;
                 request['ordertype'] = 'trailing-stop-limit';
             } else {
-                request['price'] = trailingStopPriceString;
+                request['price'] = trailingAmountString;
                 request['ordertype'] = 'trailing-stop';
             }
         }
@@ -1694,7 +1697,7 @@ export default class kraken extends Exchange {
         if (postOnly) {
             request['oflags'] = 'post';
         }
-        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingStopPrice' ]);
+        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ]);
         return [ request, params ];
     }
 
@@ -1713,7 +1716,9 @@ export default class kraken extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
          * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
-         * @param {string} [params.trailingStopPrice] *margin only* the quote price away from the current market price
+         * @param {string} [params.trailingAmount] *margin only* the quote price away from the current market price
+         * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
+         * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
          * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
