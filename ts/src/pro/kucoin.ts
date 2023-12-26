@@ -1057,7 +1057,10 @@ export default class kucoin extends kucoinRest {
         //
         const data = this.safeString (message, 'data', '');
         if (data === 'token is expired') {
-            const type = client.url.substring (client.url.indexOf ('connectId=') + 10);
+            let type = 'public';
+            if (client.url.indexOf ('connectId=private') >= 0) {
+                type = 'private';
+            }
             this.options['urls'][type] = undefined;
         }
         this.handleErrors (undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
