@@ -4739,7 +4739,7 @@ export default class Exchange {
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
-        // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
+        // we assume timeInForce is uppercase from safeStringUpper  (params, 'timeInForce')
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const timeInForcePostOnly = timeInForce === 'PO';
