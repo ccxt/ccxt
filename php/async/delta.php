@@ -35,6 +35,8 @@ class delta extends Exchange {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => true,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'editOrder' => true,
@@ -3225,6 +3227,30 @@ class delta extends Exchange {
             'underlyingPrice' => $this->safe_number($greeks, 'spot_price'),
             'info' => $greeks,
         );
+    }
+
+    public function close_all_positions($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * closes all open positions for a market type
+             * @see https://docs.delta.exchange/#close-all-positions
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->user_id] the users id
+             * @return {array[]} A list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structures~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'close_all_portfolio' => true,
+                'close_all_isolated' => true,
+                // 'user_id' => 12345,
+            );
+            $response = Async\await($this->privatePostPositionsCloseAll (array_merge($request, $params)));
+            //
+            // array("result":array(),"success":true)
+            //
+            $position = $this->parse_position($this->safe_value($response, 'result', array()));
+            return array( $position );
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

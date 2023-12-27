@@ -126,6 +126,7 @@ import {
     , DDoSProtection
     , RequestTimeout
     , NetworkError
+    , ProxyError
     , ExchangeNotAvailable
     , ArgumentsRequired
     , RateLimitExceeded,
@@ -488,7 +489,9 @@ export default class Exchange {
                 'createOrderWs': undefined,
                 'editOrderWs': undefined,
                 'fetchOpenOrdersWs': undefined,
+                'fetchClosedOrdersWs': undefined,
                 'fetchOrderWs': undefined,
+                'fetchOrdersWs': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrdersWs': undefined,
                 'cancelAllOrdersWs': undefined,
@@ -1670,7 +1673,7 @@ export default class Exchange {
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join (',');
-            throw new ExchangeError (this.id + ' you have multiple conflicting proxy_url settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
+            throw new ProxyError (this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return proxyUrl;
     }
@@ -1735,7 +1738,7 @@ export default class Exchange {
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join (',');
-            throw new ExchangeError (this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback');
+            throw new ProxyError (this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback');
         }
         return [ httpProxy, httpsProxy, socksProxy ];
     }
@@ -1776,14 +1779,14 @@ export default class Exchange {
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join (',');
-            throw new ExchangeError (this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy');
+            throw new ProxyError (this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy');
         }
         return [ wsProxy, wssProxy, wsSocksProxy ];
     }
 
     checkConflictingProxies (proxyAgentSet, proxyUrlSet) {
         if (proxyAgentSet && proxyUrlSet) {
-            throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+            throw new ProxyError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
     }
 
@@ -2165,6 +2168,7 @@ export default class Exchange {
             fee['cost'] = this.safeNumber (fee, 'cost');
         }
         const timestamp = this.safeInteger (entry, 'timestamp');
+        const info = this.safeValue (entry, 'info', {});
         return {
             'id': this.safeString (entry, 'id'),
             'timestamp': timestamp,
@@ -2180,7 +2184,7 @@ export default class Exchange {
             'after': this.parseNumber (after),
             'status': this.safeString (entry, 'status'),
             'fee': fee,
-            'info': entry,
+            'info': info,
         };
     }
 
@@ -2633,6 +2637,11 @@ export default class Exchange {
             if ('rate' in tradeFee) {
                 tradeFee['rate'] = this.safeNumber (tradeFee, 'rate');
             }
+            const entryFees = this.safeValue (entry, 'fees', []);
+            for (let j = 0; j < entryFees.length; j++) {
+                entryFees[j]['cost'] = this.safeNumber (entryFees[j], 'cost');
+            }
+            entry['fees'] = entryFees;
             entry['fee'] = tradeFee;
         }
         let timeInForce = this.safeString (order, 'timeInForce');
@@ -4212,6 +4221,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrders() is not supported yet');
     }
 
+    async fetchOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' fetchOrdersWs() is not supported yet');
+    }
+
     async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' fetchOrderTrades() is not supported yet');
     }
@@ -4221,15 +4234,35 @@ export default class Exchange {
     }
 
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.has['fetchOrders']) {
+            const orders = await this.fetchOrders (symbol, since, limit, params);
+            return this.filterBy (orders, 'status', 'open') as Order[];
+        }
         throw new NotSupported (this.id + ' fetchOpenOrders() is not supported yet');
     }
 
     async fetchOpenOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.has['fetchOrdersWs']) {
+            const orders = await this.fetchOrdersWs (symbol, since, limit, params);
+            return this.filterBy (orders, 'status', 'open') as Order[];
+        }
         throw new NotSupported (this.id + ' fetchOpenOrdersWs() is not supported yet');
     }
 
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.has['fetchOrders']) {
+            const orders = await this.fetchOrders (symbol, since, limit, params);
+            return this.filterBy (orders, 'status', 'closed') as Order[];
+        }
         throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
+    }
+
+    async fetchClosedOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.has['fetchOrdersWs']) {
+            const orders = await this.fetchOrdersWs (symbol, since, limit, params);
+            return this.filterBy (orders, 'status', 'closed') as Order[];
+        }
+        throw new NotSupported (this.id + ' fetchClosedOrdersWs() is not supported yet');
     }
 
     async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {

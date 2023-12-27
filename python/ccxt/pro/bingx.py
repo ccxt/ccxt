@@ -10,6 +10,7 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NetworkError
+from ccxt.base.precise import Precise
 
 
 class bingx(ccxt.async_support.bingx):
@@ -67,6 +68,10 @@ class bingx(ccxt.async_support.bingx):
                         '1d': '1day',
                     },
                 },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': True,  # needed to be True to keep track of used and free balance
+                    'awaitBalanceSnapshot': False,  # whether to wait for the balance snapshot before providing updates
+                },
             },
             'streaming': {
                 'keepAlive': 1800000,  # 30 minutes
@@ -80,7 +85,7 @@ class bingx(ccxt.async_support.bingx):
         :see: https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
@@ -166,7 +171,8 @@ class bingx(ccxt.async_support.bingx):
         data = self.safe_value(message, 'data', [])
         messageHash = self.safe_string(message, 'dataType')
         marketId = messageHash.split('@')[0]
-        marketType = client.url.find('swap') >= 'swap' if 0 else 'spot'
+        isSwap = client.url.find('swap') >= 0
+        marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         trades = None
@@ -267,7 +273,8 @@ class bingx(ccxt.async_support.bingx):
         data = self.safe_value(message, 'data', [])
         messageHash = self.safe_string(message, 'dataType')
         marketId = messageHash.split('@')[0]
-        marketType = client.url.find('swap') >= 'swap' if 0 else 'spot'
+        isSwap = client.url.find('swap') >= 0
+        marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         orderbook = self.safe_value(self.orderbooks, symbol)
@@ -290,8 +297,11 @@ class bingx(ccxt.async_support.bingx):
         #        "t": 1696687440000
         #    }
         #
+        # for spot, opening-time(t) is used instead of closing-time(T), to be compatible with fetchOHLCV
+        # for swap,(T) is the opening time
+        timestamp = 't' if (market['spot']) else 'T'
         return [
-            self.safe_integer(ohlcv, 't'),  # needs to be opening-time(t) instead of closing-time(T), to be compatible with fetchOHLCV
+            self.safe_integer(ohlcv, timestamp),
             self.safe_number(ohlcv, 'o'),
             self.safe_number(ohlcv, 'h'),
             self.safe_number(ohlcv, 'l'),
@@ -353,7 +363,8 @@ class bingx(ccxt.async_support.bingx):
         messageHash = self.safe_string(message, 'dataType')
         timeframeId = messageHash.split('_')[1]
         marketId = messageHash.split('@')[0]
-        marketType = client.url.find('swap') >= 'swap' if 0 else 'spot'
+        isSwap = client.url.find('swap') >= 0
+        marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
@@ -408,7 +419,7 @@ class bingx(ccxt.async_support.bingx):
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -510,7 +521,35 @@ class bingx(ccxt.async_support.bingx):
                 'id': uuid,
                 'dataType': 'ACCOUNT_UPDATE',
             }
+        client = self.client(url)
+        self.set_balance_cache(client, type, subscriptionHash, params)
+        fetchBalanceSnapshot = None
+        awaitBalanceSnapshot = None
+        fetchBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
+        awaitBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'awaitBalanceSnapshot', False)
+        if fetchBalanceSnapshot and awaitBalanceSnapshot:
+            await client.future(type + ':fetchBalanceSnapshot')
         return await self.watch(url, messageHash, request, subscriptionHash)
+
+    def set_balance_cache(self, client: Client, type, subscriptionHash, params):
+        if subscriptionHash in client.subscriptions:
+            return None
+        fetchBalanceSnapshot = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
+        if fetchBalanceSnapshot:
+            messageHash = type + ':fetchBalanceSnapshot'
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_balance_snapshot, client, messageHash, type)
+        else:
+            self.balance[type] = {}
+
+    async def load_balance_snapshot(self, client, messageHash, type):
+        response = await self.fetch_balance({'type': type})
+        self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
+        # don't remove the future from the .futures cache
+        future = client.futures[messageHash]
+        future.resolve()
+        client.resolve(self.balance[type], type + ':balance')
 
     def handle_error_message(self, client, message):
         #
@@ -783,8 +822,6 @@ class bingx(ccxt.async_support.bingx):
         data = self.safe_value(a, 'B', [])
         timestamp = self.safe_integer_2(message, 'T', 'E')
         type = 'swap' if ('P' in a) else 'spot'
-        if not (type in self.balance):
-            self.balance[type] = {}
         self.balance[type]['info'] = data
         self.balance[type]['timestamp'] = timestamp
         self.balance[type]['datetime'] = self.iso8601(timestamp)
@@ -792,8 +829,11 @@ class bingx(ccxt.async_support.bingx):
             balance = data[i]
             currencyId = self.safe_string(balance, 'a')
             code = self.safe_currency_code(currencyId)
-            account = self.balance[code] if (code in self.balance) else self.account()
-            account['total'] = self.safe_string(balance, 'wb')
+            account = self.balance[type][code] if (code in self.balance[type]) else self.account()
+            account['free'] = self.safe_string(balance, 'wb')
+            balanceChange = self.safe_string(balance, 'bc')
+            if account['used'] is not None:
+                account['used'] = Precise.string_sub(self.safe_string(account, 'used'), balanceChange)
             self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], type + ':balance')

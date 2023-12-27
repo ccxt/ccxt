@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\BadRequest;
 use ccxt\NetworkError;
+use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -66,6 +67,10 @@ class bingx extends \ccxt\async\bingx {
                         '1d' => '1day',
                     ),
                 ),
+                'watchBalance' => array(
+                    'fetchBalanceSnapshot' => true, // needed to be true to keep track of used and free balance
+                    'awaitBalanceSnapshot' => false, // whether to wait for the balance snapshot before providing updates
+                ),
             ),
             'streaming' => array(
                 'keepAlive' => 1800000, // 30 minutes
@@ -81,7 +86,7 @@ class bingx extends \ccxt\async\bingx {
              * @see https://bingx-api.github.io/docs/#/swapV2/socket/market->html#Subscribe%20the%20Latest%20Trade%20Detail
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
@@ -172,7 +177,8 @@ class bingx extends \ccxt\async\bingx {
         $data = $this->safe_value($message, 'data', array());
         $messageHash = $this->safe_string($message, 'dataType');
         $marketId = explode('@', $messageHash)[0];
-        $marketType = mb_strpos($client->url, 'swap') !== false ? 'swap' : 'spot';
+        $isSwap = mb_strpos($client->url, 'swap') !== false;
+        $marketType = $isSwap ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $trades = null;
@@ -287,7 +293,8 @@ class bingx extends \ccxt\async\bingx {
         $data = $this->safe_value($message, 'data', array());
         $messageHash = $this->safe_string($message, 'dataType');
         $marketId = explode('@', $messageHash)[0];
-        $marketType = mb_strpos($client->url, 'swap') !== false ? 'swap' : 'spot';
+        $isSwap = mb_strpos($client->url, 'swap') !== false;
+        $marketType = $isSwap ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
@@ -312,8 +319,11 @@ class bingx extends \ccxt\async\bingx {
         //        "t" => 1696687440000
         //    }
         //
+        // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
+        // for swap, (T) is the opening time
+        $timestamp = ($market['spot']) ? 't' : 'T';
         return array(
-            $this->safe_integer($ohlcv, 't'), // needs to be opening-time (t) instead of closing-time (T), to be compatible with fetchOHLCV
+            $this->safe_integer($ohlcv, $timestamp),
             $this->safe_number($ohlcv, 'o'),
             $this->safe_number($ohlcv, 'h'),
             $this->safe_number($ohlcv, 'l'),
@@ -377,7 +387,8 @@ class bingx extends \ccxt\async\bingx {
         $messageHash = $this->safe_string($message, 'dataType');
         $timeframeId = explode('_', $messageHash)[1];
         $marketId = explode('@', $messageHash)[0];
-        $marketType = mb_strpos($client->url, 'swap') !== false ? 'swap' : 'spot';
+        $isSwap = mb_strpos($client->url, 'swap') !== false;
+        $marketType = $isSwap ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
@@ -442,7 +453,7 @@ class bingx extends \ccxt\async\bingx {
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -559,7 +570,43 @@ class bingx extends \ccxt\async\bingx {
                     'dataType' => 'ACCOUNT_UPDATE',
                 );
             }
+            $client = $this->client($url);
+            $this->set_balance_cache($client, $type, $subscriptionHash, $params);
+            $fetchBalanceSnapshot = null;
+            $awaitBalanceSnapshot = null;
+            list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
+            list($awaitBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'awaitBalanceSnapshot', false);
+            if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
+                Async\await($client->future ($type . ':fetchBalanceSnapshot'));
+            }
             return Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
+        }) ();
+    }
+
+    public function set_balance_cache(Client $client, $type, $subscriptionHash, $params) {
+        if (is_array($client->subscriptions) && array_key_exists($subscriptionHash, $client->subscriptions)) {
+            return null;
+        }
+        $fetchBalanceSnapshot = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        if ($fetchBalanceSnapshot) {
+            $messageHash = $type . ':fetchBalanceSnapshot';
+            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+                $client->future ($messageHash);
+                $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash, $type);
+            }
+        } else {
+            $this->balance[$type] = array();
+        }
+    }
+
+    public function load_balance_snapshot($client, $messageHash, $type) {
+        return Async\async(function () use ($client, $messageHash, $type) {
+            $response = Async\await($this->fetch_balance(array( 'type' => $type )));
+            $this->balance[$type] = array_merge($response, $this->safe_value($this->balance, $type, array()));
+            // don't remove the $future from the .futures cache
+            $future = $client->futures[$messageHash];
+            $future->resolve ();
+            $client->resolve ($this->balance[$type], $type . ':balance');
         }) ();
     }
 
@@ -851,9 +898,6 @@ class bingx extends \ccxt\async\bingx {
         $data = $this->safe_value($a, 'B', array());
         $timestamp = $this->safe_integer_2($message, 'T', 'E');
         $type = (is_array($a) && array_key_exists('P', $a)) ? 'swap' : 'spot';
-        if (!(is_array($this->balance) && array_key_exists($type, $this->balance))) {
-            $this->balance[$type] = array();
-        }
         $this->balance[$type]['info'] = $data;
         $this->balance[$type]['timestamp'] = $timestamp;
         $this->balance[$type]['datetime'] = $this->iso8601($timestamp);
@@ -861,8 +905,12 @@ class bingx extends \ccxt\async\bingx {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'a');
             $code = $this->safe_currency_code($currencyId);
-            $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
-            $account['total'] = $this->safe_string($balance, 'wb');
+            $account = (is_array($this->balance[$type]) && array_key_exists($code, $this->balance[$type])) ? $this->balance[$type][$code] : $this->account();
+            $account['free'] = $this->safe_string($balance, 'wb');
+            $balanceChange = $this->safe_string($balance, 'bc');
+            if ($account['used'] !== null) {
+                $account['used'] = Precise::string_sub($this->safe_string($account, 'used'), $balanceChange);
+            }
             $this->balance[$type][$code] = $account;
         }
         $this->balance[$type] = $this->safe_balance($this->balance[$type]);

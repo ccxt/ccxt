@@ -716,14 +716,6 @@
                 "input": []
             }
         ],
-        "fetchMarkets": [
-            {
-                "description": "fetch Markets",
-                "method": "fetchMarkets",
-                "url": "https://api.huobi.pro/swap-api/v1/swap_contract_info",
-                "input": []
-            }
-        ],
         "fetchTicker": [
             {
                 "description": "fetch Ticker - spot",

@@ -207,6 +207,8 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/products/{product_id}',
                             'brokerage/products/{product_id}/candles',
                             'brokerage/products/{product_id}/ticker',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/{portfolio_uuid}',
                             'brokerage/transaction_summary',
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
@@ -218,8 +220,16 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                        ],
+                        'put': [
+                            'brokerage/portfolios/{portfolio_uuid}',
+                        ],
+                        'delete': [
+                            'brokerage/portfolios/{portfolio_uuid}',
                         ],
                     },
                 },
@@ -277,6 +287,8 @@ class coinbase(Exchange, ImplicitAPI):
                     'not_found': ExchangeError,  # 404 Resource not found
                     'rate_limit_exceeded': RateLimitExceeded,  # 429 Rate limit exceeded
                     'internal_server_error': ExchangeError,  # 500 Internal server error
+                    'UNSUPPORTED_ORDER_CONFIGURATION': BadRequest,
+                    'INSUFFICIENT_FUND': BadRequest,
                 },
                 'broad': {
                     'request timestamp expired': InvalidNonce,  # {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
@@ -2171,6 +2183,8 @@ class coinbase(Exchange, ImplicitAPI):
         params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time'])
         response = await self.v3PrivatePostBrokerageOrders(self.extend(request, params))
         #
+        # successful order
+        #
         #     {
         #         "success": True,
         #         "failure_reason": "UNKNOWN_FAILURE_REASON",
@@ -2184,9 +2198,36 @@ class coinbase(Exchange, ImplicitAPI):
         #         "order_configuration": null
         #     }
         #
+        # failed order
+        #
+        #     {
+        #         "success": False,
+        #         "failure_reason": "UNKNOWN_FAILURE_REASON",
+        #         "order_id": "",
+        #         "error_response": {
+        #             "error": "UNSUPPORTED_ORDER_CONFIGURATION",
+        #             "message": "source is not enabled for trading",
+        #             "error_details": "",
+        #             "new_order_failure_reason": "UNSUPPORTED_ORDER_CONFIGURATION"
+        #         },
+        #         "order_configuration": {
+        #             "limit_limit_gtc": {
+        #                 "base_size": "100",
+        #                 "limit_price": "40000",
+        #                 "post_only": False
+        #             }
+        #         }
+        #     }
+        #
         success = self.safe_value(response, 'success')
         if success is not True:
-            raise BadRequest(self.id + ' createOrder() has failed, check your arguments and parameters')
+            errorResponse = self.safe_value(response, 'error_response')
+            errorTitle = self.safe_string(errorResponse, 'error')
+            errorMessage = self.safe_string(errorResponse, 'message')
+            if errorResponse is not None:
+                self.throw_exactly_matched_exception(self.exceptions['exact'], errorTitle, errorMessage)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], errorTitle, errorMessage)
+                raise ExchangeError(errorMessage)
         data = self.safe_value(response, 'success_response', {})
         return self.parse_order(data, market)
 
@@ -2220,6 +2261,12 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "base_size": "0.2",
         #                 "limit_price": "0.006",
         #                 "post_only": False
+        #             },
+        #             "stop_limit_stop_limit_gtc": {
+        #                 "base_size": "48.54",
+        #                 "limit_price": "6.998",
+        #                 "stop_price": "7.0687",
+        #                 "stop_direction": "STOP_DIRECTION_STOP_DOWN"
         #             }
         #         },
         #         "side": "SELL",
@@ -2252,11 +2299,11 @@ class coinbase(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         orderConfiguration = self.safe_value(order, 'order_configuration', {})
-        limitGTC = self.safe_value(orderConfiguration, 'limit_limit_gtc', {})
-        limitGTD = self.safe_value(orderConfiguration, 'limit_limit_gtd', {})
-        stopLimitGTC = self.safe_value(orderConfiguration, 'stop_limit_stop_limit_gtc', {})
-        stopLimitGTD = self.safe_value(orderConfiguration, 'stop_limit_stop_limit_gtd', {})
-        marketIOC = self.safe_value(orderConfiguration, 'market_market_ioc', {})
+        limitGTC = self.safe_value(orderConfiguration, 'limit_limit_gtc')
+        limitGTD = self.safe_value(orderConfiguration, 'limit_limit_gtd')
+        stopLimitGTC = self.safe_value(orderConfiguration, 'stop_limit_stop_limit_gtc')
+        stopLimitGTD = self.safe_value(orderConfiguration, 'stop_limit_stop_limit_gtd')
+        marketIOC = self.safe_value(orderConfiguration, 'market_market_ioc')
         isLimit = ((limitGTC is not None) or (limitGTD is not None))
         isStop = ((stopLimitGTC is not None) or (stopLimitGTD is not None))
         price = None
