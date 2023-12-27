@@ -1961,15 +1961,14 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        let method = undefined;
+        let response = undefined;
         if (symbol === undefined) {
-            method = 'privateGetCancelAll';
+            response = await this.privateGetCancelAll (this.extend (request, params));
         } else {
-            method = 'privateGetCancelAllByInstrument';
             const market = this.market (symbol);
             request['instrument_name'] = market['id'];
+            response = await this.privateGetCancelAllByInstrument (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         return response;
     }
 

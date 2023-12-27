@@ -47,6 +47,23 @@
                     25000
                 ]
             }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel All Orders",
+                "method": "cancelAllOrders",
+                "url": "https://www.deribit.com/api/v2/private/cancel_all",
+                "input": [
+                ]
+            },
+            {
+                "description": "cancel All Orders",
+                "method": "cancelAllOrders",
+                "url": "https://www.deribit.com/api/v2/private/cancel_all_by_instrument?instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
         ]
     }
 }
