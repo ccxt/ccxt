@@ -3121,7 +3121,7 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a dictionary of lastprices structures
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -3172,7 +3172,7 @@ export default class binance extends Exchange {
         return this.parseLastPrices (response, symbols);
     }
 
-    parseLastPrice (info, market: Market = undefined) {
+    parseLastPrice (entry, market: Market = undefined) {
         //
         // spot
         //
@@ -3199,18 +3199,18 @@ export default class binance extends Exchange {
         //         "time": 1591257246176
         //     }
         //
-        const timestamp = this.safeInteger (info, 'time');
+        const timestamp = this.safeInteger (entry, 'time');
         const type = (timestamp === undefined) ? 'spot' : 'swap';
-        const marketId = this.safeString (info, 'symbol');
+        const marketId = this.safeString (entry, 'symbol');
         market = this.safeMarket (marketId, market, undefined, type);
-        const price = this.safeNumber (info, 'price');
+        const price = this.safeNumber (entry, 'price');
         return {
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'price': price,
             'side': undefined,
-            'info': info,
+            'info': entry,
         };
     }
 
