@@ -247,7 +247,7 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
 }
 
 function get_test_files ($properties, $ws = false) {
-    return Async\async (function() use ($properties, $ws){
+    $func = function() use ($properties, $ws){
         $tests = array();
         $finalPropList = array_merge ($properties, [proxyTestFileName]);
         for ($i = 0; $i < count($finalPropList); $i++) {
@@ -262,7 +262,12 @@ function get_test_files ($properties, $ws = false) {
             }
         }
         return $tests;
-    })();
+    };
+    if (is_synchronous) {
+        return $func();
+    } else {
+        return Async\async ($func)();
+    }
 }
 
 function is_null_value($value) {
@@ -270,13 +275,18 @@ function is_null_value($value) {
 }
 
 function close($exchange) {
-    return Async\async (function() use ($exchange) {
+    $func = function() use ($exchange) {
         // for WS classes
         if (method_exists($exchange, 'close')) {
             return $exchange->close();
         }
         return true;
-    })();
+    };
+    if (is_synchronous) {
+        return $func();
+    } else {
+        return Async\async ($func)();
+    }
 }
 
 function set_fetch_response($exchange, $data) {
@@ -1643,4 +1653,6 @@ class testMainClass extends baseMainTestClass {
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
 $promise = (new testMainClass())->init($exchangeId, $exchangeSymbol);
-Async\await($promise);
+if (!is_synchronous) {
+    Async\await($promise);
+}
