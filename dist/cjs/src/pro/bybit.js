@@ -24,7 +24,7 @@ class bybit extends bybit$1 {
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
-                'watchOHLCVForSymbols': true,
+                'watchOHLCVForSymbols': false,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
@@ -785,7 +785,7 @@ class bybit extends bybit$1 {
          * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.unifiedMargin] use unified margin account
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
@@ -1050,7 +1050,7 @@ class bybit extends bybit$1 {
          * @see https://bybit-exchange.github.io/docs/v5/websocket/private/order
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */

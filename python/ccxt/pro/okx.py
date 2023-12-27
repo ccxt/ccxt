@@ -747,7 +747,7 @@ class okx(ccxt.async_support.okx):
             'side': self.safe_string(order, 'side'),
             'price': self.safe_number(info, 'fillPx'),
             'amount': self.safe_number(info, 'fillSz'),
-            'cost': None,
+            'cost': self.safe_number(order, 'cost'),
             'fee': {
                 'cost': self.safe_number(info, 'fillFee'),
                 'currency': self.safe_currency_code(feeMarketId),
@@ -908,7 +908,7 @@ class okx(ccxt.async_support.okx):
         watches information on multiple orders made by the user
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.stop]: True if fetching trigger or conditional orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1122,7 +1122,7 @@ class okx(ccxt.async_support.okx):
         messageHash = str(self.nonce())
         op = None
         op, params = self.handle_option_and_params(params, 'createOrderWs', 'op', 'batch-orders')
-        args = self.createOrderRequest(symbol, type, side, amount, price, params)
+        args = self.create_order_request(symbol, type, side, amount, price, params)
         ordType = self.safe_string(args, 'ordType')
         if (ordType == 'trigger') or (ordType == 'conditional') or (type == 'oco') or (type == 'move_order_stop') or (type == 'iceberg') or (type == 'twap'):
             raise BadRequest(self.id + ' createOrderWs() does not support algo trading. self.options["createOrderWs"]["op"] must be either order or batch-order')
@@ -1186,7 +1186,7 @@ class okx(ccxt.async_support.okx):
         messageHash = str(self.nonce())
         op = None
         op, params = self.handle_option_and_params(params, 'editOrderWs', 'op', 'amend-order')
-        args = self.editOrderRequest(id, symbol, type, side, amount, price, params)
+        args = self.edit_order_request(id, symbol, type, side, amount, price, params)
         request = {
             'id': messageHash,
             'op': op,

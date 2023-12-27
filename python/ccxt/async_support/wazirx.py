@@ -98,6 +98,8 @@ class wazirx(Exchange, ImplicitAPI):
                 'fetchTransfers': False,
                 'fetchWithdrawals': False,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,

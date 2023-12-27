@@ -156,6 +156,7 @@ export default class hitbtc extends Exchange {
     setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

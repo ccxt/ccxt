@@ -86,6 +86,8 @@ class whitebit(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': True,
                 'transfer': True,
                 'withdraw': True,
@@ -1332,7 +1334,7 @@ class whitebit(Exchange, ImplicitAPI):
         :see: https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """

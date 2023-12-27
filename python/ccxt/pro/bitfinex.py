@@ -202,7 +202,6 @@ class bitfinex(ccxt.async_support.bitfinex):
         #         220.05,        # 10 LOW float Daily low
         #     ]
         #
-        timestamp = self.milliseconds()
         marketId = self.safe_string(subscription, 'pair')
         symbol = self.safe_symbol(marketId)
         channel = 'ticker'
@@ -214,8 +213,8 @@ class bitfinex(ccxt.async_support.bitfinex):
             open = Precise.string_sub(last, change)
         result = {
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_float(message, 9),
             'low': self.safe_float(message, 10),
             'bid': self.safe_float(message, 1),
@@ -430,7 +429,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """

@@ -29,6 +29,9 @@ class poloniex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
@@ -222,6 +225,7 @@ class poloniex extends Exchange {
                 'UST' => 'USTC',
             ),
             'options' => array(
+                'createMarketBuyOrderRequiresPrice' => true,
                 'networks' => array(
                     'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
@@ -1243,6 +1247,7 @@ class poloniex extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] *spot only* The $price at which a trigger order is triggered at
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -1278,7 +1283,6 @@ class poloniex extends Exchange {
     }
 
     public function order_request($symbol, $type, $side, $amount, $request, $price = null, $params = array ()) {
-        $market = $this->market($symbol);
         $upperCaseType = strtoupper($type);
         $isMarket = $upperCaseType === 'MARKET';
         $isPostOnly = $this->is_post_only($isMarket, $upperCaseType === 'LIMIT_MAKER', $params);
@@ -1293,7 +1297,26 @@ class poloniex extends Exchange {
         $request['type'] = $upperCaseType;
         if ($isMarket) {
             if ($side === 'buy') {
-                $request['amount'] = $this->currency_to_precision($market['quote'], $amount);
+                $quoteAmount = null;
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number($params, 'cost');
+                $params = $this->omit($params, 'cost');
+                if ($cost !== null) {
+                    $quoteAmount = $this->cost_to_precision($symbol, $cost);
+                } elseif ($createMarketBuyOrderRequiresPrice) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                    } else {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $costRequest = Precise::string_mul($amountString, $priceString);
+                        $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
+                    }
+                } else {
+                    $quoteAmount = $this->cost_to_precision($symbol, $amount);
+                }
+                $request['amount'] = $quoteAmount;
             } else {
                 $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             }

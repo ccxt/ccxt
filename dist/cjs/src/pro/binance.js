@@ -19,7 +19,7 @@ class binance extends binance$1 {
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
-                'watchOHLCVForSymbols': true,
+                'watchOHLCVForSymbols': false,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
@@ -481,7 +481,7 @@ class binance extends binance$1 {
         const subscribe = {
             'id': requestId,
         };
-        const trades = await this.watch(url, subParams, this.extend(request, query), subParams, subscribe);
+        const trades = await this.watchMultiple(url, subParams, this.extend(request, query), subParams, subscribe);
         if (this.newUpdates) {
             const first = this.safeValue(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
@@ -942,14 +942,13 @@ class binance extends binance$1 {
             event = 'ticker';
         }
         let timestamp = undefined;
-        const now = this.milliseconds();
         if (event === 'bookTicker') {
             // take the event timestamp, if available, for spot tickers it is not
-            timestamp = this.safeInteger(message, 'E', now);
+            timestamp = this.safeInteger(message, 'E');
         }
         else {
             // take the timestamp of the closing price for candlestick streams
-            timestamp = this.safeInteger(message, 'C', now);
+            timestamp = this.safeInteger(message, 'C');
         }
         const marketId = this.safeString(message, 's');
         const symbol = this.safeSymbol(marketId, undefined, undefined, marketType);
@@ -1928,7 +1927,7 @@ class binance extends binance$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1961,11 +1960,11 @@ class binance extends binance$1 {
         this.setBalanceCache(client, type);
         this.setPositionsCache(client, type);
         const message = undefined;
-        const newOrder = await this.watch(url, messageHash, message, type);
+        const orders = await this.watch(url, messageHash, message, type);
         if (this.newUpdates) {
-            return newOrder;
+            limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(this.orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     parseWsOrder(order, market = undefined) {
         //
@@ -2484,7 +2483,7 @@ class binance extends binance$1 {
          * @description watches information on multiple trades made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
@@ -2626,8 +2625,8 @@ class binance extends binance$1 {
             cachedOrders.append(parsed);
             const messageHash = 'orders';
             const symbolSpecificMessageHash = 'orders:' + symbol;
-            client.resolve(parsed, messageHash);
-            client.resolve(parsed, symbolSpecificMessageHash);
+            client.resolve(cachedOrders, messageHash);
+            client.resolve(cachedOrders, symbolSpecificMessageHash);
         }
     }
     handleAcountUpdate(client, message) {

@@ -705,7 +705,7 @@ class blockchaincom extends Exchange {
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -931,51 +931,6 @@ class blockchaincom extends Exchange {
             'internal' => null,
             'fee' => $fee,
         );
-    }
-
-    public function fetch_withdrawal_whitelist($params = array ()) {
-        return Async\async(function () use ($params) {
-            /**
-             * fetch the list of withdrawal addresses on the whitelist
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} dictionary with keys beneficiaryId, name, currency
-             */
-            Async\await($this->load_markets());
-            $response = Async\await($this->privateGetWhitelist ());
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
-                $result[] = array(
-                    'beneficiaryId' => $this->safe_string($entry, 'whitelistId'),
-                    'name' => $this->safe_string($entry, 'name'),
-                    'currency' => $this->safe_string($entry, 'currency'),
-                    'info' => $entry,
-                );
-            }
-            return $result;
-        }) ();
-    }
-
-    public function fetch_withdrawal_whitelist_by_currency(string $code, $params = array ()) {
-        return Async\async(function () use ($code, $params) {
-            Async\await($this->load_markets());
-            $currency = $this->currency($code);
-            $request = array(
-                'currency' => $currency['id'],
-            );
-            $response = Async\await($this->privateGetWhitelistCurrency (array_merge($request, $params)));
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
-                $result[] = array(
-                    'beneficiaryId' => $this->safe_string($entry, 'whitelistId'),
-                    'name' => $this->safe_string($entry, 'name'),
-                    'currency' => $this->safe_string($entry, 'currency'),
-                    'info' => $entry,
-                );
-            }
-            return $result;
-        }) ();
     }
 
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {

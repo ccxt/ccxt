@@ -12,10 +12,8 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_transaction  # noqa E402
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_fetch_deposits(exchange, skipped_properties, code):
     method = 'fetchDeposits'

@@ -759,7 +759,7 @@ class cex extends \ccxt\async\cex {
                 'rate' => null,
             );
         }
-        $timestamp = $this->safe_integer($data, 'time', $this->milliseconds());
+        $timestamp = $this->safe_integer($data, 'time');
         $order['timestamp'] = $timestamp;
         $order['datetime'] = $this->iso8601($timestamp);
         $order = $this->safe_order($order);

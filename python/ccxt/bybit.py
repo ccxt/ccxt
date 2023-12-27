@@ -311,6 +311,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
                         'v5/account/info': 5,
                         'v5/account/transaction-log': 1,
+                        'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
                         # asset
                         'v5/asset/exchange/order-record': 5,  # 10/s => cost = 50 / 10 = 5
@@ -959,6 +960,7 @@ class bybit(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
                 'createMarketBuyOrderRequiresPrice': True,
@@ -1425,21 +1427,29 @@ class bybit(Exchange, ImplicitAPI):
         """
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
-        promisesUnresolved = [
-            self.fetch_spot_markets(params),
-            self.fetch_future_markets({'category': 'linear'}),
-            self.fetch_future_markets({'category': 'inverse'}),
-            self.fetch_option_markets({'baseCoin': 'BTC'}),
-            self.fetch_option_markets({'baseCoin': 'ETH'}),
-            self.fetch_option_markets({'baseCoin': 'SOL'}),
-        ]
+        promisesUnresolved = []
+        fetchMarkets = self.safe_value(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
+        for i in range(0, len(fetchMarkets)):
+            marketType = fetchMarkets[i]
+            if marketType == 'spot':
+                promisesUnresolved.append(self.fetch_spot_markets(params))
+            elif marketType == 'linear':
+                promisesUnresolved.append(self.fetch_future_markets({'category': 'linear'}))
+            elif marketType == 'inverse':
+                promisesUnresolved.append(self.fetch_future_markets({'category': 'inverse'}))
+            elif marketType == 'option':
+                promisesUnresolved.append(self.fetch_option_markets({'baseCoin': 'BTC'}))
+                promisesUnresolved.append(self.fetch_option_markets({'baseCoin': 'ETH'}))
+                promisesUnresolved.append(self.fetch_option_markets({'baseCoin': 'SOL'}))
+            else:
+                raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         promises = promisesUnresolved
-        spotMarkets = promises[0]
-        linearMarkets = promises[1]
-        inverseMarkets = promises[2]
-        btcOptionMarkets = promises[3]
-        ethOptionMarkets = promises[4]
-        solOptionMarkets = promises[5]
+        spotMarkets = self.safe_value(promises, 0, [])
+        linearMarkets = self.safe_value(promises, 1, [])
+        inverseMarkets = self.safe_value(promises, 2, [])
+        btcOptionMarkets = self.safe_value(promises, 3, [])
+        ethOptionMarkets = self.safe_value(promises, 4, [])
+        solOptionMarkets = self.safe_value(promises, 5, [])
         futureMarkets = self.array_concat(linearMarkets, inverseMarkets)
         optionMarkets = self.array_concat(btcOptionMarkets, ethOptionMarkets)
         optionMarkets = self.array_concat(optionMarkets, solOptionMarkets)
@@ -4130,7 +4140,7 @@ class bybit(Exchange, ImplicitAPI):
         :see: https://bybit-exchange.github.io/docs/v5/order/order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.stop]: True if stop order
         :param str [params.type]: market type, ['swap', 'option', 'spot']
@@ -4235,7 +4245,7 @@ class bybit(Exchange, ImplicitAPI):
         :see: https://bybit-exchange.github.io/docs/v5/order/order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """

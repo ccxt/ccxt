@@ -80,7 +80,7 @@ class phemex extends Exchange {
                 'setMarginMode' => true,
                 'setPositionMode' => true,
                 'transfer' => true,
-                'withdraw' => null,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -219,6 +219,7 @@ class phemex extends Exchange {
                         'assets/spots/sub-accounts/transfer' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/futures/sub-accounts/transfer' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote' => 5, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                        // deposit/withdraw
                     ),
                     'post' => array(
                         // spot
@@ -453,6 +454,7 @@ class phemex extends Exchange {
                 'networks' => array(
                     'TRC20' => 'TRX',
                     'ERC20' => 'ETH',
+                    'BEP20' => 'BNB',
                 ),
                 'defaultNetworks' => array(
                     'USDT' => 'ETH',
@@ -461,6 +463,16 @@ class phemex extends Exchange {
                 'accountsByType' => array(
                     'spot' => 'spot',
                     'swap' => 'future',
+                ),
+                'stableCoins' => array(
+                    'BUSD',
+                    'FEI',
+                    'TUSD',
+                    'USD',
+                    'USDC',
+                    'USDD',
+                    'USDP',
+                    'USDT',
                 ),
                 'transfer' => array(
                     'fillResponseFromRequest' => true,
@@ -3314,6 +3326,19 @@ class phemex extends Exchange {
         $statuses = array(
             'Success' => 'ok',
             'Succeed' => 'ok',
+            'Rejected' => 'failed',
+            'Security check failed' => 'failed',
+            'SecurityCheckFailed' => 'failed',
+            'Expired' => 'failed',
+            'Address Risk' => 'failed',
+            'Security Checking' => 'pending',
+            'SecurityChecking' => 'pending',
+            'Pending Review' => 'pending',
+            'Pending Transfer' => 'pending',
+            'AmlCsApporve' => 'pending',
+            'New' => 'pending',
+            'Confirmed' => 'pending',
+            'Cancelled' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -3322,36 +3347,68 @@ class phemex extends Exchange {
         //
         // withdraw
         //
-        //     ...
+        //     {
+        //         "id" => "10000001",
+        //         "freezeId" => null,
+        //         "address" => "44exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        //         "amountRv" => "100",
+        //         "chainCode" => "11",
+        //         "chainName" => "TRX",
+        //         "currency" => "USDT",
+        //         "currencyCode" => 3,
+        //         "email" => "abc@gmail.com",
+        //         "expiredTime" => "0",
+        //         "feeRv" => "1",
+        //         "nickName" => null,
+        //         "phone" => null,
+        //         "rejectReason" => "",
+        //         "submitedAt" => "1670000000000",
+        //         "submittedAt" => "1670000000000",
+        //         "txHash" => null,
+        //         "userId" => "10000001",
+        //         "status" => "Success"
         //
         // fetchDeposits
         //
         //     {
-        //         "id":29200,
-        //         "currency":"USDT",
-        //         "currencyCode":3,
-        //         "txHash":"0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
-        //         "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        //         "amountEv":3000000000,
-        //         "confirmations":13,
-        //         "type":"Deposit",
-        //         "status":"Success",
-        //         "createdAt":1592722565000
+        //         "id" => "29200",
+        //         "currency" => "USDT",
+        //         "currencyCode" => "3",
+        //         "chainName" => "ETH",
+        //         "chainCode" => "4",
+        //         "txHash" => "0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
+        //         "address" => "0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
+        //         "amountEv" => "3000000000",
+        //         "confirmations" => "13",
+        //         "type" => "Deposit",
+        //         "status" => "Success",
+        //         "createdAt" => "1592722565000",
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "address" => "1Lxxxxxxxxxxx"
-        //         "amountEv" => 200000
-        //         "currency" => "BTC"
-        //         "currencyCode" => 1
-        //         "expiredTime" => 0
-        //         "feeEv" => 50000
-        //         "rejectReason" => null
-        //         "status" => "Succeed"
-        //         "txHash" => "44exxxxxxxxxxxxxxxxxxxxxx"
-        //         "withdrawStatus => ""
+        //         "id" => "10000001",
+        //         "userId" => "10000001",
+        //         "freezeId" => "10000002",
+        //         "phone" => null,
+        //         "email" => "abc@gmail.com",
+        //         "nickName" => null,
+        //         "currency" => "USDT",
+        //         "currencyCode" => "3",
+        //         "status" => "Succeed",
+        //         "withdrawStatus" => "Succeed",
+        //         "amountEv" => "8800000000",
+        //         "feeEv" => "1200000000",
+        //         "address" => "0x5xxxad",
+        //         "txHash => "0x0xxxx5d",
+        //         "submitedAt" => "1702571922000",
+        //         "submittedAt" => "1702571922000",
+        //         "expiredTime" => "0",
+        //         "rejectReason" => null,
+        //         "chainName" => "ETH",
+        //         "chainCode" => "4",
+        //         "proxyAddress" => null
         //     }
         //
         $id = $this->safe_string($transaction, 'id');
@@ -3361,9 +3418,13 @@ class phemex extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $currency['code'];
-        $timestamp = $this->safe_integer_2($transaction, 'createdAt', 'submitedAt');
+        $networkId = $this->safe_string($transaction, 'chainName');
+        $timestamp = $this->safe_integer_n($transaction, array( 'createdAt', 'submitedAt', 'submittedAt' ));
         $type = $this->safe_string_lower($transaction, 'type');
         $feeCost = $this->parse_number($this->from_en($this->safe_string($transaction, 'feeEv'), $currency['valueScale']));
+        if ($feeCost === null) {
+            $feeCost = $this->safe_number($transaction, 'feeRv');
+        }
         $fee = null;
         if ($feeCost !== null) {
             $type = 'withdrawal';
@@ -3374,13 +3435,16 @@ class phemex extends Exchange {
         }
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $amount = $this->parse_number($this->from_en($this->safe_string($transaction, 'amountEv'), $currency['valueScale']));
+        if ($amount === null) {
+            $amount = $this->safe_number($transaction, 'amountRv');
+        }
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => null,
+            'network' => $this->network_id_to_code($networkId),
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -4143,7 +4207,7 @@ class phemex extends Exchange {
         /**
          * set the level of $leverage for a $market
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#set-$leverage
-         * @param {float} $leverage the rate of $leverage
+         * @param {float} $leverage the rate of $leverage, 100 > $leverage > -100 excluding numbers between -1 to 1
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->hedged] set to true if hedged position mode is enabled (by default $long and $short $leverage are set to the same value)
@@ -4156,8 +4220,8 @@ class phemex extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
-        if (($leverage < 1) || ($leverage > 100)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
+        if (($leverage < -100) || ($leverage > 100)) {
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between -100 and 100');
         }
         $this->load_markets();
         $isHedged = $this->safe_value($params, 'hedged', false);
@@ -4464,6 +4528,74 @@ class phemex extends Exchange {
         }
         $sorted = $this->sort_by($result, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @see https://phemex-docs.github.io/#create-withdraw-$request
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the phemex api endpoint
+         * @param {string} [$params->network] unified network $code
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         */
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        $this->load_markets();
+        $this->check_address($address);
+        $currency = $this->currency($code);
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        $networkId = $this->network_code_to_id($networkCode);
+        $stableCoins = $this->safe_value($this->options, 'stableCoins');
+        if ($networkId === null) {
+            if (!($this->in_array($code, $stableCoins))) {
+                $networkId = $currency['id'];
+            } else {
+                throw new ArgumentsRequired($this->id . ' withdraw () requires an extra argument $params["network"]');
+            }
+        }
+        $request = array(
+            'currency' => $currency['id'],
+            'address' => $address,
+            'amount' => $amount,
+            'chainName' => strtoupper($networkId),
+        );
+        if ($tag !== null) {
+            $request['addressTag'] = $tag;
+        }
+        $response = $this->privatePostPhemexWithdrawWalletsApiCreateWithdraw (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "OK",
+        //         "data" => {
+        //             "id" => "10000001",
+        //             "freezeId" => null,
+        //             "address" => "44exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        //             "amountRv" => "100",
+        //             "chainCode" => "11",
+        //             "chainName" => "TRX",
+        //             "currency" => "USDT",
+        //             "currencyCode" => 3,
+        //             "email" => "abc@gmail.com",
+        //             "expiredTime" => "0",
+        //             "feeRv" => "1",
+        //             "nickName" => null,
+        //             "phone" => null,
+        //             "rejectReason" => "",
+        //             "submitedAt" => "1670000000000",
+        //             "submittedAt" => "1670000000000",
+        //             "txHash" => null,
+        //             "userId" => "10000001",
+        //             "status" => "Success"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transaction($data, $currency);
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

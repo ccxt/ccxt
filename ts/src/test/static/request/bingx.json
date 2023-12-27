@@ -18,6 +18,16 @@
                 ]
             }
         ],
+        "closePosition": [
+            {
+                "description": "close linear position",
+                "method": "closePosition",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/closeAllPositions?symbol=LTC-USDT&timestamp=1703414588459&signature=f42b4b61669032b0d38c746d6d9bb156f24355c7ca8055942aa61b9b512e40ae",
+                "input": [
+                  "LTC/USDT:USDT"
+                ]
+              }
+        ],
         "createOrder": [
             {
                 "description": "Spot market buy",
@@ -199,6 +209,38 @@
                     {
                         "stopLossPrice": "40000"
                     }
+                ]
+            },
+            {
+                "description": "Swap trailing amount order",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&price=100&quantity=0.0001&side=SELL&symbol=BTC-USDT&timestamp=1703311717708&type=TRAILING_STOP_MARKET&signature=af450249b24a125292d4a81bbcda3445ea20a85dd858734e6ddacf36e999cf21",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "trailingAmount": 100,
+                    "reduceOnly": true
+                  }
+                ]
+            },
+            {
+                "description": "Swap trailing percent order",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&priceRate=0.1&quantity=0.0001&side=SELL&symbol=BTC-USDT&timestamp=1703312086044&type=TRAILING_STOP_MARKET&signature=d2f180a1a328e08f679de56f255c452d9ad469f4eb445659397ef297390e6cfe",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "trailingPercent": 10,
+                    "reduceOnly": true
+                  }
                 ]
             }
         ],
@@ -454,6 +496,16 @@
                 "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/deposit/address?coin=USDT&limit=1000&offset=0&recvWindow=5000&timestamp=1699460638640&signature=e5942598ddd9d11cceec8f7e2acb3269c8c2dfe237642314eca3b5d8a5c308e0",
                 "input": [
                     "USDT"
+                ]
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "Set position mode",
+                "method": "setPositionMode",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/positionSide/dual?dualSidePosition=true&timestamp=1698777135343&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0",
+                "input": [
+                    true
                 ]
             }
         ]
