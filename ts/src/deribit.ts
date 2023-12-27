@@ -1331,14 +1331,18 @@ export default class deribit extends Exchange {
             'instrument_name': market['id'],
             'include_old': true,
         };
-        const method = (since === undefined) ? 'publicGetGetLastTradesByInstrument' : 'publicGetGetLastTradesByInstrumentAndTime';
         if (since !== undefined) {
             request['start_timestamp'] = since;
         }
         if (limit !== undefined) {
             request['count'] = Math.min (limit, 1000); // default 10
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (since === undefined) {
+            response = await this.publicGetGetLastTradesByInstrument (this.extend (request, params));
+        } else {
+            response = await this.publicGetGetLastTradesByInstrumentAndTime (this.extend (request, params));
+        }
         //
         //      {
         //          "jsonrpc":"2.0",

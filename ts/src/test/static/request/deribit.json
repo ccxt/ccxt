@@ -2,5 +2,25 @@
     "exchange": "deribit",
     "skipKeys": [],
     "outputType": "json",
-    "methods": {}
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "fetch Trades",
+                "method": "fetchTrades",
+                "url": "https://www.deribit.com/api/v2/public/get_last_trades_by_instrument?instrument_name=BTC_USDT&include_old=true",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch Trades",
+                "method": "fetchTrades",
+                "url": "https://www.deribit.com/api/v2/public/get_last_trades_by_instrument_and_time?instrument_name=BTC_USDT&include_old=true&start_timestamp=1703665611074",
+                "input": [
+                    "BTC/USDT",
+                    1703665611074
+                ]
+            }
+        ]
+    }
 }
