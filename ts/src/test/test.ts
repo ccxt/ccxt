@@ -493,7 +493,8 @@ export default class testMainClass extends baseMainTestClass {
         let tests = {
             'fetchCurrencies': [],
             'fetchTicker': [ symbol ],
-            'fetchTickers': [ symbol ],
+            'fetchTickers': [ ],
+            'fetchLastPrices': [ ],
             'fetchOHLCV': [ symbol ],
             'fetchTrades': [ symbol ],
             'fetchOrderBook': [ symbol ],
