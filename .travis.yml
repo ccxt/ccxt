@@ -15,15 +15,19 @@ before_install:
 - nvm install v18.17.0
 - rm -rf node_modules
 # common commands
-- npm install
+- npm ci --include=dev
 - git checkout package.json package-lock.json
 - git config pull.rebase false
 - git fetch --depth=1 --no-tags --verbose --progress
-- pip install tox cryptography requests # common packages
+- pip install tox cryptography requests ruff # common packages
 - pip install twine # used to publish python package
 - pip install pyopenssl aiohttp # used to run real-time tests
+- pip install typing-extensions # required by python <3.11
 - php -i | grep php.ini
 - composer install
+- type -p curl >/dev/null || ( apt update &&  apt install curl -y)
+- curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && sudo apt update && sudo apt install gh -y
+
 script:
 - ./build.sh 2>&1
 - git checkout master composer.json

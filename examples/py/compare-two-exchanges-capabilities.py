@@ -10,15 +10,13 @@ sys.path.append(root + '/python')
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 # ----------------------------------------------------------------------------
-import asyncio
-import ccxt.async_support as ccxt  # noqa: E402
-
+undefined
 
 # AUTO-TRANSPILE #
 async def example():
     prefix = '-'
-    exchange_1 = ccxt.lbank()
-    exchange_2 = ccxt.lbank2()
+    exchange_1 = ccxt.okx()
+    exchange_2 = ccxt.htx()
     keys_1 = list(exchange_1.has.keys())
     keys_2 = list(exchange_2.has.keys())
     # check missing from exchange-1

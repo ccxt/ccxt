@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\bl3p as Exchange;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bl3p extends Exchange {
 
@@ -20,6 +21,7 @@ class bl3p extends Exchange {
             'rateLimit' => 1000,
             'version' => '1',
             'comment' => 'An exchange market by BitonicNL',
+            'pro' => false,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -29,19 +31,25 @@ class bl3p extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'fetchBalance' => true,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLeverage' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkOHLCV' => false,
@@ -63,6 +71,7 @@ class bl3p extends Exchange {
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => false,
+                'ws' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
@@ -102,13 +111,13 @@ class bl3p extends Exchange {
                 ),
             ),
             'markets' => array(
-                'BTC/EUR' => array( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'BTC', 'quoteId' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025, 'type' => 'spot', 'spot' => true ),
+                'BTC/EUR' => $this->safe_market_structure(array( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'BTC', 'quoteId' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025, 'type' => 'spot', 'spot' => true )),
             ),
             'precisionMode' => TICK_SIZE,
         ));
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $data = $this->safe_value($response, 'data', array());
         $wallets = $this->safe_value($data, 'wallets', array());
         $result = array( 'info' => $data );
@@ -128,12 +137,12 @@ class bl3p extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the bl3p api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostGENMKTMoneyInfo ($params));
@@ -150,13 +159,13 @@ class bl3p extends Exchange {
         );
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the bl3p api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             $market = $this->market($symbol);
@@ -169,7 +178,7 @@ class bl3p extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // {
         //     "currency":"BTC",
@@ -213,12 +222,12 @@ class bl3p extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the bl3p api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             $market = $this->market($symbol);
@@ -245,7 +254,17 @@ class bl3p extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
+        //
+        // fetchTrades
+        //
+        //     {
+        //         "trade_id" => "2518789",
+        //         "date" => "1694348697745",
+        //         "amount_int" => "2959153",
+        //         "price_int" => "2416231440"
+        //     }
+        //
         $id = $this->safe_string($trade, 'trade_id');
         $timestamp = $this->safe_integer($trade, 'date');
         $price = $this->safe_string($trade, 'price_int');
@@ -268,20 +287,34 @@ class bl3p extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the bl3p api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             $market = $this->market($symbol);
             $response = Async\await($this->publicGetMarketTrades (array_merge(array(
                 'market' => $market['id'],
             ), $params)));
+            //
+            //    {
+            //        "result" => "success",
+            //        "data" => {
+            //            "trades" => array(
+            //                array(
+            //                    "trade_id" => "2518789",
+            //                    "date" => "1694348697745",
+            //                    "amount_int" => "2959153",
+            //                    "price_int" => "2416231440"
+            //                ),
+            //            )
+            //        }
+            //     }
             $result = $this->parse_trades($response['data']['trades'], $market, $since, $limit);
             return $result;
         }) ();
@@ -291,36 +324,36 @@ class bl3p extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
-             * @param {array} [$params] extra parameters specific to the bl3p api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostGENMKTMoneyInfo ($params));
             //
             //     {
-            //         $result => 'success',
-            //         $data => {
-            //             user_id => '13396',
-            //             wallets => {
-            //                 BTC => array(
-            //                     balance => array(
-            //                         value_int => '0',
-            //                         display => '0.00000000 BTC',
-            //                         currency => 'BTC',
-            //                         value => '0.00000000',
-            //                         display_short => '0.00 BTC'
+            //         "result" => "success",
+            //         "data" => {
+            //             "user_id" => "13396",
+            //             "wallets" => {
+            //                 "BTC" => array(
+            //                     "balance" => array(
+            //                         "value_int" => "0",
+            //                         "display" => "0.00000000 BTC",
+            //                         "currency" => "BTC",
+            //                         "value" => "0.00000000",
+            //                         "display_short" => "0.00 BTC"
             //                     ),
-            //                     available => array(
-            //                         value_int => '0',
-            //                         display => '0.00000000 BTC',
-            //                         currency => 'BTC',
-            //                         value => '0.00000000',
-            //                         display_short => '0.00 BTC'
+            //                     "available" => array(
+            //                         "value_int" => "0",
+            //                         "display" => "0.00000000 BTC",
+            //                         "currency" => "BTC",
+            //                         "value" => "0.00000000",
+            //                         "display_short" => "0.00 BTC"
             //                     }
             //                 ),
             //                 ...
             //             ),
-            //             trade_fee => '0.25'
+            //             "trade_fee" => "0.25"
             //         }
             //     }
             //
@@ -347,12 +380,17 @@ class bl3p extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
+             * @see https://github.com/BitonicNL/bl3p-api/blob/master/examples/nodejs/example.md#21---create-an-$order
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the bl3p api endpoint
+             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {int} [$params->amount_funds] maximal EUR $amount to spend (*1e5)
+             * @param {string} [$params->fee_currency] 'EUR' or 'BTC'
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             $market = $this->market($symbol);
@@ -382,7 +420,7 @@ class bl3p extends Exchange {
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
-             * @param {array} [$params] extra parameters specific to the bl3p api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $request = array(

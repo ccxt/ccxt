@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,7 +7,8 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/test_shared_methods.php';
+use \ccxt\Precise;
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_order_book($exchange, $skipped_properties, $method, $entry, $symbol) {
     $format = array(
@@ -21,10 +21,13 @@ function test_order_book($exchange, $skipped_properties, $method, $entry, $symbo
     );
     $empty_allowed_for = ['symbol', 'nonce', 'datetime', 'timestamp']; // todo: make timestamp required
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
-    assert_timestamp($exchange, $skipped_properties, $method, $entry);
+    assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry);
     assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
     $log_text = log_template($exchange, $method, $entry);
     //
+    if ((is_array($skipped_properties) && array_key_exists('bid', $skipped_properties)) || (is_array($skipped_properties) && array_key_exists('ask', $skipped_properties))) {
+        return;
+    }
     $bids = $entry['bids'];
     $bids_length = count($bids);
     for ($i = 0; $i < $bids_length; $i++) {
@@ -32,7 +35,8 @@ function test_order_book($exchange, $skipped_properties, $method, $entry, $symbo
         $next_i = $i + 1;
         if ($bids_length > $next_i) {
             $next_bid_string = $exchange->safe_string($bids[$next_i], 0);
-            assert(Precise::string_gt($current_bid_string, $next_bid_string), 'current bid should be > than the next one: ' . $current_bid_string . '>' . $next_bid_string . $log_text);
+            $has_correct_order = Precise::string_gt($current_bid_string, $next_bid_string);
+            assert($has_correct_order, 'current bid should be > than the next one: ' . $current_bid_string . '>' . $next_bid_string . $log_text);
         }
         assert_greater($exchange, $skipped_properties, $method, $bids[$i], 0, '0');
         assert_greater($exchange, $skipped_properties, $method, $bids[$i], 1, '0');
@@ -44,10 +48,14 @@ function test_order_book($exchange, $skipped_properties, $method, $entry, $symbo
         $next_i = $i + 1;
         if ($asks_length > $next_i) {
             $next_ask_string = $exchange->safe_string($asks[$next_i], 0);
-            assert(Precise::string_lt($current_ask_string, $next_ask_string), 'current ask should be < than the next one: ' . $current_ask_string . '<' . $next_ask_string . $log_text);
+            $has_correct_order = Precise::string_lt($current_ask_string, $next_ask_string);
+            assert($has_correct_order, 'current ask should be < than the next one: ' . $current_ask_string . '<' . $next_ask_string . $log_text);
         }
         assert_greater($exchange, $skipped_properties, $method, $asks[$i], 0, '0');
         assert_greater($exchange, $skipped_properties, $method, $asks[$i], 1, '0');
+    }
+    if (is_array($skipped_properties) && array_key_exists('spread', $skipped_properties)) {
+        return;
     }
     if ($bids_length && $asks_length) {
         $first_bid = $exchange->safe_string($bids[0], 0);

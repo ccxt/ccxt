@@ -6,14 +6,14 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/currencycom.js';
-import { BadSymbol, ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest } from './base/errors.js';
+import { BadSymbol, ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class currencycom
- * @extends Exchange
+ * @augments Exchange
  */
 export default class currencycom extends Exchange {
     describe() {
@@ -48,13 +48,12 @@ export default class currencycom extends Exchange {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
-                'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRates': undefined,
-                'fetchBorrowRatesPerSymbol': undefined,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
@@ -67,6 +66,8 @@ export default class currencycom extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchL2OrderBook': true,
                 'fetchLedger': true,
                 'fetchLedgerEntry': false,
@@ -305,7 +306,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicGetV2Time(params);
@@ -321,7 +322,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
         // requires authentication
@@ -343,13 +344,13 @@ export default class currencycom extends Exchange {
         //             "minDeposit": "90.0",
         //         },
         //         {
-        //             name: "Bitcoin",
-        //             displaySymbol: "BTC",
-        //             precision: "8",
-        //             type: "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
-        //             minWithdrawal: "0.00020",
-        //             commissionFixed: "0.00010",
-        //             minDeposit: "0.00010",
+        //             "name": "Bitcoin",
+        //             "displaySymbol": "BTC",
+        //             "precision": "8",
+        //             "type": "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
+        //             "minWithdrawal": "0.00020",
+        //             "commissionFixed": "0.00010",
+        //             "minDeposit": "0.00010",
         //         },
         //     ]
         //
@@ -393,55 +394,55 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchMarkets
          * @description retrieves data on all markets for currencycom
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetV2ExchangeInfo(params);
         //
         //     {
-        //         timezone: "UTC",
-        //         serverTime: "1645186287261",
-        //         rateLimits: [
+        //         "timezone": "UTC",
+        //         "serverTime": "1645186287261",
+        //         "rateLimits": [
         //             { rateLimitType: "REQUEST_WEIGHT", interval: "MINUTE", intervalNum: "1", limit: "1200" },
         //             { rateLimitType: "ORDERS", interval: "SECOND", intervalNum: "1", limit: "10" },
         //             { rateLimitType: "ORDERS", interval: "DAY", intervalNum: "1", limit: "864000" },
         //         ],
-        //         exchangeFilters: [],
-        //         symbols: [
+        //         "exchangeFilters": [],
+        //         "symbols": [
         //             {
-        //                 symbol: "BTC/USDT", // BTC/USDT, BTC/USDT_LEVERAGE
-        //                 name: "Bitcoin / Tether",
-        //                 status: "TRADING", // TRADING, BREAK, HALT
-        //                 baseAsset: "BTC",
-        //                 baseAssetPrecision: "4",
-        //                 quoteAsset: "USDT",
-        //                 quoteAssetId: "USDT", // USDT, USDT_LEVERAGE
-        //                 quotePrecision: "4",
-        //                 orderTypes: [ "LIMIT", "MARKET" ], // LIMIT, MARKET, STOP
-        //                 filters: [
+        //                 "symbol": "BTC/USDT", // BTC/USDT, BTC/USDT_LEVERAGE
+        //                 "name": "Bitcoin / Tether",
+        //                 "status": "TRADING", // TRADING, BREAK, HALT
+        //                 "baseAsset": "BTC",
+        //                 "baseAssetPrecision": "4",
+        //                 "quoteAsset": "USDT",
+        //                 "quoteAssetId": "USDT", // USDT, USDT_LEVERAGE
+        //                 "quotePrecision": "4",
+        //                 "orderTypes": [ "LIMIT", "MARKET" ], // LIMIT, MARKET, STOP
+        //                 "filters": [
         //                     { filterType: "LOT_SIZE", minQty: "0.0001", maxQty: "100", stepSize: "0.0001", },
         //                     { filterType: "MIN_NOTIONAL", minNotional: "5", },
         //                 ],
-        //                 marketModes: [ "REGULAR" ], // CLOSE_ONLY, LONG_ONLY, REGULAR
-        //                 marketType: "SPOT", // SPOT, LEVERAGE
-        //                 longRate: -0.0684932, // LEVERAGE only
-        //                 shortRate: -0.0684932, // LEVERAGE only
-        //                 swapChargeInterval: 1440, // LEVERAGE only
-        //                 country: "",
-        //                 sector: "",
-        //                 industry: "",
-        //                 tradingHours: "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
-        //                 tickSize: "0.01",
-        //                 tickValue: "403.4405", // not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
-        //                 exchangeFee: "0.2", // SPOT only
-        //                 tradingFee: 0.075, // LEVERAGE only
-        //                 makerFee: -0.025, // LEVERAGE only
-        //                 takerFee: 0.06, // LEVERAGE only
-        //                 maxSLGap: 50, // LEVERAGE only
-        //                 minSLGap: 1, // LEVERAGE only
-        //                 maxTPGap: 50, // LEVERAGE only
-        //                 minTPGap: 0.5, // LEVERAGE only
-        //                 assetType: "CRYPTOCURRENCY",
+        //                 "marketModes": [ "REGULAR" ], // CLOSE_ONLY, LONG_ONLY, REGULAR
+        //                 "marketType": "SPOT", // SPOT, LEVERAGE
+        //                 "longRate": -0.0684932, // LEVERAGE only
+        //                 "shortRate": -0.0684932, // LEVERAGE only
+        //                 "swapChargeInterval": 1440, // LEVERAGE only
+        //                 "country": "",
+        //                 "sector": "",
+        //                 "industry": "",
+        //                 "tradingHours": "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
+        //                 "tickSize": "0.01",
+        //                 "tickValue": "403.4405", // not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
+        //                 "exchangeFee": "0.2", // SPOT only
+        //                 "tradingFee": 0.075, // LEVERAGE only
+        //                 "makerFee": -0.025, // LEVERAGE only
+        //                 "takerFee": 0.06, // LEVERAGE only
+        //                 "maxSLGap": 50, // LEVERAGE only
+        //                 "minSLGap": 1, // LEVERAGE only
+        //                 "maxTPGap": 50, // LEVERAGE only
+        //                 "minTPGap": 0.5, // LEVERAGE only
+        //                 "assetType": "CRYPTOCURRENCY",
         //             },
         //         ]
         //     }
@@ -570,6 +571,7 @@ export default class currencycom extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -580,7 +582,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchAccounts
          * @description fetch all the accounts associated with a profile
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         const response = await this.privateGetV2Account(params);
@@ -636,23 +638,23 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.privateGetV2Account(params);
         //
         //    {
-        //        makerCommission: '0.20',
-        //        takerCommission: '0.20',
-        //        buyerCommission: '0.20',
-        //        sellerCommission: '0.20',
-        //        canTrade: true,
-        //        canWithdraw: true,
-        //        canDeposit: true,
-        //        updateTime: '1645738976',
-        //        userId: '-1924114235',
-        //        balances: []
+        //        "makerCommission": "0.20",
+        //        "takerCommission": "0.20",
+        //        "buyerCommission": "0.20",
+        //        "sellerCommission": "0.20",
+        //        "canTrade": true,
+        //        "canWithdraw": true,
+        //        "canDeposit": true,
+        //        "updateTime": "1645738976",
+        //        "userId": "-1924114235",
+        //        "balances": []
         //    }
         //
         const makerFee = this.safeNumber(response, 'makerCommission');
@@ -712,8 +714,8 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetV2Account(params);
@@ -757,7 +759,7 @@ export default class currencycom extends Exchange {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -872,7 +874,7 @@ export default class currencycom extends Exchange {
          * @name currencycom#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -907,9 +909,9 @@ export default class currencycom extends Exchange {
         /**
          * @method
          * @name currencycom#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -963,7 +965,7 @@ export default class currencycom extends Exchange {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -1074,8 +1076,8 @@ export default class currencycom extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1084,7 +1086,7 @@ export default class currencycom extends Exchange {
             // 'limit': 500, // default 500, max 1000
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 500, max 1000
+            request['limit'] = Math.min(limit, 1000); // default 500, max 1000
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -1259,8 +1261,8 @@ export default class currencycom extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1353,10 +1355,12 @@ export default class currencycom extends Exchange {
          * @description fetches information on an order made by the user
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getOrderUsingGET
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol('fetchOrder', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1396,7 +1400,7 @@ export default class currencycom extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1441,7 +1445,7 @@ export default class currencycom extends Exchange {
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -1485,7 +1489,7 @@ export default class currencycom extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
@@ -1528,7 +1532,7 @@ export default class currencycom extends Exchange {
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchTransactionsByMethod('privateGetV2Deposits', code, since, limit, params);
@@ -1541,7 +1545,7 @@ export default class currencycom extends Exchange {
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchTransactionsByMethod('privateGetV2Withdrawals', code, since, limit, params);
@@ -1554,7 +1558,7 @@ export default class currencycom extends Exchange {
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchTransactionsByMethod('privateGetV2Transactions', code, since, limit, params);
@@ -1572,7 +1576,19 @@ export default class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateGetV2Deposits') {
+            response = await this.privateGetV2Deposits(this.extend(request, params));
+        }
+        else if (method === 'privateGetV2Withdrawals') {
+            response = await this.privateGetV2Withdrawals(this.extend(request, params));
+        }
+        else if (method === 'privateGetV2Transactions') {
+            response = await this.privateGetV2Transactions(this.extend(request, params));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchTransactionsByMethod() not support this method');
+        }
         //
         //    [
         //        {
@@ -1619,7 +1635,7 @@ export default class currencycom extends Exchange {
             fee['currency'] = code;
             fee['cost'] = feeCost;
         }
-        const result = {
+        return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),
             'txid': this.safeString(transaction, 'blockchainTransactionHash'),
@@ -1637,10 +1653,10 @@ export default class currencycom extends Exchange {
             'tagFrom': undefined,
             'tagTo': undefined,
             'updated': undefined,
+            'internal': undefined,
             'comment': undefined,
             'fee': fee,
         };
-        return result;
     }
     parseTransactionStatus(status) {
         const statuses = {
@@ -1664,7 +1680,7 @@ export default class currencycom extends Exchange {
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -1763,7 +1779,7 @@ export default class currencycom extends Exchange {
          * @name currencycom#fetchLeverage
          * @description fetch the set leverage for a market
          * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets();
@@ -1786,7 +1802,7 @@ export default class currencycom extends Exchange {
          * @name currencycom#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
@@ -1852,47 +1868,75 @@ export default class currencycom extends Exchange {
          * @name currencycom#fetchPositions
          * @description fetch all open positions
          * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetV2TradingPositions(params);
         //
-        // {
-        //     "positions": [
-        //       {
-        //         "accountId": "109698017416453793",
-        //         "id": "00a18490-0079-54c4-0000-0000803e73d3",
-        //         "instrumentId": "45463225268524228",
-        //         "orderId": "00a18490-0079-54c4-0000-0000803e73d2",
-        //         "openQuantity": "13.6",
-        //         "openPrice": "0.75724",
-        //         "closeQuantity": "0.0",
-        //         "closePrice": "0",
-        //         "rpl": "-0.007723848",
-        //         "rplConverted": "0",
-        //         "upl": "-0.006664",
-        //         "uplConverted": "-0.006664",
-        //         "swap": "0",
-        //         "swapConverted": "0",
-        //         "fee": "-0.007723848",
-        //         "dividend": "0",
-        //         "margin": "0.2",
-        //         "state": "ACTIVE",
-        //         "currency": "USD",
-        //         "createdTimestamp": "1645473877236",
-        //         "openTimestamp": "1645473877193",
-        //         "type": "NET",
-        //         "cost": "2.0583600",
-        //         "symbol": "XRP/USD_LEVERAGE"
-        //       }
-        //     ]
-        // }
+        //    {
+        //        "positions": [
+        //          {
+        //            "accountId": "109698017416453793",
+        //            "id": "00a18490-0079-54c4-0000-0000803e73d3",
+        //            "instrumentId": "45463225268524228",
+        //            "orderId": "00a18490-0079-54c4-0000-0000803e73d2",
+        //            "openQuantity": "13.6",
+        //            "openPrice": "0.75724",
+        //            "closeQuantity": "0.0",
+        //            "closePrice": "0",
+        //            "rpl": "-0.007723848",
+        //            "rplConverted": "0",
+        //            "upl": "-0.006664",
+        //            "uplConverted": "-0.006664",
+        //            "swap": "0",
+        //            "swapConverted": "0",
+        //            "fee": "-0.007723848",
+        //            "dividend": "0",
+        //            "margin": "0.2",
+        //            "state": "ACTIVE",
+        //            "currency": "USD",
+        //            "createdTimestamp": "1645473877236",
+        //            "openTimestamp": "1645473877193",
+        //            "type": "NET",
+        //            "cost": "2.0583600",
+        //            "symbol": "XRP/USD_LEVERAGE"
+        //          }
+        //        ]
+        //    }
         //
         const data = this.safeValue(response, 'positions', []);
         return this.parsePositions(data, symbols);
     }
     parsePosition(position, market = undefined) {
+        //
+        //    {
+        //        "accountId": "109698017416453793",
+        //        "id": "00a18490-0079-54c4-0000-0000803e73d3",
+        //        "instrumentId": "45463225268524228",
+        //        "orderId": "00a18490-0079-54c4-0000-0000803e73d2",
+        //        "openQuantity": "13.6",
+        //        "openPrice": "0.75724",
+        //        "closeQuantity": "0.0",
+        //        "closePrice": "0",
+        //        "rpl": "-0.007723848",
+        //        "rplConverted": "0",
+        //        "upl": "-0.006664",
+        //        "uplConverted": "-0.006664",
+        //        "swap": "0",
+        //        "swapConverted": "0",
+        //        "fee": "-0.007723848",
+        //        "dividend": "0",
+        //        "margin": "0.2",
+        //        "state": "ACTIVE",
+        //        "currency": "USD",
+        //        "createdTimestamp": "1645473877236",
+        //        "openTimestamp": "1645473877193",
+        //        "type": "NET",
+        //        "cost": "2.0583600",
+        //        "symbol": "XRP/USD_LEVERAGE"
+        //    }
+        //
         market = this.safeMarket(this.safeString(position, 'symbol'), market);
         const symbol = market['symbol'];
         const timestamp = this.safeNumber(position, 'createdTimestamp');
@@ -1904,6 +1948,7 @@ export default class currencycom extends Exchange {
         const marginCoeff = this.safeString(position, 'margin');
         const leverage = Precise.stringDiv('1', marginCoeff);
         return this.safePosition({
+            'info': position,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -1927,8 +1972,11 @@ export default class currencycom extends Exchange {
             'maintenanceMargin': this.parseNumber(marginCoeff),
             'maintenanceMarginPercentage': undefined,
             'marginRatio': undefined,
-            'info': position,
             'id': undefined,
+            'unrealizedPnl': undefined,
+            'hedged': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

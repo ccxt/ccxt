@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class probit extends \ccxt\async\probit {
 
@@ -55,13 +56,13 @@ class probit extends \ccxt\async\probit {
         ));
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://docs-en.probit.com/reference/balance-1
-             * @param {array} [$params] extra parameters specific to the probit api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->authenticate($params));
             $messageHash = 'balance';
@@ -78,12 +79,12 @@ class probit extends \ccxt\async\probit {
     public function handle_balance(Client $client, $message) {
         //
         //     {
-        //         channel => 'balance',
-        //         reset => false,
-        //         data => {
-        //             USDT => {
-        //                 available => '15',
-        //                 total => '15'
+        //         "channel" => "balance",
+        //         "reset" => false,
+        //         "data" => {
+        //             "USDT" => {
+        //                 "available" => "15",
+        //                 "total" => "15"
         //             }
         //         }
         //     }
@@ -96,12 +97,12 @@ class probit extends \ccxt\async\probit {
     public function parse_ws_balance($message) {
         //
         //     {
-        //         channel => 'balance',
-        //         $reset => false,
-        //         $data => {
-        //             USDT => {
-        //                 available => '15',
-        //                 total => '15'
+        //         "channel" => "balance",
+        //         "reset" => false,
+        //         "data" => {
+        //             "USDT" => {
+        //                 "available" => "15",
+        //                 "total" => "15"
         //             }
         //         }
         //     }
@@ -124,15 +125,15 @@ class probit extends \ccxt\async\probit {
         $this->balance = $this->safe_balance($this->balance);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @see https://docs-en.probit.com/reference/marketdata
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the probit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->interval] Unit time to synchronize market information (ms). Available units => 100, 500
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             $filter = null;
             list($filter, $params) = $this->handle_option_and_params($params, 'watchTicker', 'filter', 'ticker');
@@ -143,20 +144,20 @@ class probit extends \ccxt\async\probit {
     public function handle_ticker(Client $client, $message) {
         //
         //     {
-        //         channel => 'marketdata',
-        //         market_id => 'BTC-USDT',
-        //         status => 'ok',
-        //         lag => 0,
-        //         $ticker => array(
-        //             time => '2022-07-21T14:18:04.000Z',
-        //             last => '22591.3',
-        //             low => '22500.1',
-        //             high => '39790.7',
-        //             change => '-1224',
-        //             base_volume => '1002.32005445',
-        //             quote_volume => '23304489.385351021'
+        //         "channel" => "marketdata",
+        //         "market_id" => "BTC-USDT",
+        //         "status" => "ok",
+        //         "lag" => 0,
+        //         "ticker" => array(
+        //             "time" => "2022-07-21T14:18:04.000Z",
+        //             "last" => "22591.3",
+        //             "low" => "22500.1",
+        //             "high" => "39790.7",
+        //             "change" => "-1224",
+        //             "base_volume" => "1002.32005445",
+        //             "quote_volume" => "23304489.385351021"
         //         ),
-        //         reset => true
+        //         "reset" => true
         //     }
         //
         $marketId = $this->safe_string($message, 'market_id');
@@ -169,7 +170,7 @@ class probit extends \ccxt\async\probit {
         $client->resolve ($parsedTicker, $messageHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -177,9 +178,9 @@ class probit extends \ccxt\async\probit {
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the probit api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->interval] Unit time to synchronize market information (ms). Available units => 100, 500
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             $filter = null;
             list($filter, $params) = $this->handle_option_and_params($params, 'watchTrades', 'filter', 'recent_trades');
@@ -194,22 +195,22 @@ class probit extends \ccxt\async\probit {
     public function handle_trades(Client $client, $message) {
         //
         //     {
-        //         channel => 'marketdata',
-        //         market_id => 'BTC-USDT',
-        //         status => 'ok',
-        //         lag => 0,
-        //         recent_trades => array(
+        //         "channel" => "marketdata",
+        //         "market_id" => "BTC-USDT",
+        //         "status" => "ok",
+        //         "lag" => 0,
+        //         "recent_trades" => array(
         //             {
-        //                 id => 'BTC-USDT:8010233',
-        //                 price => '22701.4',
-        //                 quantity => '0.011011',
-        //                 time => '2022-07-21T13:40:40.983Z',
-        //                 side => 'buy',
-        //                 tick_direction => 'up'
+        //                 "id" => "BTC-USDT:8010233",
+        //                 "price" => "22701.4",
+        //                 "quantity" => "0.011011",
+        //                 "time" => "2022-07-21T13:40:40.983Z",
+        //                 "side" => "buy",
+        //                 "tick_direction" => "up"
         //             }
         //             ...
         //         )
-        //         $reset => true
+        //         "reset" => true
         //     }
         //
         $marketId = $this->safe_string($message, 'market_id');
@@ -233,15 +234,15 @@ class probit extends \ccxt\async\probit {
         $client->resolve ($this->trades[$symbol], $messageHash);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of $trades associated with the user
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the probit api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
@@ -269,25 +270,26 @@ class probit extends \ccxt\async\probit {
     public function handle_my_trades(Client $client, $message) {
         //
         //     {
-        //         channel => 'trade_history',
-        //         $reset => false,
-        //         data => [array(
-        //             id => 'BTC-USDT:8010722',
-        //             order_id => '4124999207',
-        //             side => 'buy',
-        //             fee_amount => '0.0134999868096',
-        //             fee_currency_id => 'USDT',
-        //             status => 'settled',
-        //             price => '23136.7',
-        //             quantity => '0.00032416',
-        //             cost => '7.499992672',
-        //             time => '2022-07-21T17:09:33.056Z',
-        //             market_id => 'BTC-USDT'
+        //         "channel" => "trade_history",
+        //         "reset" => false,
+        //         "data" => [array(
+        //             "id" => "BTC-USDT:8010722",
+        //             "order_id" => "4124999207",
+        //             "side" => "buy",
+        //             "fee_amount" => "0.0134999868096",
+        //             "fee_currency_id" => "USDT",
+        //             "status" => "settled",
+        //             "price" => "23136.7",
+        //             "quantity" => "0.00032416",
+        //             "cost" => "7.499992672",
+        //             "time" => "2022-07-21T17:09:33.056Z",
+        //             "market_id" => "BTC-USDT"
         //         )]
         //     }
         //
         $rawTrades = $this->safe_value($message, 'data', array());
-        if (strlen($rawTrades) === 0) {
+        $length = count($rawTrades);
+        if ($length === 0) {
             return;
         }
         $reset = $this->safe_value($message, 'reset', false);
@@ -314,7 +316,7 @@ class probit extends \ccxt\async\probit {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on an order made by the user
@@ -322,9 +324,9 @@ class probit extends \ccxt\async\probit {
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {int} [$since] timestamp in ms of the earliest order to watch
              * @param {int} [$limit] the maximum amount of $orders to watch
-             * @param {array} [$params] extra parameters specific to the aax api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->channel] choose what $channel to use. Can open_order or order_history.
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws'];
@@ -352,30 +354,31 @@ class probit extends \ccxt\async\probit {
     public function handle_orders(Client $client, $message) {
         //
         //     {
-        //         channel => 'order_history',
-        //         $reset => true,
-        //         data => [array(
-        //                 id => '4124999207',
-        //                 user_id => '633dc56a-621b-4680-8a4e-85a823499b6d',
-        //                 market_id => 'BTC-USDT',
-        //                 type => 'market',
-        //                 side => 'buy',
-        //                 limit_price => '0',
-        //                 time_in_force => 'ioc',
-        //                 filled_cost => '7.499992672',
-        //                 filled_quantity => '0.00032416',
-        //                 open_quantity => '0',
-        //                 status => 'filled',
-        //                 time => '2022-07-21T17:09:33.056Z',
-        //                 client_order_id => '',
-        //                 cost => '7.5'
+        //         "channel" => "order_history",
+        //         "reset" => true,
+        //         "data" => [array(
+        //                 "id" => "4124999207",
+        //                 "user_id" => "633dc56a-621b-4680-8a4e-85a823499b6d",
+        //                 "market_id" => "BTC-USDT",
+        //                 "type" => "market",
+        //                 "side" => "buy",
+        //                 "limit_price" => "0",
+        //                 "time_in_force" => "ioc",
+        //                 "filled_cost" => "7.499992672",
+        //                 "filled_quantity" => "0.00032416",
+        //                 "open_quantity" => "0",
+        //                 "status" => "filled",
+        //                 "time" => "2022-07-21T17:09:33.056Z",
+        //                 "client_order_id" => '',
+        //                 "cost" => "7.5"
         //             ),
         //             ...
         //         ]
         //     }
         //
         $rawOrders = $this->safe_value($message, 'data', array());
-        if (strlen($rawOrders) === 0) {
+        $length = count($rawOrders);
+        if ($length === 0) {
             return;
         }
         $messageHash = 'orders';
@@ -402,15 +405,15 @@ class probit extends \ccxt\async\probit {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://docs-en.probit.com/reference/marketdata
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the probit api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $filter = null;
             list($filter, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'filter', 'order_books');
@@ -456,15 +459,15 @@ class probit extends \ccxt\async\probit {
     public function handle_order_book(Client $client, $message, $orderBook) {
         //
         //     {
-        //         channel => 'marketdata',
-        //         market_id => 'BTC-USDT',
-        //         status => 'ok',
-        //         lag => 0,
-        //         order_books => array(
-        //           array( side => 'buy', price => '1420.7', quantity => '0.057' ),
+        //         "channel" => "marketdata",
+        //         "market_id" => "BTC-USDT",
+        //         "status" => "ok",
+        //         "lag" => 0,
+        //         "order_books" => array(
+        //           array( side => "buy", price => '1420.7', quantity => "0.057" ),
         //           ...
         //         ),
-        //         $reset => true
+        //         "reset" => true
         //     }
         //
         $marketId = $this->safe_string($message, 'market_id');
@@ -506,10 +509,10 @@ class probit extends \ccxt\async\probit {
     public function handle_error_message(Client $client, $message) {
         //
         //     {
-        //         errorCode => 'INVALID_ARGUMENT',
-        //         $message => '',
-        //         $details => {
-        //             interval => 'invalid'
+        //         "errorCode" => "INVALID_ARGUMENT",
+        //         "message" => '',
+        //         "details" => {
+        //             "interval" => "invalid"
         //         }
         //     }
         //
@@ -522,7 +525,7 @@ class probit extends \ccxt\async\probit {
 
     public function handle_authenticate(Client $client, $message) {
         //
-        //     array( type => 'authorization', $result => 'ok' )
+        //     array( type => "authorization", $result => "ok" )
         //
         $result = $this->safe_string($message, 'result');
         $future = $client->subscriptions['authenticated'];
@@ -540,11 +543,11 @@ class probit extends \ccxt\async\probit {
             $this->handle_ticker($client, $message);
         }
         $trades = $this->safe_value($message, 'recent_trades', array());
-        if (strlen($trades) > 0) {
+        if (strlen($trades)) {
             $this->handle_trades($client, $message);
         }
         $orderBook = $this->safe_value_n($message, array( 'order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4' ), array());
-        if (strlen($orderBook) > 0) {
+        if (strlen($orderBook)) {
             $this->handle_order_book($client, $message, $orderBook);
         }
     }
@@ -552,10 +555,10 @@ class probit extends \ccxt\async\probit {
     public function handle_message(Client $client, $message) {
         //
         //     {
-        //         $errorCode => 'INVALID_ARGUMENT',
-        //         $message => '',
-        //         details => {
-        //             interval => 'invalid'
+        //         "errorCode" => "INVALID_ARGUMENT",
+        //         "message" => '',
+        //         "details" => {
+        //             "interval" => "invalid"
         //         }
         //     }
         //
@@ -594,9 +597,9 @@ class probit extends \ccxt\async\probit {
                 $response = Async\await($this->signIn ());
                 //
                 //     {
-                //         access_token => '0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=',
-                //         token_type => 'bearer',
-                //         expires_in => 900
+                //         "access_token" => "0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=",
+                //         "token_type" => "bearer",
+                //         "expires_in" => 900
                 //     }
                 //
                 $accessToken = $this->safe_string($response, 'access_token');

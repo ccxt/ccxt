@@ -6,6 +6,7 @@ import {
     milliseconds,
 } from '../../base/functions.js';
 import WebSocket from 'ws';
+import { Future } from './Future.js';
 
 const WebSocketPlatform = isNode ? WebSocket : self.WebSocket;
 
@@ -59,8 +60,12 @@ export default class WsClient extends Client {
 
     close () {
         if (this.connection instanceof WebSocketPlatform) {
-            return this.connection.close ()
+            if (this.disconnected === undefined) {
+                this.disconnected = Future ();
+            }
+            this.connection.close ();
         }
+        return this.disconnected;
     }
 
 };

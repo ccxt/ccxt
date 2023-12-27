@@ -1,0 +1,208 @@
+{
+    "exchange": "exmo",
+    "skipKeys": [
+        "nonce"
+    ],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.exmo.com/v1.1/wallet_operations",
+                "input": [],
+                "output": "nonce=1699458294472&type=deposit"
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.exmo.com/v1.1/wallet_operations",
+                "input": [],
+                "output": "nonce=1699460471005&type=withdraw"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.exmo.com/v1.1/user_info",
+                "input": [],
+                "output": "nonce=1700154924505"
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "Fetch cancelled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.exmo.com/v1.1/user_cancelled_orders",
+                "input": [],
+                "output": "nonce=1700155071992&limit=100&offset=0"
+            }
+        ],
+        "fetchDeposit": [
+            {
+                "description": "Fetch deposit",
+                "method": "fetchDeposit",
+                "url": "https://api.exmo.com/v1.1/wallet_operations",
+                "input": [
+                    65221580
+                ],
+                "output": "nonce=1700155146392&order_id=65221580&type=deposit"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address of Tron",
+                "method": "fetchDepositAddress",
+                "url": "https://api.exmo.com/v1.1/deposit_address",
+                "input": [
+                    "BTC"
+                ],
+                "output": "nonce=1700155247019"
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "Fetch history of deposits and withdrawals of Tron",
+                "method": "fetchDepositsWithdrawals",
+                "url": "https://api.exmo.com/v1.1/wallet_history",
+                "input": [
+                    "BTC"
+                ],
+                "output": "nonce=1700155466968"
+            }
+        ],
+        "fetchWithdrawal": [
+            {
+                "description": "Fetch data on a currency withdrawal via the withdrawal id",
+                "method": "fetchWithdrawal",
+                "url": "https://api.exmo.com/v1.1/wallet_operations",
+                "input": [
+                    187435
+                ],
+                "output": "nonce=1700155560242&order_id=187435&type=withdraw"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.exmo.com/v1.1/user_open_orders",
+                "input": [],
+                "output": "nonce=1700155623591"
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my BTC/USDT trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.exmo.com/v1.1/user_trades",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": "nonce=1700155664178&pair=BTC_USDT&limit=100&offset=0"
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "Fetch trading fees - private",
+                "method": "fetchTradingFees",
+                "url": "https://api.exmo.com/v1.1/margin/pair/list",
+                "input": [],
+                "output": "nonce=1700155664178"
+            },
+            {
+                "description": "Fetch trading fees - public",
+                "method": "fetchTradingFees",
+                "url": "https://api.exmo.com/v1.1/pair_settings",
+                "input": [
+                    {
+                        "method": "fetchPublicTradingFees"
+                    }
+                ]
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "Add Margin",
+                "method": "addMargin",
+                "url": "https://api.exmo.com/v1.1/margin/user/position/margin_add",
+                "input": [
+                    "BTC/USDT",
+                    1
+                ],
+                "output": "nonce=1700155664178&position_id=BTC_USDT&quantity=1"
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "Reduce Margin",
+                "method": "reduceMargin",
+                "url": "https://api.exmo.com/v1.1/margin/user/position/margin_remove",
+                "input": [
+                    "BTC/USDT",
+                    1
+                ],
+                "output": "nonce=1700155664178&position_id=BTC_USDT&quantity=1"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Create Order - spot",
+                "method": "createOrder",
+                "url": "https://api.exmo.com/v1.1/order_create",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null
+                ],
+                "output": "nonce=1700155664178&pair=BTC_USDT&quantity=1&price=0&type=market_buy"
+            },
+            {
+                "description": "Create Order - spot & stop order",
+                "method": "createOrder",
+                "url": "https://api.exmo.com/v1.1/stop_market_order_create",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "triggerPrice": 1000
+                    }
+                ],
+                "output": "nonce=1700155664178&pair=BTC_USDT&quantity=1&type=buy&trigger_price=1000"
+            },
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.exmo.com/v1.1/order_create",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  50
+                ],
+                "output": "nonce=1701427482963&pair=LTC_USDT&quantity=0.1&price=50&type=buy"
+            },
+            {
+                "description": "Spot market sell",
+                "method": "createOrder",
+                "url": "https://api.exmo.com/v1.1/order_create",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0.1
+                ],
+                "output": "nonce=1701427519555&pair=LTC_USDT&quantity=0.1&price=0&type=market_sell"
+            }
+        ]
+    }
+}

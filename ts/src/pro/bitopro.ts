@@ -5,7 +5,7 @@ import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import { Int } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -53,14 +53,14 @@ export default class bitopro extends bitoproRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitopro#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the bitopro api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         if (limit !== undefined) {
@@ -85,21 +85,21 @@ export default class bitopro extends bitoproRest {
     handleOrderBook (client: Client, message) {
         //
         //     {
-        //         event: 'ORDER_BOOK',
-        //         timestamp: 1650121915308,
-        //         datetime: '2022-04-16T15:11:55.308Z',
-        //         pair: 'BTC_TWD',
-        //         limit: 5,
-        //         scale: 0,
-        //         bids: [
-        //             { price: '1188178', amount: '0.0425', count: 1, total: '0.0425' },
+        //         "event": "ORDER_BOOK",
+        //         "timestamp": 1650121915308,
+        //         "datetime": "2022-04-16T15:11:55.308Z",
+        //         "pair": "BTC_TWD",
+        //         "limit": 5,
+        //         "scale": 0,
+        //         "bids": [
+        //             { price: "1188178", amount: '0.0425', count: 1, total: "0.0425" },
         //         ],
-        //         asks: [
+        //         "asks": [
         //             {
-        //                 price: '1190740',
-        //                 amount: '0.40943964',
-        //                 count: 1,
-        //                 total: '0.40943964'
+        //                 "price": "1190740",
+        //                 "amount": "0.40943964",
+        //                 "count": 1,
+        //                 "total": "0.40943964"
         //             },
         //         ]
         //     }
@@ -119,7 +119,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitopro#watchTrades
@@ -127,8 +127,8 @@ export default class bitopro extends bitoproRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the bitopro api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -144,19 +144,19 @@ export default class bitopro extends bitoproRest {
     handleTrade (client: Client, message) {
         //
         //     {
-        //         event: 'TRADE',
-        //         timestamp: 1650116346665,
-        //         datetime: '2022-04-16T13:39:06.665Z',
-        //         pair: 'BTC_TWD',
-        //         data: [
+        //         "event": "TRADE",
+        //         "timestamp": 1650116346665,
+        //         "datetime": "2022-04-16T13:39:06.665Z",
+        //         "pair": "BTC_TWD",
+        //         "data": [
         //             {
-        //                 event: '',
-        //                 datetime: '',
-        //                 pair: '',
-        //                 timestamp: 1650116227,
-        //                 price: '1189429',
-        //                 amount: '0.0153127',
-        //                 isBuyer: true
+        //                 "event": '',
+        //                 "datetime": '',
+        //                 "pair": '',
+        //                 "timestamp": 1650116227,
+        //                 "price": "1189429",
+        //                 "amount": "0.0153127",
+        //                 "isBuyer": true
         //             },
         //         ]
         //     }
@@ -180,13 +180,13 @@ export default class bitopro extends bitoproRest {
         client.resolve (tradesCache, messageHash);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitopro#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the bitopro api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -199,20 +199,20 @@ export default class bitopro extends bitoproRest {
     handleTicker (client: Client, message) {
         //
         //     {
-        //         event: 'TICKER',
-        //         timestamp: 1650119165710,
-        //         datetime: '2022-04-16T14:26:05.710Z',
-        //         pair: 'BTC_TWD',
-        //         lastPrice: '1189110',
-        //         lastPriceUSD: '40919.1328',
-        //         lastPriceTWD: '1189110',
-        //         isBuyer: true,
-        //         priceChange24hr: '1.23',
-        //         volume24hr: '7.2090',
-        //         volume24hrUSD: '294985.5375',
-        //         volume24hrTWD: '8572279',
-        //         high24hr: '1193656',
-        //         low24hr: '1179321'
+        //         "event": "TICKER",
+        //         "timestamp": 1650119165710,
+        //         "datetime": "2022-04-16T14:26:05.710Z",
+        //         "pair": "BTC_TWD",
+        //         "lastPrice": "1189110",
+        //         "lastPriceUSD": "40919.1328",
+        //         "lastPriceTWD": "1189110",
+        //         "isBuyer": true,
+        //         "priceChange24hr": "1.23",
+        //         "volume24hr": "7.2090",
+        //         "volume24hrUSD": "294985.5375",
+        //         "volume24hrTWD": "8572279",
+        //         "high24hr": "1193656",
+        //         "low24hr": "1179321"
         //     }
         //
         const marketId = this.safeString (message, 'pair');
@@ -262,13 +262,13 @@ export default class bitopro extends bitoproRest {
         this.options['ws']['options']['headers'] = originalHeaders;
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitopro#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the bitopro api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
@@ -281,16 +281,16 @@ export default class bitopro extends bitoproRest {
     handleBalance (client: Client, message) {
         //
         //     {
-        //         event: 'ACCOUNT_BALANCE',
-        //         timestamp: 1650450505715,
-        //         datetime: '2022-04-20T10:28:25.715Z',
-        //         data: {
-        //           ADA: {
-        //             currency: 'ADA',
-        //             amount: '0',
-        //             available: '0',
-        //             stake: '0',
-        //             tradable: true
+        //         "event": "ACCOUNT_BALANCE",
+        //         "timestamp": 1650450505715,
+        //         "datetime": "2022-04-20T10:28:25.715Z",
+        //         "data": {
+        //           "ADA": {
+        //             "currency": "ADA",
+        //             "amount": "0",
+        //             "available": "0",
+        //             "stake": "0",
+        //             "tradable": true
         //           },
         //         }
         //     }

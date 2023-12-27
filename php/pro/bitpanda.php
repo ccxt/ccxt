@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitpanda extends \ccxt\async\bitpanda {
 
@@ -81,13 +82,13 @@ class bitpanda extends \ccxt\async\bitpanda {
         ));
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://developers.bitpanda.com/exchange/#account-history-channel
              * watch balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the bitpanda api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws'];
@@ -142,14 +143,14 @@ class bitpanda extends \ccxt\async\bitpanda {
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://developers.bitpanda.com/exchange/#$market-ticker-channel
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the bitpanda api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -165,18 +166,18 @@ class bitpanda extends \ccxt\async\bitpanda {
                     ),
                 ),
             );
-            return Async\await($this->watch_multiple($messageHash, $request, $subscriptionHash, array( $symbol ), $params));
+            return Async\await($this->watch_many($messageHash, $request, $subscriptionHash, array( $symbol ), $params));
         }) ();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
              * watches price $tickers, a statistical calculation with the information for all markets or those specified.
              * @param {string} $symbols unified $symbols of the markets to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the bitpanda api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -194,7 +195,7 @@ class bitpanda extends \ccxt\async\bitpanda {
                     ),
                 ),
             );
-            $tickers = Async\await($this->watch_multiple($messageHash, $request, $subscriptionHash, $symbols, $params));
+            $tickers = Async\await($this->watch_many($messageHash, $request, $subscriptionHash, $symbols, $params));
             return $this->filter_by_array($tickers, 'symbol', $symbols);
         }) ();
     }
@@ -202,18 +203,18 @@ class bitpanda extends \ccxt\async\bitpanda {
     public function handle_ticker(Client $client, $message) {
         //
         //     {
-        //         ticker_updates => [array(
-        //             instrument => 'ETH_BTC',
-        //             last_price => '0.053752',
-        //             price_change => '0.000623',
-        //             price_change_percentage => '1.17',
-        //             high => '0.055',
-        //             low => '0.052662',
-        //             volume => '6.3821593247'
+        //         "ticker_updates" => [array(
+        //             "instrument" => "ETH_BTC",
+        //             "last_price" => "0.053752",
+        //             "price_change" => "0.000623",
+        //             "price_change_percentage" => "1.17",
+        //             "high" => "0.055",
+        //             "low" => "0.052662",
+        //             "volume" => "6.3821593247"
         //         )],
-        //         channel_name => 'MARKET_TICKER',
-        //         type => 'MARKET_TICKER_UPDATES',
-        //         time => '2022-06-23T16:41:00.004162Z'
+        //         "channel_name" => "MARKET_TICKER",
+        //         "type" => "MARKET_TICKER_UPDATES",
+        //         "time" => "2022-06-23T16:41:00.004162Z"
         //     }
         //
         $tickers = $this->safe_value($message, 'ticker_updates', array());
@@ -234,13 +235,13 @@ class bitpanda extends \ccxt\async\bitpanda {
     public function parse_ws_ticker($ticker, $market = null) {
         //
         //     {
-        //         instrument => 'ETH_BTC',
-        //         last_price => '0.053752',
-        //         price_change => '-0.000623',
-        //         price_change_percentage => '-1.17',
-        //         high => '0.055',
-        //         low => '0.052662',
-        //         volume => '6.3821593247'
+        //         "instrument" => "ETH_BTC",
+        //         "last_price" => "0.053752",
+        //         "price_change" => "-0.000623",
+        //         "price_change_percentage" => "-1.17",
+        //         "high" => "0.055",
+        //         "low" => "0.052662",
+        //         "volume" => "6.3821593247"
         //     }
         //
         $marketId = $this->safe_string($ticker, 'instrument');
@@ -268,7 +269,7 @@ class bitpanda extends \ccxt\async\bitpanda {
         ), $market);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://developers.bitpanda.com/exchange/#account-history-channel
@@ -276,8 +277,8 @@ class bitpanda extends \ccxt\async\bitpanda {
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for. Use 'any' to watch all $trades
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the bitpanda api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'myTrades';
@@ -313,15 +314,15 @@ class bitpanda extends \ccxt\async\bitpanda {
         }) ();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://developers.bitpanda.com/exchange/#$market-ticker-channel
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the bitpanda api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -341,7 +342,7 @@ class bitpanda extends \ccxt\async\bitpanda {
                     ),
                 ),
             );
-            $orderbook = Async\await($this->watch_multiple($messageHash, $request, $subscriptionHash, array( $symbol ), $params));
+            $orderbook = Async\await($this->watch_many($messageHash, $request, $subscriptionHash, array( $symbol ), $params));
             return $orderbook->limit ();
         }) ();
     }
@@ -350,29 +351,29 @@ class bitpanda extends \ccxt\async\bitpanda {
         //
         //  $snapshot
         //     {
-        //         instrument_code => 'ETH_BTC',
-        //         bids => [
-        //             ['0.053595', '4.5352'],
+        //         "instrument_code" => "ETH_BTC",
+        //         "bids" => [
+        //             ['0.053595', "4.5352"],
         //             ...
         //         ],
-        //         asks => [
-        //             ['0.055455', '0.2821'],
+        //         "asks" => [
+        //             ['0.055455', "0.2821"],
         //             ...
         //         ],
-        //         channel_name => 'ORDER_BOOK',
-        //         $type => 'ORDER_BOOK_SNAPSHOT',
-        //         time => '2022-06-23T15:38:02.196282Z'
+        //         "channel_name" => "ORDER_BOOK",
+        //         "type" => "ORDER_BOOK_SNAPSHOT",
+        //         "time" => "2022-06-23T15:38:02.196282Z"
         //     }
         //
         //  update
         //     {
-        //         instrument_code => 'ETH_BTC',
-        //         $changes => [
-        //             ['BUY', '0.053593', '8.0587']
+        //         "instrument_code" => "ETH_BTC",
+        //         "changes" => [
+        //             ["BUY", '0.053593', "8.0587"]
         //         ],
-        //         channel_name => 'ORDER_BOOK',
-        //         $type => 'ORDER_BOOK_UPDATE',
-        //         time => '2022-06-23T15:38:02.751301Z'
+        //         "channel_name" => "ORDER_BOOK",
+        //         "type" => "ORDER_BOOK_UPDATE",
+        //         "time" => "2022-06-23T15:38:02.751301Z"
         //     }
         //
         $type = $this->safe_string($message, 'type');
@@ -403,7 +404,7 @@ class bitpanda extends \ccxt\async\bitpanda {
 
     public function handle_delta($orderbook, $delta) {
         //
-        //   array( 'BUY', '0.053595', '0' )
+        //   array( 'BUY', "0.053595", "0" )
         //
         $bidAsk = $this->parse_bid_ask($delta, 1, 2);
         $type = $this->safe_string($delta, 0);
@@ -421,8 +422,8 @@ class bitpanda extends \ccxt\async\bitpanda {
     public function handle_deltas($orderbook, $deltas) {
         //
         //    array(
-        //       array( 'BUY', '0.053593', '0' ),
-        //       array( 'SELL', '0.053698', '0' )
+        //       array( 'BUY', "0.053593", "0" ),
+        //       array( 'SELL', "0.053698", "0" )
         //    )
         //
         for ($i = 0; $i < count($deltas); $i++) {
@@ -430,17 +431,17 @@ class bitpanda extends \ccxt\async\bitpanda {
         }
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://developers.bitpanda.com/exchange/#account-history-channel
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitpanda api endpoint
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->channel] can listen to $orders using ACCOUNT_HISTORY or TRADING
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'orders';
@@ -479,46 +480,46 @@ class bitpanda extends \ccxt\async\bitpanda {
     public function handle_trading(Client $client, $message) {
         //
         //     {
-        //         order_book_sequence => 892925263,
-        //         side => 'BUY',
-        //         amount => '0.00046',
-        //         trade_id => 'd67b9b69-ab76-480f-9ba3-b33582202836',
-        //         matched_as => 'TAKER',
-        //         matched_amount => '0.00046',
-        //         matched_price => '22231.08',
-        //         instrument_code => 'BTC_EUR',
-        //         order_id => '7b39f316-0a71-4bfd-adda-3062e6f0bd37',
-        //         remaining => '0.0',
-        //         channel_name => 'TRADING',
-        //         type => 'FILL',
-        //         time => '2022-07-21T12:41:22.883341Z'
+        //         "order_book_sequence" => 892925263,
+        //         "side" => "BUY",
+        //         "amount" => "0.00046",
+        //         "trade_id" => "d67b9b69-ab76-480f-9ba3-b33582202836",
+        //         "matched_as" => "TAKER",
+        //         "matched_amount" => "0.00046",
+        //         "matched_price" => "22231.08",
+        //         "instrument_code" => "BTC_EUR",
+        //         "order_id" => "7b39f316-0a71-4bfd-adda-3062e6f0bd37",
+        //         "remaining" => "0.0",
+        //         "channel_name" => "TRADING",
+        //         "type" => "FILL",
+        //         "time" => "2022-07-21T12:41:22.883341Z"
         //     }
         //
         //     {
-        //         status => 'CANCELLED',
-        //         order_book_sequence => 892928424,
-        //         amount => '0.0003',
-        //         side => 'SELL',
-        //         price => '50338.65',
-        //         instrument_code => 'BTC_EUR',
-        //         order_id => 'b3994a08-a9e8-4a79-a08b-33e3480382df',
-        //         remaining => '0.0003',
-        //         channel_name => 'TRADING',
-        //         type => 'DONE',
-        //         time => '2022-07-21T12:44:24.267000Z'
+        //         "status" => "CANCELLED",
+        //         "order_book_sequence" => 892928424,
+        //         "amount" => "0.0003",
+        //         "side" => "SELL",
+        //         "price" => "50338.65",
+        //         "instrument_code" => "BTC_EUR",
+        //         "order_id" => "b3994a08-a9e8-4a79-a08b-33e3480382df",
+        //         "remaining" => "0.0003",
+        //         "channel_name" => "TRADING",
+        //         "type" => "DONE",
+        //         "time" => "2022-07-21T12:44:24.267000Z"
         //     }
         //
         //     {
-        //         order_book_sequence => 892934476,
-        //         side => 'SELL',
-        //         amount => '0.00051',
-        //         price => '22349.02',
-        //         instrument_code => 'BTC_EUR',
-        //         order_id => '1c6c585c-ec3d-4b94-9292-6c3d04a31dc8',
-        //         remaining => '0.00051',
-        //         channel_name => 'TRADING',
-        //         type => 'BOOKED',
-        //         time => '2022-07-21T12:50:10.093000Z'
+        //         "order_book_sequence" => 892934476,
+        //         "side" => "SELL",
+        //         "amount" => "0.00051",
+        //         "price" => "22349.02",
+        //         "instrument_code" => "BTC_EUR",
+        //         "order_id" => "1c6c585c-ec3d-4b94-9292-6c3d04a31dc8",
+        //         "remaining" => "0.00051",
+        //         "channel_name" => "TRADING",
+        //         "type" => "BOOKED",
+        //         "time" => "2022-07-21T12:50:10.093000Z"
         //     }
         //
         if ($this->orders === null) {
@@ -535,46 +536,46 @@ class bitpanda extends \ccxt\async\bitpanda {
     public function parse_trading_order($order, $market = null) {
         //
         //     {
-        //         order_book_sequence => 892925263,
-        //         side => 'BUY',
-        //         amount => '0.00046',
-        //         trade_id => 'd67b9b69-ab76-480f-9ba3-b33582202836',
-        //         matched_as => 'TAKER',
-        //         matched_amount => '0.00046',
-        //         matched_price => '22231.08',
-        //         instrument_code => 'BTC_EUR',
-        //         order_id => '7b39f316-0a71-4bfd-adda-3062e6f0bd37',
-        //         remaining => '0.0',
-        //         channel_name => 'TRADING',
-        //         type => 'FILL',
-        //         time => '2022-07-21T12:41:22.883341Z'
+        //         "order_book_sequence" => 892925263,
+        //         "side" => "BUY",
+        //         "amount" => "0.00046",
+        //         "trade_id" => "d67b9b69-ab76-480f-9ba3-b33582202836",
+        //         "matched_as" => "TAKER",
+        //         "matched_amount" => "0.00046",
+        //         "matched_price" => "22231.08",
+        //         "instrument_code" => "BTC_EUR",
+        //         "order_id" => "7b39f316-0a71-4bfd-adda-3062e6f0bd37",
+        //         "remaining" => "0.0",
+        //         "channel_name" => "TRADING",
+        //         "type" => "FILL",
+        //         "time" => "2022-07-21T12:41:22.883341Z"
         //     }
         //
         //     {
-        //         status => 'CANCELLED',
-        //         order_book_sequence => 892928424,
-        //         amount => '0.0003',
-        //         side => 'SELL',
-        //         price => '50338.65',
-        //         instrument_code => 'BTC_EUR',
-        //         order_id => 'b3994a08-a9e8-4a79-a08b-33e3480382df',
-        //         remaining => '0.0003',
-        //         channel_name => 'TRADING',
-        //         type => 'DONE',
-        //         time => '2022-07-21T12:44:24.267000Z'
+        //         "status" => "CANCELLED",
+        //         "order_book_sequence" => 892928424,
+        //         "amount" => "0.0003",
+        //         "side" => "SELL",
+        //         "price" => "50338.65",
+        //         "instrument_code" => "BTC_EUR",
+        //         "order_id" => "b3994a08-a9e8-4a79-a08b-33e3480382df",
+        //         "remaining" => "0.0003",
+        //         "channel_name" => "TRADING",
+        //         "type" => "DONE",
+        //         "time" => "2022-07-21T12:44:24.267000Z"
         //     }
         //
         //     {
-        //         order_book_sequence => 892934476,
-        //         side => 'SELL',
-        //         amount => '0.00051',
-        //         price => '22349.02',
-        //         instrument_code => 'BTC_EUR',
-        //         order_id => '1c6c585c-ec3d-4b94-9292-6c3d04a31dc8',
-        //         remaining => '0.00051',
-        //         channel_name => 'TRADING',
-        //         type => 'BOOKED',
-        //         time => '2022-07-21T12:50:10.093000Z'
+        //         "order_book_sequence" => 892934476,
+        //         "side" => "SELL",
+        //         "amount" => "0.00051",
+        //         "price" => "22349.02",
+        //         "instrument_code" => "BTC_EUR",
+        //         "order_id" => "1c6c585c-ec3d-4b94-9292-6c3d04a31dc8",
+        //         "remaining" => "0.00051",
+        //         "channel_name" => "TRADING",
+        //         "type" => "BOOKED",
+        //         "time" => "2022-07-21T12:50:10.093000Z"
         //     }
         //
         //     {
@@ -749,48 +750,48 @@ class bitpanda extends \ccxt\async\bitpanda {
         //
         // order created
         //     {
-        //         account_id => '49302c1a-48dc-423e-b336-bb65baccc7bd',
-        //         sequence => 7658332018,
-        //         $update => array(
-        //             type => 'ORDER_CREATED',
-        //             activity => 'TRADING',
-        //             account_holder => '43202c1a-48dc-423e-b336-bb65baccc7bd',
-        //             account_id => '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        //             order_id => '8893fd69-5ebd-496b-aaa4-269b4c18aa77',
-        //             time => '2022-06-29T04:33:29.661257Z',
-        //             order => array(
-        //                 time_in_force => 'GOOD_TILL_CANCELLED',
-        //                 is_post_only => false,
-        //                 order_id => '8892fd69-5ebd-496b-aaa4-269b4c18aa77',
-        //                 account_holder => '43202c1a-48dc-423e-b336-bb65baccc7bd',
-        //                 account_id => '49302c1a-48dc-423e-b336-bb65baccc7bd',
-        //                 instrument_code => 'BTC_EUR',
-        //                 time => '2022-06-29T04:33:29.656896Z',
-        //                 side => 'SELL',
-        //                 price => '50338.65',
-        //                 amount => '0.00021',
-        //                 filled_amount => '0.0',
-        //                 type => 'LIMIT'
+        //         "account_id" => "49302c1a-48dc-423e-b336-bb65baccc7bd",
+        //         "sequence" => 7658332018,
+        //         "update" => array(
+        //             "type" => "ORDER_CREATED",
+        //             "activity" => "TRADING",
+        //             "account_holder" => "43202c1a-48dc-423e-b336-bb65baccc7bd",
+        //             "account_id" => "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        //             "order_id" => "8893fd69-5ebd-496b-aaa4-269b4c18aa77",
+        //             "time" => "2022-06-29T04:33:29.661257Z",
+        //             "order" => array(
+        //                 "time_in_force" => "GOOD_TILL_CANCELLED",
+        //                 "is_post_only" => false,
+        //                 "order_id" => "8892fd69-5ebd-496b-aaa4-269b4c18aa77",
+        //                 "account_holder" => "43202c1a-48dc-423e-b336-bb65baccc7bd",
+        //                 "account_id" => "49302c1a-48dc-423e-b336-bb65baccc7bd",
+        //                 "instrument_code" => "BTC_EUR",
+        //                 "time" => "2022-06-29T04:33:29.656896Z",
+        //                 "side" => "SELL",
+        //                 "price" => "50338.65",
+        //                 "amount" => "0.00021",
+        //                 "filled_amount" => "0.0",
+        //                 "type" => "LIMIT"
         //             ),
-        //             locked => array(
-        //                 currency_code => 'BTC',
-        //                 amount => '0.00021',
-        //                 new_available => '0.00017',
-        //                 new_locked => '0.00021'
+        //             "locked" => array(
+        //                 "currency_code" => "BTC",
+        //                 "amount" => "0.00021",
+        //                 "new_available" => "0.00017",
+        //                 "new_locked" => "0.00021"
         //             ),
-        //             id => '26e9c36a-b231-4bb0-a686-aa915a2fc9e6',
-        //             sequence => 7658332018
+        //             "id" => "26e9c36a-b231-4bb0-a686-aa915a2fc9e6",
+        //             "sequence" => 7658332018
         //         ),
-        //         channel_name => 'ACCOUNT_HISTORY',
-        //         type => 'ACCOUNT_UPDATE',
-        //         time => '2022-06-29T04:33:29.684517Z'
+        //         "channel_name" => "ACCOUNT_HISTORY",
+        //         "type" => "ACCOUNT_UPDATE",
+        //         "time" => "2022-06-29T04:33:29.684517Z"
         //     }
         //
         //  order rejected
         //     {
-        //         account_id => '49302c1a-48dc-423e-b336-bb65baccc7bd',
-        //         sequence => 7658332018,
-        //         $update => {
+        //         "account_id" => "49302c1a-48dc-423e-b336-bb65baccc7bd",
+        //         "sequence" => 7658332018,
+        //         "update" => {
         //             "id" => "d3fe6025-5b27-4df6-a957-98b8d131cb9d",
         //             "type" => "ORDER_REJECTED",
         //             "activity" => "TRADING",
@@ -811,99 +812,99 @@ class bitpanda extends \ccxt\async\bitpanda {
         //
         //  order closed
         //     {
-        //         account_id => '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        //         sequence => 7658471216,
-        //         $update => array(
-        //             type => 'ORDER_CLOSED',
-        //             activity => 'TRADING',
-        //             account_holder => '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        //             account_id => '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        //             time => '2022-06-29T04:43:57.169616Z',
-        //             order_id => '8892fd69-5ebd-496b-aaa4-269b4c18aa77',
-        //             unlocked => array(
-        //                 currency_code => 'BTC',
-        //                 amount => '0.00021',
-        //                 new_available => '0.00038',
-        //                 new_locked => '0.0'
+        //         "account_id" => "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        //         "sequence" => 7658471216,
+        //         "update" => array(
+        //             "type" => "ORDER_CLOSED",
+        //             "activity" => "TRADING",
+        //             "account_holder" => "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        //             "account_id" => "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        //             "time" => "2022-06-29T04:43:57.169616Z",
+        //             "order_id" => "8892fd69-5ebd-496b-aaa4-269b4c18aa77",
+        //             "unlocked" => array(
+        //                 "currency_code" => "BTC",
+        //                 "amount" => "0.00021",
+        //                 "new_available" => "0.00038",
+        //                 "new_locked" => "0.0"
         //             ),
-        //             order_book_sequence => 867964191,
-        //             id => '26c5e1d7-65ba-4a11-a661-14c0130ff484',
-        //             sequence => 7658471216
+        //             "order_book_sequence" => 867964191,
+        //             "id" => "26c5e1d7-65ba-4a11-a661-14c0130ff484",
+        //             "sequence" => 7658471216
         //         ),
-        //         channel_name => 'ACCOUNT_HISTORY',
-        //         type => 'ACCOUNT_UPDATE',
-        //         time => '2022-06-29T04:43:57.182153Z'
+        //         "channel_name" => "ACCOUNT_HISTORY",
+        //         "type" => "ACCOUNT_UPDATE",
+        //         "time" => "2022-06-29T04:43:57.182153Z"
         //     }
         //
         //  trade settled
         //     {
-        //         account_id => '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        //         sequence => 7658502878,
-        //         $update => array(
-        //             type => 'TRADE_SETTLED',
-        //             activity => 'TRADING',
-        //             account_holder => '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        //             account_id => '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        //             time => '2022-06-29T04:46:12.933091Z',
-        //             order_id => 'ad19951a-b616-401d-a062-8d0609f038a4',
-        //             order_book_sequence => 867965579,
-        //             filled_amount => '0.00052',
-        //             order => array(
-        //                 amount => '0.00052',
-        //                 filled_amount => '0.00052'
+        //         "account_id" => "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        //         "sequence" => 7658502878,
+        //         "update" => array(
+        //             "type" => "TRADE_SETTLED",
+        //             "activity" => "TRADING",
+        //             "account_holder" => "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        //             "account_id" => "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        //             "time" => "2022-06-29T04:46:12.933091Z",
+        //             "order_id" => "ad19951a-b616-401d-a062-8d0609f038a4",
+        //             "order_book_sequence" => 867965579,
+        //             "filled_amount" => "0.00052",
+        //             "order" => array(
+        //                 "amount" => "0.00052",
+        //                 "filled_amount" => "0.00052"
         //             ),
-        //             trade => array(
-        //                 trade_id => '21039eb9-2df0-4227-be2d-0ea9b691ac66',
-        //                 order_id => 'ad19951a-b616-401d-a062-8d0609f038a4',
-        //                 account_holder => '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        //                 account_id => '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        //                 amount => '0.00052',
-        //                 side => 'BUY',
-        //                 instrument_code => 'BTC_EUR',
-        //                 price => '19309.29',
-        //                 time => '2022-06-29T04:46:12.870581Z',
-        //                 price_tick_sequence => 0
+        //             "trade" => array(
+        //                 "trade_id" => "21039eb9-2df0-4227-be2d-0ea9b691ac66",
+        //                 "order_id" => "ad19951a-b616-401d-a062-8d0609f038a4",
+        //                 "account_holder" => "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        //                 "account_id" => "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        //                 "amount" => "0.00052",
+        //                 "side" => "BUY",
+        //                 "instrument_code" => "BTC_EUR",
+        //                 "price" => "19309.29",
+        //                 "time" => "2022-06-29T04:46:12.870581Z",
+        //                 "price_tick_sequence" => 0
         //             ),
-        //             fee => array(
-        //                 fee_amount => '0.00000078',
-        //                 fee_currency => 'BTC',
-        //                 fee_percentage => '0.15',
-        //                 fee_group_id => 'default',
-        //                 fee_type => 'TAKER',
-        //                 running_trading_volume => '0.00052',
-        //                 collection_type => 'STANDARD'
+        //             "fee" => array(
+        //                 "fee_amount" => "0.00000078",
+        //                 "fee_currency" => "BTC",
+        //                 "fee_percentage" => "0.15",
+        //                 "fee_group_id" => "default",
+        //                 "fee_type" => "TAKER",
+        //                 "running_trading_volume" => "0.00052",
+        //                 "collection_type" => "STANDARD"
         //             ),
-        //             spent => array(
-        //                 currency_code => 'EUR',
-        //                 amount => '10.0408308',
-        //                 new_available => '0.0',
-        //                 new_locked => '0.15949533'
+        //             "spent" => array(
+        //                 "currency_code" => "EUR",
+        //                 "amount" => "10.0408308",
+        //                 "new_available" => "0.0",
+        //                 "new_locked" => "0.15949533"
         //             ),
-        //             credited => array(
-        //                 currency_code => 'BTC',
-        //                 amount => '0.00051922',
-        //                 new_available => '0.00089922',
-        //                 new_locked => '0.0'
+        //             "credited" => array(
+        //                 "currency_code" => "BTC",
+        //                 "amount" => "0.00051922",
+        //                 "new_available" => "0.00089922",
+        //                 "new_locked" => "0.0"
         //             ),
-        //             unlocked => array(
-        //                 currency_code => 'EUR',
-        //                 amount => '0.0',
-        //                 new_available => '0.0',
-        //                 new_locked => '0.15949533'
+        //             "unlocked" => array(
+        //                 "currency_code" => "EUR",
+        //                 "amount" => "0.0",
+        //                 "new_available" => "0.0",
+        //                 "new_locked" => "0.15949533"
         //             ),
-        //             id => '22b40199-2508-4176-8a14-d4785c933444',
-        //             sequence => 7658502878
+        //             "id" => "22b40199-2508-4176-8a14-d4785c933444",
+        //             "sequence" => 7658502878
         //         ),
-        //         channel_name => 'ACCOUNT_HISTORY',
-        //         type => 'ACCOUNT_UPDATE',
-        //         time => '2022-06-29T04:46:12.941837Z'
+        //         "channel_name" => "ACCOUNT_HISTORY",
+        //         "type" => "ACCOUNT_UPDATE",
+        //         "time" => "2022-06-29T04:46:12.941837Z"
         //     }
         //
         //  Trade Settled with BEST fee collection enabled
         //     {
-        //         account_id => '49302c1a-48dc-423e-b336-bb65baccc7bd',
-        //         sequence => 7658951984,
-        //         $update => {
+        //         "account_id" => "49302c1a-48dc-423e-b336-bb65baccc7bd",
+        //         "sequence" => 7658951984,
+        //         "update" => {
         //             "id" => "70e00504-d892-456f-9aae-4da7acb36aac",
         //             "sequence" => 361792,
         //             "order_book_sequence" => 123456,
@@ -962,9 +963,9 @@ class bitpanda extends \ccxt\async\bitpanda {
         //                 "new_locked" => "2354.882"
         //             }
         //         }
-        //         channel_name => 'ACCOUNT_HISTORY',
-        //         type => 'ACCOUNT_UPDATE',
-        //         time => '2022-06-29T05:18:51.760338Z'
+        //         "channel_name" => "ACCOUNT_HISTORY",
+        //         "type" => "ACCOUNT_UPDATE",
+        //         "time" => "2022-06-29T05:18:51.760338Z"
         //     }
         //
         if ($this->orders === null) {
@@ -1035,10 +1036,10 @@ class bitpanda extends \ccxt\async\bitpanda {
     public function update_balance($balance) {
         //
         //     {
-        //         currency_code => 'EUR',
-        //         amount => '0.0',
-        //         new_available => '0.0',
-        //         new_locked => '0.15949533'
+        //         "currency_code" => "EUR",
+        //         "amount" => "0.0",
+        //         "new_available" => "0.0",
+        //         "new_locked" => "0.15949533"
         //     }
         //
         $currencyId = $this->safe_string($balance, 'currency_code');
@@ -1050,7 +1051,7 @@ class bitpanda extends \ccxt\async\bitpanda {
         $this->balance = $this->safe_balance($this->balance);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://developers.bitpanda.com/exchange/#candlesticks-channel
@@ -1059,7 +1060,7 @@ class bitpanda extends \ccxt\async\bitpanda {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the bitpanda api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -1129,17 +1130,17 @@ class bitpanda extends \ccxt\async\bitpanda {
         //
         //  snapshot
         //     {
-        //         instrument_code => 'BTC_EUR',
-        //         granularity => array( unit => 'MONTHS', period => 1 ),
-        //         high => '29750.81',
-        //         low => '16764.59',
-        //         open => '29556.02',
-        //         close => '20164.55',
-        //         volume => '107518944.610659',
-        //         last_sequence => 2275507,
-        //         channel_name => 'CANDLESTICKS',
-        //         type => 'CANDLESTICK_SNAPSHOT',
-        //         time => '2022-06-30T23:59:59.999000Z'
+        //         "instrument_code" => "BTC_EUR",
+        //         "granularity" => array( unit => "MONTHS", period => 1 ),
+        //         "high" => "29750.81",
+        //         "low" => "16764.59",
+        //         "open" => "29556.02",
+        //         "close" => "20164.55",
+        //         "volume" => "107518944.610659",
+        //         "last_sequence" => 2275507,
+        //         "channel_name" => "CANDLESTICKS",
+        //         "type" => "CANDLESTICK_SNAPSHOT",
+        //         "time" => "2022-06-30T23:59:59.999000Z"
         //     }
         //
         //  update
@@ -1201,13 +1202,13 @@ class bitpanda extends \ccxt\async\bitpanda {
     public function handle_subscriptions(Client $client, $message) {
         //
         //     {
-        //         channels => [array(
-        //             instrument_codes => [Array],
-        //             depth => 0,
-        //             name => 'ORDER_BOOK'
+        //         "channels" => [array(
+        //             "instrument_codes" => [Array],
+        //             "depth" => 0,
+        //             "name" => "ORDER_BOOK"
         //         )],
-        //         type => 'SUBSCRIPTIONS',
-        //         time => '2022-06-23T15:36:26.948282Z'
+        //         "type" => "SUBSCRIPTIONS",
+        //         "time" => "2022-06-23T15:36:26.948282Z"
         //     }
         //
         return $message;
@@ -1216,10 +1217,10 @@ class bitpanda extends \ccxt\async\bitpanda {
     public function handle_heartbeat(Client $client, $message) {
         //
         //     {
-        //         subscription => 'SYSTEM',
-        //         channel_name => 'SYSTEM',
-        //         type => 'HEARTBEAT',
-        //         time => '2022-06-23T16:31:49.170224Z'
+        //         "subscription" => "SYSTEM",
+        //         "channel_name" => "SYSTEM",
+        //         "type" => "HEARTBEAT",
+        //         "time" => "2022-06-23T16:31:49.170224Z"
         //     }
         //
         return $message;
@@ -1228,10 +1229,10 @@ class bitpanda extends \ccxt\async\bitpanda {
     public function handle_error_message(Client $client, $message) {
         //
         //     {
-        //         error => 'MALFORMED_JSON',
-        //         channel_name => 'SYSTEM',
-        //         type => 'ERROR',
-        //         time => '2022-06-23T15:38:25.470391Z'
+        //         "error" => "MALFORMED_JSON",
+        //         "channel_name" => "SYSTEM",
+        //         "type" => "ERROR",
+        //         "time" => "2022-06-23T15:38:25.470391Z"
         //     }
         //
         throw new ExchangeError($this->id . ' ' . $this->json($message));
@@ -1301,9 +1302,9 @@ class bitpanda extends \ccxt\async\bitpanda {
     public function handle_authentication_message(Client $client, $message) {
         //
         //    {
-        //        channel_name => 'SYSTEM',
-        //        type => 'AUTHENTICATED',
-        //        time => '2022-06-24T20:45:25.447488Z'
+        //        "channel_name" => "SYSTEM",
+        //        "type" => "AUTHENTICATED",
+        //        "time" => "2022-06-24T20:45:25.447488Z"
         //    }
         //
         $future = $this->safe_value($client->futures, 'authenticated');
@@ -1313,7 +1314,7 @@ class bitpanda extends \ccxt\async\bitpanda {
         return $message;
     }
 
-    public function watch_multiple($messageHash, $request, $subscriptionHash, array $symbols = [], $params = array ()) {
+    public function watch_many($messageHash, $request, $subscriptionHash, ?array $symbols = [], $params = array ()) {
         return Async\async(function () use ($messageHash, $request, $subscriptionHash, $symbols, $params) {
             $marketIds = array();
             $numSymbols = count($symbols);
