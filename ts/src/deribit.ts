@@ -2666,7 +2666,12 @@ export default class deribit extends Exchange {
             const transferOptions = this.safeValue (this.options, 'transfer', {});
             method = this.safeString (transferOptions, 'method', 'privateGetSubmitTransferToSubaccount');
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'privateGetSubmitTransferToUser') {
+            response = await this.privateGetSubmitTransferToUser (this.extend (request, params));
+        } else {
+            response = await this.privateGetSubmitTransferToSubaccount (this.extend (request, params));
+        }
         //
         //     {
         //         "jsonrpc": "2.0",
