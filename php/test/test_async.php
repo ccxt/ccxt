@@ -1653,4 +1653,6 @@ class testMainClass extends baseMainTestClass {
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
 $promise = (new testMainClass())->init($exchangeId, $exchangeSymbol);
-Async\await($promise);
+if (!is_synchronous) {
+    Async\await($promise);
+}
