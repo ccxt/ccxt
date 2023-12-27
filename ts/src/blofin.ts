@@ -542,15 +542,6 @@ export default class blofin extends Exchange {
         });
     }
 
-    async fetchMarketsByType (type, params = {}) {
-        const request = {
-            'instType': this.convertToInstrumentType (type),
-        };
-        const response = await this.publicGetMarketInstruments (this.extend (request, params));
-        const data = this.safeValue (response, 'data', []);
-        return this.parseMarkets (data);
-    }
-
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
@@ -751,16 +742,13 @@ export default class blofin extends Exchange {
         //         "0" // candlestick state
         //     ]
         //
-        const res = this.handleMarketTypeAndParams ('fetchOHLCV', market, undefined);
-        const type = res[0];
-        const volumeIndex = (type === 'spot') ? 5 : 6;
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
             this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 3),
             this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, volumeIndex),
+            this.safeNumber (ohlcv, 6),
         ];
     }
 
@@ -775,7 +763,6 @@ export default class blofin extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.price] "mark" or "index" for mark price and index price candles
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -785,32 +772,16 @@ export default class blofin extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 200) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 100) as OHLCV[];
         }
-        params = this.omit (params, 'price');
-        const options = this.safeValue (this.options, 'fetchOHLCV', {});
-        const timezone = this.safeString (options, 'timezone', 'UTC');
         if (limit === undefined) {
             limit = 100; // default 100, max 100
         }
-        const duration = this.parseTimeframe (timeframe);
-        let bar = this.safeString (this.timeframes, timeframe, timeframe);
-        if ((timezone === 'UTC') && (duration >= 21600)) { // if utc and timeframe >= 6h
-            bar += timezone.toLowerCase ();
-        }
         const request = {
             'instId': market['id'],
-            'bar': bar,
+            'bar': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limit,
         };
-        if (since !== undefined) {
-            const durationInMilliseconds = duration * 1000;
-            // if the since timestamp is more than limit candles back in the past
-            // additional one bar for max offset to round the current day to UTC
-            const startTime = Math.max (since - 1, 0);
-            request['before'] = startTime;
-            request['after'] = this.sum (startTime, durationInMilliseconds * limit);
-        }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             request['after'] = until;
@@ -2108,6 +2079,25 @@ export default class blofin extends Exchange {
         }
         const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined; // fallback to default error handler
+        }
+        //
+        // {"code":"152002","msg":"Parameter bar error."}
+        //
+        const code = this.safeString (response, 'code');
+        const message = this.safeString (response, 'msg');
+        if (code !== undefined && code !== '0') {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
+        return undefined;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
