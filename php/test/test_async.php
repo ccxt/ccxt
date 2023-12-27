@@ -341,8 +341,8 @@ class testMainClass extends baseMainTestClass {
             Async\await($this->import_files($exchange));
             assert(count(is_array($this->test_files) ? array_keys($this->test_files) : array()) > 0, 'Test files were not loaded'); // ensure test files are found & filled
             $this->expand_settings($exchange);
-            $symbol_or_undefined = $this->check_if_specific_test_is_chosen($symbol_argv);
-            Async\await($this->start_test($exchange, $symbol_or_undefined));
+            $symbol = $this->check_if_specific_test_is_chosen($symbol_argv);
+            Async\await($this->start_test($exchange, $symbol));
             exit_script(0); // needed to be explicitly finished for WS tests
         }) ();
     }
@@ -635,11 +635,11 @@ class testMainClass extends baseMainTestClass {
                 }
             }
             $this->public_tests = $tests;
-            Async\await($this->display_test_results($exchange, $tests, true));
+            Async\await($this->run_tests($exchange, $tests, true));
         }) ();
     }
 
-    public function display_test_results($exchange, $tests, $is_public_test) {
+    public function run_tests($exchange, $tests, $is_public_test) {
         return Async\async(function () use ($exchange, $tests, $is_public_test) {
             $test_names = is_array($tests) ? array_keys($tests) : array();
             $promises = [];
@@ -912,7 +912,7 @@ class testMainClass extends baseMainTestClass {
                 }
             }
             // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
-            Async\await($this->display_test_results($exchange, $tests, false));
+            Async\await($this->run_tests($exchange, $tests, false));
         }) ();
     }
 
