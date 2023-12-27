@@ -1652,6 +1652,7 @@
         }
     },
     "bitteam": {
+        "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {
                 "taker": "is undefined",
