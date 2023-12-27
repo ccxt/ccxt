@@ -21,6 +21,32 @@
                     1703665611074
                 ]
             }
+        ],
+        "createOrder": [
+            {
+                "description": "create Order",
+                "method": "createOrder",
+                "url": "https://www.deribit.com/api/v2/private/buy?instrument_name=BTC_USDT&amount=0.0002&type=limit&price=25000",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0002,
+                    25000
+                ]
+            },
+            {
+                "description": "create Order",
+                "method": "createOrder",
+                "url": "https://www.deribit.com/api/v2/private/sell?instrument_name=BTC_USDT&amount=0.0002&type=limit&price=25000",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "sell",
+                    0.0002,
+                    25000
+                ]
+            }
         ]
     }
 }

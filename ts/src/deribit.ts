@@ -1837,9 +1837,13 @@ export default class deribit extends Exchange {
                 request['time_in_force'] = 'fill_or_kill';
             }
         }
-        const method = 'privateGet' + this.capitalize (side);
         params = this.omit (params, [ 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly' ]);
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (this.capitalize (side) === 'Buy') {
+            response = await this.privateGetBuy (this.extend (request, params));
+        } else {
+            response = await this.privateGetSell (this.extend (request, params));
+        }
         //
         //     {
         //         "jsonrpc": "2.0",
