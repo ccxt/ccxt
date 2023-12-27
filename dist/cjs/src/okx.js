@@ -871,8 +871,8 @@ class okx extends okx$1 {
                     'ALGO': 'Algorand',
                     'BHP': 'BHP',
                     'APT': 'Aptos',
-                    'ARBONE': 'Arbitrum one',
-                    'AVAXC': 'Avalanche C-Chain',
+                    'ARBONE': 'Arbitrum One',
+                    'AVAXC': 'Avalanche C',
                     'AVAXX': 'Avalanche X-Chain',
                     'ARK': 'ARK',
                     'AR': 'Arweave',
@@ -4466,15 +4466,16 @@ class okx extends okx$1 {
         //     },
         //
         if (chain === 'USDT-Polygon') {
-            networkData = this.safeValue(networksById, 'USDT-Polygon-Bridge');
+            networkData = this.safeValue2(networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon');
         }
         const network = this.safeString(networkData, 'network');
+        const networkCode = this.networkIdToCode(network, code);
         this.checkAddress(address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': networkCode,
             'info': depositAddress,
         };
     }

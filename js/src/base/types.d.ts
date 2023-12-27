@@ -24,6 +24,7 @@ export interface FeeInterface {
 export declare type Fee = FeeInterface | undefined;
 export interface MarketInterface {
     id: string;
+    numericId?: Num;
     uppercaseId?: string;
     lowercaseId?: string;
     symbol: string;

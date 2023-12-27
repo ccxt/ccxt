@@ -868,8 +868,8 @@ class okx extends Exchange {
                     'ALGO' => 'Algorand',
                     'BHP' => 'BHP',
                     'APT' => 'Aptos',
-                    'ARBONE' => 'Arbitrum one',
-                    'AVAXC' => 'Avalanche C-Chain',
+                    'ARBONE' => 'Arbitrum One',
+                    'AVAXC' => 'Avalanche C',
                     'AVAXX' => 'Avalanche X-Chain',
                     'ARK' => 'ARK',
                     'AR' => 'Arweave',
@@ -4398,15 +4398,16 @@ class okx extends Exchange {
         //     ),
         //
         if ($chain === 'USDT-Polygon') {
-            $networkData = $this->safe_value($networksById, 'USDT-Polygon-Bridge');
+            $networkData = $this->safe_value_2($networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon');
         }
         $network = $this->safe_string($networkData, 'network');
+        $networkCode = $this->network_id_to_code($network, $code);
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => $network,
+            'network' => $networkCode,
             'info' => $depositAddress,
         );
     }
