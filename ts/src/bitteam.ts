@@ -2252,7 +2252,7 @@ export default class bitteam extends Exchange {
             'tag': tag,
             'tagTo': undefined,
             'type': type,
-            'amount': this.number (amount),
+            'amount': this.parseNumber (amount),
             'currency': code,
             'status': status,
             'updated': undefined,
