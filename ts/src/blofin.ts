@@ -450,12 +450,6 @@ export default class blofin extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        // const types = this.safeValue (this.options, 'fetchMarkets');
-        // let promises = [];
-        // let result = [];
-        // for (let i = 0; i < types.length; i++) {
-        //     promises.push (this.fetchMarketsByType (types[i], params));
-        // }
         const response = await this.publicGetMarketInstruments (params);
         const data = this.safeValue (response, 'data', []);
         return this.parseMarkets (data);
@@ -481,9 +475,18 @@ export default class blofin extends Exchange {
         const optionType = undefined;
         const tickSize = this.safeString (market, 'tickSize');
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
+        const taker = this.safeNumber (fees, 'taker');
+        const maker = this.safeNumber (fees, 'maker');
         let maxLeverage = this.safeString (market, 'maxLeverage', '100');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
-        return this.extend (fees, {
+        const isActive = (this.safeString (market, 'state') === 'live');
+        let isLinear = undefined;
+        let isInverse = undefined;
+        if (swap) {
+            isLinear = this.safeValue (market, 'contractType') === 'linear';
+            isInverse = !isLinear;
+        }
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -498,9 +501,11 @@ export default class blofin extends Exchange {
             'margin': spot && (Precise.stringGt (maxLeverage, '1')),
             'swap': swap,
             'future': future,
-            'linear': true,
-            'inverse': false,
-            'active': true,
+            'linear': isLinear,
+            'inverse': isInverse,
+            'active': isActive,
+            'taker': taker,
+            'maker': maker,
             'contract': contract,
             'contractSize': contract ? this.safeNumber (market, 'contractValue') : undefined,
             'expiry': expiry,
@@ -543,15 +548,6 @@ export default class blofin extends Exchange {
         return this.parseMarkets (data);
     }
 
-    safeNetwork (networkId) {
-        const networksById = {
-            'Bitcoin': 'BTC',
-            'Omni': 'OMNI',
-            'TRON': 'TRC20',
-        };
-        return this.safeString (networksById, networkId, networkId);
-    }
-
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
@@ -568,7 +564,7 @@ export default class blofin extends Exchange {
         const request = {
             'instId': market['id'],
         };
-        limit = (limit === undefined) ? 20 : limit;
+        limit = (limit === undefined) ? 50 : limit;
         if (limit !== undefined) {
             request['size'] = limit; // max 100
         }
@@ -663,26 +659,13 @@ export default class blofin extends Exchange {
          * @name blofin#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://blofin.com/docs#get-tickers
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const first = this.safeString (symbols, 0);
-        let market = undefined;
-        if (first !== undefined) {
-            market = this.market (first);
-        }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        return await this.fetchTickersByType (type, symbols, query);
-    }
-
-    async fetchTickersByType (type, symbols: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-        };
-        const response = await this.publicGetMarketTickers (this.extend (request, params));
+        const response = await this.publicGetMarketTickers (params);
         const tickers = this.safeValue (response, 'data', []);
         return this.parseTickers (tickers, symbols);
     }
