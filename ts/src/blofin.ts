@@ -469,7 +469,10 @@ export default class blofin extends Exchange {
         const settle = this.safeCurrencyCode (settleId);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
+        let symbol = base + '/' + quote;
+        if (swap) {
+            symbol = symbol + ':' + settle;
+        }
         const expiry = undefined;
         const strikePrice = undefined;
         const optionType = undefined;
