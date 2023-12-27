@@ -1191,6 +1191,28 @@ class NewTranspiler {
         this.transpileAndSaveCsharpExchangeTests (tests);
     }
 
+    transpileWsExchangeTests(){
+
+        const baseFolders = {
+            ts: './ts/src/pro/test/Exchange/',
+            csharp: EXCHANGE_GENERATED_FOLDER + 'Ws/',
+        };
+
+        const wsTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+
+        const tests = [] as any;
+
+        wsTests.forEach (test => {
+            tests.push({
+                name: test,
+                tsFile: baseFolders.ts + test + '.ts',
+                csharpFile: baseFolders.csharp + test + '.cs',
+            });
+        });
+
+        this.transpileAndSaveCsharpExchangeTests (tests);
+    }
+
     async transpileAndSaveCsharpExchangeTests(tests) {
         const paths = tests.map(test => test.tsFile);
         const flatResult = await this.webworkerTranspile (paths, this.getTranspilerConfig());
@@ -1240,6 +1262,7 @@ class NewTranspiler {
     transpileTests(){
         this.transpileBaseTestsToCSharp();
         this.transpileExchangeTests();
+        this.transpileWsExchangeTests();
     }
 }
 
