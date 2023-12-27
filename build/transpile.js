@@ -2316,6 +2316,7 @@ class Transpiler {
         let bodyPhpAsync = phpReform (phpAsync);
         overwriteFile (files.phpFileAsync, bodyPhpAsync);
         let bodyPhpSync = phpReform (php);
+        bodyPhpSync = bodyPhpSync.replace (/Promise\\all/g, '');
         overwriteFile (files.phpFileSync, bodyPhpSync);
     }
 
