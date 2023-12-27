@@ -342,6 +342,16 @@ export default class binance extends Exchange {
                         'lending/union/interestHistory': 0.1,
                         'lending/project/list': 0.1,
                         'lending/project/position/list': 0.1,
+                        // eth-staking
+                        'eth-staking/eth/history/stakingHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/redemptionHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/rewardsHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/quota': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/rateHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/account': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/wbeth/history/wrapHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/wbeth/history/unwrapHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/wbethRewardsHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
                         // mining endpoints
                         'mining/pub/algoList': 0.1,
                         'mining/pub/coinList': 0.1,
@@ -543,6 +553,13 @@ export default class binance extends Exchange {
                         'staking/purchase': 0.1,
                         'staking/redeem': 0.1,
                         'staking/setAutoStaking': 0.1,
+                        // eth-staking
+                        'eth-staking/eth/stake': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/redeem': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/wbeth/wrap': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        // mining endpoints
+                        'mining/hash-transfer/config': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
+                        'mining/hash-transfer/config/cancel': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
                         'portfolio/repay': 20.001,
                         'loan/vip/renew': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/vip/borrow': 40.002,
@@ -596,11 +613,13 @@ export default class binance extends Exchange {
                 },
                 'sapiV2': {
                     'get': {
+                        'eth-staking/account': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
                         'sub-account/futures/account': 0.1,
                         'sub-account/futures/accountSummary': 1,
                         'sub-account/futures/positionRisk': 0.1,
                     },
                     'post': {
+                        'eth-staking/eth/stake': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
                         'sub-account/subAccountApi/ipRestriction': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                     },
                 },
@@ -3592,19 +3611,6 @@ export default class binance extends Exchange {
             // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit': 500,     // default = 500, maximum = 1000
         };
-        let method = this.safeString (this.options, 'fetchTradesMethod');
-        method = this.safeString2 (params, 'fetchTradesMethod', 'method', method);
-        if (method === undefined) {
-            if (market['option']) {
-                method = 'eapiPublicGetTrades';
-            } else if (market['linear']) {
-                method = 'fapiPublicGetAggTrades';
-            } else if (market['inverse']) {
-                method = 'dapiPublicGetAggTrades';
-            } else {
-                method = 'publicGetAggTrades';
-            }
-        }
         if (!market['option']) {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -3621,7 +3627,19 @@ export default class binance extends Exchange {
             const isFutureOrSwap = (market['swap'] || market['future']);
             request['limit'] = isFutureOrSwap ? Math.min (limit, 1000) : limit; // default = 500, maximum = 1000
         }
+        let method = this.safeString (this.options, 'fetchTradesMethod');
+        method = this.safeString2 (params, 'fetchTradesMethod', 'method', method);
         params = this.omit (params, [ 'until', 'fetchTradesMethod' ]);
+        let response = undefined;
+        if (market['option'] || method === 'eapiPublicGetTrades') {
+            response = await this.eapiPublicGetTrades (this.extend (request, params));
+        } else if (market['linear'] || method === 'fapiPublicGetAggTrades') {
+            response = await this.fapiPublicGetAggTrades (this.extend (request, params));
+        } else if (market['inverse'] || method === 'dapiPublicGetAggTrades') {
+            response = await this.dapiPublicGetAggTrades (this.extend (request, params));
+        } else {
+            response = await this.publicGetAggTrades (this.extend (request, params));
+        }
         //
         // Caveats:
         // - default limit (500) applies only if no other parameters set, trades up
@@ -3631,7 +3649,6 @@ export default class binance extends Exchange {
         // - "tradeId" accepted and returned by this method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
-        const response = await this[method] (this.extend (request, params));
         //
         // aggregate trades
         //
@@ -7758,21 +7775,20 @@ export default class binance extends Exchange {
         }
         await this.loadMarkets ();
         await this.loadLeverageBrackets (false, params);
-        let method = undefined;
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         let query = this.omit (params, 'type');
         let subType = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, params, 'linear');
+        let response = undefined;
         if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateV2GetAccount';
+            response = await this.fapiPrivateV2GetAccount (query);
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPrivateGetAccount';
+            response = await this.dapiPrivateGetAccount (query);
         } else {
             throw new NotSupported (this.id + ' fetchPositions() supports linear and inverse contracts only');
         }
-        const account = await this[method] (query);
-        const result = this.parseAccountPositions (account);
+        const result = this.parseAccountPositions (response);
         symbols = this.marketSymbols (symbols);
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
@@ -7797,15 +7813,15 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         await this.loadLeverageBrackets (false, params);
         const request = {};
-        let method = undefined;
         let defaultType = 'future';
         defaultType = this.safeString (this.options, 'defaultType', defaultType);
         const type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsRisk', undefined, params, 'linear');
         params = this.omit (params, 'type');
+        let response = undefined;
         if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateV2GetPositionRisk';
+            response = await this.fapiPrivateV2GetPositionRisk (this.extend (request, params));
             // ### Response examples ###
             //
             // For One-way position mode:
@@ -7861,11 +7877,10 @@ export default class binance extends Exchange {
             //         }
             //     ]
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPrivateGetPositionRisk';
+            response = await this.dapiPrivateGetPositionRisk (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchPositionsRisk() supports linear and inverse contracts only');
         }
-        const response = await this[method] (this.extend (request, params));
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const parsed = this.parsePositionRisk (response[i]);
@@ -8038,6 +8053,8 @@ export default class binance extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, [ 'type' ]);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', undefined, params);
         let dualSidePosition = undefined;
         if (hedged) {
             dualSidePosition = 'true';
@@ -8047,12 +8064,12 @@ export default class binance extends Exchange {
         const request = {
             'dualSidePosition': dualSidePosition,
         };
-        let method = undefined;
-        if (this.isInverse (type)) {
-            method = 'dapiPrivatePostPositionSideDual';
+        let response = undefined;
+        if (this.isInverse (type, subType)) {
+            response = await this.dapiPrivatePostPositionSideDual (this.extend (request, params));
         } else {
             // default to future
-            method = 'fapiPrivatePostPositionSideDual';
+            response = await this.fapiPrivatePostPositionSideDual (this.extend (request, params));
         }
         //
         //     {
@@ -8060,7 +8077,7 @@ export default class binance extends Exchange {
         //       "msg": "success"
         //     }
         //
-        return await this[method] (this.extend (request, params));
+        return response;
     }
 
     async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -8277,21 +8294,9 @@ export default class binance extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        let method = undefined;
         const request = {};
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLedger', undefined, params);
-        if (type === 'option') {
-            this.checkRequiredArgument ('fetchLedger', code, 'code');
-            request['currency'] = currency['id'];
-            method = 'eapiPrivateGetBill';
-        } else if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateGetIncome';
-        } else if (this.isInverse (type, subType)) {
-            method = 'dapiPrivateGetIncome';
-        } else {
-            throw new NotSupported (this.id + ' fetchLedger() supports contract wallets only');
-        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -8303,7 +8308,18 @@ export default class binance extends Exchange {
             params = this.omit (params, 'until');
             request['endTime'] = until;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (type === 'option') {
+            this.checkRequiredArgument ('fetchLedger', code, 'code');
+            request['currency'] = currency['id'];
+            response = await this.eapiPrivateGetBill (this.extend (request, params));
+        } else if (this.isLinear (type, subType)) {
+            response = await this.fapiPrivateGetIncome (this.extend (request, params));
+        } else if (this.isInverse (type, subType)) {
+            response = await this.dapiPrivateGetIncome (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchLedger() supports contract wallets only');
+        }
         //
         // options (eapi)
         //
@@ -9184,11 +9200,12 @@ export default class binance extends Exchange {
             const duration = this.parseTimeframe (timeframe);
             request['endTime'] = this.sum (since, duration * limit * 1000);
         }
-        let method = 'fapiDataGetOpenInterestHist';
+        let response = undefined;
         if (market['inverse']) {
-            method = 'dapiDataGetOpenInterestHist';
+            response = await this.dapiDataGetOpenInterestHist (this.extend (request, params));
+        } else {
+            response = await this.fapiDataGetOpenInterestHist (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //  [
         //      {
@@ -9224,13 +9241,14 @@ export default class binance extends Exchange {
         } else {
             request['symbol'] = market['id'];
         }
-        let method = 'fapiPublicGetOpenInterest';
+        let response = undefined;
         if (market['option']) {
-            method = 'eapiPublicGetOpenInterest';
+            response = await this.eapiPublicGetOpenInterest (this.extend (request, params));
         } else if (market['inverse']) {
-            method = 'dapiPublicGetOpenInterest';
+            response = await this.dapiPublicGetOpenInterest (this.extend (request, params));
+        } else {
+            response = await this.fapiPublicGetOpenInterest (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // futures (fapi)
         //

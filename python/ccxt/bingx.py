@@ -1622,14 +1622,19 @@ class bingx(Exchange, ImplicitAPI):
                 request['timeInForce'] = 'GTC'
             elif timeInForce == 'FOK':
                 request['timeInForce'] = 'FOK'
-            if (type == 'LIMIT') or (type == 'TRIGGER_LIMIT') or (type == 'STOP') or (type == 'TAKE_PROFIT'):
-                request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
-            triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
-            stopLossPrice = self.safe_number(params, 'stopLossPrice')
-            takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
+            triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
+            stopLossPrice = self.safe_string(params, 'stopLossPrice')
+            takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+            trailingAmount = self.safe_string(params, 'trailingAmount')
+            trailingPercent = self.safe_string_2(params, 'trailingPercent', 'priceRate')
             isTriggerOrder = triggerPrice is not None
             isStopLossPriceOrder = stopLossPrice is not None
             isTakeProfitPriceOrder = takeProfitPrice is not None
+            isTrailingAmountOrder = trailingAmount is not None
+            isTrailingPercentOrder = trailingPercent is not None
+            isTrailing = isTrailingAmountOrder or isTrailingPercentOrder
+            if ((type == 'LIMIT') or (type == 'TRIGGER_LIMIT') or (type == 'STOP') or (type == 'TAKE_PROFIT')) and not isTrailing:
+                request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
             reduceOnly = self.safe_value(params, 'reduceOnly', False)
             if isTriggerOrder:
                 request['stopPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice))
@@ -1652,6 +1657,13 @@ class bingx(Exchange, ImplicitAPI):
                         request['type'] = 'TAKE_PROFIT_MARKET'
                     elif (type == 'LIMIT') or (type == 'TAKE_PROFIT'):
                         request['type'] = 'TAKE_PROFIT'
+            elif isTrailing:
+                request['type'] = 'TRAILING_STOP_MARKET'
+                if isTrailingAmountOrder:
+                    request['price'] = self.parse_to_numeric(trailingAmount)
+                elif isTrailingPercentOrder:
+                    requestTrailingPercent = Precise.string_div(trailingPercent, '100')
+                    request['priceRate'] = self.parse_to_numeric(requestTrailingPercent)
             positionSide = None
             if reduceOnly:
                 positionSide = 'SHORT' if (side == 'buy') else 'LONG'
@@ -1659,7 +1671,7 @@ class bingx(Exchange, ImplicitAPI):
                 positionSide = 'LONG' if (side == 'buy') else 'SHORT'
             request['positionSide'] = positionSide
             request['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
-            params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+            params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent'])
         return self.extend(request, params)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
@@ -1679,6 +1691,8 @@ class bingx(Exchange, ImplicitAPI):
         :param float [params.stopLossPrice]: *swap only* stop loss trigger price
         :param float [params.takeProfitPrice]: *swap only* take profit trigger price
         :param float [params.cost]: the quote quantity that can be used alternative for the amount
+        :param float [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
+        :param float [params.trailingPercent]: *swap only* the percent to trail away from the current market price
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()

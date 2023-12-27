@@ -176,6 +176,24 @@
                 }
               ],
               "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"side\":\"buy\",\"size\":\"8\"}"
+            },
+            {
+              "description": "Swap trailing order using trailingPercent and setting reduceOnly to true",
+              "method": "createOrder",
+              "url": "https://api.bitget.com/api/v2/mix/order/place-plan-order",
+              "input": [
+                "BTC/USDT:USDT",
+                "market",
+                "sell",
+                0.002,
+                null,
+                {
+                  "trailingPercent": "10",
+                  "trailingTriggerPrice": "45000",
+                  "reduceOnly": true
+                }
+              ],
+              "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.002\",\"productType\":\"USDT-FUTURES\",\"triggerType\":\"mark_price\",\"planType\":\"track_plan\",\"triggerPrice\":\"45000\",\"callbackRatio\":\"10\",\"marginMode\":\"crossed\",\"reduceOnly\":\"YES\",\"tradeSide\":\"Close\",\"side\":\"buy\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -371,6 +389,24 @@
               }
             ],
             "output": "{\"orderId\":\"1113286462953558017\",\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"executePrice\":\"25000\",\"triggerPrice\":\"27000\"}"
+          },
+          {
+            "description": "Swap edit a trailing order",
+            "method": "editOrder",
+            "url": "https://api.bitget.com/api/v2/mix/order/modify-plan-order",
+            "input": [
+              "1121635717619453955",
+              "BTC/USDT:USDT",
+              "market",
+              "sell",
+              0.002,
+              null,
+              {
+                "trailingPercent": "5",
+                "trailingTriggerPrice": "46000"
+              }
+            ],
+            "output": "{\"orderId\":\"1121635717619453955\",\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"newSize\":\"0.002\",\"newTriggerPrice\":\"46000\",\"newCallbackRatio\":\"5\"}"
           }
       ],
         "fetchMyTrades": [
@@ -476,6 +512,19 @@
                   "type": "swap"
                 }
               ]
+            },
+            {
+              "description": "Swap open trailing orders",
+              "method": "fetchOpenOrders",
+              "url": "https://api.bitget.com/api/v2/mix/order/orders-plan-pending?planType=track_plan&productType=USDT-FUTURES&symbol=BTCUSDT",
+              "input": [
+                "BTC/USDT:USDT",
+                null,
+                null,
+                {
+                  "trailing": true
+                }
+              ]
             }
         ],
         "fetchClosedOrders": [
@@ -513,6 +562,19 @@
                 "input": [
                   "BTC/USDT:USDT"
                 ]
+            },
+            {
+              "description": "Swap closed trailing orders",
+              "method": "fetchClosedOrders",
+              "url": "https://api.bitget.com/api/v2/mix/order/orders-plan-history?planType=track_plan&productType=USDT-FUTURES&symbol=BTCUSDT",
+              "input": [
+                "BTC/USDT:USDT",
+                null,
+                null,
+                {
+                  "trailing": true
+                }
+              ]
             }
         ],
         "fetchCanceledOrders": [
@@ -549,6 +611,19 @@
             "url": "https://api.bitget.com/api/v2/mix/order/orders-history?productType=USDT-FUTURES&symbol=LTCUSDT",
             "input": [
               "LTC/USDT:USDT"
+            ]
+          },
+          {
+            "description": "swap canceled trailing orders",
+            "method": "fetchCanceledOrders",
+            "url": "https://api.bitget.com/api/v2/mix/order/orders-plan-history?planType=track_plan&productType=USDT-FUTURES&symbol=BTCUSDT",
+            "input": [
+              "BTC/USDT:USDT",
+              null,
+              null,
+              {
+                "trailing": true
+              }
             ]
           }
         ],
@@ -725,6 +800,19 @@
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1112204653770715137\"}"
+            },
+            {
+              "description": "Swap cancel trailing order",
+              "method": "cancelOrder",
+              "url": "https://api.bitget.com/api/v2/mix/order/cancel-plan-order",
+              "input": [
+                "1121635717619453955",
+                "BTC/USDT:USDT",
+                {
+                  "trailing": true
+                }
+              ],
+              "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1121635717619453955\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"orderId\":\"1121635717619453955\"}],\"planType\":\"track_plan\"}"
             }
         ],
         "cancelOrders": [
