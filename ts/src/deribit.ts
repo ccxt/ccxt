@@ -1986,18 +1986,17 @@ export default class deribit extends Exchange {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
-        let method = undefined;
+        let response = undefined;
         if (symbol === undefined) {
             const code = this.codeFromOptions ('fetchOpenOrders', params);
             const currency = this.currency (code);
             request['currency'] = currency['id'];
-            method = 'privateGetGetOpenOrdersByCurrency';
+            response = await this.privateGetGetOpenOrdersByCurrency (this.extend (request, params));
         } else {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
-            method = 'privateGetGetOpenOrdersByInstrument';
+            response = await this.privateGetGetOpenOrdersByInstrument (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         return this.parseOrders (result, market, since, limit);
     }
