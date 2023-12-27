@@ -2305,7 +2305,9 @@ class Transpiler {
         
         const existinPhpBody = fs.readFileSync (files.phpFileAsync).toString ();
         const phpReform = (cont) => {
-            let newContent = existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n' + cont + '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1];
+            const partBeforClass =  existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n';
+            const partAfterClass = '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1]
+            let newContent = partBeforClass + cont + partAfterClass;
             newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '');
             newContent = snakeCaseFunctions (newContent);
             newContent = this.phpReplaceException (newContent);
