@@ -2100,31 +2100,30 @@ export default class deribit extends Exchange {
             'include_old': true,
         };
         let market = undefined;
-        let method = undefined;
+        if (limit !== undefined) {
+            request['count'] = limit; // default 10
+        }
+        let response = undefined;
         if (symbol === undefined) {
             const code = this.codeFromOptions ('fetchMyTrades', params);
             const currency = this.currency (code);
             request['currency'] = currency['id'];
             if (since === undefined) {
-                method = 'privateGetGetUserTradesByCurrency';
+                response = await this.privateGetGetUserTradesByCurrency (this.extend (request, params));
             } else {
-                method = 'privateGetGetUserTradesByCurrencyAndTime';
                 request['start_timestamp'] = since;
+                response = await this.privateGetGetUserTradesByCurrencyAndTime (this.extend (request, params));
             }
         } else {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
             if (since === undefined) {
-                method = 'privateGetGetUserTradesByInstrument';
+                response = await this.privateGetGetUserTradesByInstrument (this.extend (request, params));
             } else {
-                method = 'privateGetGetUserTradesByInstrumentAndTime';
                 request['start_timestamp'] = since;
+                response = await this.privateGetGetUserTradesByInstrumentAndTime (this.extend (request, params));
             }
         }
-        if (limit !== undefined) {
-            request['count'] = limit; // default 10
-        }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
