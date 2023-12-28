@@ -1740,10 +1740,13 @@ export default class kucoinfutures extends kucoin {
         const cancelExist = this.safeValue (order, 'cancelExist', false);
         let status = isActive ? 'open' : 'closed';
         status = cancelExist ? 'canceled' : status;
-        const fee = {
-            'currency': feeCurrency,
-            'cost': feeCost,
-        };
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCost,
+            };
+        }
         const clientOrderId = this.safeString (order, 'clientOid');
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'stopPrice');
