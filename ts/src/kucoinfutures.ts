@@ -1748,6 +1748,7 @@ export default class kucoinfutures extends kucoin {
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         const postOnly = this.safeValue (order, 'postOnly');
+        const reduceOnly = this.safeValue (order, 'reduceOnly');
         const lastUpdateTimestamp = this.safeInteger (order, 'updatedAt');
         return this.safeOrder ({
             'id': orderId,
@@ -1756,6 +1757,7 @@ export default class kucoinfutures extends kucoin {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': side,
             'amount': amount,
             'price': price,
