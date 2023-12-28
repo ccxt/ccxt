@@ -1209,10 +1209,9 @@ export default class cex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const method = 'privatePostArchivedOrdersPair';
         const market = this.market (symbol);
         const request = { 'pair': market['id'] };
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privatePostArchivedOrdersPair (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
