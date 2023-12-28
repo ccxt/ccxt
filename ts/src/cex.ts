@@ -1178,14 +1178,15 @@ export default class cex extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        let method = 'privatePostOpenOrders';
         let market = undefined;
+        let orders = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
-            method += 'Pair';
+            orders = await this.privatePostOpenOrdersPair (this.extend (request, params));
+        } else {
+            orders = await this.privatePostOpenOrders (this.extend (request, params));
         }
-        const orders = await this[method] (this.extend (request, params));
         for (let i = 0; i < orders.length; i++) {
             orders[i] = this.extend (orders[i], { 'status': 'open' });
         }
