@@ -84,12 +84,20 @@ public partial class testMainClass : BaseTest
         foreach (var key2 in hasKeys)
         {
             var key = key2 as string;
-            var testFilePath = rootDir + "c#/tests/Generated/Exchange/test." + key + ".cs";
+            var testFilePath = "";
+            if (!ws)
+            {
+                testFilePath = rootDir + "c#/tests/Generated/Exchange/test." + key + ".cs";
+            }
+            else
+            {
+                testFilePath = rootDir + "c#/tests/Generated/Exchange/Ws/test." + key + ".cs";
+            }
             if (ioFileExists(testFilePath))
             {
                 var methodName = "test" + key.Substring(0, 1).ToUpper() + key.Substring(1);
                 var testMethod = this.GetType().GetMethod(methodName);
-                testFiles[methodName] = testMethod;
+                testFiles[key] = testMethod;
             }
         }
         return testFiles;
