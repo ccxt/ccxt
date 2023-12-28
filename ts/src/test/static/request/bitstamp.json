@@ -124,6 +124,25 @@
                 ],
                 "output": "amount=1"
             }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel All Orders",
+                "method": "cancelAllOrders",
+                "url": "https://www.bitstamp.net/api/v2/cancel_all_orders/btcusdt/",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": "foo=bar"
+            },
+            {
+                "description": "cancel All Orders",
+                "method": "cancelAllOrders",
+                "url": "https://www.bitstamp.net/api/v2/cancel_all_orders/",
+                "input": [
+                ],
+                "output": "foo=bar"
+            }
         ]
     }
 }

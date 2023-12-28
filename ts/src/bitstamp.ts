@@ -1426,13 +1426,15 @@ export default class bitstamp extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
-        let method = 'privatePostCancelAllOrders';
+        let response = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
-            method = 'privatePostCancelAllOrdersPair';
+            response = await this.privatePostCancelAllOrdersPair (this.extend (request, params));
+        } else {
+            response = await this.privatePostCancelAllOrders (this.extend (request, params));
         }
-        return await this[method] (this.extend (request, params));
+        return response;
     }
 
     parseOrderStatus (status) {
