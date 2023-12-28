@@ -2302,13 +2302,12 @@ class Transpiler {
 
 
         // ########### PHP ###########
-
-        phpAsync = phpAsync.replace (/\<\?php(.*?)namespace ccxt\\async;/sg, '');
-        phpAsync = phpAsync.replace ('\nuse React\\Async;','').replace ('\nuse React\\Promise;', ''); // no longer needed, as hardcoded in top lines of test_async.php
-        phpAsync = phpAsync.replace ('(this,','($this,');
+        
         const existinPhpBody = fs.readFileSync (files.phpFileAsync).toString ();
         const phpReform = (cont) => {
-            let newContent = existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n' + cont + '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1];
+            const partBeforClass =  existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n';
+            const partAfterClass = '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1]
+            let newContent = partBeforClass + cont + partAfterClass;
             newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '');
             newContent = snakeCaseFunctions (newContent);
             newContent = this.phpReplaceException (newContent);
@@ -2316,12 +2315,8 @@ class Transpiler {
         }
         let bodyPhpAsync = phpReform (phpAsync);
         overwriteFile (files.phpFileAsync, bodyPhpAsync);
-        //doesnt work: this.transpilePhpAsyncToSync (files.phpFileAsync, files.phpFileSync);
-        const phpRemovedStart = php.replace (/\<\?php(.*?)(?:namespace ccxt)/gs, '');
-        let bodyPhpSync = phpReform (phpRemovedStart);
-        bodyPhpSync = bodyPhpSync.replace (/ccxt(\\)+async/g, 'ccxt');
-        bodyPhpSync = bodyPhpSync.replace ('(this,','($this,');
-        bodyPhpSync = bodyPhpSync.replace (/Async\\await\((.*?)\);/g, '$1;');
+        let bodyPhpSync = phpReform (php);
+        bodyPhpSync = bodyPhpSync.replace (/Promise\\all/g, '');
         overwriteFile (files.phpFileSync, bodyPhpSync);
     }
 

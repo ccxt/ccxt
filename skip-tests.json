@@ -712,7 +712,8 @@
         "skipMethods": {
             "proxies": "probably they do not permit our proxy location",
             "loadMarkets": {
-                "active":"is undefined"
+                "active":"is undefined",
+                "currencyIdAndCode": "messes codes"
             },
             "fetchOHLCV": "unexpected issue",
             "fetchCurrencies": {
@@ -1648,6 +1649,19 @@
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low  is failing",
                 "ask": "invalid"
+            }
+        }
+    },
+    "bitteam": {
+        "skipPhpAsync": true,
+        "skipMethods": {
+            "loadMarkets": {
+                "taker": "is undefined",
+                "maker": "is undefined"
+            },
+            "fetchCurrencies": {
+                "deposit": "not provided",
+                "withdraw": "not provided"
             }
         }
     }

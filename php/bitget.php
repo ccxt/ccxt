@@ -4897,6 +4897,9 @@ class bitget extends Exchange {
         //         }
         //     }
         //
+        if (gettype($response) === 'string') {
+            $response = json_decode($response, $as_associative_array = true);
+        }
         $data = $this->safe_value($response, 'data');
         $first = $this->safe_value($data, 0, $data);
         return $this->parse_order($first, $market);
