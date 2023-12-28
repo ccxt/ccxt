@@ -1362,25 +1362,36 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'privatePost' + this.capitalize (side);
         const request = {
             'pair': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'market') {
-            method += 'Market';
-        } else if (type === 'instant') {
-            method += 'Instant';
-        } else {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        method += 'Pair';
         const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (type === 'market') {
+            if (this.capitalize (side) === 'Buy') {
+                response = await this.privatePostBuyMarketPair (this.extend (request, params));
+            } else {
+                response = await this.privatePostSellMarketPair (this.extend (request, params));
+            }
+        } else if (type === 'instant') {
+            if (this.capitalize (side) === 'Buy') {
+                response = await this.privatePostBuyInstantPair (this.extend (request, params));
+            } else {
+                response = await this.privatePostSellInstantPair (this.extend (request, params));
+            }
+        } else {
+            request['price'] = this.priceToPrecision (symbol, price);
+            if (this.capitalize (side) === 'Buy') {
+                response = await this.privatePostBuyPair (this.extend (request, params));
+            } else {
+                response = await this.privatePostSellPair (this.extend (request, params));
+            }
+        }
         const order = this.parseOrder (response, market);
         order['type'] = type;
         return order;
