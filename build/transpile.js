@@ -1618,7 +1618,7 @@ class Transpiler {
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]|^\[.+\]$/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1680,13 +1680,17 @@ class Transpiler {
                 'OHLCV': 'list',
             }
             const unwrapLists = (type) => {
-                const output = []
-                let count = 0
+                let count = 0;
                 while (type.slice (-2) == '[]') {
-                    type = type.slice (0, -2)
-                    count++
+                    type = type.slice (0, -2);
+                    count++;
                 }
-                return 'List['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
+                while (type.slice (-1) == ']' && type.slice (0, 1) == '[') {
+                    type = type.slice (1, -1);
+                    count++;
+                }
+                const types = type.split(',');
+                return 'List['.repeat (count) + types.map (t => pythonTypes[t] ?? t).join (',') + ']'.repeat (count)
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {
