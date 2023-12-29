@@ -996,8 +996,7 @@ export default class oanda extends Exchange {
         }, market);
     }
 
-    
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'orderSpecifier': id,
@@ -1025,28 +1024,40 @@ export default class oanda extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOrdersByIds (ids = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByIds (ids, symbol: Str = undefined, params = {}) {
         const idsString = Array.isArray (ids) ? ids.join (',') : ids;
         const request = {
             'ids': idsString,
             'state': 'ALL',
         };
-        return this.fetchOrders (undefined, since, limit, this.extend (request, params));
+        return this.fetchOrders (undefined, undefined, undefined, this.extend (request, params));
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrders (symbol, since, limit, this.extend ({ 'state': 'PENDING' }, params));
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrders (symbol, since, limit, this.extend ({ 'state': 'TRIGGERED' }, params));
     }
 
-    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrders (symbol, since, limit, this.extend ({ 'state': 'CANCELLED' }, params));
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name binance#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://developer.oanda.com/rest-live-v20/order-ep/
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         const state = this.safeString (params, 'state', 'ALL');
