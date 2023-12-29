@@ -1331,22 +1331,30 @@ export default class bingx extends Exchange {
         //    }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        // const change = this.safeString (ticker, 'priceChange'); // this is not ccxt's change because it does high-low instead of last-open
         const lastQty = this.safeString (ticker, 'lastQty');
         // in spot markets, lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
         const type = (lastQty === undefined) ? 'spot' : 'swap';
-        const symbol = this.safeSymbol (marketId, market, undefined, type);
+        market = this.safeMarket (marketId, market, undefined, type);
+        const symbol = market['symbol'];
         const open = this.safeString (ticker, 'openPrice');
         const high = this.safeString (ticker, 'highPrice');
         const low = this.safeString (ticker, 'lowPrice');
         const close = this.safeString (ticker, 'lastPrice');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         const baseVolume = this.safeString (ticker, 'volume');
+        let percentage = undefined;
+        let change = undefined;
+        if (market['swap']) {
+            // right now only swap uses the 24h change, spot will be added soon
+            percentage = this.safeString (ticker, 'priceChangePercent');
+            change = this.safeString (ticker, 'priceChange');
+        }
         // let percentage = this.safeString (ticker, 'priceChangePercent');
         // if (percentage !== undefined) {
         //     percentage = percentage.replace ('%', '');
         // } similarly to change, it's not ccxt's percentage because it does priceChange/open, and priceChange is high-low
+        // const change = this.safeString (ticker, 'priceChange'); // this is not ccxt's change because it does high-low instead of last-open
         const ts = this.safeInteger (ticker, 'closeTime');
         const datetime = this.iso8601 (ts);
         const bid = this.safeString (ticker, 'bidPrice');
@@ -1368,8 +1376,8 @@ export default class bingx extends Exchange {
             'close': close,
             'last': undefined,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
