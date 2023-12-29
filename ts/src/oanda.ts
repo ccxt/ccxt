@@ -1111,21 +1111,6 @@ export default class oanda extends Exchange {
         return this.parseOrders (orders, market, since, limit, params);
     }
 
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
-        /**
-         * @method
-         * @name oanda#fetchPositions
-         * @description fetch all open positions
-         * @see https://developer.oanda.com/rest-live-v20/trade-ep/
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
-        const request = { 'state': 'OPEN' };
-        const positions = await this.getInternalAccountTrades (symbols, undefined, this.extend (request, params));
-        return this.parsePositions (positions, symbols);
-    }
-
     async getInternalAccountTrades (symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
@@ -1180,6 +1165,381 @@ export default class oanda extends Exchange {
         //     lastTransactionID: '54'
         // }
         return this.safeValue (response, 'trades', []);
+    }
+
+    async getInternalTransactionsData (since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let results = [];
+        const request = {};
+        // TODO: docs says, that default is 'account creation time' ( https://developer.oanda.com/rest-live-v20/transaction-ep/ ) but actually it's not true. if 'from' not provided, it is being set by exchange 1 week ago.
+        if (since === undefined) {
+            request['from'] = 0; // let's set it to zero, so provides 'all' data fromt he beggining (as we don't know 'account creation time')
+        } else {
+            request['from'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.privateGetAccountsAccountIDTransactions (this.extend (request, params));
+        // {
+        //     from: '2022-01-29T18:28:00.006101091Z',
+        //     to: '2022-02-05T18:28:00.006101091Z',
+        //     pageSize: '100',
+        //     count: '57',
+        //     pages: [
+        //       'https://api-fxtrade.oanda.com/v3/accounts/001-004-1234567-001/transactions/idrange?from=104&to=160'
+        //     ],
+        //     lastTransactionID: '160'
+        // }
+        const pages = this.safeValue (response, 'pages');
+        const pagesLength = pages.length;
+        for (let i = 0; i < pagesLength; i++) {
+            const link = pages[i];
+            const splitArray = link.split ('from=');
+            const lastpart = this.safeString (splitArray, 1, '');
+            const lastSplitArray = lastpart.split ('&');
+            const fromId = this.safeInteger (lastSplitArray, 0);
+            const paramsWithoutId = this.omit (params, 'id');
+            const innerResponse = await this.privateGetAccountsAccountIDTransactionsSinceid (this.extend ({ 'id': fromId }, paramsWithoutId));
+            //
+            // {
+            //    transactions: [
+            //       {
+            //         "id": '59',
+            //         "accountID": '001-004-1234567-001',
+            //         "userID": '1234567',
+            //         'batchID": '59',
+            //         "requestID": '78953049230723855',
+            //         "time": '2022-02-04T19:57:09.583582923Z',
+            //         "type": 'MARKET_ORDER',
+            //         "instrument": 'EUR_USD',
+            //         "units": '-5',
+            //         "timeInForce": 'FOK',
+            //         "positionFill": 'REDUCE_ONLY',
+            //         "reason": 'TRADE_CLOSE',
+            //         "tradeClose": [...]
+            //       },
+            //       {
+            //         "id": "60",
+            //         "accountID": "001-004-1234567-001",
+            //         "userID": "1474544",
+            //         "batchID": "59",
+            //         "requestID": "78953049230723855",
+            //         "time": "2022-02-04T19:57:09.583582923Z",
+            //         "type": "ORDER_FILL",
+            //         "orderID": "59",
+            //         "instrument": "EUR_USD",
+            //         "units": "-5",
+            //         "requestedUnits": "-5",
+            //         "price": "1.14508",
+            //         "pl": "-0.0023",
+            //         "quotePL": "-0.00230",
+            //         "financing": "0.0000",
+            //         "baseFinancing": "0.00000000000000",
+            //         "commission": "0.0000",
+            //         "accountBalance": "19.9947",
+            //         "gainQuoteHomeConversionFactor": "1",
+            //         "lossQuoteHomeConversionFactor": "1",
+            //         "guaranteedExecutionFee": "0.0000",
+            //         "quoteGuaranteedExecutionFee": "0",
+            //         "halfSpreadCost": "0.0002",
+            //         "fullVWAP": "1.14508",
+            //         "reason": "MARKET_ORDER_TRADE_CLOSE",
+            //         "tradesClosed": [
+            //           {
+            //             "tradeID": "58",
+            //             "units": "-5",
+            //             "realizedPL": "-0.0023",
+            //             "financing": "0.0000",
+            //             "baseFinancing": "0.00000000000000",
+            //             "price": "1.14508",
+            //             "guaranteedExecutionFee": "0.0000",
+            //             "quoteGuaranteedExecutionFee": "0",
+            //             "halfSpreadCost": "0.0002",
+            //             "plHomeConversionCost": "0.00000",
+            //             "baseFinancingHomeConversionCost": "0.00000000000000",
+            //             "guaranteedExecutionFeeHomeConversionCost": "0",
+            //             "homeConversionCost": "0.00000000000000"
+            //           }
+            //         ],
+            //         "fullPrice": {
+            //           "closeoutBid": "1.14504",
+            //           "closeoutAsk": "1.14521",
+            //           "timestamp": "2022-02-04T19:57:05.356995798Z",
+            //           "bids": [
+            //             { "price": "1.14508", "liquidity": "1000000" },
+            //             { "price": "1.14507", "liquidity": "2000000" },
+            //             { "price": "1.14506", "liquidity": "2000000" },
+            //             { "price": "1.14504", "liquidity": "5000000" }
+            //           ],
+            //           "asks": [
+            //             { "price": "1.14517", "liquidity": "1000000" },
+            //             { "price": "1.14519", "liquidity": "2000000" },
+            //             { "price": "1.14520", "liquidity": "2000000" },
+            //             { "price": "1.14521", "liquidity": "5000000" }
+            //           ]
+            //         },
+            //         "homeConversionFactors": {
+            //           "gainQuoteHome": { "factor": "1" },
+            //           "lossQuoteHome": { "factor": "1" },
+            //           "gainBaseHome": { "factor": "1.13939440" },
+            //           "lossBaseHome": { "factor": "1.15084560" }
+            //         },
+            //         "plHomeConversionCost": "0.00000",
+            //         "baseFinancingHomeConversionCost": "0.00000000000000",
+            //         "guaranteedExecutionFeeHomeConversionCost": "0",
+            //         "homeConversionCost": "0.00000000000000"
+            //     },
+            //   ],
+            //   lastTransactionID: '60'
+            // }
+            //
+            results = this.safeValue (innerResponse, 'transactions', []);
+        }
+        return results;
+    }
+
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name oanda#fetchPositions
+         * @description fetch all open positions
+         * @see https://developer.oanda.com/rest-live-v20/trade-ep/
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        const request = { 'state': 'OPEN' };
+        const positions = await this.getInternalAccountTrades (symbols, undefined, this.extend (request, params));
+        return this.parsePositions (positions, symbols);
+    }
+
+    parsePosition (position, market: Market = undefined) {
+        //
+        // fetchPositions
+        //
+        //     {
+        //         id: '54',
+        //         instrument: 'EUR_USD',
+        //         price: '1.14531',
+        //         openTime: '2022-02-04T18:47:36.387316038Z',
+        //         initialUnits: '2',
+        //         state: 'OPEN',
+        //         currentUnits: '2',
+        //         realizedPL: '0.0000',
+        //         financing: '0.0000',
+        //         dividendAdjustment: '0.0000',
+        //         unrealizedPL: '-0.0003',
+        //         marginUsed: '0.2290'
+        //     }
+        //
+        const marketId = this.safeString (position, 'instrument');
+        market = this.safeMarket (marketId, market, '_');
+        const date = this.safeString (position, 'openTime');
+        const timestamp = this.parseDate (date);
+        const initialSize = this.safeString (position, 'initialUnits');
+        const side = Precise.stringGt (initialSize, '0') ? 'long' : 'short';
+        const marginUsed = this.safeString (position, 'marginUsed');
+        // TODO: i am not sure if the margin values are correctly structured by me
+        return {
+            'id': this.safeString (position, 'id'),
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': marginUsed,
+            'entryPrice': this.safeNumber (position, 'price'),
+            'notional': undefined,
+            'leverage': undefined,
+            'unrealizedPnl': this.safeNumber (position, 'unrealisedPnl'),
+            'contracts': this.parseNumber (Precise.stringAbs (initialSize)),
+            'contractSize': undefined,
+            'realisedPnl': this.safeNumber (position, 'realizedPL'),
+            'marginRatio': undefined,
+            'liquidationPrice': undefined,
+            'markPrice': undefined,
+            'marginType': undefined,
+            'side': side,
+            'percentage': undefined,
+            'status': this.parsePositionStatus (this.safeString (position, 'state')),
+            'info': position,
+        };
+    }
+
+    parsePositionStatus (status) {
+        const statuses = {
+            'ALL': 'all',
+            'OPEN': 'open',
+            'CLOSED': 'closed',
+            'CLOSE_WHEN_TRADEABLE': 'unknown',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name oanda#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://developer.oanda.com/rest-live-v20/trade-ep/
+         * @see https://developer.oanda.com/rest-live-v20/transaction-ep/
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let response = undefined;
+        let method = this.safeString (this.options, 'fetchMyTradesMethod', 'privateGetAccountsAccountIDTransactionsSinceid');
+        method = this.safeString (params, 'method', method);
+        if (method === 'privateGetAccountsAccountIDTransactionsSinceid') {
+            const request = { 'type': 'ORDER_FILL' };
+            response = await this.getInternalTransactionsData (since, limit, this.extend (request, params));
+        } else {
+            const request = { 'state': 'CLOSED' };
+            response = await this.getInternalAccountTrades (undefined, since, limit, this.extend (request, params));
+        }
+        return this.parseTrades (response, market, since, limit, params);
+    }
+
+    parseTrade (trade, market: Market = undefined): Trade {
+        const date = this.safeString2 (trade, 'time', 'closeTime');
+        const timestamp = this.parseDate (date);
+        const amountStr = this.safeString2 (trade, 'units', 'initialUnits');
+        const side = Precise.stringGt (amountStr, '0') ? 'buy' : 'sell';
+        const marketId = this.safeString (trade, 'instrument');
+        market = this.safeMarket (marketId, market);
+        let type = this.safeString (trade, 'type');
+        if (type !== undefined) {
+            type = this.parseOrderType (type);
+        }
+        const commission = this.safeString (trade, 'commission');
+        let fee = undefined;
+        if (commission !== undefined) {
+            fee = {
+                'currency': undefined,
+                'cost': commission,
+            };
+        }
+        return this.safeTrade ({
+            'id': this.safeString (trade, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': this.safeString2 (trade, 'orderID', 'batchID'),
+            'type': type,
+            'takerOrMaker': undefined,
+            'side': side,
+            'price': this.safeNumber2 (trade, 'price', 'averageClosePrice'),
+            'amount': this.parseNumber (Precise.stringAbs (amountStr)),
+            'cost': undefined,
+            'fee': fee,
+            'info': trade,
+        }, market);
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const results = await this.getInternalTransactionsData (since, limit, params);
+        // see response sample inside above method
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        return this.parseLedger (results, currency, since, limit);
+    }
+
+    parseLedgerEntry (item, currency: Currency = undefined) {
+        const id = this.safeString (item, 'id');
+        const type = this.safeString (item, 'type');
+        const typeParsed = this.parseLedgerEntryType (type);
+        const date = this.safeString (item, 'time');
+        const timestamp = this.parseDate (date);
+        const account = this.safeString (item, 'accountID');
+        const referenceId = this.safeString (item, 'requestID'); // batchID or requestID
+        const referenceAccount = undefined;
+        const marketId = this.safeString (item, 'instrument');
+        const market = this.safeMarket (marketId, undefined);
+        const code = undefined;
+        const amountString = this.safeString (item, 'units');
+        const direction = Precise.stringGt (amountString, '0') ? 'in' : 'out';
+        const amount = this.parseNumber (Precise.stringAbs (amountString));
+        const balanceAfter = this.safeNumber (item, 'accountBalance');
+        const status = 'ok';
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'direction': direction,
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': referenceAccount,
+            'type': typeParsed,
+            'currency': code,
+            'symbol': market['symbol'],
+            'amount': amount,
+            'before': undefined,
+            'after': balanceAfter,
+            'status': status,
+            'fee': undefined,
+            'info': item,
+        };
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'ORDER': 'trade',
+            'FUNDING': 'transaction',
+            // 'ADMIN': '',
+            // 'CREATE': '',
+            // 'CLOSE': '',
+            // 'REOPEN': '',
+            // 'CLIENT_CONFIGURE': '',
+            // 'CLIENT_CONFIGURE_REJECT': '',
+            'TRANSFER_FUNDS': 'transaction',
+            'TRANSFER_FUNDS_REJECT': 'transaction',
+            'MARKET_ORDER': 'trade',
+            'MARKET_ORDER_REJECT': 'trade',
+            'LIMIT_ORDER': 'trade',
+            'LIMIT_ORDER_REJECT': 'trade',
+            'STOP_ORDER': 'trade',
+            'STOP_ORDER_REJECT': 'trade',
+            'MARKET_IF_TOUCHED_ORDER': 'trade',
+            'MARKET_IF_TOUCHED_ORDER_REJECT': 'trade',
+            'TAKE_PROFIT_ORDER': 'trade',
+            'TAKE_PROFIT_ORDER_REJECT': 'trade',
+            'STOP_LOSS_ORDER': 'trade',
+            'STOP_LOSS_ORDER_REJECT': 'trade',
+            'GUARANTEED_STOP_LOSS_ORDER': 'trade',
+            'GUARANTEED_STOP_LOSS_ORDER_REJECT': 'trade',
+            'TRAILING_STOP_LOSS_ORDER': 'trade',
+            'TRAILING_STOP_LOSS_ORDER_REJECT': 'trade',
+            'ONE_CANCELS_ALL_ORDER': 'trade',
+            'ONE_CANCELS_ALL_ORDER_REJECT': 'trade',
+            'ONE_CANCELS_ALL_ORDER_TRIGGERED': 'trade',
+            'ORDER_FILL': 'trade',
+            'ORDER_CANCEL': 'trade',
+            'ORDER_CANCEL_REJECT': 'trade',
+            'ORDER_CLIENT_EXTENSIONS_MODIFY': 'trade',
+            'ORDER_CLIENT_EXTENSIONS_MODIFY_REJECT': 'trade',
+            'TRADE_CLIENT_EXTENSIONS_MODIFY': 'trade',
+            'TRADE_CLIENT_EXTENSIONS_MODIFY_REJECT': 'trade',
+            'MARGIN_CALL_ENTER': 'margin',
+            'MARGIN_CALL_EXTEND': 'margin',
+            'MARGIN_CALL_EXIT': 'margin',
+            'DELAYED_TRADE_CLOSURE': 'trade',
+            'DAILY_FINANCING': 'transaction',
+            'RESET_RESETTABLE_PL': 'margin',
+        };
+        return this.safeString (types, type, type);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
