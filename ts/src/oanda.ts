@@ -346,6 +346,82 @@ export default class oanda extends Exchange {
         return result;
     }
 
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name oanda#fetchOHLCV
+         * @see https://developer.oanda.com/rest-live-v20/instrument-ep/
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument': market['id'],
+            'granularity': this.timeframes[timeframe],
+            'price': 'BMA', // https://developer.oanda.com/rest-live-v20/primitives-df/#PricingComponent
+        };
+        // from & to : 'RFC 3339' or 'UNIX' format
+        if (since !== undefined) {
+            const start = Math.round (since / 1000);
+            request['from'] = start.toString;
+        }
+        if (limit !== undefined) {
+            request['count'] = Math.min (limit, 5000);
+        }
+        const response = await this.privateGetInstrumentsInstrumentCandles (this.extend (request, params));
+        //
+        //     {
+        //         instrument: 'GBP_USD',
+        //         granularity: 'S5',
+        //         candles: [
+        //             {
+        //                 complete: true, // might be false to last current bar
+        //                 volume: '1',
+        //                 time: '2022-02-02T14:13:40.000000000Z',
+        //                 bid: { o: '1.35594', h: '1.35595', l: '1.35590', c: '1.35591' }, // if 'B' flag used
+        //                 mid: { o: '1.35600', h: '1.35602', l: '1.35596', c: '1.35598' }, // if 'M' flag used
+        //                 ask: { o: '1.35607', h: '1.35608', l: '1.35602', c: '1.35604' }  // if 'A' flag used
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'candles', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     {
+        //         complete: true, // might be false to last current bar
+        //         volume: '1',
+        //         time: '2022-02-02T14:13:40.000000000Z',
+        //         bid: { o: '1.35594', h: '1.35595', l: '1.35590', c: '1.35591' }, // if 'B' flag used
+        //         mid: { o: '1.35600', h: '1.35602', l: '1.35596', c: '1.35598' }, // if 'M' flag used
+        //         ask: { o: '1.35607', h: '1.35608', l: '1.35602', c: '1.35604' }  // if 'A' flag used
+        //     }
+        //
+        const dateString = this.safeString (ohlcv, 'time');
+        const timestamp = this.parseDate (dateString);
+        const bidObject = this.safeValue (ohlcv, 'bid');
+        const askObject = this.safeValue (ohlcv, 'ask');
+        const midObject = this.safeValue (ohlcv, 'mid');
+        return [
+            timestamp,
+            this.safeNumber (midObject, 'o'),
+            this.safeNumber (askObject, 'h'),
+            this.safeNumber (bidObject, 'l'),
+            this.safeNumber (midObject, 'c'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (path.indexOf ('{accountID}') >= 0) { // when accountID is in path, but not provided, use the default one
             params['accountID'] = this.safeValue (params, 'accountID', this.apiKey);
