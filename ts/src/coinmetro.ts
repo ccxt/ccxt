@@ -193,8 +193,8 @@ export default class coinmetro extends Exchange {
                 'apiKey': false,
                 'secret': false,
                 'uid': true,
-                'token': true,
             },
+            'uid': 'ccxt', // todo: check - default uid, user can change it
             'fees': {
                 'trading': {
                     'feeSide': 'get',
