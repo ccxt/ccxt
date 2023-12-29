@@ -3,10 +3,8 @@
 
 import Exchange from './abstract/oanda.js';
 // @ts-ignore
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, NetworkError, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, AccountNotEnabled, BadSymbol, RateLimitExceeded, NotSupported } from './base/errors.js';
+import { ExchangeError, BadRequest, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -645,6 +643,71 @@ export default class oanda extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         };
+    }
+
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name oanda#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://developer.oanda.com/rest-live-v20/account-ep/#collapse_endpoint_4
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        const response = await this.privateGetAccountsAccountIDSummary (params);
+        //
+        //     {
+        //         account: {
+        //             guaranteedStopLossOrderMode: 'ALLOWED',
+        //             hedgingEnabled: false,
+        //             id: '001-004-1234567-001',
+        //             createdTime: '2017-06-19T18:08:13.242573669Z',
+        //             currency: 'USD',
+        //             createdByUserID: '1234567',
+        //             alias: 'Primary',
+        //             marginRate: '332333',
+        //             lastTransactionID: '74',
+        //             balance: '19.9947',
+        //             openTradeCount: '0',
+        //             openPositionCount: '0',
+        //             pendingOrderCount: '0',
+        //             pl: '-0.0053',
+        //             resettablePL: '-0.0053',
+        //             resettablePLTime: '2017-06-19T18:08:13.242573669Z',
+        //             financing: '0.0000',
+        //             commission: '0.0000',
+        //             dividendAdjustment: '0',
+        //             guaranteedExecutionFees: '0.0000',
+        //             unrealizedPL: '0.0000',
+        //             NAV: '19.9947',
+        //             marginUsed: '0.0000',
+        //             marginAvailable: '19.9947',
+        //             positionValue: '0.0000',
+        //             marginCloseoutUnrealizedPL: '0.0000',
+        //             marginCloseoutNAV: '19.9947',
+        //             marginCloseoutMarginUsed: '0.0000',
+        //             marginCloseoutPositionValue: '0.0000',
+        //             marginCloseoutPercent: '0.00000',
+        //             withdrawalLimit: '19.9947',
+        //             marginCallMarginUsed: '0.0000',
+        //             marginCallPercent: '0.00000'
+        //         },
+        //         lastTransactionID: '74'
+        //     }
+        //
+        const entry = this.safeValue (response, 'account', {});
+        const timestamp = this.milliseconds ();
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const code = this.safeCurrencyCode (this.safeString (entry, 'currency'));
+        const account = this.account ();
+        account['free'] = this.safeString (entry, 'balance');
+        account['total'] = undefined;
+        result[code] = account;
+        return this.safeBalance (result);
     }
 
     buildOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
@@ -1659,6 +1722,54 @@ export default class oanda extends Exchange {
             'withdrawal': 'withdrawal',
         };
         return this.safeString (types, type, type);
+    }
+
+    async fetchLeverage (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name oanda#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://developer.oanda.com/rest-live-v20/account-ep/#collapse_endpoint_4
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a non-unified response from exchange
+         */
+        const balance = await this.fetchBalance (params);
+        const entry = balance['info']['account'];
+        return this.safeNumber (entry, 'marginRate');
+    }
+
+    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name oanda#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://developer.oanda.com/rest-live-v20/account-ep/#collapse_endpoint_6
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        const request = {
+            'marginRate': leverage,
+        };
+        const response = this.privatePatchAccountsAccountIDConfiguration (this.extend (request, params));
+        //
+        //     {
+        //         clientConfigureTransaction: {
+        //             id: '4',
+        //             accountID: '001-002-1234567-001',
+        //             userID: '1234567',
+        //             batchID: '4',
+        //             requestID: '9456734987654321',
+        //             time: '2022-02-02T08:22:56.543732155Z',
+        //             type: 'CLIENT_CONFIGURE',
+        //             marginRate: '2'
+        //         },
+        //         lastTransactionID: '4'
+        //     }
+        //
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
