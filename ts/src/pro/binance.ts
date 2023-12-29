@@ -1167,24 +1167,24 @@ export default class binance extends binanceRest {
             // A network error happened: we can't renew a listen key that does not exist.
             return;
         }
-        let method = 'publicPutUserDataStream';
         const request = {};
         const symbol = this.safeString (params, 'symbol');
         const sendParams = this.omit (params, [ 'type', 'symbol' ]);
-        if (type === 'future') {
-            method = 'fapiPrivatePutListenKey';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivatePutListenKey';
-        } else {
-            request['listenKey'] = listenKey;
-            if (type === 'margin') {
-                request['symbol'] = symbol;
-                method = 'sapiPutUserDataStream';
-            }
-        }
         const time = this.milliseconds ();
         try {
-            await this[method] (this.extend (request, sendParams));
+            if (type === 'future') {
+                await this.fapiPrivatePutListenKey (this.extend (request, sendParams));
+            } else if (type === 'delivery') {
+                await this.dapiPrivatePutListenKey (this.extend (request, sendParams));
+            } else {
+                request['listenKey'] = listenKey;
+                if (type === 'margin') {
+                    request['symbol'] = symbol;
+                    await this.sapiPutUserDataStream (this.extend (request, sendParams));
+                } else {
+                    await this.publicPutUserDataStream (this.extend (request, sendParams));
+                }
+            }
         } catch (error) {
             const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
             const client = this.client (url);
