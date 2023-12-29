@@ -1,0 +1,17 @@
+{
+    "exchange": "lykke",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://hft-apiv2.lykke.com/api/tickers?assetPairIds=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ]
+    }
+}
