@@ -712,7 +712,8 @@
         "skipMethods": {
             "proxies": "probably they do not permit our proxy location",
             "loadMarkets": {
-                "active":"is undefined"
+                "active":"is undefined",
+                "currencyIdAndCode": "messes codes"
             },
             "fetchOHLCV": "unexpected issue",
             "fetchCurrencies": {

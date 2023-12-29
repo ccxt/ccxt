@@ -210,8 +210,8 @@ export default class testMainClass extends baseMainTestClass {
         await this.importFiles(exchange);
         assert(Object.keys(this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         this.expandSettings(exchange);
-        const symbolOrUndefined = this.checkIfSpecificTestIsChosen(symbolArgv);
-        await this.startTest(exchange, symbolOrUndefined);
+        const symbol = this.checkIfSpecificTestIsChosen(symbolArgv);
+        await this.startTest(exchange, symbol);
         exitScript(0); // needed to be explicitly finished for WS tests
     }
     checkIfSpecificTestIsChosen(symbolArgv) {
@@ -505,9 +505,9 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         this.publicTests = tests;
-        await this.displayTestResults(exchange, tests, true);
+        await this.runTests(exchange, tests, true);
     }
-    async displayTestResults(exchange, tests, isPublicTest) {
+    async runTests(exchange, tests, isPublicTest) {
         const testNames = Object.keys(tests);
         const promises = [];
         for (let i = 0; i < testNames.length; i++) {
@@ -863,7 +863,7 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
-        await this.displayTestResults(exchange, tests, false);
+        await this.runTests(exchange, tests, false);
     }
     async testProxies(exchange) {
         // these tests should be synchronously executed, because of conflicting nature of proxy settings

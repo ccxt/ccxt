@@ -247,7 +247,7 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
 }
 
 function get_test_files ($properties, $ws = false) {
-    return Async\async (function() use ($properties, $ws){
+    $func = function() use ($properties, $ws){
         $tests = array();
         $finalPropList = array_merge ($properties, [proxyTestFileName]);
         for ($i = 0; $i < count($finalPropList); $i++) {
@@ -262,7 +262,12 @@ function get_test_files ($properties, $ws = false) {
             }
         }
         return $tests;
-    })();
+    };
+    if (is_synchronous) {
+        return $func();
+    } else {
+        return Async\async ($func)();
+    }
 }
 
 function is_null_value($value) {
@@ -270,13 +275,18 @@ function is_null_value($value) {
 }
 
 function close($exchange) {
-    return Async\async (function() use ($exchange) {
+    $func = function() use ($exchange) {
         // for WS classes
         if (method_exists($exchange, 'close')) {
             return $exchange->close();
         }
         return true;
-    })();
+    };
+    if (is_synchronous) {
+        return $func();
+    } else {
+        return Async\async ($func)();
+    }
 }
 
 function set_fetch_response($exchange, $data) {
@@ -341,8 +351,8 @@ class testMainClass extends baseMainTestClass {
             Async\await($this->import_files($exchange));
             assert(count(is_array($this->test_files) ? array_keys($this->test_files) : array()) > 0, 'Test files were not loaded'); // ensure test files are found & filled
             $this->expand_settings($exchange);
-            $symbol_or_undefined = $this->check_if_specific_test_is_chosen($symbol_argv);
-            Async\await($this->start_test($exchange, $symbol_or_undefined));
+            $symbol = $this->check_if_specific_test_is_chosen($symbol_argv);
+            Async\await($this->start_test($exchange, $symbol));
             exit_script(0); // needed to be explicitly finished for WS tests
         }) ();
     }
@@ -635,11 +645,11 @@ class testMainClass extends baseMainTestClass {
                 }
             }
             $this->public_tests = $tests;
-            Async\await($this->display_test_results($exchange, $tests, true));
+            Async\await($this->run_tests($exchange, $tests, true));
         }) ();
     }
 
-    public function display_test_results($exchange, $tests, $is_public_test) {
+    public function run_tests($exchange, $tests, $is_public_test) {
         return Async\async(function () use ($exchange, $tests, $is_public_test) {
             $test_names = is_array($tests) ? array_keys($tests) : array();
             $promises = [];
@@ -912,7 +922,7 @@ class testMainClass extends baseMainTestClass {
                 }
             }
             // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
-            Async\await($this->display_test_results($exchange, $tests, false));
+            Async\await($this->run_tests($exchange, $tests, false));
         }) ();
     }
 
@@ -1643,4 +1653,6 @@ class testMainClass extends baseMainTestClass {
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
 $promise = (new testMainClass())->init($exchangeId, $exchangeSymbol);
-Async\await($promise);
+if (!is_synchronous) {
+    Async\await($promise);
+}
