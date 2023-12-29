@@ -20,7 +20,7 @@ export default class coinmetro extends Exchange {
             'name': 'Coinmetro',
             'countries': [ 'EE' ], // Republic of Estonia todo: check
             'version': 'v1', // todo: check
-            'rateLimit': 300, // todo: check rate limiter
+            'rateLimit': 200, // 1 request per 200ms, 20 per minute, 300 per hour, 1k per day
             'certified': false,
             'pro': false,
             'has': {
@@ -193,8 +193,8 @@ export default class coinmetro extends Exchange {
                 'apiKey': false,
                 'secret': false,
                 'uid': true,
+                'token': true,
             },
-            'uid': 'ccxt', // todo: check - default uid, user can change it
             'fees': {
                 'trading': {
                     'feeSide': 'get',
