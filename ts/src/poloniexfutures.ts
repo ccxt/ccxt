@@ -1296,8 +1296,12 @@ export default class poloniexfutures extends Exchange {
         if (until !== undefined) {
             request['endAt'] = until;
         }
-        const method = stop ? 'privateGetStopOrders' : 'privateGetOrders';
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (stop) {
+            response = await this.privateGetStopOrders (this.extend (request, params));
+        } else {
+            response = await this.privateGetOrders (this.extend (request, params));
+        }
         //
         //    {
         //        "code": "200000",
