@@ -560,7 +560,7 @@ export default class coinmetro extends Exchange {
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return [
-            this.safeNumber (ohlcv, 'timestamp'),
+            this.safeInteger (ohlcv, 'timestamp'),
             this.safeNumber (ohlcv, 'o'),
             this.safeNumber (ohlcv, 'h'),
             this.safeNumber (ohlcv, 'l'),
@@ -982,11 +982,8 @@ export default class coinmetro extends Exchange {
         //         }
         //     }
         //
-        const timestamp = this.milliseconds ();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
         };
         const balances = this.omit (response, [ 'TOTAL', 'REF' ]);
         const currencyIds = Object.keys (balances);
