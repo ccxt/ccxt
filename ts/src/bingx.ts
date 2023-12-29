@@ -2231,40 +2231,62 @@ export default class bingx extends Exchange {
         let response = undefined;
         if (market['spot']) {
             response = await this.spotV1PrivatePostTradeCancelOpenOrders (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "debugMsg": "",
+            //         "data": {
+            //             "orders": [{
+            //                 "symbol": "ADA-USDT",
+            //                 "orderId": 1740659971369992192,
+            //                 "transactTime": 1703840651730,
+            //                 "price": 5,
+            //                 "stopPrice": 0,
+            //                 "origQty": 10,
+            //                 "executedQty": 0,
+            //                 "cummulativeQuoteQty": 0,
+            //                 "status": "CANCELED",
+            //                 "type": "LIMIT",
+            //                 "side": "SELL"
+            //             }]
+            //         }
+            //     }
+            //
         } else if (market['swap']) {
             response = await this.swapV2PrivateDeleteTradeAllOpenOrders (this.extend (request, params));
+            //
+            //    {
+            //        "code": 0,
+            //        "msg": "",
+            //        "data": {
+            //          "success": [
+            //            {
+            //              "symbol": "LINK-USDT",
+            //              "orderId": 1597783835095859200,
+            //              "side": "BUY",
+            //              "positionSide": "LONG",
+            //              "type": "TRIGGER_LIMIT",
+            //              "origQty": "5.0",
+            //              "price": "9.0000",
+            //              "executedQty": "0.0",
+            //              "avgPrice": "0.0000",
+            //              "cumQuote": "0",
+            //              "stopPrice": "9.5000",
+            //              "profit": "",
+            //              "commission": "",
+            //              "status": "NEW",
+            //              "time": 1669776326000,
+            //              "updateTime": 1669776326000
+            //            }
+            //          ],
+            //          "failed": null
+            //        }
+            //    }
+            //
         } else {
             throw new BadRequest (this.id + ' cancelAllOrders is only supported for spot and swap markets.');
         }
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //          "success": [
-        //            {
-        //              "symbol": "LINK-USDT",
-        //              "orderId": 1597783835095859200,
-        //              "side": "BUY",
-        //              "positionSide": "LONG",
-        //              "type": "TRIGGER_LIMIT",
-        //              "origQty": "5.0",
-        //              "price": "9.0000",
-        //              "executedQty": "0.0",
-        //              "avgPrice": "0.0000",
-        //              "cumQuote": "0",
-        //              "stopPrice": "9.5000",
-        //              "profit": "",
-        //              "commission": "",
-        //              "status": "NEW",
-        //              "time": 1669776326000,
-        //              "updateTime": 1669776326000
-        //            }
-        //          ],
-        //          "failed": null
-        //        }
-        //    }
-        //
         return response;
     }
 
