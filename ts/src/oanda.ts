@@ -73,6 +73,7 @@ export default class oanda extends Exchange {
                 'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchBidsAsks': true,
                 'fetchTime': false,
                 'fetchTrades': false,
                 'fetchWithdrawals': false,
@@ -452,8 +453,21 @@ export default class oanda extends Exchange {
          * @method
          * @name oanda#fetchTickers
          * @see https://developer.oanda.com/rest-live-v20/pricing-ep/
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @description fetches price tickers for multiple markets
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the data for, all markets are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        return await this.fetchBidsAsks (symbols, params);
+    }
+
+    async fetchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name oanda#fetchBidsAsks
+         * @see https://developer.oanda.com/rest-live-v20/pricing-ep/
+         * @description fetches the bid and ask price and volume for multiple markets
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the data for, all markets are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
