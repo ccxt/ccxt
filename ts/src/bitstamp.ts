@@ -1378,21 +1378,22 @@ export default class bitstamp extends Exchange {
             params = this.omit (params, [ 'clientOrderId' ]);
         }
         let response = undefined;
+        const capitalizedSide = this.capitalize (side);
         if (type === 'market') {
-            if (this.capitalize (side) === 'Buy') {
+            if (capitalizedSide === 'Buy') {
                 response = await this.privatePostBuyMarketPair (this.extend (request, params));
             } else {
                 response = await this.privatePostSellMarketPair (this.extend (request, params));
             }
         } else if (type === 'instant') {
-            if (this.capitalize (side) === 'Buy') {
+            if (capitalizedSide === 'Buy') {
                 response = await this.privatePostBuyInstantPair (this.extend (request, params));
             } else {
                 response = await this.privatePostSellInstantPair (this.extend (request, params));
             }
         } else {
             request['price'] = this.priceToPrecision (symbol, price);
-            if (this.capitalize (side) === 'Buy') {
+            if (capitalizedSide === 'Buy') {
                 response = await this.privatePostBuyPair (this.extend (request, params));
             } else {
                 response = await this.privatePostSellPair (this.extend (request, params));
