@@ -242,43 +242,49 @@ export default class oanda extends Exchange {
         // possible 'type' param: 'CURRENCY', 'CFD', 'METAL'
         const response = await this.privateGetAccountsAccountIDInstruments (params);
         //
-        //     {
-        //         instruments: [
-        //             {
-        //                 name: 'GBP_CAD',
-        //                 type: 'CURRENCY',
-        //                 displayName: 'GBP/CAD',
-        //                 pipLocation: '-4',
-        //                 displayPrecision: '5',
-        //                 tradeUnitsPrecision: '0',
-        //                 minimumTradeSize: '1',
-        //                 maximumTrailingStopDistance: '1.00000',
-        //                 minimumTrailingStopDistance: '0.00050',
-        //                 maximumPositionSize: '0',
-        //                 maximumOrderUnits: '100000000',
-        //                 marginRate: '0.0333',
-        //                 guaranteedStopLossOrderMode: 'ALLOWED',
-        //                 minimumGuaranteedStopLossDistance: '0.0010',
-        //                 guaranteedStopLossOrderExecutionPremium: '0.00050',
-        //                 guaranteedStopLossOrderLevelRestriction: { volume: '1000000', priceRange: '0.00250' },
-        //                 tags: [ { type: 'ASSET_CLASS', name: 'CURRENCY' } ],
-        //                 financing: {
-        //                     longRate: '-0.0105',
-        //                     shortRate: '-0.0145',
-        //                     financingDaysOfWeek: [
-        //                         { dayOfWeek: 'MONDAY', daysCharged: '1' },
-        //                         { dayOfWeek: 'TUESDAY', daysCharged: '1' },
-        //                         { dayOfWeek: 'WEDNESDAY', daysCharged: '3' },
-        //                         { dayOfWeek: 'THURSDAY', daysCharged: '1' },
-        //                         { dayOfWeek: 'FRIDAY', daysCharged: '1' },
-        //                         { dayOfWeek: 'SATURDAY', daysCharged: '0' },
-        //                         { dayOfWeek: 'SUNDAY', daysCharged: '0' }
-        //                     ]
-        //                 }
-        //             },
-        //         ]
-        //         lastTransactionID: '3'
-        //     }
+        //    {
+        //        "instruments": [
+        //            {
+        //                "name": "EUR_AUD",
+        //                "type": "CURRENCY",
+        //                "displayName": "EUR/AUD",
+        //                "pipLocation": "-4",
+        //                "displayPrecision": "5",
+        //                "tradeUnitsPrecision": "0",
+        //                "minimumTradeSize": "1",
+        //                "maximumTrailingStopDistance": "1.00000",
+        //                "minimumTrailingStopDistance": "0.00050",
+        //                "maximumPositionSize": "0",
+        //                "maximumOrderUnits": "100000000",
+        //                "marginRate": "5",
+        //                "guaranteedStopLossOrderMode": "ALLOWED",
+        //                "minimumGuaranteedStopLossDistance": "0.0010",
+        //                "guaranteedStopLossOrderExecutionPremium": "0.001",
+        //                "guaranteedStopLossOrderLevelRestriction": {
+        //                    "volume": "1000000",
+        //                    "priceRange": "0.0025"
+        //                },
+        //                "tags": [
+        //                    { "type": "ASSET_CLASS", "name": "CURRENCY" },
+        //                    { "type": "BRAIN_ASSET_CLASS", "name": "FX" }
+        //                ],
+        //                "financing": {
+        //                    "longRate": "-0.0122",
+        //                    "shortRate": "-0.0084",
+        //                    "financingDaysOfWeek": [
+        //                        { "dayOfWeek": "MONDAY", "daysCharged": "0" },
+        //                        { "dayOfWeek": "TUESDAY", "daysCharged": "1" },
+        //                        { "dayOfWeek": "WEDNESDAY", "daysCharged": "4" },
+        //                        { "dayOfWeek": "THURSDAY", "daysCharged": "1" },
+        //                        { "dayOfWeek": "FRIDAY", "daysCharged": "0" },
+        //                        { "dayOfWeek": "SATURDAY", "daysCharged": "0" },
+        //                        { "dayOfWeek": "SUNDAY", "daysCharged": "0" }
+        //                    ]
+        //                }
+        //            }
+        //        ],
+        //        "lastTransactionID": "87"
+        //    }
         //
         const data = this.safeValue (response, 'instruments');
         const result = [];
@@ -377,36 +383,42 @@ export default class oanda extends Exchange {
         }
         const response = await this.privateGetInstrumentsInstrumentCandles (this.extend (request, params));
         //
-        //     {
-        //         instrument: 'GBP_USD',
-        //         granularity: 'S5',
-        //         candles: [
-        //             {
-        //                 complete: true, // might be false to last current bar
-        //                 volume: '1',
-        //                 time: '2022-02-02T14:13:40.000000000Z',
-        //                 bid: { o: '1.35594', h: '1.35595', l: '1.35590', c: '1.35591' }, // if 'B' flag used
-        //                 mid: { o: '1.35600', h: '1.35602', l: '1.35596', c: '1.35598' }, // if 'M' flag used
-        //                 ask: { o: '1.35607', h: '1.35608', l: '1.35602', c: '1.35604' }  // if 'A' flag used
-        //             },
-        //         ]
-        //     }
+        //    {
+        //        "instrument": "EUR_USD",
+        //        "granularity": "M1",
+        //        "candles": [
+        //            {
+        //                "complete": false,
+        //                "volume": "18",
+        //                "time": "2023-12-29T15:22:00.000000000Z",
+        //                "bid": { // if 'B' flag was sent
+        //                    "o": "1.10714",
+        //                    "h": "1.10719",
+        //                    "l": "1.10711",
+        //                    "c": "1.10718"
+        //                },
+        //                "mid": { // if 'M' flag was sent
+        //                    "o": "1.10722",
+        //                    "h": "1.10728",
+        //                    "l": "1.10719",
+        //                    "c": "1.10726"
+        //                },
+        //                "ask": { // if 'A' flag was sent
+        //                    "o": "1.10730",
+        //                    "h": "1.10736",
+        //                    "l": "1.10727",
+        //                    "c": "1.10734"
+        //                }
+        //            }
+        //        ]
+        //    }
         //
         const data = this.safeValue (response, 'candles', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
-        //
-        //     {
-        //         complete: true, // might be false to last current bar
-        //         volume: '1',
-        //         time: '2022-02-02T14:13:40.000000000Z',
-        //         bid: { o: '1.35594', h: '1.35595', l: '1.35590', c: '1.35591' }, // if 'B' flag used
-        //         mid: { o: '1.35600', h: '1.35602', l: '1.35596', c: '1.35598' }, // if 'M' flag used
-        //         ask: { o: '1.35607', h: '1.35608', l: '1.35602', c: '1.35604' }  // if 'A' flag used
-        //     }
-        //
+        // example response is present in fetchCandles
         const dateString = this.safeString (ohlcv, 'time');
         const timestamp = this.parseDate (dateString);
         const bidObject = this.safeValue (ohlcv, 'bid');
@@ -420,6 +432,111 @@ export default class oanda extends Exchange {
             this.safeNumber (midObject, 'c'),
             this.safeNumber (ohlcv, 'volume'),
         ];
+    }
+
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name oanda#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const data = await this.fetchTickers ([ symbol ], params);
+        return this.safeValue (data, symbol, {});
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name oanda#fetchTickers
+         * @see https://developer.oanda.com/rest-live-v20/pricing-ep/
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        let selectedSymbols = this.symbols; // all symbols by default
+        if (symbols !== undefined) {
+            selectedSymbols = symbols;
+        }
+        const ids = [];
+        for (let i = 0; i < selectedSymbols.length; i++) {
+            const symbol = selectedSymbols[i];
+            const market = this.market (symbol);
+            ids.push (market['id']);
+        }
+        const request = {
+            'instruments': ids.join (','),
+        };
+        const response = await this.privateGetAccountsAccountIDPricing (this.extend (request, params));
+        //
+        //    {
+        //        "time": "2023-12-29T15:27:27.829226066Z",
+        //        "prices": [
+        //            {
+        //                "type": "PRICE",
+        //                "time": "2023-12-29T15:27:26.635352820Z",
+        //                "bids": [
+        //                    { "price": "7.721", "liquidity": "3000000" }
+        //                ],
+        //                "asks": [
+        //                    { "price": "7.732",  "liquidity": "3000000" }
+        //                ],
+        //                "closeoutBid": "7.721",
+        //                "closeoutAsk": "7.732",
+        //                "status": "tradeable",
+        //                "tradeable": true,
+        //                "quoteHomeConversionFactors": {
+        //                    "positiveUnits": "0.00707394",
+        //                    "negativeUnits": "0.00707489"
+        //                },
+        //                "instrument": "ZAR_JPY"
+        //            }
+        //        ]
+        //    }
+        //
+        const prices = this.safeValue (response, 'prices', []);
+        return this.parseTickers (prices, symbols, params);
+    }
+
+    parseTicker (ticker, market: Market = undefined): Ticker {
+        const marketId = this.safeString (ticker, 'instrument');
+        market = this.safeMarket (marketId, market);
+        // const status = this.safeString (ticker, 'status') === 'tradeable';
+        const date = this.safeString (ticker, 'time');
+        const timestamp = this.parseDate (date);
+        const bids = this.safeValue (ticker, 'bids');
+        const asks = this.safeValue (ticker, 'asks');
+        const bidBestObject = this.safeValue (bids, 0);
+        const askBestObject = this.safeValue (asks, 0);
+        const bidPrice = this.safeNumber (bidBestObject, 'price');
+        const bidVolume = this.safeNumber (bidBestObject, 'liquidity');
+        const askPrice = this.safeNumber (askBestObject, 'price');
+        const askVolume = this.safeNumber (askBestObject, 'liquidity');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': bidPrice,
+            'bidVolume': bidVolume,
+            'ask': askPrice,
+            'askVolume': askVolume,
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'last': undefined,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': this.safeString (ticker, 'percentChange'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'baseVolume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
