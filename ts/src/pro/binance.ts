@@ -1125,22 +1125,23 @@ export default class binance extends binanceRest {
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
-            let method = 'publicPostUserDataStream';
+            let response = undefined;
             if (type === 'future') {
-                method = 'fapiPrivatePostListenKey';
+                response = await this.fapiPrivatePostListenKey (query);
             } else if (type === 'delivery') {
-                method = 'dapiPrivatePostListenKey';
+                response = await this.dapiPrivatePostListenKey (query);
             } else if (type === 'margin' && isCrossMargin) {
-                method = 'sapiPostUserDataStream';
+                response = await this.sapiPostUserDataStream (query);
             } else if (isIsolatedMargin) {
-                method = 'sapiPostUserDataStreamIsolated';
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' authenticate() requires a symbol argument for isolated margin mode');
                 }
                 const marketId = this.marketId (symbol);
                 query = this.extend (query, { 'symbol': marketId });
+                response = await this.sapiPostUserDataStreamIsolated (query);
+            } else {
+                response = await this.publicPostUserDataStream (query);
             }
-            const response = await this[method] (query);
             this.options[type] = this.extend (options, {
                 'listenKey': this.safeString (response, 'listenKey'),
                 'lastAuthenticatedTime': time,
