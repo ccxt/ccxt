@@ -807,8 +807,12 @@ export default class lykke extends Exchange {
         if (type === 'limit') {
             query['price'] = parseFloat (this.priceToPrecision (market['symbol'], price));
         }
-        const method = 'privatePostOrders' + this.capitalize (type);
-        const result = await this[method] (this.extend (query, params));
+        let result = undefined;
+        if (this.capitalize (type) === 'Market') {
+            result = await this.privatePostOrdersMarket (this.extend (query, params));
+        } else {
+            result = await this.privatePostOrdersLimit (this.extend (query, params));
+        }
         //
         // market
         //
