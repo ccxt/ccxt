@@ -837,10 +837,13 @@ class bybit(ccxt.async_support.bybit):
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
         symbols = {}
-        method = 'parseWsTrade' if spot else 'parseTrade'
         for i in range(0, len(data)):
             rawTrade = data[i]
-            parsed = getattr(self, method)(rawTrade)
+            parsed = None
+            if spot:
+                parsed = self.parse_ws_trade(rawTrade)
+            else:
+                parsed = self.parse_trade(rawTrade)
             symbol = parsed['symbol']
             symbols[symbol] = True
             trades.append(parsed)

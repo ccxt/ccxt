@@ -132,6 +132,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/query': 3,
                                 'trade/openOrders': 3,
                                 'trade/historyOrders': 3,
+                                'user/commissionRate': 3,
                                 'account/balance': 3,
                             },
                             'post': {
@@ -139,6 +140,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/cancel': 3,
                                 'trade/batchOrders': 3,
                                 'trade/cancelOrders': 3,
+                                'trade/cancelOpenOrders': 3,
                             },
                         },
                     },
@@ -1271,22 +1273,29 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        # change = self.safe_string(ticker, 'priceChange')  # self is not ccxt's change because it does high-low instead of last-open
         lastQty = self.safe_string(ticker, 'lastQty')
         # in spot markets, lastQty is not present
         # it's(bad, but) the only way we can check the tickers origin
         type = 'spot' if (lastQty is None) else 'swap'
-        symbol = self.safe_symbol(marketId, market, None, type)
+        market = self.safe_market(marketId, market, None, type)
+        symbol = market['symbol']
         open = self.safe_string(ticker, 'openPrice')
         high = self.safe_string(ticker, 'highPrice')
         low = self.safe_string(ticker, 'lowPrice')
         close = self.safe_string(ticker, 'lastPrice')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         baseVolume = self.safe_string(ticker, 'volume')
+        percentage = None
+        change = None
+        if market['swap']:
+            # right now only swap uses the 24h change, spot will be added soon
+            percentage = self.safe_string(ticker, 'priceChangePercent')
+            change = self.safe_string(ticker, 'priceChange')
         # percentage = self.safe_string(ticker, 'priceChangePercent')
         # if percentage is not None:
         #     percentage = percentage.replace('%', '')
         # } similarly to change, it's not ccxt's percentage because it does priceChange/open, and priceChange is high-low
+        # change = self.safe_string(ticker, 'priceChange')  # self is not ccxt's change because it does high-low instead of last-open
         ts = self.safe_integer(ticker, 'closeTime')
         datetime = self.iso8601(ts)
         bid = self.safe_string(ticker, 'bidPrice')
@@ -1308,8 +1317,8 @@ class bingx(Exchange, ImplicitAPI):
             'close': close,
             'last': None,
             'previousClose': None,
-            'change': None,
-            'percentage': None,
+            'change': change,
+            'percentage': percentage,
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -2086,6 +2095,7 @@ class bingx(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
+        :see: https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
         :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2095,41 +2105,67 @@ class bingx(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        if market['type'] != 'swap':
-            raise BadRequest(self.id + ' cancelAllOrders is only supported for swap markets.')
         request = {
             'symbol': market['id'],
         }
-        response = self.swapV2PrivateDeleteTradeAllOpenOrders(self.extend(request, params))
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #          "success": [
-        #            {
-        #              "symbol": "LINK-USDT",
-        #              "orderId": 1597783835095859200,
-        #              "side": "BUY",
-        #              "positionSide": "LONG",
-        #              "type": "TRIGGER_LIMIT",
-        #              "origQty": "5.0",
-        #              "price": "9.0000",
-        #              "executedQty": "0.0",
-        #              "avgPrice": "0.0000",
-        #              "cumQuote": "0",
-        #              "stopPrice": "9.5000",
-        #              "profit": "",
-        #              "commission": "",
-        #              "status": "NEW",
-        #              "time": 1669776326000,
-        #              "updateTime": 1669776326000
-        #            }
-        #          ],
-        #          "failed": null
-        #        }
-        #    }
-        #
+        response = None
+        if market['spot']:
+            response = self.spotV1PrivatePostTradeCancelOpenOrders(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "debugMsg": "",
+            #         "data": {
+            #             "orders": [{
+            #                 "symbol": "ADA-USDT",
+            #                 "orderId": 1740659971369992192,
+            #                 "transactTime": 1703840651730,
+            #                 "price": 5,
+            #                 "stopPrice": 0,
+            #                 "origQty": 10,
+            #                 "executedQty": 0,
+            #                 "cummulativeQuoteQty": 0,
+            #                 "status": "CANCELED",
+            #                 "type": "LIMIT",
+            #                 "side": "SELL"
+            #             }]
+            #         }
+            #     }
+            #
+        elif market['swap']:
+            response = self.swapV2PrivateDeleteTradeAllOpenOrders(self.extend(request, params))
+            #
+            #    {
+            #        "code": 0,
+            #        "msg": "",
+            #        "data": {
+            #          "success": [
+            #            {
+            #              "symbol": "LINK-USDT",
+            #              "orderId": 1597783835095859200,
+            #              "side": "BUY",
+            #              "positionSide": "LONG",
+            #              "type": "TRIGGER_LIMIT",
+            #              "origQty": "5.0",
+            #              "price": "9.0000",
+            #              "executedQty": "0.0",
+            #              "avgPrice": "0.0000",
+            #              "cumQuote": "0",
+            #              "stopPrice": "9.5000",
+            #              "profit": "",
+            #              "commission": "",
+            #              "status": "NEW",
+            #              "time": 1669776326000,
+            #              "updateTime": 1669776326000
+            #            }
+            #          ],
+            #          "failed": null
+            #        }
+            #    }
+            #
+        else:
+            raise BadRequest(self.id + ' cancelAllOrders is only supported for spot and swap markets.')
         return response
 
     def cancel_orders(self, ids: List[Int], symbol: Str = None, params={}):

@@ -118,6 +118,7 @@ class bingx extends Exchange {
                                 'trade/query' => 3,
                                 'trade/openOrders' => 3,
                                 'trade/historyOrders' => 3,
+                                'user/commissionRate' => 3,
                                 'account/balance' => 3,
                             ),
                             'post' => array(
@@ -125,6 +126,7 @@ class bingx extends Exchange {
                                 'trade/cancel' => 3,
                                 'trade/batchOrders' => 3,
                                 'trade/cancelOrders' => 3,
+                                'trade/cancelOpenOrders' => 3,
                             ),
                         ),
                     ),
@@ -1308,22 +1310,30 @@ class bingx extends Exchange {
         //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        // $change = $this->safe_string($ticker, 'priceChange'); // this is not ccxt's $change because it does $high-$low instead of last-$open
         $lastQty = $this->safe_string($ticker, 'lastQty');
         // in spot markets, $lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
         $type = ($lastQty === null) ? 'spot' : 'swap';
-        $symbol = $this->safe_symbol($marketId, $market, null, $type);
+        $market = $this->safe_market($marketId, $market, null, $type);
+        $symbol = $market['symbol'];
         $open = $this->safe_string($ticker, 'openPrice');
         $high = $this->safe_string($ticker, 'highPrice');
         $low = $this->safe_string($ticker, 'lowPrice');
         $close = $this->safe_string($ticker, 'lastPrice');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         $baseVolume = $this->safe_string($ticker, 'volume');
+        $percentage = null;
+        $change = null;
+        if ($market['swap']) {
+            // right now only swap uses the 24h $change, spot will be added soon
+            $percentage = $this->safe_string($ticker, 'priceChangePercent');
+            $change = $this->safe_string($ticker, 'priceChange');
+        }
         // $percentage = $this->safe_string($ticker, 'priceChangePercent');
         // if ($percentage !== null) {
         //     $percentage = str_replace('%', '', $percentage);
         // } similarly to $change, it's not ccxt's $percentage because it does priceChange/open, and priceChange is $high-$low
+        // $change = $this->safe_string($ticker, 'priceChange'); // this is not ccxt's $change because it does $high-$low instead of last-$open
         $ts = $this->safe_integer($ticker, 'closeTime');
         $datetime = $this->iso8601($ts);
         $bid = $this->safe_string($ticker, 'bidPrice');
@@ -1345,8 +1355,8 @@ class bingx extends Exchange {
             'close' => $close,
             'last' => null,
             'previousClose' => null,
-            'change' => null,
-            'percentage' => null,
+            'change' => $change,
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
@@ -2169,6 +2179,7 @@ class bingx extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
          * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2179,42 +2190,68 @@ class bingx extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['type'] !== 'swap') {
-            throw new BadRequest($this->id . ' cancelAllOrders is only supported for swap markets.');
-        }
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->swapV2PrivateDeleteTradeAllOpenOrders (array_merge($request, $params));
-        //
-        //    {
-        //        "code" => 0,
-        //        "msg" => "",
-        //        "data" => {
-        //          "success" => array(
-        //            {
-        //              "symbol" => "LINK-USDT",
-        //              "orderId" => 1597783835095859200,
-        //              "side" => "BUY",
-        //              "positionSide" => "LONG",
-        //              "type" => "TRIGGER_LIMIT",
-        //              "origQty" => "5.0",
-        //              "price" => "9.0000",
-        //              "executedQty" => "0.0",
-        //              "avgPrice" => "0.0000",
-        //              "cumQuote" => "0",
-        //              "stopPrice" => "9.5000",
-        //              "profit" => "",
-        //              "commission" => "",
-        //              "status" => "NEW",
-        //              "time" => 1669776326000,
-        //              "updateTime" => 1669776326000
-        //            }
-        //          ),
-        //          "failed" => null
-        //        }
-        //    }
-        //
+        $response = null;
+        if ($market['spot']) {
+            $response = $this->spotV1PrivatePostTradeCancelOpenOrders (array_merge($request, $params));
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "debugMsg" => "",
+            //         "data" => {
+            //             "orders" => [array(
+            //                 "symbol" => "ADA-USDT",
+            //                 "orderId" => 1740659971369992192,
+            //                 "transactTime" => 1703840651730,
+            //                 "price" => 5,
+            //                 "stopPrice" => 0,
+            //                 "origQty" => 10,
+            //                 "executedQty" => 0,
+            //                 "cummulativeQuoteQty" => 0,
+            //                 "status" => "CANCELED",
+            //                 "type" => "LIMIT",
+            //                 "side" => "SELL"
+            //             )]
+            //         }
+            //     }
+            //
+        } elseif ($market['swap']) {
+            $response = $this->swapV2PrivateDeleteTradeAllOpenOrders (array_merge($request, $params));
+            //
+            //    {
+            //        "code" => 0,
+            //        "msg" => "",
+            //        "data" => {
+            //          "success" => array(
+            //            {
+            //              "symbol" => "LINK-USDT",
+            //              "orderId" => 1597783835095859200,
+            //              "side" => "BUY",
+            //              "positionSide" => "LONG",
+            //              "type" => "TRIGGER_LIMIT",
+            //              "origQty" => "5.0",
+            //              "price" => "9.0000",
+            //              "executedQty" => "0.0",
+            //              "avgPrice" => "0.0000",
+            //              "cumQuote" => "0",
+            //              "stopPrice" => "9.5000",
+            //              "profit" => "",
+            //              "commission" => "",
+            //              "status" => "NEW",
+            //              "time" => 1669776326000,
+            //              "updateTime" => 1669776326000
+            //            }
+            //          ),
+            //          "failed" => null
+            //        }
+            //    }
+            //
+        } else {
+            throw new BadRequest($this->id . ' cancelAllOrders is only supported for spot and swap markets.');
+        }
         return $response;
     }
 
