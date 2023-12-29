@@ -673,7 +673,7 @@ export default class oanda extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    convertOrderType (status) {
+    parseOrderType (status) {
         const statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -682,6 +682,15 @@ export default class oanda extends Exchange {
             // 'STOP_LOSS': 'stop-loss',
             // 'TAKE_PROFIT': 'take-profit',
             // 'MARKET_IF_TOUCHED': 'mit',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    convertOrderType (status) {
+        const statuses = {
+            'market': 'MARKET',
+            'limit': 'LIMIT',
+            'stop': 'STOP',
         };
         return this.safeString (statuses, status, status);
     }
@@ -896,6 +905,199 @@ export default class oanda extends Exchange {
         //     }
         //
         return this.parseOrder (response);
+    }
+
+    parseOrder (order, market: Market = undefined): Order {
+        let id = undefined;
+        let marketId = undefined;
+        let timestamp = undefined;
+        let type = undefined;
+        let price = undefined;
+        let timeInForce = undefined;
+        let amount = undefined;
+        let filled = undefined;
+        let remaining = undefined;
+        let status = undefined;
+        let side = undefined;
+        if ('orderCreateTransaction' in order) { // comes from 'createOrder' or 'editOrder', however, this key has different order
+            const orderCreateTransaction = this.safeValue (order, 'orderCreateTransaction');
+            const orderCancelTransaction = this.safeValue (order, 'orderCancelTransaction');
+            const keys = Object.keys (order);
+            const keysLength = keys.length;
+            // Note: in 'editOrder', the first key is always 'orderCancelTransaction', in createOrder, it's 'orderCreateTransaction'
+            const lastKey = this.safeString (keys, keysLength - 1);
+            // const orderFillTransaction = this.safeValue (order, 'orderFillTransaction'); // TO_DO : this is for 'trades'
+            id = this.safeString (orderCreateTransaction, 'id');
+            marketId = this.safeString (orderCreateTransaction, 'instrument');
+            timestamp = this.parseDate (this.safeString (orderCreateTransaction, 'time'));
+            price = this.safeString (orderCreateTransaction, 'price');
+            timeInForce = this.parseTimeInForce (this.safeString (orderCreateTransaction, 'timeInForce'));
+            amount = this.safeString (orderCreateTransaction, 'units');
+            side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
+            amount = Precise.stringAbs (amount);
+            type = this.parseOrderTransactionType (this.safeString (orderCreateTransaction, 'type'));
+            let tempStatus = undefined;
+            // depending the last key, we find out the order status.
+            if (lastKey === 'orderCancelTransaction') { // if cancellation order followed immediatelly, then it's rejection
+                // tempStatus = 'REJECTED';
+                const cancelReason = this.safeString (orderCancelTransaction, 'reason');
+                throw new InvalidOrder (this.id + ' createOrder() : ' + cancelReason); // TODO
+            } else if (lastKey === 'orderFillTransaction') { // if it has fill, then it's either full fill or partial fill
+                tempStatus = 'FILLED';
+            } else if (lastKey === 'orderCreateTransaction') { // if last was also just order-creation (without fill) then it's pending
+                tempStatus = 'PENDING';
+            }
+            status = this.parseOrderStatus (tempStatus);
+        } else if ('orderCancelTransaction' in order) { // if not create/edit order, then it's from 'cancelOrder'
+            const chosenOrder = this.safeValue (order, 'orderCancelTransaction');
+            id = this.safeString (chosenOrder, 'orderID');
+            timestamp = this.parseDate (this.safeString (chosenOrder, 'time'));
+        } else if ('createTime' in order) { // from 'fetchOrder' & 'fetchOrders'
+            const chosenOrder = order;
+            id = this.safeString (chosenOrder, 'id');
+            marketId = this.safeString (chosenOrder, 'instrument');
+            timestamp = this.parseDate (this.safeString (chosenOrder, 'createTime'));
+            price = this.safeString (chosenOrder, 'price');
+            timeInForce = this.parseTimeInForce (this.safeString (chosenOrder, 'timeInForce'));
+            amount = this.safeString (chosenOrder, 'units');
+            side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
+            amount = Precise.stringAbs (amount);
+            type = this.parseOrderType (this.safeString (chosenOrder, 'type'));
+            const state = this.safeString (chosenOrder, 'state');
+            status = this.parseOrderStatus (state);
+            if (state === 'FILLED') {
+                filled = amount;
+            } else if (state === 'PENDING' || state === 'TRIGGERED') {
+                remaining = amount;
+            }
+        }
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'type': type,
+            'side': side,
+            'symbol': this.safeSymbol (marketId, market),
+            'timeInForce': timeInForce,
+            'postOnly': undefined,
+            'price': price,
+            'stopPrice': undefined,
+            'average': undefined,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': undefined,
+            'trades': undefined,
+            'fee': undefined,
+            'info': order,
+        }, market);
+    }
+
+    
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderSpecifier': id,
+        };
+        const response = await this.privateGetAccountsAccountIDOrdersOrderSpecifier (this.extend (request, params));
+        //
+        //     {
+        //         order: {
+        //           id: '17',
+        //           createTime: '2022-02-03T10:39:02.123450098Z',
+        //           type: 'MARKET',
+        //           instrument: 'USD_JPY',
+        //           units: '1',
+        //           timeInForce: 'FOK',
+        //           positionFill: 'REDUCE_ONLY',
+        //           state: 'FILLED',
+        //           fillingTransactionID: '18',
+        //           filledTime: '2022-02-03T10:39:02.123450098Z',
+        //           tradeClosedIDs: [ '10' ]
+        //         },
+        //         lastTransactionID: '42'
+        //     }
+        //
+        const order = this.safeValue (response, 'order', {});
+        return this.parseOrder (order);
+    }
+
+    async fetchOrdersByIds (ids = undefined, since = undefined, limit = undefined, params = {}) {
+        const idsString = Array.isArray (ids) ? ids.join (',') : ids;
+        const request = {
+            'ids': idsString,
+            'state': 'ALL',
+        };
+        return this.fetchOrders (undefined, since, limit, this.extend (request, params));
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrders (symbol, since, limit, this.extend ({ 'state': 'PENDING' }, params));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrders (symbol, since, limit, this.extend ({ 'state': 'TRIGGERED' }, params));
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrders (symbol, since, limit, this.extend ({ 'state': 'CANCELLED' }, params));
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const state = this.safeString (params, 'state', 'ALL');
+        const request = {
+            'state': state,
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instrument'] = market['symbol'];
+        }
+        if (limit !== undefined) {
+            request['count'] = limit; // default 20, max 200
+        }
+        const response = await this.privateGetAccountsAccountIDOrders (this.extend (request, params));
+        // Note the difference between FILLED & CANCELLED object keys: price & below 'state' properties
+        // {
+        //     orders: [
+        //       {
+        //         id: '19',
+        //         createTime: '2022-02-03T12:13:45.123704227Z',
+        //         type: 'MARKET',
+        //         instrument: 'USD_JPY',
+        //         units: '1',
+        //         timeInForce: 'FOK',
+        //         positionFill: 'REDUCE_ONLY',
+        //         state: 'FILLED',
+        //         fillingTransactionID: '20',
+        //         filledTime: '2022-02-03T12:13:45.123704227Z',
+        //         tradeClosedIDs: ['14']
+        //       },
+        //       {
+        //         id: '7',
+        //         createTime: '2022-02-03T07:56:42.515274170Z',
+        //         type: 'LIMIT',
+        //         instrument: 'USD_JPY',
+        //         units: '1',
+        //         timeInForce: 'GTC',
+        //         price: '101.000',
+        //         triggerCondition: 'DEFAULT',
+        //         partialFill: 'DEFAULT_FILL',
+        //         positionFill: 'DEFAULT',
+        //         state: 'CANCELLED',
+        //         cancellingTransactionID: '8',
+        //         cancelledTime: '2022-02-03T07:57:51.937254136Z'
+        //       }
+        //       ...
+        //     ],
+        //     lastTransactionID: '20'
+        // }
+        const orders = this.safeValue (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit, params);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
