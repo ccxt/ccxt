@@ -40,6 +40,7 @@ var bitpanda = require('./src/bitpanda.js');
 var bitrue = require('./src/bitrue.js');
 var bitso = require('./src/bitso.js');
 var bitstamp = require('./src/bitstamp.js');
+var bitteam = require('./src/bitteam.js');
 var bitvavo = require('./src/bitvavo.js');
 var bl3p = require('./src/bl3p.js');
 var blockchaincom = require('./src/blockchaincom.js');
@@ -168,7 +169,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.1.91';
+const version = '4.2.1';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -199,6 +200,7 @@ const exchanges = {
     'bitrue': bitrue,
     'bitso': bitso,
     'bitstamp': bitstamp,
+    'bitteam': bitteam,
     'bitvavo': bitvavo,
     'bl3p': bl3p,
     'blockchaincom': blockchaincom,
@@ -396,6 +398,7 @@ exports.bitpanda = bitpanda;
 exports.bitrue = bitrue;
 exports.bitso = bitso;
 exports.bitstamp = bitstamp;
+exports.bitteam = bitteam;
 exports.bitvavo = bitvavo;
 exports.bl3p = bl3p;
 exports.blockchaincom = blockchaincom;

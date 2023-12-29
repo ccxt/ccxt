@@ -4207,7 +4207,7 @@ class phemex extends Exchange {
         /**
          * set the level of $leverage for a $market
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#set-$leverage
-         * @param {float} $leverage the rate of $leverage
+         * @param {float} $leverage the rate of $leverage, 100 > $leverage > -100 excluding numbers between -1 to 1
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->hedged] set to true if hedged position mode is enabled (by default $long and $short $leverage are set to the same value)
@@ -4220,8 +4220,8 @@ class phemex extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
-        if (($leverage < 1) || ($leverage > 100)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
+        if (($leverage < -100) || ($leverage > 100)) {
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between -100 and 100');
         }
         $this->load_markets();
         $isHedged = $this->safe_value($params, 'hedged', false);

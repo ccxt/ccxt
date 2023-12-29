@@ -14,6 +14,8 @@ export default class bingx extends bingxRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchBalance(params?: {}): Promise<Balances>;
+    setBalanceCache(client: Client, type: any, subscriptionHash: any, params: any): any;
+    loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
     handleErrorMessage(client: any, message: any): boolean;
     authenticate(params?: {}): Promise<void>;
     pong(client: any, message: any): Promise<void>;

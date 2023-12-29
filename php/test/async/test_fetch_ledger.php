@@ -1,8 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
-use React\Async;
-use React\Promise;
 
 // ----------------------------------------------------------------------------
 
@@ -10,8 +7,10 @@ use React\Promise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/../base/test_shared_methods.php';
-include_once __DIR__ . '/../base/test_ledger_entry.php';
+use React\Async;
+use React\Promise;
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
+include_once PATH_TO_CCXT . '/test/base/test_ledger_entry.php';
 
 function test_fetch_ledger($exchange, $skipped_properties, $code) {
     return Async\async(function () use ($exchange, $skipped_properties, $code) {

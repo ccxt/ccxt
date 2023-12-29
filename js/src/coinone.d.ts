@@ -6,6 +6,7 @@ import type { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str
  */
 export default class coinone extends Exchange {
     describe(): any;
+    fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;

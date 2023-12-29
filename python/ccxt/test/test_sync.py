@@ -18,12 +18,15 @@ root = os.path.dirname(os.path.dirname(DIR_NAME))
 sys.path.append(root)
 
 import ccxt  # noqa: E402
+import ccxt.pro as ccxtpro  # noqa: E402
 
 # ------------------------------------------------------------------------------
 # from typing import Optional
 # from typing import List
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import NetworkError
+from ccxt.base.errors import ProxyError
+from ccxt.base.errors import OperationFailed
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import AuthenticationError
@@ -33,12 +36,14 @@ from ccxt.base.errors import AuthenticationError
 class Argv(object):
     id_tests = False
     static_tests = False
+    ws_tests = False
     request_tests = False
     response_tests = False
 
     sandbox = False
     privateOnly = False
     private = False
+    ws = False
     verbose = False
     nonce = None
     exchange = None
@@ -54,6 +59,7 @@ parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode'
 parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
 parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
+parser.add_argument('--ws', action='store_true', help='websockets version')
 parser.add_argument('--info', action='store_true', help='enable info output')
 parser.add_argument('--static', action='store_true', help='run static tests')
 parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
@@ -102,15 +108,29 @@ ext = 'py'
 proxyTestFileName = 'proxies'
 
 
+def get_cli_arg_value(arg):
+    arg_exists = getattr(argv, arg) if hasattr(argv, arg) else False
+    with_hyphen = '--' + arg
+    arg_exists_with_hyphen = getattr(argv, with_hyphen) if hasattr(argv, with_hyphen) else False
+    without_hyphen = arg.replace('--', '')
+    arg_exists_wo_hyphen = getattr(argv, without_hyphen) if hasattr(argv, without_hyphen) else False
+    return arg_exists or arg_exists_with_hyphen or arg_exists_wo_hyphen
+
+isWsTests = get_cli_arg_value('--ws')
+
+
 class baseMainTestClass():
     lang = 'PY'
+    is_synchronous = is_synchronous
     request_tests_failed = False
     response_tests_failed = False
     response_tests = False
+    ws_tests = False
     skipped_methods = {}
     check_public_tests = {}
     test_files = {}
     public_tests = {}
+    new_line = '\n'
     root_dir = rootDir
     env_vars = envVars
     ext = ext
@@ -132,16 +152,9 @@ def json_stringify(elem):
     return json.dumps(elem)
 
 
-def get_cli_arg_value(arg):
-    arg_exists = getattr(argv, arg) if hasattr(argv, arg) else False
-    with_hyphen = '--' + arg
-    arg_exists_with_hyphen = getattr(argv, with_hyphen) if hasattr(argv, with_hyphen) else False
-    without_hyphen = arg.replace('--', '')
-    arg_exists_wo_hyphen = getattr(argv, without_hyphen) if hasattr(argv, without_hyphen) else False
-    return arg_exists or arg_exists_with_hyphen or arg_exists_wo_hyphen
-
 def convert_to_snake_case(conent):
     return re.sub(r'(?<!^)(?=[A-Z])', '_', conent).lower()
+
 
 def get_test_name(methodName):
     # stub
@@ -200,26 +213,37 @@ def get_exchange_prop(exchange, prop, defaultValue=None):
 
 def set_exchange_prop(exchange, prop, value):
     setattr(exchange, prop, value)
+    # set snake case too
+    setattr(exchange, convert_to_snake_case(prop), value)
 
 
-def init_exchange(exchangeId, args):
+def init_exchange(exchangeId, args, is_ws=False):
+    if (is_ws):
+        return getattr(ccxtpro, exchangeId)(args)
     return getattr(ccxt, exchangeId)(args)
 
 
-def set_test_files(holderClass, properties):
+def get_test_files(properties, ws=False):
+    tests = {}
     finalPropList = properties + [proxyTestFileName]
-    syncAsync = 'async' if not is_synchronous else 'sync'
     for i in range(0, len(finalPropList)):
-        name = finalPropList[i]
-        name_snake_case = convert_to_snake_case(name)
-        filePathWithExt = DIR_NAME + '/' + syncAsync + '/test_' + name_snake_case + '.py'
+        methodName = finalPropList[i]
+        name_snake_case = convert_to_snake_case(methodName)
+        prefix = 'async' if not is_synchronous else 'sync'
+        dir_to_test = DIR_NAME + '/' + prefix + '/'
+        module_string = 'ccxt.test.' + prefix + '.test_' + name_snake_case
+        if (ws):
+            prefix = 'pro'
+            dir_to_test = DIR_NAME + '/../' + prefix + '/test/Exchange/'
+            module_string = 'ccxt.pro.test.Exchange.test_' + name_snake_case
+        filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
         if (io_file_exists (filePathWithExt)):
-            imp = importlib.import_module('ccxt.test.' + syncAsync + '.test_' + name_snake_case)
-            holderClass.test_files[name] = imp  # getattr(imp, finalName)
-
+            imp = importlib.import_module(module_string)
+            tests[methodName] = imp  # getattr(imp, finalName)
+    return tests
 
 def close(exchange):
-    if (hasattr(exchange, 'close')):
+    if (not is_synchronous and hasattr(exchange, 'close')):
         exchange.close()
 
 def is_null_value(value):
@@ -244,6 +268,7 @@ class testMainClass(baseMainTestClass):
         self.private_test = get_cli_arg_value('--private')
         self.private_test_only = get_cli_arg_value('--privateOnly')
         self.sandbox = get_cli_arg_value('--sandbox')
+        self.ws_tests = get_cli_arg_value('--ws')
 
     def init(self, exchange_id, symbol_argv):
         self.parse_cli_args()
@@ -257,21 +282,24 @@ class testMainClass(baseMainTestClass):
             self.run_broker_id_tests()
             return
         symbol_str = symbol_argv if symbol_argv is not None else 'all'
-        dump('\nTESTING ', self.ext, {
+        dump(self.new_line + '' + self.new_line + '' + '[INFO] TESTING ', self.ext, {
             'exchange': exchange_id,
             'symbol': symbol_str,
-        }, '\n')
+            'isWs': self.ws_tests,
+        }, self.new_line)
         exchange_args = {
             'verbose': self.verbose,
             'debug': self.debug,
             'enableRateLimit': True,
             'timeout': 30000,
         }
-        exchange = init_exchange(exchange_id, exchange_args)
+        exchange = init_exchange(exchange_id, exchange_args, self.ws_tests)
         self.import_files(exchange)
+        assert len(list(self.test_files.keys())) > 0, 'Test files were not loaded'  # ensure test files are found & filled
         self.expand_settings(exchange)
-        symbol_or_undefined = self.check_if_specific_test_is_chosen(symbol_argv)
-        self.start_test(exchange, symbol_or_undefined)
+        symbol = self.check_if_specific_test_is_chosen(symbol_argv)
+        self.start_test(exchange, symbol)
+        exit_script(0)  # needed to be explicitly finished for WS tests
 
     def check_if_specific_test_is_chosen(self, symbol_argv):
         if symbol_argv is not None:
@@ -290,11 +318,23 @@ class testMainClass(baseMainTestClass):
         return symbol_argv
 
     def import_files(self, exchange):
-        # exchange tests
-        self.test_files = {}
         properties = list(exchange.has.keys())
         properties.append('loadMarkets')
-        set_test_files(self, properties)
+        self.test_files = get_test_files(properties, self.ws_tests)
+
+    def load_credentials_from_env(self, exchange):
+        exchange_id = exchange.id
+        req_creds = get_exchange_prop(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+        objkeys = list(req_creds.keys())
+        for i in range(0, len(objkeys)):
+            credential = objkeys[i]
+            is_required = req_creds[credential]
+            if is_required and get_exchange_prop(exchange, credential) is None:
+                full_key = exchange_id + '_' + credential
+                credential_env_name = full_key.upper()  # example: KRAKEN_APIKEY
+                credential_value = self.env_vars[credential_env_name] if (credential_env_name in self.env_vars) else None
+                if credential_value:
+                    set_exchange_prop(exchange, credential, credential_value)
 
     def expand_settings(self, exchange):
         exchange_id = exchange.id
@@ -319,17 +359,7 @@ class testMainClass(baseMainTestClass):
                         final_value = exchange_settings[key]
                     set_exchange_prop(exchange, key, final_value)
         # credentials
-        req_creds = get_exchange_prop(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
-        objkeys = list(req_creds.keys())
-        for i in range(0, len(objkeys)):
-            credential = objkeys[i]
-            is_required = req_creds[credential]
-            if is_required and get_exchange_prop(exchange, credential) is None:
-                full_key = exchange_id + '_' + credential
-                credential_env_name = full_key.upper()  # example: KRAKEN_APIKEY
-                credential_value = self.env_vars[credential_env_name] if (credential_env_name in self.env_vars) else None
-                if credential_value:
-                    set_exchange_prop(exchange, credential, credential_value)
+        self.load_credentials_from_env(exchange)
         # skipped tests
         skipped_file = self.root_dir_for_skips + 'skip-tests.json'
         skipped_settings = io_file_read(skipped_file)
@@ -340,6 +370,8 @@ class testMainClass(baseMainTestClass):
             exchange.timeout = timeout
         exchange.http_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpProxy')
         exchange.https_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpsProxy')
+        exchange.ws_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wsProxy')
+        exchange.wss_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wssProxy')
         self.skipped_methods = exchange.safe_value(skipped_settings_for_exchange, 'skipMethods', {})
         self.checked_public_tests = {}
 
@@ -353,50 +385,66 @@ class testMainClass(baseMainTestClass):
                 res += ' '
         return message + res
 
+    def exchange_hint(self, exchange, market=None):
+        market_type = exchange.safe_string_2(exchange.options, 'defaultType', 'type', '')
+        market_sub_type = exchange.safe_string_2(exchange.options, 'defaultSubType', 'subType')
+        if market is not None:
+            market_type = market['type']
+            if market['linear']:
+                market_sub_type = 'linear'
+            elif market['inverse']:
+                market_sub_type = 'inverse'
+            elif exchange.safe_value(market, 'quanto'):
+                market_sub_type = 'quanto'
+        is_ws = ('ws' in exchange.has)
+        ws_flag = '(WS)' if is_ws else ''
+        result = exchange.id + ' ' + ws_flag + ' ' + market_type
+        if market_sub_type is not None:
+            result = result + ' [subType: ' + market_sub_type + '] '
+        return result
+
     def test_method(self, method_name, exchange, args, is_public):
+        # todo: temporary skip for php
+        if 'OrderBook' in method_name and self.ext == 'php':
+            return
         is_load_markets = (method_name == 'loadMarkets')
-        method_name_in_test = get_test_name(method_name)
+        is_fetch_currencies = (method_name == 'fetchCurrencies')
+        is_proxy_test = (method_name == self.proxy_test_file_name)
         # if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
-        if not is_public and (method_name_in_test in self.checked_public_tests) and (method_name != 'fetchCurrencies'):
+        if not is_public and (method_name in self.checked_public_tests) and not is_fetch_currencies:
             return
         skip_message = None
-        is_proxy_test = method_name == self.proxy_test_file_name
         supported_by_exchange = (method_name in exchange.has) and exchange.has[method_name]
-        if not is_load_markets and (len(self.only_specific_tests) > 0 and not exchange.in_array(method_name_in_test, self.only_specific_tests)):
-            skip_message = '[INFO:IGNORED_TEST]'
+        if not is_load_markets and (len(self.only_specific_tests) > 0 and not exchange.in_array(method_name, self.only_specific_tests)):
+            skip_message = '[INFO] IGNORED_TEST'
         elif not is_load_markets and not supported_by_exchange and not is_proxy_test:
-            skip_message = '[INFO:UNSUPPORTED_TEST]'  # keep it aligned with the longest message
+            skip_message = '[INFO] UNSUPPORTED_TEST'  # keep it aligned with the longest message
         elif (method_name in self.skipped_methods) and (isinstance(self.skipped_methods[method_name], str)):
-            skip_message = '[INFO:SKIPPED_TEST]'
-        elif not (method_name_in_test in self.test_files):
-            skip_message = '[INFO:UNIMPLEMENTED_TEST]'
+            skip_message = '[INFO] SKIPPED_TEST'
+        elif not (method_name in self.test_files):
+            skip_message = '[INFO] UNIMPLEMENTED_TEST'
         # exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if is_load_markets:
             exchange.load_markets(True)
         if skip_message:
             if self.info:
-                dump(self.add_padding(skip_message, 25), exchange.id, method_name_in_test)
+                dump(self.add_padding(skip_message, 25), self.exchange_hint(exchange), method_name)
             return
         if self.info:
             args_stringified = '(' + ','.join(args) + ')'
-            dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, method_name_in_test, args_stringified)
+            dump(self.add_padding('[INFO] TESTING', 25), self.exchange_hint(exchange), method_name, args_stringified)
         skipped_properties = exchange.safe_value(self.skipped_methods, method_name, {})
-        call_method(self.test_files, method_name_in_test, exchange, skipped_properties, args)
+        call_method(self.test_files, method_name, exchange, skipped_properties, args)
         # if it was passed successfully, add to the list of successfull tests
         if is_public:
-            self.checked_public_tests[method_name_in_test] = True
+            self.checked_public_tests[method_name] = True
 
     def test_safe(self, method_name, exchange, args=[], is_public=False):
-        # `testSafe` method does not throw an exception, instead mutes it.
-        # The reason we mute the thrown exceptions here is because if this test is part
-        # of "runPublicTests", then we don't want to stop the whole test if any single
-        # test-method fails. For example, if "fetchOrderBook" public test fails, we still
-        # want to run "fetchTickers" and other methods. However, independently this fact,
-        # from those test-methods we still echo-out (console.log/print...) the exception
-        # messages with specific formatted message "[TEST_FAILURE] ..." and that output is
-        # then regex-parsed by run-tests.js, so the exceptions are still printed out to
-        # console from there. So, even if some public tests fail, the script will continue
-        # doing other things (testing other spot/swap or private tests ...)
+        # `testSafe` method does not throw an exception, instead mutes it. The reason we
+        # mute the thrown exceptions here is because we don't want to stop the whole
+        # tests queue if any single test-method fails. Instead, they are echoed with
+        # formatted message "[TEST_FAILURE] ..." and that output is then regex-matched by
+        # run-tests.js, so the exceptions are still printed out to console from there.
         max_retries = 3
         args_stringified = exchange.json(args)  # args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
         for i in range(0, max_retries):
@@ -404,37 +452,52 @@ class testMainClass(baseMainTestClass):
                 self.test_method(method_name, exchange, args, is_public)
                 return True
             except Exception as e:
+                is_load_markets = (method_name == 'loadMarkets')
                 is_auth_error = (isinstance(e, AuthenticationError))
                 is_not_supported = (isinstance(e, NotSupported))
-                is_network_error = (isinstance(e, NetworkError))  # includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "isOperationFailed", "InvalidNonce", ...
-                is_exchange_not_available = (isinstance(e, ExchangeNotAvailable))
-                is_on_maintenance = (isinstance(e, OnMaintenance))
-                temp_failure = is_network_error and (not is_exchange_not_available or is_on_maintenance)  # we do not mute specifically "ExchangeNotAvailable" excetpion (but its subtype "OnMaintenance" can be muted)
-                if temp_failure:
+                is_operation_failed = (isinstance(e, OperationFailed))  # includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
+                if is_operation_failed:
                     # if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if i == max_retries - 1:
-                        dump('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, method_name, args_stringified)
+                        should_fail = False
+                        # we do not mute specifically "ExchangeNotAvailable" exception, because it might be a hint about a change in API engine (but its subtype "OnMaintenance" can be muted)
+                        if (isinstance(e, ExchangeNotAvailable)) and not (isinstance(e, OnMaintenance)):
+                            should_fail = True
+                        elif is_load_markets:
+                            should_fail = True
+                        else:
+                            should_fail = False
+                        # final step
+                        if should_fail:
+                            dump('[TEST_FAILURE]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', self.exchange_hint(exchange), method_name, args_stringified, exception_message(e))
+                            return False
+                        else:
+                            dump('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', self.exchange_hint(exchange), method_name, args_stringified, exception_message(e))
+                            return True
                     else:
                         # wait and retry again
-                        exchange.sleep(i * 1000)  # increase wait seconds on every retry
+                        # (increase wait time on every retry)
+                        exchange.sleep(i * 1000)
                         continue
-                elif isinstance(e, OnMaintenance):
-                    # in case of maintenance, skip exchange (don't fail the test)
-                    dump('[TEST_WARNING] Exchange is on maintenance', exchange.id)
-                elif is_public and is_auth_error:
-                    # in case of loadMarkets, it means that "tester" (developer or travis) does not have correct authentication, so it does not have a point to proceed at all
-                    if method_name == 'loadMarkets':
-                        dump('[TEST_WARNING]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exception_message(e), exchange.id, method_name, args_stringified)
-                    if self.info:
-                        dump('[TEST_WARNING]', 'Authentication problem for public method', exception_message(e), exchange.id, method_name, args_stringified)
                 else:
-                    # if not a temporary connectivity issue, then mark test as failed (no need to re-try)
+                    # if it's loadMarkets, then fail test, because it's mandatory for tests
+                    if is_load_markets:
+                        dump('[TEST_FAILURE]', 'Exchange can not load markets', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
+                        return False
+                    # if the specific arguments to the test method throws "NotSupported" exception
+                    # then let's don't fail the test
                     if is_not_supported:
-                        dump('[NOT_SUPPORTED]', exchange.id, method_name, args_stringified)
-                        return True   # why consider not supported as a failed test?
+                        if self.info:
+                            dump('[INFO] NOT_SUPPORTED', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
+                        return True
+                    # If public test faces authentication error, we don't break (see comments under `testSafe` method)
+                    if is_public and is_auth_error:
+                        if self.info:
+                            dump('[INFO]', 'Authentication problem for public method', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
+                        return True
                     else:
-                        dump('[TEST_FAILURE]', exception_message(e), exchange.id, method_name, args_stringified)
-                return False
+                        dump('[TEST_FAILURE]', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
+                        return False
 
     def run_public_tests(self, exchange, symbol):
         tests = {
@@ -450,41 +513,51 @@ class testMainClass(baseMainTestClass):
             'fetchStatus': [],
             'fetchTime': [],
         }
+        if self.ws_tests:
+            tests = {
+                'watchOHLCV': [symbol],
+                'watchTicker': [symbol],
+                'watchOrderBook': [symbol],
+                'watchTrades': [symbol],
+            }
         market = exchange.market(symbol)
         is_spot = market['spot']
-        if is_spot:
-            tests['fetchCurrencies'] = []
-        else:
-            tests['fetchFundingRates'] = [symbol]
-            tests['fetchFundingRate'] = [symbol]
-            tests['fetchFundingRateHistory'] = [symbol]
-            tests['fetchIndexOHLCV'] = [symbol]
-            tests['fetchMarkOHLCV'] = [symbol]
-            tests['fetchPremiumIndexOHLCV'] = [symbol]
+        if not self.ws_tests:
+            if is_spot:
+                tests['fetchCurrencies'] = []
+            else:
+                tests['fetchFundingRates'] = [symbol]
+                tests['fetchFundingRate'] = [symbol]
+                tests['fetchFundingRateHistory'] = [symbol]
+                tests['fetchIndexOHLCV'] = [symbol]
+                tests['fetchMarkOHLCV'] = [symbol]
+                tests['fetchPremiumIndexOHLCV'] = [symbol]
         self.public_tests = tests
+        self.run_tests(exchange, tests, True)
+
+    def run_tests(self, exchange, tests, is_public_test):
         test_names = list(tests.keys())
         promises = []
         for i in range(0, len(test_names)):
             test_name = test_names[i]
             test_args = tests[test_name]
-            promises.append(self.test_safe(test_name, exchange, test_args, True))
+            promises.append(self.test_safe(test_name, exchange, test_args, is_public_test))
         # todo - not yet ready in other langs too
         # promises.push (testThrottle ());
         results = (promises)
         # now count which test-methods retuned `false` from "testSafe" and dump that info below
+        failed_methods = []
+        for i in range(0, len(test_names)):
+            test_name = test_names[i]
+            test_returned_value = results[i]
+            if not test_returned_value:
+                failed_methods.append(test_name)
+        test_prefix_string = 'PUBLIC_TESTS' if is_public_test else 'PRIVATE_TESTS'
+        if len(failed_methods):
+            errors_string = ', '.join(failed_methods)
+            dump('[TEST_FAILURE]', self.exchange_hint(exchange), test_prefix_string, 'Failed methods : ' + errors_string)
         if self.info:
-            errors = []
-            for i in range(0, len(test_names)):
-                if not results[i]:
-                    errors.append(test_names[i])
-            # we don't throw exception for public-tests, see comments under 'testSafe' method
-            errors_in_message = ''
-            if len(errors):
-                failed_msg = ', '.join(errors)
-                errors_in_message = ' | Failed methods : ' + failed_msg
-            message_content = '[INFO:PUBLIC_TESTS_END] ' + market['type'] + errors_in_message
-            message_with_padding = self.add_padding(message_content, 25)
-            dump(message_with_padding, exchange.id)
+            dump(self.add_padding('[INFO] END ' + test_prefix_string + ' ' + self.exchange_hint(exchange), 25))
 
     def load_exchange(self, exchange):
         result = self.test_safe('loadMarkets', exchange, [], True)
@@ -505,7 +578,7 @@ class testMainClass(baseMainTestClass):
                 result_msg = ', '.join(result_symbols) + ' + more...'
             else:
                 result_msg = ', '.join(result_symbols)
-        dump('Exchange loaded', exchange_symbols_length, 'symbols', result_msg)
+        dump('[INFO:MAIN] Exchange loaded', exchange_symbols_length, 'symbols', result_msg)
         return True
 
     def get_test_symbol(self, exchange, is_spot, symbols):
@@ -591,18 +664,19 @@ class testMainClass(baseMainTestClass):
             if exchange.has['swap']:
                 swap_symbol = self.get_valid_symbol(exchange, False)
         if spot_symbol is not None:
-            dump('Selected SPOT SYMBOL:', spot_symbol)
+            dump('[INFO:MAIN] Selected SPOT SYMBOL:', spot_symbol)
         if swap_symbol is not None:
-            dump('Selected SWAP SYMBOL:', swap_symbol)
+            dump('[INFO:MAIN] Selected SWAP SYMBOL:', swap_symbol)
         if not self.private_test_only:
+            # note, spot & swap tests should run sequentially, because of conflicting `exchange.options['type']` setting
             if exchange.has['spot'] and spot_symbol is not None:
                 if self.info:
-                    dump('[INFO: ### SPOT TESTS ###]')
+                    dump('[INFO] ### SPOT TESTS ###')
                 exchange.options['type'] = 'spot'
                 self.run_public_tests(exchange, spot_symbol)
             if exchange.has['swap'] and swap_symbol is not None:
                 if self.info:
-                    dump('[INFO: ### SWAP TESTS ###]')
+                    dump('[INFO] ### SWAP TESTS ###')
                 exchange.options['type'] = 'swap'
                 self.run_public_tests(exchange, swap_symbol)
         if self.private_test or self.private_test_only:
@@ -615,7 +689,7 @@ class testMainClass(baseMainTestClass):
 
     def run_private_tests(self, exchange, symbol):
         if not exchange.check_required_credentials(False):
-            dump('[Skipping private tests]', 'Keys not found')
+            dump('[INFO] Skipping private tests', 'Keys not found')
             return
         code = self.get_exchange_code(exchange)
         # if (exchange.extendedTest) {
@@ -652,47 +726,38 @@ class testMainClass(baseMainTestClass):
             'fetchBorrowRateHistory': [code],
             'fetchLedgerEntry': [code],
         }
+        if self.ws_tests:
+            tests = {
+                'watchBalance': [code],
+                'watchMyTrades': [symbol],
+                'watchOrders': [symbol],
+                'watchPosition': [symbol],
+                'watchPositions': [symbol],
+            }
         market = exchange.market(symbol)
         is_spot = market['spot']
-        if is_spot:
-            tests['fetchCurrencies'] = []
-        else:
-            # derivatives only
-            tests['fetchPositions'] = [symbol]  # this test fetches all positions for 1 symbol
-            tests['fetchPosition'] = [symbol]
-            tests['fetchPositionRisk'] = [symbol]
-            tests['setPositionMode'] = [symbol]
-            tests['setMarginMode'] = [symbol]
-            tests['fetchOpenInterestHistory'] = [symbol]
-            tests['fetchFundingRateHistory'] = [symbol]
-            tests['fetchFundingHistory'] = [symbol]
-        combined_public_private_tests = exchange.deep_extend(self.public_tests, tests)
-        test_names = list(combined_public_private_tests.keys())
-        promises = []
-        for i in range(0, len(test_names)):
-            test_name = test_names[i]
-            test_args = combined_public_private_tests[test_name]
-            promises.append(self.test_safe(test_name, exchange, test_args, False))
-        results = (promises)
-        errors = []
-        for i in range(0, len(test_names)):
-            test_name = test_names[i]
-            success = results[i]
-            if not success:
-                errors.append(test_name)
-        errors_cnt = len(errors)  # PHP transpile count($errors)
-        if errors_cnt > 0:
-            # throw new Error ('Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
-            dump('[TEST_FAILURE]', 'Failed private tests [' + market['type'] + ']: ' + ', '.join(errors))
-        else:
-            if self.info:
-                dump(self.add_padding('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id)
+        if not self.ws_tests:
+            if is_spot:
+                tests['fetchCurrencies'] = []
+            else:
+                # derivatives only
+                tests['fetchPositions'] = [symbol]  # this test fetches all positions for 1 symbol
+                tests['fetchPosition'] = [symbol]
+                tests['fetchPositionRisk'] = [symbol]
+                tests['setPositionMode'] = [symbol]
+                tests['setMarginMode'] = [symbol]
+                tests['fetchOpenInterestHistory'] = [symbol]
+                tests['fetchFundingRateHistory'] = [symbol]
+                tests['fetchFundingHistory'] = [symbol]
+        # const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
+        self.run_tests(exchange, tests, False)
 
     def test_proxies(self, exchange):
         # these tests should be synchronously executed, because of conflicting nature of proxy settings
         proxy_test_name = self.proxy_test_file_name
-        if self.info:
-            dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, proxy_test_name)
+        # todo: temporary skip for sync py
+        if self.ext == 'py' and self.is_synchronous:
+            return
         # try proxy several times
         max_retries = 3
         exception = None
@@ -704,7 +769,7 @@ class testMainClass(baseMainTestClass):
                 exception = e
         # if exception was set, then throw it
         if exception:
-            raise Error('[TEST_FAILURE] Failed ' + proxy_test_name + ' : ' + exception_message(exception))
+            raise ExchangeError('[TEST_FAILURE] Failed ' + proxy_test_name + ' : ' + exception_message(exception))
 
     def start_test(self, exchange, symbol):
         # we do not need to test aliases
@@ -910,7 +975,7 @@ class testMainClass(baseMainTestClass):
         try:
             call_exchange_method_dynamically(exchange, method, self.sanitize_data_input(data['input']))
         except Exception as e:
-            if not (isinstance(e, NetworkError)):
+            if not (isinstance(e, ProxyError)):
                 raise e
             output = exchange.last_request_body
             request_url = exchange.last_request_url
@@ -919,8 +984,8 @@ class testMainClass(baseMainTestClass):
             self.assert_static_request_output(exchange, type, skip_keys, data['url'], request_url, call_output, output)
         except Exception as e:
             self.request_tests_failed = True
-            error_message = '[' + self.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
-            dump(error_message)
+            error_message = '[' + self.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + self.exchange_hint(exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
+            dump('[TEST_FAILURE]' + error_message)
 
     def test_response_statically(self, exchange, method, skip_keys, data):
         expected_result = exchange.safe_value(data, 'parsedResponse')
@@ -930,8 +995,8 @@ class testMainClass(baseMainTestClass):
             self.assert_static_response_output(mocked_exchange, skip_keys, unified_result, expected_result)
         except Exception as e:
             self.request_tests_failed = True
-            error_message = '[' + self.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
-            dump(error_message)
+            error_message = '[' + self.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + self.exchange_hint(exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
+            dump('[TEST_FAILURE]' + error_message)
         set_fetch_response(exchange, None)  # reset state
 
     def init_offline_exchange(self, exchange_name):
@@ -941,6 +1006,7 @@ class testMainClass(baseMainTestClass):
             'markets': markets,
             'enableRateLimit': False,
             'rateLimit': 1,
+            'httpProxy': 'http://fake:8080',
             'httpsProxy': 'http://fake:8080',
             'apiKey': 'key',
             'secret': 'secretsecret',
@@ -1019,9 +1085,9 @@ class testMainClass(baseMainTestClass):
         promises = []
         sum = 0
         if target_exchange:
-            dump('Exchange to test: ' + target_exchange)
+            dump('[INFO:MAIN] Exchange to test: ' + target_exchange)
         if test_name:
-            dump('Testing only: ' + test_name)
+            dump('[INFO:MAIN] Testing only: ' + test_name)
         for i in range(0, len(exchanges)):
             exchange_name = exchanges[i]
             exchange_data = static_data[exchange_name]
@@ -1036,7 +1102,7 @@ class testMainClass(baseMainTestClass):
             exit_script(1)
         else:
             success_message = '[' + self.lang + '][TEST_SUCCESS] ' + str(sum) + ' static ' + type + ' tests passed.'
-            dump(success_message)
+            dump('[INFO]' + success_message)
             exit_script(0)
 
     def run_static_response_tests(self, exchange_name=None, test=None):
@@ -1052,7 +1118,7 @@ class testMainClass(baseMainTestClass):
         promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
-        dump(success_message)
+        dump('[INFO]' + success_message)
         exit_script(0)
 
     def test_binance(self):
@@ -1262,4 +1328,5 @@ class testMainClass(baseMainTestClass):
 
 
 if __name__ == '__main__':
-    (testMainClass().init(argv.exchange, argv.symbol))
+    symbol = argv.symbol if argv.symbol and '/' in argv.symbol else None
+    (testMainClass().init(argv.exchange, symbol))

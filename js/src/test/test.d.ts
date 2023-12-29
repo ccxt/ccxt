@@ -2,10 +2,12 @@
 import { Exchange } from '../../ccxt.js';
 declare class baseMainTestClass {
     lang: string;
+    isSynchronous: boolean;
     idTests: boolean;
     requestTestsFailed: boolean;
     responseTestsFailed: boolean;
     requestTests: boolean;
+    wsTests: boolean;
     responseTests: boolean;
     staticTests: boolean;
     info: boolean;
@@ -18,6 +20,7 @@ declare class baseMainTestClass {
     checkedPublicTests: {};
     testFiles: {};
     publicTests: {};
+    newLine: string;
     rootDir: string;
     rootDirForSkips: string;
     onlySpecificTests: any[];
@@ -29,12 +32,15 @@ export default class testMainClass extends baseMainTestClass {
     parseCliArgs(): void;
     init(exchangeId: any, symbolArgv: any): Promise<void>;
     checkIfSpecificTestIsChosen(symbolArgv: any): any;
-    importFiles(exchange: any): Promise<void>;
-    expandSettings(exchange: any): void;
+    importFiles(exchange: Exchange): Promise<void>;
+    loadCredentialsFromEnv(exchange: Exchange): void;
+    expandSettings(exchange: Exchange): void;
     addPadding(message: string, size: any): string;
-    testMethod(methodName: any, exchange: any, args: any, isPublic: any): Promise<void>;
+    exchangeHint(exchange: any, market?: any): string;
+    testMethod(methodName: string, exchange: any, args: any[], isPublic: boolean): Promise<void>;
     testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<boolean>;
     runPublicTests(exchange: any, symbol: any): Promise<void>;
+    runTests(exchange: any, tests: any, isPublicTest: boolean): Promise<void>;
     loadExchange(exchange: any): Promise<boolean>;
     getTestSymbol(exchange: any, isSpot: any, symbols: any): any;
     getExchangeCode(exchange: any, codes?: any): any;

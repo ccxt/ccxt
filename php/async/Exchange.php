@@ -23,6 +23,7 @@ const PAD_WITH_ZERO = ccxt\PAD_WITH_ZERO;
 use ccxt\Precise;
 use ccxt\AuthenticationError;
 use ccxt\ExchangeError;
+use ccxt\ProxyError;
 use ccxt\NotSupported;
 use ccxt\BadSymbol;
 use ccxt\ArgumentsRequired;
@@ -41,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.91';
+$version = '4.2.1';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.91';
+    const VERSION = '4.2.1';
 
     public $browser;
     public $marketsLoading = null;
@@ -395,7 +396,7 @@ class Exchange extends \ccxt\Exchange {
         $length = count($usedProxies);
         if ($length > 1) {
             $joinedProxyNames = implode(',', $usedProxies);
-            throw new ExchangeError($this->id . ' you have multiple conflicting proxy_url settings (' . $joinedProxyNames . '), please use only one from : $proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
+            throw new ProxyError($this->id . ' you have multiple conflicting proxy settings (' . $joinedProxyNames . '), please use only one from : $proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return $proxyUrl;
     }
@@ -460,7 +461,7 @@ class Exchange extends \ccxt\Exchange {
         $length = count($usedProxies);
         if ($length > 1) {
             $joinedProxyNames = implode(',', $usedProxies);
-            throw new ExchangeError($this->id . ' you have multiple conflicting settings (' . $joinedProxyNames . '), please use only one from => $httpProxy, $httpsProxy, httpProxyCallback, httpsProxyCallback, $socksProxy, socksProxyCallback');
+            throw new ProxyError($this->id . ' you have multiple conflicting proxy settings (' . $joinedProxyNames . '), please use only one from => $httpProxy, $httpsProxy, httpProxyCallback, httpsProxyCallback, $socksProxy, socksProxyCallback');
         }
         return array( $httpProxy, $httpsProxy, $socksProxy );
     }
@@ -501,14 +502,14 @@ class Exchange extends \ccxt\Exchange {
         $length = count($usedProxies);
         if ($length > 1) {
             $joinedProxyNames = implode(',', $usedProxies);
-            throw new ExchangeError($this->id . ' you have multiple conflicting settings (' . $joinedProxyNames . '), please use only one from => $wsProxy, $wssProxy, wsSocksProxy');
+            throw new ProxyError($this->id . ' you have multiple conflicting proxy settings (' . $joinedProxyNames . '), please use only one from => $wsProxy, $wssProxy, wsSocksProxy');
         }
         return array( $wsProxy, $wssProxy, $wsSocksProxy );
     }
 
     public function check_conflicting_proxies($proxyAgentSet, $proxyUrlSet) {
         if ($proxyAgentSet && $proxyUrlSet) {
-            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+            throw new ProxyError($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
     }
 
@@ -876,6 +877,7 @@ class Exchange extends \ccxt\Exchange {
             $fee['cost'] = $this->safe_number($fee, 'cost');
         }
         $timestamp = $this->safe_integer($entry, 'timestamp');
+        $info = $this->safe_value($entry, 'info', array());
         return array(
             'id' => $this->safe_string($entry, 'id'),
             'timestamp' => $timestamp,
@@ -891,7 +893,7 @@ class Exchange extends \ccxt\Exchange {
             'after' => $this->parse_number($after),
             'status' => $this->safe_string($entry, 'status'),
             'fee' => $fee,
-            'info' => $entry,
+            'info' => $info,
         );
     }
 
@@ -1344,6 +1346,11 @@ class Exchange extends \ccxt\Exchange {
             if (is_array($tradeFee) && array_key_exists('rate', $tradeFee)) {
                 $tradeFee['rate'] = $this->safe_number($tradeFee, 'rate');
             }
+            $entryFees = $this->safe_value($entry, 'fees', array());
+            for ($j = 0; $j < count($entryFees); $j++) {
+                $entryFees[$j]['cost'] = $this->safe_number($entryFees[$j], 'cost');
+            }
+            $entry['fees'] = $entryFees;
             $entry['fee'] = $tradeFee;
         }
         $timeInForce = $this->safe_string($order, 'timeInForce');
@@ -2951,6 +2958,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOrders() is not supported yet');
     }
 
+    public function fetch_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOrdersWs() is not supported yet');
+    }
+
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrderTrades() is not supported yet');
     }
@@ -2960,15 +2971,43 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchOpenOrders() is not supported yet');
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            if ($this->has['fetchOrders']) {
+                $orders = Async\await($this->fetch_orders($symbol, $since, $limit, $params));
+                return $this->filter_by($orders, 'status', 'open');
+            }
+            throw new NotSupported($this->id . ' fetchOpenOrders() is not supported yet');
+        }) ();
     }
 
     public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchOpenOrdersWs() is not supported yet');
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            if ($this->has['fetchOrdersWs']) {
+                $orders = Async\await($this->fetchOrdersWs ($symbol, $since, $limit, $params));
+                return $this->filter_by($orders, 'status', 'open');
+            }
+            throw new NotSupported($this->id . ' fetchOpenOrdersWs() is not supported yet');
+        }) ();
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchClosedOrders() is not supported yet');
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            if ($this->has['fetchOrders']) {
+                $orders = Async\await($this->fetch_orders($symbol, $since, $limit, $params));
+                return $this->filter_by($orders, 'status', 'closed');
+            }
+            throw new NotSupported($this->id . ' fetchClosedOrders() is not supported yet');
+        }) ();
+    }
+
+    public function fetch_closed_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            if ($this->has['fetchOrdersWs']) {
+                $orders = Async\await($this->fetchOrdersWs ($symbol, $since, $limit, $params));
+                return $this->filter_by($orders, 'status', 'closed');
+            }
+            throw new NotSupported($this->id . ' fetchClosedOrdersWs() is not supported yet');
+        }) ();
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

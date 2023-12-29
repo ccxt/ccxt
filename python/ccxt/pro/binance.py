@@ -24,7 +24,7 @@ class binance(ccxt.async_support.binance):
                 'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
-                'watchOHLCVForSymbols': True,
+                'watchOHLCVForSymbols': False,
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
@@ -873,13 +873,12 @@ class binance(ccxt.async_support.binance):
         if event == '24hrTicker':
             event = 'ticker'
         timestamp = None
-        now = self.milliseconds()
         if event == 'bookTicker':
             # take the event timestamp, if available, for spot tickers it is not
-            timestamp = self.safe_integer(message, 'E', now)
+            timestamp = self.safe_integer(message, 'E')
         else:
             # take the timestamp of the closing price for candlestick streams
-            timestamp = self.safe_integer(message, 'C', now)
+            timestamp = self.safe_integer(message, 'C')
         marketId = self.safe_string(message, 's')
         symbol = self.safe_symbol(marketId, None, None, marketType)
         last = self.safe_float(message, 'c')
@@ -1371,7 +1370,7 @@ class binance(ccxt.async_support.binance):
         messageHash = str(requestId)
         sor = self.safe_value_2(params, 'sor', 'SOR', False)
         params = self.omit(params, 'sor', 'SOR')
-        payload = self.createOrderRequest(symbol, type, side, amount, price, params)
+        payload = self.create_order_request(symbol, type, side, amount, price, params)
         returnRateLimits = False
         returnRateLimits, params = self.handle_option_and_params(params, 'createOrderWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
@@ -1773,7 +1772,7 @@ class binance(ccxt.async_support.binance):
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2288,7 +2287,7 @@ class binance(ccxt.async_support.binance):
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """

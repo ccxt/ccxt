@@ -52,6 +52,7 @@ export interface MarketInterface {
     lowercaseId?: string;
     maker?: Num
     margin: boolean;
+    numericId?: Num;
     option: boolean;
     optionType: Str;
     percentage?: boolean | undefined;

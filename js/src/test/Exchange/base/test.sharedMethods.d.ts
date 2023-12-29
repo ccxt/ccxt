@@ -1,4 +1,5 @@
 declare function logTemplate(exchange: any, method: any, entry: any): string;
+declare function isTemporaryFailure(e: any): boolean;
 declare function assertType(exchange: any, skippedProperties: any, entry: any, key: any, format: any): boolean;
 declare function assertStructure(exchange: any, skippedProperties: any, method: any, entry: any, format: any, emptyAllowedFor?: any[]): void;
 declare function assertTimestamp(exchange: any, skippedProperties: any, method: any, entry: any, nowToCheck?: any, keyNameOrIndex?: any): void;
@@ -21,6 +22,7 @@ declare function removeProxyOptions(exchange: any, skippedProperties: any): any[
 declare function setProxyOptions(exchange: any, skippedProperties: any, proxyUrl: any, httpProxy: any, httpsProxy: any, socksProxy: any): void;
 declare const _default: {
     logTemplate: typeof logTemplate;
+    isTemporaryFailure: typeof isTemporaryFailure;
     assertTimestamp: typeof assertTimestamp;
     assertTimestampAndDatetime: typeof assertTimestampAndDatetime;
     assertStructure: typeof assertStructure;
