@@ -68,6 +68,51 @@
                     ]
                 ]
             }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://futures-api.poloniex.com/api/v1/orders",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"LTCUSDTPERP\"}"
+            },
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://futures-api.poloniex.com/api/v1/stopOrders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    {
+                        "stop": true
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDTPERP\"}"
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder by id",
+                "method": "fetchOrder",
+                "url": "https://futures-api.poloniex.com/api/v1/orders/5ce24c16b210233c36ee321d",
+                "input": [
+                    "5ce24c16b210233c36ee321d"
+                ]
+            },
+            {
+                "description": "fetchOrder by clientId",
+                "method": "fetchOrder",
+                "url": "https://futures-api.poloniex.com/api/v1/clientOrderId/5ce24c16b210233c36ee321d",
+                "input": [
+                    null,
+                    null,
+                    {
+                        "clientOrderId": "5ce24c16b210233c36ee321d"
+                    }
+                ]
+            }
         ]
     }
 }
