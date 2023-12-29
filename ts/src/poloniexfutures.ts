@@ -1203,8 +1203,8 @@ export default class poloniexfutures extends Exchange {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, [ 'stop' ]);
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
         if (stop) {
             response = await this.privateDeleteStopOrders (this.extend (request, params));
@@ -1273,9 +1273,9 @@ export default class poloniexfutures extends Exchange {
          * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const stop = this.safeValue (params, 'stop');
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
         const until = this.safeInteger2 (params, 'until', 'till');
-        params = this.omit (params, [ 'stop', 'until', 'till' ]);
+        params = this.omit (params, [ 'triger', 'stop', 'until', 'till' ]);
         if (status === 'closed') {
             status = 'done';
         }
