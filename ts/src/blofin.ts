@@ -432,15 +432,6 @@ export default class blofin extends Exchange {
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
     }
 
-    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        const isOption = (marketId !== undefined) && ((marketId.indexOf ('-C') > -1) || (marketId.indexOf ('-P') > -1));
-        if (isOption && !(marketId in this.markets_by_id)) {
-            // handle expired option contracts
-            return this.createExpiredOptionMarket (marketId);
-        }
-        return super.safeMarket (marketId, market, delimiter, marketType);
-    }
-
     async fetchMarkets (params = {}) {
         /**
          * @method
@@ -483,12 +474,6 @@ export default class blofin extends Exchange {
         let maxLeverage = this.safeString (market, 'maxLeverage', '100');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const isActive = (this.safeString (market, 'state') === 'live');
-        let isLinear = undefined;
-        let isInverse = undefined;
-        if (swap) {
-            isLinear = this.safeValue (market, 'contractType') === 'linear';
-            isInverse = !isLinear;
-        }
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -504,12 +489,12 @@ export default class blofin extends Exchange {
             'margin': spot && (Precise.stringGt (maxLeverage, '1')),
             'swap': swap,
             'future': future,
-            'linear': isLinear,
-            'inverse': isInverse,
             'active': isActive,
             'taker': taker,
             'maker': maker,
             'contract': contract,
+            'linear': contract ? (quoteId === settleId) : undefined,
+            'inverse': contract ? (baseId === settleId) : undefined,
             'contractSize': contract ? this.safeNumber (market, 'contractValue') : undefined,
             'expiry': expiry,
             'expiryDatetime': expiry,
@@ -598,7 +583,7 @@ export default class blofin extends Exchange {
         const last = this.safeString (ticker, 'last');
         const open = this.safeString (ticker, 'open24h');
         const spot = this.safeValue (market, 'spot', false);
-        const quoteVolume = spot ? this.safeString (ticker, 'volCcy24h') : undefined;
+        const quoteVolume = this.safeString (ticker, 'volCurrency24h');
         const baseVolume = this.safeString (ticker, 'vol24h');
         const high = this.safeString (ticker, 'high24h');
         const low = this.safeString (ticker, 'low24h');
@@ -608,10 +593,10 @@ export default class blofin extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': high,
             'low': low,
-            'bid': this.safeString (ticker, 'bidPx'),
-            'bidVolume': this.safeString (ticker, 'bidSz'),
-            'ask': this.safeString (ticker, 'askPx'),
-            'askVolume': this.safeString (ticker, 'askSz'),
+            'bid': this.safeString (ticker, 'bidPrice'),
+            'bidVolume': this.safeString (ticker, 'bidSize'),
+            'ask': this.safeString (ticker, 'askPrice'),
+            'askVolume': this.safeString (ticker, 'askSize'),
             'vwap': undefined,
             'open': open,
             'close': last,
