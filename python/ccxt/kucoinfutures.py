@@ -1497,7 +1497,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :see: https://docs.kucoin.com/futures/#get-order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.till]: end time in ms
         :param str [params.side]: buy or sell
@@ -1654,14 +1654,17 @@ class kucoinfutures(kucoin, ImplicitAPI):
         cancelExist = self.safe_value(order, 'cancelExist', False)
         status = 'open' if isActive else 'closed'
         status = 'canceled' if cancelExist else status
-        fee = {
-            'currency': feeCurrency,
-            'cost': feeCost,
-        }
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCost,
+            }
         clientOrderId = self.safe_string(order, 'clientOid')
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'stopPrice')
         postOnly = self.safe_value(order, 'postOnly')
+        reduceOnly = self.safe_value(order, 'reduceOnly')
         lastUpdateTimestamp = self.safe_integer(order, 'updatedAt')
         return self.safe_order({
             'id': orderId,
@@ -1670,6 +1673,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': side,
             'amount': amount,
             'price': price,

@@ -379,6 +379,7 @@ export default class Exchange {
                 'createStopMarketOrder': undefined,
                 'createStopOrder': undefined,
                 'editOrder': 'emulated',
+                'editOrder': 'emulated',
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -389,6 +390,7 @@ export default class Exchange {
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
+                'fetchClosedOrdersWs': undefined,
                 'fetchCrossBorrowRate': undefined,
                 'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
@@ -420,10 +422,12 @@ export default class Exchange {
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOpenOrdersWs': undefined,
+                'fetchOpenOrdersWs': undefined,
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
+                'fetchOrdersWs': undefined,
                 'fetchOrderTrades': undefined,
                 'fetchOrderWs': undefined,
                 'fetchPermissions': undefined,
@@ -1805,6 +1809,7 @@ export default class Exchange {
             fee['cost'] = this.safeNumber(fee, 'cost');
         }
         const timestamp = this.safeInteger(entry, 'timestamp');
+        const info = this.safeValue(entry, 'info', {});
         return {
             'id': this.safeString(entry, 'id'),
             'timestamp': timestamp,
@@ -1820,7 +1825,7 @@ export default class Exchange {
             'after': this.parseNumber(after),
             'status': this.safeString(entry, 'status'),
             'fee': fee,
-            'info': entry,
+            'info': info,
         };
     }
     safeCurrencyStructure(currency) {
@@ -2282,6 +2287,11 @@ export default class Exchange {
             if ('rate' in tradeFee) {
                 tradeFee['rate'] = this.safeNumber(tradeFee, 'rate');
             }
+            const entryFees = this.safeValue(entry, 'fees', []);
+            for (let j = 0; j < entryFees.length; j++) {
+                entryFees[j]['cost'] = this.safeNumber(entryFees[j], 'cost');
+            }
+            entry['fees'] = entryFees;
             entry['fee'] = tradeFee;
         }
         let timeInForce = this.safeString(order, 'timeInForce');
@@ -3755,6 +3765,9 @@ export default class Exchange {
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrders() is not supported yet');
     }
+    async fetchOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOrdersWs() is not supported yet');
+    }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrderTrades() is not supported yet');
     }
@@ -3762,13 +3775,32 @@ export default class Exchange {
         throw new NotSupported(this.id + ' watchOrders() is not supported yet');
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrders']) {
+            const orders = await this.fetchOrders(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'open');
+        }
         throw new NotSupported(this.id + ' fetchOpenOrders() is not supported yet');
     }
     async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrdersWs']) {
+            const orders = await this.fetchOrdersWs(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'open');
+        }
         throw new NotSupported(this.id + ' fetchOpenOrdersWs() is not supported yet');
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrders']) {
+            const orders = await this.fetchOrders(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'closed');
+        }
         throw new NotSupported(this.id + ' fetchClosedOrders() is not supported yet');
+    }
+    async fetchClosedOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrdersWs']) {
+            const orders = await this.fetchOrdersWs(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'closed');
+        }
+        throw new NotSupported(this.id + ' fetchClosedOrdersWs() is not supported yet');
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchMyTrades() is not supported yet');

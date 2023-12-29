@@ -874,8 +874,8 @@ export default class okx extends Exchange {
                     'ALGO': 'Algorand',
                     'BHP': 'BHP',
                     'APT': 'Aptos',
-                    'ARBONE': 'Arbitrum one',
-                    'AVAXC': 'Avalanche C-Chain',
+                    'ARBONE': 'Arbitrum One',
+                    'AVAXC': 'Avalanche C',
                     'AVAXX': 'Avalanche X-Chain',
                     'ARK': 'ARK',
                     'AR': 'Arweave',
@@ -3906,7 +3906,7 @@ export default class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.stop] True if fetching trigger or conditional orders
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
@@ -4469,15 +4469,16 @@ export default class okx extends Exchange {
         //     },
         //
         if (chain === 'USDT-Polygon') {
-            networkData = this.safeValue(networksById, 'USDT-Polygon-Bridge');
+            networkData = this.safeValue2(networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon');
         }
         const network = this.safeString(networkData, 'network');
+        const networkCode = this.networkIdToCode(network, code);
         this.checkAddress(address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': networkCode,
             'info': depositAddress,
         };
     }

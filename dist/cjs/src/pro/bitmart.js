@@ -51,7 +51,7 @@ class bitmart extends bitmart$1 {
                     'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
                 },
                 'watchOrderBook': {
-                    'depth': 'depth50', // depth5, depth20, depth50
+                    'depth': 'depth/increase100', // depth/increase100, depth5, depth20, depth50
                 },
                 'ws': {
                     'inflate': true,
@@ -435,7 +435,7 @@ class bitmart extends bitmart$1 {
         const symbolKeys = Object.keys(symbols);
         for (let i = 0; i < symbolKeys.length; i++) {
             const symbol = symbolKeys[i];
-            const symbolSpecificMessageHash = messageHash + ':' + symbol;
+            const symbolSpecificMessageHash = messageHash + '::' + symbol;
             client.resolve(newOrders, symbolSpecificMessageHash);
         }
         client.resolve(newOrders, messageHash);
@@ -1069,6 +1069,7 @@ class bitmart extends bitmart$1 {
          * @method
          * @name bitmart#watchOrderBook
          * @see https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
+         * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
          * @see https://developer-pro.bitmart.com/en/futures/#public-depth-channel
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -1078,11 +1079,14 @@ class bitmart extends bitmart$1 {
          */
         await this.loadMarkets();
         const options = this.safeValue(this.options, 'watchOrderBook', {});
-        const depth = this.safeString(options, 'depth', 'depth50');
+        let depth = this.safeString(options, 'depth', 'depth/increase100');
         symbol = this.symbol(symbol);
         const market = this.market(symbol);
         let type = 'spot';
         [type, params] = this.handleMarketTypeAndParams('watchOrderBook', market, params);
+        if (type === 'swap' && depth === 'depth/increase100') {
+            depth = 'depth50';
+        }
         const orderbook = await this.subscribe(depth, symbol, type, params);
         return orderbook.limit();
     }
@@ -1131,46 +1135,72 @@ class bitmart extends bitmart$1 {
     }
     handleOrderBook(client, message) {
         //
-        // spot
-        //     {
-        //         "data": [
-        //             {
-        //                 "asks": [
-        //                     [ '46828.38', "0.21847" ],
-        //                     [ '46830.68', "0.08232" ],
-        //                     ...
+        // spot depth-all
+        //    {
+        //        "data": [
+        //            {
+        //                "asks": [
+        //                    [ '46828.38', "0.21847" ],
+        //                    [ '46830.68', "0.08232" ],
+        //                    ...
+        //                ],
+        //                "bids": [
+        //                    [ '46820.78', "0.00444" ],
+        //                    [ '46814.33', "0.00234" ],
+        //                    ...
+        //                ],
+        //                "ms_t": 1631044962431,
+        //                "symbol": "BTC_USDT"
+        //            }
+        //        ],
+        //        "table": "spot/depth5"
+        //    }
+        // spot increse depth snapshot
+        //    {
+        //        "data":[
+        //           {
+        //              "asks":[
+        //                 [
+        //                    "43652.52",
+        //                    "0.02039"
         //                 ],
-        //                 "bids": [
-        //                     [ '46820.78', "0.00444" ],
-        //                     [ '46814.33', "0.00234" ],
-        //                     ...
-        //                 ],
-        //                 "ms_t": 1631044962431,
-        //                 "symbol": "BTC_USDT"
-        //             }
-        //         ],
-        //         "table": "spot/depth5"
-        //     }
+        //                 ...
+        //              ],
+        //              "bids":[
+        //                [
+        //                   "43652.51",
+        //                   "0.00500"
+        //                ],
+        //                ...
+        //              ],
+        //              "ms_t":1703376836487,
+        //              "symbol":"BTC_USDT",
+        //              "type":"snapshot", // or update
+        //              "version":2141731
+        //           }
+        //        ],
+        //        "table":"spot/depth/increase100"
+        //    }
         // swap
-        //     {
-        //         "group":"futures/depth50:BTCUSDT",
-        //         "data":{
-        //            "symbol":"BTCUSDT",
-        //            "way":1,
-        //            "depths":[
-        //               {
-        //                  "price":"39509.8",
-        //                  "vol":"2379"
-        //               },
-        //               {
-        //                  "price":"39509.6",
-        //                  "vol":"6815"
-        //               },
-        //               ...
-        //            ],
-        //            "ms_t":1701566021194
-        //         }
-        //     }
+        //    {
+        //        "group":"futures/depth50:BTCUSDT",
+        //        "data":{
+        //           "symbol":"BTCUSDT",
+        //           "way":1,
+        //           "depths":[
+        //              {
+        //                 "price":"39509.8",
+        //                 "vol":"2379"
+        //              },
+        //              {
+        //                 "price":"39509.6",
+        //                 "vol":"6815"
+        //              },
+        //              ...
+        //           ],
+        //           "ms_t":1701566021194
+        //        }
+        //    }
         //
         const data = this.safeValue(message, 'data');
         if (data === undefined) {
@@ -1179,12 +1209,16 @@ class bitmart extends bitmart$1 {
         const depths = this.safeValue(data, 'depths');
         const isSpot = (depths === undefined);
         const table = this.safeString2(message, 'table', 'group');
-        const parts = table.split('/');
-        const lastPart = this.safeString(parts, 1);
-        let limitString = lastPart.replace('depth', '');
-        const dotsIndex = limitString.indexOf(':');
-        limitString = limitString.slice(0, dotsIndex);
-        const limit = this.parseToInt(limitString);
+        // find limit subscribed to
+        const limitsToCheck = ['100', '50', '20', '10', '5'];
+        let limit = 0;
+        for (let i = 0; i < limitsToCheck.length; i++) {
+            const limitString = limitsToCheck[i];
+            if (table.indexOf(limitString) >= 0) {
+                limit = this.parseToInt(limitString);
+                break;
+            }
+        }
         if (isSpot) {
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
@@ -1196,7 +1230,10 @@ class bitmart extends bitmart$1 {
                     orderbook['symbol'] = symbol;
                     this.orderbooks[symbol] = orderbook;
                 }
-                orderbook.reset({});
+                const type = this.safeValue(update, 'type');
+                if ((type === 'snapshot') || (!(table.indexOf('increase') >= 0))) {
+                    orderbook.reset({});
+                }
                 this.handleOrderBookMessage(client, update, orderbook);
                 const timestamp = this.safeInteger(update, 'ms_t');
                 orderbook['timestamp'] = timestamp;
@@ -1388,9 +1425,7 @@ class bitmart extends bitmart$1 {
         }
         else {
             const methods = {
-                'depth5': this.handleOrderBook,
-                'depth20': this.handleOrderBook,
-                'depth50': this.handleOrderBook,
+                'depth': this.handleOrderBook,
                 'ticker': this.handleTicker,
                 'trade': this.handleTrade,
                 'kline': this.handleOHLCV,

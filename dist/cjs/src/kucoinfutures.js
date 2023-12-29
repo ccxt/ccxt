@@ -1566,7 +1566,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @see https://docs.kucoin.com/futures/#get-order-list
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.till] end time in ms
          * @param {string} [params.side] buy or sell
@@ -1732,14 +1732,18 @@ class kucoinfutures extends kucoinfutures$1 {
         const cancelExist = this.safeValue(order, 'cancelExist', false);
         let status = isActive ? 'open' : 'closed';
         status = cancelExist ? 'canceled' : status;
-        const fee = {
-            'currency': feeCurrency,
-            'cost': feeCost,
-        };
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCost,
+            };
+        }
         const clientOrderId = this.safeString(order, 'clientOid');
         const timeInForce = this.safeString(order, 'timeInForce');
         const stopPrice = this.safeNumber(order, 'stopPrice');
         const postOnly = this.safeValue(order, 'postOnly');
+        const reduceOnly = this.safeValue(order, 'reduceOnly');
         const lastUpdateTimestamp = this.safeInteger(order, 'updatedAt');
         return this.safeOrder({
             'id': orderId,
@@ -1748,6 +1752,7 @@ class kucoinfutures extends kucoinfutures$1 {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': side,
             'amount': amount,
             'price': price,

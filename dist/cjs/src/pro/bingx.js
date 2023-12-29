@@ -80,7 +80,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
@@ -169,7 +169,8 @@ class bingx extends bingx$1 {
         const data = this.safeValue(message, 'data', []);
         const messageHash = this.safeString(message, 'dataType');
         const marketId = messageHash.split('@')[0];
-        const marketType = client.url.indexOf('swap') >= 0 ? 'swap' : 'spot';
+        const isSwap = client.url.indexOf('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         let trades = undefined;
@@ -284,7 +285,8 @@ class bingx extends bingx$1 {
         const data = this.safeValue(message, 'data', []);
         const messageHash = this.safeString(message, 'dataType');
         const marketId = messageHash.split('@')[0];
-        const marketType = client.url.indexOf('swap') >= 0 ? 'swap' : 'spot';
+        const isSwap = client.url.indexOf('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         let orderbook = this.safeValue(this.orderbooks, symbol);
@@ -308,8 +310,11 @@ class bingx extends bingx$1 {
         //        "t": 1696687440000
         //    }
         //
+        // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
+        // for swap, (T) is the opening time
+        const timestamp = (market['spot']) ? 't' : 'T';
         return [
-            this.safeInteger(ohlcv, 't'),
+            this.safeInteger(ohlcv, timestamp),
             this.safeNumber(ohlcv, 'o'),
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),
@@ -373,7 +378,8 @@ class bingx extends bingx$1 {
         const messageHash = this.safeString(message, 'dataType');
         const timeframeId = messageHash.split('_')[1];
         const marketId = messageHash.split('@')[0];
-        const marketType = client.url.indexOf('swap') >= 0 ? 'swap' : 'spot';
+        const isSwap = client.url.indexOf('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
@@ -437,7 +443,7 @@ class bingx extends bingx$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

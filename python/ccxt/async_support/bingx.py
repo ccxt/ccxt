@@ -46,7 +46,7 @@ class bingx(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'closeAllPositions': True,
-                'closePosition': False,
+                'closePosition': True,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': True,
                 'createMarketSellOrderWithCost': True,
@@ -158,6 +158,16 @@ class bingx(Exchange, ImplicitAPI):
                     },
                 },
                 'swap': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'positionSide/dual': 1,
+                            },
+                            'post': {
+                                'positionSide/dual': 1,
+                            },
+                        },
+                    },
                     'v2': {
                         'public': {
                             'get': {
@@ -1613,14 +1623,19 @@ class bingx(Exchange, ImplicitAPI):
                 request['timeInForce'] = 'GTC'
             elif timeInForce == 'FOK':
                 request['timeInForce'] = 'FOK'
-            if (type == 'LIMIT') or (type == 'TRIGGER_LIMIT') or (type == 'STOP') or (type == 'TAKE_PROFIT'):
-                request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
-            triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
-            stopLossPrice = self.safe_number(params, 'stopLossPrice')
-            takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
+            triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
+            stopLossPrice = self.safe_string(params, 'stopLossPrice')
+            takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+            trailingAmount = self.safe_string(params, 'trailingAmount')
+            trailingPercent = self.safe_string_2(params, 'trailingPercent', 'priceRate')
             isTriggerOrder = triggerPrice is not None
             isStopLossPriceOrder = stopLossPrice is not None
             isTakeProfitPriceOrder = takeProfitPrice is not None
+            isTrailingAmountOrder = trailingAmount is not None
+            isTrailingPercentOrder = trailingPercent is not None
+            isTrailing = isTrailingAmountOrder or isTrailingPercentOrder
+            if ((type == 'LIMIT') or (type == 'TRIGGER_LIMIT') or (type == 'STOP') or (type == 'TAKE_PROFIT')) and not isTrailing:
+                request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
             reduceOnly = self.safe_value(params, 'reduceOnly', False)
             if isTriggerOrder:
                 request['stopPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice))
@@ -1643,6 +1658,13 @@ class bingx(Exchange, ImplicitAPI):
                         request['type'] = 'TAKE_PROFIT_MARKET'
                     elif (type == 'LIMIT') or (type == 'TAKE_PROFIT'):
                         request['type'] = 'TAKE_PROFIT'
+            elif isTrailing:
+                request['type'] = 'TRAILING_STOP_MARKET'
+                if isTrailingAmountOrder:
+                    request['price'] = self.parse_to_numeric(trailingAmount)
+                elif isTrailingPercentOrder:
+                    requestTrailingPercent = Precise.string_div(trailingPercent, '100')
+                    request['priceRate'] = self.parse_to_numeric(requestTrailingPercent)
             positionSide = None
             if reduceOnly:
                 positionSide = 'SHORT' if (side == 'buy') else 'LONG'
@@ -1650,7 +1672,7 @@ class bingx(Exchange, ImplicitAPI):
                 positionSide = 'LONG' if (side == 'buy') else 'SHORT'
             request['positionSide'] = positionSide
             request['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
-            params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+            params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent'])
         return self.extend(request, params)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
@@ -1670,6 +1692,8 @@ class bingx(Exchange, ImplicitAPI):
         :param float [params.stopLossPrice]: *swap only* stop loss trigger price
         :param float [params.takeProfitPrice]: *swap only* take profit trigger price
         :param float [params.cost]: the quote quantity that can be used alternative for the amount
+        :param float [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
+        :param float [params.trailingPercent]: *swap only* the percent to trail away from the current market price
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2337,7 +2361,7 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
         :param boolean [params.standard]: whether to fetch standard contract orders
@@ -3172,10 +3196,40 @@ class bingx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
+    async def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+        """
+        closes open positions for a market
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+        :param str symbol: Unified CCXT market symbol
+        :param str [side]: not used by bingx
+        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.swapV2PrivatePostTradeCloseAllPositions(self.extend(request, params))
+        #
+        #    {
+        #        "code": 0,
+        #        "msg": "",
+        #        "data": {
+        #            "success": [
+        #                1727686766700486656,
+        #            ],
+        #            "failed": null
+        #        }
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_order(data)
+
     async def close_all_positions(self, params={}) -> List[Position]:
         """
         closes open positions for a market
-        :see: https://bitgetlimited.github.io/apidoc/en/mix/#close-all-position
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.recvWindow]: request valid time window value
         :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
@@ -3211,6 +3265,33 @@ class bingx(Exchange, ImplicitAPI):
             position = self.parse_position({'positionId': success[i]})
             positions.append(position)
         return positions
+
+    async def set_position_mode(self, hedged, symbol: Str = None, params={}):
+        """
+        set hedged to True or False for a market
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+        :param bool hedged: set to True to use dualSidePosition
+        :param str symbol: not used by bingx setPositionMode()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        dualSidePosition = None
+        if hedged:
+            dualSidePosition = 'true'
+        else:
+            dualSidePosition = 'false'
+        request = {
+            'dualSidePosition': dualSidePosition,
+        }
+        #
+        #     {
+        #         code: '0',
+        #         msg: '',
+        #         timeStamp: '1703327432734',
+        #         data: {dualSidePosition: 'false'}
+        #     }
+        #
+        return await self.swapV1PrivatePostPositionSideDual(self.extend(request, params))
 
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]

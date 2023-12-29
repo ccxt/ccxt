@@ -893,8 +893,8 @@ class okx(Exchange, ImplicitAPI):
                     'ALGO': 'Algorand',
                     'BHP': 'BHP',
                     'APT': 'Aptos',
-                    'ARBONE': 'Arbitrum one',
-                    'AVAXC': 'Avalanche C-Chain',
+                    'ARBONE': 'Arbitrum One',
+                    'AVAXC': 'Avalanche C',
                     'AVAXX': 'Avalanche X-Chain',
                     'ARK': 'ARK',
                     'AR': 'Arweave',
@@ -3675,7 +3675,7 @@ class okx(Exchange, ImplicitAPI):
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.stop]: True if fetching trigger or conditional orders
         :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
@@ -4206,14 +4206,15 @@ class okx(Exchange, ImplicitAPI):
         #     },
         #
         if chain == 'USDT-Polygon':
-            networkData = self.safe_value(networksById, 'USDT-Polygon-Bridge')
+            networkData = self.safe_value_2(networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon')
         network = self.safe_string(networkData, 'network')
+        networkCode = self.network_id_to_code(network, code)
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': networkCode,
             'info': depositAddress,
         }
 

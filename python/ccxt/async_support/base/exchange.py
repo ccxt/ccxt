@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.96'
+__version__ = '4.2.1'
 
 # -----------------------------------------------------------------------------
 
@@ -995,6 +995,9 @@ class Exchange(BaseExchange):
     async def fetch_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
+    async def fetch_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchOrdersWs() is not supported yet')
+
     async def fetch_order_trades(self, id: str, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderTrades() is not supported yet')
 
@@ -1002,13 +1005,28 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' watchOrders() is not supported yet')
 
     async def fetch_open_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrders']:
+            orders = await self.fetch_orders(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'open')
         raise NotSupported(self.id + ' fetchOpenOrders() is not supported yet')
 
     async def fetch_open_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrdersWs']:
+            orders = await self.fetchOrdersWs(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'open')
         raise NotSupported(self.id + ' fetchOpenOrdersWs() is not supported yet')
 
     async def fetch_closed_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrders']:
+            orders = await self.fetch_orders(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'closed')
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
+
+    async def fetch_closed_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrdersWs']:
+            orders = await self.fetchOrdersWs(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'closed')
+        raise NotSupported(self.id + ' fetchClosedOrdersWs() is not supported yet')
 
     async def fetch_my_trades(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')

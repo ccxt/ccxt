@@ -1300,12 +1300,12 @@ class bitget(Exchange, ImplicitAPI):
                         '30m': '30min',
                         '1h': '1h',
                         '4h': '4h',
-                        '6h': '6h',
-                        '12h': '12h',
-                        '1d': '1day',
-                        '3d': '3day',
-                        '1w': '1week',
-                        '1M': '1M',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                     'swap': {
                         '1m': '1m',
@@ -1316,12 +1316,12 @@ class bitget(Exchange, ImplicitAPI):
                         '1h': '1H',
                         '2h': '2H',
                         '4h': '4H',
-                        '6h': '6H',
-                        '12h': '12H',
-                        '1d': '1D',
-                        '3d': '3D',
-                        '1w': '1W',
-                        '1M': '1M',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                 },
                 'fetchMarkets': [
@@ -2822,7 +2822,7 @@ class bitget(Exchange, ImplicitAPI):
             currencyCode = self.safe_currency_code(self.safe_string(feeStructure, 'feeCoin'))
             fee = {
                 'currency': currencyCode,
-                'cost': Precise.string_neg(self.safe_string(feeStructure, 'totalFee')),
+                'cost': Precise.string_abs(self.safe_string(feeStructure, 'totalFee')),
             }
         return self.safe_trade({
             'info': trade,
@@ -3113,14 +3113,13 @@ class bitget(Exchange, ImplicitAPI):
         #         "1399132.341"
         #     ]
         #
-        volumeIndex = 6 if (market['inverse']) else 5
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
             self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 3),
             self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, volumeIndex),
+            self.safe_number(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -3403,10 +3402,14 @@ class bitget(Exchange, ImplicitAPI):
                 # Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
                 spotAccountFree = self.safe_string(entry, 'available')
                 contractAccountFree = self.safe_string(entry, 'maxTransferOut')
-                account['free'] = contractAccountFree if (contractAccountFree is not None) else spotAccountFree
-                frozen = self.safe_string(entry, 'frozen')
-                locked = self.safe_string(entry, 'locked')
-                account['used'] = Precise.string_add(frozen, locked)
+                if contractAccountFree is not None:
+                    account['free'] = contractAccountFree
+                    account['total'] = self.safe_string(entry, 'accountEquity')
+                else:
+                    account['free'] = spotAccountFree
+                    frozen = self.safe_string(entry, 'frozen')
+                    locked = self.safe_string(entry, 'locked')
+                    account['used'] = Precise.string_add(frozen, locked)
             result[code] = account
         return self.safe_balance(result)
 
@@ -3848,6 +3851,9 @@ class bitget(Exchange, ImplicitAPI):
         :param float [params.takeProfit.price]: *swap only* the execution price for a take profit attached to a trigger order
         :param str [params.stopLoss.type]: *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
         :param str [params.takeProfit.type]: *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+        :param str [params.trailingPercent]: *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
+        :param str [params.trailingTriggerPrice]: *swap and future only* the price to trigger a trailing stop order, default uses the price argument
+        :param str [params.triggerType]: *swap and future only* 'fill_price', 'mark_price' or 'index_price'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -3857,6 +3863,8 @@ class bitget(Exchange, ImplicitAPI):
         triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
         stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
         takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
+        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRatio')
+        isTrailingPercentOrder = trailingPercent is not None
         isTriggerOrder = triggerPrice is not None
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
@@ -3873,7 +3881,7 @@ class bitget(Exchange, ImplicitAPI):
             else:
                 response = await self.privateSpotPostV2SpotTradePlaceOrder(request)
         else:
-            if isTriggerOrder:
+            if isTriggerOrder or isTrailingPercentOrder:
                 response = await self.privateMixPostV2MixOrderPlacePlanOrder(request)
             elif isStopLossOrTakeProfitTrigger:
                 response = await self.privateMixPostV2MixOrderPlaceTpslOrder(request)
@@ -3922,8 +3930,11 @@ class bitget(Exchange, ImplicitAPI):
         isTakeProfit = takeProfit is not None
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
         isStopLossOrTakeProfit = isStopLoss or isTakeProfit
-        if self.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder) > 1:
-            raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
+        trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', price)
+        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRatio')
+        isTrailingPercentOrder = trailingPercent is not None
+        if self.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingPercentOrder) > 1:
+            raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
         triggerType = self.safe_string(params, 'triggerType', 'mark_price')
@@ -3942,7 +3953,7 @@ class bitget(Exchange, ImplicitAPI):
             request['force'] = 'FOK'
         elif timeInForce == 'IOC':
             request['force'] = 'IOC'
-        params = self.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly', 'clientOrderId'])
+        params = self.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly', 'clientOrderId', 'trailingPercent', 'trailingTriggerPrice'])
         if (marketType == 'swap') or (marketType == 'future'):
             request['marginCoin'] = market['settleId']
             request['size'] = self.amount_to_precision(symbol, amount)
@@ -3951,27 +3962,17 @@ class bitget(Exchange, ImplicitAPI):
             request['productType'] = productType
             if clientOrderId is not None:
                 request['clientOid'] = clientOrderId
-            if isTriggerOrder or isStopLossOrTakeProfitTrigger:
+            if isTriggerOrder or isStopLossOrTakeProfitTrigger or isTrailingPercentOrder:
                 request['triggerType'] = triggerType
-            if isStopLossOrTakeProfitTrigger:
+            if isTrailingPercentOrder:
                 if not isMarketOrder:
-                    raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
-                request['holdSide'] = 'long' if (side == 'buy') else 'short'
-            else:
-                if marginMode is None:
-                    marginMode = 'cross'
-                marginModeRequest = 'crossed' if (marginMode == 'cross') else 'isolated'
-                request['marginMode'] = marginModeRequest
-                requestSide = side
-                if reduceOnly:
-                    request['reduceOnly'] = 'YES'
-                    request['tradeSide'] = 'Close'
-                    # on bitget if the position is long the side is always buy, and if the position is short the side is always sell
-                    requestSide = 'sell' if (side == 'buy') else 'buy'
-                else:
-                    request['tradeSide'] = 'Open'
-                request['side'] = requestSide
-            if isTriggerOrder:
+                    raise BadRequest(self.id + ' createOrder() bitget trailing orders must be market orders')
+                if trailingTriggerPrice is None:
+                    raise ArgumentsRequired(self.id + ' createOrder() bitget trailing orders must have a trailingTriggerPrice param')
+                request['planType'] = 'track_plan'
+                request['triggerPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
+                request['callbackRatio'] = trailingPercent
+            elif isTriggerOrder:
                 request['planType'] = 'normal_plan'
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
                 if price is not None:
@@ -3991,6 +3992,9 @@ class bitget(Exchange, ImplicitAPI):
                     tpType = self.safe_string(takeProfit, 'type', 'mark_price')
                     request['stopSurplusTriggerType'] = tpType
             elif isStopLossOrTakeProfitTrigger:
+                if not isMarketOrder:
+                    raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
+                request['holdSide'] = 'long' if (side == 'buy') else 'short'
                 if isStopLossTriggerOrder:
                     request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                     request['planType'] = 'pos_loss'
@@ -4004,6 +4008,20 @@ class bitget(Exchange, ImplicitAPI):
                 if isTakeProfit:
                     tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
                     request['presetStopSurplusPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
+            if not isStopLossOrTakeProfitTrigger:
+                if marginMode is None:
+                    marginMode = 'cross'
+                marginModeRequest = 'crossed' if (marginMode == 'cross') else 'isolated'
+                request['marginMode'] = marginModeRequest
+                requestSide = side
+                if reduceOnly:
+                    request['reduceOnly'] = 'YES'
+                    request['tradeSide'] = 'Close'
+                    # on bitget if the position is long the side is always buy, and if the position is short the side is always sell
+                    requestSide = 'sell' if (side == 'buy') else 'buy'
+                else:
+                    request['tradeSide'] = 'Open'
+                request['side'] = requestSide
         elif marketType == 'spot':
             if isStopLossOrTakeProfitTrigger or isStopLossOrTakeProfit:
                 raise InvalidOrder(self.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets')
@@ -4172,6 +4190,9 @@ class bitget(Exchange, ImplicitAPI):
         :param float [params.takeProfit.price]: *swap only* the execution price for a take profit attached to a trigger order
         :param str [params.stopLoss.type]: *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
         :param str [params.takeProfit.type]: *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+        :param str [params.trailingPercent]: *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
+        :param str [params.trailingTriggerPrice]: *swap and future only* the price to trigger a trailing stop order, default uses the price argument
+        :param str [params.newTriggerType]: *swap and future only* 'fill_price', 'mark_price' or 'index_price'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -4196,12 +4217,15 @@ class bitget(Exchange, ImplicitAPI):
         takeProfit = self.safe_value(params, 'takeProfit')
         isStopLoss = stopLoss is not None
         isTakeProfit = takeProfit is not None
-        if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder) > 1:
-            raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
+        trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', price)
+        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'newCallbackRatio')
+        isTrailingPercentOrder = trailingPercent is not None
+        if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1:
+            raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         if clientOrderId is not None:
             request['clientOid'] = clientOrderId
-        params = self.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId'])
+        params = self.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent'])
         response = None
         if market['spot']:
             editMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'editMarketBuyOrderRequiresPrice', True)
@@ -4228,9 +4252,16 @@ class bitget(Exchange, ImplicitAPI):
             request['productType'] = productType
             if not isTakeProfitOrder and not isStopLossOrder:
                 request['newSize'] = self.amount_to_precision(symbol, amount)
-                if price is not None:
+                if (price is not None) and not isTrailingPercentOrder:
                     request['newPrice'] = self.price_to_precision(symbol, price)
-            if isTakeProfitOrder or isStopLossOrder:
+            if isTrailingPercentOrder:
+                if not isMarketOrder:
+                    raise BadRequest(self.id + ' editOrder() bitget trailing orders must be market orders')
+                if trailingTriggerPrice is not None:
+                    request['newTriggerPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
+                request['newCallbackRatio'] = trailingPercent
+                response = await self.privateMixPostV2MixOrderModifyPlanOrder(self.extend(request, params))
+            elif isTakeProfitOrder or isStopLossOrder:
                 request['marginCoin'] = market['settleId']
                 request['size'] = self.amount_to_precision(symbol, amount)
                 request['executePrice'] = self.price_to_precision(symbol, price)
@@ -4297,6 +4328,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'isolated' or 'cross' for spot margin trading
         :param boolean [params.stop]: set to True for canceling trigger orders
         :param str [params.planType]: *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
+        :param boolean [params.trailing]: set to True if you want to cancel a trailing order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -4313,8 +4345,9 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
         request = {}
-        stop = self.safe_value(params, 'stop')
-        params = self.omit(params, 'stop')
+        trailing = self.safe_value(params, 'trailing')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
+        params = self.omit(params, ['stop', 'trigger', 'trailing'])
         if not (market['spot'] and stop):
             request['symbol'] = market['id']
         if not ((market['swap'] or market['future']) and stop):
@@ -4323,13 +4356,18 @@ class bitget(Exchange, ImplicitAPI):
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
             request['productType'] = productType
-            if stop:
+            if stop or trailing:
                 orderIdList = []
                 orderId = {
                     'orderId': id,
                 }
                 orderIdList.append(orderId)
                 request['orderIdList'] = orderIdList
+            if trailing:
+                planType = self.safe_string(params, 'planType', 'track_plan')
+                request['planType'] = planType
+                response = await self.privateMixPostV2MixOrderCancelPlanOrder(self.extend(request, params))
+            elif stop:
                 response = await self.privateMixPostV2MixOrderCancelPlanOrder(self.extend(request, params))
             else:
                 response = await self.privateMixPostV2MixOrderCancelOrder(self.extend(request, params))
@@ -4671,6 +4709,8 @@ class bitget(Exchange, ImplicitAPI):
         #         }
         #     }
         #
+        if isinstance(response, str):
+            response = json.loads(response)
         data = self.safe_value(response, 'data')
         first = self.safe_value(data, 0, data)
         return self.parse_order(first, market)
@@ -4693,6 +4733,7 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.stop]: set to True for fetching trigger orders
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.isPlan]: *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+        :param boolean [params.trailing]: set to True if you want to fetch trailing orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -4726,8 +4767,9 @@ class bitget(Exchange, ImplicitAPI):
                 cursorReceived = 'endId'
             return await self.fetch_paginated_call_cursor('fetchOpenOrders', symbol, since, limit, params, cursorReceived, 'idLessThan')
         response = None
+        trailing = self.safe_value(params, 'trailing')
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        params = self.omit(params, ['stop', 'trigger'])
+        params = self.omit(params, ['stop', 'trigger', 'trailing'])
         request, params = self.handle_until_option('endTime', request, params)
         if since is not None:
             request['startTime'] = since
@@ -4758,7 +4800,11 @@ class bitget(Exchange, ImplicitAPI):
             productType = None
             productType, query = self.handle_product_type_and_params(market, query)
             request['productType'] = productType
-            if stop:
+            if trailing:
+                planType = self.safe_string(params, 'planType', 'track_plan')
+                request['planType'] = planType
+                response = await self.privateMixGetV2MixOrderOrdersPlanPending(self.extend(request, query))
+            elif stop:
                 planType = self.safe_string(query, 'planType', 'normal_plan')
                 request['planType'] = planType
                 response = await self.privateMixGetV2MixOrderOrdersPlanPending(self.extend(request, query))
@@ -4966,6 +5012,7 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.isPlan]: *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+        :param boolean [params.trailing]: set to True if you want to fetch trailing orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -4998,6 +5045,7 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.isPlan]: *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+        :param boolean [params.trailing]: set to True if you want to fetch trailing orders
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -5040,8 +5088,9 @@ class bitget(Exchange, ImplicitAPI):
                 cursorReceived = 'endId'
             return await self.fetch_paginated_call_cursor('fetchCanceledAndClosedOrders', symbol, since, limit, params, cursorReceived, 'idLessThan')
         response = None
+        trailing = self.safe_value(params, 'trailing')
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        params = self.omit(params, ['stop', 'trigger'])
+        params = self.omit(params, ['stop', 'trigger', 'trailing'])
         request, params = self.handle_until_option('endTime', request, params)
         if since is not None:
             request['startTime'] = since
@@ -5080,7 +5129,11 @@ class bitget(Exchange, ImplicitAPI):
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
             request['productType'] = productType
-            if stop:
+            if trailing:
+                planType = self.safe_string(params, 'planType', 'track_plan')
+                request['planType'] = planType
+                response = await self.privateMixGetV2MixOrderOrdersPlanHistory(self.extend(request, params))
+            elif stop:
                 planType = self.safe_string(params, 'planType', 'normal_plan')
                 request['planType'] = planType
                 response = await self.privateMixGetV2MixOrderOrdersPlanHistory(self.extend(request, params))

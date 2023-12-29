@@ -439,7 +439,7 @@ class mexc extends Exchange {
                     'BCH' => 'BCH',
                     'TRC20' => 'Tron(TRC20)',
                     'ERC20' => 'Ethereum(ERC20)',
-                    'BEP20' => 'BNBSmartChain(BEP20)',
+                    'BEP20' => 'BNB Smart Chain(BEP20)',
                     'OPTIMISM' => 'Optimism(OP)',
                     'SOL' => 'Solana(SOL)',
                     'CRC20' => 'CRONOS',
@@ -1033,7 +1033,7 @@ class mexc extends Exchange {
             'Algorand(ALGO)' => 'ALGO',
             'ArbitrumOne(ARB)' => 'ARBONE',
             'AvalancheCChain(AVAXCCHAIN)' => 'AVAXC',
-            'BNBSmartChain(BEP20)' => 'BEP20',
+            'BNB Smart Chain(BEP20)' => 'BEP20',
             'Polygon(MATIC)' => 'MATIC',
             'Optimism(OP)' => 'OPTIMISM',
             'Solana(SOL)' => 'SOL',
@@ -2472,7 +2472,7 @@ class mexc extends Exchange {
          * fetches information on multiple orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] only 'isolated' is supported, for spot-margin trading
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -2788,7 +2788,7 @@ class mexc extends Exchange {
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -4279,8 +4279,8 @@ class mexc extends Exchange {
 
     public function create_deposit_address(string $code, $params = array ()) {
         /**
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
          * create a $currency deposit address
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network] the blockchain network name
