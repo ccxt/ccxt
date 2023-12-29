@@ -1,14 +1,21 @@
-'use strict';
 
-// ---------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, AuthenticationError, ArgumentsRequired, BadSymbol, BadRequest, OrderNotFound } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import Exchange from './abstract/okcoin.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, NetworkError, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, AccountNotEnabled, BadSymbol, RateLimitExceeded, NotSupported } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
-// ---------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 
-module.exports = class oanda extends Exchange {
+/**
+ * @class oanda
+ * @augments Exchange
+ */
+export default class oanda extends Exchange {
+    
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'oanda',
@@ -1587,4 +1594,4 @@ module.exports = class oanda extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-};
+}
