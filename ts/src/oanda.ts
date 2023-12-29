@@ -1048,7 +1048,7 @@ export default class oanda extends Exchange {
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name binance#fetchOrders
+         * @name oanda#fetchOrders
          * @description fetches information on multiple orders made by the user
          * @see https://developer.oanda.com/rest-live-v20/order-ep/
          * @param {string} symbol unified market symbol of the market orders were made in
@@ -1109,6 +1109,77 @@ export default class oanda extends Exchange {
         // }
         const orders = this.safeValue (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit, params);
+    }
+
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name oanda#fetchPositions
+         * @description fetch all open positions
+         * @see https://developer.oanda.com/rest-live-v20/trade-ep/
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        const request = { 'state': 'OPEN' };
+        const positions = await this.getInternalAccountTrades (symbols, undefined, this.extend (request, params));
+        return this.parsePositions (positions, symbols);
+    }
+
+    async getInternalAccountTrades (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                request['instrument'] = symbols[0];
+            }
+        }
+        request['state'] = this.safeString (params, 'state', 'ALL'); // state:  All, OPEN, CLOSED, CLOSE_WHEN_TRADEABLE
+        const response = await this.privateGetAccountsAccountIDTrades (this.extend (request, params));
+        // Note, if state 'CLOSED' positions are requested, they will have some additional properties, as seen in below objects:
+        //
+        // {
+        //     trades: [
+        //       {
+        //         id: '54',
+        //         instrument: 'EUR_USD',
+        //         price: '1.14531',
+        //         openTime: '2022-02-04T18:47:36.387316038Z',
+        //         initialUnits: '2',
+        //         state: 'OPEN',
+        //         currentUnits: '2',
+        //         realizedPL: '0.0000',
+        //         financing: '0.0000',
+        //         dividendAdjustment: '0.0000',
+        //         unrealizedPL: '-0.0003',
+        //         marginUsed: '0.2290'
+        //       },
+        //       ...
+        //       {
+        //         id: '10',
+        //         instrument: 'USD_JPY',
+        //         price: '114.581',
+        //         openTime: '2022-02-03T08:00:15.098811956Z',
+        //         initialUnits: '-1',
+        //         initialMarginRequired: '0.1000',
+        //         state: 'CLOSED',
+        //         currentUnits: '0',
+        //         realizedPL: '-0.0023',
+        //         closingTransactionIDs: [ '60' ],
+        //         financing: '0.0000',
+        //         dividendAdjustment: '0.0000',
+        //         closeTime: '2022-02-03T11:39:02.279740098Z',
+        //         averageClosePrice: '114.842'
+        //       }
+        //       ...
+        //     ],
+        //     lastTransactionID: '54'
+        // }
+        return this.safeValue (response, 'trades', []);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
