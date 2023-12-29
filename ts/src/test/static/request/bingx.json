@@ -362,6 +362,14 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "cancel spot orders",
+                "method": "cancelAllOrders",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/cancelOpenOrders?symbol=LTC-USDT&timestamp=1703847561251&signature=e2c804484ea920957823019aed0ab49073125407426079dea637eef341ab0dc8",
+                "input": [
+                  "LTC/USDT"
+                ]
             }
         ],
         "fetchOpenOrders": [
