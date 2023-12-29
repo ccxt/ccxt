@@ -1414,19 +1414,19 @@ export default class poloniexfutures extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        let method = 'privateGetOrdersOrderId';
+        let response = undefined;
         if (id === undefined) {
             const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
             if (clientOrderId === undefined) {
                 throw new InvalidOrder (this.id + ' fetchOrder() requires parameter id or params.clientOid');
             }
             request['clientOid'] = clientOrderId;
-            method = 'privateGetOrdersByClientOid';
             params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
+            response = await this.privateGetClientOrderIdClientOid (this.extend (request, params));
         } else {
             request['order-id'] = id;
+            response = await this.privateGetOrdersOrderId (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -1751,7 +1751,7 @@ export default class poloniexfutures extends Exchange {
         const version = this.safeString (params, 'version', defaultVersion);
         const tail = '/api/' + version + '/' + this.implodeParams (path, params);
         url += tail;
-        const query = this.omit (params, path);
+        const query = this.omit (params, this.extractParams (path));
         const queryLength = Object.keys (query).length;
         if (api === 'public') {
             if (queryLength) {
