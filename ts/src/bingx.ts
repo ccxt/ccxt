@@ -2214,6 +2214,7 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#cancelAllOrders
          * @description cancel all open orders
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
          * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2224,13 +2225,17 @@ export default class bingx extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['type'] !== 'swap') {
-            throw new BadRequest (this.id + ' cancelAllOrders is only supported for swap markets.');
-        }
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.swapV2PrivateDeleteTradeAllOpenOrders (this.extend (request, params));
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.spotV1PrivatePostTradeCancelOpenOrders (this.extend (request, params));
+        } else if (market['swap']) {
+            response = await this.swapV2PrivateDeleteTradeAllOpenOrders (this.extend (request, params));
+        } else {
+            throw new BadRequest (this.id + ' cancelAllOrders is only supported for spot and swap markets.');
+        }
         //
         //    {
         //        "code": 0,
