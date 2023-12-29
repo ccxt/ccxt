@@ -1204,8 +1204,13 @@ export default class poloniexfutures extends Exchange {
             request['symbol'] = this.marketId (symbol);
         }
         const stop = this.safeValue (params, 'stop');
-        const method = stop ? 'privateDeleteStopOrders' : 'privateDeleteOrders';
-        const response = await this[method] (this.extend (request, params));
+        params = this.omit (params, [ 'stop' ]);
+        let response = undefined;
+        if (stop) {
+            response = await this.privateDeleteStopOrders (this.extend (request, params));
+        } else {
+            response = await this.privateDeleteOrders (this.extend (request, params));
+        }
         //
         //   {
         //       "code": "200000",
