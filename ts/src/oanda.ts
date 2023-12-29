@@ -553,6 +553,351 @@ export default class oanda extends Exchange {
         }, market);
     }
 
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name oanda#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://developer.oanda.com/rest-live-v20/instrument-ep/
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        // Note: Oanda doesn't provide orderbooks for all markets. Check options['allowedOrdebookSymbols'] for allowed symbols.
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument': market['id'],
+        };
+        const response = await this.privateGetInstrumentsInstrumentOrderBook (this.extend (request, params));
+        //
+        //    {
+        //        "orderBook": {
+        //            "instrument": "EUR_USD",
+        //            "time": "2023-12-29T16:00:00Z",
+        //            "unixTime": "1703865600",
+        //            "price": "1.10474",
+        //            "bucketWidth": "0.00050",
+        //            "buckets": [
+        //                {
+        //                    "price": "1.10400",
+        //                    "longCountPercent": "0.0035",
+        //                    "shortCountPercent": "0.0035"
+        //                },
+        //                {
+        //                    "price": "1.10450",
+        //                    "longCountPercent": "0.0105",
+        //                    "shortCountPercent": "0.0000"
+        //                },
+        //                {
+        //                    "price": "1.10500",
+        //                    "longCountPercent": "0.0105",
+        //                    "shortCountPercent": "0.0000"
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
+        //
+        const orderbookObject = this.safeValue (response, 'orderBook');
+        const timestamp = this.safeTimestamp (orderbookObject, 'unixTime');
+        return this.parseOrderBook (orderbookObject, symbol, timestamp);
+    }
+
+    parseOrderBook (orderbook: object, symbol: string, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1): OrderBook {
+        // the prices are distanced by bucketWidth
+        // to understand, read more info at: https://developer.oanda.com/rest-live-v20/instrument-df/#OrderBook
+        const marketId = this.safeString (orderbook, 'instrument');
+        const market = this.safeMarket (marketId, undefined);
+        const buckets = this.safeValue (orderbook, 'buckets', []);
+        const bucketWidth = this.safeValue (orderbook, 'bucketWidth');
+        const medianPrice = this.safeString (orderbook, 'price');
+        const bids = [];
+        const asks = [];
+        for (let i = 0; i < buckets.length; i++) {
+            const bucket = buckets[i];
+            const bucketPriceBegin = this.safeString (bucket, 'price');
+            const bucketPriceEnd = Precise.stringAdd (bucketPriceBegin, bucketWidth);
+            // we need to use "begin" price for bids, and "end" price for asks
+            const longCountPercent = this.safeString (bucket, 'longCountPercent');
+            const shortCountPercent = this.safeString (bucket, 'shortCountPercent');
+            const hasLongOrders = Precise.stringGt (longCountPercent, '0');
+            const hasShortOrders = Precise.stringGt (shortCountPercent, '0');
+            const deviationPercent = '1.5'; // 50%
+            const medianUpper = Precise.stringMul (medianPrice, deviationPercent);
+            const medianLower = Precise.stringDiv (medianPrice, deviationPercent);
+            // volumes are percentage of orders for this bucket, there is no way to calculate absolute volume for bidask
+            if (hasLongOrders && Precise.stringLt (bucketPriceBegin, medianUpper)) {
+                bids.push ([ this.parseNumber (bucketPriceBegin), this.parseNumber (longCountPercent) ]);
+            }
+            if (hasShortOrders && Precise.stringGt (bucketPriceEnd, medianLower)) {
+                asks.push ([ this.parseNumber (bucketPriceEnd), this.parseNumber (shortCountPercent) ]);
+            }
+        }
+        return {
+            // @ts-ignore
+            'symbol': market['symbol'],
+            'bids': this.sortBy (bids, 0, true),
+            'asks': this.sortBy (asks, 0),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        };
+    }
+
+    buildOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        const market = this.market (symbol);
+        amount = this.amountToPrecision (symbol, amount);
+        const units = side === 'buy' ? amount : -amount; // A positive number of units results in a long Order, and a negative number of units results in a short Order. 
+        const requestOrder = {
+            'instrument': market['id'],
+            // timeInForce : (TimeInForce, required, default=GTC),
+            'type': this.convertOrderType (type), // todo: Doc says probably incorrectly (""... 'LIMIT' when creating a Market Order..."). while in example "timeInForce": "FOK", & "type": "MARKET"
+            'units': units,
+        };
+        if (price !== undefined) {
+            requestOrder['price'] = this.priceToPrecision (symbol, price);
+        }
+        return { 'order': requestOrder };
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'PENDING': 'open',
+            'FILLED': 'closed',
+            'TRIGGERED': 'closed',
+            'CANCELLED': 'canceled',
+            'REJECTED': 'rejected',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    convertOrderType (status) {
+        const statuses = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'STOP': 'stop',
+            // 'GUARANTEED_STOP_LOSS': 'stop-limit',
+            // 'STOP_LOSS': 'stop-loss',
+            // 'TAKE_PROFIT': 'take-profit',
+            // 'MARKET_IF_TOUCHED': 'mit',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderTransactionType (status) {
+        const statuses = {
+            'MARKET_ORDER': 'market',
+            'LIMIT_ORDER': 'limit',
+            'STOP_ORDER': 'stop',
+            // 'GUARANTEED_STOP_LOSS_ORDER': 'stop-limit',
+            // 'STOP_LOSS_ORDER': 'stop-loss',
+            // 'TAKE_PROFIT_ORDER': 'take-profit',
+            // 'MARKET_IF_TOUCHED_ORDER': 'mit',
+            // statuses
+            'ORDER_CANCEL': 'cancel',
+            'ORDER_FILL': 'close',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTimeInForce (timeInForce) {
+        const statuses = {
+            'GTC': 'GTC',
+            'IOC': 'IOC',
+            'FOK': 'FOK',
+            'GTD': 'GTD',
+        };
+        return this.safeString (statuses, timeInForce, timeInForce);
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name oanda#createOrder
+         * @description create a trade order
+         * @see https://developer.oanda.com/rest-live-v20/order-ep/
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = this.buildOrderRequest (symbol, type, side, amount, price, params);
+        const response = await this.privatePostAccountsAccountIDOrders (this.extend (request, params));
+        //
+        //     {
+        //         orderCreateTransaction: {
+        //             id: '13',
+        //             accountID: '001-004-1234567-001',
+        //             userID: '1234567',
+        //             batchID: '13',
+        //             requestID: '132995756821141501',
+        //             time: '2022-02-03T11:38:15.490811234Z',
+        //             type: 'LIMIT_ORDER',
+        //             instrument: 'USD_JPY',
+        //             units: '-1',
+        //             price: '101.000',
+        //             timeInForce: 'GTC',
+        //             triggerCondition: 'DEFAULT',
+        //             partialFill: 'DEFAULT',
+        //             positionFill: 'DEFAULT',
+        //             reason: 'CLIENT_ORDER'
+        //         },
+        //
+        //         // Note: if order crosses orderBook, then the response has 'orderFillTransaction' member too
+        //
+        //         orderFillTransaction: {
+        //             id: '14',
+        //             accountID: '001-004-1234567-001',
+        //             userID: '1234567',
+        //             batchID: '13',
+        //             requestID: '132995756821489501',
+        //             time: '2022-02-03T11:38:15.490811234Z',
+        //             type: 'ORDER_FILL',
+        //             orderID: '13',
+        //             instrument: 'USD_JPY',
+        //             units: '-1',
+        //             requestedUnits: '-1',
+        //             price: '114.824',
+        //             pl: '0.0000',
+        //             quotePL: '0',
+        //             financing: '0.0000',
+        //             baseFinancing: '0',
+        //             commission: '0.0000',
+        //             accountBalance: '20.0000',
+        //             gainQuoteHomeConversionFactor: '0.008664945317',
+        //             lossQuoteHomeConversionFactor: '0.008752030194',
+        //             guaranteedExecutionFee: '0.0000',
+        //             quoteGuaranteedExecutionFee: '0',
+        //             halfSpreadCost: '0.0001',
+        //             fullVWAP: '114.824',
+        //             reason: 'LIMIT_ORDER',
+        //             tradeOpened: [Object],
+        //             fullPrice: [Object],
+        //             homeConversionFactors: [Object]
+        //         },
+        //
+        //         // Note: if order is rejected, then the response has 'orderCancelTransaction' member too
+        //
+        //         orderCancelTransaction: {
+        //             id: '69',
+        //             accountID: '001-004-1234567-001',
+        //             userID: '1234567',
+        //             batchID: '68',
+        //             requestID: '24910396909826154',
+        //             time: '2022-02-06T07:55:40.491081947Z',
+        //             type: 'ORDER_CANCEL',
+        //             orderID: '68',
+        //             reason: 'MARKET_HALTED'
+        //         },
+        //         relatedTransactionIDs: [ '13', '14' ],
+        //         lastTransactionID: '14'
+        //     }
+        //
+        const market = this.market (symbol);
+        return this.parseOrder (response, market);
+    }
+
+    async editOrder (id, symbol: string, type: OrderType, side: OrderSide, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name oanda#editOrder
+         * @description edit a trade order
+         * @see https://developer.oanda.com/rest-live-v20/order-ep/#collapse_endpoint_5
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = this.buildOrderRequest (symbol, type, side, amount, price, params);
+        request['orderSpecifier'] = id;
+        const response = await this.privatePutAccountsAccountIDOrdersOrderSpecifier (this.extend (request, params));
+        //
+        //     {
+        //         orderCancelTransaction: {
+        //             id: '43',
+        //             accountID: '001-004-1234567-001',
+        //             userID: '1234567',
+        //             batchID: '43',
+        //             requestID: '114981813471441232',
+        //             time: '2022-02-04T17:46:54.522571338Z',
+        //             type: 'ORDER_CANCEL',
+        //             orderID: '42',
+        //             replacedByOrderID: '44',
+        //             reason: 'CLIENT_REQUEST_REPLACED'
+        //         },
+        //         orderCreateTransaction: {
+        //             id: '44',
+        //             accountID: '001-004-1234567-001',
+        //             userID: '1234567',
+        //             batchID: '43',
+        //             requestID: '114981813471441232',
+        //             time: '2022-02-04T17:46:54.522571338Z',
+        //             type: 'LIMIT_ORDER',
+        //             instrument: 'EUR_USD',
+        //             units: '1',
+        //             price: '0.98700',
+        //             timeInForce: 'GTC',
+        //             triggerCondition: 'DEFAULT',
+        //             partialFill: 'DEFAULT',
+        //             positionFill: 'DEFAULT',
+        //             reason: 'REPLACEMENT',
+        //             replacesOrderID: '42'
+        //         },
+        //         relatedTransactionIDs: [ '43', '44' ],
+        //         lastTransactionID: '44'
+        //     }
+        //
+        const market = this.market (symbol);
+        return this.parseOrder (response, market);
+    }
+
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name oanda#cancelOrder
+         * @description cancels an open order
+         * @see https://developer.oanda.com/rest-live-v20/order-ep/#collapse_endpoint_7
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'orderSpecifier': id,
+        };
+        const response = await this.privatePutAccountsAccountIDOrdersOrderSpecifierCancel (this.extend (request, params));
+        //
+        //     {
+        //         orderCancelTransaction: {
+        //           id: '51',
+        //           accountID: '001-004-1234567-001',
+        //           userID: '1234567',
+        //           batchID: '51',
+        //           requestID: '78953047329468193',
+        //           time: '2022-02-04T17:58:18.182828031Z',
+        //           type: 'ORDER_CANCEL',
+        //           orderID: '50',
+        //           reason: 'CLIENT_REQUEST'
+        //         },
+        //         relatedTransactionIDs: [ '51' ],
+        //         lastTransactionID: '51'
+        //     }
+        //
+        return this.parseOrder (response);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (path.indexOf ('{accountID}') >= 0) { // when accountID is in path, but not provided, use the default one
             params['accountID'] = this.safeValue (params, 'accountID', this.apiKey);
