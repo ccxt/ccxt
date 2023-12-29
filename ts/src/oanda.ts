@@ -45,6 +45,7 @@ export default class oanda extends Exchange {
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositAddress': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
@@ -649,7 +650,7 @@ export default class oanda extends Exchange {
     buildOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         const market = this.market (symbol);
         amount = this.amountToPrecision (symbol, amount);
-        const units = side === 'buy' ? amount : -amount; // A positive number of units results in a long Order, and a negative number of units results in a short Order. 
+        const units = side === 'buy' ? amount : -amount; // A positive number of units results in a long Order, and a negative number of units results in a short Order.
         const requestOrder = {
             'instrument': market['id'],
             // timeInForce : (TimeInForce, required, default=GTC),
@@ -1447,7 +1448,19 @@ export default class oanda extends Exchange {
         }, market);
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @see https://developer.oanda.com/rest-live-v20/transaction-ep/
+         * @param {string} code unified currency code
+         * @param {int} [since] timestamp in ms of the earliest ledger entry
+         * @param {int} [limit] max number of ledger entrys to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         */
         const results = await this.getInternalTransactionsData (since, limit, params);
         // see response sample inside above method
         let currency = undefined;
@@ -1538,6 +1551,112 @@ export default class oanda extends Exchange {
             'DELAYED_TRADE_CLOSURE': 'trade',
             'DAILY_FINANCING': 'transaction',
             'RESET_RESETTABLE_PL': 'margin',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name oanda#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @see https://developer.oanda.com/rest-live-v20/transaction-ep/
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        const request = {
+            'type': 'FUNDING,TRANSFER_FUNDS',
+        };
+        const currency = (code === undefined) ? undefined : this.currency (code);
+        const ledgerEntries = await this.fetchLedger (code, since, limit, this.extend (request, params));
+        // Note about 'amount': POSITIVE is DEPOSIT, NEGATIVE is WITHDRAW
+        //
+        // [
+        //   {
+        //     id: '1166',
+        //     userID: '1234567',
+        //     accountID: '001-004-1234567-003',
+        //     batchID: '1166',
+        //     requestID: '1735692509328716553',
+        //     time: '2017-09-03T23:30:15.418701565Z',
+        //     accountBalance: '400.0054',
+        //     type: 'TRANSFER_FUNDS',
+        //     amount: '400.0000000000',
+        //     fundingReason: 'CLIENT_FUNDING'
+        //   },
+        //   {
+        //     id: '1551',
+        //     userID: '1234567',
+        //     accountID: '001-004-1234567-003',
+        //     batchID: '1551',
+        //     requestID: '1735784887540766275',
+        //     time: '2018-05-16T21:28:17.013486674Z',
+        //     accountBalance: '12.7652',
+        //     type: 'TRANSFER_FUNDS',
+        //     amount: '0.0600000000',
+        //     fundingReason: 'ADJUSTMENT'
+        //  },
+        //  ..
+        // ]
+        const rows = [];
+        for (let i = 0; i < ledgerEntries.length; i++) {
+            const ledgerEntry = ledgerEntries[i];
+            rows.push (this.safeValue (ledgerEntry, 'info'));
+        }
+        return this.parseTransactions (rows, currency, since, limit, params);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        const id = this.safeString (transaction, 'id');
+        const amount = this.safeNumber (transaction, 'amount');
+        const amountStr = this.safeString (transaction, 'amount');
+        const txid = this.safeString (transaction, 'requestID');
+        const trType = this.safeString (transaction, 'type');
+        const fundingReason = this.safeString (transaction, 'fundingReason');
+        let type = undefined;
+        if (trType === 'TRANSFER_FUNDS') {
+            if (fundingReason === 'CLIENT_FUNDING') {
+                const isDeposit = Precise.stringGt (amountStr, '0');
+                type = isDeposit ? 'deposit' : 'withdrawal';
+            } else {
+                type = fundingReason;
+            }
+        }
+        const date = this.safeString (transaction, 'time');
+        const timestamp = this.parseDate (date);
+        currency = this.safeCurrency (undefined, currency);
+        return {
+            'id': id,
+            'currency': currency['code'],
+            'amount': amount,
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'status': undefined,
+            'type': this.parseTransactionType (type),
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': currency['code'],
+                'cost': undefined,
+            },
+            'info': transaction,
+        };
+    }
+
+    parseTransactionType (type) {
+        const types = {
+            'deposit': 'deposit',
+            'withdrawal': 'withdrawal',
         };
         return this.safeString (types, type, type);
     }
