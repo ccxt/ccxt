@@ -1352,6 +1352,12 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#createOrder
          * @description create a trade order
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantBuyOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketBuyOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitBuyOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantSellOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketSellOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitSellOrder
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
