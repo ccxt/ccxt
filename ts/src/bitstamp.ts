@@ -1375,7 +1375,7 @@ export default class bitstamp extends Exchange {
         const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+            params = this.omit (params, [ 'clientOrderId' ]);
         }
         let response = undefined;
         if (type === 'market') {
