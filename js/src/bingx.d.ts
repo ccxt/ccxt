@@ -1,5 +1,5 @@
 import Exchange from './abstract/bingx.js';
-import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position } from './base/types.js';
+import type { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position } from './base/types.js';
 export default class bingx extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
@@ -133,7 +133,9 @@ export default class bingx extends Exchange {
     parseParams(params: any): {};
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): import("./base/types.js").Liquidation;
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     closeAllPositions(params?: {}): Promise<Position[]>;
+    setPositionMode(hedged: any, symbol?: Str, params?: {}): Promise<any>;
     sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

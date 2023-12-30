@@ -13,7 +13,7 @@ import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitopro
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitopro extends Exchange {
     describe() {
@@ -1256,11 +1256,11 @@ export default class bitopro extends Exchange {
         //
         return this.parseOrders(orders, market, since, limit);
     }
-    fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
             'statusKind': 'OPEN',
         };
-        return this.fetchOrders(symbol, since, limit, this.extend(request, params));
+        return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1270,7 +1270,7 @@ export default class bitopro extends Exchange {
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_orders_data.md
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

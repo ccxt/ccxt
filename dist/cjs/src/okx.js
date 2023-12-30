@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class okx
- * @extends Exchange
+ * @augments Exchange
  */
 class okx extends okx$1 {
     describe() {
@@ -30,10 +30,11 @@ class okx extends okx$1 {
                 'future': true,
                 'option': true,
                 'addMargin': true,
-                'borrowMargin': true,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': true,
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketSellOrderWithCost': true,
@@ -249,6 +250,7 @@ class okx extends okx$1 {
                         // rfq
                         'rfq/counterparties': 4,
                         'rfq/maker-instrument-settings': 4,
+                        'rfq/mmp-config': 4,
                         'rfq/rfqs': 10,
                         'rfq/quotes': 10,
                         'rfq/trades': 4,
@@ -388,6 +390,7 @@ class okx extends okx$1 {
                         'rfq/execute-quote': 15,
                         'rfq/maker-instrument-settings': 4,
                         'rfq/mmp-reset': 4,
+                        'rfq/mmp-config': 100,
                         'rfq/create-quote': 0.4,
                         'rfq/cancel-quote': 0.4,
                         'rfq/cancel-batch-quotes': 10,
@@ -868,8 +871,8 @@ class okx extends okx$1 {
                     'ALGO': 'Algorand',
                     'BHP': 'BHP',
                     'APT': 'Aptos',
-                    'ARBONE': 'Arbitrum one',
-                    'AVAXC': 'Avalanche C-Chain',
+                    'ARBONE': 'Arbitrum One',
+                    'AVAXC': 'Avalanche C',
                     'AVAXX': 'Avalanche X-Chain',
                     'ARK': 'ARK',
                     'AR': 'Arweave',
@@ -2861,7 +2864,7 @@ class okx extends okx$1 {
          * @name okx#createOrders
          * @description create a list of trade orders
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -3404,7 +3407,7 @@ class okx extends okx$1 {
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra and exchange specific parameters
          * @returns [an order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
+         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -3900,7 +3903,7 @@ class okx extends okx$1 {
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.stop] True if fetching trigger or conditional orders
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
@@ -4463,15 +4466,16 @@ class okx extends okx$1 {
         //     },
         //
         if (chain === 'USDT-Polygon') {
-            networkData = this.safeValue(networksById, 'USDT-Polygon-Bridge');
+            networkData = this.safeValue2(networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon');
         }
         const network = this.safeString(networkData, 'network');
+        const networkCode = this.networkIdToCode(network, code);
         this.checkAddress(address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': networkCode,
             'info': depositAddress,
         };
     }
@@ -7163,6 +7167,74 @@ class okx extends okx$1 {
             'underlyingPrice': undefined,
             'info': greeks,
         };
+    }
+    async closePosition(symbol, side = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#closePosition
+         * @description closes open positions for a market
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.clientOrderId] a unique identifier for the order
+         * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
+         * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
+         * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        const code = this.safeString(params, 'code');
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('closePosition', params, 'cross');
+        const request = {
+            'instId': market['id'],
+            'mgnMode': marginMode,
+        };
+        if (side !== undefined) {
+            if ((side === 'buy')) {
+                request['posSide'] = 'long';
+            }
+            else if (side === 'sell') {
+                request['posSide'] = 'short';
+            }
+            else {
+                request['posSide'] = side;
+            }
+        }
+        if (clientOrderId !== undefined) {
+            request['clOrdId'] = clientOrderId;
+        }
+        if (code !== undefined) {
+            const currency = this.currency(code);
+            request['ccy'] = currency['id'];
+        }
+        const response = await this.privatePostTradeClosePosition(this.extend(request, params));
+        //
+        //    {
+        //        "code": "1",
+        //        "data": [
+        //            {
+        //                "clOrdId":"e847386590ce4dBCe903bbc394dc88bf",
+        //                "ordId":"",
+        //                "sCode":"51000",
+        //                "sMsg":"Parameter posSide error ",
+        //                "tag":"e847386590ce4dBC"
+        //            }
+        //        ],
+        //        "inTime": "1701877077101064",
+        //        "msg": "All operations failed",
+        //        "outTime": "1701877077102579"
+        //    }
+        //
+        const data = this.safeValue(response, 'data');
+        const order = this.safeValue(data, 0);
+        return this.parseOrder(order, market);
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {

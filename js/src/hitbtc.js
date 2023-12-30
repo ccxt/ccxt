@@ -11,7 +11,7 @@ import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenie
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 /**
  * @class hitbtc
- * @extends Exchange
+ * @augments Exchange
  */
 export default class hitbtc extends Exchange {
     describe() {
@@ -34,6 +34,7 @@ export default class hitbtc extends Exchange {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closePosition': false,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -1814,7 +1815,7 @@ export default class hitbtc extends Exchange {
          * @see https://api.hitbtc.com/#margin-orders-history
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [params.margin] true for fetching margin orders
@@ -2873,6 +2874,9 @@ export default class hitbtc extends Exchange {
         let marketType = undefined;
         let marginMode = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchPositions', undefined, params);
+        if (marketType === 'spot') {
+            marketType = 'swap';
+        }
         [marginMode, params] = this.handleMarginModeAndParams('fetchPositions', params);
         params = this.omit(params, ['marginMode', 'margin']);
         let response = undefined;
@@ -3531,13 +3535,50 @@ export default class hitbtc extends Exchange {
         }
         return result;
     }
+    async closePosition(symbol, side = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#closePosition
+         * @description closes open positions for a market
+         * @see https://api.hitbtc.com/#close-all-futures-margin-positions
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.symbol] *required* unified market symbol
+         * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('closePosition', params, 'cross');
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+            'margin_mode': marginMode,
+        };
+        const response = await this.privateDeleteFuturesPositionMarginModeSymbol(this.extend(request, params));
+        //
+        // {
+        //     "id":"202471640",
+        //     "symbol":"TRXUSDT_PERP",
+        //     "margin_mode":"Cross",
+        //     "leverage":"1.00",
+        //     "quantity":"0",
+        //     "price_entry":"0",
+        //     "price_margin_call":"0",
+        //     "price_liquidation":"0",
+        //     "pnl":"0.001234100000",
+        //     "created_at":"2023-10-29T14:46:13.235Z",
+        //     "updated_at":"2023-12-19T09:34:40.014Z"
+        // }
+        //
+        return this.parseOrder(response, market);
+    }
     handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {
         /**
          * @ignore
          * @method
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {array} the marginMode in lowercase
+         * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString(this.options, 'defaultType');
         const isMargin = this.safeValue(params, 'margin', false);

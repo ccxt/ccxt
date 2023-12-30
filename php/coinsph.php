@@ -27,13 +27,15 @@ class coinsph extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
-                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createDepositAddress' => false,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => false,
                 'createReduceOnlyOrder' => false,
@@ -105,7 +107,8 @@ class coinsph extends Exchange {
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => false,
-                'repayMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -1047,12 +1050,14 @@ class coinsph extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://coins-docs.github.io/rest-api/#new-order--trade
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         // todo => add test order low priority
@@ -1086,22 +1091,26 @@ class coinsph extends Exchange {
             if ($orderSide === 'SELL') {
                 $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             } elseif ($orderSide === 'BUY') {
-                $quoteOrderQty = $this->safe_number_2($params, 'cost', 'quoteOrderQty');
-                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                if ($quoteOrderQty !== null) {
-                    $amount = $quoteOrderQty;
+                $quoteAmount = null;
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number_2($params, 'cost', 'quoteOrderQty');
+                $params = $this->omit($params, 'cost');
+                if ($cost !== null) {
+                    $quoteAmount = $this->cost_to_precision($symbol, $cost);
                 } elseif ($createMarketBuyOrderRequiresPrice) {
                     if ($price === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
-                        $quoteAmount = Precise::string_mul($amountString, $priceString);
-                        $amount = $this->parse_number($quoteAmount);
+                        $costRequest = Precise::string_mul($amountString, $priceString);
+                        $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                     }
+                } else {
+                    $quoteAmount = $this->cost_to_precision($symbol, $amount);
                 }
-                $request['quoteOrderQty'] = $this->cost_to_precision($symbol, $amount);
-                $params = $this->omit($params, 'cost', 'quoteOrderQty');
+                $request['quoteOrderQty'] = $quoteAmount;
             }
         }
         if ($orderType === 'STOP_LOSS' || $orderType === 'STOP_LOSS_LIMIT' || $orderType === 'TAKE_PROFIT' || $orderType === 'TAKE_PROFIT_LIMIT') {
@@ -1532,34 +1541,6 @@ class coinsph extends Exchange {
         }
         $params = $this->omit($params, 'network');
         $response = $this->privatePostOpenapiWalletV1WithdrawApply (array_merge($request, $params));
-        return $this->parse_transaction($response, $currency);
-    }
-
-    public function deposit(string $code, $amount, $address, $tag = null, $params = array ()) {
-        /**
-         * make a deposit from coins_ph account to exchange account
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount the $amount to deposit
-         * @param {string} $address not used by coinsph deposit ()
-         * @param {string} $tag
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
-         */
-        $options = $this->safe_value($this->options, 'deposit');
-        $warning = $this->safe_value($options, 'warning', true);
-        if ($warning) {
-            throw new InvalidAddress($this->id . " deposit() makes a deposits only from your coins_ph account, add .options['deposit']['warning'] = false to make a deposit to your exchange account");
-        }
-        $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'coin' => $currency['id'],
-            'amount' => $this->number_to_string($amount),
-        );
-        if ($tag !== null) {
-            $request['depositOrderId'] = $tag;
-        }
-        $response = $this->privatePostOpenapiV1CapitalDepositApply (array_merge($request, $params));
         return $this->parse_transaction($response, $currency);
     }
 

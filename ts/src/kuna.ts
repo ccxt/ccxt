@@ -5,7 +5,7 @@ import Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported, BadRequest, ExchangeError, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 import { Precise } from './base/Precise.js';
 
@@ -13,7 +13,7 @@ import { Precise } from './base/Precise.js';
 
 /**
  * @class kuna
- * @extends Exchange
+ * @augments Exchange
  * @description Use the public-key as your apiKey
  */
 export default class kuna extends Exchange {
@@ -32,7 +32,6 @@ export default class kuna extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
@@ -97,7 +96,8 @@ export default class kuna extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -1289,7 +1289,7 @@ export default class kuna extends Exchange {
          * @see https://docs.kuna.io/docs/get-private-orders-history
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for
          *

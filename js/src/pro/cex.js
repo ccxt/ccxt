@@ -735,7 +735,7 @@ export default class cex extends cexRest {
                 'rate': undefined,
             };
         }
-        const timestamp = this.safeInteger(data, 'time', this.milliseconds());
+        const timestamp = this.safeInteger(data, 'time');
         order['timestamp'] = timestamp;
         order['datetime'] = this.iso8601(timestamp);
         order = this.safeOrder(order);

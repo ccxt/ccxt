@@ -126,9 +126,9 @@ class poloniexfutures extends poloniexfutures$1 {
          * @param {string} name name of the channel and suscriptionHash
          * @param {bool} isPrivate true for the authenticated url, false for the public url
          * @param {string} symbol is required for all public channels, not required for private channels (except position)
-         * @param {Object} subscription subscription parameters
-         * @param {Object} [params] extra parameters specific to the poloniex api
-         * @returns {Object} data from the websocket stream
+         * @param {object} subscription subscription parameters
+         * @param {object} [params] extra parameters specific to the poloniex api
+         * @returns {object} data from the websocket stream
          */
         const url = await this.negotiate(isPrivate);
         if (symbol !== undefined) {
@@ -297,7 +297,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @see https://futures-docs.poloniex.com/#private-messages
          * @param {string} symbol filter by unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.method] the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

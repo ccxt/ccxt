@@ -1,8 +1,8 @@
 import Exchange from './abstract/kucoin.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
 /**
  * @class kucoin
- * @extends Exchange
+ * @augments Exchange
  */
 export default class kucoin extends Exchange {
     describe(): any;
@@ -78,6 +78,9 @@ export default class kucoin extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleTriggerPrices(params: any): any[];
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createMarketOrderWithCost(symbol: string, side: OrderSide, cost: any, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
+    createMarketSellOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;

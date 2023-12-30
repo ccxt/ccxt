@@ -202,6 +202,8 @@ class coinbase extends Exchange {
                             'brokerage/products/{product_id}',
                             'brokerage/products/{product_id}/candles',
                             'brokerage/products/{product_id}/ticker',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/{portfolio_uuid}',
                             'brokerage/transaction_summary',
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
@@ -213,8 +215,16 @@ class coinbase extends Exchange {
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                        ),
+                        'put' => array(
+                            'brokerage/portfolios/{portfolio_uuid}',
+                        ),
+                        'delete' => array(
+                            'brokerage/portfolios/{portfolio_uuid}',
                         ),
                     ),
                 ),
@@ -272,6 +282,8 @@ class coinbase extends Exchange {
                     'not_found' => '\\ccxt\\ExchangeError', // 404 Resource not found
                     'rate_limit_exceeded' => '\\ccxt\\RateLimitExceeded', // 429 Rate limit exceeded
                     'internal_server_error' => '\\ccxt\\ExchangeError', // 500 Internal server error
+                    'UNSUPPORTED_ORDER_CONFIGURATION' => '\\ccxt\\BadRequest',
+                    'INSUFFICIENT_FUND' => '\\ccxt\\BadRequest',
                 ),
                 'broad' => array(
                     'request timestamp expired' => '\\ccxt\\InvalidNonce', // array("errors":[array("id":"authentication_error","message":"request timestamp expired")])
@@ -631,6 +643,7 @@ class coinbase extends Exchange {
     public function fetch_my_sells(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @ignore
              * fetch $sells
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$sells#list-$sells
              * @param {string} $symbol not used by coinbase fetchMySells ()
@@ -651,6 +664,7 @@ class coinbase extends Exchange {
     public function fetch_my_buys(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @ignore
              * fetch $buys
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$buys#list-$buys
              * @param {string} $symbol not used by coinbase fetchMyBuys ()
@@ -2316,6 +2330,8 @@ class coinbase extends Exchange {
             $params = $this->omit($params, array( 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time' ));
             $response = Async\await($this->v3PrivatePostBrokerageOrders (array_merge($request, $params)));
             //
+            // successful order
+            //
             //     {
             //         "success" => true,
             //         "failure_reason" => "UNKNOWN_FAILURE_REASON",
@@ -2329,9 +2345,37 @@ class coinbase extends Exchange {
             //         "order_configuration" => null
             //     }
             //
+            // failed order
+            //
+            //     {
+            //         "success" => false,
+            //         "failure_reason" => "UNKNOWN_FAILURE_REASON",
+            //         "order_id" => "",
+            //         "error_response" => array(
+            //             "error" => "UNSUPPORTED_ORDER_CONFIGURATION",
+            //             "message" => "source is not enabled for trading",
+            //             "error_details" => "",
+            //             "new_order_failure_reason" => "UNSUPPORTED_ORDER_CONFIGURATION"
+            //         ),
+            //         "order_configuration" => {
+            //             "limit_limit_gtc" => {
+            //                 "base_size" => "100",
+            //                 "limit_price" => "40000",
+            //                 "post_only" => false
+            //             }
+            //         }
+            //     }
+            //
             $success = $this->safe_value($response, 'success');
             if ($success !== true) {
-                throw new BadRequest($this->id . ' createOrder() has failed, check your arguments and parameters');
+                $errorResponse = $this->safe_value($response, 'error_response');
+                $errorTitle = $this->safe_string($errorResponse, 'error');
+                $errorMessage = $this->safe_string($errorResponse, 'message');
+                if ($errorResponse !== null) {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorTitle, $errorMessage);
+                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorTitle, $errorMessage);
+                    throw new ExchangeError($errorMessage);
+                }
             }
             $data = $this->safe_value($response, 'success_response', array());
             return $this->parse_order($data, $market);
@@ -2368,6 +2412,12 @@ class coinbase extends Exchange {
         //                 "base_size" => "0.2",
         //                 "limit_price" => "0.006",
         //                 "post_only" => false
+        //             ),
+        //             "stop_limit_stop_limit_gtc" => array(
+        //                 "base_size" => "48.54",
+        //                 "limit_price" => "6.998",
+        //                 "stop_price" => "7.0687",
+        //                 "stop_direction" => "STOP_DIRECTION_STOP_DOWN"
         //             }
         //         ),
         //         "side" => "SELL",
@@ -2401,11 +2451,11 @@ class coinbase extends Exchange {
             $market = $this->market($symbol);
         }
         $orderConfiguration = $this->safe_value($order, 'order_configuration', array());
-        $limitGTC = $this->safe_value($orderConfiguration, 'limit_limit_gtc', array());
-        $limitGTD = $this->safe_value($orderConfiguration, 'limit_limit_gtd', array());
-        $stopLimitGTC = $this->safe_value($orderConfiguration, 'stop_limit_stop_limit_gtc', array());
-        $stopLimitGTD = $this->safe_value($orderConfiguration, 'stop_limit_stop_limit_gtd', array());
-        $marketIOC = $this->safe_value($orderConfiguration, 'market_market_ioc', array());
+        $limitGTC = $this->safe_value($orderConfiguration, 'limit_limit_gtc');
+        $limitGTD = $this->safe_value($orderConfiguration, 'limit_limit_gtd');
+        $stopLimitGTC = $this->safe_value($orderConfiguration, 'stop_limit_stop_limit_gtc');
+        $stopLimitGTD = $this->safe_value($orderConfiguration, 'stop_limit_stop_limit_gtd');
+        $marketIOC = $this->safe_value($orderConfiguration, 'market_market_ioc');
         $isLimit = (($limitGTC !== null) || ($limitGTD !== null));
         $isStop = (($stopLimitGTC !== null) || ($stopLimitGTD !== null));
         $price = null;

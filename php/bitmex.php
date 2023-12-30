@@ -35,6 +35,8 @@ class bitmex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'editOrder' => true,
@@ -860,7 +862,7 @@ class bitmex extends Exchange {
          * fetches information on multiple orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the earliest time in ms to fetch orders for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -922,7 +924,7 @@ class bitmex extends Exchange {
          * fetches information on multiple closed $orders made by the user
          * @param {string} $symbol unified market $symbol of the market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -2219,7 +2221,7 @@ class bitmex extends Exchange {
         $datetime = $this->safe_string($position, 'timestamp');
         $crossMargin = $this->safe_value($position, 'crossMargin');
         $marginMode = ($crossMargin === true) ? 'cross' : 'isolated';
-        $notionalString = Precise::string_abs($this->safe_string($position, 'foreignNotional', 'homeNotional'));
+        $notionalString = Precise::string_abs($this->safe_string_2($position, 'foreignNotional', 'homeNotional'));
         $settleCurrencyCode = $this->safe_string($market, 'settle');
         $maintenanceMargin = $this->convert_to_real_amount($settleCurrencyCode, $this->safe_string($position, 'maintMargin'));
         $unrealisedPnl = $this->convert_to_real_amount($settleCurrencyCode, $this->safe_string($position, 'unrealisedPnl'));

@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class cex
- * @extends Exchange
+ * @augments Exchange
  */
 class cex extends cex$1 {
     describe() {
@@ -32,6 +32,9 @@ class cex extends cex$1 {
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createDepositAddress': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
@@ -750,31 +753,46 @@ class cex extends cex$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        // for market buy it requires the amount of quote currency to spend
-        if ((type === 'market') && (side === 'buy')) {
-            if (this.options['createMarketBuyOrderRequiresPrice']) {
-                if (price === undefined) {
-                    throw new errors.InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
-                }
-                else {
-                    const amountString = this.numberToString(amount);
-                    const priceString = this.numberToString(price);
-                    const baseAmount = Precise["default"].stringMul(amountString, priceString);
-                    amount = this.parseNumber(baseAmount);
-                }
-            }
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
             'type': side,
-            'amount': amount,
         };
+        // for market buy it requires the amount of quote currency to spend
+        if ((type === 'market') && (side === 'buy')) {
+            let quoteAmount = undefined;
+            let createMarketBuyOrderRequiresPrice = true;
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeString(params, 'cost');
+            params = this.omit(params, 'cost');
+            if (cost !== undefined) {
+                quoteAmount = this.costToPrecision(symbol, cost);
+            }
+            else if (createMarketBuyOrderRequiresPrice) {
+                if (price === undefined) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                }
+                else {
+                    const amountString = this.numberToString(amount);
+                    const priceString = this.numberToString(price);
+                    const costRequest = Precise["default"].stringMul(amountString, priceString);
+                    quoteAmount = this.costToPrecision(symbol, costRequest);
+                }
+            }
+            else {
+                quoteAmount = this.costToPrecision(symbol, amount);
+            }
+            request['amount'] = quoteAmount;
+        }
+        else {
+            request['amount'] = this.amountToPrecision(symbol, amount);
+        }
         if (type === 'limit') {
-            request['price'] = price;
+            request['price'] = this.numberToString(price);
         }
         else {
             request['order_type'] = type;
@@ -1150,14 +1168,16 @@ class cex extends cex$1 {
          */
         await this.loadMarkets();
         const request = {};
-        let method = 'privatePostOpenOrders';
         let market = undefined;
+        let orders = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['pair'] = market['id'];
-            method += 'Pair';
+            orders = await this.privatePostOpenOrdersPair(this.extend(request, params));
         }
-        const orders = await this[method](this.extend(request, params));
+        else {
+            orders = await this.privatePostOpenOrders(this.extend(request, params));
+        }
         for (let i = 0; i < orders.length; i++) {
             orders[i] = this.extend(orders[i], { 'status': 'open' });
         }
@@ -1179,10 +1199,9 @@ class cex extends cex$1 {
             throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
         }
         await this.loadMarkets();
-        const method = 'privatePostArchivedOrdersPair';
         const market = this.market(symbol);
         const request = { 'pair': market['id'] };
-        const response = await this[method](this.extend(request, params));
+        const response = await this.privatePostArchivedOrdersPair(this.extend(request, params));
         return this.parseOrders(response, market, since, limit);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -1311,7 +1330,7 @@ class cex extends cex$1 {
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

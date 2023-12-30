@@ -8,7 +8,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 /**
  * @class coinlist
- * @extends Exchange
+ * @augments Exchange
  */
 class coinlist extends coinlist$1 {
     describe() {
@@ -28,7 +28,6 @@ class coinlist extends coinlist$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -107,7 +106,8 @@ class coinlist extends coinlist$1 {
                 'fetchWithdrawals': false,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -1217,7 +1217,7 @@ class coinlist extends coinlist$1 {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve (default 200, max 500)
+         * @param {int} [limit] the maximum number of order structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {string|string[]} [params.status] the status of the order - 'accepted', 'done', 'canceled', 'rejected', 'pending' (default [ 'accepted', 'done', 'canceled', 'rejected', 'pending' ])

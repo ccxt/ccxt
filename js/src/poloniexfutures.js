@@ -13,7 +13,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class poloniexfutures
- * @extends Exchange
+ * @augments Exchange
  */
 export default class poloniexfutures extends Exchange {
     describe() {
@@ -1369,7 +1369,7 @@ export default class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.till] end time in ms
          * @param {string} [params.side] buy or sell

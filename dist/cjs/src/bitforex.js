@@ -9,7 +9,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bitforex
- * @extends Exchange
+ * @augments Exchange
  */
 class bitforex extends bitforex$1 {
     describe() {
@@ -27,7 +27,6 @@ class bitforex extends bitforex$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
@@ -75,7 +74,8 @@ class bitforex extends bitforex$1 {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,

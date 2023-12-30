@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class coinbase extends \ccxt\async\coinbase {
 
@@ -92,7 +93,7 @@ class coinbase extends \ccxt\async\coinbase {
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker($symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -248,7 +249,7 @@ class coinbase extends \ccxt\async\coinbase {
         ));
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -270,14 +271,14 @@ class coinbase extends \ccxt\async\coinbase {
         }) ();
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
              * @param {string} [$symbol] unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -291,7 +292,7 @@ class coinbase extends \ccxt\async\coinbase {
         }) ();
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data

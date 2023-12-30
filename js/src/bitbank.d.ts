@@ -1,8 +1,8 @@
 import Exchange from './abstract/bitbank.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class bitbank
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitbank extends Exchange {
     describe(): any;

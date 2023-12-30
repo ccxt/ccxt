@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.81'
+__version__ = '4.2.1'
 
 # -----------------------------------------------------------------------------
 
@@ -23,6 +23,7 @@ from ccxt.base.errors import NullResponse
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadResponse
+from ccxt.base.errors import ProxyError
 
 # -----------------------------------------------------------------------------
 
@@ -111,10 +112,12 @@ class Exchange(object):
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_proxy = None
+    ssl_context = None
     trust_env = False
     aiohttp_trust_env = False
     requests_trust_env = False
     session = None  # Session () by default
+    socks_proxy_sessions = None
     verify = True  # SSL verification
     validateServerSsl = True
     validateClientSsl = False
@@ -171,6 +174,8 @@ class Exchange(object):
     ws_proxy = None
     wssProxy = None
     wss_proxy = None
+    wsSocksProxy = None
+    ws_socks_proxy = None
     #
     userAgents = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -1764,7 +1769,7 @@ class Exchange(object):
         length = len(usedProxies)
         if length > 1:
             joinedProxyNames = ','.join(usedProxies)
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy_url settings(' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback')
+            raise ProxyError(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback')
         return proxyUrl
 
     def check_proxy_settings(self, url=None, method=None, headers=None, body=None):
@@ -1815,37 +1820,45 @@ class Exchange(object):
         length = len(usedProxies)
         if length > 1:
             joinedProxyNames = ','.join(usedProxies)
-            raise ExchangeError(self.id + ' you have multiple conflicting settings(' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback')
+            raise ProxyError(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback')
         return [httpProxy, httpsProxy, socksProxy]
 
     def check_ws_proxy_settings(self):
         usedProxies = []
         wsProxy = None
         wssProxy = None
-        # wsProxy
+        wsSocksProxy = None
+        # ws proxy
         if self.wsProxy is not None:
             usedProxies.append('wsProxy')
             wsProxy = self.wsProxy
         if self.ws_proxy is not None:
             usedProxies.append('ws_proxy')
             wsProxy = self.ws_proxy
-        # wsProxy
+        # wss proxy
         if self.wssProxy is not None:
             usedProxies.append('wssProxy')
             wssProxy = self.wssProxy
         if self.wss_proxy is not None:
             usedProxies.append('wss_proxy')
             wssProxy = self.wss_proxy
+        # ws socks proxy
+        if self.wsSocksProxy is not None:
+            usedProxies.append('wsSocksProxy')
+            wsSocksProxy = self.wsSocksProxy
+        if self.ws_socks_proxy is not None:
+            usedProxies.append('ws_socks_proxy')
+            wsSocksProxy = self.ws_socks_proxy
         # check
         length = len(usedProxies)
         if length > 1:
             joinedProxyNames = ','.join(usedProxies)
-            raise ExchangeError(self.id + ' you have multiple conflicting settings(' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy')
-        return [wsProxy, wssProxy]
+            raise ProxyError(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy')
+        return [wsProxy, wssProxy, wsSocksProxy]
 
     def check_conflicting_proxies(self, proxyAgentSet, proxyUrlSet):
         if proxyAgentSet and proxyUrlSet:
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
+            raise ProxyError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
 
     def find_message_hashes(self, client, element: str):
         result = []
@@ -2125,6 +2138,7 @@ class Exchange(object):
         if fee is not None:
             fee['cost'] = self.safe_number(fee, 'cost')
         timestamp = self.safe_integer(entry, 'timestamp')
+        info = self.safe_value(entry, 'info', {})
         return {
             'id': self.safe_string(entry, 'id'),
             'timestamp': timestamp,
@@ -2140,7 +2154,7 @@ class Exchange(object):
             'after': self.parse_number(after),
             'status': self.safe_string(entry, 'status'),
             'fee': fee,
-            'info': entry,
+            'info': info,
         }
 
     def safe_currency_structure(self, currency: object):
@@ -2524,6 +2538,10 @@ class Exchange(object):
             tradeFee['cost'] = self.safe_number(tradeFee, 'cost')
             if 'rate' in tradeFee:
                 tradeFee['rate'] = self.safe_number(tradeFee, 'rate')
+            entryFees = self.safe_value(entry, 'fees', [])
+            for j in range(0, len(entryFees)):
+                entryFees[j]['cost'] = self.safe_number(entryFees[j], 'cost')
+            entry['fees'] = entryFees
             entry['fee'] = tradeFee
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = self.safe_value(order, 'postOnly')
@@ -3730,7 +3748,7 @@ class Exchange(object):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if self.options['createMarketOrderWithCost'] or (self.options['createMarketBuyOrderWithCost'] and self.options['createMarketSellOrderWithCost']):
+        if self.has['createMarketOrderWithCost'] or (self.has['createMarketBuyOrderWithCost'] and self.has['createMarketSellOrderWithCost']):
             return self.create_order(symbol, 'market', side, cost, 1, params)
         raise NotSupported(self.id + ' createMarketOrderWithCost() is not supported yet')
 
@@ -3742,7 +3760,7 @@ class Exchange(object):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if self.options['createMarketBuyOrderRequiresPrice'] or self.options['createMarketBuyOrderWithCost']:
+        if self.options['createMarketBuyOrderRequiresPrice'] or self.has['createMarketBuyOrderWithCost']:
             return self.create_order(symbol, 'market', 'buy', cost, 1, params)
         raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is not supported yet')
 
@@ -3785,6 +3803,9 @@ class Exchange(object):
     def fetch_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
+    def fetch_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchOrdersWs() is not supported yet')
+
     def fetch_order_trades(self, id: str, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderTrades() is not supported yet')
 
@@ -3792,13 +3813,28 @@ class Exchange(object):
         raise NotSupported(self.id + ' watchOrders() is not supported yet')
 
     def fetch_open_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrders']:
+            orders = self.fetch_orders(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'open')
         raise NotSupported(self.id + ' fetchOpenOrders() is not supported yet')
 
     def fetch_open_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrdersWs']:
+            orders = self.fetchOrdersWs(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'open')
         raise NotSupported(self.id + ' fetchOpenOrdersWs() is not supported yet')
 
     def fetch_closed_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrders']:
+            orders = self.fetch_orders(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'closed')
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
+
+    def fetch_closed_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrdersWs']:
+            orders = self.fetchOrdersWs(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'closed')
+        raise NotSupported(self.id + ' fetchClosedOrdersWs() is not supported yet')
 
     def fetch_my_trades(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
@@ -3847,11 +3883,14 @@ class Exchange(object):
     def fetch_funding_history(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
 
-    def close_position(self, symbol: str, side: OrderSide = None, marginMode: str = None, params={}):
+    def close_position(self, symbol: str, side: OrderSide = None, params={}):
         raise NotSupported(self.id + ' closePositions() is not supported yet')
 
     def close_all_positions(self, params={}):
         raise NotSupported(self.id + ' closeAllPositions() is not supported yet')
+
+    def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
+        raise BadRequest(self.id + ' fetchL3OrderBook() is not supported yet')
 
     def parse_last_price(self, price, market: Market = None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
@@ -4336,8 +4375,8 @@ class Exchange(object):
     def handle_time_in_force(self, params={}):
         """
          * @ignore
-         * * Must add timeInForce to self.options to use self method
-        :return string returns: the exchange specific value for timeInForce
+         * Must add timeInForce to self.options to use self method
+        :returns str: returns the exchange specific value for timeInForce
         """
         timeInForce = self.safe_string_upper(params, 'timeInForce')  # supported values GTC, IOC, PO
         if timeInForce is not None:
@@ -4350,7 +4389,7 @@ class Exchange(object):
     def convert_type_to_account(self, account):
         """
          * @ignore
-         * * Must add accountsByType to self.options to use self method
+         * Must add accountsByType to self.options to use self method
         :param str account: key for account name in self.options['accountsByType']
         :returns: the exchange specific account name or the isolated margin id for transfers
         """
@@ -4518,27 +4557,6 @@ class Exchange(object):
         Typed wrapper for filterByArray that returns a dictionary of tickers
         """
         return self.filter_by_array(objects, key, values, indexed)
-
-    def resolve_promise_if_messagehash_matches(self, client, prefix: str, symbol: str, data):
-        messageHashes = self.findMessageHashes(client, prefix)
-        for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
-            parts = messageHash.split('::')
-            symbolsString = parts[1]
-            symbols = symbolsString.split(',')
-            if self.in_array(symbol, symbols):
-                client.resolve(data, messageHash)
-
-    def resolve_multiple_ohlcv(self, client, prefix: str, symbol: str, timeframe: str, data):
-        messageHashes = self.findMessageHashes(client, 'multipleOHLCV::')
-        for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
-            parts = messageHash.split('::')
-            symbolsAndTimeframes = parts[1]
-            splitted = symbolsAndTimeframes.split(',')
-            id = symbol + '#' + timeframe
-            if self.in_array(id, splitted):
-                client.resolve([symbol, timeframe, data], messageHash)
 
     def create_ohlcv_object(self, symbol: str, timeframe: str, data):
         res = {}

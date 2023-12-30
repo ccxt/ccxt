@@ -1,6 +1,6 @@
 import { RequestTimeout, NetworkError, NotSupported, BaseError } from '../../base/errors.js';
 import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
-import { Future, createFuture } from './Future.js';
+import { Future } from './Future.js';
 
 import {
     isNode,
@@ -13,7 +13,7 @@ import { utf8 } from '../../static_dependencies/scure-base/index.js';
 export default class Client {
     connected: Promise<any>
 
-    disconnected: Future
+    disconnected: ReturnType<typeof Future>
 
     futures: {}
 
@@ -94,12 +94,12 @@ export default class Client {
         }
         Object.assign (this, deepExtend (defaults, config))
         // connection-related Future
-        this.connected = createFuture ()
+        this.connected = Future ()
     }
 
     future (messageHash) {
         if (!(messageHash in this.futures)) {
-            this.futures[messageHash] = createFuture ()
+            this.futures[messageHash] = Future ()
         }
         const future = this.futures[messageHash]
         if (messageHash in this.rejections) {
@@ -291,7 +291,7 @@ export default class Client {
             this.log (new Date (), 'sending', message)
         }
         message = (typeof message === 'string') ? message : JSON.stringify (message)
-        const future = createFuture ()
+        const future = Future ()
         if (isNode) {
             /* eslint-disable no-inner-declarations */
             function onSendComplete (error) {

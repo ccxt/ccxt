@@ -37,6 +37,8 @@ class kucoinfutures extends kucoin {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closePosition' => true,
+                'closePositions' => false,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
@@ -157,6 +159,7 @@ class kucoinfutures extends kucoin {
                         'positions' => 4.44,
                         'funding-history' => 4.44,
                         'sub/api-key' => 1,
+                        'trade-statistics' => 1,
                     ),
                     'post' => array(
                         'withdrawals' => 1,
@@ -178,6 +181,7 @@ class kucoinfutures extends kucoin {
                         'orders' => 4.44,
                         'stopOrders' => 1,
                         'sub/api-key' => 1,
+                        'orders/client-order/{clientOid}' => 1,
                     ),
                 ),
                 'webExchange' => array(
@@ -716,10 +720,6 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function fetch_l3_order_book(string $symbol, ?int $limit = null, $params = array ()) {
-        throw new BadRequest($this->id . ' fetchL3OrderBook() is not supported yet');
-    }
-
     public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
@@ -1247,15 +1247,28 @@ class kucoinfutures extends kucoin {
              * cancels an open order
              * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-futures-order-by-orderid
              * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the market the order was made in
+             * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->clientOrderId] cancel order by client order $id
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $request = array(
-                'orderId' => $id,
-            );
-            $response = Async\await($this->futuresPrivateDeleteOrdersOrderId (array_merge($request, $params)));
+            $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
+            $params = $this->omit($params, array( 'clientOrderId' ));
+            $request = array();
+            $response = null;
+            if ($clientOrderId !== null) {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument when cancelling by clientOrderId');
+                }
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+                $request['clientOid'] = $clientOrderId;
+                $response = Async\await($this->futuresPrivateDeleteOrdersClientOrderClientOid (array_merge($request, $params)));
+            } else {
+                $request['orderId'] = $id;
+                $response = Async\await($this->futuresPrivateDeleteOrdersOrderId (array_merge($request, $params)));
+            }
             //
             //   {
             //       "code" => "200000",
@@ -1566,7 +1579,7 @@ class kucoinfutures extends kucoin {
              * @see https://docs.kucoin.com/futures/#get-order-list
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->till] end time in ms
              * @param {string} [$params->side] buy or sell
@@ -1733,14 +1746,18 @@ class kucoinfutures extends kucoin {
         $cancelExist = $this->safe_value($order, 'cancelExist', false);
         $status = $isActive ? 'open' : 'closed';
         $status = $cancelExist ? 'canceled' : $status;
-        $fee = array(
-            'currency' => $feeCurrency,
-            'cost' => $feeCost,
-        );
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'currency' => $feeCurrency,
+                'cost' => $feeCost,
+            );
+        }
         $clientOrderId = $this->safe_string($order, 'clientOid');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_number($order, 'stopPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
+        $reduceOnly = $this->safe_value($order, 'reduceOnly');
         $lastUpdateTimestamp = $this->safe_integer($order, 'updatedAt');
         return $this->safe_order(array(
             'id' => $orderId,
@@ -1749,6 +1766,7 @@ class kucoinfutures extends kucoin {
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
+            'reduceOnly' => $reduceOnly,
             'side' => $side,
             'amount' => $amount,
             'price' => $price,
@@ -2443,5 +2461,40 @@ class kucoinfutures extends kucoin {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
+    }
+
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $side, $params) {
+            /**
+             * closes open positions for a $market
+             * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
+             * @param {string} $symbol Unified CCXT $market $symbol
+             * @param {string} $side not used by kucoinfutures closePositions
+             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {string} [$params->clientOrderId] client order id of the order
+             * @return {array[]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            $testOrder = $this->safe_value($params, 'test', false);
+            $params = $this->omit($params, array( 'test', 'clientOrderId' ));
+            if ($clientOrderId === null) {
+                $clientOrderId = $this->number_to_string($this->nonce());
+            }
+            $request = array(
+                'symbol' => $market['id'],
+                'closeOrder' => true,
+                'clientOid' => $clientOrderId,
+                'type' => 'market',
+            );
+            $response = null;
+            if ($testOrder) {
+                $response = Async\await($this->futuresPrivatePostOrdersTest (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->futuresPrivatePostOrders (array_merge($request, $params)));
+            }
+            return $this->parse_order($response, $market);
+        }) ();
     }
 }

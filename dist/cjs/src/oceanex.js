@@ -10,7 +10,7 @@ var rsa = require('./base/functions/rsa.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class oceanex
- * @extends Exchange
+ * @augments Exchange
  */
 class oceanex extends oceanex$1 {
     describe() {
@@ -703,7 +703,7 @@ class oceanex extends oceanex$1 {
          * @see https://api.oceanex.pro/doc/v1/#order-status-get
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

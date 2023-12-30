@@ -1044,7 +1044,7 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if fetching trigger orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
-       """
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
@@ -1094,7 +1094,7 @@ class latoken(Exchange, ImplicitAPI):
         :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrdersByPair  # stop
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if fetching trigger orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`

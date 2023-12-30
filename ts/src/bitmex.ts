@@ -6,13 +6,13 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class bitmex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitmex extends Exchange {
     describe () {
@@ -40,6 +40,8 @@ export default class bitmex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
@@ -878,7 +880,7 @@ export default class bitmex extends Exchange {
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the earliest time in ms to fetch orders for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -944,7 +946,7 @@ export default class bitmex extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2265,7 +2267,7 @@ export default class bitmex extends Exchange {
         const datetime = this.safeString (position, 'timestamp');
         const crossMargin = this.safeValue (position, 'crossMargin');
         const marginMode = (crossMargin === true) ? 'cross' : 'isolated';
-        const notionalString = Precise.stringAbs (this.safeString (position, 'foreignNotional', 'homeNotional'));
+        const notionalString = Precise.stringAbs (this.safeString2 (position, 'foreignNotional', 'homeNotional'));
         const settleCurrencyCode = this.safeString (market, 'settle');
         const maintenanceMargin = this.convertToRealAmount (settleCurrencyCode, this.safeString (position, 'maintMargin'));
         const unrealisedPnl = this.convertToRealAmount (settleCurrencyCode, this.safeString (position, 'unrealisedPnl'));
