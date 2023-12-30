@@ -3180,14 +3180,13 @@ class bitget extends Exchange {
         //         "1399132.341"
         //     )
         //
-        $volumeIndex = ($market['inverse']) ? 6 : 5;
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
             $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 3),
             $this->safe_number($ohlcv, 4),
-            $this->safe_number($ohlcv, $volumeIndex),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
@@ -3483,10 +3482,15 @@ class bitget extends Exchange {
                 // Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
                 $spotAccountFree = $this->safe_string($entry, 'available');
                 $contractAccountFree = $this->safe_string($entry, 'maxTransferOut');
-                $account['free'] = ($contractAccountFree !== null) ? $contractAccountFree : $spotAccountFree;
-                $frozen = $this->safe_string($entry, 'frozen');
-                $locked = $this->safe_string($entry, 'locked');
-                $account['used'] = Precise::string_add($frozen, $locked);
+                if ($contractAccountFree !== null) {
+                    $account['free'] = $contractAccountFree;
+                    $account['total'] = $this->safe_string($entry, 'accountEquity');
+                } else {
+                    $account['free'] = $spotAccountFree;
+                    $frozen = $this->safe_string($entry, 'frozen');
+                    $locked = $this->safe_string($entry, 'locked');
+                    $account['used'] = Precise::string_add($frozen, $locked);
+                }
             }
             $result[$code] = $account;
         }
@@ -4897,6 +4901,9 @@ class bitget extends Exchange {
         //         }
         //     }
         //
+        if (gettype($response) === 'string') {
+            $response = json_decode($response, $as_associative_array = true);
+        }
         $data = $this->safe_value($response, 'data');
         $first = $this->safe_value($data, 0, $data);
         return $this->parse_order($first, $market);

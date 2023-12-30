@@ -224,7 +224,7 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
                         if ($this->fetch_result) {
                             return $this->fetch_result;
                         }
-                        return  parent::fetch($url, $method, $headers, $body);
+                        return  Async\await(parent::fetch($url, $method, $headers, $body));
                     })();
                 }
             }
@@ -247,7 +247,7 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
 }
 
 function get_test_files ($properties, $ws = false) {
-    return Async\async (function() use ($properties, $ws){
+    $func = function() use ($properties, $ws){
         $tests = array();
         $finalPropList = array_merge ($properties, [proxyTestFileName]);
         for ($i = 0; $i < count($finalPropList); $i++) {
@@ -262,7 +262,12 @@ function get_test_files ($properties, $ws = false) {
             }
         }
         return $tests;
-    })();
+    };
+    if (is_synchronous) {
+        return $func();
+    } else {
+        return Async\async ($func)();
+    }
 }
 
 function is_null_value($value) {
@@ -270,13 +275,18 @@ function is_null_value($value) {
 }
 
 function close($exchange) {
-    return Async\async (function() use ($exchange) {
+    $func = function() use ($exchange) {
         // for WS classes
         if (method_exists($exchange, 'close')) {
             return $exchange->close();
         }
         return true;
-    })();
+    };
+    if (is_synchronous) {
+        return $func();
+    } else {
+        return Async\async ($func)();
+    }
 }
 
 function set_fetch_response($exchange, $data) {
@@ -340,8 +350,8 @@ class testMainClass extends baseMainTestClass {
         $this->import_files($exchange);
         assert(count(is_array($this->test_files) ? array_keys($this->test_files) : array()) > 0, 'Test files were not loaded'); // ensure test files are found & filled
         $this->expand_settings($exchange);
-        $symbol_or_undefined = $this->check_if_specific_test_is_chosen($symbol_argv);
-        $this->start_test($exchange, $symbol_or_undefined);
+        $symbol = $this->check_if_specific_test_is_chosen($symbol_argv);
+        $this->start_test($exchange, $symbol);
         exit_script(0); // needed to be explicitly finished for WS tests
     }
 
@@ -626,10 +636,10 @@ class testMainClass extends baseMainTestClass {
             }
         }
         $this->public_tests = $tests;
-        $this->display_test_results($exchange, $tests, true);
+        $this->run_tests($exchange, $tests, true);
     }
 
-    public function display_test_results($exchange, $tests, $is_public_test) {
+    public function run_tests($exchange, $tests, $is_public_test) {
         $test_names = is_array($tests) ? array_keys($tests) : array();
         $promises = [];
         for ($i = 0; $i < count($test_names); $i++) {
@@ -639,7 +649,7 @@ class testMainClass extends baseMainTestClass {
         }
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
-        $results = Promise\all($promises);
+        $results = ($promises);
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
         $failed_methods = [];
         for ($i = 0; $i < count($test_names); $i++) {
@@ -895,7 +905,7 @@ class testMainClass extends baseMainTestClass {
             }
         }
         // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
-        $this->display_test_results($exchange, $tests, false);
+        $this->run_tests($exchange, $tests, false);
     }
 
     public function test_proxies($exchange) {
@@ -936,10 +946,10 @@ class testMainClass extends baseMainTestClass {
                 close($exchange);
                 return;
             }
-            if ($exchange->id === 'binance') {
-                // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
-                $this->test_proxies($exchange);
-            }
+            // if (exchange.id === 'binance') {
+            //     // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
+            //     // await this.testProxies (exchange);
+            // }
             $this->test_exchange($exchange, $symbol);
             close($exchange);
         } catch(\Throwable $e) {
@@ -1315,7 +1325,7 @@ class testMainClass extends baseMainTestClass {
                 $promises[] = $this->test_exchange_response_statically($exchange_name, $exchange_data, $test_name);
             }
         }
-        Promise\all($promises);
+        ($promises);
         if ($this->request_tests_failed || $this->response_tests_failed) {
             exit_script(1);
         } else {
@@ -1337,7 +1347,7 @@ class testMainClass extends baseMainTestClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_huobi(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex()];
-        Promise\all($promises);
+        ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
         exit_script(0);
@@ -1579,4 +1589,6 @@ class testMainClass extends baseMainTestClass {
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
 $promise = (new testMainClass())->init($exchangeId, $exchangeSymbol);
-$promise;
+if (!is_synchronous) {
+    Async\await($promise);
+}

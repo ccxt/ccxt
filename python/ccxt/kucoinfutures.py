@@ -1654,14 +1654,17 @@ class kucoinfutures(kucoin, ImplicitAPI):
         cancelExist = self.safe_value(order, 'cancelExist', False)
         status = 'open' if isActive else 'closed'
         status = 'canceled' if cancelExist else status
-        fee = {
-            'currency': feeCurrency,
-            'cost': feeCost,
-        }
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCost,
+            }
         clientOrderId = self.safe_string(order, 'clientOid')
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'stopPrice')
         postOnly = self.safe_value(order, 'postOnly')
+        reduceOnly = self.safe_value(order, 'reduceOnly')
         lastUpdateTimestamp = self.safe_integer(order, 'updatedAt')
         return self.safe_order({
             'id': orderId,
@@ -1670,6 +1673,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': side,
             'amount': amount,
             'price': price,

@@ -315,8 +315,8 @@ class testMainClass(baseMainTestClass):
         await self.import_files(exchange)
         assert len(list(self.test_files.keys())) > 0, 'Test files were not loaded'  # ensure test files are found & filled
         self.expand_settings(exchange)
-        symbol_or_undefined = self.check_if_specific_test_is_chosen(symbol_argv)
-        await self.start_test(exchange, symbol_or_undefined)
+        symbol = self.check_if_specific_test_is_chosen(symbol_argv)
+        await self.start_test(exchange, symbol)
         exit_script(0)  # needed to be explicitly finished for WS tests
 
     def check_if_specific_test_is_chosen(self, symbol_argv):
@@ -551,9 +551,9 @@ class testMainClass(baseMainTestClass):
                 tests['fetchMarkOHLCV'] = [symbol]
                 tests['fetchPremiumIndexOHLCV'] = [symbol]
         self.public_tests = tests
-        await self.display_test_results(exchange, tests, True)
+        await self.run_tests(exchange, tests, True)
 
-    async def display_test_results(self, exchange, tests, is_public_test):
+    async def run_tests(self, exchange, tests, is_public_test):
         test_names = list(tests.keys())
         promises = []
         for i in range(0, len(test_names)):
@@ -768,7 +768,7 @@ class testMainClass(baseMainTestClass):
                 tests['fetchFundingRateHistory'] = [symbol]
                 tests['fetchFundingHistory'] = [symbol]
         # const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
-        await self.display_test_results(exchange, tests, False)
+        await self.run_tests(exchange, tests, False)
 
     async def test_proxies(self, exchange):
         # these tests should be synchronously executed, because of conflicting nature of proxy settings
@@ -800,9 +800,10 @@ class testMainClass(baseMainTestClass):
             if not result:
                 await close(exchange)
                 return
-            if exchange.id == 'binance':
-                # we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
-                await self.test_proxies(exchange)
+            # if (exchange.id === 'binance') {
+            #     # we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
+            #     # await this.testProxies (exchange);
+            # }
             await self.test_exchange(exchange, symbol)
             await close(exchange)
         except Exception as e:

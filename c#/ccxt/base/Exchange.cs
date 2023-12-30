@@ -153,6 +153,8 @@ public partial class Exchange
         if (this.verbose)
             this.log("fetch Request:\n" + this.id + " " + method + " " + url + "\nRequestHeaders:\n" + this.stringifyObject(headers) + "\nRequestBody:\n" + this.stringifyObject(body) + "\n");
 
+        // to do: add all proxies support
+        this.checkProxySettings();
         // add headers
         httpClient.DefaultRequestHeaders.Accept.Clear();
         httpClient.DefaultRequestHeaders.Clear();

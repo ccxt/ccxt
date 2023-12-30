@@ -55,7 +55,7 @@ public partial class Exchange
             return defaultValue;
         if (result is string && ((string)result).IndexOf(".") > -1)
         {
-            return Convert.ToInt64(Convert.ToDouble(result, CultureInfo.InvariantCulture)) * 1000;
+            return Convert.ToInt64(Convert.ToDouble(result, CultureInfo.InvariantCulture) * 1000);
         }
         // if (result.GetType() == typeof(double))
         // {
@@ -84,17 +84,7 @@ public partial class Exchange
 
     public object safeTimestamp2(object obj, object key1, object key2, object defaultValue = null)
     {
-        var value = safeValue2(obj, key1, key2, defaultValue);
-        if (value != null)
-        {
-            return Convert.ToInt64(value) * 1000;
-        }
-        // if (value is string)
-        // {
-        //     return (Int64)milliseconds() / 1000;
-        // }
-        // return safeInteger(value, defaultValue);
-        return null;
+        return safeTimestampN(obj, new List<object> { key1, key2 }, defaultValue);
     }
 
     public object safeInteger(object obj, object key, object defaultValue = null) => SafeInteger(obj, key, defaultValue);

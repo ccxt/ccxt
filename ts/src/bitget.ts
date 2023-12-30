@@ -3215,14 +3215,13 @@ export default class bitget extends Exchange {
         //         "1399132.341"
         //     ]
         //
-        const volumeIndex = (market['inverse']) ? 6 : 5;
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
             this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 3),
             this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, volumeIndex),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -3522,10 +3521,15 @@ export default class bitget extends Exchange {
                 // Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
                 const spotAccountFree = this.safeString (entry, 'available');
                 const contractAccountFree = this.safeString (entry, 'maxTransferOut');
-                account['free'] = (contractAccountFree !== undefined) ? contractAccountFree : spotAccountFree;
-                const frozen = this.safeString (entry, 'frozen');
-                const locked = this.safeString (entry, 'locked');
-                account['used'] = Precise.stringAdd (frozen, locked);
+                if (contractAccountFree !== undefined) {
+                    account['free'] = contractAccountFree;
+                    account['total'] = this.safeString (entry, 'accountEquity');
+                } else {
+                    account['free'] = spotAccountFree;
+                    const frozen = this.safeString (entry, 'frozen');
+                    const locked = this.safeString (entry, 'locked');
+                    account['used'] = Precise.stringAdd (frozen, locked);
+                }
             }
             result[code] = account;
         }

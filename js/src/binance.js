@@ -1595,6 +1595,7 @@ export default class binance extends Exchange {
                     '-4046': AuthenticationError,
                     '-4047': BadRequest,
                     '-4054': BadRequest,
+                    '-4164': InvalidOrder,
                     '-5001': BadRequest,
                     '-5002': InsufficientFunds,
                     '-5003': InsufficientFunds,
