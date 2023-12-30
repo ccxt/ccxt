@@ -1228,14 +1228,14 @@ export default class coinmetro extends Exchange {
         if (amount !== undefined) {
             precisedAmount = this.amountToPrecision (symbol, amount);
         }
-        let cost = this.safeNumber (params, 'cost');
+        let cost = this.safeValue (params, 'cost');
         params = this.omit (params, 'cost');
         if (type === 'limit') {
             if ((price === undefined) && (cost === undefined)) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price or params.cost argument for a ' + type + ' order');
             } else if ((price !== undefined) && (amount !== undefined)) {
-                const costString = Precise.stringMul (price.toString (), precisedAmount.toString ());
-                cost = this.number (costString);
+                const costString = Precise.stringMul (this.numberToString (price), this.numberToString (precisedAmount));
+                cost = this.parseToNumeric (costString);
             }
         }
         let precisedCost = undefined;
@@ -1272,7 +1272,7 @@ export default class coinmetro extends Exchange {
         const userData = this.safeValue (params, 'userData', {});
         const comment = this.safeString2 (params, 'clientOrderId', 'comment');
         if (comment !== undefined) {
-            params = this.omit (params, [ 'clientOrderId', 'comment' ]);
+            params = this.omit (params, [ 'clientOrderId' ]);
             userData['comment'] = comment;
         }
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
