@@ -8666,7 +8666,7 @@ export default class htx extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {number} params.amount Order Quantity
-         * @param {string} [params.order_price_type] "lightning" by default, "lightning_fok": lightning fok type,"lightning_ioc": lightning ioc type "market" by default, "market": market order type," "lightning_fok": lightning 
+         * @param {string} [params.order_price_type] "lightning" by default, "lightning_fok": lightning fok type,"lightning_ioc": lightning ioc type "market" by default, "market": market order type," "lightning_fok": lightning
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
@@ -8675,7 +8675,7 @@ export default class htx extends Exchange {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const amount = this.safeString2 (params, 'amount', 'volume');
         if (amount === undefined) {
-            throw new ArgumentsRequired (this.id + ' closePositions () requires an extra argument params["amount"]');
+            throw new ArgumentsRequired (this.id + ' closePosition () requires an extra argument params["amount"]');
         }
         const request = {
             'contract_code': market['id'],
