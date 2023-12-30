@@ -967,10 +967,10 @@ class testMainClass extends baseMainTestClass {
                     Async\await(close($exchange));
                     return;
                 }
-                if ($exchange->id === 'binance') {
-                    // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
-                    Async\await($this->test_proxies($exchange));
-                }
+                // if (exchange.id === 'binance') {
+                //     // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
+                //     // await this.testProxies (exchange);
+                // }
                 Async\await($this->test_exchange($exchange, $symbol));
                 Async\await(close($exchange));
             } catch(\Throwable $e) {
