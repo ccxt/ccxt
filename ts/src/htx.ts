@@ -8661,26 +8661,27 @@ export default class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  // Coin-M Swap
          * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M Futures
          * @param {string} symbol Unified CCXT market symbol
-         * @param {string} side 'buy' or 'sell'
+         * @param {string} side 'buy' or 'sell', the side of the closing order, opposite side as position side
+         * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.clientOrderId] Client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {number} params.amount Order Quantity
          * @param {string} [params.order_price_type] "lightning" by default, "lightning_fok": lightning fok type,"lightning_ioc": lightning ioc type "market" by default, "market": market order type," "lightning_fok": lightning
-         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {object} [params.marginMode] "cross" or "isolated", required for linear markets
          * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        const amount = this.safeString2 (params, 'amount', 'volume');
-        if (amount === undefined) {
-            throw new ArgumentsRequired (this.id + ' closePosition () requires an extra argument params["amount"]');
-        }
+        // const amount = this.safeString2 (params, 'amount', 'volume');
+        // if (amount === undefined) {
+        //     throw new ArgumentsRequired (this.id + ' closePosition () requires an extra argument params["amount"]');
+        // }
         const request = {
             'contract_code': market['id'],
             'direction': side,
-            'volume': amount,
+            // 'volume': amount,
         };
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
@@ -8695,6 +8696,9 @@ export default class htx extends Exchange {
         } else {  // USDT-M
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params);
+            if (marginMode === undefined) {
+                throw new ArgumentsRequired (this.id + ' closePosition requires an extra argument params["marginMode"] for linear markets');
+            }
             if (marginMode === 'cross') {
                 response = await this.contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition (this.extend (request, params));
             } else {  // isolated
