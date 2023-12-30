@@ -2369,8 +2369,8 @@ class bitmart(Exchange, ImplicitAPI):
         if market['spot']:
             response = self.privatePostSpotV3CancelOrder(self.extend(request, params))
         else:
-            stop = self.safe_value(params, 'stop')
-            params = self.omit(params, ['stop'])
+            stop = self.safe_value_2(params, 'stop', 'trigger')
+            params = self.omit(params, ['stop', 'trigger'])
             if not stop:
                 response = self.privatePostContractPrivateCancelOrder(self.extend(request, params))
             else:

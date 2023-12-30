@@ -277,6 +277,9 @@ class bingx extends bingx$1 {
                             'post': {
                                 'userDataStream': 1,
                             },
+                            'put': {
+                                'userDataStream': 1,
+                            },
                         },
                     },
                 },

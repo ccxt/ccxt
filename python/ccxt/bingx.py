@@ -292,6 +292,9 @@ class bingx(Exchange, ImplicitAPI):
                             'post': {
                                 'userDataStream': 1,
                             },
+                            'put': {
+                                'userDataStream': 1,
+                            },
                         },
                     },
                 },

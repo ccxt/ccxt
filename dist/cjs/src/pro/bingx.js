@@ -30,6 +30,7 @@ class bingx extends bingx$1 {
                 },
             },
             'options': {
+                'listenKeyRefreshRate': 3540000,
                 'ws': {
                     'gunzip': true,
                 },
@@ -627,7 +628,7 @@ class bingx extends bingx$1 {
         const lastAuthenticatedTime = this.safeInteger(this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            const response = await this.userAuthPrivatePostUserDataStream({ 'listenKey': listenKey }); // extend the expiry
+            const response = await this.userAuthPrivatePutUserDataStream({ 'listenKey': listenKey }); // extend the expiry
             this.options['listenKey'] = this.safeString(response, 'listenKey');
             this.options['lastAuthenticatedTime'] = time;
         }

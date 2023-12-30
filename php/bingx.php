@@ -278,6 +278,9 @@ class bingx extends Exchange {
                             'post' => array(
                                 'userDataStream' => 1,
                             ),
+                            'put' => array(
+                                'userDataStream' => 1,
+                            ),
                         ),
                     ),
                 ),
