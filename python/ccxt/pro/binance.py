@@ -1027,20 +1027,21 @@ class binance(ccxt.async_support.binance):
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 1200000)
         delay = self.sum(listenKeyRefreshRate, 10000)
         if time - lastAuthenticatedTime > delay:
-            method = 'publicPostUserDataStream'
+            response = None
             if type == 'future':
-                method = 'fapiPrivatePostListenKey'
+                response = await self.fapiPrivatePostListenKey(query)
             elif type == 'delivery':
-                method = 'dapiPrivatePostListenKey'
+                response = await self.dapiPrivatePostListenKey(query)
             elif type == 'margin' and isCrossMargin:
-                method = 'sapiPostUserDataStream'
+                response = await self.sapiPostUserDataStream(query)
             elif isIsolatedMargin:
-                method = 'sapiPostUserDataStreamIsolated'
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' authenticate() requires a symbol argument for isolated margin mode')
                 marketId = self.market_id(symbol)
                 query = self.extend(query, {'symbol': marketId})
-            response = await getattr(self, method)(query)
+                response = await self.sapiPostUserDataStreamIsolated(query)
+            else:
+                response = await self.publicPostUserDataStream(query)
             self.options[type] = self.extend(options, {
                 'listenKey': self.safe_string(response, 'listenKey'),
                 'lastAuthenticatedTime': time,
@@ -1062,22 +1063,22 @@ class binance(ccxt.async_support.binance):
         if listenKey is None:
             # A network error happened: we can't renew a listen key that does not exist.
             return
-        method = 'publicPutUserDataStream'
         request = {}
         symbol = self.safe_string(params, 'symbol')
         sendParams = self.omit(params, ['type', 'symbol'])
-        if type == 'future':
-            method = 'fapiPrivatePutListenKey'
-        elif type == 'delivery':
-            method = 'dapiPrivatePutListenKey'
-        else:
-            request['listenKey'] = listenKey
-            if type == 'margin':
-                request['symbol'] = symbol
-                method = 'sapiPutUserDataStream'
         time = self.milliseconds()
         try:
-            await getattr(self, method)(self.extend(request, sendParams))
+            if type == 'future':
+                await self.fapiPrivatePutListenKey(self.extend(request, sendParams))
+            elif type == 'delivery':
+                await self.dapiPrivatePutListenKey(self.extend(request, sendParams))
+            else:
+                request['listenKey'] = listenKey
+                if type == 'margin':
+                    request['symbol'] = symbol
+                    await self.sapiPutUserDataStream(self.extend(request, sendParams))
+                else:
+                    await self.publicPutUserDataStream(self.extend(request, sendParams))
         except Exception as error:
             url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
             client = self.client(url)

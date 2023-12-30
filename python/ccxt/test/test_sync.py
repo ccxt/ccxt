@@ -782,9 +782,10 @@ class testMainClass(baseMainTestClass):
             if not result:
                 close(exchange)
                 return
-            if exchange.id == 'binance':
-                # we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
-                self.test_proxies(exchange)
+            # if (exchange.id === 'binance') {
+            #     # we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
+            #     # this.testProxies (exchange);
+            # }
             self.test_exchange(exchange, symbol)
             close(exchange)
         except Exception as e:

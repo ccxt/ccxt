@@ -438,7 +438,12 @@ class lykke extends Exchange {
             );
             // publicGetTickers or publicGetPrices
             $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetTickers');
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($method === 'publicGetPrices') {
+                $response = Async\await($this->publicGetPrices (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetTickers (array_merge($request, $params)));
+            }
             $ticker = $this->safe_value($response, 'payload', array());
             //
             // publicGetTickers
@@ -801,8 +806,12 @@ class lykke extends Exchange {
             if ($type === 'limit') {
                 $query['price'] = floatval($this->price_to_precision($market['symbol'], $price));
             }
-            $method = 'privatePostOrders' . $this->capitalize($type);
-            $result = Async\await($this->$method (array_merge($query, $params)));
+            $result = null;
+            if ($this->capitalize($type) === 'Market') {
+                $result = Async\await($this->privatePostOrdersMarket (array_merge($query, $params)));
+            } else {
+                $result = Async\await($this->privatePostOrdersLimit (array_merge($query, $params)));
+            }
             //
             // $market
             //

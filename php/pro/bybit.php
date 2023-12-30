@@ -905,10 +905,14 @@ class bybit extends \ccxt\async\bybit {
         }
         $trades = $this->myTrades;
         $symbols = array();
-        $method = $spot ? 'parseWsTrade' : 'parseTrade';
         for ($i = 0; $i < count($data); $i++) {
             $rawTrade = $data[$i];
-            $parsed = $this->$method ($rawTrade);
+            $parsed = null;
+            if ($spot) {
+                $parsed = $this->parse_ws_trade($rawTrade);
+            } else {
+                $parsed = $this->parse_trade($rawTrade);
+            }
             $symbol = $parsed['symbol'];
             $symbols[$symbol] = true;
             $trades->append ($parsed);

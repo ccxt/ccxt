@@ -31,6 +31,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function spot_v1_private_get_trade_historyorders($params = array()) {
         return $this->request('trade/historyOrders', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function spot_v1_private_get_user_commissionrate($params = array()) {
+        return $this->request('user/commissionRate', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function spot_v1_private_get_account_balance($params = array()) {
         return $this->request('account/balance', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -45,6 +48,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function spot_v1_private_post_trade_cancelorders($params = array()) {
         return $this->request('trade/cancelOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function spot_v1_private_post_trade_cancelopenorders($params = array()) {
+        return $this->request('trade/cancelOpenOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
     public function spot_v3_private_get_get_asset_transfer($params = array()) {
         return $this->request('get/asset/transfer', array('spot', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 3));
@@ -289,6 +295,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function spotV1PrivateGetTradeHistoryOrders($params = array()) {
         return $this->request('trade/historyOrders', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function spotV1PrivateGetUserCommissionRate($params = array()) {
+        return $this->request('user/commissionRate', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function spotV1PrivateGetAccountBalance($params = array()) {
         return $this->request('account/balance', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -303,6 +312,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function spotV1PrivatePostTradeCancelOrders($params = array()) {
         return $this->request('trade/cancelOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function spotV1PrivatePostTradeCancelOpenOrders($params = array()) {
+        return $this->request('trade/cancelOpenOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
     public function spotV3PrivateGetGetAssetTransfer($params = array()) {
         return $this->request('get/asset/transfer', array('spot', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 3));

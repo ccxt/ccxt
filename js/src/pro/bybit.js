@@ -889,10 +889,15 @@ export default class bybit extends bybitRest {
         }
         const trades = this.myTrades;
         const symbols = {};
-        const method = spot ? 'parseWsTrade' : 'parseTrade';
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
-            const parsed = this[method](rawTrade);
+            let parsed = undefined;
+            if (spot) {
+                parsed = this.parseWsTrade(rawTrade);
+            }
+            else {
+                parsed = this.parseTrade(rawTrade);
+            }
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             trades.append(parsed);
