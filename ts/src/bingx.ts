@@ -279,6 +279,9 @@ export default class bingx extends Exchange {
                             'post': {
                                 'userDataStream': 1,
                             },
+                            'put': {
+                                'userDataStream': 1,
+                            },
                         },
                     },
                 },
