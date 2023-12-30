@@ -1320,14 +1320,19 @@ export default class deribit extends Exchange {
             'instrument_name': market['id'],
             'include_old': true,
         };
-        const method = (since === undefined) ? 'publicGetGetLastTradesByInstrument' : 'publicGetGetLastTradesByInstrumentAndTime';
         if (since !== undefined) {
             request['start_timestamp'] = since;
         }
         if (limit !== undefined) {
             request['count'] = Math.min(limit, 1000); // default 10
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (since === undefined) {
+            response = await this.publicGetGetLastTradesByInstrument(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetGetLastTradesByInstrumentAndTime(this.extend(request, params));
+        }
         //
         //      {
         //          "jsonrpc":"2.0",
@@ -1824,9 +1829,14 @@ export default class deribit extends Exchange {
                 request['time_in_force'] = 'fill_or_kill';
             }
         }
-        const method = 'privateGet' + this.capitalize(side);
         params = this.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly']);
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (this.capitalize(side) === 'Buy') {
+            response = await this.privateGetBuy(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetSell(this.extend(request, params));
+        }
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1941,16 +1951,15 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets();
         const request = {};
-        let method = undefined;
+        let response = undefined;
         if (symbol === undefined) {
-            method = 'privateGetCancelAll';
+            response = await this.privateGetCancelAll(this.extend(request, params));
         }
         else {
-            method = 'privateGetCancelAllByInstrument';
             const market = this.market(symbol);
             request['instrument_name'] = market['id'];
+            response = await this.privateGetCancelAllByInstrument(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         return response;
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1967,19 +1976,18 @@ export default class deribit extends Exchange {
         await this.loadMarkets();
         const request = {};
         let market = undefined;
-        let method = undefined;
+        let response = undefined;
         if (symbol === undefined) {
             const code = this.codeFromOptions('fetchOpenOrders', params);
             const currency = this.currency(code);
             request['currency'] = currency['id'];
-            method = 'privateGetGetOpenOrdersByCurrency';
+            response = await this.privateGetGetOpenOrdersByCurrency(this.extend(request, params));
         }
         else {
             market = this.market(symbol);
             request['instrument_name'] = market['id'];
-            method = 'privateGetGetOpenOrdersByInstrument';
+            response = await this.privateGetGetOpenOrdersByInstrument(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         const result = this.safeValue(response, 'result', []);
         return this.parseOrders(result, market, since, limit);
     }
@@ -1990,26 +1998,25 @@ export default class deribit extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
-        let method = undefined;
+        let response = undefined;
         if (symbol === undefined) {
             const code = this.codeFromOptions('fetchClosedOrders', params);
             const currency = this.currency(code);
             request['currency'] = currency['id'];
-            method = 'privateGetGetOrderHistoryByCurrency';
+            response = await this.privateGetGetOrderHistoryByCurrency(this.extend(request, params));
         }
         else {
             market = this.market(symbol);
             request['instrument_name'] = market['id'];
-            method = 'privateGetGetOrderHistoryByInstrument';
+            response = await this.privateGetGetOrderHistoryByInstrument(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         const result = this.safeValue(response, 'result', []);
         return this.parseOrders(result, market, since, limit);
     }
@@ -2082,34 +2089,33 @@ export default class deribit extends Exchange {
             'include_old': true,
         };
         let market = undefined;
-        let method = undefined;
+        if (limit !== undefined) {
+            request['count'] = limit; // default 10
+        }
+        let response = undefined;
         if (symbol === undefined) {
             const code = this.codeFromOptions('fetchMyTrades', params);
             const currency = this.currency(code);
             request['currency'] = currency['id'];
             if (since === undefined) {
-                method = 'privateGetGetUserTradesByCurrency';
+                response = await this.privateGetGetUserTradesByCurrency(this.extend(request, params));
             }
             else {
-                method = 'privateGetGetUserTradesByCurrencyAndTime';
                 request['start_timestamp'] = since;
+                response = await this.privateGetGetUserTradesByCurrencyAndTime(this.extend(request, params));
             }
         }
         else {
             market = this.market(symbol);
             request['instrument_name'] = market['id'];
             if (since === undefined) {
-                method = 'privateGetGetUserTradesByInstrument';
+                response = await this.privateGetGetUserTradesByInstrument(this.extend(request, params));
             }
             else {
-                method = 'privateGetGetUserTradesByInstrumentAndTime';
                 request['start_timestamp'] = since;
+                response = await this.privateGetGetUserTradesByInstrumentAndTime(this.extend(request, params));
             }
         }
-        if (limit !== undefined) {
-            request['count'] = limit; // default 10
-        }
-        const response = await this[method](this.extend(request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2643,7 +2649,13 @@ export default class deribit extends Exchange {
             const transferOptions = this.safeValue(this.options, 'transfer', {});
             method = this.safeString(transferOptions, 'method', 'privateGetSubmitTransferToSubaccount');
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateGetSubmitTransferToUser') {
+            response = await this.privateGetSubmitTransferToUser(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetSubmitTransferToSubaccount(this.extend(request, params));
+        }
         //
         //     {
         //         "jsonrpc": "2.0",

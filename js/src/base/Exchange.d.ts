@@ -311,7 +311,9 @@ export default class Exchange {
             createOrderWs: any;
             editOrderWs: any;
             fetchOpenOrdersWs: any;
+            fetchClosedOrdersWs: any;
             fetchOrderWs: any;
+            fetchOrdersWs: any;
             cancelOrderWs: any;
             cancelOrdersWs: any;
             cancelAllOrdersWs: any;
@@ -642,7 +644,7 @@ export default class Exchange {
         after: number;
         status: string;
         fee: any;
-        info: object;
+        info: any;
     };
     safeCurrencyStructure(currency: object): any;
     safeMarketStructure(market?: any): MarketInterface;
@@ -779,11 +781,13 @@ export default class Exchange {
     cancelAllOrdersWs(symbol?: string, params?: {}): Promise<any>;
     cancelUnifiedOrder(order: any, params?: {}): Promise<any>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrdersWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrdersWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrdersWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;

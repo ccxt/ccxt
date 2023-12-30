@@ -789,7 +789,7 @@ class okx extends okx$1 {
             'side': this.safeString(order, 'side'),
             'price': this.safeNumber(info, 'fillPx'),
             'amount': this.safeNumber(info, 'fillSz'),
-            'cost': undefined,
+            'cost': this.safeNumber(order, 'cost'),
             'fee': {
                 'cost': this.safeNumber(info, 'fillFee'),
                 'currency': this.safeCurrencyCode(feeMarketId),
@@ -965,7 +965,7 @@ class okx extends okx$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.stop] true if fetching trigger or conditional orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

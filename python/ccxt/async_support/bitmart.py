@@ -1074,7 +1074,7 @@ class bitmart(Exchange, ImplicitAPI):
         #          "legal_coin_price":"0.1302699"
         #      }
         #
-        timestamp = self.safe_integer(ticker, 'timestamp', self.milliseconds())
+        timestamp = self.safe_integer(ticker, 'timestamp')
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -2039,7 +2039,7 @@ class bitmart(Exchange, ImplicitAPI):
         priceString = self.safe_string(order, 'price')
         if priceString == 'market price':
             priceString = None
-        trailingStopActivationPrice = self.safe_number(order, 'activation_price')
+        trailingActivationPrice = self.safe_number(order, 'activation_price')
         return self.safe_order({
             'id': id,
             'clientOrderId': self.safe_string(order, 'client_order_id'),
@@ -2053,8 +2053,8 @@ class bitmart(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': self.parse_order_side(self.safe_string(order, 'side')),
             'price': self.omit_zero(priceString),
-            'stopPrice': trailingStopActivationPrice,
-            'triggerPrice': trailingStopActivationPrice,
+            'stopPrice': trailingActivationPrice,
+            'triggerPrice': trailingActivationPrice,
             'amount': self.omit_zero(self.safe_string(order, 'size')),
             'cost': self.safe_string_2(order, 'filled_notional', 'filledNotional'),
             'average': self.safe_string_n(order, ['price_avg', 'priceAvg', 'deal_avg_price']),
@@ -2121,6 +2121,7 @@ class bitmart(Exchange, ImplicitAPI):
         :see: https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
         :see: https://developer-pro.bitmart.com/en/spot/#place-margin-order
         :see: https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+        :see: https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit' or 'trailing' for swap markets only
         :param str side: 'buy' or 'sell'
@@ -2132,12 +2133,20 @@ class bitmart(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: client order id of the order
         :param boolean [params.reduceOnly]: *swap only* reduce only
         :param boolean [params.postOnly]: make sure the order is posted to the order book and not matched immediately
+        :param str [params.triggerPrice]: *swap only* the price to trigger a stop order
+        :param int [params.price_type]: *swap only* 1: last price, 2: fair price, default is 1
+        :param int [params.price_way]: *swap only* 1: price way long, 2: price way short
+        :param int [params.activation_price_type]: *swap trailing order only* 1: last price, 2: fair price, default is 1
+        :param str [params.trailingPercent]: *swap only* the percent to trail away from the current market price, min 0.1 max 5
+        :param str [params.trailingTriggerPrice]: *swap only* the price to trigger a trailing order, default uses the price argument
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         result = self.handle_margin_mode_and_params('createOrder', params)
         marginMode = self.safe_string(result, 0)
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'trigger_price'])
+        isTriggerOrder = triggerPrice is not None
         response = None
         if market['spot']:
             spotRequest = self.create_spot_order_request(symbol, type, side, amount, price, params)
@@ -2147,7 +2156,10 @@ class bitmart(Exchange, ImplicitAPI):
                 response = await self.privatePostSpotV2SubmitOrder(spotRequest)
         else:
             swapRequest = self.create_swap_order_request(symbol, type, side, amount, price, params)
-            response = await self.privatePostContractPrivateSubmitOrder(swapRequest)
+            if isTriggerOrder:
+                response = await self.privatePostContractPrivateSubmitPlanOrder(swapRequest)
+            else:
+                response = await self.privatePostContractPrivateSubmitOrder(swapRequest)
         #
         # spot and margin
         #
@@ -2176,6 +2188,7 @@ class bitmart(Exchange, ImplicitAPI):
          * @ignore
         create a trade order
         :see: https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+        :see: https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit' or 'trailing'
         :param str side: 'buy' or 'sell'
@@ -2186,8 +2199,12 @@ class bitmart(Exchange, ImplicitAPI):
         :param boolean [params.reduceOnly]: *swap only* reduce only
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross'
         :param str [params.clientOrderId]: client order id of the order
+        :param str [params.triggerPrice]: *swap only* the price to trigger a stop order
+        :param int [params.price_type]: *swap only* 1: last price, 2: fair price, default is 1
+        :param int [params.price_way]: *swap only* 1: price way long, 2: price way short
         :param int [params.activation_price_type]: *swap trailing order only* 1: last price, 2: fair price, default is 1
-        :param str [params.callback_rate]: *swap trailing order only* min 0.1, max 5 where 1 is 1%, default is "1"
+        :param str [params.trailingPercent]: *swap only* the percent to trail away from the current market price, min 0.1 max 5
+        :param str [params.trailingTriggerPrice]: *swap only* the price to trigger a trailing order, default uses the price argument
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         market = self.market(symbol)
@@ -2203,7 +2220,6 @@ class bitmart(Exchange, ImplicitAPI):
         reduceOnly = self.safe_value(params, 'reduceOnly')
         isExchangeSpecificPo = (mode == 4)
         postOnly, params = self.handle_post_only(isMarketOrder, isExchangeSpecificPo, params)
-        params = self.omit(params, ['timeInForce', 'postOnly', 'reduceOnly'])
         ioc = ((timeInForce == 'IOC') or (mode == 3))
         isLimitOrder = (type == 'limit') or postOnly or ioc
         if timeInForce == 'GTC':
@@ -2214,13 +2230,31 @@ class bitmart(Exchange, ImplicitAPI):
             request['mode'] = 3
         if postOnly:
             request['mode'] = 4
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'trigger_price'])
+        isTriggerOrder = triggerPrice is not None
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activation_price', price)
+        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callback_rate')
+        isTrailingPercentOrder = trailingPercent is not None
         if isLimitOrder:
             request['price'] = self.price_to_precision(symbol, price)
-        elif type == 'trailing':
-            reduceOnly = True
-            request['activation_price'] = self.price_to_precision(symbol, price)
+        elif type == 'trailing' or isTrailingPercentOrder:
+            request['callback_rate'] = trailingPercent
+            request['activation_price'] = self.price_to_precision(symbol, trailingTriggerPrice)
             request['activation_price_type'] = self.safe_integer(params, 'activation_price_type', 1)
-            request['callback_rate'] = self.safe_string(params, 'callback_rate', '1')
+        if isTriggerOrder:
+            request['executive_price'] = self.price_to_precision(symbol, price)
+            request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+            request['price_type'] = self.safe_integer(params, 'price_type', 1)
+            if side == 'buy':
+                if reduceOnly:
+                    request['price_way'] = 2
+                else:
+                    request['price_way'] = 1
+            elif side == 'sell':
+                if reduceOnly:
+                    request['price_way'] = 1
+                else:
+                    request['price_way'] = 2
         if side == 'buy':
             if reduceOnly:
                 request['side'] = 2  # buy close short
@@ -2239,7 +2273,7 @@ class bitmart(Exchange, ImplicitAPI):
             params = self.omit(params, 'clientOrderId')
             request['client_order_id'] = clientOrderId
         leverage = self.safe_integer(params, 'leverage', 1)
-        params = self.omit(params, 'leverage')
+        params = self.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice'])
         request['leverage'] = self.number_to_string(leverage)
         return self.extend(request, params)
 
@@ -2306,10 +2340,11 @@ class bitmart(Exchange, ImplicitAPI):
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
+        cancels an open order
         :see: https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
         :see: https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
         :see: https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-        cancels an open order
+        :see: https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2492,6 +2527,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param str [params.type]: *swap* order type, 'limit' or 'market'
         :param str [params.order_state]: *swap* the order state, 'all' or 'partially_filled', default is 'all'
         :param str [params.orderType]: *swap only* 'limit', 'market', or 'trailing'
+        :param boolean [params.trailing]: *swap only* set to True if you want to fetch trailing orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2518,8 +2554,11 @@ class bitmart(Exchange, ImplicitAPI):
                 request['endTime'] = until
             response = await self.privatePostSpotV4QueryOpenOrders(self.extend(request, params))
         elif type == 'swap':
+            trailing = self.safe_value(params, 'trailing', False)
             orderType = self.safe_string(params, 'orderType')
-            params = self.omit(params, 'orderType')
+            params = self.omit(params, ['orderType', 'trailing'])
+            if trailing:
+                orderType = 'trailing'
             if orderType is not None:
                 request['type'] = orderType
             response = await self.privateGetContractPrivateGetOpenOrders(self.extend(request, params))
@@ -2589,7 +2628,7 @@ class bitmart(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest entry
         :param str [params.marginMode]: *spot only* 'cross' or 'isolated', for margin trading
@@ -2648,6 +2687,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: *spot* fetch the order by client order id instead of order id
         :param str [params.orderType]: *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
+        :param boolean [params.trailing]: *swap only* set to True if you want to fetch a trailing order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2669,8 +2709,11 @@ class bitmart(Exchange, ImplicitAPI):
         elif type == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+            trailing = self.safe_value(params, 'trailing', False)
             orderType = self.safe_string(params, 'orderType')
-            params = self.omit(params, 'orderType')
+            params = self.omit(params, ['orderType', 'trailing'])
+            if trailing:
+                orderType = 'trailing'
             if orderType is not None:
                 request['type'] = orderType
             request['symbol'] = market['id']

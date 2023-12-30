@@ -100,7 +100,7 @@ class phemex(Exchange, ImplicitAPI):
                 'setMarginMode': True,
                 'setPositionMode': True,
                 'transfer': True,
-                'withdraw': None,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -239,6 +239,7 @@ class phemex(Exchange, ImplicitAPI):
                         'assets/spots/sub-accounts/transfer': 5,  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/futures/sub-accounts/transfer': 5,  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote': 5,  # ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                        # deposit/withdraw
                     },
                     'post': {
                         # spot
@@ -473,6 +474,7 @@ class phemex(Exchange, ImplicitAPI):
                 'networks': {
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
+                    'BEP20': 'BNB',
                 },
                 'defaultNetworks': {
                     'USDT': 'ETH',
@@ -482,6 +484,16 @@ class phemex(Exchange, ImplicitAPI):
                     'spot': 'spot',
                     'swap': 'future',
                 },
+                'stableCoins': [
+                    'BUSD',
+                    'FEI',
+                    'TUSD',
+                    'USD',
+                    'USDC',
+                    'USDD',
+                    'USDP',
+                    'USDT',
+                ],
                 'transfer': {
                     'fillResponseFromRequest': True,
                 },
@@ -3149,6 +3161,19 @@ class phemex(Exchange, ImplicitAPI):
         statuses = {
             'Success': 'ok',
             'Succeed': 'ok',
+            'Rejected': 'failed',
+            'Security check failed': 'failed',
+            'SecurityCheckFailed': 'failed',
+            'Expired': 'failed',
+            'Address Risk': 'failed',
+            'Security Checking': 'pending',
+            'SecurityChecking': 'pending',
+            'Pending Review': 'pending',
+            'Pending Transfer': 'pending',
+            'AmlCsApporve': 'pending',
+            'New': 'pending',
+            'Confirmed': 'pending',
+            'Cancelled': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -3156,36 +3181,68 @@ class phemex(Exchange, ImplicitAPI):
         #
         # withdraw
         #
-        #     ...
+        #     {
+        #         "id": "10000001",
+        #         "freezeId": null,
+        #         "address": "44exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        #         "amountRv": "100",
+        #         "chainCode": "11",
+        #         "chainName": "TRX",
+        #         "currency": "USDT",
+        #         "currencyCode": 3,
+        #         "email": "abc@gmail.com",
+        #         "expiredTime": "0",
+        #         "feeRv": "1",
+        #         "nickName": null,
+        #         "phone": null,
+        #         "rejectReason": "",
+        #         "submitedAt": "1670000000000",
+        #         "submittedAt": "1670000000000",
+        #         "txHash": null,
+        #         "userId": "10000001",
+        #         "status": "Success"
         #
         # fetchDeposits
         #
         #     {
-        #         "id":29200,
-        #         "currency":"USDT",
-        #         "currencyCode":3,
-        #         "txHash":"0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
-        #         "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        #         "amountEv":3000000000,
-        #         "confirmations":13,
-        #         "type":"Deposit",
-        #         "status":"Success",
-        #         "createdAt":1592722565000
+        #         "id": "29200",
+        #         "currency": "USDT",
+        #         "currencyCode": "3",
+        #         "chainName": "ETH",
+        #         "chainCode": "4",
+        #         "txHash": "0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
+        #         "address": "0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
+        #         "amountEv": "3000000000",
+        #         "confirmations": "13",
+        #         "type": "Deposit",
+        #         "status": "Success",
+        #         "createdAt": "1592722565000",
         #     }
         #
         # fetchWithdrawals
         #
         #     {
-        #         "address": "1Lxxxxxxxxxxx"
-        #         "amountEv": 200000
-        #         "currency": "BTC"
-        #         "currencyCode": 1
-        #         "expiredTime": 0
-        #         "feeEv": 50000
-        #         "rejectReason": null
-        #         "status": "Succeed"
-        #         "txHash": "44exxxxxxxxxxxxxxxxxxxxxx"
-        #         "withdrawStatus: ""
+        #         "id": "10000001",
+        #         "userId": "10000001",
+        #         "freezeId": "10000002",
+        #         "phone": null,
+        #         "email": "abc@gmail.com",
+        #         "nickName": null,
+        #         "currency": "USDT",
+        #         "currencyCode": "3",
+        #         "status": "Succeed",
+        #         "withdrawStatus": "Succeed",
+        #         "amountEv": "8800000000",
+        #         "feeEv": "1200000000",
+        #         "address": "0x5xxxad",
+        #         "txHash: "0x0xxxx5d",
+        #         "submitedAt": "1702571922000",
+        #         "submittedAt": "1702571922000",
+        #         "expiredTime": "0",
+        #         "rejectReason": null,
+        #         "chainName": "ETH",
+        #         "chainCode": "4",
+        #         "proxyAddress": null
         #     }
         #
         id = self.safe_string(transaction, 'id')
@@ -3195,9 +3252,12 @@ class phemex(Exchange, ImplicitAPI):
         currencyId = self.safe_string(transaction, 'currency')
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
-        timestamp = self.safe_integer_2(transaction, 'createdAt', 'submitedAt')
+        networkId = self.safe_string(transaction, 'chainName')
+        timestamp = self.safe_integer_n(transaction, ['createdAt', 'submitedAt', 'submittedAt'])
         type = self.safe_string_lower(transaction, 'type')
         feeCost = self.parse_number(self.from_en(self.safe_string(transaction, 'feeEv'), currency['valueScale']))
+        if feeCost is None:
+            feeCost = self.safe_number(transaction, 'feeRv')
         fee = None
         if feeCost is not None:
             type = 'withdrawal'
@@ -3207,13 +3267,15 @@ class phemex(Exchange, ImplicitAPI):
             }
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amount = self.parse_number(self.from_en(self.safe_string(transaction, 'amountEv'), currency['valueScale']))
+        if amount is None:
+            amount = self.safe_number(transaction, 'amountRv')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
+            'network': self.network_id_to_code(networkId),
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -3933,7 +3995,7 @@ class phemex(Exchange, ImplicitAPI):
         """
         set the level of leverage for a market
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#set-leverage
-        :param float leverage: the rate of leverage
+        :param float leverage: the rate of leverage, 100 > leverage > -100 excluding numbers between -1 to 1
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.hedged]: set to True if hedged position mode is enabled(by default long and short leverage are set to the same value)
@@ -3945,8 +4007,8 @@ class phemex(Exchange, ImplicitAPI):
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
-        if (leverage < 1) or (leverage > 100):
-            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
+        if (leverage < -100) or (leverage > 100):
+            raise BadRequest(self.id + ' setLeverage() leverage should be between -100 and 100')
         self.load_markets()
         isHedged = self.safe_value(params, 'hedged', False)
         longLeverageRr = self.safe_integer(params, 'longLeverageRr')
@@ -4226,6 +4288,70 @@ class phemex(Exchange, ImplicitAPI):
             })
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :see: https://phemex-docs.github.io/#create-withdraw-request
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str tag:
+        :param dict [params]: extra parameters specific to the phemex api endpoint
+        :param str [params.network]: unified network code
+        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.load_markets()
+        self.check_address(address)
+        currency = self.currency(code)
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        networkId = self.network_code_to_id(networkCode)
+        stableCoins = self.safe_value(self.options, 'stableCoins')
+        if networkId is None:
+            if not (self.in_array(code, stableCoins)):
+                networkId = currency['id']
+            else:
+                raise ArgumentsRequired(self.id + ' withdraw() requires an extra argument params["network"]')
+        request = {
+            'currency': currency['id'],
+            'address': address,
+            'amount': amount,
+            'chainName': networkId.upper(),
+        }
+        if tag is not None:
+            request['addressTag'] = tag
+        response = self.privatePostPhemexWithdrawWalletsApiCreateWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "OK",
+        #         "data": {
+        #             "id": "10000001",
+        #             "freezeId": null,
+        #             "address": "44exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        #             "amountRv": "100",
+        #             "chainCode": "11",
+        #             "chainName": "TRX",
+        #             "currency": "USDT",
+        #             "currencyCode": 3,
+        #             "email": "abc@gmail.com",
+        #             "expiredTime": "0",
+        #             "feeRv": "1",
+        #             "nickName": null,
+        #             "phone": null,
+        #             "rejectReason": "",
+        #             "submitedAt": "1670000000000",
+        #             "submittedAt": "1670000000000",
+        #             "txHash": null,
+        #             "userId": "10000001",
+        #             "status": "Success"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_transaction(data, currency)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

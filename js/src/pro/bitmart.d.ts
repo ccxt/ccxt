@@ -5,7 +5,7 @@ export default class bitmart extends bitmartRest {
     describe(): any;
     subscribe(channel: any, symbol: any, type: any, params?: {}): Promise<any>;
     watchBalance(params?: {}): Promise<Balances>;
-    setBalanceCache(client: Client, type: any): any;
+    setBalanceCache(client: Client, type: any, subscribeHash: any): void;
     loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
     handleBalance(client: Client, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

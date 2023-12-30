@@ -1010,7 +1010,7 @@ export default class bitvavo extends Exchange {
          * @method
          * @name bitvavo#createOrder
          * @description create a trade order
-         * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1028,6 +1028,7 @@ export default class bitvavo extends Exchange {
          * @param {string} [params.selfTradePrevention] "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
          * @param {bool} [params.disableMarketProtection] don't cancel if the next fill price is 10% worse than the best fill price
          * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
+         * @param {string} [params.clientOrderId] An ID supplied by the client that must be unique among all open orders for the same market
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1135,25 +1136,54 @@ export default class bitvavo extends Exchange {
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitvavo#editOrder
+         * @description edit a trade order
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/put
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+         * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+         * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {string} [params.selfTradePrevention] "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+         * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
+         * @param {string} [params.clientOrderId] An ID supplied by the client
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {};
+        const request = {
+            'market': market['id'],
+        };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['orderId'] = id;
+        }
         const amountRemaining = this.safeNumber (params, 'amountRemaining');
-        params = this.omit (params, 'amountRemaining');
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
+        params = this.omit (params, [ 'amountRemaining', 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
+        let updateRequest = {};
         if (price !== undefined) {
-            request['price'] = this.priceToPrecision (symbol, price);
+            updateRequest['price'] = this.priceToPrecision (symbol, price);
         }
         if (amount !== undefined) {
-            request['amount'] = this.amountToPrecision (symbol, amount);
+            updateRequest['amount'] = this.amountToPrecision (symbol, amount);
         }
         if (amountRemaining !== undefined) {
-            request['amountRemaining'] = this.amountToPrecision (symbol, amountRemaining);
+            updateRequest['amountRemaining'] = this.amountToPrecision (symbol, amountRemaining);
         }
-        request = this.extend (request, params);
-        if (Object.keys (request).length) {
-            request['orderId'] = id;
-            request['market'] = market['id'];
-            const response = await this.privatePutOrder (this.extend (request, params));
+        if (triggerPrice !== undefined) {
+            updateRequest['triggerAmount'] = this.priceToPrecision (symbol, triggerPrice);
+        }
+        updateRequest = this.extend (updateRequest, params);
+        if (Object.keys (updateRequest).length) {
+            const response = await this.privatePutOrder (this.extend (request, updateRequest));
             return this.parseOrder (response, market);
         } else {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument, or a price argument, or non-empty params');
@@ -1165,6 +1195,7 @@ export default class bitvavo extends Exchange {
          * @method
          * @name bitvavo#cancelOrder
          * @description cancels an open order
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/delete
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1176,9 +1207,12 @@ export default class bitvavo extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'orderId': id,
             'market': market['id'],
         };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['orderId'] = id;
+        }
         const response = await this.privateDeleteOrder (this.extend (request, params));
         //
         //     {
@@ -1220,6 +1254,7 @@ export default class bitvavo extends Exchange {
          * @method
          * @name bitvavo#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1230,9 +1265,12 @@ export default class bitvavo extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'orderId': id,
             'market': market['id'],
         };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['orderId'] = id;
+        }
         const response = await this.privateGetOrder (this.extend (request, params));
         //
         //     {
@@ -1275,11 +1313,11 @@ export default class bitvavo extends Exchange {
         /**
          * @method
          * @name bitvavo#fetchOrders
-         * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {int} [params.until] the latest time in ms to fetch entries for

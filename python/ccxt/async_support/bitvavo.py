@@ -968,7 +968,7 @@ class bitvavo(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+        :see: https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -986,6 +986,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param str [params.selfTradePrevention]: "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
         :param bool [params.disableMarketProtection]: don't cancel if the next fill price is 10% worse than the best fill price
         :param bool [params.responseRequired]: Set self to 'false' when only an acknowledgement of success or failure is required, self is faster.
+        :param str [params.clientOrderId]: An ID supplied by the client that must be unique among all open orders for the same market
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1083,22 +1084,47 @@ class bitvavo(Exchange, ImplicitAPI):
         return self.parse_order(response, market)
 
     async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        """
+        edit a trade order
+        :see: https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/put
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.timeInForce]: "GTC", "IOC", or "PO"
+        :param bool [params.postOnly]: If True, the order will only be posted to the order book and not executed immediately
+        :param float [params.stopPrice]: The price at which a trigger order is triggered at
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param str [params.selfTradePrevention]: "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+        :param bool [params.responseRequired]: Set self to 'false' when only an acknowledgement of success or failure is required, self is faster.
+        :param str [params.clientOrderId]: An ID supplied by the client
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
-        request = {}
-        amountRemaining = self.safe_number(params, 'amountRemaining')
-        params = self.omit(params, 'amountRemaining')
-        if price is not None:
-            request['price'] = self.price_to_precision(symbol, price)
-        if amount is not None:
-            request['amount'] = self.amount_to_precision(symbol, amount)
-        if amountRemaining is not None:
-            request['amountRemaining'] = self.amount_to_precision(symbol, amountRemaining)
-        request = self.extend(request, params)
-        if request:
+        request = {
+            'market': market['id'],
+        }
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is None:
             request['orderId'] = id
-            request['market'] = market['id']
-            response = await self.privatePutOrder(self.extend(request, params))
+        amountRemaining = self.safe_number(params, 'amountRemaining')
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'triggerAmount'])
+        params = self.omit(params, ['amountRemaining', 'triggerPrice', 'stopPrice', 'triggerAmount'])
+        updateRequest = {}
+        if price is not None:
+            updateRequest['price'] = self.price_to_precision(symbol, price)
+        if amount is not None:
+            updateRequest['amount'] = self.amount_to_precision(symbol, amount)
+        if amountRemaining is not None:
+            updateRequest['amountRemaining'] = self.amount_to_precision(symbol, amountRemaining)
+        if triggerPrice is not None:
+            updateRequest['triggerAmount'] = self.price_to_precision(symbol, triggerPrice)
+        updateRequest = self.extend(updateRequest, params)
+        if updateRequest:
+            response = await self.privatePutOrder(self.extend(request, updateRequest))
             return self.parse_order(response, market)
         else:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument, or a price argument, or non-empty params')
@@ -1106,6 +1132,7 @@ class bitvavo(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/delete
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1116,9 +1143,11 @@ class bitvavo(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'orderId': id,
             'market': market['id'],
         }
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is None:
+            request['orderId'] = id
         response = await self.privateDeleteOrder(self.extend(request, params))
         #
         #     {
@@ -1153,6 +1182,7 @@ class bitvavo(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :see: https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1162,9 +1192,11 @@ class bitvavo(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'orderId': id,
             'market': market['id'],
         }
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is None:
+            request['orderId'] = id
         response = await self.privateGetOrder(self.extend(request, params))
         #
         #     {
@@ -1204,11 +1236,11 @@ class bitvavo(Exchange, ImplicitAPI):
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
+        :see: https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param int [params.until]: the latest time in ms to fetch entries for

@@ -1436,7 +1436,7 @@ class okcoin extends Exchange {
         }
         if ($isMarketOrder || $marketIOC) {
             $request['ordType'] = 'market';
-            if (($side === 'buy')) {
+            if ($side === 'buy') {
                 // spot $market buy => "sz" can refer either to base $currency units or to quote $currency units
                 // see documentation => https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if ($tgtCcy === 'quote_ccy') {
@@ -1464,6 +1464,8 @@ class okcoin extends Exchange {
                 } else {
                     $request['sz'] = $this->amount_to_precision($symbol, $amount);
                 }
+            } else {
+                $request['sz'] = $this->amount_to_precision($symbol, $amount);
             }
         } else {
             $request['sz'] = $this->amount_to_precision($symbol, $amount);
@@ -2038,7 +2040,7 @@ class okcoin extends Exchange {
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->stop] True if fetching trigger or conditional orders
              * @param {string} [$params->ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"

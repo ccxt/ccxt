@@ -1383,7 +1383,7 @@ class okcoin(Exchange, ImplicitAPI):
             request['tgtCcy'] = tgtCcy
         if isMarketOrder or marketIOC:
             request['ordType'] = 'market'
-            if (side == 'buy'):
+            if side == 'buy':
                 # spot market buy: "sz" can refer either to base currency units or to quote currency units
                 # see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if tgtCcy == 'quote_ccy':
@@ -1408,6 +1408,8 @@ class okcoin(Exchange, ImplicitAPI):
                     request['sz'] = quoteAmount
                 else:
                     request['sz'] = self.amount_to_precision(symbol, amount)
+            else:
+                request['sz'] = self.amount_to_precision(symbol, amount)
         else:
             request['sz'] = self.amount_to_precision(symbol, amount)
             if (not trigger) and (not conditional):
@@ -1916,7 +1918,7 @@ class okcoin(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.stop]: True if fetching trigger or conditional orders
         :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"

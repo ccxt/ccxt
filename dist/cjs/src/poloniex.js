@@ -32,6 +32,9 @@ class poloniex extends poloniex$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
@@ -225,6 +228,7 @@ class poloniex extends poloniex$1 {
                 'UST': 'USTC',
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
@@ -1248,6 +1252,7 @@ class poloniex extends poloniex$1 {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] *spot only* The price at which a trigger order is triggered at
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1283,7 +1288,6 @@ class poloniex extends poloniex$1 {
         return this.parseOrder(response, market);
     }
     orderRequest(symbol, type, side, amount, request, price = undefined, params = {}) {
-        const market = this.market(symbol);
         let upperCaseType = type.toUpperCase();
         const isMarket = upperCaseType === 'MARKET';
         const isPostOnly = this.isPostOnly(isMarket, upperCaseType === 'LIMIT_MAKER', params);
@@ -1299,7 +1303,29 @@ class poloniex extends poloniex$1 {
         request['type'] = upperCaseType;
         if (isMarket) {
             if (side === 'buy') {
-                request['amount'] = this.currencyToPrecision(market['quote'], amount);
+                let quoteAmount = undefined;
+                let createMarketBuyOrderRequiresPrice = true;
+                [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber(params, 'cost');
+                params = this.omit(params, 'cost');
+                if (cost !== undefined) {
+                    quoteAmount = this.costToPrecision(symbol, cost);
+                }
+                else if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
+                    }
+                    else {
+                        const amountString = this.numberToString(amount);
+                        const priceString = this.numberToString(price);
+                        const costRequest = Precise["default"].stringMul(amountString, priceString);
+                        quoteAmount = this.costToPrecision(symbol, costRequest);
+                    }
+                }
+                else {
+                    quoteAmount = this.costToPrecision(symbol, amount);
+                }
+                request['amount'] = quoteAmount;
             }
             else {
                 request['quantity'] = this.amountToPrecision(symbol, amount);

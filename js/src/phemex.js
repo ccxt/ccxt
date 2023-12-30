@@ -86,7 +86,7 @@ export default class phemex extends Exchange {
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'transfer': true,
-                'withdraw': undefined,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -225,6 +225,7 @@ export default class phemex extends Exchange {
                         'assets/spots/sub-accounts/transfer': 5,
                         'assets/futures/sub-accounts/transfer': 5,
                         'assets/quote': 5, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                        // deposit/withdraw
                     },
                     'post': {
                         // spot
@@ -459,6 +460,7 @@ export default class phemex extends Exchange {
                 'networks': {
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
+                    'BEP20': 'BNB',
                 },
                 'defaultNetworks': {
                     'USDT': 'ETH',
@@ -468,6 +470,16 @@ export default class phemex extends Exchange {
                     'spot': 'spot',
                     'swap': 'future',
                 },
+                'stableCoins': [
+                    'BUSD',
+                    'FEI',
+                    'TUSD',
+                    'USD',
+                    'USDC',
+                    'USDD',
+                    'USDP',
+                    'USDT',
+                ],
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
@@ -3387,6 +3399,19 @@ export default class phemex extends Exchange {
         const statuses = {
             'Success': 'ok',
             'Succeed': 'ok',
+            'Rejected': 'failed',
+            'Security check failed': 'failed',
+            'SecurityCheckFailed': 'failed',
+            'Expired': 'failed',
+            'Address Risk': 'failed',
+            'Security Checking': 'pending',
+            'SecurityChecking': 'pending',
+            'Pending Review': 'pending',
+            'Pending Transfer': 'pending',
+            'AmlCsApporve': 'pending',
+            'New': 'pending',
+            'Confirmed': 'pending',
+            'Cancelled': 'canceled',
         };
         return this.safeString(statuses, status, status);
     }
@@ -3394,36 +3419,68 @@ export default class phemex extends Exchange {
         //
         // withdraw
         //
-        //     ...
+        //     {
+        //         "id": "10000001",
+        //         "freezeId": null,
+        //         "address": "44exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        //         "amountRv": "100",
+        //         "chainCode": "11",
+        //         "chainName": "TRX",
+        //         "currency": "USDT",
+        //         "currencyCode": 3,
+        //         "email": "abc@gmail.com",
+        //         "expiredTime": "0",
+        //         "feeRv": "1",
+        //         "nickName": null,
+        //         "phone": null,
+        //         "rejectReason": "",
+        //         "submitedAt": "1670000000000",
+        //         "submittedAt": "1670000000000",
+        //         "txHash": null,
+        //         "userId": "10000001",
+        //         "status": "Success"
         //
         // fetchDeposits
         //
         //     {
-        //         "id":29200,
-        //         "currency":"USDT",
-        //         "currencyCode":3,
-        //         "txHash":"0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
-        //         "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        //         "amountEv":3000000000,
-        //         "confirmations":13,
-        //         "type":"Deposit",
-        //         "status":"Success",
-        //         "createdAt":1592722565000
+        //         "id": "29200",
+        //         "currency": "USDT",
+        //         "currencyCode": "3",
+        //         "chainName": "ETH",
+        //         "chainCode": "4",
+        //         "txHash": "0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
+        //         "address": "0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
+        //         "amountEv": "3000000000",
+        //         "confirmations": "13",
+        //         "type": "Deposit",
+        //         "status": "Success",
+        //         "createdAt": "1592722565000",
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "address": "1Lxxxxxxxxxxx"
-        //         "amountEv": 200000
-        //         "currency": "BTC"
-        //         "currencyCode": 1
-        //         "expiredTime": 0
-        //         "feeEv": 50000
-        //         "rejectReason": null
-        //         "status": "Succeed"
-        //         "txHash": "44exxxxxxxxxxxxxxxxxxxxxx"
-        //         "withdrawStatus: ""
+        //         "id": "10000001",
+        //         "userId": "10000001",
+        //         "freezeId": "10000002",
+        //         "phone": null,
+        //         "email": "abc@gmail.com",
+        //         "nickName": null,
+        //         "currency": "USDT",
+        //         "currencyCode": "3",
+        //         "status": "Succeed",
+        //         "withdrawStatus": "Succeed",
+        //         "amountEv": "8800000000",
+        //         "feeEv": "1200000000",
+        //         "address": "0x5xxxad",
+        //         "txHash: "0x0xxxx5d",
+        //         "submitedAt": "1702571922000",
+        //         "submittedAt": "1702571922000",
+        //         "expiredTime": "0",
+        //         "rejectReason": null,
+        //         "chainName": "ETH",
+        //         "chainCode": "4",
+        //         "proxyAddress": null
         //     }
         //
         const id = this.safeString(transaction, 'id');
@@ -3433,9 +3490,13 @@ export default class phemex extends Exchange {
         const currencyId = this.safeString(transaction, 'currency');
         currency = this.safeCurrency(currencyId, currency);
         const code = currency['code'];
-        const timestamp = this.safeInteger2(transaction, 'createdAt', 'submitedAt');
+        const networkId = this.safeString(transaction, 'chainName');
+        const timestamp = this.safeIntegerN(transaction, ['createdAt', 'submitedAt', 'submittedAt']);
         let type = this.safeStringLower(transaction, 'type');
-        const feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, 'feeEv'), currency['valueScale']));
+        let feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, 'feeEv'), currency['valueScale']));
+        if (feeCost === undefined) {
+            feeCost = this.safeNumber(transaction, 'feeRv');
+        }
         let fee = undefined;
         if (feeCost !== undefined) {
             type = 'withdrawal';
@@ -3445,14 +3506,17 @@ export default class phemex extends Exchange {
             };
         }
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
-        const amount = this.parseNumber(this.fromEn(this.safeString(transaction, 'amountEv'), currency['valueScale']));
+        let amount = this.parseNumber(this.fromEn(this.safeString(transaction, 'amountEv'), currency['valueScale']));
+        if (amount === undefined) {
+            amount = this.safeNumber(transaction, 'amountRv');
+        }
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': undefined,
+            'network': this.networkIdToCode(networkId),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -4227,7 +4291,7 @@ export default class phemex extends Exchange {
          * @name phemex#setLeverage
          * @description set the level of leverage for a market
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#set-leverage
-         * @param {float} leverage the rate of leverage
+         * @param {float} leverage the rate of leverage, 100 > leverage > -100 excluding numbers between -1 to 1
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.hedged] set to true if hedged position mode is enabled (by default long and short leverage are set to the same value)
@@ -4240,8 +4304,8 @@ export default class phemex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
-        if ((leverage < 1) || (leverage > 100)) {
-            throw new BadRequest(this.id + ' setLeverage() leverage should be between 1 and 100');
+        if ((leverage < -100) || (leverage > 100)) {
+            throw new BadRequest(this.id + ' setLeverage() leverage should be between -100 and 100');
         }
         await this.loadMarkets();
         const isHedged = this.safeValue(params, 'hedged', false);
@@ -4556,6 +4620,76 @@ export default class phemex extends Exchange {
         }
         const sorted = this.sortBy(result, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    async withdraw(code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name phemex#withdraw
+         * @description make a withdrawal
+         * @see https://phemex-docs.github.io/#create-withdraw-request
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the phemex api endpoint
+         * @param {string} [params.network] unified network code
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         */
+        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        await this.loadMarkets();
+        this.checkAddress(address);
+        const currency = this.currency(code);
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        let networkId = this.networkCodeToId(networkCode);
+        const stableCoins = this.safeValue(this.options, 'stableCoins');
+        if (networkId === undefined) {
+            if (!(this.inArray(code, stableCoins))) {
+                networkId = currency['id'];
+            }
+            else {
+                throw new ArgumentsRequired(this.id + ' withdraw () requires an extra argument params["network"]');
+            }
+        }
+        const request = {
+            'currency': currency['id'],
+            'address': address,
+            'amount': amount,
+            'chainName': networkId.toUpperCase(),
+        };
+        if (tag !== undefined) {
+            request['addressTag'] = tag;
+        }
+        const response = await this.privatePostPhemexWithdrawWalletsApiCreateWithdraw(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "id": "10000001",
+        //             "freezeId": null,
+        //             "address": "44exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        //             "amountRv": "100",
+        //             "chainCode": "11",
+        //             "chainName": "TRX",
+        //             "currency": "USDT",
+        //             "currencyCode": 3,
+        //             "email": "abc@gmail.com",
+        //             "expiredTime": "0",
+        //             "feeRv": "1",
+        //             "nickName": null,
+        //             "phone": null,
+        //             "rejectReason": "",
+        //             "submitedAt": "1670000000000",
+        //             "submittedAt": "1670000000000",
+        //             "txHash": null,
+        //             "userId": "10000001",
+        //             "status": "Success"
+        //         }
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        return this.parseTransaction(data, currency);
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

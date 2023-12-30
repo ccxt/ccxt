@@ -1332,14 +1332,18 @@ class deribit extends Exchange {
                 'instrument_name' => $market['id'],
                 'include_old' => true,
             );
-            $method = ($since === null) ? 'publicGetGetLastTradesByInstrument' : 'publicGetGetLastTradesByInstrumentAndTime';
             if ($since !== null) {
                 $request['start_timestamp'] = $since;
             }
             if ($limit !== null) {
                 $request['count'] = min ($limit, 1000); // default 10
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($since === null) {
+                $response = Async\await($this->publicGetGetLastTradesByInstrument (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetGetLastTradesByInstrumentAndTime (array_merge($request, $params)));
+            }
             //
             //      {
             //          "jsonrpc":"2.0",
@@ -1834,9 +1838,13 @@ class deribit extends Exchange {
                     $request['time_in_force'] = 'fill_or_kill';
                 }
             }
-            $method = 'privateGet' . $this->capitalize($side);
             $params = $this->omit($params, array( 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly' ));
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($this->capitalize($side) === 'Buy') {
+                $response = Async\await($this->privateGetBuy (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetSell (array_merge($request, $params)));
+            }
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1956,15 +1964,14 @@ class deribit extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $method = null;
+            $response = null;
             if ($symbol === null) {
-                $method = 'privateGetCancelAll';
+                $response = Async\await($this->privateGetCancelAll (array_merge($request, $params)));
             } else {
-                $method = 'privateGetCancelAllByInstrument';
                 $market = $this->market($symbol);
                 $request['instrument_name'] = $market['id'];
+                $response = Async\await($this->privateGetCancelAllByInstrument (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             return $response;
         }) ();
     }
@@ -1982,18 +1989,17 @@ class deribit extends Exchange {
             Async\await($this->load_markets());
             $request = array();
             $market = null;
-            $method = null;
+            $response = null;
             if ($symbol === null) {
                 $code = $this->code_from_options('fetchOpenOrders', $params);
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
-                $method = 'privateGetGetOpenOrdersByCurrency';
+                $response = Async\await($this->privateGetGetOpenOrdersByCurrency (array_merge($request, $params)));
             } else {
                 $market = $this->market($symbol);
                 $request['instrument_name'] = $market['id'];
-                $method = 'privateGetGetOpenOrdersByInstrument';
+                $response = Async\await($this->privateGetGetOpenOrdersByInstrument (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             $result = $this->safe_value($response, 'result', array());
             return $this->parse_orders($result, $market, $since, $limit);
         }) ();
@@ -2005,25 +2011,24 @@ class deribit extends Exchange {
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
             $market = null;
-            $method = null;
+            $response = null;
             if ($symbol === null) {
                 $code = $this->code_from_options('fetchClosedOrders', $params);
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
-                $method = 'privateGetGetOrderHistoryByCurrency';
+                $response = Async\await($this->privateGetGetOrderHistoryByCurrency (array_merge($request, $params)));
             } else {
                 $market = $this->market($symbol);
                 $request['instrument_name'] = $market['id'];
-                $method = 'privateGetGetOrderHistoryByInstrument';
+                $response = Async\await($this->privateGetGetOrderHistoryByInstrument (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             $result = $this->safe_value($response, 'result', array());
             return $this->parse_orders($result, $market, $since, $limit);
         }) ();
@@ -2098,31 +2103,30 @@ class deribit extends Exchange {
                 'include_old' => true,
             );
             $market = null;
-            $method = null;
+            if ($limit !== null) {
+                $request['count'] = $limit; // default 10
+            }
+            $response = null;
             if ($symbol === null) {
                 $code = $this->code_from_options('fetchMyTrades', $params);
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
                 if ($since === null) {
-                    $method = 'privateGetGetUserTradesByCurrency';
+                    $response = Async\await($this->privateGetGetUserTradesByCurrency (array_merge($request, $params)));
                 } else {
-                    $method = 'privateGetGetUserTradesByCurrencyAndTime';
                     $request['start_timestamp'] = $since;
+                    $response = Async\await($this->privateGetGetUserTradesByCurrencyAndTime (array_merge($request, $params)));
                 }
             } else {
                 $market = $this->market($symbol);
                 $request['instrument_name'] = $market['id'];
                 if ($since === null) {
-                    $method = 'privateGetGetUserTradesByInstrument';
+                    $response = Async\await($this->privateGetGetUserTradesByInstrument (array_merge($request, $params)));
                 } else {
-                    $method = 'privateGetGetUserTradesByInstrumentAndTime';
                     $request['start_timestamp'] = $since;
+                    $response = Async\await($this->privateGetGetUserTradesByInstrumentAndTime (array_merge($request, $params)));
                 }
             }
-            if ($limit !== null) {
-                $request['count'] = $limit; // default 10
-            }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -2665,7 +2669,12 @@ class deribit extends Exchange {
                 $transferOptions = $this->safe_value($this->options, 'transfer', array());
                 $method = $this->safe_string($transferOptions, 'method', 'privateGetSubmitTransferToSubaccount');
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($method === 'privateGetSubmitTransferToUser') {
+                $response = Async\await($this->privateGetSubmitTransferToUser (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetSubmitTransferToSubaccount (array_merge($request, $params)));
+            }
             //
             //     {
             //         "jsonrpc" => "2.0",
