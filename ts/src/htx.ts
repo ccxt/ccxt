@@ -8666,7 +8666,7 @@ export default class htx extends Exchange {
          * @param {string} [params.clientOrderId] Client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {number} params.amount Order Quantity
+         * @param {number} [params.amount] Order Quantity
          * @param {string} [params.order_price_type] "lightning" by default, "lightning_fok": lightning fok type,"lightning_ioc": lightning ioc type "market" by default, "market": market order type," "lightning_fok": lightning
          * @param {object} [params.marginMode] "cross" or "isolated", required for linear markets
          * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -8674,10 +8674,6 @@ export default class htx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        // const amount = this.safeString2 (params, 'amount', 'volume');
-        // if (amount === undefined) {
-        //     throw new ArgumentsRequired (this.id + ' closePosition () requires an extra argument params["amount"]');
-        // }
         const request = {
             'contract_code': market['id'],
             'direction': side,
