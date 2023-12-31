@@ -582,7 +582,6 @@ export default class blofin extends Exchange {
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last');
         const open = this.safeString (ticker, 'open24h');
-        const spot = this.safeValue (market, 'spot', false);
         const quoteVolume = this.safeString (ticker, 'volCurrency24h');
         const baseVolume = this.safeString (ticker, 'vol24h');
         const high = this.safeString (ticker, 'high24h');
@@ -1112,10 +1111,7 @@ export default class blofin extends Exchange {
         const takeProfitTriggerPrice = this.safeNumber (order, 'tpTriggerPrice');
         const takeProfitPrice = this.safeNumber (order, 'tpOrderPrice');
         const reduceOnlyRaw = this.safeString (order, 'reduceOnly');
-        let reduceOnly = false;
-        if (reduceOnly !== undefined) {
-            reduceOnly = (reduceOnlyRaw === 'true');
-        }
+        const reduceOnly = (reduceOnlyRaw === 'true');
         return this.safeOrder ({
             'info': order,
             'id': id,
