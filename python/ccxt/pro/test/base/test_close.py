@@ -11,13 +11,13 @@ import ccxt.pro
 async def watch_ticker_loop(exchange):
     while True:
         ticker = await exchange.watch_ticker('BTC/USDT')
-        print ('ticker received')
+        print('ticker received')
 
 
 async def watch_order_book_for_symbols_loop(exchange):
     while True:
         trades = await exchange.watch_trades_for_symbols(['BTC/USDT', 'ETH/USDT', 'LTC/USDT'])
-        print ('trades received')
+        print('trades received')
 
 
 async def close_after(exchange, ms):
@@ -37,7 +37,7 @@ async def test_close():
     # --------------------------------------------
     print('Testing exchange.close(): Awaiting future should throw ClosedByUser')
     try:
-         await gather( close_after(exchange, 5), watch_ticker_loop(exchange))
+        await gather( close_after(exchange, 5), watch_ticker_loop(exchange))
     except Exception as e:
         if isinstance(e, ExchangeClosedByUser):
             print('PASSED - future rejected with ClosedByUser')
@@ -46,7 +46,7 @@ async def test_close():
     # --------------------------------------------
     print('Test exchange.close(): Call watch_multiple unhandled futures are canceled')
     try:
-        await gather (close_after(exchange, 5), watch_order_book_for_symbols_loop(exchange))
+        await gather(close_after(exchange, 5), watch_order_book_for_symbols_loop(exchange))
     except Exception as e:
         if isinstance(e, ExchangeClosedByUser):
             print('PASSED - future rejected with ClosedByUser')
@@ -55,4 +55,4 @@ async def test_close():
     exit(0)
 
 
-run (test_close())
+run(test_close())
