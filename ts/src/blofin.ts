@@ -582,7 +582,8 @@ export default class blofin extends Exchange {
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last');
         const open = this.safeString (ticker, 'open24h');
-        const quoteVolume = this.safeString (ticker, 'volCurrency24h');
+        const spot = this.safeValue (market, 'spot', false);
+        const quoteVolume = spot ? this.safeString (ticker, 'volCurrency24h') : undefined;
         const baseVolume = this.safeString (ticker, 'vol24h');
         const high = this.safeString (ticker, 'high24h');
         const low = this.safeString (ticker, 'low24h');
