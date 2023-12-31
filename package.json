@@ -141,7 +141,7 @@
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
     "docsify": "^4.13.1",
-    "ast-transpiler": ">=0.0.38",
+    "ast-transpiler": ">=0.0.39",
     "eslint": "8.22.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.25.4",
