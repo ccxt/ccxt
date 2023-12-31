@@ -43,8 +43,9 @@ error_hierarchy = {
                 },
                 'InvalidNonce': {},
                 'RequestTimeout': {},
-            },
+            }
         },
+        'ExchangeClosedByUser': {}
     },
 }
 
@@ -160,7 +161,6 @@ class ProxyError(ExchangeError):
 class OperationFailed(BaseError):
     pass
 
-
 class NetworkError(OperationFailed):
     pass
 
@@ -187,6 +187,10 @@ class InvalidNonce(NetworkError):
 
 class RequestTimeout(NetworkError):
     pass
+
+class ExchangeClosedByUser(BaseError):
+    pass
+
 
 
 __all__ = [
@@ -225,5 +229,6 @@ __all__ = [
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
-    'RequestTimeout'
+    'RequestTimeout',
+    'ExchangeClosedByUser'
 ]

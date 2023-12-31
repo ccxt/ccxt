@@ -24,7 +24,7 @@ from ccxt.async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.errors import BaseError, BadSymbol, BadRequest, BadResponse, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded
+from ccxt.base.errors import BaseError, ExchangeClosedByUser, BadSymbol, BadRequest, BadResponse, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded
 from ccxt.base.types import OrderType, OrderSide, OrderRequest
 
 # -----------------------------------------------------------------------------
@@ -497,6 +497,8 @@ class Exchange(BaseExchange):
 
     async def ws_close(self):
         if self.clients:
+            for client in self.clients.values():
+                client.error = ExchangeClosedByUser(self.id + ' closedByUser')
             await asyncio.wait([asyncio.create_task(client.close()) for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
             for url in self.clients.copy():
                 del self.clients[url]

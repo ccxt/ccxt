@@ -2,7 +2,7 @@
 
 from asyncio import sleep, ensure_future, wait_for, TimeoutError
 from .functions import milliseconds, iso8601, deep_extend
-from ccxt import NetworkError, RequestTimeout, NotSupported
+from ccxt import NetworkError, RequestTimeout, NotSupported, ExchangeClosedByUser
 from ccxt.async_support.base.ws.future import Future
 
 
@@ -160,6 +160,8 @@ class Client(object):
             self.log(iso8601(milliseconds()), 'on_close', code)
         if not self.error:
             self.reset(NetworkError('Connection closed by remote server, closing code ' + str(code)))
+        if isinstance(self.error, ExchangeClosedByUser):
+            self.reset(self.error)
         self.on_close_callback(self, code)
         if not self.closed():
             ensure_future(self.close(code), loop=self.asyncio_loop)
