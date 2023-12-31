@@ -1,4 +1,4 @@
-import { RequestTimeout, NetworkError, NotSupported, BaseError } from '../../base/errors.js';
+import { RequestTimeout, NetworkError, NotSupported, BaseError, ExchangeClosedByUser } from '../../base/errors.js';
 import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
 import { Future } from './Future.js';
 
@@ -271,6 +271,9 @@ export default class Client {
         if (!this.error) {
             // todo: exception types for server-side disconnects
             this.reset (new NetworkError ('connection closed by remote server, closing code ' + String (event.code)))
+        }
+        if (this.error instanceof ExchangeClosedByUser) {
+            this.reset (this.error);
         }
         if (this.disconnected !== undefined) {
             this.disconnected.resolve (true);
