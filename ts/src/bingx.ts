@@ -1903,6 +1903,9 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
+        if (typeof response === 'string') {
+            response = JSON.parse (response);
+        }
         const data = this.safeValue (response, 'data', {});
         const order = this.safeValue (data, 'order', data);
         return this.parseOrder (order, market);
@@ -1995,9 +1998,6 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
-        if (typeof response === 'string') {
-            response = JSON.parse (response);
-        }
         const data = this.safeValue (response, 'data', {});
         const result = this.safeValue (data, 'orders', []);
         return this.parseOrders (result, market);
