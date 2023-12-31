@@ -53,7 +53,7 @@ class alpaca extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createOrder' => true,
-                'fetchBalance' => false,
+                'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
