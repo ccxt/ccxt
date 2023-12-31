@@ -1737,6 +1737,10 @@ export default class bingx extends Exchange {
             const isTrailingAmountOrder = trailingAmount !== undefined;
             const isTrailingPercentOrder = trailingPercent !== undefined;
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
+            const stopLoss = this.safeValue (params, 'stopLoss');
+            const takeProfit = this.safeValue (params, 'takeProfit');
+            const isStopLoss = stopLoss !== undefined;
+            const isTakeProfit = takeProfit !== undefined;
             if (((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) && !isTrailing) {
                 request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
             }
@@ -1775,6 +1779,42 @@ export default class bingx extends Exchange {
                     request['priceRate'] = this.parseToNumeric (requestTrailingPercent);
                 }
             }
+            if (isStopLoss || isTakeProfit) {
+                if (isStopLoss) {
+                    const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                    const slWorkingType = this.safeString (stopLoss, 'workingType', 'MARK_PRICE');
+                    const slType = this.safeString (stopLoss, 'type', 'STOP_MARKET');
+                    const slRequest = {
+                        'stopPrice': this.parseToNumeric (this.priceToPrecision (symbol, slTriggerPrice)),
+                        'workingType': slWorkingType,
+                        'type': slType,
+                    };
+                    const slPrice = this.safeString (stopLoss, 'price');
+                    if (slPrice !== undefined) {
+                        slRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
+                    }
+                    const slQuantity = this.safeString (stopLoss, 'quantity', amount);
+                    slRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, slQuantity));
+                    request['stopLoss'] = this.json (slRequest);
+                }
+                if (isTakeProfit) {
+                    const tkTriggerPrice = this.safeString2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                    const tkWorkingType = this.safeString (takeProfit, 'workingType', 'MARK_PRICE');
+                    const tpType = this.safeString (takeProfit, 'type', 'TAKE_PROFIT_MARKET');
+                    const tpRequest = {
+                        'stopPrice': this.parseToNumeric (this.priceToPrecision (symbol, tkTriggerPrice)),
+                        'workingType': tkWorkingType,
+                        'type': tpType,
+                    };
+                    const slPrice = this.safeString (takeProfit, 'price');
+                    if (slPrice !== undefined) {
+                        tpRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
+                    }
+                    const tkQuantity = this.safeString (takeProfit, 'quantity', amount);
+                    tpRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, tkQuantity));
+                    request['takeProfit'] = this.json (tpRequest);
+                }
+            }
             let positionSide = undefined;
             if (reduceOnly) {
                 positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
@@ -1783,7 +1823,7 @@ export default class bingx extends Exchange {
             }
             request['positionSide'] = positionSide;
             request['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, amount));
-            params = this.omit (params, [ 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent' ]);
+            params = this.omit (params, [ 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'takeProfit', 'stopLoss' ]);
         }
         return this.extend (request, params);
     }
@@ -1794,6 +1834,7 @@ export default class bingx extends Exchange {
          * @name bingx#createOrder
          * @description create a trade order
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1809,6 +1850,10 @@ export default class bingx extends Exchange {
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
          * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
          * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1858,6 +1903,9 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
+        if (typeof response === 'string') {
+            response = JSON.parse (response);
+        }
         const data = this.safeValue (response, 'data', {});
         const order = this.safeValue (data, 'order', data);
         return this.parseOrder (order, market);
@@ -2063,6 +2111,24 @@ export default class bingx extends Exchange {
         //         "orderType": "",
         //         "workingType": "MARK_PRICE"
         //     }
+        // with tp and sl
+        //    {
+        //        orderId: 1741440894764281900,
+        //        symbol: 'LTC-USDT',
+        //        positionSide: 'LONG',
+        //        side: 'BUY',
+        //        type: 'MARKET',
+        //        price: 0,
+        //        quantity: 1,
+        //        stopPrice: 0,
+        //        workingType: 'MARK_PRICE',
+        //        clientOrderID: '',
+        //        timeInForce: 'GTC',
+        //        priceRate: 0,
+        //        stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
+        //        takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
+        //        reduceOnly: false
+        //    }
         //
         const positionSide = this.safeString2 (order, 'positionSide', 'ps');
         const marketType = (positionSide === undefined) ? 'spot' : 'swap';
@@ -2099,6 +2165,30 @@ export default class bingx extends Exchange {
             'cost': Precise.stringAbs (feeCost),
         };
         const clientOrderId = this.safeString2 (order, 'clientOrderId', 'c');
+        let stopLoss = this.safeValue (order, 'stopLoss');
+        let stopLossPrice = undefined;
+        if (stopLoss !== undefined) {
+            stopLossPrice = this.safeNumber (stopLoss, 'stopLoss');
+        }
+        if ((stopLoss !== undefined) && (typeof stopLoss !== 'number')) {
+            //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
+            if (typeof stopLoss === 'string') {
+                stopLoss = JSON.parse (stopLoss);
+            }
+            stopLossPrice = this.safeNumber (stopLoss, 'stopPrice');
+        }
+        let takeProfit = this.safeValue (order, 'takeProfit');
+        let takeProfitPrice = undefined;
+        if (takeProfit !== undefined) {
+            takeProfitPrice = this.safeNumber (takeProfit, 'takeProfit');
+        }
+        if ((takeProfit !== undefined) && (typeof takeProfit !== 'number')) {
+            //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
+            if (typeof takeProfit === 'string') {
+                takeProfit = JSON.parse (takeProfit);
+            }
+            takeProfitPrice = this.safeNumber (takeProfit, 'stopPrice');
+        }
         return this.safeOrder ({
             'info': order,
             'id': orderId,
@@ -2115,8 +2205,8 @@ export default class bingx extends Exchange {
             'price': price,
             'stopPrice': this.safeNumber (order, 'stopPrice'),
             'triggerPrice': this.safeNumber (order, 'stopPrice'),
-            'stopLossPrice': this.safeNumber (order, 'stopLoss'),
-            'takeProfitPrice': this.safeNumber (order, 'takeProfit'),
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'average': average,
             'cost': undefined,
             'amount': amount,
