@@ -108,6 +108,11 @@ public partial class Exchange
         {
             return (List<object>)a;
         }
+
+        if (a is IList<object>)
+        {
+            return ((IList<object>)a).ToList();
+        }
         // if (a.GetType() == typeof(List<string>))
         // {
         //     return (List<string>)a;

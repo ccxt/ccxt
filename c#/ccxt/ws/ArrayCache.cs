@@ -1,18 +1,307 @@
 using System.Globalization;
 using System.Net;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using System.Collections.Concurrent;
+using System.Collections;
 
 namespace ccxt;
 
 using dict = Dictionary<string, object>;
 
+public class ConcurrentList<T> : IList<T>
+{
+    private readonly IList<T> _list = new List<T>();
+    private readonly object _syncRoot = new object();
+
+    public int Count => _list.Count;
+
+    public bool IsReadOnly => _list.IsReadOnly;
+
+    public void Add(T item)
+    {
+        lock (_syncRoot)
+        {
+            _list.Add(item);
+        }
+    }
+
+    public bool Remove(T item)
+    {
+        lock (_syncRoot)
+        {
+            return _list.Remove(item);
+        }
+    }
+    public void RemoveAt(int index)
+    {
+        lock (_syncRoot)
+        {
+            _list.RemoveAt(index);
+        }
+    }
+
+    public T this[int index]
+    {
+        get
+        {
+            lock (_syncRoot)
+            {
+                return _list[index];
+            }
+        }
+        set
+        {
+            lock (_syncRoot)
+            {
+                _list[index] = value;
+            }
+        }
+    }
+
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+    {
+        return GetEnumeratorTraditional();
+    }
+    public IEnumerator<T> GetEnumeratorTraditional()
+    {
+        lock (_syncRoot)
+        {
+            return _list.ToList().GetEnumerator();
+        }
+    }
+
+    public void Clear()
+    {
+        lock (_syncRoot)
+        {
+            _list.Clear();
+        }
+    }
+    public bool Contains(T item)
+    {
+        lock (_syncRoot)
+        {
+            return _list.Contains(item);
+        }
+    }
+
+    public void AddRange(IEnumerable<T> items)
+    {
+        lock (_syncRoot)
+        {
+            foreach (var item in items)
+            {
+                _list.Add(item);
+            }
+        }
+    }
+    public void RemoveAll(Predicate<T> match)
+    {
+        lock (_syncRoot)
+        {
+            // _list.RemoveAll(match);
+        }
+    }
+
+    public IList<T> GetSnapshot()
+    {
+        lock (_syncRoot)
+        {
+            return _list.ToList();
+        }
+    }
+
+    public int IndexOf(T item)
+    {
+        // throw new NotImplementedException();
+        lock (_syncRoot)
+        {
+            return _list.IndexOf(item);
+        }
+    }
+
+    public void Insert(int index, T item)
+    {
+        // throw new NotImplementedException();
+        lock (_syncRoot)
+        {
+            _list.Insert(index, item);
+        }
+    }
+
+    public void CopyTo(T[] array, int arrayIndex)
+    {
+        // throw new NotImplementedException();
+        lock (_syncRoot)
+        {
+            _list.CopyTo(array, arrayIndex);
+        }
+    }
+
+    public IEnumerator GetEnumerator()
+    {
+        // throw new NotImplementedException();
+        lock (_syncRoot)
+        {
+            return _list.GetEnumerator();
+        }
+    }
+
+    public object Find(Predicate<object> match)
+    {
+        if (match == null)
+            throw new ArgumentNullException(nameof(match));
+
+        foreach (var item in this)
+        {
+            if (match(item))
+                return item;
+        }
+
+        return default(T); // Element not found
+    }
+    // Continue implementing the rest of the IList<T> interface...
+}
+
+
+// public class CustomConcurrentBag<T> : ConcurrentBag<T>
+// {
+//     // Add an item to the custom bag
+//     public void AddItem(T item)
+//     {
+//         base.Add(item);
+//     }
+
+//     public void Clear()
+//     {
+//         while (TryTake(out _)) { } // Remove all items from the bag
+//     }
+
+//     // Access an item by index
+//     public T this[int index]
+//     {
+//         get
+//         {
+//             if (index < 0 || index >= Count)
+//                 throw new ArgumentOutOfRangeException(nameof(index));
+
+//             return this.ElementAt(index);
+//         }
+//         set
+//         {
+//             if (index < 0 || index >= Count)
+//                 throw new ArgumentOutOfRangeException(nameof(index));
+
+//             T existingItem = this.ElementAt(index);
+//             if (!EqualityComparer<T>.Default.Equals(existingItem, value))
+//             {
+//                 // Remove the existing item and add the new one
+//                 bool removed = TryTake(out existingItem);
+//                 if (removed)
+//                     Add(value);
+//                 else
+//                     throw new InvalidOperationException("Failed to set the item.");
+//             }
+//         }
+//     }
+
+
+//     // Indexer setter
+//     public void SetItem(int index, T value)
+//     {
+//         if (index < 0 || index >= Count)
+//             throw new ArgumentOutOfRangeException(nameof(index));
+
+//         T existingItem = this.ElementAt(index);
+//         if (!EqualityComparer<T>.Default.Equals(existingItem, value))
+//         {
+//             // Remove the existing item and add the new one
+//             bool removed = TryTake(out existingItem);
+//             if (removed)
+//                 Add(value);
+//             else
+//                 throw new InvalidOperationException("Failed to set the item.");
+//         }
+//     }
+
+//     public T Find(Predicate<T> match)
+//     {
+//         if (match == null)
+//             throw new ArgumentNullException(nameof(match));
+
+//         foreach (var item in this)
+//         {
+//             if (match(item))
+//                 return item;
+//         }
+
+//         return default(T); // Element not found
+//     }
+
+//     // Find the index of an item in the custom bag
+//     public int IndexOf(T item)
+//     {
+//         int index = 0;
+//         foreach (var currentItem in this)
+//         {
+//             if (EqualityComparer<T>.Default.Equals(currentItem, item))
+//                 return index;
+//             index++;
+//         }
+//         return -1; // Item not found
+//     }
+
+//     // Remove an item at a specific index
+//     public void RemoveAt(int index)
+//     {
+//         if (index < 0 || index >= Count)
+//             throw new ArgumentOutOfRangeException(nameof(index));
+
+//         T itemToRemove = this.ElementAt(index);
+//         base.TryTake(out itemToRemove); // TryTake removes the item
+//     }
+// }
+
+// public class ThreadSafeList<T> : IList<T>
+// {
+//     protected List<T> _internalList = new List<T>();
+
+//     // Other Elements of IList implementation
+
+//     public IEnumerator<T> GetEnumerator()
+//     {
+//         return Clone().GetEnumerator();
+//     }
+
+//     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+//     {
+//         return Clone().GetEnumerator();
+//     }
+
+//     protected static object _lock = new object();
+
+//     public List<T> Clone()
+//     {
+//         List<T> newList = new List<T>();
+
+//         lock (_lock)
+//         {
+//             _internalList.ForEach(x => newList.Add(x));
+//         }
+
+//         return newList;
+//     }
+// }
 // public partial class Exchange
 // {
 
-public class BaseCache : List<object>
+public class BaseCache : ConcurrentList<object>
 {
     // Add any custom properties or methods
     public int? maxSize;
+
+    protected readonly object lockObject = new object();
 
     // public int? length;
     public BaseCache(object maxCapacity = null) : base()
@@ -25,7 +314,10 @@ public class BaseCache : List<object>
     public void clear()
     {
         // this.Count = 0;
-        this.Clear();
+        lock (this.lockObject)
+        {
+            this.Clear();
+        }
     }
 }
 
@@ -43,6 +335,14 @@ public class ArrayCache : BaseCache
     }
 
     public object getLimit(object symbol2, object limit2)
+    {
+        lock (this.lockObject)
+        {
+            return _getLimit(symbol2, limit2);
+        }
+    }
+
+    private object _getLimit(object symbol2, object limit2)
     {
         // var limit = (int)limit2;
         int? newUpdatesValue = null;
@@ -79,6 +379,14 @@ public class ArrayCache : BaseCache
 
     public void append(object item)
     {
+        lock (this.lockObject)
+        {
+            _append(item);
+        }
+    }
+
+    private void _append(object item)
+    {
         if (this.maxSize != null && this.maxSize != 0 && this.Count == this.maxSize)
         {
             this.RemoveAt(0);
@@ -102,7 +410,14 @@ public class ArrayCache : BaseCache
         var defaultValue = (this.newUpdatesBySymbol.ContainsKey(itemSymbol)) ? (int)this.newUpdatesBySymbol[itemSymbol] : 0;
         this.newUpdatesBySymbol[itemSymbol] = defaultValue + 1;
         this.allNewUpdates = this.allNewUpdates + 1;
+    }
 
+    public string SerializeToJson()
+    {
+        lock (lockObject)
+        {
+            return JsonConvert.SerializeObject(this);
+        }
     }
 }
 
@@ -122,6 +437,14 @@ public class ArrayCacheByTimestamp : BaseCache
 
     public int getLimit(object symbol, object limit2)
     {
+        lock (this.lockObject)
+        {
+            return _getLimit(symbol, limit2);
+        }
+    }
+
+    private int _getLimit(object symbol, object limit2)
+    {
         this.clearUpdates = true;
         if (limit2 == null)
         {
@@ -132,6 +455,13 @@ public class ArrayCacheByTimestamp : BaseCache
     }
 
     public void append(object item)
+    {
+        lock (this.lockObject)
+        {
+            _append(item);
+        }
+    }
+    private void _append(object item)
     {
         var firstValue = Exchange.SafeString(item, 0);
         if (firstValue != null && (this.hashmap.ContainsKey(firstValue)))
@@ -175,6 +505,14 @@ public class ArrayCacheBySymbolById : ArrayCache
     }
 
     public void append(object item)
+    {
+        lock (this.lockObject)
+        {
+            _append(item);
+        }
+    }
+
+    private void _append(object item)
     {
         var itemSymbol = Exchange.SafeString(item, "symbol");
         var itemId = Exchange.SafeString(item, "id");
@@ -255,6 +593,14 @@ public class ArrayCacheBySymbolBySide : ArrayCache
     }
 
     public void append(object item)
+    {
+        lock (this.lockObject)
+        {
+            _append(item);
+        }
+    }
+
+    private void _append(object item)
     {
         var itemSymbol = Exchange.SafeString(item, "symbol");
         var itemSide = Exchange.SafeString(item, "side");
