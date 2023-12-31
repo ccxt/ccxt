@@ -1798,19 +1798,19 @@ export default class bingx extends Exchange {
                     request['stopLoss'] = this.json (slRequest);
                 }
                 if (isTakeProfit) {
-                    const tkTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                    const tkWorkingType = this.safeString (stopLoss, 'workingType', 'MARK_PRICE');
-                    const tpType = this.safeString (stopLoss, 'type', 'TAKE_PROFIT_MARKET');
+                    const tkTriggerPrice = this.safeString2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                    const tkWorkingType = this.safeString (takeProfit, 'workingType', 'MARK_PRICE');
+                    const tpType = this.safeString (takeProfit, 'type', 'TAKE_PROFIT_MARKET');
                     const tpRequest = {
                         'stopPrice': this.parseToNumeric (this.priceToPrecision (symbol, tkTriggerPrice)),
                         'workingType': tkWorkingType,
                         'type': tpType,
                     };
-                    const slPrice = this.safeString (stopLoss, 'price');
+                    const slPrice = this.safeString (takeProfit, 'price');
                     if (slPrice !== undefined) {
                         tpRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
                     }
-                    const tkQuantity = this.safeString (stopLoss, 'quantity', amount);
+                    const tkQuantity = this.safeString (takeProfit, 'quantity', amount);
                     tpRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, tkQuantity));
                     request['takeProfit'] = this.json (tpRequest);
                 }
