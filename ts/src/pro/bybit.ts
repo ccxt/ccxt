@@ -360,17 +360,6 @@ export default class bybit extends bybitRest {
         this.tickers[symbol] = parsed;
         const messageHash = 'ticker:' + symbol;
         client.resolve (this.tickers[symbol], messageHash);
-        // watchTickers part
-        const messageHashes = this.findMessageHashes (client, 'tickers::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHashTicker = messageHashes[i];
-            const parts = messageHashTicker.split ('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            if (this.inArray (parsed['symbol'], symbols)) {
-                client.resolve (parsed, messageHashTicker);
-            }
-        }
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
