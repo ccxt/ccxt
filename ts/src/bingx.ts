@@ -1785,13 +1785,17 @@ export default class bingx extends Exchange {
                     const slWorkingType = this.safeString (stopLoss, 'workingType', 'MARK_PRICE');
                     const slType = this.safeString (stopLoss, 'type', 'STOP_MARKET');
                     const slRequest = {
-                        'stopPrice': this.priceToPrecision (symbol, slTriggerPrice),
+                        'stopPrice': this.parseToNumeric (this.priceToPrecision (symbol, slTriggerPrice)),
                         'workingType': slWorkingType,
                         'type': slType,
                     };
                     const slPrice = this.safeString (stopLoss, 'price');
                     if (slPrice !== undefined) {
-                        slRequest['price'] = this.priceToPrecision (symbol, slPrice);
+                        slRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
+                    }
+                    const slQuantity = this.safeString (stopLoss, 'quantity');
+                    if (slQuantity !== undefined) {
+                        slRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, slQuantity));
                     }
                     request['stopLoss'] = this.json (slRequest);
                 }
@@ -1800,13 +1804,17 @@ export default class bingx extends Exchange {
                     const tkWorkingType = this.safeString (stopLoss, 'workingType', 'MARK_PRICE');
                     const tpType = this.safeString (stopLoss, 'type', 'TAKE_PROFIT_MARKET');
                     const tpRequest = {
-                        'stopPrice': this.priceToPrecision (symbol, tkTriggerPrice),
+                        'stopPrice': this.parseToNumeric (this.priceToPrecision (symbol, tkTriggerPrice)),
                         'workingType': tkWorkingType,
                         'type': tpType,
                     };
                     const slPrice = this.safeString (stopLoss, 'price');
                     if (slPrice !== undefined) {
-                        tpRequest['price'] = this.priceToPrecision (symbol, slPrice);
+                        tpRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
+                    }
+                    const tkQuantity = this.safeString (stopLoss, 'quantity');
+                    if (tkQuantity !== undefined) {
+                        tpRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, tkQuantity));
                     }
                     request['takeProfit'] = this.json (tpRequest);
                 }
