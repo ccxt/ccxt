@@ -120,10 +120,10 @@ public partial class BaseTest
 
     public bool equals(object a, object b)
     {
-        if (a is List<object>)
+        if (a is IList<object>)
         {
-            var list1 = a as List<object>;
-            var list2 = b as List<object>;
+            var list1 = (IList<object>)a;
+            var list2 = (IList<object>)b;
             if (list1.Count != list2.Count)
             {
                 return false;

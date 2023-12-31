@@ -138,7 +138,17 @@ public partial class testMainClass : BaseTest
 
     public static void dump(params object[] values)
     {
-        Console.WriteLine(string.Join(" ", values));
+
+        var parsedValues = new List<string> { };
+        foreach (var value in values)
+        {
+            if (value is IList<object> || value is IDictionary<string, object>)
+            {
+                parsedValues.Add(JsonConvert.SerializeObject(value));
+            }
+            parsedValues.Add(value.ToString());
+        }
+        Console.WriteLine(string.Join(" ", parsedValues));
     }
 
     public static bool ioFileExists(object path2)
