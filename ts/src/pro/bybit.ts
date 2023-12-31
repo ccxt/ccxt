@@ -212,7 +212,7 @@ export default class bybit extends bybitRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHash = 'tickers::' + symbols.join (',');
+        const messageHashes = [];
         const url = this.getUrlByMarketType (symbols[0], false, params);
         params = this.cleanParams (params);
         const options = this.safeValue (this.options, 'watchTickers', {});
@@ -222,8 +222,9 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             topics.push (topic + '.' + marketId);
+            messageHashes.push ('ticker:' + symbols[i]);
         }
-        const ticker = await this.watchTopics (url, messageHash, topics, params);
+        const ticker = await this.watchTopics (url, messageHashes, topics, params);
         if (this.newUpdates) {
             return ticker;
         }
