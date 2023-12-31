@@ -36,6 +36,8 @@ class FastClient(AiohttpClient):
             self.stack.append(message)
 
         def feed_eof():
+            if isinstance(self.error, ExchangeClosedByUser): 
+                return
             self.on_error(NetworkError(1006))
 
         def wrapper(func):
@@ -56,6 +58,8 @@ class FastClient(AiohttpClient):
                 try:
                     await _self._writer.close(code, message)
                     _self._response.close()
+                    self._close_code = 1000
+                    self.on_close(1000)
                 except asyncio.CancelledError:
                     _self._response.close()
                     _self._close_code = 1006

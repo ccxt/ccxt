@@ -17,6 +17,7 @@ async def watch_ticker_loop(exchange):
 async def watch_order_book_for_symbols_loop(exchange):
     while True:
         trades = await exchange.watch_trades_for_symbols(['BTC/USDT', 'ETH/USDT', 'LTC/USDT'])
+        print ('trades received')
 
 
 async def close_after(exchange, ms):
@@ -51,6 +52,7 @@ async def test_close():
             print('PASSED - future rejected with ClosedByUser')
         else:
             raise e
+    exit(0)
 
 
 run (test_close())
