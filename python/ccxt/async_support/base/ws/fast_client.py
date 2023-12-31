@@ -35,10 +35,10 @@ class FastClient(AiohttpClient):
             self.stack.append(message)
 
         def feed_eof():
-            if self._close_code == 1000: # OK close 
+            if self._close_code == 1000:  # OK close
                 self.on_close(1000)
             else:
-                self.on_error(1006) # ABNORMAL_CLOSURE 
+                self.on_error(1006)  # ABNORMAL_CLOSURE
 
         def wrapper(func):
             def parse_frame(buf):
