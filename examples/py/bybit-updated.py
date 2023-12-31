@@ -14,9 +14,9 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 print('CCXT Version:', ccxt.__version__)
 
-exchange = ccxt.bybit({
-    'apiKey': 'YOUR_API_KEY',
-    'secret': 'YOUR_SECRET_KEY',
+exchange = ccxt.bingx({
+    'apiKey': os.environ['BINGX_APIKEY'],
+    'secret': os.environ['BINGX_SECRET'],
 })
 
 
@@ -25,28 +25,35 @@ async def example_1():
     exchange.options['defaultType'] = 'spot'; # very important set spot as default type
     markets = await exchange.load_markets(True)
 
-    # fetch spot balance
-    balance = await exchange.fetch_balance()
-    print(balance)
+    params = {
+        "stopLoss": "{\"type\": \"STOP_MARKET\", \"quantity\": 1,\"stopPrice\": 50,\"workingType\":\"MARK_PRICE\"}"
+    }
 
-    # create limit order
-    symbol = 'LTC/USDT'
-    type = 'limit'
-    side = 'buy'
-    amount = 0.1
-    price = 50
-    create_order = await exchange.create_order(symbol, type, side, amount, price)
-    print('Create order id:', create_order['id'])
+    order = await exchange.create_order("LTC/USDT:USDT", "market", "buy", 1, None, params)
+    print(order)
+
+    # fetch spot balance
+    # balance = await exchange.fetch_balance()
+    # print(balance)
+
+    # # create limit order
+    # symbol = 'LTC/USDT'
+    # type = 'limit'
+    # side = 'buy'
+    # amount = 0.1
+    # price = 50
+    # create_order = await exchange.create_order(symbol, type, side, amount, price)
+    # print('Create order id:', create_order['id'])
 
     # cancel created order
-    canceled_order = await exchange.cancel_order(create_order['id'], symbol)
-    print(canceled_order)
+    # canceled_order = await exchange.cancel_order(create_order['id'], symbol)
+    # print(canceled_order)
 
-    # Check canceled orders (bybit does not have a single endpoint to check orders
-    # we have to choose whether to check open or closed orders and call fetch_open_orders
-    # or fetch_closed_orders respectively
-    orders = await exchange.fetch_closed_orders(symbol)
-    print(orders)
+    # # Check canceled orders (bybit does not have a single endpoint to check orders
+    # # we have to choose whether to check open or closed orders and call fetch_open_orders
+    # # or fetch_closed_orders respectively
+    # orders = await exchange.fetch_closed_orders(symbol)
+    # print(orders)
     await exchange.close()
 
 # -------------------------------------------------------------------------------------------
@@ -166,9 +173,6 @@ async def example_4():
 async def main():
     try:
         await example_1()
-        await example_2()
-        await example_3()
-        await example_4()
     except Exception as e:
         print(e)
     await exchange.close()
