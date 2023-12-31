@@ -1569,7 +1569,7 @@ class zonda extends Exchange {
         return $this->parse_deposit_addresses($data, $codes);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * @see https://docs.zondacrypto.exchange/reference/internal-$transfer
          * $transfer $currency internally between wallets on the same account

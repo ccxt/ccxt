@@ -98,7 +98,9 @@ class bitget extends \ccxt\async\bitget {
         } else {
             $instType = 'SPOT';
         }
-        list($instType, $params) = $this->handle_option_and_params($params, 'getInstType', 'instType', $instType);
+        $instypeAux = null;
+        list($instypeAux, $params) = $this->handle_option_and_params($params, 'getInstType', 'instType', $instType);
+        $instType = $instypeAux;
         return array( $instType, $params );
     }
 

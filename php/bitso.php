@@ -897,7 +897,7 @@ class bitso extends Exchange {
         return $result;
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, $limit = 25, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 25, $params = array ()) {
         /**
          * fetch all trades made by the user
          * @param {string} $symbol unified $market $symbol
@@ -1097,7 +1097,7 @@ class bitso extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, $limit = 25, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = 25, $params = array ()): array {
         /**
          * fetch all unfilled currently open $orders
          * @param {string} $symbol unified $market $symbol

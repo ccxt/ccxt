@@ -1601,7 +1601,7 @@ class coinbase extends Exchange {
         ), $market);
     }
 
-    public function parse_balance($response, $params = array ()) {
+    public function parse_custom_balance($response, $params = array ()) {
         $balances = $this->safe_value_2($response, 'data', 'accounts', array());
         $accounts = $this->safe_value($params, 'type', $this->options['accounts']);
         $v3Accounts = $this->safe_value($params, 'type', $this->options['v3Accounts']);
@@ -1748,7 +1748,7 @@ class coinbase extends Exchange {
             //         "size" => 9
             //     }
             //
-            return $this->parse_balance($response, $params);
+            return $this->parse_custom_balance($response, $params);
         }) ();
     }
 
@@ -2714,7 +2714,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user

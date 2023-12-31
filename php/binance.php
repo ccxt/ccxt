@@ -2454,7 +2454,7 @@ class binance extends Exchange {
         return $account;
     }
 
-    public function parse_balance($response, $type = null, $marginMode = null): array {
+    public function parse_balance_custom($response, $type = null, $marginMode = null): array {
         $result = array(
             'info' => $response,
         );
@@ -2785,7 +2785,7 @@ class binance extends Exchange {
         //       }
         //     )
         //
-        return $this->parse_balance($response, $type, $marginMode);
+        return $this->parse_balance_custom($response, $type, $marginMode);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
@@ -5930,7 +5930,7 @@ class binance extends Exchange {
         );
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
@@ -8523,7 +8523,7 @@ class binance extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array ()) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
         // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
         if ($api === 'private') {
@@ -9136,6 +9136,7 @@ class binance extends Exchange {
         } else {
             return $this->parse_open_interest($response, $market);
         }
+        return null;
     }
 
     public function parse_open_interest($interest, ?array $market = null) {

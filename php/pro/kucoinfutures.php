@@ -65,18 +65,21 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
     }
 
     public function negotiate($privateChannel, $params = array ()) {
-        $connectId = $privateChannel ? 'private' : 'public';
-        $urls = $this->safe_value($this->options, 'urls', array());
-        $spawaned = $this->safe_value($urls, $connectId);
-        if ($spawaned !== null) {
-            return $spawaned;
-        }
-        // we store an awaitable to the url
-        // so that multiple calls don't asynchronously
-        // fetch different $urls and overwrite each other
-        $urls[$connectId] = $this->spawn(array($this, 'negotiate_helper'), $privateChannel, $params);
-        $this->options['urls'] = $urls;
-        return $urls[$connectId];
+        return Async\async(function () use ($privateChannel, $params) {
+            $connectId = $privateChannel ? 'private' : 'public';
+            $urls = $this->safe_value($this->options, 'urls', array());
+            $spawaned = $this->safe_value($urls, $connectId);
+            if ($spawaned !== null) {
+                return Async\await($spawaned);
+            }
+            // we store an awaitable to the url
+            // so that multiple calls don't asynchronously
+            // fetch different $urls and overwrite each other
+            $urls[$connectId] = $this->spawn(array($this, 'negotiate_helper'), $privateChannel, $params); // we have to wait here otherwsie in c# will not work
+            $this->options['urls'] = $urls;
+            $future = $urls[$connectId];
+            return Async\await($future);
+        }) ();
     }
 
     public function negotiate_helper($privateChannel, $params = array ()) {
@@ -963,10 +966,8 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
             'position.adjustRiskLimit' => array($this, 'handle_position'),
         );
         $method = $this->safe_value($methods, $subject);
-        if ($method === null) {
-            return $message;
-        } else {
-            return $method($client, $message);
+        if ($method !== null) {
+            $method($client, $message);
         }
     }
 
@@ -1019,7 +1020,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         );
         $method = $this->safe_value($methods, $type);
         if ($method !== null) {
-            return $method($client, $message);
+            $method($client, $message);
         }
     }
 }

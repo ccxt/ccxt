@@ -1643,32 +1643,34 @@ class gate extends Exchange {
                 $withdrawAvailable = $this->safe_value($result[$code], 'withdraw');
                 $withdrawAvailable = ($withdrawEnabled) ? $withdrawEnabled : $withdrawAvailable;
                 $networks = $this->safe_value($result[$code], 'networks', array());
-                $networks[$networkCode] = array(
-                    'info' => $entry,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'currencyId' => $currencyId,
-                    'lowerCaseCurrencyId' => $currencyIdLower,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'active' => $active,
-                    'fee' => null,
-                    'precision' => $this->parse_number('1e-4'),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
+                if ($networkCode !== null) {
+                    $networks[$networkCode] = array(
+                        'info' => $entry,
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'currencyId' => $currencyId,
+                        'lowerCaseCurrencyId' => $currencyIdLower,
+                        'deposit' => $depositEnabled,
+                        'withdraw' => $withdrawEnabled,
+                        'active' => $active,
+                        'fee' => null,
+                        'precision' => $this->parse_number('1e-4'),
+                        'limits' => array(
+                            'amount' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
                         ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                );
+                    );
+                }
                 $result[$code]['networks'] = $networks;
                 $info = $this->safe_value($result[$code], 'info', array());
                 $info[] = $entry;
@@ -5064,7 +5066,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -6927,6 +6929,7 @@ class gate extends Exchange {
                     return $this->parse_greeks($entry, $market);
                 }
             }
+            return null;
         }) ();
     }
 

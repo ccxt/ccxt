@@ -802,6 +802,22 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' setLeverage() is not supported yet');
     }
 
+    public function fetch_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOpenInterestHistory() is not supported yet');
+    }
+
+    public function fetch_open_interest(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
+    }
+
+    public function sign_in($params = array ()) {
+        throw new NotSupported($this->id . ' signIn() is not supported yet');
+    }
+
+    public function fetch_payment_methods($params = array ()) {
+        throw new NotSupported($this->id . ' fetchPaymentMethods() is not supported yet');
+    }
+
     public function parse_to_int($number) {
         // Solve Common intvalmisuse ex => intval((since / (string) 1000))
         // using a $number which is not valid in ts
@@ -2468,6 +2484,18 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchBidsAsks() is not supported yet');
     }
 
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchBorrowInterest() is not supported yet');
+    }
+
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchLedger() is not supported yet');
+    }
+
+    public function fetch_ledger_entry(string $id, ?string $code = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchLedgerEntry() is not supported yet');
+    }
+
     public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1) {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
@@ -2775,6 +2803,9 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function throw_exactly_matched_exception($exact, $string, $message) {
+        if ($string === null) {
+            return;
+        }
         if (is_array($exact) && array_key_exists($string, $exact)) {
             throw new $exact[$string]($message);
         }
@@ -2869,7 +2900,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
@@ -3050,16 +3081,12 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchDepositsWithdrawals() is not supported yet');
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDeposits() is not supported yet');
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchWithdrawals() is not supported yet');
-    }
-
-    public function fetch_open_interest(string $symbol, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3152,7 +3179,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function handle_withdraw_tag_and_params($tag, $params) {
-        if (gettype($tag) === 'array') {
+        if (($tag !== null) && (gettype($tag) === 'array')) {
             $params = array_merge($tag, $params);
             $tag = null;
         }
@@ -3982,7 +4009,8 @@ class Exchange extends \ccxt\Exchange {
                         $response = Async\await($this->$method ($symbol, null, $maxEntriesPerRequest, $params));
                         $responseLength = count($response);
                         if ($this->verbose) {
-                            $this->log ('Dynamic pagination call', $calls, 'method', $method, 'response length', $responseLength, 'timestamp', $paginationTimestamp);
+                            $backwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                            $this->log ($backwardMessage);
                         }
                         if ($responseLength === 0) {
                             break;
@@ -3999,7 +4027,8 @@ class Exchange extends \ccxt\Exchange {
                         $response = Async\await($this->$method ($symbol, $paginationTimestamp, $maxEntriesPerRequest, $params));
                         $responseLength = count($response);
                         if ($this->verbose) {
-                            $this->log ('Dynamic pagination call', $calls, 'method', $method, 'response length', $responseLength, 'timestamp', $paginationTimestamp);
+                            $forwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                            $this->log ($forwardMessage);
                         }
                         if ($responseLength === 0) {
                             break;
@@ -4045,6 +4074,7 @@ class Exchange extends \ccxt\Exchange {
                     throw $e;
                 }
             }
+            return null;
         }) ();
     }
 
@@ -4114,7 +4144,8 @@ class Exchange extends \ccxt\Exchange {
                     $errors = 0;
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $this->log ('Cursor pagination call', $i + 1, 'method', $method, 'response length', $responseLength, 'cursor', $cursorValue);
+                        $cursorMessage = 'Cursor pagination call ' . $i + 1 . ' $method ' . $method . ' $response length ' . $responseLength . ' cursor ' . $cursorValue;
+                        $this->log ($cursorMessage);
                     }
                     if ($responseLength === 0) {
                         break;
@@ -4160,7 +4191,8 @@ class Exchange extends \ccxt\Exchange {
                     $errors = 0;
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $this->log ('Incremental pagination call', $i + 1, 'method', $method, 'response length', $responseLength);
+                        $incrementalMessage = 'Incremental pagination call ' . $i + 1 . ' $method ' . $method . ' $response length ' . $responseLength;
+                        $this->log ($incrementalMessage);
                     }
                     if ($responseLength === 0) {
                         break;

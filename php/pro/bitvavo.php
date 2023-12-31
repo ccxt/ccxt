@@ -400,7 +400,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //
         $response = $this->safe_value($message, 'response');
         if ($response === null) {
-            return $message;
+            return;
         }
         $marketId = $this->safe_string($response, 'market');
         $symbol = $this->safe_symbol($marketId, null, '-');
@@ -719,13 +719,11 @@ class bitvavo extends \ccxt\async\bitvavo {
         if ($method === null) {
             $action = $this->safe_string($message, 'action');
             $method = $this->safe_value($methods, $action);
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
+            if ($method !== null) {
+                $method($client, $message);
             }
         } else {
-            return $method($client, $message);
+            $method($client, $message);
         }
     }
 }

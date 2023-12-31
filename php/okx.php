@@ -1056,14 +1056,7 @@ class okx extends Exchange {
             'commonCurrencies' => array(
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
                 'AE' => 'AET', // https://github.com/ccxt/ccxt/issues/4981
-                'BOX' => 'DefiBox',
-                'HOT' => 'Hydro Protocol',
-                'HSR' => 'HC',
-                'MAG' => 'Maggie',
-                'SBTC' => 'Super Bitcoin',
-                'TRADE' => 'Unitrade',
-                'YOYO' => 'YOYOW',
-                'WIN' => 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
+                'WIN' => 'WINTOKEN', // https://github.com/ccxt/ccxt/issues/5701
             ),
         ));
     }
@@ -1516,8 +1509,8 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_markets($data);
+        $dataResponse = $this->safe_value($response, 'data', array());
+        return $this->parse_markets($dataResponse);
     }
 
     public function safe_network($networkId) {
@@ -3028,7 +3021,7 @@ class okx extends Exchange {
          * @param {string[]|string} $ids order $ids
          * @return {string[]} list of order $ids
          */
-        if (gettype($ids) === 'string') {
+        if (($ids !== null) && gettype($ids) === 'string') {
             return explode(',', $ids);
         } else {
             return $ids;
@@ -3043,6 +3036,7 @@ class okx extends Exchange {
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->trigger] whether the order is a stop/trigger order
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         // TODO : the original endpoint signature differs, according to that you can skip individual $symbol and assign $ids in batch. At this moment, `$params` is not being used too.
@@ -3057,7 +3051,7 @@ class okx extends Exchange {
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $clientOrderIds = $this->parse_ids($this->safe_value_2($params, 'clOrdId', 'clientOrderId'));
         $algoIds = $this->parse_ids($this->safe_value($params, 'algoId'));
-        $stop = $this->safe_value($params, 'stop');
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
         if ($stop) {
             $method = 'privatePostTradeCancelAlgos';
         }
@@ -5290,7 +5284,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
@@ -7021,6 +7015,7 @@ class okx extends Exchange {
                 return $this->parse_greeks($entry, $market);
             }
         }
+        return null;
     }
 
     public function parse_greeks($greeks, ?array $market = null) {

@@ -1765,7 +1765,7 @@ class bigone extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * $transfer $currency internally between wallets on the same account
          * @see https://open.big.one/docs/spot_transfer.html#$transfer-of-user
@@ -1823,7 +1823,7 @@ class bigone extends Exchange {
             'id' => null,
             'timestamp' => null,
             'datetime' => null,
-            'currency' => $code,
+            'currency' => null,
             'amount' => null,
             'fromAccount' => null,
             'toAccount' => null,

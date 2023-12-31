@@ -317,6 +317,7 @@ class testMainClass extends baseMainTestClass {
         $this->private_test = get_cli_arg_value('--private');
         $this->private_test_only = get_cli_arg_value('--privateOnly');
         $this->sandbox = get_cli_arg_value('--sandbox');
+        $this->load_keys = get_cli_arg_value('--loadKeys');
         $this->ws_tests = get_cli_arg_value('--ws');
     }
 
@@ -441,7 +442,7 @@ class testMainClass extends baseMainTestClass {
         // others
         $timeout = $exchange->safe_value($skipped_settings_for_exchange, 'timeout');
         if ($timeout !== null) {
-            $exchange->timeout = $timeout;
+            $exchange->timeout = $exchange->parse_to_int($timeout);
         }
         $exchange->http_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpProxy');
         $exchange->https_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpsProxy');
@@ -530,6 +531,7 @@ class testMainClass extends baseMainTestClass {
             if ($is_public) {
                 $this->checked_public_tests[$method_name] = true;
             }
+            return;
         }) ();
     }
 
@@ -604,6 +606,7 @@ class testMainClass extends baseMainTestClass {
                     }
                 }
             }
+            return true;
         }) ();
     }
 
@@ -947,7 +950,7 @@ class testMainClass extends baseMainTestClass {
             }
             // if exception was set, then throw it
             if ($exception) {
-                throw new ExchangeError('[TEST_FAILURE] Failed ' . $proxy_test_name . ' : ' . exception_message($exception));
+                $error_message = '[TEST_FAILURE] Failed ' . $proxy_test_name . ' : ' . exception_message($exception);
             }
         }) ();
     }
@@ -1069,10 +1072,10 @@ class testMainClass extends baseMainTestClass {
 
     public function assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true) {
         if (is_null_value($new_output) && is_null_value($stored_output)) {
-            return;
+            return true;
         }
         if (!$new_output && !$stored_output) {
-            return;
+            return true;
         }
         if ((is_array($stored_output)) && (is_array($new_output))) {
             $stored_output_keys = is_array($stored_output) ? array_keys($stored_output) : array();
@@ -1109,7 +1112,7 @@ class testMainClass extends baseMainTestClass {
             $new_output_string = $sanitized_new_output ? ((string) $sanitized_new_output) : 'undefined';
             $stored_output_string = $sanitized_stored_output ? ((string) $sanitized_stored_output) : 'undefined';
             $message_error = 'output value mismatch:' . $new_output_string . ' != ' . $stored_output_string;
-            if ($strict_type_check) {
+            if ($strict_type_check && ($this->lang !== 'C#')) {
                 // upon building the request we want strict type check to make sure all the types are correct
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
                 $this->assert_static_error($sanitized_new_output === $sanitized_stored_output, $message_error, $stored_output, $new_output);
@@ -1118,14 +1121,41 @@ class testMainClass extends baseMainTestClass {
                 $is_string = (is_string($sanitized_new_output)) || (is_string($sanitized_stored_output));
                 $is_undefined = ($sanitized_new_output === null) || ($sanitized_stored_output === null); // undefined is a perfetly valid value
                 if ($is_boolean || $is_string || $is_undefined) {
-                    $this->assert_static_error($new_output_string === $stored_output_string, $message_error, $stored_output, $new_output);
+                    if ($this->lang === 'C#') {
+                        // tmp c# number comparsion
+                        $is_number = false;
+                        try {
+                            $exchange->parse_to_numeric($sanitized_new_output);
+                            $is_number = true;
+                        } catch(\Throwable $e) {
+                            // if we can't parse it to number, then it's not a number
+                            $is_number = false;
+                        }
+                        if ($is_number) {
+                            $this->assert_static_error($exchange->parse_to_numeric($sanitized_new_output) === $exchange->parse_to_numeric($sanitized_stored_output), $message_error, $stored_output, $new_output);
+                            return true;
+                        } else {
+                            $this->assert_static_error(convert_ascii($new_output_string) === convert_ascii($stored_output_string), $message_error, $stored_output, $new_output);
+                            return true;
+                        }
+                    } else {
+                        $this->assert_static_error(convert_ascii($new_output_string) === convert_ascii($stored_output_string), $message_error, $stored_output, $new_output);
+                        return true;
+                    }
                 } else {
-                    $numeric_new_output = $exchange->parse_to_numeric($new_output_string);
-                    $numeric_stored_output = $exchange->parse_to_numeric($stored_output_string);
-                    $this->assert_static_error($numeric_new_output === $numeric_stored_output, $message_error, $stored_output, $new_output);
+                    if ($this->lang === 'C#') {
+                        $stringified_new_output = $exchange->number_to_string($sanitized_new_output);
+                        $stringified_stored_output = $exchange->number_to_string($sanitized_stored_output);
+                        $this->assert_static_error(((string) $stringified_new_output) === ((string) $stringified_stored_output), $message_error, $stored_output, $new_output);
+                    } else {
+                        $numeric_new_output = $exchange->parse_to_numeric($new_output_string);
+                        $numeric_stored_output = $exchange->parse_to_numeric($stored_output_string);
+                        $this->assert_static_error($numeric_new_output === $numeric_stored_output, $message_error, $stored_output, $new_output);
+                    }
                 }
             }
         }
+        return true;  // c# requ
     }
 
     public function assert_static_request_output($exchange, $type, $skip_keys, $stored_url, $request_url, $stored_output, $new_output) {
@@ -1154,14 +1184,14 @@ class testMainClass extends baseMainTestClass {
                 return;
             }
         }
-        if ($type === 'json') {
+        if ($type === 'json' && ($stored_output !== null) && ($new_output !== null)) {
             if (is_string($stored_output)) {
                 $stored_output = json_parse($stored_output);
             }
             if (is_string($new_output)) {
                 $new_output = json_parse($new_output);
             }
-        } elseif ($type === 'urlencoded') {
+        } elseif ($type === 'urlencoded' && ($stored_output !== null) && ($new_output !== null)) {
             $stored_output = $this->urlencoded_to_dict($stored_output);
             $new_output = $this->urlencoded_to_dict($new_output);
         } elseif ($type === 'both') {
@@ -1287,6 +1317,7 @@ class testMainClass extends baseMainTestClass {
                 }
             }
             Async\await(close($exchange));
+            return true;  // in c# methods that will be used with promiseAll need to return something
         }) ();
     }
 
@@ -1311,6 +1342,7 @@ class testMainClass extends baseMainTestClass {
                 }
             }
             Async\await(close($exchange));
+            return true;  // in c# methods that will be used with promiseAll need to return something
         }) ();
     }
 
@@ -1395,240 +1427,251 @@ class testMainClass extends baseMainTestClass {
 
     public function test_binance() {
         return Async\async(function () {
-            $binance = $this->init_offline_exchange('binance');
+            $exchange = $this->init_offline_exchange('binance');
             $spot_id = 'x-R4BD3S82';
             $spot_order_request = null;
             try {
-                Async\await($binance->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $spot_order_request = $this->urlencoded_to_dict($binance->last_request_body);
+                $spot_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
             }
             $client_order_id = $spot_order_request['newClientOrderId'];
-            assert(str_starts_with($client_order_id, $spot_id), 'spot clientOrderId does not start with spotId');
+            assert(str_starts_with($client_order_id, ((string) $spot_id)), 'spot clientOrderId does not start with spotId');
             $swap_id = 'x-xcKtGhcu';
             $swap_order_request = null;
             try {
-                Async\await($binance->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $swap_order_request = $this->urlencoded_to_dict($binance->last_request_body);
+                $swap_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
             }
             $swap_inverse_order_request = null;
             try {
-                Async\await($binance->create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $swap_inverse_order_request = $this->urlencoded_to_dict($binance->last_request_body);
+                $swap_inverse_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
             }
             $client_order_id_spot = $swap_order_request['newClientOrderId'];
-            assert(str_starts_with($client_order_id_spot, $swap_id), 'swap clientOrderId does not start with swapId');
+            assert(str_starts_with($client_order_id_spot, ((string) $swap_id)), 'swap clientOrderId does not start with swapId');
             $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
-            assert(str_starts_with($client_order_id_inverse, $swap_id), 'swap clientOrderIdInverse does not start with swapId');
-            Async\await(close($binance));
+            assert(str_starts_with($client_order_id_inverse, ((string) $swap_id)), 'swap clientOrderIdInverse does not start with swapId');
+            Async\await(close($exchange));
+            return true;
         }) ();
     }
 
     public function test_okx() {
         return Async\async(function () {
-            $okx = $this->init_offline_exchange('okx');
+            $exchange = $this->init_offline_exchange('okx');
             $id = 'e847386590ce4dBC';
             $spot_order_request = null;
             try {
-                Async\await($okx->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $spot_order_request = json_parse($okx->last_request_body);
+                $spot_order_request = json_parse($exchange->last_request_body);
             }
             $client_order_id = $spot_order_request[0]['clOrdId']; // returns order inside array
-            assert(str_starts_with($client_order_id, $id), 'spot clientOrderId does not start with id');
+            assert(str_starts_with($client_order_id, ((string) $id)), 'spot clientOrderId does not start with id');
             assert($spot_order_request[0]['tag'] === $id, 'id different from spot tag');
             $swap_order_request = null;
             try {
-                Async\await($okx->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $swap_order_request = json_parse($okx->last_request_body);
+                $swap_order_request = json_parse($exchange->last_request_body);
             }
             $client_order_id_spot = $swap_order_request[0]['clOrdId'];
-            assert(str_starts_with($client_order_id_spot, $id), 'swap clientOrderId does not start with id');
+            assert(str_starts_with($client_order_id_spot, ((string) $id)), 'swap clientOrderId does not start with id');
             assert($swap_order_request[0]['tag'] === $id, 'id different from swap tag');
-            Async\await(close($okx));
+            Async\await(close($exchange));
+            return true;
         }) ();
     }
 
     public function test_cryptocom() {
         return Async\async(function () {
-            $cryptocom = $this->init_offline_exchange('cryptocom');
+            $exchange = $this->init_offline_exchange('cryptocom');
             $id = 'CCXT';
-            Async\await($cryptocom->load_markets());
+            Async\await($exchange->load_markets());
             $request = null;
             try {
-                Async\await($cryptocom->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $request = json_parse($cryptocom->last_request_body);
+                $request = json_parse($exchange->last_request_body);
             }
             assert($request['params']['broker_id'] === $id, 'id different from  broker_id');
-            Async\await(close($cryptocom));
+            Async\await(close($exchange));
+            return true;
         }) ();
     }
 
     public function test_bybit() {
         return Async\async(function () {
-            $bybit = $this->init_offline_exchange('bybit');
+            $exchange = $this->init_offline_exchange('bybit');
             $req_headers = null;
             $id = 'CCXT';
-            assert($bybit->options['brokerId'] === $id, 'id not in options');
+            assert($exchange->options['brokerId'] === $id, 'id not in options');
             try {
-                Async\await($bybit->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
-                $req_headers = $bybit->last_request_headers;
+                $req_headers = $exchange->last_request_headers;
             }
             assert($req_headers['Referer'] === $id, 'id not in headers');
-            Async\await(close($bybit));
+            Async\await(close($exchange));
+            return true;
         }) ();
     }
 
     public function test_kucoin() {
         return Async\async(function () {
-            $kucoin = $this->init_offline_exchange('kucoin');
+            $exchange = $this->init_offline_exchange('kucoin');
             $req_headers = null;
-            assert($kucoin->options['partner']['spot']['id'] === 'ccxt', 'id not in options');
-            assert($kucoin->options['partner']['spot']['key'] === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options');
+            assert($exchange->options['partner']['spot']['id'] === 'ccxt', 'id not in options');
+            assert($exchange->options['partner']['spot']['key'] === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options');
             try {
-                Async\await($kucoin->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
-                $req_headers = $kucoin->last_request_headers;
+                $req_headers = $exchange->last_request_headers;
             }
             $id = 'ccxt';
             assert($req_headers['KC-API-PARTNER'] === $id, 'id not in headers');
-            Async\await(close($kucoin));
+            Async\await(close($exchange));
+            return true;
         }) ();
     }
 
     public function test_kucoinfutures() {
         return Async\async(function () {
-            $kucoin = $this->init_offline_exchange('kucoinfutures');
+            $exchange = $this->init_offline_exchange('kucoinfutures');
             $req_headers = null;
             $id = 'ccxtfutures';
-            assert($kucoin->options['partner']['future']['id'] === $id, 'id not in options');
-            assert($kucoin->options['partner']['future']['key'] === '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options');
+            assert($exchange->options['partner']['future']['id'] === $id, 'id not in options');
+            assert($exchange->options['partner']['future']['key'] === '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options');
             try {
-                Async\await($kucoin->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $kucoin->last_request_headers;
+                $req_headers = $exchange->last_request_headers;
             }
             assert($req_headers['KC-API-PARTNER'] === $id, 'id not in headers');
-            Async\await(close($kucoin));
+            Async\await(close($exchange));
+            return true;
         }) ();
     }
 
     public function test_bitget() {
         return Async\async(function () {
-            $bitget = $this->init_offline_exchange('bitget');
+            $exchange = $this->init_offline_exchange('bitget');
             $req_headers = null;
             $id = 'p4sve';
-            assert($bitget->options['broker'] === $id, 'id not in options');
+            assert($exchange->options['broker'] === $id, 'id not in options');
             try {
-                Async\await($bitget->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $bitget->last_request_headers;
+                $req_headers = $exchange->last_request_headers;
             }
             assert($req_headers['X-CHANNEL-API-CODE'] === $id, 'id not in headers');
-            Async\await(close($bitget));
+            Async\await(close($exchange));
+            return true;
         }) ();
     }
 
     public function test_mexc() {
         return Async\async(function () {
-            $mexc = $this->init_offline_exchange('mexc');
+            $exchange = $this->init_offline_exchange('mexc');
             $req_headers = null;
             $id = 'CCXT';
-            assert($mexc->options['broker'] === $id, 'id not in options');
-            Async\await($mexc->load_markets());
+            assert($exchange->options['broker'] === $id, 'id not in options');
+            Async\await($exchange->load_markets());
             try {
-                Async\await($mexc->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $mexc->last_request_headers;
+                $req_headers = $exchange->last_request_headers;
             }
             assert($req_headers['source'] === $id, 'id not in headers');
-            Async\await(close($mexc));
+            Async\await(close($exchange));
+            return true;
         }) ();
     }
 
     public function test_huobi() {
         return Async\async(function () {
-            $huobi = $this->init_offline_exchange('huobi');
+            $exchange = $this->init_offline_exchange('huobi');
             // spot test
             $id = 'AA03022abc';
             $spot_order_request = null;
             try {
-                Async\await($huobi->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $spot_order_request = json_parse($huobi->last_request_body);
+                $spot_order_request = json_parse($exchange->last_request_body);
             }
             $client_order_id = $spot_order_request['client-order-id'];
-            assert(str_starts_with($client_order_id, $id), 'spot clientOrderId does not start with id');
+            assert(str_starts_with($client_order_id, ((string) $id)), 'spot clientOrderId does not start with id');
             // swap test
             $swap_order_request = null;
             try {
-                Async\await($huobi->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $swap_order_request = json_parse($huobi->last_request_body);
+                $swap_order_request = json_parse($exchange->last_request_body);
             }
             $swap_inverse_order_request = null;
             try {
-                Async\await($huobi->create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $swap_inverse_order_request = json_parse($huobi->last_request_body);
+                $swap_inverse_order_request = json_parse($exchange->last_request_body);
             }
             $client_order_id_spot = $swap_order_request['channel_code'];
-            assert(str_starts_with($client_order_id_spot, $id), 'swap channel_code does not start with id');
+            assert(str_starts_with($client_order_id_spot, ((string) $id)), 'swap channel_code does not start with id');
             $client_order_id_inverse = $swap_inverse_order_request['channel_code'];
-            assert(str_starts_with($client_order_id_inverse, $id), 'swap inverse channel_code does not start with id');
-            Async\await(close($huobi));
+            assert(str_starts_with($client_order_id_inverse, ((string) $id)), 'swap inverse channel_code does not start with id');
+            Async\await(close($exchange));
+            return true;
         }) ();
     }
 
     public function test_woo() {
         return Async\async(function () {
-            $woo = $this->init_offline_exchange('woo');
+            $exchange = $this->init_offline_exchange('woo');
             // spot test
             $id = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
             $spot_order_request = null;
             try {
-                Async\await($woo->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $spot_order_request = $this->urlencoded_to_dict($woo->last_request_body);
+                $spot_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
             }
             $broker_id = $spot_order_request['broker_id'];
-            assert(str_starts_with($broker_id, $id), 'broker_id does not start with id');
+            assert(str_starts_with($broker_id, ((string) $id)), 'broker_id does not start with id');
             // swap test
             $stop_order_request = null;
             try {
-                Async\await($woo->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, array(
+                Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, array(
                     'stopPrice' => 30000,
                 )));
             } catch(\Throwable $e) {
-                $stop_order_request = json_parse($woo->last_request_body);
+                $stop_order_request = json_parse($exchange->last_request_body);
             }
             $client_order_id_spot = $stop_order_request['brokerId'];
-            assert(str_starts_with($client_order_id_spot, $id), 'brokerId does not start with id');
-            Async\await(close($woo));
+            assert(str_starts_with($client_order_id_spot, ((string) $id)), 'brokerId does not start with id');
+            Async\await(close($exchange));
+            return true;
         }) ();
     }
 
     public function test_bitmart() {
         return Async\async(function () {
-            $bitmart = $this->init_offline_exchange('bitmart');
+            $exchange = $this->init_offline_exchange('bitmart');
             $req_headers = null;
             $id = 'CCXTxBitmart000';
-            assert($bitmart->options['brokerId'] === $id, 'id not in options');
-            Async\await($bitmart->load_markets());
+            assert($exchange->options['brokerId'] === $id, 'id not in options');
+            Async\await($exchange->load_markets());
             try {
-                Async\await($bitmart->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
-                $req_headers = $bitmart->last_request_headers;
+                $req_headers = $exchange->last_request_headers;
             }
             assert($req_headers['X-BM-BROKER-ID'] === $id, 'id not in headers');
-            Async\await(close($bitmart));
+            Async\await(close($exchange));
+            return true;
         }) ();
     }
 
@@ -1644,8 +1687,9 @@ class testMainClass extends baseMainTestClass {
                 $spot_order_request = json_parse($exchange->last_request_body);
             }
             $client_order_id = $spot_order_request['client_id'];
-            assert(str_starts_with($client_order_id, $id), 'clientOrderId does not start with id');
+            assert(str_starts_with($client_order_id, ((string) $id)), 'clientOrderId does not start with id');
             Async\await(close($exchange));
+            return true;
         }) ();
     }
 }

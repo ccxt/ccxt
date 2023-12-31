@@ -203,28 +203,28 @@ class luno extends \ccxt\async\luno {
         $symbol = $subscription['symbol'];
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_string($message, 'timestamp');
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($storedOrderBook === null) {
-            $storedOrderBook = $this->indexed_order_book(array());
-            $this->orderbooks[$symbol] = $storedOrderBook;
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            $orderbook = $this->indexed_order_book(array());
+            $this->orderbooks[$symbol] = $orderbook;
         }
         $asks = $this->safe_value($message, 'asks');
         if ($asks !== null) {
             $snapshot = $this->custom_parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume', 'id');
-            $storedOrderBook->reset ($snapshot);
+            $orderbook->reset ($snapshot);
         } else {
-            $this->handle_delta($storedOrderBook, $message);
-            $storedOrderBook['timestamp'] = $timestamp;
-            $storedOrderBook['datetime'] = $this->iso8601($timestamp);
+            $this->handle_delta($orderbook, $message);
+            $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $this->iso8601($timestamp);
         }
         $nonce = $this->safe_integer($message, 'sequence');
-        $storedOrderBook['nonce'] = $nonce;
-        $client->resolve ($storedOrderBook, $messageHash);
+        $orderbook['nonce'] = $nonce;
+        $client->resolve ($orderbook, $messageHash);
     }
 
     public function custom_parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 'price', $amountKey = 'volume', $thirdKey = null) {
-        $bids = $this->parse_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $thirdKey);
-        $asks = $this->parse_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $thirdKey);
+        $bids = $this->custom_parse_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $thirdKey);
+        $asks = $this->custom_parse_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $thirdKey);
         return array(
             'symbol' => $symbol,
             'bids' => $this->sort_by($bids, 0, true),
@@ -235,7 +235,7 @@ class luno extends \ccxt\async\luno {
         );
     }
 
-    public function parse_bids_asks($bidasks, $priceKey = 'price', $amountKey = 'volume', $thirdKey = null) {
+    public function custom_parse_bids_asks($bidasks, $priceKey = 'price', $amountKey = 'volume', $thirdKey = null) {
         $bidasks = $this->to_array($bidasks);
         $result = array();
         for ($i = 0; $i < count($bidasks); $i++) {
@@ -314,10 +314,9 @@ class luno extends \ccxt\async\luno {
         $deleteUpdate = $this->safe_value($message, 'delete_update');
         if ($deleteUpdate !== null) {
             $orderId = $this->safe_string($deleteUpdate, 'order_id');
-            $asksOrderSide->storeArray (0, 0, $orderId);
-            $bidsOrderSide->storeArray (0, 0, $orderId);
+            $asksOrderSide->storeArray (array( 0, 0, $orderId ));
+            $bidsOrderSide->storeArray (array( 0, 0, $orderId ));
         }
-        return $message;
     }
 
     public function handle_message(Client $client, $message) {
@@ -330,6 +329,5 @@ class luno extends \ccxt\async\luno {
             $handler = $handlers[$j];
             $handler($client, $message, $subscriptions[0]);
         }
-        return $message;
     }
 }
