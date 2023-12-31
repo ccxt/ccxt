@@ -1737,6 +1737,10 @@ export default class bingx extends Exchange {
             const isTrailingAmountOrder = trailingAmount !== undefined;
             const isTrailingPercentOrder = trailingPercent !== undefined;
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
+            const stopLoss = this.safeValue (params, 'stopLoss');
+            const takeProfit = this.safeValue (params, 'takeProfit');
+            const isStopLoss = stopLoss !== undefined;
+            const isTakeProfit = takeProfit !== undefined;
             if (((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) && !isTrailing) {
                 request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
             }
@@ -1775,6 +1779,38 @@ export default class bingx extends Exchange {
                     request['priceRate'] = this.parseToNumeric (requestTrailingPercent);
                 }
             }
+            if (isStopLoss || isTakeProfit) {
+                if (isStopLoss) {
+                    const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                    const slWorkingType = this.safeString (stopLoss, 'workingType', 'MARK_PRICE');
+                    const slType = this.safeString (stopLoss, 'type', 'STOP_MARKET');
+                    const slRequest = {
+                        'stopPrice': this.priceToPrecision (symbol, slTriggerPrice),
+                        'workingType': slWorkingType,
+                        'type': slType,
+                    };
+                    const slPrice = this.safeString (stopLoss, 'price');
+                    if (slPrice !== undefined) {
+                        slRequest['price'] = this.priceToPrecision (symbol, slPrice);
+                    }
+                    request['stopLoss'] = this.json (slRequest);
+                }
+                if (isTakeProfit) {
+                    const tkTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                    const tkWorkingType = this.safeString (stopLoss, 'workingType', 'MARK_PRICE');
+                    const tpType = this.safeString (stopLoss, 'type', 'TAKE_PROFIT_MARKET');
+                    const tpRequest = {
+                        'stopPrice': this.priceToPrecision (symbol, tkTriggerPrice),
+                        'workingType': tkWorkingType,
+                        'type': tpType,
+                    };
+                    const slPrice = this.safeString (stopLoss, 'price');
+                    if (slPrice !== undefined) {
+                        tpRequest['price'] = this.priceToPrecision (symbol, slPrice);
+                    }
+                    request['takeProfit'] = this.json (tpRequest);
+                }
+            }
             let positionSide = undefined;
             if (reduceOnly) {
                 positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
@@ -1783,7 +1819,7 @@ export default class bingx extends Exchange {
             }
             request['positionSide'] = positionSide;
             request['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, amount));
-            params = this.omit (params, [ 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent' ]);
+            params = this.omit (params, [ 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'takeProfit', 'stopLoss' ]);
         }
         return this.extend (request, params);
     }
@@ -1794,6 +1830,7 @@ export default class bingx extends Exchange {
          * @name bingx#createOrder
          * @description create a trade order
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1809,6 +1846,10 @@ export default class bingx extends Exchange {
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
          * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
          * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
