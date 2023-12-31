@@ -1793,10 +1793,8 @@ export default class bingx extends Exchange {
                     if (slPrice !== undefined) {
                         slRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
                     }
-                    const slQuantity = this.safeString (stopLoss, 'quantity');
-                    if (slQuantity !== undefined) {
-                        slRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, slQuantity));
-                    }
+                    const slQuantity = this.safeString (stopLoss, 'quantity', amount);
+                    slRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, slQuantity));
                     request['stopLoss'] = this.json (slRequest);
                 }
                 if (isTakeProfit) {
@@ -1812,10 +1810,8 @@ export default class bingx extends Exchange {
                     if (slPrice !== undefined) {
                         tpRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
                     }
-                    const tkQuantity = this.safeString (stopLoss, 'quantity');
-                    if (tkQuantity !== undefined) {
-                        tpRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, tkQuantity));
-                    }
+                    const tkQuantity = this.safeString (stopLoss, 'quantity', amount);
+                    tpRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, tkQuantity));
                     request['takeProfit'] = this.json (tpRequest);
                 }
             }
