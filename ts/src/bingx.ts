@@ -2420,7 +2420,7 @@ export default class bingx extends Exchange {
         }
         const parsedIds = [];
         for (let i = 0; i < idsToParse.length; i++) {
-            const id = ids[i];
+            const id = idsToParse[i];
             const stringId = id.toString ();
             parsedIds.push (stringId);
         }
