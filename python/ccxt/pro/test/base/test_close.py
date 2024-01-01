@@ -37,7 +37,7 @@ async def test_close():
     # --------------------------------------------
     print('Testing exchange.close(): Awaiting future should throw ClosedByUser')
     try:
-        await gather( close_after(exchange, 5), watch_ticker_loop(exchange))
+        await gather(close_after(exchange, 5), watch_ticker_loop(exchange))
     except Exception as e:
         if isinstance(e, ExchangeClosedByUser):
             print('PASSED - future rejected with ClosedByUser')
