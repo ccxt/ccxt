@@ -70,8 +70,8 @@ export default class oanda extends Exchange {
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
-                'fetchTicker': true,
-                'fetchTickers': true,
+                'fetchTicker': undefined,
+                'fetchTickers': undefined,
                 'fetchBidsAsks': true,
                 'fetchTime': false,
                 'fetchTrades': false,
@@ -611,7 +611,6 @@ export default class oanda extends Exchange {
         const market = this.safeMarket (marketId, undefined);
         const buckets = this.safeValue (orderbook, 'buckets', []);
         const bucketWidth = this.safeValue (orderbook, 'bucketWidth');
-        const medianPrice = this.safeString (orderbook, 'price');
         const bids = [];
         const asks = [];
         for (let i = 0; i < buckets.length; i++) {
@@ -623,14 +622,11 @@ export default class oanda extends Exchange {
             const shortCountPercent = this.safeString (bucket, 'shortCountPercent');
             const hasLongOrders = Precise.stringGt (longCountPercent, '0');
             const hasShortOrders = Precise.stringGt (shortCountPercent, '0');
-            const deviationPercent = '1.5'; // 50%
-            const medianUpper = Precise.stringMul (medianPrice, deviationPercent);
-            const medianLower = Precise.stringDiv (medianPrice, deviationPercent);
             // volumes are percentage of orders for this bucket, there is no way to calculate absolute volume for bidask
-            if (hasLongOrders && Precise.stringLt (bucketPriceBegin, medianUpper)) {
+            if (hasLongOrders) {
                 bids.push ([ this.parseNumber (bucketPriceBegin), this.parseNumber (longCountPercent) ]);
             }
-            if (hasShortOrders && Precise.stringGt (bucketPriceEnd, medianLower)) {
+            if (hasShortOrders) {
                 asks.push ([ this.parseNumber (bucketPriceEnd), this.parseNumber (shortCountPercent) ]);
             }
         }
@@ -642,6 +638,7 @@ export default class oanda extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
+            'info': orderbook,
         };
     }
 
