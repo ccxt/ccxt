@@ -1,17 +1,9 @@
-'use strict';
-
-// ----------------------------------------------------------------------------
-
 import assert from 'assert';
-import log from 'ololog';
 import testTicker from '../../../../test/Exchange/base/test.ticker.js';
 import errors from '../../../../base/errors.js';
 
-/*  ------------------------------------------------------------------------ */
 
-export default async (exchange, symbol) => {
-
-    // log (symbol.green, 'watching ticker...')
+async function testWatchTickers (exchange, symbol) {
 
     const method = 'watchTickers';
 
@@ -84,7 +76,7 @@ export default async (exchange, symbol) => {
 
         let response = undefined;
 
-        let now = Date.now ();
+        let now = exchange.milliseconds ();
         const ends = now + 5000;
 
         while (now < ends) {
@@ -100,26 +92,27 @@ export default async (exchange, symbol) => {
                     testTicker (exchange, {}, method, ticker, ticker['symbol']);
                 }
 
-                now = Date.now ();
 
             } catch (e) {
 
                 if (!(e instanceof errors.NetworkError)) {
-                    log.red (exchange.id, method, params['name'], 'FAILED', e);
+                    exchange.log ('[FAILED] - TEST - ' + exchange.id + ' ' + method + ' ' + params['name']);
                     throw e;
                 }
 
-                log.yellow (exchange.id, method, params['name'], 'NetworkError', e);
-                now = Date.now ();
                 break;
             }
+
+            now = exchange.milliseconds ();
 
         }
 
         await exchange.close ();
-
-        log.green (exchange.id, method, params['name'], 'OK');
+        exchange.log ('[OK] - TEST - ' + exchange.id + ' ' + method + ' ' + params['name']);
 
     }
     return true;
-};
+}
+
+
+export default testWatchTickers;

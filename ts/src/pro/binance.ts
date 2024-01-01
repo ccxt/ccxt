@@ -912,14 +912,17 @@ export default class binance extends binanceRest {
         if ((type === 'delivery') && (name.indexOf ('@') >= 0)) {
             subscriptionHashes = messageHashes;
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, subscriptionHashes);
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'watchTickers::' + name);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionHashes,
             'id': requestId,
         };
-        const tickers = await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, {});
+        const subscription = {
+            'id': requestId.toString (),
+        };
+        const tickers = await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscription);
         if (this.newUpdates) {
             tickers.getLimit ();
         }
@@ -1045,14 +1048,15 @@ export default class binance extends binanceRest {
         const urlsKeys = Object.keys (urls);
         for (let i = 0; i < urlsKeys.length; i++) {
             const url = urls[urlsKeys[i]];
-            if (client['url'].indexOf (url) >= 0) {
+            const clientUrl = client.url;
+            if (clientUrl.indexOf (url) >= 0) {
                 type = urlsKeys[i];
                 break;
             }
         }
         let tickersCache = this.safeValue (this.tickers, type);
         if (tickersCache === undefined) {
-            tickersCache = new ArrayCacheBySymbolBySide ();
+            tickersCache = new ArrayCacheBySymbolById ();
         }
         let rawTickers = [];
         if (Array.isArray (message)) {
