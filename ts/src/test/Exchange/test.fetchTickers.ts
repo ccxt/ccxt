@@ -10,17 +10,13 @@ async function testFetchTickers (exchange, skippedProperties, symbol) {
 
 async function testFetchTickersHelper (exchange, skippedProperties, argSymbols, argParams = {}) {
     const method = 'fetchTickers';
-    // log ('fetching all tickers at once...')
-    let tickers = undefined;
+    const response =  await exchange.fetchTickers (argSymbols, argParams);
+    assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
+    const values = Object.values (response);
     let checkedSymbol = undefined;
-    try {
-        tickers = await exchange.fetchTickers (argSymbols, argParams);
-    } catch (e) {
-        tickers = await exchange.fetchTickers ([ symbol ]);
-        checkedSymbol = symbol;
+    if (argSymbols !== undefined && argSymbols.length === 1) {
+        checkedSymbol = argSymbols[0];
     }
-    assert (typeof tickers === 'object', exchange.id + ' ' + method + ' ' + checkedSymbol + ' must return an object. ' + exchange.json (tickers));
-    const values = Object.values (tickers);
     for (let i = 0; i < values.length; i++) {
         const ticker = values[i];
         testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
