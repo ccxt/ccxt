@@ -3,12 +3,18 @@ import assert from 'assert';
 import testTicker from './base/test.ticker.js';
 
 async function testFetchTickers (exchange, skippedProperties, symbol) {
+    const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
+    const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
+    await Promise.all ([ withSymbol, withoutSymbol ]);
+}
+
+async function testFetchTickersHelper (exchange, skippedProperties, argSymbols, argParams = {}) {
     const method = 'fetchTickers';
     // log ('fetching all tickers at once...')
     let tickers = undefined;
     let checkedSymbol = undefined;
     try {
-        tickers = await exchange.fetchTickers ();
+        tickers = await exchange.fetchTickers (argSymbols, argParams);
     } catch (e) {
         tickers = await exchange.fetchTickers ([ symbol ]);
         checkedSymbol = symbol;
