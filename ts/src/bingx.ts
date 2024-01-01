@@ -2401,6 +2401,7 @@ export default class bingx extends Exchange {
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [params.clientOrderIds] client order ids
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2411,18 +2412,26 @@ export default class bingx extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        let idsToParse = ids;
+        const areClientOrderIds = (clientOrderIds !== undefined);
+        if (areClientOrderIds) {
+            idsToParse = clientOrderIds;
+        }
         const parsedIds = [];
-        for (let i = 0; i < ids.length; i++) {
+        for (let i = 0; i < idsToParse.length; i++) {
             const id = ids[i];
             const stringId = id.toString ();
             parsedIds.push (stringId);
         }
         let response = undefined;
         if (market['spot']) {
-            request['orderIds'] = parsedIds.join (',');
+            const spotReqKey = areClientOrderIds ? 'clientOrderIds' : 'orderIds';
+            request[spotReqKey] = parsedIds.join (',');
             response = await this.spotV1PrivatePostTradeCancelOrders (this.extend (request, params));
         } else {
-            request['orderIdList'] = parsedIds;
+            const swapReqKey = areClientOrderIds ? 'ClientOrderIDList' : 'orderIdList';
+            request[swapReqKey] = parsedIds;
             response = await this.swapV2PrivateDeleteTradeBatchOrders (this.extend (request, params));
         }
         //
