@@ -68,8 +68,14 @@ const tests = {};
 
 // eslint-disable-next-line no-path-concat
 const pathToExchangeTests = __dirname + '/Exchange/';
+// eslint-disable-next-line no-path-concat
+const pathToSpecificExchangeTests = __dirname + '/Exchange/' + exchangeId + '/';
 
 const filteredFiles = fs.readdirSync (pathToExchangeTests)
+    .filter ((file) => file.match (/test.[a-zA-Z0-9_-]+.(ts|js)$/))
+    .map ((file) => file.slice (0, -3)); // remove extensions
+
+const exchangeSpecificFiles = fs.readdirSync (pathToSpecificExchangeTests)
     .filter ((file) => file.match (/test.[a-zA-Z0-9_-]+.(ts|js)$/))
     .map ((file) => file.slice (0, -3)); // remove extensions
 
@@ -78,7 +84,12 @@ for (const file of filteredFiles) {
     const key = file.slice (5);
     tests[key] = (await import (pathToFileURL (pathToExchangeTests + (file as string) + '.js').toString ()) as any)['default'];
 }
-
+// overwrite with exchange specific tests
+// eslint-disable-next-line no-restricted-syntax
+for (const file of exchangeSpecificFiles) {
+    const key = file.slice (5);
+    tests[key] = (await import (pathToFileURL (pathToSpecificExchangeTests + (file as string) + '.js').toString ()) as any)['default'];
+}
 //-----------------------------------------------------------------------------
 const rootDir = __dirname + '/../../../../';
 const keysGlobal = rootDir + 'keys.json'

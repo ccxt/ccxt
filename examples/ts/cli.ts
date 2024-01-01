@@ -7,6 +7,7 @@ import util from 'util'
 import { execSync } from 'child_process'
 import ccxt from '../../ts/ccxt.js'
 import { Agent } from 'https'
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const fsPromises = fs.promises;
 ansi.nice
@@ -38,6 +39,7 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , shouldCreateRequestReport = process.argv.includes ('--report')
     , shouldCreateResponseReport = process.argv.includes ('--response')
     , shouldCreateBoth = process.argv.includes ('--static')
+    , runTest = process.argv.includes ('--run-test')
 
 //-----------------------------------------------------------------------------
 
@@ -193,6 +195,7 @@ function printUsage () {
     log ('--testnet         Use the exchange testnet if available, same as --sandbox')
     log ('--test            Use the exchange testnet if available, same as --sandbox')
     log ('--cache-markets   Cache the loaded markets in the .cache folder in the current directory')
+    log ('--run-test        Runs exchange test if available if not defaults to generic')
 }
 
 //-----------------------------------------------------------------------------
@@ -328,13 +331,41 @@ async function run () {
 
                 let i = 0;
 
+                
                 let isWsMethod = false
                 if (methodName.startsWith("watch")) { // handle WS methods
                     isWsMethod = true;
                 }
+                
+                const runInLoop = (isWsMethod || poll) && !runTest
 
                 while (true) {
                     try {
+                        if (runTest) {
+                            // load exchange specific test
+                            // eslint-disable-next-line no-path-concat
+                            let pathToExchangeTests = './ts/src/test/Exchange/';
+                            let pathToSpecificExchangeTests = './ts/src/test/Exchange/' + exchangeId + '/';
+                            if (isWsMethod) {
+                                pathToExchangeTests = './ts/src/pro/test/Exchange/';
+                                pathToSpecificExchangeTests = './ts/src/pro/test/Exchange/' + exchangeId + '/';
+                            }
+                            let filePath = pathToSpecificExchangeTests + 'test.' + methodName + '.ts';
+                            if (!fs.existsSync(filePath)) {
+                                log.green ('No specific test for exchange, loading generic')
+                                filePath = pathToExchangeTests + 'test.' + methodName + '.ts';
+                            }
+                            if (fs.existsSync(filePath)) {
+                                const fileModule = await import(pathToFileURL(filePath).toString());
+                                const exchangeSymbols =  JSON.parse (fs.readFileSync ('./pro-tests.json', "utf8"));
+                                const symbol = exchangeSymbols[exchangeId] || 'BTC/USDT';
+                                fileModule.default (exchange, symbol, ... args);
+                                break;
+                            } else {
+                                log.red ('No test exists for method');
+                                break;
+                            }
+                        }
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
                         if (!isWsMethod) {
@@ -372,7 +403,7 @@ async function run () {
                         log (firstKey, httpAgent.length)
                     }
 
-                    if (!poll && !isWsMethod){
+                    if (!runInLoop){
                         break
                     }
                 }

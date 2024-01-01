@@ -6969,7 +6969,7 @@ export default class gate extends Exchange {
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} side 'buy' or 'sell'
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         const request = {
             'close': true,
