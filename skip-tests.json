@@ -1285,6 +1285,14 @@
             }
         }
     },
+    "oanda": {
+        "skipMethods": {
+            "loadMarkets":{
+                "active":"is undefined"
+            },
+            "fetchOrderBook": "abnormal structure, can not be tested"
+        }
+    },
     "oceanex": {
         "skipMethods": {
             "loadMarkets":{
