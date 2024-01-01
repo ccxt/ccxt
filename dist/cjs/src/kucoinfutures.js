@@ -151,6 +151,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'positions': 4.44,
                         'funding-history': 4.44,
                         'sub/api-key': 1,
+                        'trade-statistics': 1,
                     },
                     'post': {
                         'withdrawals': 1,
@@ -172,6 +173,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'orders': 4.44,
                         'stopOrders': 1,
                         'sub/api-key': 1,
+                        'orders/client-order/{clientOid}': 1,
                     },
                 },
                 'webExchange': {
@@ -1234,13 +1236,27 @@ class kucoinfutures extends kucoinfutures$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] cancel order by client order id
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        const request = {
-            'orderId': id,
-        };
-        const response = await this.futuresPrivateDeleteOrdersOrderId(this.extend(request, params));
+        const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
+        params = this.omit(params, ['clientOrderId']);
+        const request = {};
+        let response = undefined;
+        if (clientOrderId !== undefined) {
+            if (symbol === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument when cancelling by clientOrderId');
+            }
+            const market = this.market(symbol);
+            request['symbol'] = market['id'];
+            request['clientOid'] = clientOrderId;
+            response = await this.futuresPrivateDeleteOrdersClientOrderClientOid(this.extend(request, params));
+        }
+        else {
+            request['orderId'] = id;
+            response = await this.futuresPrivateDeleteOrdersOrderId(this.extend(request, params));
+        }
         //
         //   {
         //       "code": "200000",
@@ -1262,7 +1278,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-stop-orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.stop] When true, all the trigger orders will be cancelled
+         * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
          * @returns Response from the exchange
          */
         await this.loadMarkets();
@@ -1270,8 +1286,8 @@ class kucoinfutures extends kucoinfutures$1 {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId(symbol);
         }
-        const stop = this.safeValue(params, 'stop');
-        params = this.omit(params, 'stop');
+        const stop = this.safeValue2(params, 'stop', 'trigger');
+        params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
         if (stop) {
             response = await this.futuresPrivateDeleteStopOrders(this.extend(request, params));
@@ -1440,7 +1456,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @param {int} [since] timestamp in ms of the earliest order to retrieve
          * @param {int} [limit] The maximum number of orders to retrieve
          * @param {object} [params] exchange specific parameters
-         * @param {bool} [params.stop] set to true to retrieve untriggered stop orders
+         * @param {bool} [params.trigger] set to true to retrieve untriggered stop orders
          * @param {int} [params.until] End time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit or market
@@ -1453,9 +1469,9 @@ class kucoinfutures extends kucoinfutures$1 {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic('fetchOrdersByStatus', symbol, since, limit, params);
         }
-        const stop = this.safeValue(params, 'stop');
+        const stop = this.safeValue2(params, 'stop', 'trigger');
         const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['stop', 'until', 'till']);
+        params = this.omit(params, ['stop', 'until', 'till', 'trigger']);
         if (status === 'closed') {
             status = 'done';
         }
@@ -1550,7 +1566,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @see https://docs.kucoin.com/futures/#get-order-list
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.till] end time in ms
          * @param {string} [params.side] buy or sell
@@ -1716,14 +1732,18 @@ class kucoinfutures extends kucoinfutures$1 {
         const cancelExist = this.safeValue(order, 'cancelExist', false);
         let status = isActive ? 'open' : 'closed';
         status = cancelExist ? 'canceled' : status;
-        const fee = {
-            'currency': feeCurrency,
-            'cost': feeCost,
-        };
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCost,
+            };
+        }
         const clientOrderId = this.safeString(order, 'clientOid');
         const timeInForce = this.safeString(order, 'timeInForce');
         const stopPrice = this.safeNumber(order, 'stopPrice');
         const postOnly = this.safeValue(order, 'postOnly');
+        const reduceOnly = this.safeValue(order, 'reduceOnly');
         const lastUpdateTimestamp = this.safeInteger(order, 'updatedAt');
         return this.safeOrder({
             'id': orderId,
@@ -1732,6 +1752,7 @@ class kucoinfutures extends kucoinfutures$1 {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': side,
             'amount': amount,
             'price': price,
@@ -2424,7 +2445,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @param {string} side not used by kucoinfutures closePositions
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.clientOrderId] client order id of the order
-         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);

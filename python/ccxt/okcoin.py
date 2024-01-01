@@ -1848,7 +1848,7 @@ class okcoin(Exchange, ImplicitAPI):
             # 'ordId': id,
         }
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
         if stop:
             if clientOrderId is not None:
                 request['algoClOrdId'] = clientOrderId
@@ -1859,7 +1859,7 @@ class okcoin(Exchange, ImplicitAPI):
                 request['clOrdId'] = clientOrderId
             else:
                 request['ordId'] = id
-        query = self.omit(params, ['clientOrderId', 'stop'])
+        query = self.omit(params, ['clientOrderId', 'stop', 'trigger'])
         response = None
         if stop:
             response = self.privateGetTradeOrderAlgo(self.extend(request, query))
@@ -1918,7 +1918,7 @@ class okcoin(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.stop]: True if fetching trigger or conditional orders
         :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"

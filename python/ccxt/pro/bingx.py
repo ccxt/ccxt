@@ -37,6 +37,7 @@ class bingx(ccxt.async_support.bingx):
                 },
             },
             'options': {
+                'listenKeyRefreshRate': 3540000,  # 1 hour(59 mins so we have 1min to renew the token)
                 'ws': {
                     'gunzip': True,
                 },
@@ -85,7 +86,7 @@ class bingx(ccxt.async_support.bingx):
         :see: https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
@@ -171,7 +172,8 @@ class bingx(ccxt.async_support.bingx):
         data = self.safe_value(message, 'data', [])
         messageHash = self.safe_string(message, 'dataType')
         marketId = messageHash.split('@')[0]
-        marketType = client.url.find('swap') >= 'swap' if 0 else 'spot'
+        isSwap = client.url.find('swap') >= 0
+        marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         trades = None
@@ -272,7 +274,8 @@ class bingx(ccxt.async_support.bingx):
         data = self.safe_value(message, 'data', [])
         messageHash = self.safe_string(message, 'dataType')
         marketId = messageHash.split('@')[0]
-        marketType = client.url.find('swap') >= 'swap' if 0 else 'spot'
+        isSwap = client.url.find('swap') >= 0
+        marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         orderbook = self.safe_value(self.orderbooks, symbol)
@@ -295,8 +298,11 @@ class bingx(ccxt.async_support.bingx):
         #        "t": 1696687440000
         #    }
         #
+        # for spot, opening-time(t) is used instead of closing-time(T), to be compatible with fetchOHLCV
+        # for swap,(T) is the opening time
+        timestamp = 't' if (market['spot']) else 'T'
         return [
-            self.safe_integer(ohlcv, 't'),  # needs to be opening-time(t) instead of closing-time(T), to be compatible with fetchOHLCV
+            self.safe_integer(ohlcv, timestamp),
             self.safe_number(ohlcv, 'o'),
             self.safe_number(ohlcv, 'h'),
             self.safe_number(ohlcv, 'l'),
@@ -358,7 +364,8 @@ class bingx(ccxt.async_support.bingx):
         messageHash = self.safe_string(message, 'dataType')
         timeframeId = messageHash.split('_')[1]
         marketId = messageHash.split('@')[0]
-        marketType = client.url.find('swap') >= 'swap' if 0 else 'spot'
+        isSwap = client.url.find('swap') >= 0
+        marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
@@ -413,7 +420,7 @@ class bingx(ccxt.async_support.bingx):
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -575,7 +582,7 @@ class bingx(ccxt.async_support.bingx):
         lastAuthenticatedTime = self.safe_integer(self.options, 'lastAuthenticatedTime', 0)
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)  # 1 hour
         if time - lastAuthenticatedTime > listenKeyRefreshRate:
-            response = await self.userAuthPrivatePostUserDataStream({'listenKey': listenKey})  # self.extend the expiry
+            response = await self.userAuthPrivatePutUserDataStream({'listenKey': listenKey})  # self.extend the expiry
             self.options['listenKey'] = self.safe_string(response, 'listenKey')
             self.options['lastAuthenticatedTime'] = time
 

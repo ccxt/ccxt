@@ -432,7 +432,11 @@ class lykke(Exchange, ImplicitAPI):
         }
         # publicGetTickers or publicGetPrices
         method = self.safe_string(self.options, 'fetchTickerMethod', 'publicGetTickers')
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'publicGetPrices':
+            response = self.publicGetPrices(self.extend(request, params))
+        else:
+            response = self.publicGetTickers(self.extend(request, params))
         ticker = self.safe_value(response, 'payload', [])
         #
         # publicGetTickers
@@ -771,8 +775,11 @@ class lykke(Exchange, ImplicitAPI):
         }
         if type == 'limit':
             query['price'] = float(self.price_to_precision(market['symbol'], price))
-        method = 'privatePostOrders' + self.capitalize(type)
-        result = getattr(self, method)(self.extend(query, params))
+        result = None
+        if self.capitalize(type) == 'Market':
+            result = self.privatePostOrdersMarket(self.extend(query, params))
+        else:
+            result = self.privatePostOrdersLimit(self.extend(query, params))
         #
         # market
         #
@@ -943,7 +950,7 @@ class lykke(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """

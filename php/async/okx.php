@@ -258,6 +258,7 @@ class okx extends Exchange {
                         // rfq
                         'rfq/counterparties' => 4,
                         'rfq/maker-instrument-settings' => 4,
+                        'rfq/mmp-config' => 4,
                         'rfq/rfqs' => 10,
                         'rfq/quotes' => 10,
                         'rfq/trades' => 4,
@@ -397,6 +398,7 @@ class okx extends Exchange {
                         'rfq/execute-quote' => 15,
                         'rfq/maker-instrument-settings' => 4,
                         'rfq/mmp-reset' => 4,
+                        'rfq/mmp-config' => 100,
                         'rfq/create-quote' => 0.4,
                         'rfq/cancel-quote' => 0.4,
                         'rfq/cancel-batch-quotes' => 10,
@@ -877,8 +879,8 @@ class okx extends Exchange {
                     'ALGO' => 'Algorand',
                     'BHP' => 'BHP',
                     'APT' => 'Aptos',
-                    'ARBONE' => 'Arbitrum one',
-                    'AVAXC' => 'Avalanche C-Chain',
+                    'ARBONE' => 'Arbitrum One',
+                    'AVAXC' => 'Avalanche C',
                     'AVAXX' => 'Avalanche X-Chain',
                     'ARK' => 'ARK',
                     'AR' => 'Arweave',
@@ -3034,12 +3036,13 @@ class okx extends Exchange {
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->trigger] true if trigger orders
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
             if ($stop) {
                 $orderInner = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
                 return $this->safe_value($orderInner, 0);
@@ -3406,6 +3409,7 @@ class okx extends Exchange {
              * @param {string} $id the $order $id
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra and exchange specific parameters
+             * @param {boolean} [$params->trigger] true if fetching trigger orders
              * @return ~@link https://docs.ccxt.com/#/?$id=$order-structure an $order structure~
              */
             if ($symbol === null) {
@@ -3423,7 +3427,7 @@ class okx extends Exchange {
             $options = $this->safe_value($this->options, 'fetchOrder', array());
             $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrder');
             $method = $this->safe_string($params, 'method', $defaultMethod);
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
             if ($stop) {
                 $method = 'privateGetTradeOrderAlgo';
                 if ($clientOrderId !== null) {
@@ -3438,7 +3442,7 @@ class okx extends Exchange {
                     $request['ordId'] = $id;
                 }
             }
-            $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId', 'stop' ));
+            $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId', 'stop', 'trigger' ));
             $response = null;
             if ($method === 'privateGetTradeOrderAlgo') {
                 $response = Async\await($this->privateGetTradeOrderAlgo (array_merge($request, $query)));
@@ -3594,7 +3598,7 @@ class okx extends Exchange {
             $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrdersPending');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $ordType = $this->safe_string($params, 'ordType');
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
             if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
                 $method = 'privateGetTradeOrdersAlgoPending';
                 if ($stop) {
@@ -3603,7 +3607,7 @@ class okx extends Exchange {
                     }
                 }
             }
-            $query = $this->omit($params, array( 'method', 'stop' ));
+            $query = $this->omit($params, array( 'method', 'stop', 'trigger' ));
             $response = null;
             if ($method === 'privateGetTradeOrdersAlgoPending') {
                 $response = Async\await($this->privateGetTradeOrdersAlgoPending (array_merge($request, $query)));
@@ -3756,7 +3760,7 @@ class okx extends Exchange {
             $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrdersHistory');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $ordType = $this->safe_string($params, 'ordType');
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
             if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
                 $method = 'privateGetTradeOrdersAlgoHistory';
                 $algoId = $this->safe_string($params, 'algoId');
@@ -3780,7 +3784,7 @@ class okx extends Exchange {
                     $query = $this->omit($query, array( 'until', 'till' ));
                 }
             }
-            $send = $this->omit($query, array( 'method', 'stop', 'ordType' ));
+            $send = $this->omit($query, array( 'method', 'stop', 'ordType', 'trigger' ));
             $response = null;
             if ($method === 'privateGetTradeOrdersAlgoHistory') {
                 $response = Async\await($this->privateGetTradeOrdersAlgoHistory (array_merge($request, $send)));
@@ -3899,7 +3903,7 @@ class okx extends Exchange {
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->stop] True if fetching trigger or conditional orders
              * @param {string} [$params->ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
@@ -3942,7 +3946,7 @@ class okx extends Exchange {
             $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrdersHistory');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $ordType = $this->safe_string($params, 'ordType');
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
             if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
                 $method = 'privateGetTradeOrdersAlgoHistory';
                 if ($stop) {
@@ -3962,7 +3966,7 @@ class okx extends Exchange {
                 }
                 $request['state'] = 'filled';
             }
-            $send = $this->omit($query, array( 'method', 'stop' ));
+            $send = $this->omit($query, array( 'method', 'stop', 'trigger' ));
             $response = null;
             if ($method === 'privateGetTradeOrdersAlgoHistory') {
                 $response = Async\await($this->privateGetTradeOrdersAlgoHistory (array_merge($request, $send)));
@@ -4465,15 +4469,16 @@ class okx extends Exchange {
         //     ),
         //
         if ($chain === 'USDT-Polygon') {
-            $networkData = $this->safe_value($networksById, 'USDT-Polygon-Bridge');
+            $networkData = $this->safe_value_2($networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon');
         }
         $network = $this->safe_string($networkData, 'network');
+        $networkCode = $this->network_id_to_code($network, $code);
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => $network,
+            'network' => $networkCode,
             'info' => $depositAddress,
         );
     }

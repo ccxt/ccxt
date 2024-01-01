@@ -1286,12 +1286,15 @@ class deribit(Exchange, ImplicitAPI):
             'instrument_name': market['id'],
             'include_old': True,
         }
-        method = 'publicGetGetLastTradesByInstrument' if (since is None) else 'publicGetGetLastTradesByInstrumentAndTime'
         if since is not None:
             request['start_timestamp'] = since
         if limit is not None:
             request['count'] = min(limit, 1000)  # default 10
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if since is None:
+            response = await self.publicGetGetLastTradesByInstrument(self.extend(request, params))
+        else:
+            response = await self.publicGetGetLastTradesByInstrumentAndTime(self.extend(request, params))
         #
         #      {
         #          "jsonrpc":"2.0",
@@ -1746,9 +1749,12 @@ class deribit(Exchange, ImplicitAPI):
                 request['time_in_force'] = 'immediate_or_cancel'
             if timeInForce == 'FOK':
                 request['time_in_force'] = 'fill_or_kill'
-        method = 'privateGet' + self.capitalize(side)
         params = self.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly'])
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if self.capitalize(side) == 'Buy':
+            response = await self.privateGetBuy(self.extend(request, params))
+        else:
+            response = await self.privateGetSell(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -1857,14 +1863,13 @@ class deribit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {}
-        method = None
+        response = None
         if symbol is None:
-            method = 'privateGetCancelAll'
+            response = await self.privateGetCancelAll(self.extend(request, params))
         else:
-            method = 'privateGetCancelAllByInstrument'
             market = self.market(symbol)
             request['instrument_name'] = market['id']
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateGetCancelAllByInstrument(self.extend(request, params))
         return response
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1879,17 +1884,16 @@ class deribit(Exchange, ImplicitAPI):
         await self.load_markets()
         request = {}
         market = None
-        method = None
+        response = None
         if symbol is None:
             code = self.code_from_options('fetchOpenOrders', params)
             currency = self.currency(code)
             request['currency'] = currency['id']
-            method = 'privateGetGetOpenOrdersByCurrency'
+            response = await self.privateGetGetOpenOrdersByCurrency(self.extend(request, params))
         else:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
-            method = 'privateGetGetOpenOrdersByInstrument'
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateGetGetOpenOrdersByInstrument(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
@@ -1898,24 +1902,23 @@ class deribit(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
         market = None
-        method = None
+        response = None
         if symbol is None:
             code = self.code_from_options('fetchClosedOrders', params)
             currency = self.currency(code)
             request['currency'] = currency['id']
-            method = 'privateGetGetOrderHistoryByCurrency'
+            response = await self.privateGetGetOrderHistoryByCurrency(self.extend(request, params))
         else:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
-            method = 'privateGetGetOrderHistoryByInstrument'
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateGetGetOrderHistoryByInstrument(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
@@ -1984,27 +1987,26 @@ class deribit(Exchange, ImplicitAPI):
             'include_old': True,
         }
         market = None
-        method = None
+        if limit is not None:
+            request['count'] = limit  # default 10
+        response = None
         if symbol is None:
             code = self.code_from_options('fetchMyTrades', params)
             currency = self.currency(code)
             request['currency'] = currency['id']
             if since is None:
-                method = 'privateGetGetUserTradesByCurrency'
+                response = await self.privateGetGetUserTradesByCurrency(self.extend(request, params))
             else:
-                method = 'privateGetGetUserTradesByCurrencyAndTime'
                 request['start_timestamp'] = since
+                response = await self.privateGetGetUserTradesByCurrencyAndTime(self.extend(request, params))
         else:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
             if since is None:
-                method = 'privateGetGetUserTradesByInstrument'
+                response = await self.privateGetGetUserTradesByInstrument(self.extend(request, params))
             else:
-                method = 'privateGetGetUserTradesByInstrumentAndTime'
                 request['start_timestamp'] = since
-        if limit is not None:
-            request['count'] = limit  # default 10
-        response = await getattr(self, method)(self.extend(request, params))
+                response = await self.privateGetGetUserTradesByInstrumentAndTime(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -2510,7 +2512,11 @@ class deribit(Exchange, ImplicitAPI):
         if method is None:
             transferOptions = self.safe_value(self.options, 'transfer', {})
             method = self.safe_string(transferOptions, 'method', 'privateGetSubmitTransferToSubaccount')
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetSubmitTransferToUser':
+            response = await self.privateGetSubmitTransferToUser(self.extend(request, params))
+        else:
+            response = await self.privateGetSubmitTransferToSubaccount(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",

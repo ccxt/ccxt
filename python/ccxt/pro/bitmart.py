@@ -60,7 +60,7 @@ class bitmart(ccxt.async_support.bitmart):
                     'awaitBalanceSnapshot': False,  # whether to wait for the balance snapshot before providing updates
                 },
                 'watchOrderBook': {
-                    'depth': 'depth50',  # depth5, depth20, depth50
+                    'depth': 'depth/increase100',  # depth/increase100, depth5, depth20, depth50
                 },
                 'ws': {
                     'inflate': True,
@@ -406,7 +406,7 @@ class bitmart(ccxt.async_support.bitmart):
         symbolKeys = list(symbols.keys())
         for i in range(0, len(symbolKeys)):
             symbol = symbolKeys[i]
-            symbolSpecificMessageHash = messageHash + ':' + symbol
+            symbolSpecificMessageHash = messageHash + '::' + symbol
             client.resolve(newOrders, symbolSpecificMessageHash)
         client.resolve(newOrders, messageHash)
 
@@ -1004,6 +1004,7 @@ class bitmart(ccxt.async_support.bitmart):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
+        :see: https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
         :see: https://developer-pro.bitmart.com/en/futures/#public-depth-channel
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -1013,11 +1014,13 @@ class bitmart(ccxt.async_support.bitmart):
         """
         await self.load_markets()
         options = self.safe_value(self.options, 'watchOrderBook', {})
-        depth = self.safe_string(options, 'depth', 'depth50')
+        depth = self.safe_string(options, 'depth', 'depth/increase100')
         symbol = self.symbol(symbol)
         market = self.market(symbol)
         type = 'spot'
         type, params = self.handle_market_type_and_params('watchOrderBook', market, params)
+        if type == 'swap' and depth == 'depth/increase100':
+            depth = 'depth50'
         orderbook = await self.subscribe(depth, symbol, type, params)
         return orderbook.limit()
 
@@ -1065,46 +1068,72 @@ class bitmart(ccxt.async_support.bitmart):
 
     def handle_order_book(self, client: Client, message):
         #
-        # spot
-        #     {
-        #         "data": [
-        #             {
-        #                 "asks": [
-        #                     ['46828.38', "0.21847"],
-        #                     ['46830.68', "0.08232"],
-        #                     ...
+        # spot depth-all
+        #    {
+        #        "data": [
+        #            {
+        #                "asks": [
+        #                    ['46828.38', "0.21847"],
+        #                    ['46830.68', "0.08232"],
+        #                    ...
+        #                ],
+        #                "bids": [
+        #                    ['46820.78', "0.00444"],
+        #                    ['46814.33', "0.00234"],
+        #                    ...
+        #                ],
+        #                "ms_t": 1631044962431,
+        #                "symbol": "BTC_USDT"
+        #            }
+        #        ],
+        #        "table": "spot/depth5"
+        #    }
+        # spot increse depth snapshot
+        #    {
+        #        "data":[
+        #           {
+        #              "asks":[
+        #                 [
+        #                    "43652.52",
+        #                    "0.02039"
         #                 ],
-        #                 "bids": [
-        #                     ['46820.78', "0.00444"],
-        #                     ['46814.33', "0.00234"],
-        #                     ...
-        #                 ],
-        #                 "ms_t": 1631044962431,
-        #                 "symbol": "BTC_USDT"
-        #             }
-        #         ],
-        #         "table": "spot/depth5"
-        #     }
+        #                 ...
+        #              ],
+        #              "bids":[
+        #                [
+        #                   "43652.51",
+        #                   "0.00500"
+        #                ],
+        #                ...
+        #              ],
+        #              "ms_t":1703376836487,
+        #              "symbol":"BTC_USDT",
+        #              "type":"snapshot",  # or update
+        #              "version":2141731
+        #           }
+        #        ],
+        #        "table":"spot/depth/increase100"
+        #    }
         # swap
-        #     {
-        #         "group":"futures/depth50:BTCUSDT",
-        #         "data":{
-        #            "symbol":"BTCUSDT",
-        #            "way":1,
-        #            "depths":[
-        #               {
-        #                  "price":"39509.8",
-        #                  "vol":"2379"
-        #               },
-        #               {
-        #                  "price":"39509.6",
-        #                  "vol":"6815"
-        #               },
-        #               ...
-        #            ],
-        #            "ms_t":1701566021194
-        #         }
-        #     }
+        #    {
+        #        "group":"futures/depth50:BTCUSDT",
+        #        "data":{
+        #           "symbol":"BTCUSDT",
+        #           "way":1,
+        #           "depths":[
+        #              {
+        #                 "price":"39509.8",
+        #                 "vol":"2379"
+        #              },
+        #              {
+        #                 "price":"39509.6",
+        #                 "vol":"6815"
+        #              },
+        #              ...
+        #           ],
+        #           "ms_t":1701566021194
+        #        }
+        #    }
         #
         data = self.safe_value(message, 'data')
         if data is None:
@@ -1112,12 +1141,14 @@ class bitmart(ccxt.async_support.bitmart):
         depths = self.safe_value(data, 'depths')
         isSpot = (depths is None)
         table = self.safe_string_2(message, 'table', 'group')
-        parts = table.split('/')
-        lastPart = self.safe_string(parts, 1)
-        limitString = lastPart.replace('depth', '')
-        dotsIndex = limitString.find(':')
-        limitString = limitString[0:dotsIndex]
-        limit = self.parse_to_int(limitString)
+        # find limit subscribed to
+        limitsToCheck = ['100', '50', '20', '10', '5']
+        limit = 0
+        for i in range(0, len(limitsToCheck)):
+            limitString = limitsToCheck[i]
+            if table.find(limitString) >= 0:
+                limit = self.parse_to_int(limitString)
+                break
         if isSpot:
             for i in range(0, len(data)):
                 update = data[i]
@@ -1128,7 +1159,9 @@ class bitmart(ccxt.async_support.bitmart):
                     orderbook = self.order_book({}, limit)
                     orderbook['symbol'] = symbol
                     self.orderbooks[symbol] = orderbook
-                orderbook.reset({})
+                type = self.safe_value(update, 'type')
+                if (type == 'snapshot') or (not(table.find('increase') >= 0)):
+                    orderbook.reset({})
                 self.handle_order_book_message(client, update, orderbook)
                 timestamp = self.safe_integer(update, 'ms_t')
                 orderbook['timestamp'] = timestamp
@@ -1298,9 +1331,7 @@ class bitmart(ccxt.async_support.bitmart):
                     return method(client, message)
         else:
             methods = {
-                'depth5': self.handle_order_book,
-                'depth20': self.handle_order_book,
-                'depth50': self.handle_order_book,
+                'depth': self.handle_order_book,
                 'ticker': self.handle_ticker,
                 'trade': self.handle_trade,
                 'kline': self.handle_ohlcv,

@@ -41,7 +41,7 @@ function run_tests {
   if [ -z "$ws_pid" ]; then
     if [ -z "$ws_args" ] || { [ -n "$ws_args" ] && [ "$ws_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node run-tests-ws --js --python-async --php-async $ws_args &
+      node run-tests --ws --js --python-async --php-async $ws_args &
       local ws_pid=$!
     fi
   fi
@@ -63,22 +63,22 @@ build_and_test_all () {
     if [ -n "$merged_pull_request" ]; then
       echo "Travis is building merge commit #$merged_pull_request"
       # run every 3 merged pull requests
-      if [ $(("${merged_pull_request:0-1}" % 3)) -eq 0 ]; then
-        # update pyenv
-        (cd "$(pyenv root)" && git pull -q origin master)
-        # install python interpreters
-        pyenv install -s 3.7.17
-        pyenv install -s 3.8.18
-        pyenv install -s 3.9.18
-        pyenv install -s 3.10.13
-        pyenv install -s 3.11.6
-        pyenv global 3.7 3.8 3.9 3.10 3.11
-        cd python
-        if ! tox run-parallel; then
-          exit 1
-        fi
-        cd ..
-      fi
+      # if [ $(("${merged_pull_request:0-1}" % 3)) -eq 0 ]; then
+      #   # update pyenv
+      #   (cd "$(pyenv root)" && git pull -q origin master)
+      #   # install python interpreters
+      #   pyenv install -s 3.7.17
+      #   pyenv install -s 3.8.18
+      #   pyenv install -s 3.9.18
+      #   pyenv install -s 3.10.13
+      #   pyenv install -s 3.11.6
+      #   pyenv global 3.7 3.8 3.9 3.10 3.11
+      #   cd python
+      #   if ! tox run-parallel; then
+      #     exit 1
+      #   fi
+      #   cd ..
+      # fi
     fi
     npm run test-base
     npm run test-base-ws

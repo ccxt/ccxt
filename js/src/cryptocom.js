@@ -1910,6 +1910,7 @@ export default class cryptocom extends Exchange {
         const timestamp = this.safeInteger(ticker, 't');
         const marketId = this.safeString(ticker, 'i');
         market = this.safeMarket(marketId, market, '_');
+        const quote = this.safeString(market, 'quote');
         const last = this.safeString(ticker, 'a');
         return this.safeTicker({
             'symbol': market['symbol'],
@@ -1930,7 +1931,7 @@ export default class cryptocom extends Exchange {
             'percentage': this.safeString(ticker, 'c'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'v'),
-            'quoteVolume': this.safeString(ticker, 'vv'),
+            'quoteVolume': (quote === 'USD') ? this.safeString(ticker, 'vv') : undefined,
             'info': ticker,
         }, market);
     }

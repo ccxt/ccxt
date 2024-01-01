@@ -1,5 +1,7 @@
 {
     "ace": {
+        "skip": "temp",
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
@@ -17,10 +19,10 @@
     },
     "alpaca": {
         "skip": "private endpoints",
-        "skipWs": true
+        "skipWs": "private endpoints"
     },
     "ascendex": {
-        "skipPhpAsync": true,
+        "skipWs": "unknown https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2416",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -37,7 +39,7 @@
         }
     },
     "bequant": {
-        "skipWs": true,
+        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/264802937#L2194"
@@ -49,9 +51,8 @@
         }
     },
     "binance": {
-        "httpProxy": "http://5.75.153.75:8002",
-        "skipPhpAsync": true,
-        "skipWs": true,
+        "httpsProxy": "http://5.75.153.75:8002",
+        "wsProxy": "http://5.75.153.75:8002",
         "skipMethods": {
             "fetchStatus": "temporarily failing",
             "loadMarkets": {
@@ -62,6 +63,9 @@
             "fetchCurrencies": {
                 "precision": "not provided in public api",
                 "networks": "not yet unified"
+            },
+            "watchTicker": {
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
             }
         }
     },
@@ -79,13 +83,14 @@
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
-            "fetchStatus": "private endpoints"
+            "fetchStatus": "private endpoints",
+            "watchTicker": {
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
+            }
         }
     },
     "binancecoinm": {
-        "httpProxy": "http://5.75.153.75:8002",
-        "skipPhpAsync": true,
-        "skipWs": true,
+        "httpsProxy": "http://5.75.153.75:8002",
         "skipMethods": {
             "loadMarkets": {
                 "expiry": "expiry not set for future markets",
@@ -98,13 +103,14 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "watchTicker": {
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
             }
         }
     },
     "binanceusdm": {
-        "httpProxy": "http://5.75.153.75:8002",
-        "skipPhpAsync": true,
-        "skipWs": true,
+        "httpsProxy": "http://5.75.153.75:8002",
         "skipMethods": {
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -124,7 +130,10 @@
                 "code": "not provided",
                 "referenceId": "not provided"
             },
-            "fetchBalance": "tmp skip"
+            "fetchBalance": "tmp skip",
+            "watchTicker": {
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
+            }
         }
     },
     "bit2c": {
@@ -145,9 +154,7 @@
         }
     },
     "tokocrypto": {
-        "httpProxy": "http://5.75.153.75:8002",
-        "skipPhpAsync": true,
-        "skipWs": true
+        "httpsProxy": "http://5.75.153.75:8002"
     },
     "bitbank": {
     },
@@ -160,6 +167,7 @@
         }
     },
     "bitbns": {
+        "skip": "temp",
         "skipMethods": {
             "loadMarkets": {
                 "limits": "only one market has min>max limit",
@@ -173,18 +181,20 @@
         "skipWs": true
     },
     "bitfinex": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "linear and inverse values are same",
             "fetchTickers": {
                 "symbol": "something broken with symbol",
                 "ask": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262965121#L3179",
                 "bid": "same"
+            },
+            "watchOrderBook":{
+                "symbol": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L3846"
             }
         }
     },
     "bitfinex2": {
-        "//skipWs": true,
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -207,6 +217,7 @@
         }
     },
     "bitget": {
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "precision": "broken precision",
@@ -224,6 +235,9 @@
                 "ask":"broken bid-ask",
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "watchTrades": {
+                "timestamp": "ts order is reverted (descending)"
             }
         }
     },
@@ -263,11 +277,18 @@
                 "baseVolume": "same"
             },
             "fetchL2OrderBook": "bid==ask , https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2170",
-            "fetchLOrderBook": "same"
+            "fetchLOrderBook": "same",
+            "watchOrderBook": {
+                "nonce":"missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4256",
+                "bid": "wrong data https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4325"
+            },
+            "watchTrades":{
+                "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312"
+            }
         }
     },
     "bitmex": {
-        "skipWs": true,
+        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": "some market types are out of expected market-types",
             "fetchOHLCV": "open might be greater than high",
@@ -313,7 +334,6 @@
         }
     },
     "bitopro": {
-        "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
@@ -321,6 +341,10 @@
             },
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
+            },
+            "watchTicker": "datetime error: https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4373",
+            "watchOrderBook": {
+                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4373"
             }
         }
     },
@@ -336,6 +360,7 @@
         }
     },
     "bitrue": {
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
@@ -362,7 +387,6 @@
         }
     },
     "bitso": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "active": "not provided"
@@ -371,7 +395,6 @@
         }
     },
     "bitstamp": {
-        "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "bid/ask might be 0",
             "fetchL2OrderBook": "same",
@@ -388,11 +411,11 @@
                 "bid": "same",
                 "baseVolume": "same",
                 "quoteVolume": "same"
-            }
+            },
+            "watchOrderBook": "something broken https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4473 and https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4504"
         }
     },
     "bitstamp1": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "info": "null",
@@ -422,8 +445,9 @@
         }
     },
     "bitvavo": {
+        "skip": "temp",
+        "skipWs": "temp",
         "httpsProxy": "http://51.83.140.52:11230",
-        "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
@@ -449,7 +473,10 @@
                 "maker":"not provided"
             },
             "fetchOrderBook": "bid should be greater than next bid",
-            "fetchL2OrderBook": "same"
+            "fetchL2OrderBook": "same",
+            "watchOrderBook": {
+                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4517 and https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4562"
+            }
         }
     },
     "bkex": {
@@ -490,7 +517,6 @@
         }
     },
     "btcex": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "active": "is undefined",
@@ -557,7 +583,8 @@
         }
     },
     "bybit": {
-        "skipWs": "temporarily skipped because of RL issues. after proxy merge, turn it back on",
+        "httpsProxy": "http://5.75.153.75:8002",
+        "wsProxy": "http://5.75.153.75:8002",
         "skipMethods": {
             "fetchTickers": {
                 "symbol" :"returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT"
@@ -585,7 +612,7 @@
         }
     },
     "buda": {
-        "httpProxy": "http://5.75.153.75:8002"
+        "httpsProxy": "http://5.75.153.75:8002"
     },
     "bigone": {
         "skipMethods": {
@@ -612,6 +639,7 @@
         }
     },
     "coinbase": {
+        "skipWs": "needs auth",
         "skip": "private endpoints",
         "skipMethods": {
             "fetchCurrencies": {
@@ -621,7 +649,7 @@
         }
     },
     "coinbasepro": {
-        "skipPhpAsync": true,
+        "skipWs": "needs auth",
         "skipMethods": {
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
@@ -631,7 +659,6 @@
         }
     },
     "coinbaseprime": {
-        "skipPhpAsync": true,
         "skipMethods": {
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
@@ -654,6 +681,7 @@
         }
     },
     "coinspot": {
+        "skip":"temp",
         "skipMethods": {
             "loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from constructor .options, so needs to fill with default values in base)",
             "fetchTickers": {
@@ -680,12 +708,12 @@
         }
     },
     "cex": {
-        "skipWs": true,
-        "skipPhpAsync": true,
+        "skipWs": "timeouts",
         "skipMethods": {
             "proxies": "probably they do not permit our proxy location",
             "loadMarkets": {
-                "active":"is undefined"
+                "active":"is undefined",
+                "currencyIdAndCode": "messes codes"
             },
             "fetchOHLCV": "unexpected issue",
             "fetchCurrencies": {
@@ -697,7 +725,7 @@
         }
     },
     "coinex": {
-        "skipWs": true,
+        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode":"broken",
@@ -715,8 +743,6 @@
         }
     },
     "cryptocom": {
-        "skipWs": true,
-        "skipPhpAsync": true,
         "skipMethods": {
             "proxies": "probably they do not permit our proxy",
             "loadMarkets": {
@@ -754,11 +780,14 @@
             "fetchAccounts": {
                 "type": "type is not provided",
                 "code": "not provided"
+            },
+            "watchOrderBook": {
+                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4756"
             }
         }
     },
     "currencycom": {
-        "skipWs": true,
+        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
                 "type": "unexpected market type",
@@ -797,7 +826,7 @@
         }
     },
     "deribit": {
-        "skipWs": true,
+        "skipWs": "timeouts",
         "skipMethods": {
             "fetchCurrencies": "deposit/withdraw not provided",
             "loadMarkets": "strike is set when option is not true",
@@ -844,7 +873,7 @@
         }
     },
     "gemini": {
-        "skipWs": true,
+        "skipWs": "temporary",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
@@ -853,6 +882,9 @@
             "fetchCurrencies":{
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            },
+            "watchOrderBook": {
+                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4833"
             }
         }
     },
@@ -960,7 +992,12 @@
         }
     },
     "hollaex": {
-        "skipWs": true
+        "skipWs": "temp",
+        "skipMethods": {
+            "watchOrderBook": {
+                "nonce": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4957"
+            }
+        }
     },
     "htx": {
         "skipMethods": {
@@ -985,11 +1022,14 @@
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
                 "bid":"messed bid-ask",
                 "ask":"messed bid-ask"
+            },
+            "watchTicker": {
+                "quoteVolume":"https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4860"
             }
         }
     },
     "huobijp": {
-        "skipWs": true,
+        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
                 "limits": "messed"
@@ -1032,8 +1072,8 @@
         }
     },
     "probit": {
-		"skipWs": true,
-        "skipMethods": {
+        "skipWs": "timeouts",
+		"skipMethods": {
             "loadMarkets": "needs fixing",
             "fetchCurrencies": {
                 "limits": "messed"
@@ -1049,7 +1089,7 @@
         }
     },
     "idex": {
-        "skipWs": true,
+        "skipWs": "timeouts",
         "skipMethods": {
             "fetchCurrencies": {
                 "withdraw":"not provided",
@@ -1071,7 +1111,7 @@
         }
     },
     "independentreserve": {
-        "skipWs": true,
+        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
@@ -1090,8 +1130,7 @@
     },
     "kuna": {
         "skip": "temporary glitches with this exchange: https://app.travis-ci.com/github/ccxt/ccxt/builds/267517440#L2304",
-        "httpProxy": "http://5.75.153.75:8002",
-        "skipPhpAsync": true,
+        "httpsProxy": "http://5.75.153.75:8002",
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
@@ -1105,7 +1144,6 @@
         }
     },
     "kucoin": {
-        "skipWs": true,
         "skipMethods":{
             "fetchCurrencies": {
                 "depositForNonCrypto": "not provided",
@@ -1123,7 +1161,6 @@
         }
     },
     "kucoinfutures": {
-        "skipWs": true,
         "skipMethods":{
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
@@ -1146,6 +1183,7 @@
         }
     },
     "luno": {
+        "skipWs": "temp",
         "skipMethods": {
             "fetchOrderBook": "bid should be greater than next bid",
             "fetchL2OrderBook": "same"
@@ -1206,7 +1244,7 @@
         }
     },
     "ndax": {
-        "skipWs": true,
+        "skipWs": "timeouts",
         "skipMethods": {
             "fetchCurrencies": {
                 "withdraw": "not provided",
@@ -1215,7 +1253,7 @@
         }
     },
     "mexc": {
-        "skipWs": true,
+        "skipWs": "temp",
         "skipMethods": {
             "loadMarkets":{
                 "currencyIdAndCode": "messed"
@@ -1241,7 +1279,10 @@
             "fetchAccounts": {
                 "type": "type is not provided"
             },
-            "fetchLeverageTiers": "swap only supported"
+            "fetchLeverageTiers": "swap only supported",
+            "watchTicker": {
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6610"
+            }
         }
     },
     "oceanex": {
@@ -1253,6 +1294,7 @@
         }
     },
     "p2b": {
+        "skip": "temp issues",
         "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
             "loadMarkets": "invalid URL",
@@ -1308,7 +1350,7 @@
         }
     },
     "okcoin": {
-        "skipWs": true,
+        "skipWs": "temp",
         "skipMethods": {
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -1317,11 +1359,13 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "watchTicker": {
+                "symbol": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6721"
             }
         }
     },
     "exmo": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
@@ -1338,6 +1382,9 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "watchOrderBook": {
+                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4807"
             }
         }
     },
@@ -1362,6 +1409,9 @@
             "fetchTickers": {
                 "quoteVolume": "same",
                 "baseVolume": "same"
+            },
+            "watchOrderBook": {
+                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6909"
             }
         }
     },
@@ -1381,15 +1431,17 @@
                 "quoteVolume": "quoteVolume <= baseVolume * high <<< okx fetchTicker"
             },
             "fetchBorrowRate": "some fields that we can't skip missing",
-            "fetchBorrowRates": "same"
+            "fetchBorrowRates": "same",
+            "watchOrderBook": {
+                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6721"
+            }
         }
     },
     "tidex": {
         "skip": "exchange unavailable, probably api upgrade needed"
     },
     "kraken": {
-        "skipWs": true,
-        "skipPhpAsync": true,
+        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267515280#L2314"
@@ -1407,7 +1459,6 @@
     },
     "krakenfutures": {
         "skip": "continious timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/265225134#L2431",
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "skip loadMarkets",
             "fetchCurrencies": {
@@ -1415,12 +1466,13 @@
                 "deposit": "undefined"
             },
             "fetchTickers": "timeouts this call specifically",
-            "fetchTicker": "timeouts this call specifically"
+            "fetchTicker": "timeouts this call specifically",
+            "watchTrades": "reverse timestamps"
         },
         "timeout": 120000
     },
     "upbit": {
-        "skipWs": true,
+        "skipWs":"timeouts",
         "skipMethods": {
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -1433,8 +1485,7 @@
         }
     },
     "ripio": {
-        "httpProxy": "http://5.75.153.75:8002",
-        "skipWs": true
+        "httpsProxy": "http://5.75.153.75:8002"
     },
     "timex": {
         "skipMethods": {
@@ -1465,11 +1516,8 @@
             }
         }
     },
-    "wazirx": {
-        "skipWs": true
-    },
     "whitebit": {
-        "skipWs": true,
+        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": "contractSize must be undefined when contract is false",
             "fetchCurrencies": {
@@ -1482,6 +1530,7 @@
         }
     },
 	"woo": {
+        "skipWs": "requires auth",
         "skipMethods":{
             "loadMarkets":{
                 "active": "undefined",
@@ -1537,9 +1586,6 @@
             }
         }
     },
-    "zipmex": {
-        "skipWs": true
-    },
     "zonda": {
         "skipMethods": {
             "loadMarkets": {
@@ -1548,6 +1594,7 @@
         }
     },
     "bingx": {
+        "skipWs": "broken symbols returned",
         "skipMethods": {
             "loadMarkets": {
                 "taker": "is undefined",
@@ -1591,6 +1638,9 @@
             }
         }
     },
+    "wazirx": {
+        "skipWs": "timeouts"
+    },
     "coinlist": {
         "skipMethods": {
             "fetchTicker": {
@@ -1599,6 +1649,19 @@
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low  is failing",
                 "ask": "invalid"
+            }
+        }
+    },
+    "bitteam": {
+        "skipPhpAsync": true,
+        "skipMethods": {
+            "loadMarkets": {
+                "taker": "is undefined",
+                "maker": "is undefined"
+            },
+            "fetchCurrencies": {
+                "deposit": "not provided",
+                "withdraw": "not provided"
             }
         }
     }

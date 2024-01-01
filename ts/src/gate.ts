@@ -4626,7 +4626,7 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-options-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.stop] true for fetching stop orders
          * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
@@ -6961,7 +6961,7 @@ export default class gate extends Exchange {
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         /**
          * @method
-         * @name gate#closePositions
+         * @name gate#closePosition
          * @description closes open positions for a market
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2

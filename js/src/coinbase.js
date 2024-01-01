@@ -200,6 +200,8 @@ export default class coinbase extends Exchange {
                             'brokerage/products/{product_id}',
                             'brokerage/products/{product_id}/candles',
                             'brokerage/products/{product_id}/ticker',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/{portfolio_uuid}',
                             'brokerage/transaction_summary',
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
@@ -211,8 +213,16 @@ export default class coinbase extends Exchange {
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                        ],
+                        'put': [
+                            'brokerage/portfolios/{portfolio_uuid}',
+                        ],
+                        'delete': [
+                            'brokerage/portfolios/{portfolio_uuid}',
                         ],
                     },
                 },
@@ -2356,6 +2366,12 @@ export default class coinbase extends Exchange {
         //                 "base_size": "0.2",
         //                 "limit_price": "0.006",
         //                 "post_only": false
+        //             },
+        //             "stop_limit_stop_limit_gtc": {
+        //                 "base_size": "48.54",
+        //                 "limit_price": "6.998",
+        //                 "stop_price": "7.0687",
+        //                 "stop_direction": "STOP_DIRECTION_STOP_DOWN"
         //             }
         //         },
         //         "side": "SELL",
@@ -2389,11 +2405,11 @@ export default class coinbase extends Exchange {
             market = this.market(symbol);
         }
         const orderConfiguration = this.safeValue(order, 'order_configuration', {});
-        const limitGTC = this.safeValue(orderConfiguration, 'limit_limit_gtc', {});
-        const limitGTD = this.safeValue(orderConfiguration, 'limit_limit_gtd', {});
-        const stopLimitGTC = this.safeValue(orderConfiguration, 'stop_limit_stop_limit_gtc', {});
-        const stopLimitGTD = this.safeValue(orderConfiguration, 'stop_limit_stop_limit_gtd', {});
-        const marketIOC = this.safeValue(orderConfiguration, 'market_market_ioc', {});
+        const limitGTC = this.safeValue(orderConfiguration, 'limit_limit_gtc');
+        const limitGTD = this.safeValue(orderConfiguration, 'limit_limit_gtd');
+        const stopLimitGTC = this.safeValue(orderConfiguration, 'stop_limit_stop_limit_gtc');
+        const stopLimitGTD = this.safeValue(orderConfiguration, 'stop_limit_stop_limit_gtd');
+        const marketIOC = this.safeValue(orderConfiguration, 'market_market_ioc');
         const isLimit = ((limitGTC !== undefined) || (limitGTD !== undefined));
         const isStop = ((stopLimitGTC !== undefined) || (stopLimitGTD !== undefined));
         let price = undefined;
