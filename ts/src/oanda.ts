@@ -5,7 +5,7 @@ import Exchange from './abstract/oanda.js';
 // @ts-ignore
 import { ExchangeError, BadRequest, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Dictionary } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -460,7 +460,7 @@ export default class oanda extends Exchange {
         return await this.fetchBidsAsks (symbols, params);
     }
 
-    async fetchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    async fetchBidsAsks (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
         /**
          * @method
          * @name oanda#fetchBidsAsks
@@ -1514,7 +1514,7 @@ export default class oanda extends Exchange {
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name binance#fetchLedger
+         * @name oanda#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://developer.oanda.com/rest-live-v20/transaction-ep/
          * @param {string} code unified currency code
