@@ -959,7 +959,7 @@ export default class oanda extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id, symbol: string, type: OrderType, side: OrderSide, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name oanda#editOrder
