@@ -5,7 +5,7 @@ import Exchange from './abstract/oanda.js';
 // @ts-ignore
 import { ExchangeError, BadRequest, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Dictionary } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction, Dictionary } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
