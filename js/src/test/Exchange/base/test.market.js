@@ -211,5 +211,6 @@ function testMarket(exchange, skippedProperties, method, market) {
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['settleId'], market['settle']);
     }
+    testSharedMethods.assertTimestamp(exchange, skippedProperties, method, market, undefined, 'created');
 }
 export default testMarket;

@@ -1,0 +1,215 @@
+{
+  "exchange": "kucoin",
+  "skipKeys": [],
+  "options": {
+  },
+  "methods": {
+    "fetchOpenOrders": [
+      {
+        "description": "fetch spot open order",
+        "method": "fetchOpenOrders",
+        "input": [],
+        "httpResponse": {
+          "code": "200000",
+          "data": {
+            "currentPage": 1,
+            "pageSize": 50,
+            "totalNum": 1,
+            "totalPage": 1,
+            "items": [
+              {
+                "id": "6556088034d111000738f7b8",
+                "symbol": "LTC-USDT",
+                "opType": "DEAL",
+                "type": "limit",
+                "side": "buy",
+                "price": "55",
+                "size": "0.1",
+                "funds": "0",
+                "dealFunds": "0",
+                "dealSize": "0",
+                "fee": "0",
+                "feeCurrency": "USDT",
+                "stp": "",
+                "stop": "",
+                "stopTriggered": false,
+                "stopPrice": "0",
+                "timeInForce": "GTC",
+                "postOnly": false,
+                "hidden": false,
+                "iceberg": false,
+                "visibleSize": "0",
+                "cancelAfter": 0,
+                "channel": "API",
+                "clientOid": "168ea0a0-0cf2-493d-be18-b606be913ce6",
+                "remark": null,
+                "tags": "partner:ccxt",
+                "isActive": true,
+                "cancelExist": false,
+                "createdAt": 1700137089012,
+                "tradeType": "TRADE"
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "id": "6556088034d111000738f7b8",
+              "symbol": "LTC-USDT",
+              "opType": "DEAL",
+              "type": "limit",
+              "side": "buy",
+              "price": "55",
+              "size": "0.1",
+              "funds": "0",
+              "dealFunds": "0",
+              "dealSize": "0",
+              "fee": "0",
+              "feeCurrency": "USDT",
+              "stp": "",
+              "stop": "",
+              "stopTriggered": false,
+              "stopPrice": "0",
+              "timeInForce": "GTC",
+              "postOnly": false,
+              "hidden": false,
+              "iceberg": false,
+              "visibleSize": "0",
+              "cancelAfter": 0,
+              "channel": "API",
+              "clientOid": "168ea0a0-0cf2-493d-be18-b606be913ce6",
+              "remark": null,
+              "tags": "partner:ccxt",
+              "isActive": true,
+              "cancelExist": false,
+              "createdAt": 1700137089012,
+              "tradeType": "TRADE"
+            },
+            "id": "6556088034d111000738f7b8",
+            "clientOrderId": "168ea0a0-0cf2-493d-be18-b606be913ce6",
+            "symbol": "LTC/USDT",
+            "type": "limit",
+            "timeInForce": "GTC",
+            "postOnly": false,
+            "side": "buy",
+            "amount": 0.1,
+            "price": 55,
+            "stopPrice": 0,
+            "triggerPrice": 0,
+            "cost": 0,
+            "filled": 0,
+            "remaining": 0.1,
+            "timestamp": 1700137089012,
+            "datetime": "2023-11-16T12:18:09.012Z",
+            "fee": {
+              "currency": "USDT",
+              "cost": 0
+            },
+            "status": "open",
+            "lastTradeTimestamp": null,
+            "average": null,
+            "trades": [],
+            "fees": [
+              {
+                "currency": "USDT",
+                "cost": 0
+              }
+            ],
+            "lastUpdateTimestamp": null,
+            "reduceOnly": null,
+            "takeProfitPrice": null,
+            "stopLossPrice": null
+          }
+        ]
+      }
+    ],
+    "fetchMyTrades": [
+      {
+        "description": "Fetch spot trade",
+        "method": "fetchMyTrades",
+        "input": [
+          "LTC/USDT",
+          null,
+          10
+        ],
+        "httpResponse": {
+          "code": "200000",
+          "data": {
+            "currentPage": 1,
+            "pageSize": 10,
+            "totalNum": 1,
+            "totalPage": 1,
+            "items": [
+              {
+                "symbol": "LTC-USDT",
+                "tradeId": "3607194733924353",
+                "orderId": "65560a018b40f60007d5fe93",
+                "counterOrderId": "65560a017bbc4b0001fed90a",
+                "side": "buy",
+                "liquidity": "taker",
+                "forceTaker": false,
+                "price": "72.8",
+                "size": "0.010055",
+                "funds": "0.732004",
+                "fee": "0.000732004",
+                "feeRate": "0.001",
+                "feeCurrency": "USDT",
+                "stop": "",
+                "tradeType": "TRADE",
+                "type": "market",
+                "createdAt": 1700137473000
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "symbol": "LTC-USDT",
+              "tradeId": "3607194733924353",
+              "orderId": "65560a018b40f60007d5fe93",
+              "counterOrderId": "65560a017bbc4b0001fed90a",
+              "side": "buy",
+              "liquidity": "taker",
+              "forceTaker": false,
+              "price": "72.8",
+              "size": "0.010055",
+              "funds": "0.732004",
+              "fee": "0.000732004",
+              "feeRate": "0.001",
+              "feeCurrency": "USDT",
+              "stop": "",
+              "tradeType": "TRADE",
+              "type": "market",
+              "createdAt": 1700137473000
+            },
+            "id": "3607194733924353",
+            "order": "65560a018b40f60007d5fe93",
+            "timestamp": 1700137473000,
+            "datetime": "2023-11-16T12:24:33.000Z",
+            "symbol": "LTC/USDT",
+            "type": "market",
+            "takerOrMaker": "taker",
+            "side": "buy",
+            "price": 72.8,
+            "amount": 0.010055,
+            "cost": 0.732004,
+            "fee": {
+              "cost": 0.000732004,
+              "currency": "USDT",
+              "rate": 0.001
+            },
+            "fees": [
+              {
+                "cost": 0.000732004,
+                "currency": "USDT",
+                "rate": 0.001
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

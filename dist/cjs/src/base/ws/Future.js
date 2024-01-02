@@ -3,7 +3,7 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 // @ts-nocheck
-function createFuture() {
+function Future() {
     let resolve = undefined, reject = undefined;
     const p = new Promise((resolve_, reject_) => {
         resolve = resolve_;
@@ -11,13 +11,24 @@ function createFuture() {
     });
     p.resolve = function _resolve() {
         // eslint-disable-next-line prefer-rest-params
-        resolve.apply(this, arguments);
+        setTimeout(() => {
+            resolve.apply(this, arguments);
+        });
     };
     p.reject = function _reject() {
         // eslint-disable-next-line prefer-rest-params
-        reject.apply(this, arguments);
+        setTimeout(() => {
+            reject.apply(this, arguments);
+        });
     };
     return p;
 }
+function wrapFuture(aggregatePromise) {
+    const p = Future();
+    // wrap the promises as a future
+    aggregatePromise.then(p.resolve, p.reject);
+    return p;
+}
+Future.race = (futures) => wrapFuture(Promise.race(futures));
 
-exports.createFuture = createFuture;
+exports.Future = Future;

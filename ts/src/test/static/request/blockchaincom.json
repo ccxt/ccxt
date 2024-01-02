@@ -1,0 +1,114 @@
+{
+    "exchange": "blockchaincom",
+    "skipKeys": ["clOrdId"],
+    "outputType": "json",
+    "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "Spot private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.blockchain.com/v3/exchange/fills?limit=5&symbol=LTC-USDT",
+                "input": [
+                    "LTC/USDT",
+                    1699457638000,
+                    5
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.blockchain.com/v3/exchange/orders?status=OPEN&limit=100&symbol=LTC-USDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Spot closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.blockchain.com/v3/exchange/orders?status=FILLED&limit=100&symbol=LTC-USDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel spot orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.blockchain.com/v3/exchange/orders",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "output": "{\"symbol\":\"LTC-USDT\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api.blockchain.com/v3/exchange/accounts?account=primary&type=spot",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://api.blockchain.com/v3/exchange/accounts?account=primary&type=swap",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.blockchain.com/v3/exchange/deposits",
+                "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.blockchain.com/v3/exchange/withdrawals",
+                "input": []
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.blockchain.com/v3/exchange/deposits/USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": "{}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.blockchain.com/v3/exchange/orders",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
+                ],
+                "output": "{\"ordType\":\"LIMIT\",\"symbol\":\"LTC-USDT\",\"side\":\"BUY\",\"orderQty\":\"0.1\",\"clOrdId\":\"4314cf84b4d38e68\",\"price\":\"50\"}"
+            }
+        ]
+    }
+}

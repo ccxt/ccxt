@@ -166,6 +166,12 @@ abstract class coinbase extends \ccxt\Exchange {
     public function v3_private_get_brokerage_products_product_id_ticker($params = array()) {
         return $this->request('brokerage/products/{product_id}/ticker', array('v3', 'private'), 'GET', $params, null, null, array());
     }
+    public function v3_private_get_brokerage_portfolios($params = array()) {
+        return $this->request('brokerage/portfolios', array('v3', 'private'), 'GET', $params, null, null, array());
+    }
+    public function v3_private_get_brokerage_portfolios_portfolio_uuid($params = array()) {
+        return $this->request('brokerage/portfolios/{portfolio_uuid}', array('v3', 'private'), 'GET', $params, null, null, array());
+    }
     public function v3_private_get_brokerage_transaction_summary($params = array()) {
         return $this->request('brokerage/transaction_summary', array('v3', 'private'), 'GET', $params, null, null, array());
     }
@@ -175,11 +181,41 @@ abstract class coinbase extends \ccxt\Exchange {
     public function v3_private_get_brokerage_best_bid_ask($params = array()) {
         return $this->request('brokerage/best_bid_ask', array('v3', 'private'), 'GET', $params, null, null, array());
     }
+    public function v3_private_get_brokerage_convert_trade_trade_id($params = array()) {
+        return $this->request('brokerage/convert/trade/{trade_id}', array('v3', 'private'), 'GET', $params, null, null, array());
+    }
+    public function v3_private_get_brokerage_time($params = array()) {
+        return $this->request('brokerage/time', array('v3', 'private'), 'GET', $params, null, null, array());
+    }
     public function v3_private_post_brokerage_orders($params = array()) {
         return $this->request('brokerage/orders', array('v3', 'private'), 'POST', $params, null, null, array());
     }
     public function v3_private_post_brokerage_orders_batch_cancel($params = array()) {
         return $this->request('brokerage/orders/batch_cancel', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3_private_post_brokerage_orders_edit($params = array()) {
+        return $this->request('brokerage/orders/edit', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3_private_post_brokerage_orders_edit_preview($params = array()) {
+        return $this->request('brokerage/orders/edit_preview', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3_private_post_brokerage_portfolios($params = array()) {
+        return $this->request('brokerage/portfolios', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3_private_post_brokerage_portfolios_move_funds($params = array()) {
+        return $this->request('brokerage/portfolios/move_funds', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3_private_post_brokerage_convert_quote($params = array()) {
+        return $this->request('brokerage/convert/quote', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3_private_post_brokerage_convert_trade_trade_id($params = array()) {
+        return $this->request('brokerage/convert/trade/{trade_id}', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3_private_put_brokerage_portfolios_portfolio_uuid($params = array()) {
+        return $this->request('brokerage/portfolios/{portfolio_uuid}', array('v3', 'private'), 'PUT', $params, null, null, array());
+    }
+    public function v3_private_delete_brokerage_portfolios_portfolio_uuid($params = array()) {
+        return $this->request('brokerage/portfolios/{portfolio_uuid}', array('v3', 'private'), 'DELETE', $params, null, null, array());
     }
     public function v2PublicGetCurrencies($params = array()) {
         return $this->request('currencies', array('v2', 'public'), 'GET', $params, null, null, array());
@@ -340,6 +376,12 @@ abstract class coinbase extends \ccxt\Exchange {
     public function v3PrivateGetBrokerageProductsProductIdTicker($params = array()) {
         return $this->request('brokerage/products/{product_id}/ticker', array('v3', 'private'), 'GET', $params, null, null, array());
     }
+    public function v3PrivateGetBrokeragePortfolios($params = array()) {
+        return $this->request('brokerage/portfolios', array('v3', 'private'), 'GET', $params, null, null, array());
+    }
+    public function v3PrivateGetBrokeragePortfoliosPortfolioUuid($params = array()) {
+        return $this->request('brokerage/portfolios/{portfolio_uuid}', array('v3', 'private'), 'GET', $params, null, null, array());
+    }
     public function v3PrivateGetBrokerageTransactionSummary($params = array()) {
         return $this->request('brokerage/transaction_summary', array('v3', 'private'), 'GET', $params, null, null, array());
     }
@@ -349,10 +391,40 @@ abstract class coinbase extends \ccxt\Exchange {
     public function v3PrivateGetBrokerageBestBidAsk($params = array()) {
         return $this->request('brokerage/best_bid_ask', array('v3', 'private'), 'GET', $params, null, null, array());
     }
+    public function v3PrivateGetBrokerageConvertTradeTradeId($params = array()) {
+        return $this->request('brokerage/convert/trade/{trade_id}', array('v3', 'private'), 'GET', $params, null, null, array());
+    }
+    public function v3PrivateGetBrokerageTime($params = array()) {
+        return $this->request('brokerage/time', array('v3', 'private'), 'GET', $params, null, null, array());
+    }
     public function v3PrivatePostBrokerageOrders($params = array()) {
         return $this->request('brokerage/orders', array('v3', 'private'), 'POST', $params, null, null, array());
     }
     public function v3PrivatePostBrokerageOrdersBatchCancel($params = array()) {
         return $this->request('brokerage/orders/batch_cancel', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3PrivatePostBrokerageOrdersEdit($params = array()) {
+        return $this->request('brokerage/orders/edit', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3PrivatePostBrokerageOrdersEditPreview($params = array()) {
+        return $this->request('brokerage/orders/edit_preview', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3PrivatePostBrokeragePortfolios($params = array()) {
+        return $this->request('brokerage/portfolios', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3PrivatePostBrokeragePortfoliosMoveFunds($params = array()) {
+        return $this->request('brokerage/portfolios/move_funds', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3PrivatePostBrokerageConvertQuote($params = array()) {
+        return $this->request('brokerage/convert/quote', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3PrivatePostBrokerageConvertTradeTradeId($params = array()) {
+        return $this->request('brokerage/convert/trade/{trade_id}', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3PrivatePutBrokeragePortfoliosPortfolioUuid($params = array()) {
+        return $this->request('brokerage/portfolios/{portfolio_uuid}', array('v3', 'private'), 'PUT', $params, null, null, array());
+    }
+    public function v3PrivateDeleteBrokeragePortfoliosPortfolioUuid($params = array()) {
+        return $this->request('brokerage/portfolios/{portfolio_uuid}', array('v3', 'private'), 'DELETE', $params, null, null, array());
     }
 }
