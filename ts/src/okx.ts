@@ -3894,6 +3894,7 @@ export default class okx extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-3-months
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3903,6 +3904,7 @@ export default class okx extends Exchange {
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {int} [params.until] timestamp in ms to fetch orders for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {string} [params.method] method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3963,6 +3965,8 @@ export default class okx extends Exchange {
         let response = undefined;
         if (method === 'privateGetTradeOrdersAlgoHistory') {
             response = await this.privateGetTradeOrdersAlgoHistory (this.extend (request, send));
+        } else if (method === 'privateGetTradeOrdersHistoryArchive') {
+            response = await this.privateGetTradeOrdersHistoryArchive (this.extend (request, send));
         } else {
             response = await this.privateGetTradeOrdersHistory (this.extend (request, send));
         }
