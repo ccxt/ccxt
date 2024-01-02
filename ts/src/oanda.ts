@@ -28,8 +28,8 @@ export default class oanda extends Exchange {
             'version': 'v3',
             'has': {
                 'CORS': undefined,
-                'spot': true,
-                'margin': true,
+                'spot': false,
+                'margin': false,
                 'swap': true,
                 'future': false,
                 'option': false,
@@ -682,14 +682,14 @@ export default class oanda extends Exchange {
             this.options['accountId'] = this.safeString (accountsWithoutMetatrader[0], 'id');
         }
         this.accountsById = this.indexBy (this.accounts, 'id');
-        return this.accounts;
     }
 
     async getAccountSummary (methodName, params = {}) {
         await this.loadAccounts ();
         const accountId = this.handleOption (methodName, 'accountId');
         if (accountId === undefined) {
-            const joinedAccounts = this.accountsById.join (', ');
+            const accountIds = Object.keys (this.accountsById);
+            const joinedAccounts = accountIds.join (', ');
             throw new ArgumentsRequired (this.id + ' ' + methodName + " you must set exchange.options['accountId'] to your desired account id from these available accounts: " + joinedAccounts);
         }
         const response = await this.privateGetAccountsAccountIDSummary (params);
@@ -755,7 +755,9 @@ export default class oanda extends Exchange {
         };
         const code = this.safeCurrencyCode (this.safeString (account, 'currency'));
         result[code] = this.account ();
-        result[code]['free'] = this.safeString (account, 'balance');
+        result[code]['total'] = this.safeString (account, 'balance');
+        result[code]['free'] = this.safeString (account, 'marginAvailable');
+        result[code]['used'] = this.safeString (account, 'marginUsed');
         return this.safeBalance (result);
     }
 
