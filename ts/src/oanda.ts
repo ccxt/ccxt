@@ -746,7 +746,7 @@ export default class oanda extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
-        const account = await this.getAccountSummary (params);
+        const account = await this.getAccountSummary ('fetchBalance', params);
         const timestamp = this.milliseconds ();
         const result = {
             'info': account,
@@ -1828,7 +1828,7 @@ export default class oanda extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a non-unified response from exchange
          */
-        const account = await this.getAccountSummary (params);
+        const account = await this.getAccountSummary ('fetchLeverage', params);
         return this.safeNumber (account, 'marginRate');
     }
 
