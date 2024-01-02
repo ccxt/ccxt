@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/oanda.js';
 // @ts-ignore
-import { ExchangeError, BadRequest, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
+import { ExchangeError, BadRequest, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction, Dictionary } from './base/types.js';
 
@@ -111,6 +111,7 @@ export default class oanda extends Exchange {
                 'api': {
                     'public': 'https://api-fxtrade.oanda.com',
                     'private': 'https://api-fxtrade.oanda.com',
+                    // apikey is an account id, while secret is a personal token from https://www.oanda.com/account/tpa/personal_token
                 },
                 'test': {
                     'public': 'https://api-fxpractice.oanda.com',
@@ -131,8 +132,6 @@ export default class oanda extends Exchange {
                     'get': {
                     },
                 },
-                // apikey (account id) - https://www.oanda.com/funding/
-                // secret - https://www.oanda.com/account/tpa/personal_token
                 'private': {
                     'get': {
                         'accounts': 1,
@@ -188,11 +187,12 @@ export default class oanda extends Exchange {
                 },
             },
             'options': {
-                // Oanda has a buggy/incomplete api endpoint. They do return instruments, that work with some endpoints (also in UI charts, like CN50/USD: https://trade.oanda.com/ ) but, some of those instruments are not available for orderbooks, and from API, there is no way to find out which symbols have orderbooks and which doesn't have. So, I've hardcoded them according to the list from their Web-UI.
-                'allowedOrdebookSymbols': [ 'AUD/JPY', 'AUD/USD', 'EUR/AUD', 'EUR/CHF', 'EUR/GBP', 'EUR/JPY', 'EUR/USD', 'GBP/CHF', 'GBP/JPY', 'GBP/USD', 'NZD/USD', 'USD/CAD', 'USD/CHF', 'USD/JPY', 'XAU/USD', 'XAG/USD' ],
+                'accountId': undefined, // if user has multiple accounts, user might need to set a specific account id
                 'fetchOrderBook': {
                     'method': 'pricingData', // 'pricingData' or 'orderBookData' (see comments in fetchOrderBook)
                 },
+                // Oanda has a buggy/incomplete api endpoint. They do return instruments, that work with some endpoints (also in UI charts, like CN50/USD: https://trade.oanda.com/ ) but, some of those instruments are not available for orderbooks, and from API, there is no way to find out which symbols have orderbooks and which doesn't have. So, I've hardcoded them according to the list from their Web-UI.
+                'allowedOrdebookSymbols': [ 'AUD/JPY', 'AUD/USD', 'EUR/AUD', 'EUR/CHF', 'EUR/GBP', 'EUR/JPY', 'EUR/USD', 'GBP/CHF', 'GBP/JPY', 'GBP/USD', 'NZD/USD', 'USD/CAD', 'USD/CHF', 'USD/JPY', 'XAU/USD', 'XAG/USD' ],
             },
             'requiredCredentials': {
                 'apiKey': true, // this needs to be an account-id
@@ -631,15 +631,67 @@ export default class oanda extends Exchange {
         };
     }
 
-    async fetchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name oanda#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://developer.oanda.com/rest-live-v20/account-ep/#collapse_endpoint_4
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
+    async fetchAccounts (params = {}) {
+        const response = await this.privateGetAccounts (params);
+        //
+        //    {
+        //        "accounts": [
+        //            {
+        //                "id": "001-004-1234567-003",
+        //                "tags": []
+        //            },
+        //            {
+        //                "id": "001-004-1234567-002",
+        //                "mt4AccountID": "2021987",
+        //                "tags": [
+        //                    "MT4"
+        //                ]
+        //            },
+        //            {
+        //                "id": "001-004-1234567-001",
+        //                "tags": []
+        //            }
+        //        ]
+        //    }
+        //
+        const accounts = this.safeValue (response, 'accounts', []);
+        return accounts;
+    }
+
+    async loadAccounts (reload = false, params = {}) {
+        if (reload) {
+            this.accounts = await this.fetchAccounts (params);
+        } else {
+            if (this.accounts) {
+                return this.accounts;
+            } else {
+                this.accounts = await this.fetchAccounts (params);
+            }
+        }
+        // set primary account's id
+        const accountsWithoutMetatrader = [];
+        for (let i = 0; i < this.accounts.length; i++) {
+            const account = this.accounts[i];
+            const tags = this.safeValue (account, 'tags', []);
+            if (tags.indexOf ('MT4') < 0) {
+                accountsWithoutMetatrader.push (account);
+            }
+        }
+        // if only one OANDA native account is found, we set it as default
+        if (accountsWithoutMetatrader.length === 1) {
+            this.options['accountId'] = this.safeString (accountsWithoutMetatrader[0], 'id');
+        }
+        this.accountsById = this.indexBy (this.accounts, 'id');
+        return this.accounts;
+    }
+
+    async getAccountSummary (methodName, params = {}) {
+        await this.loadAccounts ();
+        const accountId = this.handleOption (methodName, 'accountId');
+        if (accountId === undefined) {
+            const joinedAccounts = this.accountsById.join (', ');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + " you must set exchange.options['accountId'] to your desired account id from these available accounts: " + joinedAccounts);
+        }
         const response = await this.privateGetAccountsAccountIDSummary (params);
         //
         //     {
@@ -681,18 +733,29 @@ export default class oanda extends Exchange {
         //         lastTransactionID: '74'
         //     }
         //
-        const entry = this.safeValue (response, 'account', {});
+        const account = this.safeValue (response, 'account', {});
+        return account;
+    }
+
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name oanda#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://developer.oanda.com/rest-live-v20/account-ep/#collapse_endpoint_4
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        const account = await this.getAccountSummary (params);
         const timestamp = this.milliseconds ();
         const result = {
-            'info': response,
+            'info': account,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const code = this.safeCurrencyCode (this.safeString (entry, 'currency'));
-        const account = this.account ();
-        account['free'] = this.safeString (entry, 'balance');
-        account['total'] = undefined;
-        result[code] = account;
+        const code = this.safeCurrencyCode (this.safeString (account, 'currency'));
+        result[code] = this.account ();
+        result[code]['free'] = this.safeString (account, 'balance');
         return this.safeBalance (result);
     }
 
@@ -1272,7 +1335,7 @@ export default class oanda extends Exchange {
             //       {
             //         "id": "60",
             //         "accountID": "001-004-1234567-001",
-            //         "userID": "1474544",
+            //         "userID": "1234567",
             //         "batchID": "59",
             //         "requestID": "78953049230723855",
             //         "time": "2022-02-04T19:57:09.583582923Z",
