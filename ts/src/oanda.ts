@@ -190,6 +190,9 @@ export default class oanda extends Exchange {
             'options': {
                 // Oanda has a buggy/incomplete api endpoint. They do return instruments, that work with some endpoints (also in UI charts, like CN50/USD: https://trade.oanda.com/ ) but, some of those instruments are not available for orderbooks, and from API, there is no way to find out which symbols have orderbooks and which doesn't have. So, I've hardcoded them according to the list from their Web-UI.
                 'allowedOrdebookSymbols': [ 'AUD/JPY', 'AUD/USD', 'EUR/AUD', 'EUR/CHF', 'EUR/GBP', 'EUR/JPY', 'EUR/USD', 'GBP/CHF', 'GBP/JPY', 'GBP/USD', 'NZD/USD', 'USD/CAD', 'USD/CHF', 'USD/JPY', 'XAU/USD', 'XAG/USD' ],
+                'fetchOrderBook': {
+                    'method': 'pricingData', // 'pricingData' or 'orderBookData' (see comments in fetchOrderBook)
+                },
             },
             'requiredCredentials': {
                 'apiKey': true, // this needs to be an account-id
@@ -434,52 +437,9 @@ export default class oanda extends Exchange {
         ];
     }
 
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name oanda#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
-        const data = await this.fetchTickers ([ symbol ], params);
-        return this.safeValue (data, symbol, {});
-    }
-
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name oanda#fetchTickers
-         * @see https://developer.oanda.com/rest-live-v20/pricing-ep/
-         * @description fetches price tickers for multiple markets
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the data for, all markets are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
-        return await this.fetchBidsAsks (symbols, params);
-    }
-
-    async fetchBidsAsks (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
-        /**
-         * @method
-         * @name oanda#fetchBidsAsks
-         * @see https://developer.oanda.com/rest-live-v20/pricing-ep/
-         * @description fetches the bid and ask price and volume for multiple markets
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the data for, all markets are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
-        let selectedSymbols = this.symbols; // all symbols by default
-        if (symbols !== undefined) {
-            selectedSymbols = symbols;
-        }
-        const ids = [];
-        for (let i = 0; i < selectedSymbols.length; i++) {
-            const symbol = selectedSymbols[i];
-            const market = this.market (symbol);
-            ids.push (market['id']);
-        }
+    async fetchPricingData (symbols: string[], params = {}) {
+        symbols = this.marketSymbols (symbols);
+        const ids = this.marketIds (symbols);
         const request = {
             'instruments': ids.join (','),
         };
@@ -511,6 +471,25 @@ export default class oanda extends Exchange {
         //    }
         //
         const prices = this.safeValue (response, 'prices', []);
+        return prices;
+    }
+
+    async fetchBidsAsks (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
+        /**
+         * @method
+         * @name oanda#fetchBidsAsks
+         * @see https://developer.oanda.com/rest-live-v20/pricing-ep/
+         * @description fetches the bid and ask price and volume for multiple markets
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the data for, all markets are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        let selectedSymbols = symbols;
+        if (symbols === undefined) {
+            // if symbols were not explicitly provided, we should set all symbols
+            selectedSymbols = this.symbols;
+        }
+        const prices = await this.fetchPricingData (selectedSymbols, params);
         return this.parseTickers (prices, symbols, params);
     }
 
@@ -565,46 +544,56 @@ export default class oanda extends Exchange {
          */
         // Note: Oanda doesn't provide orderbooks for all markets. Check options['allowedOrdebookSymbols'] for allowed symbols.
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'instrument': market['id'],
-        };
-        const response = await this.privateGetInstrumentsInstrumentOrderBook (this.extend (request, params));
-        //
-        //    {
-        //        "orderBook": {
-        //            "instrument": "EUR_USD",
-        //            "time": "2023-12-29T16:00:00Z",
-        //            "unixTime": "1703865600",
-        //            "price": "1.10474",
-        //            "bucketWidth": "0.00050",
-        //            "buckets": [
-        //                {
-        //                    "price": "1.10400",
-        //                    "longCountPercent": "0.0035",
-        //                    "shortCountPercent": "0.0035"
-        //                },
-        //                {
-        //                    "price": "1.10450",
-        //                    "longCountPercent": "0.0105",
-        //                    "shortCountPercent": "0.0000"
-        //                },
-        //                {
-        //                    "price": "1.10500",
-        //                    "longCountPercent": "0.0105",
-        //                    "shortCountPercent": "0.0000"
-        //                },
-        //                ...
-        //            ]
-        //        }
-        //    }
-        //
-        const orderbookObject = this.safeValue (response, 'orderBook');
-        const timestamp = this.safeTimestamp (orderbookObject, 'unixTime');
-        return this.parseOrderBook (orderbookObject, symbol, timestamp);
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'method', 'pricingData');
+        if (method === 'pricingData') {
+            const response = await this.fetchPricingData ([ symbol ], params);
+            const orderBook = this.safeValue (response, 0);
+            const time = this.safeString (orderBook, 'time'); // '2024-01-02T12:53:56.542810952Z'
+            const timestamp = this.parse8601 (time);
+            return this.parseOrderBook (orderBook, symbol, timestamp, 'bids', 'asks', 'price', 'liquidity');
+        } else {
+            const market = this.market (symbol);
+            const request = {
+                'instrument': market['id'],
+            };
+            const response = await this.privateGetInstrumentsInstrumentOrderBook (this.extend (request, params));
+            //
+            //    {
+            //        "orderBook": {
+            //            "instrument": "EUR_USD",
+            //            "time": "2023-12-29T16:00:00Z",
+            //            "unixTime": "1703865600",
+            //            "price": "1.10474",
+            //            "bucketWidth": "0.00050",
+            //            "buckets": [
+            //                {
+            //                    "price": "1.10400",
+            //                    "longCountPercent": "0.0035",
+            //                    "shortCountPercent": "0.0035"
+            //                },
+            //                {
+            //                    "price": "1.10450",
+            //                    "longCountPercent": "0.0105",
+            //                    "shortCountPercent": "0.0000"
+            //                },
+            //                {
+            //                    "price": "1.10500",
+            //                    "longCountPercent": "0.0105",
+            //                    "shortCountPercent": "0.0000"
+            //                },
+            //                ...
+            //            ]
+            //        }
+            //    }
+            //
+            const orderbookObject = this.safeValue (response, 'orderBook');
+            const timestamp = this.safeTimestamp (orderbookObject, 'unixTime');
+            return this.parseOrderBookCustom (orderbookObject, symbol, timestamp);
+        }
     }
 
-    parseOrderBook (orderbook: object, symbol: string, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1): OrderBook {
+    parseOrderBookCustom (orderbook: object, symbol: string, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1): OrderBook {
         // the prices are distanced by bucketWidth
         // to understand, read more info at: https://developer.oanda.com/rest-live-v20/instrument-df/#OrderBook
         const marketId = this.safeString (orderbook, 'instrument');
