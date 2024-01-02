@@ -137,6 +137,16 @@
                   2
                 ]
             }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://api.pro.coins.ph/openapi/quote/v1/ticker/24hr",
+                "input": [
+                    
+                ]
+            }
         ]
     }
 }
