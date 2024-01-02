@@ -3839,6 +3839,7 @@ class okx extends Exchange {
          * fetches information on multiple closed orders made by the user
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-3-months
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -3848,6 +3849,7 @@ class okx extends Exchange {
          * @param {string} [$params->algoId] Algo ID "'433845797218942976'"
          * @param {int} [$params->until] timestamp in ms to fetch orders for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {string} [$params->method] $method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -3908,6 +3910,8 @@ class okx extends Exchange {
         $response = null;
         if ($method === 'privateGetTradeOrdersAlgoHistory') {
             $response = $this->privateGetTradeOrdersAlgoHistory (array_merge($request, $send));
+        } elseif ($method === 'privateGetTradeOrdersHistoryArchive') {
+            $response = $this->privateGetTradeOrdersHistoryArchive (array_merge($request, $send));
         } else {
             $response = $this->privateGetTradeOrdersHistory (array_merge($request, $send));
         }

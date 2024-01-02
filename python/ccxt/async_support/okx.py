@@ -3676,6 +3676,7 @@ class okx(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-3-months
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -3685,6 +3686,7 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.algoId]: Algo ID "'433845797218942976'"
         :param int [params.until]: timestamp in ms to fetch orders for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.method]: method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -3737,6 +3739,8 @@ class okx(Exchange, ImplicitAPI):
         response = None
         if method == 'privateGetTradeOrdersAlgoHistory':
             response = await self.privateGetTradeOrdersAlgoHistory(self.extend(request, send))
+        elif method == 'privateGetTradeOrdersHistoryArchive':
+            response = await self.privateGetTradeOrdersHistoryArchive(self.extend(request, send))
         else:
             response = await self.privateGetTradeOrdersHistory(self.extend(request, send))
         #
