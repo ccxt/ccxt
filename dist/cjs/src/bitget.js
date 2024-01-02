@@ -3221,14 +3221,13 @@ class bitget extends bitget$1 {
         //         "1399132.341"
         //     ]
         //
-        const volumeIndex = (market['inverse']) ? 6 : 5;
         return [
             this.safeInteger(ohlcv, 0),
             this.safeNumber(ohlcv, 1),
             this.safeNumber(ohlcv, 2),
             this.safeNumber(ohlcv, 3),
             this.safeNumber(ohlcv, 4),
-            this.safeNumber(ohlcv, volumeIndex),
+            this.safeNumber(ohlcv, 5),
         ];
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -3536,10 +3535,16 @@ class bitget extends bitget$1 {
                 // Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
                 const spotAccountFree = this.safeString(entry, 'available');
                 const contractAccountFree = this.safeString(entry, 'maxTransferOut');
-                account['free'] = (contractAccountFree !== undefined) ? contractAccountFree : spotAccountFree;
-                const frozen = this.safeString(entry, 'frozen');
-                const locked = this.safeString(entry, 'locked');
-                account['used'] = Precise["default"].stringAdd(frozen, locked);
+                if (contractAccountFree !== undefined) {
+                    account['free'] = contractAccountFree;
+                    account['total'] = this.safeString(entry, 'accountEquity');
+                }
+                else {
+                    account['free'] = spotAccountFree;
+                    const frozen = this.safeString(entry, 'frozen');
+                    const locked = this.safeString(entry, 'locked');
+                    account['used'] = Precise["default"].stringAdd(frozen, locked);
+                }
             }
             result[code] = account;
         }
@@ -4737,8 +4742,8 @@ class bitget extends bitget$1 {
         }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('cancelOrders', params);
-        const stop = this.safeValue(params, 'stop');
-        params = this.omit(params, 'stop');
+        const stop = this.safeValue2(params, 'stop', 'trigger');
+        params = this.omit(params, ['stop', 'trigger']);
         const orderIdList = [];
         for (let i = 0; i < ids.length; i++) {
             const individualId = ids[i];
@@ -4834,8 +4839,8 @@ class bitget extends bitget$1 {
         const request = {
             'symbol': market['id'],
         };
-        const stop = this.safeValue(params, 'stop');
-        params = this.omit(params, 'stop');
+        const stop = this.safeValue2(params, 'stop', 'trigger');
+        params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
         if (market['spot']) {
             if (marginMode !== undefined) {

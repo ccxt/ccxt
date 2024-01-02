@@ -2502,8 +2502,8 @@ class bitmart extends Exchange {
             if ($market['spot']) {
                 $response = Async\await($this->privatePostSpotV3CancelOrder (array_merge($request, $params)));
             } else {
-                $stop = $this->safe_value($params, 'stop');
-                $params = $this->omit($params, array( 'stop' ));
+                $stop = $this->safe_value_2($params, 'stop', 'trigger');
+                $params = $this->omit($params, array( 'stop', 'trigger' ));
                 if (!$stop) {
                     $response = Async\await($this->privatePostContractPrivateCancelOrder (array_merge($request, $params)));
                 } else {

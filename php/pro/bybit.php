@@ -216,7 +216,7 @@ class bybit extends \ccxt\async\bybit {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
-            $messageHash = 'tickers::' . implode(',', $symbols);
+            $messageHashes = array();
             $url = $this->get_url_by_market_type($symbols[0], false, $params);
             $params = $this->clean_params($params);
             $options = $this->safe_value($this->options, 'watchTickers', array());
@@ -226,8 +226,9 @@ class bybit extends \ccxt\async\bybit {
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $topics[] = $topic . '.' . $marketId;
+                $messageHashes[] = 'ticker:' . $symbols[$i];
             }
-            $ticker = Async\await($this->watch_topics($url, $messageHash, $topics, $params));
+            $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
             if ($this->newUpdates) {
                 return $ticker;
             }
@@ -364,17 +365,6 @@ class bybit extends \ccxt\async\bybit {
         $this->tickers[$symbol] = $parsed;
         $messageHash = 'ticker:' . $symbol;
         $client->resolve ($this->tickers[$symbol], $messageHash);
-        // watchTickers part
-        $messageHashes = $this->find_message_hashes($client, 'tickers::');
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHashTicker = $messageHashes[$i];
-            $parts = explode('::', $messageHashTicker);
-            $symbolsString = $parts[1];
-            $symbols = explode(',', $symbolsString);
-            if ($this->in_array($parsed['symbol'], $symbols)) {
-                $client->resolve ($parsed, $messageHashTicker);
-            }
-        }
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -905,10 +895,14 @@ class bybit extends \ccxt\async\bybit {
         }
         $trades = $this->myTrades;
         $symbols = array();
-        $method = $spot ? 'parseWsTrade' : 'parseTrade';
         for ($i = 0; $i < count($data); $i++) {
             $rawTrade = $data[$i];
-            $parsed = $this->$method ($rawTrade);
+            $parsed = null;
+            if ($spot) {
+                $parsed = $this->parse_ws_trade($rawTrade);
+            } else {
+                $parsed = $this->parse_trade($rawTrade);
+            }
             $symbol = $parsed['symbol'];
             $symbols[$symbol] = true;
             $trades->append ($parsed);

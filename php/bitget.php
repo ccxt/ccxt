@@ -3180,14 +3180,13 @@ class bitget extends Exchange {
         //         "1399132.341"
         //     )
         //
-        $volumeIndex = ($market['inverse']) ? 6 : 5;
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
             $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 3),
             $this->safe_number($ohlcv, 4),
-            $this->safe_number($ohlcv, $volumeIndex),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
@@ -3483,10 +3482,15 @@ class bitget extends Exchange {
                 // Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
                 $spotAccountFree = $this->safe_string($entry, 'available');
                 $contractAccountFree = $this->safe_string($entry, 'maxTransferOut');
-                $account['free'] = ($contractAccountFree !== null) ? $contractAccountFree : $spotAccountFree;
-                $frozen = $this->safe_string($entry, 'frozen');
-                $locked = $this->safe_string($entry, 'locked');
-                $account['used'] = Precise::string_add($frozen, $locked);
+                if ($contractAccountFree !== null) {
+                    $account['free'] = $contractAccountFree;
+                    $account['total'] = $this->safe_string($entry, 'accountEquity');
+                } else {
+                    $account['free'] = $spotAccountFree;
+                    $frozen = $this->safe_string($entry, 'frozen');
+                    $locked = $this->safe_string($entry, 'locked');
+                    $account['used'] = Precise::string_add($frozen, $locked);
+                }
             }
             $result[$code] = $account;
         }
@@ -4632,8 +4636,8 @@ class bitget extends Exchange {
         }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrders', $params);
-        $stop = $this->safe_value($params, 'stop');
-        $params = $this->omit($params, 'stop');
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $params = $this->omit($params, array( 'stop', 'trigger' ));
         $orderIdList = array();
         for ($i = 0; $i < count($ids); $i++) {
             $individualId = $ids[$i];
@@ -4722,8 +4726,8 @@ class bitget extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $stop = $this->safe_value($params, 'stop');
-        $params = $this->omit($params, 'stop');
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
         if ($market['spot']) {
             if ($marginMode !== null) {

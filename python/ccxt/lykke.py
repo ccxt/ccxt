@@ -432,7 +432,11 @@ class lykke(Exchange, ImplicitAPI):
         }
         # publicGetTickers or publicGetPrices
         method = self.safe_string(self.options, 'fetchTickerMethod', 'publicGetTickers')
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'publicGetPrices':
+            response = self.publicGetPrices(self.extend(request, params))
+        else:
+            response = self.publicGetTickers(self.extend(request, params))
         ticker = self.safe_value(response, 'payload', [])
         #
         # publicGetTickers
@@ -771,8 +775,11 @@ class lykke(Exchange, ImplicitAPI):
         }
         if type == 'limit':
             query['price'] = float(self.price_to_precision(market['symbol'], price))
-        method = 'privatePostOrders' + self.capitalize(type)
-        result = getattr(self, method)(self.extend(query, params))
+        result = None
+        if self.capitalize(type) == 'Market':
+            result = self.privatePostOrdersMarket(self.extend(query, params))
+        else:
+            result = self.privatePostOrdersLimit(self.extend(query, params))
         #
         # market
         #
