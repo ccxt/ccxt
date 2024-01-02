@@ -657,7 +657,14 @@ export default class coinsph extends Exchange {
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         const options = this.safeValue (this.options, 'fetchTicker', {});
         const method = this.safeString (options, 'method', defaultMethod);
-        const ticker = await this[method] (this.extend (request, params));
+        let ticker = undefined;
+        if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
+            ticker = await this.publicGetOpenapiQuoteV1TickerPrice (this.extend (request, params));
+        } else if (method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
+            ticker = await this.publicGetOpenapiQuoteV1TickerBookTicker (this.extend (request, params));
+        } else {
+            ticker = await this.publicGetOpenapiQuoteV1Ticker24hr (this.extend (request, params));
+        }
         return this.parseTicker (ticker, market);
     }
 
