@@ -1,0 +1,342 @@
+{
+    "BTC/USDT": {
+        "id": "BTCUSDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00002844,
+                "max": 20
+            },
+            "price": {
+                "min": 21096.942,
+                "max": 49226.198
+            },
+            "cost": {
+                "min": 1,
+                "max": 984523.96
+            },
+            "leverage": {}
+        },
+        "info": {
+            "id": "BTCUSDT",
+            "symbol": "BTC/USDT",
+            "base": "BTC",
+            "quote": "USDT",
+            "baseId": "BTC",
+            "quoteId": "USDT",
+            "active": true,
+            "limits": {
+                "amount": {
+                    "min": "0.00002844",
+                    "max": "20"
+                },
+                "price": {
+                    "min": "21096.942",
+                    "max": "49226.198"
+                },
+                "cost": {
+                    "min": "1",
+                    "max": "984523.96"
+                }
+            },
+            "precision": {
+                "amount": "8",
+                "price": "4"
+            },
+            "info": {}
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0025,
+        "maker": 0.0025,
+        "feeSide": "quote",
+        "uppercaseId": "BTC_USDT"
+    },
+    "LTC/USDT": {
+        "id": "LTCUSDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0175,
+                "max": 200
+            },
+            "price": {
+                "min": 34.32156,
+                "max": 80.08363999999999
+            },
+            "cost": {
+                "min": 1,
+                "max": 16016.727999999997
+            },
+            "leverage": {}
+        },
+        "info": {
+            "id": "LTCUSDT",
+            "symbol": "LTC/USDT",
+            "base": "LTC",
+            "quote": "USDT",
+            "baseId": "LTC",
+            "quoteId": "USDT",
+            "active": true,
+            "limits": {
+                "amount": {
+                    "min": "0.0175",
+                    "max": "200"
+                },
+                "price": {
+                    "min": "34.32156",
+                    "max": "80.08363999999999"
+                },
+                "cost": {
+                    "min": "1",
+                    "max": "16016.727999999997"
+                }
+            },
+            "precision": {
+                "amount": "4",
+                "price": "4"
+            },
+            "info": {}
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0025,
+        "maker": 0.0025,
+        "feeSide": "quote",
+        "uppercaseId": "LTC_USDT"
+    },
+    "ADA/USDT": {
+        "id": "ADAUSDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 2,
+                "max": 2000000
+            },
+            "price": {
+                "min": 0.21119999999999997,
+                "max": 0.49279999999999996
+            },
+            "cost": {
+                "min": 1,
+                "max": 985599.9999999999
+            },
+            "leverage": {}
+        },
+        "info": {
+            "id": "ADAUSDT",
+            "symbol": "ADA/USDT",
+            "base": "ADA",
+            "quote": "USDT",
+            "baseId": "ADA",
+            "quoteId": "USDT",
+            "active": true,
+            "limits": {
+                "amount": {
+                    "min": "2",
+                    "max": "2000000"
+                },
+                "price": {
+                    "min": "0.21119999999999997",
+                    "max": "0.49279999999999996"
+                },
+                "cost": {
+                    "min": "1",
+                    "max": "985599.9999999999"
+                }
+            },
+            "precision": {
+                "amount": "1",
+                "price": "4"
+            },
+            "info": {}
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0025,
+        "maker": 0.0025,
+        "feeSide": "quote",
+        "uppercaseId": "ADA_USDT"
+    },
+    "XRP/USDT": {
+        "id": "XRPUSDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 1.52,
+                "max": 500000
+            },
+            "price": {
+                "min": 0.39594,
+                "max": 0.92386
+            },
+            "cost": {
+                "min": 1,
+                "max": 461930
+            },
+            "leverage": {}
+        },
+        "info": {
+            "id": "XRPUSDT",
+            "symbol": "XRP/USDT",
+            "base": "XRP",
+            "quote": "USDT",
+            "baseId": "XRP",
+            "quoteId": "USDT",
+            "active": true,
+            "limits": {
+                "amount": {
+                    "min": "1.52",
+                    "max": "500000"
+                },
+                "price": {
+                    "min": "0.39594",
+                    "max": "0.92386"
+                },
+                "cost": {
+                    "min": "1",
+                    "max": "461930"
+                }
+            },
+            "precision": {
+                "amount": "2",
+                "price": "4"
+            },
+            "info": {}
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0025,
+        "maker": 0.0025,
+        "feeSide": "quote",
+        "uppercaseId": "XRP_USDT"
+    },
+    "TRX/USDT": {
+        "id": "TRXUSDT",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.1,
+            "price": 1e-7
+        },
+        "limits": {
+            "amount": {
+                "min": 10,
+                "max": 800000
+            },
+            "price": {
+                "min": 0.058092,
+                "max": 0.135548
+            },
+            "cost": {
+                "min": 1,
+                "max": 108438.4
+            },
+            "leverage": {}
+        },
+        "info": {
+            "id": "TRXUSDT",
+            "symbol": "TRX/USDT",
+            "base": "TRX",
+            "quote": "USDT",
+            "baseId": "TRX",
+            "quoteId": "USDT",
+            "active": true,
+            "limits": {
+                "amount": {
+                    "min": "10",
+                    "max": "800000"
+                },
+                "price": {
+                    "min": "0.058092",
+                    "max": "0.135548"
+                },
+                "cost": {
+                    "min": "1",
+                    "max": "108438.4"
+                }
+            },
+            "precision": {
+                "amount": "1",
+                "price": "7"
+            },
+            "info": {}
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0025,
+        "maker": 0.0025,
+        "feeSide": "quote",
+        "uppercaseId": "TRX_USDT"
+    }
+}

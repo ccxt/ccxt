@@ -28,12 +28,16 @@ class woo extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
-                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelWithdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => false,
+                'createMarketBuyOrderWithCost' => true,
                 'createMarketOrder' => false,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => false,
@@ -82,7 +86,6 @@ class woo extends Exchange {
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
-                'repayMargin' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'transfer' => true,
@@ -120,7 +123,10 @@ class woo extends Exchange {
                 'fees' => array(
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ),
-                'referral' => 'https://referral.woo.org/BAJS6oNmZb3vi3RGA',
+                'referral' => array(
+                    'url' => 'https://x.woo.org/register?ref=YWOWC96B',
+                    'discount' => 0.35,
+                ),
             ),
             'api' => array(
                 'v1' => array(
@@ -193,6 +199,11 @@ class woo extends Exchange {
                     ),
                 ),
                 'v3' => array(
+                    'public' => array(
+                        'get' => array(
+                            'insuranceFund' => 3,
+                        ),
+                    ),
                     'private' => array(
                         'get' => array(
                             'algo/order/{oid}' => 1,
@@ -237,6 +248,7 @@ class woo extends Exchange {
                 ),
             ),
             'options' => array(
+                'sandboxMode' => false,
                 'createMarketBuyOrderRequiresPrice' => true,
                 // these network aliases require manual mapping here
                 'network-aliases-for-tokens' => array(
@@ -296,124 +308,127 @@ class woo extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves $data on all markets for woo
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array[]} an array of objects representing $market $data
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market $data
          */
         $response = $this->v1PublicGetInfo ($params);
         //
         // {
-        //     rows => [
+        //     "rows" => [
         //         array(
-        //             $symbol => "SPOT_AAVE_USDT",
-        //             quote_min => 0,
-        //             quote_max => 100000,
-        //             quote_tick => 0.01,
-        //             base_min => 0.01,
-        //             base_max => 7284,
-        //             base_tick => 0.0001,
-        //             min_notional => 10,
-        //             price_range => 0.1,
-        //             created_time => "0",
-        //             updated_time => "1639107647.988",
-        //             is_stable => 0
+        //             "symbol" => "SPOT_AAVE_USDT",
+        //             "quote_min" => 0,
+        //             "quote_max" => 100000,
+        //             "quote_tick" => 0.01,
+        //             "base_min" => 0.01,
+        //             "base_max" => 7284,
+        //             "base_tick" => 0.0001,
+        //             "min_notional" => 10,
+        //             "price_range" => 0.1,
+        //             "created_time" => "0",
+        //             "updated_time" => "1639107647.988",
+        //             "is_stable" => 0
         //         ),
         //         ...
-        //     success => true
+        //     "success" => true
         // }
         //
-        $result = array();
         $data = $this->safe_value($response, 'rows', array());
-        for ($i = 0; $i < count($data); $i++) {
-            $market = $data[$i];
-            $marketId = $this->safe_string($market, 'symbol');
-            $parts = explode('_', $marketId);
-            $marketType = $this->safe_string_lower($parts, 0);
-            $isSpot = $marketType === 'spot';
-            $isSwap = $marketType === 'perp';
-            $baseId = $this->safe_string($parts, 1);
-            $quoteId = $this->safe_string($parts, 2);
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $settleId = null;
-            $settle = null;
-            $symbol = $base . '/' . $quote;
-            $contractSize = null;
-            $linear = null;
-            $margin = true;
-            $contract = $isSwap;
-            if ($contract) {
-                $margin = false;
-                $settleId = $this->safe_string($parts, 2);
-                $settle = $this->safe_currency_code($settleId);
-                $symbol = $base . '/' . $quote . ':' . $settle;
-                $contractSize = $this->parse_number('1');
-                $marketType = 'swap';
-                $linear = true;
-            }
-            $result[] = array(
-                'id' => $marketId,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => $settle,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => $settleId,
-                'type' => $marketType,
-                'spot' => $isSpot,
-                'margin' => $margin,
-                'swap' => $isSwap,
-                'future' => false,
-                'option' => false,
-                'active' => null,
-                'contract' => $contract,
-                'linear' => $linear,
-                'inverse' => null,
-                'contractSize' => $contractSize,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->safe_number($market, 'base_tick'),
-                    'price' => $this->safe_number($market, 'quote_tick'),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'base_min'),
-                        'max' => $this->safe_number($market, 'base_max'),
-                    ),
-                    'price' => array(
-                        'min' => $this->safe_number($market, 'quote_min'),
-                        'max' => $this->safe_number($market, 'quote_max'),
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($market, 'min_notional'),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
+        return $this->parse_markets($data);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_market($market): array {
+        $marketId = $this->safe_string($market, 'symbol');
+        $parts = explode('_', $marketId);
+        $first = $this->safe_string($parts, 0);
+        $spot = false;
+        $swap = false;
+        if ($first === 'SPOT') {
+            $spot = true;
+            $marketType = 'spot';
+        } elseif ($first === 'PERP') {
+            $swap = true;
+            $marketType = 'swap';
+        }
+        $baseId = $this->safe_string($parts, 1);
+        $quoteId = $this->safe_string($parts, 2);
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $settleId = null;
+        $settle = null;
+        $symbol = $base . '/' . $quote;
+        $contractSize = null;
+        $linear = null;
+        $margin = true;
+        $contract = $swap;
+        if ($contract) {
+            $margin = false;
+            $settleId = $this->safe_string($parts, 2);
+            $settle = $this->safe_currency_code($settleId);
+            $symbol = $base . '/' . $quote . ':' . $settle;
+            $contractSize = $this->parse_number('1');
+            $linear = true;
+        }
+        return array(
+            'id' => $marketId,
+            'symbol' => $symbol,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => $settle,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => $settleId,
+            'type' => $marketType,
+            'spot' => $spot,
+            'margin' => $margin,
+            'swap' => $swap,
+            'future' => false,
+            'option' => false,
+            'active' => null,
+            'contract' => $contract,
+            'linear' => $linear,
+            'inverse' => null,
+            'contractSize' => $contractSize,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->safe_number($market, 'base_tick'),
+                'price' => $this->safe_number($market, 'quote_tick'),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->safe_number($market, 'base_min'),
+                    'max' => $this->safe_number($market, 'base_max'),
+                ),
+                'price' => array(
+                    'min' => $this->safe_number($market, 'quote_min'),
+                    'max' => $this->safe_number($market, 'quote_max'),
+                ),
+                'cost' => array(
+                    'min' => $this->safe_number($market, 'min_notional'),
+                    'max' => null,
+                ),
+            ),
+            'created' => $this->safe_timestamp($market, 'created_time'),
+            'info' => $market,
+        );
+    }
+
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTrades() requires a $symbol argument');
-        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -425,28 +440,28 @@ class woo extends Exchange {
         $response = $this->v1PublicGetMarketTrades (array_merge($request, $params));
         //
         // {
-        //     success => true,
-        //     rows => array(
+        //     "success" => true,
+        //     "rows" => array(
         //         array(
-        //             $symbol => "SPOT_BTC_USDT",
-        //             side => "SELL",
-        //             executed_price => 46222.35,
-        //             executed_quantity => 0.0012,
-        //             executed_timestamp => "1641241162.329"
+        //             "symbol" => "SPOT_BTC_USDT",
+        //             "side" => "SELL",
+        //             "executed_price" => 46222.35,
+        //             "executed_quantity" => 0.0012,
+        //             "executed_timestamp" => "1641241162.329"
         //         ),
         //         array(
-        //             $symbol => "SPOT_BTC_USDT",
-        //             side => "SELL",
-        //             executed_price => 46222.35,
-        //             executed_quantity => 0.0012,
-        //             executed_timestamp => "1641241162.329"
+        //             "symbol" => "SPOT_BTC_USDT",
+        //             "side" => "SELL",
+        //             "executed_price" => 46222.35,
+        //             "executed_quantity" => 0.0012,
+        //             "executed_timestamp" => "1641241162.329"
         //         ),
         //         array(
-        //             $symbol => "SPOT_BTC_USDT",
-        //             side => "BUY",
-        //             executed_price => 46224.32,
-        //             executed_quantity => 0.00039,
-        //             executed_timestamp => "1641241162.287"
+        //             "symbol" => "SPOT_BTC_USDT",
+        //             "side" => "BUY",
+        //             "executed_price" => 46224.32,
+        //             "executed_quantity" => 0.00039,
+        //             "executed_timestamp" => "1641241162.287"
         //         ),
         //         ...
         //      )
@@ -456,32 +471,32 @@ class woo extends Exchange {
         return $this->parse_trades($resultResponse, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public/market_trades
         //
         //     {
-        //         $symbol => "SPOT_BTC_USDT",
-        //         $side => "SELL",
-        //         executed_price => 46222.35,
-        //         executed_quantity => 0.0012,
-        //         executed_timestamp => "1641241162.329"
+        //         "symbol" => "SPOT_BTC_USDT",
+        //         "side" => "SELL",
+        //         "executed_price" => 46222.35,
+        //         "executed_quantity" => 0.0012,
+        //         "executed_timestamp" => "1641241162.329"
         //     }
         //
         // fetchOrderTrades, fetchOrder
         //
         //     {
-        //         $id => '99119876',
-        //         $symbol => 'SPOT_WOO_USDT',
-        //         $fee => '0.0024',
-        //         $side => 'BUY',
-        //         executed_timestamp => '1641481113.084',
-        //         $order_id => '87001234',
-        //         order_tag => 'default', <-- this param only in "fetchOrderTrades"
-        //         executed_price => '1',
-        //         executed_quantity => '12',
-        //         fee_asset => 'WOO',
-        //         is_maker => '1'
+        //         "id" => "99119876",
+        //         "symbol" => "SPOT_WOO_USDT",
+        //         "fee" => "0.0024",
+        //         "side" => "BUY",
+        //         "executed_timestamp" => "1641481113.084",
+        //         "order_id" => "87001234",
+        //         "order_tag" => "default", <-- this param only in "fetchOrderTrades"
+        //         "executed_price" => "1",
+        //         "executed_quantity" => "12",
+        //         "fee_asset" => "WOO",
+        //         "is_maker" => "1"
         //     }
         //
         $isFromFetchOrder = (is_array($trade) && array_key_exists('id', $trade));
@@ -536,8 +551,8 @@ class woo extends Exchange {
         /**
          * fetch the trading fees for multiple markets
          * @see https://docs.woo.org/#get-account-information-new
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures} indexed by market symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
          */
         $this->load_markets();
         $response = $this->v3PrivateGetAccountinfo ($params);
@@ -590,69 +605,69 @@ class woo extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
         $result = array();
         $tokenResponse = $this->v1PublicGetToken ($params);
         //
         // {
-        //     rows => array(
+        //     "rows" => array(
         //         array(
-        //             token => "ETH_USDT",
-        //             fullname => "Tether",
-        //             decimals => 6,
-        //             balance_token => "USDT",
-        //             created_time => "0",
-        //             updated_time => "0"
+        //             "token" => "ETH_USDT",
+        //             "fullname" => "Tether",
+        //             "decimals" => 6,
+        //             "balance_token" => "USDT",
+        //             "created_time" => "0",
+        //             "updated_time" => "0"
         //         ),
         //         array(
-        //             token => "BSC_USDT",
-        //             fullname => "Tether",
-        //             decimals => 18,
-        //             balance_token => "USDT",
-        //             created_time => "0",
-        //             updated_time => "0"
+        //             "token" => "BSC_USDT",
+        //             "fullname" => "Tether",
+        //             "decimals" => 18,
+        //             "balance_token" => "USDT",
+        //             "created_time" => "0",
+        //             "updated_time" => "0"
         //         ),
         //         array(
-        //             token => "ZEC",
-        //             fullname => "ZCash",
-        //             decimals => 8,
-        //             balance_token => "ZEC",
-        //             created_time => "0",
-        //             updated_time => "0"
+        //             "token" => "ZEC",
+        //             "fullname" => "ZCash",
+        //             "decimals" => 8,
+        //             "balance_token" => "ZEC",
+        //             "created_time" => "0",
+        //             "updated_time" => "0"
         //         ),
         //         ...
         //     ),
-        //     success => true
+        //     "success" => true
         // }
         //
         // only make one request for currrencies...
         // $tokenNetworkResponse = $this->v1PublicGetTokenNetwork ($params);
         //
         // {
-        //     rows => array(
+        //     "rows" => array(
         //         array(
-        //             protocol => "ERC20",
-        //             token => "USDT",
-        //             $name => "Ethereum",
-        //             minimum_withdrawal => 30,
-        //             withdrawal_fee => 25,
-        //             allow_deposit => 1,
-        //             allow_withdraw => 1
+        //             "protocol" => "ERC20",
+        //             "token" => "USDT",
+        //             "name" => "Ethereum",
+        //             "minimum_withdrawal" => 30,
+        //             "withdrawal_fee" => 25,
+        //             "allow_deposit" => 1,
+        //             "allow_withdraw" => 1
         //         ),
         //         array(
-        //             protocol => "TRC20",
-        //             token => "USDT",
-        //             $name => "Tron",
-        //             minimum_withdrawal => 30,
-        //             withdrawal_fee => 1,
-        //             allow_deposit => 1,
-        //             allow_withdraw => 1
+        //             "protocol" => "TRC20",
+        //             "token" => "USDT",
+        //             "name" => "Tron",
+        //             "minimum_withdrawal" => 30,
+        //             "withdrawal_fee" => 1,
+        //             "allow_deposit" => 1,
+        //             "allow_withdraw" => 1
         //         ),
         //         ...
         //     ),
-        //     success => true
+        //     "success" => true
         // }
         //
         $tokenRows = $this->safe_value($tokenResponse, 'rows', array());
@@ -722,26 +737,46 @@ class woo extends Exchange {
         return $result;
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * create a $market buy order by providing the $symbol and $cost
+         * @see https://docs.woo.org/#send-order
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        $params['createMarketBuyOrderRequiresPrice'] = false;
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
-         * @see https://docs.woo.org/#send-order
-         * @see https://docs.woo.org/#send-algo-order
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @see https://docs.woo.org/#send-$order
+         * @see https://docs.woo.org/#send-algo-$order
+         * create a trade $order
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
-         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
+         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @param {float} [$params->algoType] 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
+        $params = $this->omit($params, array( 'reduceOnly', 'reduce_only' ));
         $orderType = strtoupper($type);
         $this->load_markets();
         $market = $this->market($symbol);
@@ -782,23 +817,26 @@ class woo extends Exchange {
         if ($isMarket && !$isStop) {
             // for $market buy it requires the $amount of quote currency to spend
             if ($market['spot'] && $orderSide === 'BUY') {
-                $cost = $this->safe_number($params, 'cost');
-                if ($this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true)) {
-                    if ($cost === null) {
-                        if ($price === null) {
-                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument for $market buy orders to calculate total order $cost-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or alternatively, supply the total $cost value in the 'order_amount' in  exchange-specific parameters");
-                        } else {
-                            $amountString = $this->number_to_string($amount);
-                            $priceString = $this->number_to_string($price);
-                            $orderAmount = Precise::string_mul($amountString, $priceString);
-                            $request['order_amount'] = $this->cost_to_precision($symbol, $orderAmount);
-                        }
+                $quoteAmount = null;
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number_2($params, 'cost', 'order_amount');
+                $params = $this->omit($params, array( 'cost', 'order_amount' ));
+                if ($cost !== null) {
+                    $quoteAmount = $this->cost_to_precision($symbol, $cost);
+                } elseif ($createMarketBuyOrderRequiresPrice) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
                     } else {
-                        $request['order_amount'] = $this->cost_to_precision($symbol, $cost);
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $costRequest = Precise::string_mul($amountString, $priceString);
+                        $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                     }
                 } else {
-                    $request['order_amount'] = $this->cost_to_precision($symbol, $amount);
+                    $quoteAmount = $this->cost_to_precision($symbol, $amount);
                 }
+                $request['order_amount'] = $quoteAmount;
             } else {
                 $request['order_quantity'] = $this->amount_to_precision($symbol, $amount);
             }
@@ -855,39 +893,38 @@ class woo extends Exchange {
             $response = $this->v1PrivatePostOrder (array_merge($request, $params));
         }
         // {
-        //     success => true,
-        //     timestamp => '1641383206.489',
-        //     order_id => '86980774',
-        //     order_type => 'LIMIT',
-        //     order_price => '1', // null for 'MARKET' order
-        //     order_quantity => '12', // null for 'MARKET' order
-        //     order_amount => null, // NOT-null for 'MARKET' order
-        //     client_order_id => '0'
+        //     "success" => true,
+        //     "timestamp" => "1641383206.489",
+        //     "order_id" => "86980774",
+        //     "order_type" => "LIMIT",
+        //     "order_price" => "1", // null for "MARKET" $order
+        //     "order_quantity" => "12", // null for "MARKET" $order
+        //     "order_amount" => null, // NOT-null for "MARKET" $order
+        //     "client_order_id" => "0"
         // }
         // stop orders
         // {
-        //     success => true,
-        //     $data => {
-        //       $rows => array(
+        //     "success" => true,
+        //     "data" => {
+        //       "rows" => array(
         //         array(
-        //           orderId => '1578938',
-        //           $clientOrderId => '0',
-        //           $algoType => 'STOP_LOSS',
-        //           quantity => '0.1'
+        //           "orderId" => "1578938",
+        //           "clientOrderId" => "0",
+        //           "algoType" => "STOP_LOSS",
+        //           "quantity" => "0.1"
         //         }
         //       )
         //     ),
-        //     timestamp => '1686149372216'
+        //     "timestamp" => "1686149372216"
         // }
         $data = $this->safe_value($response, 'data');
         if ($data !== null) {
             $rows = $this->safe_value($data, 'rows', array());
             return $this->parse_order($rows[0], $market);
         }
-        return array_merge(
-            $this->parse_order($response, $market),
-            array( 'type' => $type )
-        );
+        $order = $this->parse_order($response, $market);
+        $order['type'] = $type;
+        return $order;
     }
 
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
@@ -903,11 +940,11 @@ class woo extends Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
          * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -928,26 +965,24 @@ class woo extends Exchange {
         if ($stopPrice !== null) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
         }
+        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice' ));
         $isStop = ($stopPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
-        $method = null;
+        $response = null;
         if ($isByClientOrder) {
+            $request['client_order_id'] = $clientOrderIdExchangeSpecific;
             if ($isStop) {
-                $method = 'v3PrivatePutAlgoOrderClientClientOrderId';
-                $request['oid'] = $id;
+                $response = $this->v3PrivatePutAlgoOrderClientClientOrderId (array_merge($request, $params));
             } else {
-                $method = 'v3PrivatePutOrderClientClientOrderId';
-                $request['client_order_id'] = $clientOrderIdExchangeSpecific;
+                $response = $this->v3PrivatePutOrderClientClientOrderId (array_merge($request, $params));
             }
         } else {
-            if ($isStop) {
-                $method = 'v3PrivatePutAlgoOrderOid';
-            } else {
-                $method = 'v3PrivatePutOrderOid';
-            }
             $request['oid'] = $id;
+            if ($isStop) {
+                $response = $this->v3PrivatePutAlgoOrderOid (array_merge($request, $params));
+            } else {
+                $response = $this->v3PrivatePutOrderOid (array_merge($request, $params));
+            }
         }
-        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice' ));
-        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -972,42 +1007,41 @@ class woo extends Exchange {
          * cancels an open order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stop] whether the order is a stop/algo order
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $stop = $this->safe_value($params, 'stop', false);
         $params = $this->omit($params, 'stop');
-        if (!$stop) {
-            $this->check_required_symbol('cancelOrder', $symbol);
+        if (!$stop && ($symbol === null)) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
-        $request = array();
-        $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
-        $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
-        $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
-        $method = null;
-        if ($stop) {
-            $method = 'v3PrivateDeleteAlgoOrderOrderId';
-            $request['order_id'] = $id;
-        } elseif ($isByClientOrder) {
-            $method = 'v1PrivateDeleteClientOrder';
-            $request['client_order_id'] = $clientOrderIdExchangeSpecific;
-            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-        } else {
-            $method = 'v1PrivateDeleteOrder';
-            $request['order_id'] = $id;
-        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        if (!$stop) {
+        $request = array();
+        $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
+        $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
+        $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
+        $response = null;
+        if ($stop) {
+            $request['order_id'] = $id;
+            $response = $this->v3PrivateDeleteAlgoOrderOrderId (array_merge($request, $params));
+        } else {
             $request['symbol'] = $market['id'];
+            if ($isByClientOrder) {
+                $request['client_order_id'] = $clientOrderIdExchangeSpecific;
+                $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
+                $response = $this->v1PrivateDeleteClientOrder (array_merge($request, $params));
+            } else {
+                $request['order_id'] = $id;
+                $response = $this->v1PrivateDeleteOrder (array_merge($request, $params));
+            }
         }
-        $response = $this->$method (array_merge($request, $params));
         //
-        // array( success => true, status => 'CANCEL_SENT' )
+        // array( success => true, status => "CANCEL_SENT" )
         //
         $extendParams = array( 'symbol' => $symbol );
         if ($isByClientOrder) {
@@ -1025,9 +1059,9 @@ class woo extends Exchange {
          * @see https://docs.woo.org/#cancel-all-pending-algo-orders
          * cancel all open orders in a $market
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stop] whether the order is a stop/algo order
-         * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $stop = $this->safe_value($params, 'stop');
@@ -1035,7 +1069,9 @@ class woo extends Exchange {
         if ($stop) {
             return $this->v3PrivateDeleteAlgoOrdersPending ($params);
         }
-        $this->check_required_symbol('cancelOrders', $symbol);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1056,9 +1092,9 @@ class woo extends Exchange {
          * @see https://docs.woo.org/#get-order
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stop] whether the order is a stop/algo order
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = ($symbol !== null) ? $this->market($symbol) : null;
@@ -1066,49 +1102,48 @@ class woo extends Exchange {
         $params = $this->omit($params, 'stop');
         $request = array();
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
-        $method = null;
+        $response = null;
         if ($stop) {
-            $method = 'v3PrivateGetAlgoOrderOid';
             $request['oid'] = $id;
+            $response = $this->v3PrivateGetAlgoOrderOid (array_merge($request, $params));
         } elseif ($clientOrderId) {
-            $method = 'v1PrivateGetClientOrderClientOrderId';
             $request['client_order_id'] = $clientOrderId;
+            $response = $this->v1PrivateGetClientOrderClientOrderId (array_merge($request, $params));
         } else {
-            $method = 'v1PrivateGetOrderOid';
             $request['oid'] = $id;
+            $response = $this->v1PrivateGetOrderOid (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         // {
-        //     success => true,
-        //     $symbol => 'SPOT_WOO_USDT',
-        //     status => 'FILLED', // FILLED, NEW
-        //     side => 'BUY',
-        //     created_time => '1641480933.000',
-        //     order_id => '87541111',
-        //     order_tag => 'default',
-        //     price => '1',
-        //     type => 'LIMIT',
-        //     quantity => '12',
-        //     amount => null,
-        //     visible => '12',
-        //     executed => '12', // or any partial amount
-        //     total_fee => '0.0024',
-        //     fee_asset => 'WOO',
-        //     client_order_id => null,
-        //     average_executed_price => '1',
-        //     Transactions => array(
+        //     "success" => true,
+        //     "symbol" => "SPOT_WOO_USDT",
+        //     "status" => "FILLED", // FILLED, NEW
+        //     "side" => "BUY",
+        //     "created_time" => "1641480933.000",
+        //     "order_id" => "87541111",
+        //     "order_tag" => "default",
+        //     "price" => "1",
+        //     "type" => "LIMIT",
+        //     "quantity" => "12",
+        //     "amount" => null,
+        //     "visible" => "12",
+        //     "executed" => "12", // or any partial amount
+        //     "total_fee" => "0.0024",
+        //     "fee_asset" => "WOO",
+        //     "client_order_id" => null,
+        //     "average_executed_price" => "1",
+        //     "Transactions" => array(
         //       {
-        //         $id => '99111647',
-        //         $symbol => 'SPOT_WOO_USDT',
-        //         fee => '0.0024',
-        //         side => 'BUY',
-        //         executed_timestamp => '1641482113.084',
-        //         order_id => '87541111',
-        //         executed_price => '1',
-        //         executed_quantity => '12',
-        //         fee_asset => 'WOO',
-        //         is_maker => '1'
+        //         "id" => "99111647",
+        //         "symbol" => "SPOT_WOO_USDT",
+        //         "fee" => "0.0024",
+        //         "side" => "BUY",
+        //         "executed_timestamp" => "1641482113.084",
+        //         "order_id" => "87541111",
+        //         "executed_price" => "1",
+        //         "executed_quantity" => "12",
+        //         "fee_asset" => "WOO",
+        //         "is_maker" => "1"
         //       }
         //     )
         // }
@@ -1117,19 +1152,19 @@ class woo extends Exchange {
         return $this->parse_order($orders, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.woo.org/#get-$orders
          * @see https://docs.woo.org/#get-algo-$orders
          * fetches information on multiple $orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stop] whether the order is a stop/algo order
          * @param {boolean} [$params->isTriggered] whether the order has been triggered (false by default)
          * @param {string} [$params->side] 'buy' or 'sell'
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array();
@@ -1201,7 +1236,7 @@ class woo extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, null);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         // Possible input functions:
         // * createOrder
@@ -1212,38 +1247,38 @@ class woo extends Exchange {
         //
         // stop $order after creating it:
         //   {
-        //     $orderId => '1578938',
-        //     $clientOrderId => '0',
-        //     algoType => 'STOP_LOSS',
-        //     quantity => '0.1'
+        //     "orderId" => "1578938",
+        //     "clientOrderId" => "0",
+        //     "algoType" => "STOP_LOSS",
+        //     "quantity" => "0.1"
         //   }
         // stop $order after fetching it:
         //   {
-        //       algoOrderId => '1578958',
-        //       $clientOrderId => '0',
-        //       rootAlgoOrderId => '1578958',
-        //       parentAlgoOrderId => '0',
-        //       $symbol => 'SPOT_LTC_USDT',
-        //       orderTag => 'default',
-        //       algoType => 'STOP_LOSS',
-        //       $side => 'BUY',
-        //       quantity => '0.1',
-        //       isTriggered => false,
-        //       triggerPrice => '100',
-        //       triggerStatus => 'USELESS',
-        //       type => 'LIMIT',
-        //       rootAlgoStatus => 'CANCELLED',
-        //       algoStatus => 'CANCELLED',
-        //       triggerPriceType => 'MARKET_PRICE',
-        //       $price => '75',
-        //       triggerTime => '0',
-        //       totalExecutedQuantity => '0',
-        //       averageExecutedPrice => '0',
-        //       totalFee => '0',
-        //       feeAsset => '',
-        //       reduceOnly => false,
-        //       createdTime => '1686149609.744',
-        //       updatedTime => '1686149903.362'
+        //       "algoOrderId" => "1578958",
+        //       "clientOrderId" => "0",
+        //       "rootAlgoOrderId" => "1578958",
+        //       "parentAlgoOrderId" => "0",
+        //       "symbol" => "SPOT_LTC_USDT",
+        //       "orderTag" => "default",
+        //       "algoType" => "STOP_LOSS",
+        //       "side" => "BUY",
+        //       "quantity" => "0.1",
+        //       "isTriggered" => false,
+        //       "triggerPrice" => "100",
+        //       "triggerStatus" => "USELESS",
+        //       "type" => "LIMIT",
+        //       "rootAlgoStatus" => "CANCELLED",
+        //       "algoStatus" => "CANCELLED",
+        //       "triggerPriceType" => "MARKET_PRICE",
+        //       "price" => "75",
+        //       "triggerTime" => "0",
+        //       "totalExecutedQuantity" => "0",
+        //       "averageExecutedPrice" => "0",
+        //       "totalFee" => "0",
+        //       "feeAsset" => '',
+        //       "reduceOnly" => false,
+        //       "createdTime" => "1686149609.744",
+        //       "updatedTime" => "1686149903.362"
         //   }
         //
         $timestamp = $this->safe_timestamp_n($order, array( 'timestamp', 'created_time', 'createdTime' ));
@@ -1331,13 +1366,13 @@ class woo extends Exchange {
         return $status;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1351,16 +1386,16 @@ class woo extends Exchange {
         $response = $this->v1PublicGetOrderbookSymbol (array_merge($request, $params));
         //
         // {
-        //   success => true,
-        //   $timestamp => '1641562961192',
-        //   asks => array(
-        //     array( price => '0.921', quantity => '76.01' ),
-        //     array( price => '0.933', quantity => '477.10' ),
+        //   "success" => true,
+        //   "timestamp" => "1641562961192",
+        //   "asks" => array(
+        //     array( price => '0.921', quantity => "76.01" ),
+        //     array( price => '0.933', quantity => "477.10" ),
         //     ...
         //   ),
-        //   bids => array(
-        //     array( price => '0.940', quantity => '13502.47' ),
-        //     array( price => '0.932', quantity => '43.91' ),
+        //   "bids" => array(
+        //     array( price => '0.940', quantity => "13502.47" ),
+        //     array( price => '0.932', quantity => "43.91" ),
         //     ...
         //   )
         // }
@@ -1369,14 +1404,15 @@ class woo extends Exchange {
         return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         * @see https://docs.woo.org/#kline-public
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1390,31 +1426,31 @@ class woo extends Exchange {
         }
         $response = $this->v1PublicGetKline (array_merge($request, $params));
         // {
-        //     success => true,
-        //     rows => array(
+        //     "success" => true,
+        //     "rows" => array(
         //       array(
-        //         open => '0.94238',
-        //         close => '0.94271',
-        //         low => '0.94238',
-        //         high => '0.94296',
-        //         volume => '73.55',
-        //         amount => '69.32040520',
-        //         $symbol => 'SPOT_WOO_USDT',
-        //         type => '1m',
-        //         start_timestamp => '1641584700000',
-        //         end_timestamp => '1641584760000'
+        //         "open" => "0.94238",
+        //         "close" => "0.94271",
+        //         "low" => "0.94238",
+        //         "high" => "0.94296",
+        //         "volume" => "73.55",
+        //         "amount" => "69.32040520",
+        //         "symbol" => "SPOT_WOO_USDT",
+        //         "type" => "1m",
+        //         "start_timestamp" => "1641584700000",
+        //         "end_timestamp" => "1641584760000"
         //       ),
         //       array(
-        //         open => '0.94186',
-        //         close => '0.94186',
-        //         low => '0.94186',
-        //         high => '0.94186',
-        //         volume => '64.00',
-        //         amount => '60.27904000',
-        //         $symbol => 'SPOT_WOO_USDT',
-        //         type => '1m',
-        //         start_timestamp => '1641584640000',
-        //         end_timestamp => '1641584700000'
+        //         "open" => "0.94186",
+        //         "close" => "0.94186",
+        //         "low" => "0.94186",
+        //         "high" => "0.94186",
+        //         "volume" => "64.00",
+        //         "amount" => "60.27904000",
+        //         "symbol" => "SPOT_WOO_USDT",
+        //         "type" => "1m",
+        //         "start_timestamp" => "1641584640000",
+        //         "end_timestamp" => "1641584700000"
         //       ),
         //       ...
         //     )
@@ -1423,7 +1459,7 @@ class woo extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         // example response in fetchOHLCV
         return array(
             $this->safe_integer($ohlcv, 'start_timestamp'),
@@ -1442,8 +1478,8 @@ class woo extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades to retrieve
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         $this->load_markets();
         $market = null;
@@ -1455,20 +1491,20 @@ class woo extends Exchange {
         );
         $response = $this->v1PrivateGetOrderOidTrades (array_merge($request, $params));
         // {
-        //     success => true,
-        //     rows => array(
+        //     "success" => true,
+        //     "rows" => array(
         //       {
-        //         $id => '99111647',
-        //         $symbol => 'SPOT_WOO_USDT',
-        //         fee => '0.0024',
-        //         side => 'BUY',
-        //         executed_timestamp => '1641482113.084',
-        //         order_id => '87541111',
-        //         order_tag => 'default',
-        //         executed_price => '1',
-        //         executed_quantity => '12',
-        //         fee_asset => 'WOO',
-        //         is_maker => '1'
+        //         "id" => "99111647",
+        //         "symbol" => "SPOT_WOO_USDT",
+        //         "fee" => "0.0024",
+        //         "side" => "BUY",
+        //         "executed_timestamp" => "1641482113.084",
+        //         "order_id" => "87541111",
+        //         "order_tag" => "default",
+        //         "executed_price" => "1",
+        //         "executed_quantity" => "12",
+        //         "fee_asset" => "WOO",
+        //         "is_maker" => "1"
         //       }
         //     )
         // }
@@ -1482,8 +1518,8 @@ class woo extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array();
@@ -1526,24 +1562,24 @@ class woo extends Exchange {
     public function fetch_accounts($params = array ()) {
         /**
          * fetch all the accounts associated with a profile
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure account structures} indexed by the account type
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
          */
         $response = $this->v1PrivateGetSubAccountAssets ($params);
         //
         //     {
-        //         $rows => [array(
-        //                 application_id => '13e4fc34-e2ff-4cb7-b1e4-4c22fee7d365',
-        //                 account => 'Main',
-        //                 usdt_balance => '4.0'
+        //         "rows" => [array(
+        //                 "application_id" => "13e4fc34-e2ff-4cb7-b1e4-4c22fee7d365",
+        //                 "account" => "Main",
+        //                 "usdt_balance" => "4.0"
         //             ),
         //             {
-        //                 application_id => '432952aa-a401-4e26-aff6-972920aebba3',
-        //                 account => 'subaccount',
-        //                 usdt_balance => '1.0'
+        //                 "application_id" => "432952aa-a401-4e26-aff6-972920aebba3",
+        //                 "account" => "subaccount",
+        //                 "usdt_balance" => "1.0"
         //             }
         //         ],
-        //         success => true
+        //         "success" => true
         //     }
         //
         $rows = $this->safe_value($response, 'rows', array());
@@ -1553,9 +1589,9 @@ class woo extends Exchange {
     public function parse_account($account) {
         //
         //     {
-        //         application_id => '336952aa-a401-4e26-aff6-972920aebba3',
-        //         $account => 'subaccount',
-        //         usdt_balance => '1.0',
+        //         "application_id" => "336952aa-a401-4e26-aff6-972920aebba3",
+        //         "account" => "subaccount",
+        //         "usdt_balance" => "1.0",
         //     }
         //
         $accountId = $this->safe_string($account, 'account');
@@ -1568,12 +1604,12 @@ class woo extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.woo.org/#get-current-holding-get-balance-new
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->v3PrivateGetBalances ($params);
@@ -1604,7 +1640,7 @@ class woo extends Exchange {
         return $this->parse_balance($data);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
         );
@@ -1624,8 +1660,8 @@ class woo extends Exchange {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
          */
         // this method is TODO because of networks unification
         $this->load_markets();
@@ -1639,9 +1675,9 @@ class woo extends Exchange {
         );
         $response = $this->v1PrivateGetAssetDeposit (array_merge($request, $params));
         // {
-        //     success => true,
-        //     $address => '3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP',
-        //     extra => ''
+        //     "success" => true,
+        //     "address" => "3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP",
+        //     "extra" => ''
         // }
         $tag = $this->safe_string($response, 'extra');
         $address = $this->safe_string($response, 'address');
@@ -1676,38 +1712,38 @@ class woo extends Exchange {
         }
         $response = $this->v1PrivateGetAssetHistory (array_merge($request, $params));
         // {
-        //     rows => array(
+        //     "rows" => array(
         //       {
-        //         id => '22010508193900165',
-        //         token => 'TRON_USDT',
-        //         extra => '',
-        //         amount => '13.75848500',
-        //         status => 'COMPLETED',
-        //         account => null,
-        //         description => null,
-        //         user_id => '42222',
-        //         application_id => '6ad2b303-f354-45c0-8105-9f5f19d0e335',
-        //         external_id => '220105081900134',
-        //         target_address => 'TXnyFSnAYad3YCaqtwMw9jvXKkeU39NLnK',
-        //         source_address => 'TYDzsYUEpvnYmQk4zGP9sWWcTEd2MiAtW6',
-        //         type => 'BALANCE',
-        //         token_side => 'DEPOSIT',
-        //         tx_id => '35b0004022f6b3ad07f39a0b7af199f6b258c2c3e2c7cdc93c67efa74fd625ee',
-        //         fee_token => '',
-        //         fee_amount => '0.00000000',
-        //         created_time => '1641370779.442',
-        //         updated_time => '1641370779.465',
-        //         is_new_target_address => null,
-        //         confirmed_number => '29',
-        //         confirming_threshold => '27',
-        //         audit_tag => '1',
-        //         audit_result => '0',
-        //         balance_token => null, // TODO -write to support, that this seems broken. here should be the token id
-        //         network_name => null // TODO -write to support, that this seems broken. here should be the network id
+        //         "id" => "22010508193900165",
+        //         "token" => "TRON_USDT",
+        //         "extra" => '',
+        //         "amount" => "13.75848500",
+        //         "status" => "COMPLETED",
+        //         "account" => null,
+        //         "description" => null,
+        //         "user_id" => "42222",
+        //         "application_id" => "6ad2b303-f354-45c0-8105-9f5f19d0e335",
+        //         "external_id" => "220105081900134",
+        //         "target_address" => "TXnyFSnAYad3YCaqtwMw9jvXKkeU39NLnK",
+        //         "source_address" => "TYDzsYUEpvnYmQk4zGP9sWWcTEd2MiAtW6",
+        //         "type" => "BALANCE",
+        //         "token_side" => "DEPOSIT",
+        //         "tx_id" => "35b0004022f6b3ad07f39a0b7af199f6b258c2c3e2c7cdc93c67efa74fd625ee",
+        //         "fee_token" => '',
+        //         "fee_amount" => "0.00000000",
+        //         "created_time" => "1641370779.442",
+        //         "updated_time" => "1641370779.465",
+        //         "is_new_target_address" => null,
+        //         "confirmed_number" => "29",
+        //         "confirming_threshold" => "27",
+        //         "audit_tag" => "1",
+        //         "audit_result" => "0",
+        //         "balance_token" => null, // TODO -write to support, that this seems broken. here should be the token id
+        //         "network_name" => null // TODO -write to support, that this seems broken. here should be the network id
         //       }
         //     ),
-        //     meta => array( total => '1', records_per_page => '25', current_page => '1' ),
-        //     success => true
+        //     "meta" => array( total => '1', records_per_page => "25", current_page => "1" ),
+        //     "success" => true
         // }
         return array( $currency, $this->safe_value($response, 'rows', array()) );
     }
@@ -1718,14 +1754,14 @@ class woo extends Exchange {
          * @param {string} $code unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entrys to return, default is null
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
         list($currency, $rows) = $this->get_asset_history_rows($code, $since, $limit, $params);
         return $this->parse_ledger($rows, $currency, $since, $limit, $params);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         $networkizedCode = $this->safe_string($item, 'token');
         $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
         $code = $currencyDefined['code'];
@@ -1777,14 +1813,14 @@ class woo extends Exchange {
         return $currency;
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $request = array(
             'token_side' => 'DEPOSIT',
@@ -1792,14 +1828,14 @@ class woo extends Exchange {
         return $this->fetch_deposits_withdrawals($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $request = array(
             'token_side' => 'WITHDRAW',
@@ -1807,14 +1843,14 @@ class woo extends Exchange {
         return $this->fetch_deposits_withdrawals($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         $request = array(
             'type' => 'BALANCE',
@@ -1834,7 +1870,7 @@ class woo extends Exchange {
         return $this->parse_transactions($rows, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         // example in fetchLedger
         $networkizedCode = $this->safe_string($transaction, 'token');
         $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
@@ -1865,7 +1901,9 @@ class woo extends Exchange {
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'updated' => $this->safe_timestamp($transaction, 'updated_time'),
             'comment' => null,
+            'internal' => null,
             'fee' => $fee,
+            'network' => null,
         );
     }
 
@@ -1887,8 +1925,8 @@ class woo extends Exchange {
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount account to $transfer from
          * @param {string} $toAccount account to $transfer to
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$transfer-structure $transfer structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1922,8 +1960,8 @@ class woo extends Exchange {
          * @param {string} $code unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch transfers for
          * @param {int} [$limit] the maximum number of  transfers structures to retrieve
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
          */
         $request = array(
             'type' => 'COLLATERAL',
@@ -1932,7 +1970,7 @@ class woo extends Exchange {
         return $this->parse_transfers($rows, $currency, $since, $limit, $params);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         //    getAssetHistoryRows
         //        {
@@ -2013,8 +2051,8 @@ class woo extends Exchange {
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();
@@ -2054,8 +2092,8 @@ class woo extends Exchange {
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {string} $symbol not used by woo.repayMargin ()
-         * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
          */
         $this->load_markets();
         $market = null;
@@ -2081,7 +2119,7 @@ class woo extends Exchange {
         ));
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         //     {
         //         "success" => true,
@@ -2118,13 +2156,16 @@ class woo extends Exchange {
         } else {
             $this->check_required_credentials();
             if ($method === 'POST' && ($path === 'algo/order' || $path === 'order')) {
-                $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
-                $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
-                $isStop = mb_strpos($path, 'algo') > -1;
-                if ($isStop) {
-                    $params['brokerId'] = $brokerId;
-                } else {
-                    $params['broker_id'] = $brokerId;
+                $isSandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+                if (!$isSandboxMode) {
+                    $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+                    $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
+                    $isStop = mb_strpos($path, 'algo') > -1;
+                    if ($isStop) {
+                        $params['brokerId'] = $brokerId;
+                    } else {
+                        $params['broker_id'] = $brokerId;
+                    }
                 }
                 $params = $this->keysort($params);
             }
@@ -2180,7 +2221,7 @@ class woo extends Exchange {
         return null;
     }
 
-    public function parse_income($income, $market = null) {
+    public function parse_income($income, ?array $market = null) {
         //
         //     {
         //         "id":666666,
@@ -2252,7 +2293,7 @@ class woo extends Exchange {
         return $this->parse_incomes($result, $market, $since, $limit);
     }
 
-    public function parse_funding_rate($fundingRate, $market = null) {
+    public function parse_funding_rate($fundingRate, ?array $market = null) {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",
@@ -2338,7 +2379,23 @@ class woo extends Exchange {
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding rate prices
+         * @see https://docs.woo.org/#get-funding-rate-history-for-one-$market-public
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] $timestamp in ms of the latest funding rate
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+         */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'page', 25);
+        }
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2348,6 +2405,7 @@ class woo extends Exchange {
         if ($since !== null) {
             $request['start_t'] = $this->parse_to_int($since / 1000);
         }
+        list($request, $params) = $this->handle_until_option('end_t', $request, $params, 0.001);
         $response = $this->v1PublicGetFundingRateHistory (array_merge($request, $params));
         //
         //     {
@@ -2492,7 +2550,7 @@ class woo extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     {
         //         "symbol" => "0_symbol",
@@ -2569,5 +2627,10 @@ class woo extends Exchange {
         }
         // if it was not returned according to above options, then return the first $network of currency
         return $this->safe_value($networkKeys, 0);
+    }
+
+    public function set_sandbox_mode($enable) {
+        parent::set_sandbox_mode($enable);
+        $this->options['sandboxMode'] = $enable;
     }
 }

@@ -86,12 +86,8 @@ interface gate {
     privatePortfolioGetLoans(params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetLoanRecords(params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetInterestRecords(params?: {}): Promise<implicitReturnType>;
-    privatePortfolioGetSpotOrders(params?: {}): Promise<implicitReturnType>;
-    privatePortfolioGetSpotOrdersOrderId(params?: {}): Promise<implicitReturnType>;
+    privatePortfolioPostAccountMode(params?: {}): Promise<implicitReturnType>;
     privatePortfolioPostLoans(params?: {}): Promise<implicitReturnType>;
-    privatePortfolioPostSpotOrders(params?: {}): Promise<implicitReturnType>;
-    privatePortfolioDeleteSpotOrdersOrderId(params?: {}): Promise<implicitReturnType>;
-    privatePortfolioPatchSpotOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privateSpotGetFee(params?: {}): Promise<implicitReturnType>;
     privateSpotGetBatchFee(params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccounts(params?: {}): Promise<implicitReturnType>;
@@ -107,6 +103,7 @@ interface gate {
     privateSpotPostOrders(params?: {}): Promise<implicitReturnType>;
     privateSpotPostCancelBatchOrders(params?: {}): Promise<implicitReturnType>;
     privateSpotPostCountdownCancelAll(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostAmendBatchOrders(params?: {}): Promise<implicitReturnType>;
     privateSpotPostPriceOrders(params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteOrders(params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteOrdersOrderId(params?: {}): Promise<implicitReturnType>;
@@ -219,11 +216,15 @@ interface gate {
     privateOptionsPostOrders(params?: {}): Promise<implicitReturnType>;
     privateOptionsDeleteOrders(params?: {}): Promise<implicitReturnType>;
     privateOptionsDeleteOrdersOrderId(params?: {}): Promise<implicitReturnType>;
+    privateEarnGetUniCurrencies(params?: {}): Promise<implicitReturnType>;
+    privateEarnGetUniCurrenciesCurrency(params?: {}): Promise<implicitReturnType>;
     privateEarnGetUniLends(params?: {}): Promise<implicitReturnType>;
     privateEarnGetUniLendRecords(params?: {}): Promise<implicitReturnType>;
     privateEarnGetUniInterestsCurrency(params?: {}): Promise<implicitReturnType>;
     privateEarnGetUniInterestRecords(params?: {}): Promise<implicitReturnType>;
+    privateEarnGetUniInterestStatusCurrency(params?: {}): Promise<implicitReturnType>;
     privateEarnPostUniLends(params?: {}): Promise<implicitReturnType>;
+    privateEarnPutUniInterestReinvest(params?: {}): Promise<implicitReturnType>;
     privateEarnPatchUniLends(params?: {}): Promise<implicitReturnType>;
     privateLoanGetCollateralOrders(params?: {}): Promise<implicitReturnType>;
     privateLoanGetCollateralOrdersOrderId(params?: {}): Promise<implicitReturnType>;

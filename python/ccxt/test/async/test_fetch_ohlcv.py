@@ -12,14 +12,12 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_ohlcv  # noqa E402
-
 
 async def test_fetch_ohlcv(exchange, skipped_properties, symbol):
     method = 'fetchOHLCV'
     timeframe_keys = list(exchange.timeframes.keys())
-    assert len(timeframe_keys) > 0, exchange.id + ' ' + method + ' - no timeframes found'
+    assert len(timeframe_keys), exchange.id + ' ' + method + ' - no timeframes found'
     # prefer 1m timeframe if available, otherwise return the first one
     chosen_timeframe_key = '1m'
     if not exchange.in_array(chosen_timeframe_key, timeframe_keys):

@@ -124,6 +124,7 @@ exports.urlencode = encode.urlencode;
 exports.urlencodeBase64 = encode.urlencodeBase64;
 exports.urlencodeNested = encode.urlencodeNested;
 exports.urlencodeWithArrayRepeat = encode.urlencodeWithArrayRepeat;
+exports.axolotl = crypto.axolotl;
 exports.crc32 = crypto.crc32;
 exports.ecdsa = crypto.ecdsa;
 exports.eddsa = crypto.eddsa;
