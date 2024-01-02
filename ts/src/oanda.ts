@@ -1459,8 +1459,15 @@ export default class oanda extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
-        const request = { 'state': 'OPEN' };
-        const positions = await this.getInternalAccountTrades (symbols, undefined, this.extend (request, params));
+        return await this.fetchOpenPositionHelper (symbols, { 'state': 'OPEN' });
+    }
+
+    async fetchClosedPositions (symbols: Strings = undefined, params = {}) {
+        return await this.fetchOpenPositionHelper (symbols, { 'state': 'CLOSED' });
+    }
+
+    async fetchOpenPositionHelper (symbols: Strings = undefined, params = {}) {
+        const positions = await this.getInternalAccountTrades (symbols, undefined, undefined, params);
         return this.parsePositions (positions, symbols);
     }
 
@@ -1490,7 +1497,7 @@ export default class oanda extends Exchange {
         const initialSize = this.safeString (position, 'initialUnits');
         const side = Precise.stringGt (initialSize, '0') ? 'long' : 'short';
         const marginUsed = this.safeString (position, 'marginUsed');
-        // TODO: i am not sure if the margin values are correctly structured by me
+        // TODO: revise margin values
         return {
             'id': this.safeString (position, 'id'),
             'symbol': market['symbol'],
