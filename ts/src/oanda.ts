@@ -1556,6 +1556,7 @@ export default class oanda extends Exchange {
             market = this.market (symbol);
         }
         let response = undefined;
+        // todo: revision
         let method = this.safeString (this.options, 'fetchMyTradesMethod', 'privateGetAccountsAccountIDTransactionsSinceid');
         method = this.safeString (params, 'method', method);
         if (method === 'privateGetAccountsAccountIDTransactionsSinceid') {
@@ -1827,9 +1828,8 @@ export default class oanda extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a non-unified response from exchange
          */
-        const balance = await this.fetchBalance (params);
-        const entry = balance['info']['account'];
-        return this.safeNumber (entry, 'marginRate');
+        const account = await this.getAccountSummary (params);
+        return this.safeNumber (account, 'marginRate');
     }
 
     async setLeverage (leverage, symbol: Str = undefined, params = {}) {
