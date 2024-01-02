@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\NotSupported;
 use ccxt\InvalidNonce;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class independentreserve extends \ccxt\async\independentreserve {
 
@@ -40,15 +41,15 @@ class independentreserve extends \ccxt\async\independentreserve {
         ));
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the independentreserve api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -63,20 +64,20 @@ class independentreserve extends \ccxt\async\independentreserve {
     public function handle_trades(Client $client, $message) {
         //
         //    {
-        //        Channel => 'ticker-btc-usd',
-        //        Nonce => 130,
-        //        Data => array(
-        //          TradeGuid => '7a669f2a-d564-472b-8493-6ef982eb1e96',
-        //          Pair => 'btc-aud',
-        //          TradeDate => '2023-02-12T10:04:13.0804889+11:00',
-        //          Price => 31640,
-        //          Volume => 0.00079029,
-        //          BidGuid => 'ba8a78b5-be69-4d33-92bb-9df0daa6314e',
-        //          OfferGuid => '27d20270-f21f-4c25-9905-152e70b2f6ec',
-        //          Side => 'Buy'
+        //        "Channel" => "ticker-btc-usd",
+        //        "Nonce" => 130,
+        //        "Data" => array(
+        //          "TradeGuid" => "7a669f2a-d564-472b-8493-6ef982eb1e96",
+        //          "Pair" => "btc-aud",
+        //          "TradeDate" => "2023-02-12T10:04:13.0804889+11:00",
+        //          "Price" => 31640,
+        //          "Volume" => 0.00079029,
+        //          "BidGuid" => "ba8a78b5-be69-4d33-92bb-9df0daa6314e",
+        //          "OfferGuid" => "27d20270-f21f-4c25-9905-152e70b2f6ec",
+        //          "Side" => "Buy"
         //        ),
-        //        Time => 1676156653111,
-        //        Event => 'Trade'
+        //        "Time" => 1676156653111,
+        //        "Event" => "Trade"
         //    }
         //
         $data = $this->safe_value($message, 'Data', array());
@@ -127,13 +128,13 @@ class independentreserve extends \ccxt\async\independentreserve {
         ), $market);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the independentreserve api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -156,24 +157,24 @@ class independentreserve extends \ccxt\async\independentreserve {
     public function handle_order_book(Client $client, $message) {
         //
         //    {
-        //        Channel => "orderbook/1/eth/aud",
-        //        Data => array(
-        //          Bids => array(
+        //        "Channel" => "orderbook/1/eth/aud",
+        //        "Data" => array(
+        //          "Bids" => array(
         //            array(
-        //              Price => 2198.09,
-        //              Volume => 0.16143952,
+        //              "Price" => 2198.09,
+        //              "Volume" => 0.16143952,
         //            ),
         //          ),
-        //          Offers => array(
+        //          "Offers" => array(
         //            array(
-        //              Price => 2201.25,
-        //              Volume => 15,
+        //              "Price" => 2201.25,
+        //              "Volume" => 15,
         //            ),
         //          ),
-        //          Crc32 => 1519697650,
+        //          "Crc32" => 1519697650,
         //        ),
-        //        Time => 1676150558254,
-        //        Event => "OrderBookSnapshot",
+        //        "Time" => 1676150558254,
+        //        "Event" => "OrderBookSnapshot",
         //    }
         //
         $event = $this->safe_string($message, 'Event');
@@ -259,8 +260,8 @@ class independentreserve extends \ccxt\async\independentreserve {
     public function handle_heartbeat(Client $client, $message) {
         //
         //    {
-        //        Time => 1676156208182,
-        //        Event => 'Heartbeat'
+        //        "Time" => 1676156208182,
+        //        "Event" => "Heartbeat"
         //    }
         //
         return $message;
@@ -269,9 +270,9 @@ class independentreserve extends \ccxt\async\independentreserve {
     public function handle_subscriptions(Client $client, $message) {
         //
         //    {
-        //        Data => array( 'ticker-btc-sgd' ),
-        //        Time => 1676157556223,
-        //        Event => 'Subscriptions'
+        //        "Data" => array( "ticker-btc-sgd" ),
+        //        "Time" => 1676157556223,
+        //        "Event" => "Subscriptions"
         //    }
         //
         return $message;

@@ -27,7 +27,7 @@ function testPosition (exchange, skippedProperties, method, entry, symbol, now) 
     };
     const emptyotAllowedFor = [ 'liquidationPrice', 'initialMargin', 'initialMarginPercentage', 'maintenanceMargin', 'maintenanceMarginPercentage', 'marginRatio' ];
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyotAllowedFor);
-    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry, now);
+    testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry, now);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'side', [ 'long', 'short' ]);
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'marginMode', [ 'cross', 'isolated' ]);
@@ -45,7 +45,7 @@ function testPosition (exchange, skippedProperties, method, entry, symbol, now) 
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'liquidationPrice', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'markPrice', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'collateral', '0');
-    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'percentage', '0');
+    // testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'percentage', '0'); // percentage might be < 0
 }
 
 export default testPosition;

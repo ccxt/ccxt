@@ -13,7 +13,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class cex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class cex extends Exchange {
     describe() {
@@ -31,9 +31,13 @@ export default class cex extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createDepositAddress': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
@@ -229,7 +233,7 @@ export default class cex extends Exchange {
          * @method
          * @name cex#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.fetchCurrenciesFromCache(params);
@@ -335,7 +339,7 @@ export default class cex extends Exchange {
          * @method
          * @name cex#fetchMarkets
          * @description retrieves data on all markets for cex
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const currenciesResponse = await this.fetchCurrenciesFromCache(params);
@@ -439,6 +443,7 @@ export default class cex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -465,9 +470,10 @@ export default class cex extends Exchange {
         /**
          * @method
          * @name cex#fetchBalance
+         * @see https://docs.cex.io/#account-balance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostBalance(params);
@@ -477,10 +483,11 @@ export default class cex extends Exchange {
         /**
          * @method
          * @name cex#fetchOrderBook
+         * @see https://docs.cex.io/#orderbook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -519,12 +526,13 @@ export default class cex extends Exchange {
         /**
          * @method
          * @name cex#fetchOHLCV
+         * @see https://docs.cex.io/#historical-ohlcv-chart
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -597,9 +605,9 @@ export default class cex extends Exchange {
         /**
          * @method
          * @name cex#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -618,15 +626,16 @@ export default class cex extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker(ticker, market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
          * @method
          * @name cex#fetchTicker
+         * @see https://docs.cex.io/#ticker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -676,12 +685,13 @@ export default class cex extends Exchange {
         /**
          * @method
          * @name cex#fetchTrades
+         * @see https://docs.cex.io/#trade-history
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -695,19 +705,20 @@ export default class cex extends Exchange {
         /**
          * @method
          * @name cex#fetchTradingFees
+         * @see https://docs.cex.io/#get-my-fee
          * @description fetch the trading fees for multiple markets
-         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.privatePostGetMyfee(params);
         //
         //      {
-        //          e: 'get_myfee',
-        //          ok: 'ok',
-        //          data: {
-        //            'BTC:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15' },
-        //            'ETH:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15' },
+        //          "e": "get_myfee",
+        //          "ok": "ok",
+        //          "data": {
+        //            'BTC:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: "0.15" },
+        //            'ETH:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: "0.15" },
         //            ..
         //          }
         //      }
@@ -736,39 +747,55 @@ export default class cex extends Exchange {
         /**
          * @method
          * @name cex#createOrder
+         * @see https://docs.cex.io/#place-order
          * @description create a trade order
          * @see https://cex.io/rest-api#place-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        // for market buy it requires the amount of quote currency to spend
-        if ((type === 'market') && (side === 'buy')) {
-            if (this.options['createMarketBuyOrderRequiresPrice']) {
-                if (price === undefined) {
-                    throw new InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
-                }
-                else {
-                    const amountString = this.numberToString(amount);
-                    const priceString = this.numberToString(price);
-                    const baseAmount = Precise.stringMul(amountString, priceString);
-                    amount = this.parseNumber(baseAmount);
-                }
-            }
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
             'type': side,
-            'amount': amount,
         };
+        // for market buy it requires the amount of quote currency to spend
+        if ((type === 'market') && (side === 'buy')) {
+            let quoteAmount = undefined;
+            let createMarketBuyOrderRequiresPrice = true;
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeString(params, 'cost');
+            params = this.omit(params, 'cost');
+            if (cost !== undefined) {
+                quoteAmount = this.costToPrecision(symbol, cost);
+            }
+            else if (createMarketBuyOrderRequiresPrice) {
+                if (price === undefined) {
+                    throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                }
+                else {
+                    const amountString = this.numberToString(amount);
+                    const priceString = this.numberToString(price);
+                    const costRequest = Precise.stringMul(amountString, priceString);
+                    quoteAmount = this.costToPrecision(symbol, costRequest);
+                }
+            }
+            else {
+                quoteAmount = this.costToPrecision(symbol, amount);
+            }
+            request['amount'] = quoteAmount;
+        }
+        else {
+            request['amount'] = this.amountToPrecision(symbol, amount);
+        }
         if (type === 'limit') {
-            request['price'] = price;
+            request['price'] = this.numberToString(price);
         }
         else {
             request['order_type'] = type;
@@ -819,10 +846,11 @@ export default class cex extends Exchange {
         /**
          * @method
          * @name cex#cancelOrder
+         * @see https://docs.cex.io/#cancel-order
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol not used by cex cancelOrder ()
-         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -832,6 +860,36 @@ export default class cex extends Exchange {
         const response = await this.privatePostCancelOrder(this.extend(request, params));
         // 'true'
         return this.extend(this.parseOrder({}), { 'info': response, 'type': undefined, 'id': id, 'status': 'canceled' });
+    }
+    async cancelAllOrders(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#cancelAllOrders
+         * @see https://docs.cex.io/#cancel-all-orders-for-given-pair
+         * @description cancel all open orders in a market
+         * @param {string} symbol unified market symbol of the market to cancel orders in
+         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' cancelAllOrders requires a symbol.');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'pair': market['id'],
+        };
+        const orders = await this.privatePostCancelOrdersPair(this.extend(request, params));
+        //
+        //  {
+        //      "e":"cancel_orders",
+        //      "ok":"ok",
+        //      "data":[
+        //      ]
+        //   }
+        //
+        return orders;
     }
     parseOrder(order, market = undefined) {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
@@ -846,9 +904,9 @@ export default class cex extends Exchange {
             timestamp = parseInt(timestamp);
         }
         let symbol = undefined;
-        if (market === undefined) {
-            const baseId = this.safeString(order, 'symbol1');
-            const quoteId = this.safeString(order, 'symbol2');
+        const baseId = this.safeString(order, 'symbol1');
+        const quoteId = this.safeString(order, 'symbol2');
+        if (market === undefined && baseId !== undefined && quoteId !== undefined) {
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             if ((base !== undefined) && (quote !== undefined)) {
@@ -920,23 +978,23 @@ export default class cex extends Exchange {
                 const tradeSide = this.safeString(item, 'type');
                 if (tradeSide === 'cancel') {
                     // looks like this might represent the cancelled part of an order
-                    //   { id: '4426729543',
-                    //     type: 'cancel',
-                    //     time: '2017-09-22T00:24:30.476Z',
-                    //     user: 'up106404164',
-                    //     c: 'user:up106404164:a:BCH',
-                    //     d: 'order:4426728375:a:BCH',
-                    //     a: '0.09935956',
-                    //     amount: '0.09935956',
-                    //     balance: '0.42580261',
-                    //     symbol: 'BCH',
-                    //     order: '4426728375',
-                    //     buy: null,
-                    //     sell: null,
-                    //     pair: null,
-                    //     pos: null,
-                    //     cs: '0.42580261',
-                    //     ds: 0 }
+                    //   { "id": "4426729543",
+                    //     "type": "cancel",
+                    //     "time": "2017-09-22T00:24:30.476Z",
+                    //     "user": "up106404164",
+                    //     "c": "user:up106404164:a:BCH",
+                    //     "d": "order:4426728375:a:BCH",
+                    //     "a": "0.09935956",
+                    //     "amount": "0.09935956",
+                    //     "balance": "0.42580261",
+                    //     "symbol": "BCH",
+                    //     "order": "4426728375",
+                    //     "buy": null,
+                    //     "sell": null,
+                    //     "pair": null,
+                    //     "pos": null,
+                    //     "cs": "0.42580261",
+                    //     "ds": 0 }
                     continue;
                 }
                 const tradePrice = this.safeString(item, 'price');
@@ -1103,23 +1161,26 @@ export default class cex extends Exchange {
         /**
          * @method
          * @name cex#fetchOpenOrders
+         * @see https://docs.cex.io/#open-orders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
-        let method = 'privatePostOpenOrders';
         let market = undefined;
+        let orders = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['pair'] = market['id'];
-            method += 'Pair';
+            orders = await this.privatePostOpenOrdersPair(this.extend(request, params));
         }
-        const orders = await this[method](this.extend(request, params));
+        else {
+            orders = await this.privatePostOpenOrders(this.extend(request, params));
+        }
         for (let i = 0; i < orders.length; i++) {
             orders[i] = this.extend(orders[i], { 'status': 'open' });
         }
@@ -1129,30 +1190,31 @@ export default class cex extends Exchange {
         /**
          * @method
          * @name cex#fetchClosedOrders
+         * @see https://docs.cex.io/#archived-orders
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets();
-        const method = 'privatePostArchivedOrdersPair';
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
         }
+        await this.loadMarkets();
         const market = this.market(symbol);
         const request = { 'pair': market['id'] };
-        const response = await this[method](this.extend(request, params));
+        const response = await this.privatePostArchivedOrdersPair(this.extend(request, params));
         return this.parseOrders(response, market, since, limit);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOrder
+         * @see https://docs.cex.io/?python#get-order-details
          * @description fetches information on an order made by the user
          * @param {string} symbol not used by cex fetchOrder
-         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1267,11 +1329,12 @@ export default class cex extends Exchange {
         /**
          * @method
          * @name cex#fetchOrders
+         * @see https://docs.cex.io/#archived-orders
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1285,95 +1348,95 @@ export default class cex extends Exchange {
         const results = [];
         for (let i = 0; i < response.length; i++) {
             // cancelled (unfilled):
-            //    { id: '4005785516',
-            //     type: 'sell',
-            //     time: '2017-07-18T19:08:34.223Z',
-            //     lastTxTime: '2017-07-18T19:08:34.396Z',
-            //     lastTx: '4005785522',
-            //     pos: null,
-            //     status: 'c',
-            //     symbol1: 'ETH',
-            //     symbol2: 'GBP',
-            //     amount: '0.20000000',
-            //     price: '200.5625',
-            //     remains: '0.20000000',
-            //     'a:ETH:cds': '0.20000000',
-            //     tradingFeeMaker: '0',
-            //     tradingFeeTaker: '0.16',
-            //     tradingFeeUserVolumeAmount: '10155061217',
-            //     orderId: '4005785516' }
+            //    { "id": "4005785516",
+            //     "type": "sell",
+            //     "time": "2017-07-18T19:08:34.223Z",
+            //     "lastTxTime": "2017-07-18T19:08:34.396Z",
+            //     "lastTx": "4005785522",
+            //     "pos": null,
+            //     "status": "c",
+            //     "symbol1": "ETH",
+            //     "symbol2": "GBP",
+            //     "amount": "0.20000000",
+            //     "price": "200.5625",
+            //     "remains": "0.20000000",
+            //     'a:ETH:cds': "0.20000000",
+            //     "tradingFeeMaker": "0",
+            //     "tradingFeeTaker": "0.16",
+            //     "tradingFeeUserVolumeAmount": "10155061217",
+            //     "orderId": "4005785516" }
             // --
             // cancelled (partially filled buy):
-            //    { id: '4084911657',
-            //     type: 'buy',
-            //     time: '2017-08-05T03:18:39.596Z',
-            //     lastTxTime: '2019-03-19T17:37:46.404Z',
-            //     lastTx: '8459265833',
-            //     pos: null,
-            //     status: 'cd',
-            //     symbol1: 'BTC',
-            //     symbol2: 'GBP',
-            //     amount: '0.05000000',
-            //     price: '2241.4692',
-            //     tfacf: '1',
-            //     remains: '0.03910535',
-            //     'tfa:GBP': '0.04',
-            //     'tta:GBP': '24.39',
-            //     'a:BTC:cds': '0.01089465',
-            //     'a:GBP:cds': '112.26',
-            //     'f:GBP:cds': '0.04',
-            //     tradingFeeMaker: '0',
-            //     tradingFeeTaker: '0.16',
-            //     tradingFeeUserVolumeAmount: '13336396963',
-            //     orderId: '4084911657' }
+            //    { "id": "4084911657",
+            //     "type": "buy",
+            //     "time": "2017-08-05T03:18:39.596Z",
+            //     "lastTxTime": "2019-03-19T17:37:46.404Z",
+            //     "lastTx": "8459265833",
+            //     "pos": null,
+            //     "status": "cd",
+            //     "symbol1": "BTC",
+            //     "symbol2": "GBP",
+            //     "amount": "0.05000000",
+            //     "price": "2241.4692",
+            //     "tfacf": "1",
+            //     "remains": "0.03910535",
+            //     'tfa:GBP': "0.04",
+            //     'tta:GBP': "24.39",
+            //     'a:BTC:cds': "0.01089465",
+            //     'a:GBP:cds': "112.26",
+            //     'f:GBP:cds': "0.04",
+            //     "tradingFeeMaker": "0",
+            //     "tradingFeeTaker": "0.16",
+            //     "tradingFeeUserVolumeAmount": "13336396963",
+            //     "orderId": "4084911657" }
             // --
             // cancelled (partially filled sell):
-            //    { id: '4426728375',
-            //     type: 'sell',
-            //     time: '2017-09-22T00:24:20.126Z',
-            //     lastTxTime: '2017-09-22T00:24:30.476Z',
-            //     lastTx: '4426729543',
-            //     pos: null,
-            //     status: 'cd',
-            //     symbol1: 'BCH',
-            //     symbol2: 'BTC',
-            //     amount: '0.10000000',
-            //     price: '0.11757182',
-            //     tfacf: '1',
-            //     remains: '0.09935956',
-            //     'tfa:BTC': '0.00000014',
-            //     'tta:BTC': '0.00007537',
-            //     'a:BCH:cds': '0.10000000',
-            //     'a:BTC:cds': '0.00007537',
-            //     'f:BTC:cds': '0.00000014',
-            //     tradingFeeMaker: '0',
-            //     tradingFeeTaker: '0.18',
-            //     tradingFeeUserVolumeAmount: '3466715450',
-            //     orderId: '4426728375' }
+            //    { "id": "4426728375",
+            //     "type": "sell",
+            //     "time": "2017-09-22T00:24:20.126Z",
+            //     "lastTxTime": "2017-09-22T00:24:30.476Z",
+            //     "lastTx": "4426729543",
+            //     "pos": null,
+            //     "status": "cd",
+            //     "symbol1": "BCH",
+            //     "symbol2": "BTC",
+            //     "amount": "0.10000000",
+            //     "price": "0.11757182",
+            //     "tfacf": "1",
+            //     "remains": "0.09935956",
+            //     'tfa:BTC': "0.00000014",
+            //     'tta:BTC': "0.00007537",
+            //     'a:BCH:cds': "0.10000000",
+            //     'a:BTC:cds': "0.00007537",
+            //     'f:BTC:cds': "0.00000014",
+            //     "tradingFeeMaker": "0",
+            //     "tradingFeeTaker": "0.18",
+            //     "tradingFeeUserVolumeAmount": "3466715450",
+            //     "orderId": "4426728375" }
             // --
             // filled:
-            //    { id: '5342275378',
-            //     type: 'sell',
-            //     time: '2018-01-04T00:28:12.992Z',
-            //     lastTxTime: '2018-01-04T00:28:12.992Z',
-            //     lastTx: '5342275393',
-            //     pos: null,
-            //     status: 'd',
-            //     symbol1: 'BCH',
-            //     symbol2: 'BTC',
-            //     amount: '0.10000000',
-            //     kind: 'api',
-            //     price: '0.17',
-            //     remains: '0.00000000',
-            //     'tfa:BTC': '0.00003902',
-            //     'tta:BTC': '0.01699999',
-            //     'a:BCH:cds': '0.10000000',
-            //     'a:BTC:cds': '0.01699999',
-            //     'f:BTC:cds': '0.00003902',
-            //     tradingFeeMaker: '0.15',
-            //     tradingFeeTaker: '0.23',
-            //     tradingFeeUserVolumeAmount: '1525951128',
-            //     orderId: '5342275378' }
+            //    { "id": "5342275378",
+            //     "type": "sell",
+            //     "time": "2018-01-04T00:28:12.992Z",
+            //     "lastTxTime": "2018-01-04T00:28:12.992Z",
+            //     "lastTx": "5342275393",
+            //     "pos": null,
+            //     "status": "d",
+            //     "symbol1": "BCH",
+            //     "symbol2": "BTC",
+            //     "amount": "0.10000000",
+            //     "kind": "api",
+            //     "price": "0.17",
+            //     "remains": "0.00000000",
+            //     'tfa:BTC': "0.00003902",
+            //     'tta:BTC': "0.01699999",
+            //     'a:BCH:cds': "0.10000000",
+            //     'a:BTC:cds': "0.01699999",
+            //     'f:BTC:cds': "0.00003902",
+            //     "tradingFeeMaker": "0.15",
+            //     "tradingFeeTaker": "0.23",
+            //     "tradingFeeUserVolumeAmount": "1525951128",
+            //     "orderId": "5342275378" }
             // --
             // market order (buy):
             //    { "id": "6281946200",
@@ -1489,6 +1552,20 @@ export default class cex extends Exchange {
         return this.safeString(this.options['order']['status'], status, status);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#editOrderWs
+         * @description edit a trade order
+         * @see https://docs.cex.io/#cancel-replace-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (amount === undefined) {
             throw new ArgumentsRequired(this.id + ' editOrder() requires a amount argument');
         }
@@ -1512,9 +1589,10 @@ export default class cex extends Exchange {
         /**
          * @method
          * @name cex#fetchDepositAddress
+         * @see https://docs.cex.io/#get-crypto-address
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();

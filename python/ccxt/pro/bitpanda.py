@@ -5,8 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
@@ -82,12 +82,12 @@ class bitpanda(ccxt.async_support.bitpanda):
             },
         })
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
-        see https://developers.bitpanda.com/exchange/#account-history-channel
+        :see: https://developers.bitpanda.com/exchange/#account-history-channel
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.authenticate(params)
         url = self.urls['api']['ws']
@@ -139,13 +139,13 @@ class bitpanda(ccxt.async_support.bitpanda):
         messageHash = 'balance'
         client.resolve(self.balance, messageHash)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        see https://developers.bitpanda.com/exchange/#market-ticker-channel
+        :see: https://developers.bitpanda.com/exchange/#market-ticker-channel
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -161,15 +161,15 @@ class bitpanda(ccxt.async_support.bitpanda):
                 },
             ],
         }
-        return await self.watch_multiple(messageHash, request, subscriptionHash, [symbol], params)
+        return await self.watch_many(messageHash, request, subscriptionHash, [symbol], params)
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        see https://developers.bitpanda.com/exchange/#market-ticker-channel
+        :see: https://developers.bitpanda.com/exchange/#market-ticker-channel
         watches price tickers, a statistical calculation with the information for all markets or those specified.
         :param str symbols: unified symbols of the markets to fetch the ticker for
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: an array of `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an array of `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -186,24 +186,24 @@ class bitpanda(ccxt.async_support.bitpanda):
                 },
             ],
         }
-        tickers = await self.watch_multiple(messageHash, request, subscriptionHash, symbols, params)
+        tickers = await self.watch_many(messageHash, request, subscriptionHash, symbols, params)
         return self.filter_by_array(tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):
         #
         #     {
-        #         ticker_updates: [{
-        #             instrument: 'ETH_BTC',
-        #             last_price: '0.053752',
-        #             price_change: '0.000623',
-        #             price_change_percentage: '1.17',
-        #             high: '0.055',
-        #             low: '0.052662',
-        #             volume: '6.3821593247'
+        #         "ticker_updates": [{
+        #             "instrument": "ETH_BTC",
+        #             "last_price": "0.053752",
+        #             "price_change": "0.000623",
+        #             "price_change_percentage": "1.17",
+        #             "high": "0.055",
+        #             "low": "0.052662",
+        #             "volume": "6.3821593247"
         #         }],
-        #         channel_name: 'MARKET_TICKER',
-        #         type: 'MARKET_TICKER_UPDATES',
-        #         time: '2022-06-23T16:41:00.004162Z'
+        #         "channel_name": "MARKET_TICKER",
+        #         "type": "MARKET_TICKER_UPDATES",
+        #         "time": "2022-06-23T16:41:00.004162Z"
         #     }
         #
         tickers = self.safe_value(message, 'ticker_updates', [])
@@ -222,13 +222,13 @@ class bitpanda(ccxt.async_support.bitpanda):
     def parse_ws_ticker(self, ticker, market=None):
         #
         #     {
-        #         instrument: 'ETH_BTC',
-        #         last_price: '0.053752',
-        #         price_change: '-0.000623',
-        #         price_change_percentage: '-1.17',
-        #         high: '0.055',
-        #         low: '0.052662',
-        #         volume: '6.3821593247'
+        #         "instrument": "ETH_BTC",
+        #         "last_price": "0.053752",
+        #         "price_change": "-0.000623",
+        #         "price_change_percentage": "-1.17",
+        #         "high": "0.055",
+        #         "low": "0.052662",
+        #         "volume": "6.3821593247"
         #     }
         #
         marketId = self.safe_string(ticker, 'instrument')
@@ -255,15 +255,15 @@ class bitpanda(ccxt.async_support.bitpanda):
             'info': ticker,
         }, market)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        see https://developers.bitpanda.com/exchange/#account-history-channel
+        :see: https://developers.bitpanda.com/exchange/#account-history-channel
         get the list of trades associated with the user
         :param str symbol: unified symbol of the market to fetch trades for. Use 'any' to watch all trades
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         messageHash = 'myTrades'
@@ -294,14 +294,14 @@ class bitpanda(ccxt.async_support.bitpanda):
             return await self.watch_my_trades(symbol, since, limit, params)
         return trades
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        see https://developers.bitpanda.com/exchange/#market-ticker-channel
+        :see: https://developers.bitpanda.com/exchange/#market-ticker-channel
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -320,36 +320,36 @@ class bitpanda(ccxt.async_support.bitpanda):
                 },
             ],
         }
-        orderbook = await self.watch_multiple(messageHash, request, subscriptionHash, [symbol], params)
+        orderbook = await self.watch_many(messageHash, request, subscriptionHash, [symbol], params)
         return orderbook.limit()
 
     def handle_order_book(self, client: Client, message):
         #
         #  snapshot
         #     {
-        #         instrument_code: 'ETH_BTC',
-        #         bids: [
-        #             ['0.053595', '4.5352'],
+        #         "instrument_code": "ETH_BTC",
+        #         "bids": [
+        #             ['0.053595', "4.5352"],
         #             ...
         #         ],
-        #         asks: [
-        #             ['0.055455', '0.2821'],
+        #         "asks": [
+        #             ['0.055455', "0.2821"],
         #             ...
         #         ],
-        #         channel_name: 'ORDER_BOOK',
-        #         type: 'ORDER_BOOK_SNAPSHOT',
-        #         time: '2022-06-23T15:38:02.196282Z'
+        #         "channel_name": "ORDER_BOOK",
+        #         "type": "ORDER_BOOK_SNAPSHOT",
+        #         "time": "2022-06-23T15:38:02.196282Z"
         #     }
         #
         #  update
         #     {
-        #         instrument_code: 'ETH_BTC',
-        #         changes: [
-        #             ['BUY', '0.053593', '8.0587']
+        #         "instrument_code": "ETH_BTC",
+        #         "changes": [
+        #             ["BUY", '0.053593', "8.0587"]
         #         ],
-        #         channel_name: 'ORDER_BOOK',
-        #         type: 'ORDER_BOOK_UPDATE',
-        #         time: '2022-06-23T15:38:02.751301Z'
+        #         "channel_name": "ORDER_BOOK",
+        #         "type": "ORDER_BOOK_UPDATE",
+        #         "time": "2022-06-23T15:38:02.751301Z"
         #     }
         #
         type = self.safe_string(message, 'type')
@@ -377,7 +377,7 @@ class bitpanda(ccxt.async_support.bitpanda):
 
     def handle_delta(self, orderbook, delta):
         #
-        #   ['BUY', '0.053595', '0']
+        #   ['BUY', "0.053595", "0"]
         #
         bidAsk = self.parse_bid_ask(delta, 1, 2)
         type = self.safe_string(delta, 0)
@@ -393,23 +393,23 @@ class bitpanda(ccxt.async_support.bitpanda):
     def handle_deltas(self, orderbook, deltas):
         #
         #    [
-        #       ['BUY', '0.053593', '0'],
-        #       ['SELL', '0.053698', '0']
+        #       ['BUY', "0.053593", "0"],
+        #       ['SELL', "0.053698", "0"]
         #    ]
         #
         for i in range(0, len(deltas)):
             self.handle_delta(orderbook, deltas[i])
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        see https://developers.bitpanda.com/exchange/#account-history-channel
+        :see: https://developers.bitpanda.com/exchange/#account-history-channel
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.channel]: can listen to orders using ACCOUNT_HISTORY or TRADING
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         messageHash = 'orders'
@@ -443,46 +443,46 @@ class bitpanda(ccxt.async_support.bitpanda):
     def handle_trading(self, client: Client, message):
         #
         #     {
-        #         order_book_sequence: 892925263,
-        #         side: 'BUY',
-        #         amount: '0.00046',
-        #         trade_id: 'd67b9b69-ab76-480f-9ba3-b33582202836',
-        #         matched_as: 'TAKER',
-        #         matched_amount: '0.00046',
-        #         matched_price: '22231.08',
-        #         instrument_code: 'BTC_EUR',
-        #         order_id: '7b39f316-0a71-4bfd-adda-3062e6f0bd37',
-        #         remaining: '0.0',
-        #         channel_name: 'TRADING',
-        #         type: 'FILL',
-        #         time: '2022-07-21T12:41:22.883341Z'
+        #         "order_book_sequence": 892925263,
+        #         "side": "BUY",
+        #         "amount": "0.00046",
+        #         "trade_id": "d67b9b69-ab76-480f-9ba3-b33582202836",
+        #         "matched_as": "TAKER",
+        #         "matched_amount": "0.00046",
+        #         "matched_price": "22231.08",
+        #         "instrument_code": "BTC_EUR",
+        #         "order_id": "7b39f316-0a71-4bfd-adda-3062e6f0bd37",
+        #         "remaining": "0.0",
+        #         "channel_name": "TRADING",
+        #         "type": "FILL",
+        #         "time": "2022-07-21T12:41:22.883341Z"
         #     }
         #
         #     {
-        #         status: 'CANCELLED',
-        #         order_book_sequence: 892928424,
-        #         amount: '0.0003',
-        #         side: 'SELL',
-        #         price: '50338.65',
-        #         instrument_code: 'BTC_EUR',
-        #         order_id: 'b3994a08-a9e8-4a79-a08b-33e3480382df',
-        #         remaining: '0.0003',
-        #         channel_name: 'TRADING',
-        #         type: 'DONE',
-        #         time: '2022-07-21T12:44:24.267000Z'
+        #         "status": "CANCELLED",
+        #         "order_book_sequence": 892928424,
+        #         "amount": "0.0003",
+        #         "side": "SELL",
+        #         "price": "50338.65",
+        #         "instrument_code": "BTC_EUR",
+        #         "order_id": "b3994a08-a9e8-4a79-a08b-33e3480382df",
+        #         "remaining": "0.0003",
+        #         "channel_name": "TRADING",
+        #         "type": "DONE",
+        #         "time": "2022-07-21T12:44:24.267000Z"
         #     }
         #
         #     {
-        #         order_book_sequence: 892934476,
-        #         side: 'SELL',
-        #         amount: '0.00051',
-        #         price: '22349.02',
-        #         instrument_code: 'BTC_EUR',
-        #         order_id: '1c6c585c-ec3d-4b94-9292-6c3d04a31dc8',
-        #         remaining: '0.00051',
-        #         channel_name: 'TRADING',
-        #         type: 'BOOKED',
-        #         time: '2022-07-21T12:50:10.093000Z'
+        #         "order_book_sequence": 892934476,
+        #         "side": "SELL",
+        #         "amount": "0.00051",
+        #         "price": "22349.02",
+        #         "instrument_code": "BTC_EUR",
+        #         "order_id": "1c6c585c-ec3d-4b94-9292-6c3d04a31dc8",
+        #         "remaining": "0.00051",
+        #         "channel_name": "TRADING",
+        #         "type": "BOOKED",
+        #         "time": "2022-07-21T12:50:10.093000Z"
         #     }
         #
         if self.orders is None:
@@ -497,46 +497,46 @@ class bitpanda(ccxt.async_support.bitpanda):
     def parse_trading_order(self, order, market=None):
         #
         #     {
-        #         order_book_sequence: 892925263,
-        #         side: 'BUY',
-        #         amount: '0.00046',
-        #         trade_id: 'd67b9b69-ab76-480f-9ba3-b33582202836',
-        #         matched_as: 'TAKER',
-        #         matched_amount: '0.00046',
-        #         matched_price: '22231.08',
-        #         instrument_code: 'BTC_EUR',
-        #         order_id: '7b39f316-0a71-4bfd-adda-3062e6f0bd37',
-        #         remaining: '0.0',
-        #         channel_name: 'TRADING',
-        #         type: 'FILL',
-        #         time: '2022-07-21T12:41:22.883341Z'
+        #         "order_book_sequence": 892925263,
+        #         "side": "BUY",
+        #         "amount": "0.00046",
+        #         "trade_id": "d67b9b69-ab76-480f-9ba3-b33582202836",
+        #         "matched_as": "TAKER",
+        #         "matched_amount": "0.00046",
+        #         "matched_price": "22231.08",
+        #         "instrument_code": "BTC_EUR",
+        #         "order_id": "7b39f316-0a71-4bfd-adda-3062e6f0bd37",
+        #         "remaining": "0.0",
+        #         "channel_name": "TRADING",
+        #         "type": "FILL",
+        #         "time": "2022-07-21T12:41:22.883341Z"
         #     }
         #
         #     {
-        #         status: 'CANCELLED',
-        #         order_book_sequence: 892928424,
-        #         amount: '0.0003',
-        #         side: 'SELL',
-        #         price: '50338.65',
-        #         instrument_code: 'BTC_EUR',
-        #         order_id: 'b3994a08-a9e8-4a79-a08b-33e3480382df',
-        #         remaining: '0.0003',
-        #         channel_name: 'TRADING',
-        #         type: 'DONE',
-        #         time: '2022-07-21T12:44:24.267000Z'
+        #         "status": "CANCELLED",
+        #         "order_book_sequence": 892928424,
+        #         "amount": "0.0003",
+        #         "side": "SELL",
+        #         "price": "50338.65",
+        #         "instrument_code": "BTC_EUR",
+        #         "order_id": "b3994a08-a9e8-4a79-a08b-33e3480382df",
+        #         "remaining": "0.0003",
+        #         "channel_name": "TRADING",
+        #         "type": "DONE",
+        #         "time": "2022-07-21T12:44:24.267000Z"
         #     }
         #
         #     {
-        #         order_book_sequence: 892934476,
-        #         side: 'SELL',
-        #         amount: '0.00051',
-        #         price: '22349.02',
-        #         instrument_code: 'BTC_EUR',
-        #         order_id: '1c6c585c-ec3d-4b94-9292-6c3d04a31dc8',
-        #         remaining: '0.00051',
-        #         channel_name: 'TRADING',
-        #         type: 'BOOKED',
-        #         time: '2022-07-21T12:50:10.093000Z'
+        #         "order_book_sequence": 892934476,
+        #         "side": "SELL",
+        #         "amount": "0.00051",
+        #         "price": "22349.02",
+        #         "instrument_code": "BTC_EUR",
+        #         "order_id": "1c6c585c-ec3d-4b94-9292-6c3d04a31dc8",
+        #         "remaining": "0.00051",
+        #         "channel_name": "TRADING",
+        #         "type": "BOOKED",
+        #         "time": "2022-07-21T12:50:10.093000Z"
         #     }
         #
         #     {
@@ -703,48 +703,48 @@ class bitpanda(ccxt.async_support.bitpanda):
         #
         # order created
         #     {
-        #         account_id: '49302c1a-48dc-423e-b336-bb65baccc7bd',
-        #         sequence: 7658332018,
-        #         update: {
-        #             type: 'ORDER_CREATED',
-        #             activity: 'TRADING',
-        #             account_holder: '43202c1a-48dc-423e-b336-bb65baccc7bd',
-        #             account_id: '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        #             order_id: '8893fd69-5ebd-496b-aaa4-269b4c18aa77',
-        #             time: '2022-06-29T04:33:29.661257Z',
-        #             order: {
-        #                 time_in_force: 'GOOD_TILL_CANCELLED',
-        #                 is_post_only: False,
-        #                 order_id: '8892fd69-5ebd-496b-aaa4-269b4c18aa77',
-        #                 account_holder: '43202c1a-48dc-423e-b336-bb65baccc7bd',
-        #                 account_id: '49302c1a-48dc-423e-b336-bb65baccc7bd',
-        #                 instrument_code: 'BTC_EUR',
-        #                 time: '2022-06-29T04:33:29.656896Z',
-        #                 side: 'SELL',
-        #                 price: '50338.65',
-        #                 amount: '0.00021',
-        #                 filled_amount: '0.0',
-        #                 type: 'LIMIT'
+        #         "account_id": "49302c1a-48dc-423e-b336-bb65baccc7bd",
+        #         "sequence": 7658332018,
+        #         "update": {
+        #             "type": "ORDER_CREATED",
+        #             "activity": "TRADING",
+        #             "account_holder": "43202c1a-48dc-423e-b336-bb65baccc7bd",
+        #             "account_id": "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        #             "order_id": "8893fd69-5ebd-496b-aaa4-269b4c18aa77",
+        #             "time": "2022-06-29T04:33:29.661257Z",
+        #             "order": {
+        #                 "time_in_force": "GOOD_TILL_CANCELLED",
+        #                 "is_post_only": False,
+        #                 "order_id": "8892fd69-5ebd-496b-aaa4-269b4c18aa77",
+        #                 "account_holder": "43202c1a-48dc-423e-b336-bb65baccc7bd",
+        #                 "account_id": "49302c1a-48dc-423e-b336-bb65baccc7bd",
+        #                 "instrument_code": "BTC_EUR",
+        #                 "time": "2022-06-29T04:33:29.656896Z",
+        #                 "side": "SELL",
+        #                 "price": "50338.65",
+        #                 "amount": "0.00021",
+        #                 "filled_amount": "0.0",
+        #                 "type": "LIMIT"
         #             },
-        #             locked: {
-        #                 currency_code: 'BTC',
-        #                 amount: '0.00021',
-        #                 new_available: '0.00017',
-        #                 new_locked: '0.00021'
+        #             "locked": {
+        #                 "currency_code": "BTC",
+        #                 "amount": "0.00021",
+        #                 "new_available": "0.00017",
+        #                 "new_locked": "0.00021"
         #             },
-        #             id: '26e9c36a-b231-4bb0-a686-aa915a2fc9e6',
-        #             sequence: 7658332018
+        #             "id": "26e9c36a-b231-4bb0-a686-aa915a2fc9e6",
+        #             "sequence": 7658332018
         #         },
-        #         channel_name: 'ACCOUNT_HISTORY',
-        #         type: 'ACCOUNT_UPDATE',
-        #         time: '2022-06-29T04:33:29.684517Z'
+        #         "channel_name": "ACCOUNT_HISTORY",
+        #         "type": "ACCOUNT_UPDATE",
+        #         "time": "2022-06-29T04:33:29.684517Z"
         #     }
         #
         #  order rejected
         #     {
-        #         account_id: '49302c1a-48dc-423e-b336-bb65baccc7bd',
-        #         sequence: 7658332018,
-        #         update: {
+        #         "account_id": "49302c1a-48dc-423e-b336-bb65baccc7bd",
+        #         "sequence": 7658332018,
+        #         "update": {
         #             "id": "d3fe6025-5b27-4df6-a957-98b8d131cb9d",
         #             "type": "ORDER_REJECTED",
         #             "activity": "TRADING",
@@ -765,99 +765,99 @@ class bitpanda(ccxt.async_support.bitpanda):
         #
         #  order closed
         #     {
-        #         account_id: '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        #         sequence: 7658471216,
-        #         update: {
-        #             type: 'ORDER_CLOSED',
-        #             activity: 'TRADING',
-        #             account_holder: '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        #             account_id: '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        #             time: '2022-06-29T04:43:57.169616Z',
-        #             order_id: '8892fd69-5ebd-496b-aaa4-269b4c18aa77',
-        #             unlocked: {
-        #                 currency_code: 'BTC',
-        #                 amount: '0.00021',
-        #                 new_available: '0.00038',
-        #                 new_locked: '0.0'
+        #         "account_id": "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        #         "sequence": 7658471216,
+        #         "update": {
+        #             "type": "ORDER_CLOSED",
+        #             "activity": "TRADING",
+        #             "account_holder": "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        #             "account_id": "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        #             "time": "2022-06-29T04:43:57.169616Z",
+        #             "order_id": "8892fd69-5ebd-496b-aaa4-269b4c18aa77",
+        #             "unlocked": {
+        #                 "currency_code": "BTC",
+        #                 "amount": "0.00021",
+        #                 "new_available": "0.00038",
+        #                 "new_locked": "0.0"
         #             },
-        #             order_book_sequence: 867964191,
-        #             id: '26c5e1d7-65ba-4a11-a661-14c0130ff484',
-        #             sequence: 7658471216
+        #             "order_book_sequence": 867964191,
+        #             "id": "26c5e1d7-65ba-4a11-a661-14c0130ff484",
+        #             "sequence": 7658471216
         #         },
-        #         channel_name: 'ACCOUNT_HISTORY',
-        #         type: 'ACCOUNT_UPDATE',
-        #         time: '2022-06-29T04:43:57.182153Z'
+        #         "channel_name": "ACCOUNT_HISTORY",
+        #         "type": "ACCOUNT_UPDATE",
+        #         "time": "2022-06-29T04:43:57.182153Z"
         #     }
         #
         #  trade settled
         #     {
-        #         account_id: '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        #         sequence: 7658502878,
-        #         update: {
-        #             type: 'TRADE_SETTLED',
-        #             activity: 'TRADING',
-        #             account_holder: '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        #             account_id: '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        #             time: '2022-06-29T04:46:12.933091Z',
-        #             order_id: 'ad19951a-b616-401d-a062-8d0609f038a4',
-        #             order_book_sequence: 867965579,
-        #             filled_amount: '0.00052',
-        #             order: {
-        #                 amount: '0.00052',
-        #                 filled_amount: '0.00052'
+        #         "account_id": "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        #         "sequence": 7658502878,
+        #         "update": {
+        #             "type": "TRADE_SETTLED",
+        #             "activity": "TRADING",
+        #             "account_holder": "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        #             "account_id": "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        #             "time": "2022-06-29T04:46:12.933091Z",
+        #             "order_id": "ad19951a-b616-401d-a062-8d0609f038a4",
+        #             "order_book_sequence": 867965579,
+        #             "filled_amount": "0.00052",
+        #             "order": {
+        #                 "amount": "0.00052",
+        #                 "filled_amount": "0.00052"
         #             },
-        #             trade: {
-        #                 trade_id: '21039eb9-2df0-4227-be2d-0ea9b691ac66',
-        #                 order_id: 'ad19951a-b616-401d-a062-8d0609f038a4',
-        #                 account_holder: '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        #                 account_id: '49202c1a-48dc-423e-b336-bb65baccc7bd',
-        #                 amount: '0.00052',
-        #                 side: 'BUY',
-        #                 instrument_code: 'BTC_EUR',
-        #                 price: '19309.29',
-        #                 time: '2022-06-29T04:46:12.870581Z',
-        #                 price_tick_sequence: 0
+        #             "trade": {
+        #                 "trade_id": "21039eb9-2df0-4227-be2d-0ea9b691ac66",
+        #                 "order_id": "ad19951a-b616-401d-a062-8d0609f038a4",
+        #                 "account_holder": "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        #                 "account_id": "49202c1a-48dc-423e-b336-bb65baccc7bd",
+        #                 "amount": "0.00052",
+        #                 "side": "BUY",
+        #                 "instrument_code": "BTC_EUR",
+        #                 "price": "19309.29",
+        #                 "time": "2022-06-29T04:46:12.870581Z",
+        #                 "price_tick_sequence": 0
         #             },
-        #             fee: {
-        #                 fee_amount: '0.00000078',
-        #                 fee_currency: 'BTC',
-        #                 fee_percentage: '0.15',
-        #                 fee_group_id: 'default',
-        #                 fee_type: 'TAKER',
-        #                 running_trading_volume: '0.00052',
-        #                 collection_type: 'STANDARD'
+        #             "fee": {
+        #                 "fee_amount": "0.00000078",
+        #                 "fee_currency": "BTC",
+        #                 "fee_percentage": "0.15",
+        #                 "fee_group_id": "default",
+        #                 "fee_type": "TAKER",
+        #                 "running_trading_volume": "0.00052",
+        #                 "collection_type": "STANDARD"
         #             },
-        #             spent: {
-        #                 currency_code: 'EUR',
-        #                 amount: '10.0408308',
-        #                 new_available: '0.0',
-        #                 new_locked: '0.15949533'
+        #             "spent": {
+        #                 "currency_code": "EUR",
+        #                 "amount": "10.0408308",
+        #                 "new_available": "0.0",
+        #                 "new_locked": "0.15949533"
         #             },
-        #             credited: {
-        #                 currency_code: 'BTC',
-        #                 amount: '0.00051922',
-        #                 new_available: '0.00089922',
-        #                 new_locked: '0.0'
+        #             "credited": {
+        #                 "currency_code": "BTC",
+        #                 "amount": "0.00051922",
+        #                 "new_available": "0.00089922",
+        #                 "new_locked": "0.0"
         #             },
-        #             unlocked: {
-        #                 currency_code: 'EUR',
-        #                 amount: '0.0',
-        #                 new_available: '0.0',
-        #                 new_locked: '0.15949533'
+        #             "unlocked": {
+        #                 "currency_code": "EUR",
+        #                 "amount": "0.0",
+        #                 "new_available": "0.0",
+        #                 "new_locked": "0.15949533"
         #             },
-        #             id: '22b40199-2508-4176-8a14-d4785c933444',
-        #             sequence: 7658502878
+        #             "id": "22b40199-2508-4176-8a14-d4785c933444",
+        #             "sequence": 7658502878
         #         },
-        #         channel_name: 'ACCOUNT_HISTORY',
-        #         type: 'ACCOUNT_UPDATE',
-        #         time: '2022-06-29T04:46:12.941837Z'
+        #         "channel_name": "ACCOUNT_HISTORY",
+        #         "type": "ACCOUNT_UPDATE",
+        #         "time": "2022-06-29T04:46:12.941837Z"
         #     }
         #
         #  Trade Settled with BEST fee collection enabled
         #     {
-        #         account_id: '49302c1a-48dc-423e-b336-bb65baccc7bd',
-        #         sequence: 7658951984,
-        #         update: {
+        #         "account_id": "49302c1a-48dc-423e-b336-bb65baccc7bd",
+        #         "sequence": 7658951984,
+        #         "update": {
         #             "id": "70e00504-d892-456f-9aae-4da7acb36aac",
         #             "sequence": 361792,
         #             "order_book_sequence": 123456,
@@ -916,9 +916,9 @@ class bitpanda(ccxt.async_support.bitpanda):
         #                 "new_locked": "2354.882"
         #             }
         #         }
-        #         channel_name: 'ACCOUNT_HISTORY',
-        #         type: 'ACCOUNT_UPDATE',
-        #         time: '2022-06-29T05:18:51.760338Z'
+        #         "channel_name": "ACCOUNT_HISTORY",
+        #         "type": "ACCOUNT_UPDATE",
+        #         "time": "2022-06-29T05:18:51.760338Z"
         #     }
         #
         if self.orders is None:
@@ -980,10 +980,10 @@ class bitpanda(ccxt.async_support.bitpanda):
     def update_balance(self, balance):
         #
         #     {
-        #         currency_code: 'EUR',
-        #         amount: '0.0',
-        #         new_available: '0.0',
-        #         new_locked: '0.15949533'
+        #         "currency_code": "EUR",
+        #         "amount": "0.0",
+        #         "new_available": "0.0",
+        #         "new_locked": "0.15949533"
         #     }
         #
         currencyId = self.safe_string(balance, 'currency_code')
@@ -994,15 +994,15 @@ class bitpanda(ccxt.async_support.bitpanda):
         self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        see https://developers.bitpanda.com/exchange/#candlesticks-channel
+        :see: https://developers.bitpanda.com/exchange/#candlesticks-channel
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -1062,17 +1062,17 @@ class bitpanda(ccxt.async_support.bitpanda):
         #
         #  snapshot
         #     {
-        #         instrument_code: 'BTC_EUR',
-        #         granularity: {unit: 'MONTHS', period: 1},
-        #         high: '29750.81',
-        #         low: '16764.59',
-        #         open: '29556.02',
-        #         close: '20164.55',
-        #         volume: '107518944.610659',
-        #         last_sequence: 2275507,
-        #         channel_name: 'CANDLESTICKS',
-        #         type: 'CANDLESTICK_SNAPSHOT',
-        #         time: '2022-06-30T23:59:59.999000Z'
+        #         "instrument_code": "BTC_EUR",
+        #         "granularity": {unit: "MONTHS", period: 1},
+        #         "high": "29750.81",
+        #         "low": "16764.59",
+        #         "open": "29556.02",
+        #         "close": "20164.55",
+        #         "volume": "107518944.610659",
+        #         "last_sequence": 2275507,
+        #         "channel_name": "CANDLESTICKS",
+        #         "type": "CANDLESTICK_SNAPSHOT",
+        #         "time": "2022-06-30T23:59:59.999000Z"
         #     }
         #
         #  update
@@ -1129,13 +1129,13 @@ class bitpanda(ccxt.async_support.bitpanda):
     def handle_subscriptions(self, client: Client, message):
         #
         #     {
-        #         channels: [{
-        #             instrument_codes: [Array],
-        #             depth: 0,
-        #             name: 'ORDER_BOOK'
+        #         "channels": [{
+        #             "instrument_codes": [Array],
+        #             "depth": 0,
+        #             "name": "ORDER_BOOK"
         #         }],
-        #         type: 'SUBSCRIPTIONS',
-        #         time: '2022-06-23T15:36:26.948282Z'
+        #         "type": "SUBSCRIPTIONS",
+        #         "time": "2022-06-23T15:36:26.948282Z"
         #     }
         #
         return message
@@ -1143,10 +1143,10 @@ class bitpanda(ccxt.async_support.bitpanda):
     def handle_heartbeat(self, client: Client, message):
         #
         #     {
-        #         subscription: 'SYSTEM',
-        #         channel_name: 'SYSTEM',
-        #         type: 'HEARTBEAT',
-        #         time: '2022-06-23T16:31:49.170224Z'
+        #         "subscription": "SYSTEM",
+        #         "channel_name": "SYSTEM",
+        #         "type": "HEARTBEAT",
+        #         "time": "2022-06-23T16:31:49.170224Z"
         #     }
         #
         return message
@@ -1154,10 +1154,10 @@ class bitpanda(ccxt.async_support.bitpanda):
     def handle_error_message(self, client: Client, message):
         #
         #     {
-        #         error: 'MALFORMED_JSON',
-        #         channel_name: 'SYSTEM',
-        #         type: 'ERROR',
-        #         time: '2022-06-23T15:38:25.470391Z'
+        #         "error": "MALFORMED_JSON",
+        #         "channel_name": "SYSTEM",
+        #         "type": "ERROR",
+        #         "time": "2022-06-23T15:38:25.470391Z"
         #     }
         #
         raise ExchangeError(self.id + ' ' + self.json(message))
@@ -1222,9 +1222,9 @@ class bitpanda(ccxt.async_support.bitpanda):
     def handle_authentication_message(self, client: Client, message):
         #
         #    {
-        #        channel_name: 'SYSTEM',
-        #        type: 'AUTHENTICATED',
-        #        time: '2022-06-24T20:45:25.447488Z'
+        #        "channel_name": "SYSTEM",
+        #        "type": "AUTHENTICATED",
+        #        "time": "2022-06-24T20:45:25.447488Z"
         #    }
         #
         future = self.safe_value(client.futures, 'authenticated')
@@ -1232,7 +1232,7 @@ class bitpanda(ccxt.async_support.bitpanda):
             future.resolve(True)
         return message
 
-    async def watch_multiple(self, messageHash, request, subscriptionHash, symbols: List[str] = [], params={}):
+    async def watch_many(self, messageHash, request, subscriptionHash, symbols: Strings = [], params={}):
         marketIds = []
         numSymbols = len(symbols)
         if numSymbols == 0:

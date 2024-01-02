@@ -4,7 +4,7 @@ import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError } from '../base/errors.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import { Int } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -34,7 +34,7 @@ export default class gemini extends geminiRest {
         });
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name gemini#watchTrades
@@ -43,8 +43,8 @@ export default class gemini extends geminiRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the gemini api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -73,13 +73,13 @@ export default class gemini extends geminiRest {
     parseWsTrade (trade, market = undefined) {
         //
         //     {
-        //         type: 'trade',
-        //         symbol: 'BTCUSD',
-        //         event_id: 122258166738,
-        //         timestamp: 1655330221424,
-        //         price: '22269.14',
-        //         quantity: '0.00004473',
-        //         side: 'buy'
+        //         "type": "trade",
+        //         "symbol": "BTCUSD",
+        //         "event_id": 122258166738,
+        //         "timestamp": 1655330221424,
+        //         "price": "22269.14",
+        //         "quantity": "0.00004473",
+        //         "side": "buy"
         //     }
         //
         const timestamp = this.safeInteger (trade, 'timestamp');
@@ -109,13 +109,13 @@ export default class gemini extends geminiRest {
     handleTrade (client: Client, message) {
         //
         //     {
-        //         type: 'trade',
-        //         symbol: 'BTCUSD',
-        //         event_id: 122278173770,
-        //         timestamp: 1655335880981,
-        //         price: '22530.80',
-        //         quantity: '0.04',
-        //         side: 'buy'
+        //         "type": "trade",
+        //         "symbol": "BTCUSD",
+        //         "event_id": 122278173770,
+        //         "timestamp": 1655335880981,
+        //         "price": "22530.80",
+        //         "quantity": "0.04",
+        //         "side": "buy"
         //     }
         //
         const trade = this.parseWsTrade (message);
@@ -134,37 +134,37 @@ export default class gemini extends geminiRest {
     handleTrades (client: Client, message) {
         //
         //     {
-        //         type: 'l2_updates',
-        //         symbol: 'BTCUSD',
-        //         changes: [
-        //             [ 'buy', '22252.37', '0.02' ],
-        //             [ 'buy', '22251.61', '0.04' ],
-        //             [ 'buy', '22251.60', '0.04' ],
+        //         "type": "l2_updates",
+        //         "symbol": "BTCUSD",
+        //         "changes": [
+        //             [ "buy", '22252.37', "0.02" ],
+        //             [ "buy", '22251.61', "0.04" ],
+        //             [ "buy", '22251.60', "0.04" ],
         //             // some asks as well
         //         ],
-        //         trades: [
-        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: '0.00004473', side: 'buy' },
-        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258141090, timestamp: 1655330213216, price: '22250.00', quantity: '0.00704098', side: 'buy' },
-        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258118291, timestamp: 1655330206753, price: '22250.00', quantity: '0.03', side: 'buy' },
+        //         "trades": [
+        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: "0.00004473", side: "buy" },
+        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258141090, timestamp: 1655330213216, price: '22250.00', quantity: "0.00704098", side: "buy" },
+        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258118291, timestamp: 1655330206753, price: '22250.00', quantity: "0.03", side: "buy" },
         //         ],
-        //         auction_events: [
+        //         "auction_events": [
         //             {
-        //                 type: 'auction_result',
-        //                 symbol: 'BTCUSD',
-        //                 time_ms: 1655323200000,
-        //                 result: 'failure',
-        //                 highest_bid_price: '21590.88',
-        //                 lowest_ask_price: '21602.30',
-        //                 collar_price: '21634.73'
+        //                 "type": "auction_result",
+        //                 "symbol": "BTCUSD",
+        //                 "time_ms": 1655323200000,
+        //                 "result": "failure",
+        //                 "highest_bid_price": "21590.88",
+        //                 "lowest_ask_price": "21602.30",
+        //                 "collar_price": "21634.73"
         //             },
         //             {
-        //                 type: 'auction_indicative',
-        //                 symbol: 'BTCUSD',
-        //                 time_ms: 1655323185000,
-        //                 result: 'failure',
-        //                 highest_bid_price: '21661.90',
-        //                 lowest_ask_price: '21663.79',
-        //                 collar_price: '21662.845'
+        //                 "type": "auction_indicative",
+        //                 "symbol": "BTCUSD",
+        //                 "time_ms": 1655323185000,
+        //                 "result": "failure",
+        //                 "highest_bid_price": "21661.90",
+        //                 "lowest_ask_price": "21663.79",
+        //                 "collar_price": "21662.845"
         //             },
         //         ]
         //     }
@@ -189,7 +189,7 @@ export default class gemini extends geminiRest {
         }
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name gemini#fetchOHLCV
@@ -199,7 +199,7 @@ export default class gemini extends geminiRest {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the gemini api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -282,7 +282,7 @@ export default class gemini extends geminiRest {
         return message;
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name gemini#watchOrderBook
@@ -290,7 +290,7 @@ export default class gemini extends geminiRest {
          * @see https://docs.gemini.com/websocket-api/#market-data-version-2
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the gemini api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -341,37 +341,37 @@ export default class gemini extends geminiRest {
     handleL2Updates (client: Client, message) {
         //
         //     {
-        //         type: 'l2_updates',
-        //         symbol: 'BTCUSD',
-        //         changes: [
-        //             [ 'buy', '22252.37', '0.02' ],
-        //             [ 'buy', '22251.61', '0.04' ],
-        //             [ 'buy', '22251.60', '0.04' ],
+        //         "type": "l2_updates",
+        //         "symbol": "BTCUSD",
+        //         "changes": [
+        //             [ "buy", '22252.37', "0.02" ],
+        //             [ "buy", '22251.61', "0.04" ],
+        //             [ "buy", '22251.60', "0.04" ],
         //             // some asks as well
         //         ],
-        //         trades: [
-        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: '0.00004473', side: 'buy' },
-        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258141090, timestamp: 1655330213216, price: '22250.00', quantity: '0.00704098', side: 'buy' },
-        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258118291, timestamp: 1655330206753, price: '22250.00', quantity: '0.03', side: 'buy' },
+        //         "trades": [
+        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: "0.00004473", side: "buy" },
+        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258141090, timestamp: 1655330213216, price: '22250.00', quantity: "0.00704098", side: "buy" },
+        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258118291, timestamp: 1655330206753, price: '22250.00', quantity: "0.03", side: "buy" },
         //         ],
-        //         auction_events: [
+        //         "auction_events": [
         //             {
-        //                 type: 'auction_result',
-        //                 symbol: 'BTCUSD',
-        //                 time_ms: 1655323200000,
-        //                 result: 'failure',
-        //                 highest_bid_price: '21590.88',
-        //                 lowest_ask_price: '21602.30',
-        //                 collar_price: '21634.73'
+        //                 "type": "auction_result",
+        //                 "symbol": "BTCUSD",
+        //                 "time_ms": 1655323200000,
+        //                 "result": "failure",
+        //                 "highest_bid_price": "21590.88",
+        //                 "lowest_ask_price": "21602.30",
+        //                 "collar_price": "21634.73"
         //             },
         //             {
-        //                 type: 'auction_indicative',
-        //                 symbol: 'BTCUSD',
-        //                 time_ms: 1655323185000,
-        //                 result: 'failure',
-        //                 highest_bid_price: '21661.90',
-        //                 lowest_ask_price: '21663.79',
-        //                 collar_price: '21662.845'
+        //                 "type": "auction_indicative",
+        //                 "symbol": "BTCUSD",
+        //                 "time_ms": 1655323185000,
+        //                 "result": "failure",
+        //                 "highest_bid_price": "21661.90",
+        //                 "lowest_ask_price": "21663.79",
+        //                 "collar_price": "21662.845"
         //             },
         //         ]
         //     }
@@ -380,7 +380,7 @@ export default class gemini extends geminiRest {
         this.handleTrades (client, message);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name gemini#fetchOrders
@@ -388,8 +388,8 @@ export default class gemini extends geminiRest {
          * @see https://docs.gemini.com/websocket-api/#order-events
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the gemini api endpoint
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const url = this.urls['api']['ws'] + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
@@ -413,11 +413,11 @@ export default class gemini extends geminiRest {
     handleHeartbeat (client: Client, message) {
         //
         //     {
-        //         type: 'heartbeat',
-        //         timestampms: 1659740268958,
-        //         sequence: 7,
-        //         trace_id: '25b3d92476dd3a9a5c03c9bd9e0a0dba',
-        //         socket_sequence: 7
+        //         "type": "heartbeat",
+        //         "timestampms": 1659740268958,
+        //         "sequence": 7,
+        //         "trace_id": "25b3d92476dd3a9a5c03c9bd9e0a0dba",
+        //         "socket_sequence": 7
         //     }
         //
         return message;
@@ -426,12 +426,12 @@ export default class gemini extends geminiRest {
     handleSubscription (client: Client, message) {
         //
         //     {
-        //         type: 'subscription_ack',
-        //         accountId: 19433282,
-        //         subscriptionId: 'orderevents-websocket-25b3d92476dd3a9a5c03c9bd9e0a0dba',
-        //         symbolFilter: [],
-        //         apiSessionFilter: [],
-        //         eventTypeFilter: []
+        //         "type": "subscription_ack",
+        //         "accountId": 19433282,
+        //         "subscriptionId": "orderevents-websocket-25b3d92476dd3a9a5c03c9bd9e0a0dba",
+        //         "symbolFilter": [],
+        //         "apiSessionFilter": [],
+        //         "eventTypeFilter": []
         //     }
         //
         return message;
@@ -441,23 +441,23 @@ export default class gemini extends geminiRest {
         //
         //     [
         //         {
-        //             type: 'accepted',
-        //             order_id: '134150423884',
-        //             event_id: '134150423886',
-        //             account_name: 'primary',
-        //             client_order_id: '1659739406916',
-        //             api_session: 'account-pnBFSS0XKGvDamX4uEIt',
-        //             symbol: 'batbtc',
-        //             side: 'sell',
-        //             order_type: 'exchange limit',
-        //             timestamp: '1659739407',
-        //             timestampms: 1659739407576,
-        //             is_live: true,
-        //             is_cancelled: false,
-        //             is_hidden: false,
-        //             original_amount: '1',
-        //             price: '1',
-        //             socket_sequence: 139
+        //             "type": "accepted",
+        //             "order_id": "134150423884",
+        //             "event_id": "134150423886",
+        //             "account_name": "primary",
+        //             "client_order_id": "1659739406916",
+        //             "api_session": "account-pnBFSS0XKGvDamX4uEIt",
+        //             "symbol": "batbtc",
+        //             "side": "sell",
+        //             "order_type": "exchange limit",
+        //             "timestamp": "1659739407",
+        //             "timestampms": 1659739407576,
+        //             "is_live": true,
+        //             "is_cancelled": false,
+        //             "is_hidden": false,
+        //             "original_amount": "1",
+        //             "price": "1",
+        //             "socket_sequence": 139
         //         }
         //     ]
         //
@@ -477,23 +477,23 @@ export default class gemini extends geminiRest {
     parseWsOrder (order, market = undefined) {
         //
         //     {
-        //         type: 'accepted',
-        //         order_id: '134150423884',
-        //         event_id: '134150423886',
-        //         account_name: 'primary',
-        //         client_order_id: '1659739406916',
-        //         api_session: 'account-pnBFSS0XKGvDamX4uEIt',
-        //         symbol: 'batbtc',
-        //         side: 'sell',
-        //         order_type: 'exchange limit',
-        //         timestamp: '1659739407',
-        //         timestampms: 1659739407576,
-        //         is_live: true,
-        //         is_cancelled: false,
-        //         is_hidden: false,
-        //         original_amount: '1',
-        //         price: '1',
-        //         socket_sequence: 139
+        //         "type": "accepted",
+        //         "order_id": "134150423884",
+        //         "event_id": "134150423886",
+        //         "account_name": "primary",
+        //         "client_order_id": "1659739406916",
+        //         "api_session": "account-pnBFSS0XKGvDamX4uEIt",
+        //         "symbol": "batbtc",
+        //         "side": "sell",
+        //         "order_type": "exchange limit",
+        //         "timestamp": "1659739407",
+        //         "timestampms": 1659739407576,
+        //         "is_live": true,
+        //         "is_cancelled": false,
+        //         "is_hidden": false,
+        //         "original_amount": "1",
+        //         "price": "1",
+        //         "socket_sequence": 139
         //     }
         //
         const timestamp = this.safeNumber (order, 'timestampms');
@@ -560,8 +560,8 @@ export default class gemini extends geminiRest {
     handleError (client: Client, message) {
         //
         //     {
-        //         reason: 'NoValidTradingPairs',
-        //         result: 'error'
+        //         "reason": "NoValidTradingPairs",
+        //         "result": "error"
         //     }
         //
         throw new ExchangeError (this.json (message));
@@ -571,35 +571,35 @@ export default class gemini extends geminiRest {
         //
         //  public
         //     {
-        //         type: 'trade',
-        //         symbol: 'BTCUSD',
-        //         event_id: 122278173770,
-        //         timestamp: 1655335880981,
-        //         price: '22530.80',
-        //         quantity: '0.04',
-        //         side: 'buy'
+        //         "type": "trade",
+        //         "symbol": "BTCUSD",
+        //         "event_id": 122278173770,
+        //         "timestamp": 1655335880981,
+        //         "price": "22530.80",
+        //         "quantity": "0.04",
+        //         "side": "buy"
         //     }
         //
         //  private
         //     [
         //         {
-        //             type: 'accepted',
-        //             order_id: '134150423884',
-        //             event_id: '134150423886',
-        //             account_name: 'primary',
-        //             client_order_id: '1659739406916',
-        //             api_session: 'account-pnBFSS0XKGvDamX4uEIt',
-        //             symbol: 'batbtc',
-        //             side: 'sell',
-        //             order_type: 'exchange limit',
-        //             timestamp: '1659739407',
-        //             timestampms: 1659739407576,
-        //             is_live: true,
-        //             is_cancelled: false,
-        //             is_hidden: false,
-        //             original_amount: '1',
-        //             price: '1',
-        //             socket_sequence: 139
+        //             "type": "accepted",
+        //             "order_id": "134150423884",
+        //             "event_id": "134150423886",
+        //             "account_name": "primary",
+        //             "client_order_id": "1659739406916",
+        //             "api_session": "account-pnBFSS0XKGvDamX4uEIt",
+        //             "symbol": "batbtc",
+        //             "side": "sell",
+        //             "order_type": "exchange limit",
+        //             "timestamp": "1659739407",
+        //             "timestampms": 1659739407576,
+        //             "is_live": true,
+        //             "is_cancelled": false,
+        //             "is_hidden": false,
+        //             "original_amount": "1",
+        //             "price": "1",
+        //             "socket_sequence": 139
         //         }
         //     ]
         //

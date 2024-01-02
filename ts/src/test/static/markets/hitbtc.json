@@ -1,0 +1,1571 @@
+{
+    "BTC/USDT": {
+        "id": "BTCUSDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00001
+            },
+            "price": {
+                "min": 0.01
+            },
+            "cost": {
+                "min": 1e-7
+            },
+            "leverage": {
+                "min": 1,
+                "max": 25
+            }
+        },
+        "info": {
+            "type": "spot",
+            "base_currency": "BTC",
+            "quote_currency": "USDT",
+            "status": "working",
+            "quantity_increment": "0.00001",
+            "tick_size": "0.01",
+            "take_rate": "0.0025",
+            "make_rate": "0.001",
+            "fee_currency": "USDT",
+            "margin_trading": true,
+            "max_initial_leverage": "25.00"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0025,
+        "maker": 0.001,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0007
+                ],
+                [
+                    100,
+                    0.0006
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    5000,
+                    0.0002
+                ],
+                [
+                    10000,
+                    0.0001
+                ],
+                [
+                    20000,
+                    0
+                ],
+                [
+                    50000,
+                    -0.0001
+                ],
+                [
+                    100000,
+                    -0.0001
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0008
+                ],
+                [
+                    100,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0007
+                ],
+                [
+                    1000,
+                    0.0006
+                ],
+                [
+                    5000,
+                    0.0006
+                ],
+                [
+                    10000,
+                    0.0005
+                ],
+                [
+                    20000,
+                    0.0004
+                ],
+                [
+                    50000,
+                    0.0003
+                ],
+                [
+                    100000,
+                    0.0002
+                ]
+            ]
+        },
+        "feeCurrency": "USDT"
+    },
+    "LTC/USDT": {
+        "id": "LTCUSDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001
+            },
+            "price": {
+                "min": 0.0001
+            },
+            "cost": {
+                "min": 1e-7
+            },
+            "leverage": {
+                "min": 1,
+                "max": 20
+            }
+        },
+        "info": {
+            "type": "spot",
+            "base_currency": "LTC",
+            "quote_currency": "USDT",
+            "status": "working",
+            "quantity_increment": "0.001",
+            "tick_size": "0.0001",
+            "take_rate": "0.0025",
+            "make_rate": "0.001",
+            "fee_currency": "USDT",
+            "margin_trading": true,
+            "max_initial_leverage": "20.00"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0025,
+        "maker": 0.001,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0007
+                ],
+                [
+                    100,
+                    0.0006
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    5000,
+                    0.0002
+                ],
+                [
+                    10000,
+                    0.0001
+                ],
+                [
+                    20000,
+                    0
+                ],
+                [
+                    50000,
+                    -0.0001
+                ],
+                [
+                    100000,
+                    -0.0001
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0008
+                ],
+                [
+                    100,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0007
+                ],
+                [
+                    1000,
+                    0.0006
+                ],
+                [
+                    5000,
+                    0.0006
+                ],
+                [
+                    10000,
+                    0.0005
+                ],
+                [
+                    20000,
+                    0.0004
+                ],
+                [
+                    50000,
+                    0.0003
+                ],
+                [
+                    100000,
+                    0.0002
+                ]
+            ]
+        },
+        "feeCurrency": "USDT"
+    },
+    "ADA/USDT": {
+        "id": "ADAUSDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 1e-7
+        },
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 1e-7
+            },
+            "cost": {
+                "min": 1e-7
+            },
+            "leverage": {
+                "min": 1,
+                "max": 10
+            }
+        },
+        "info": {
+            "type": "spot",
+            "base_currency": "ADA",
+            "quote_currency": "USDT",
+            "status": "working",
+            "quantity_increment": "1",
+            "tick_size": "0.0000001",
+            "take_rate": "0.0025",
+            "make_rate": "0.001",
+            "fee_currency": "USDT",
+            "margin_trading": true,
+            "max_initial_leverage": "10.00"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0025,
+        "maker": 0.001,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0007
+                ],
+                [
+                    100,
+                    0.0006
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    5000,
+                    0.0002
+                ],
+                [
+                    10000,
+                    0.0001
+                ],
+                [
+                    20000,
+                    0
+                ],
+                [
+                    50000,
+                    -0.0001
+                ],
+                [
+                    100000,
+                    -0.0001
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0008
+                ],
+                [
+                    100,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0007
+                ],
+                [
+                    1000,
+                    0.0006
+                ],
+                [
+                    5000,
+                    0.0006
+                ],
+                [
+                    10000,
+                    0.0005
+                ],
+                [
+                    20000,
+                    0.0004
+                ],
+                [
+                    50000,
+                    0.0003
+                ],
+                [
+                    100000,
+                    0.0002
+                ]
+            ]
+        },
+        "feeCurrency": "USDT"
+    },
+    "XRP/USDT": {
+        "id": "XRPUSDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.1
+            },
+            "price": {
+                "min": 0.000001
+            },
+            "cost": {
+                "min": 1e-7
+            },
+            "leverage": {
+                "min": 1,
+                "max": 20
+            }
+        },
+        "info": {
+            "type": "spot",
+            "base_currency": "XRP",
+            "quote_currency": "USDT",
+            "status": "working",
+            "quantity_increment": "0.1",
+            "tick_size": "0.000001",
+            "take_rate": "0.0025",
+            "make_rate": "0.001",
+            "fee_currency": "USDT",
+            "margin_trading": true,
+            "max_initial_leverage": "20.00"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0025,
+        "maker": 0.001,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0007
+                ],
+                [
+                    100,
+                    0.0006
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    5000,
+                    0.0002
+                ],
+                [
+                    10000,
+                    0.0001
+                ],
+                [
+                    20000,
+                    0
+                ],
+                [
+                    50000,
+                    -0.0001
+                ],
+                [
+                    100000,
+                    -0.0001
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0008
+                ],
+                [
+                    100,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0007
+                ],
+                [
+                    1000,
+                    0.0006
+                ],
+                [
+                    5000,
+                    0.0006
+                ],
+                [
+                    10000,
+                    0.0005
+                ],
+                [
+                    20000,
+                    0.0004
+                ],
+                [
+                    50000,
+                    0.0003
+                ],
+                [
+                    100000,
+                    0.0002
+                ]
+            ]
+        },
+        "feeCurrency": "USDT"
+    },
+    "SOL/USDT": {
+        "id": "SOLUSDT",
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001
+            },
+            "price": {
+                "min": 0.0001
+            },
+            "cost": {
+                "min": 1e-7
+            },
+            "leverage": {
+                "min": 1,
+                "max": 5
+            }
+        },
+        "info": {
+            "type": "spot",
+            "base_currency": "SOL",
+            "quote_currency": "USDT",
+            "status": "working",
+            "quantity_increment": "0.001",
+            "tick_size": "0.0001",
+            "take_rate": "0.0025",
+            "make_rate": "0.001",
+            "fee_currency": "USDT",
+            "margin_trading": true,
+            "max_initial_leverage": "5.00"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0025,
+        "maker": 0.001,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0007
+                ],
+                [
+                    100,
+                    0.0006
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    5000,
+                    0.0002
+                ],
+                [
+                    10000,
+                    0.0001
+                ],
+                [
+                    20000,
+                    0
+                ],
+                [
+                    50000,
+                    -0.0001
+                ],
+                [
+                    100000,
+                    -0.0001
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0008
+                ],
+                [
+                    100,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0007
+                ],
+                [
+                    1000,
+                    0.0006
+                ],
+                [
+                    5000,
+                    0.0006
+                ],
+                [
+                    10000,
+                    0.0005
+                ],
+                [
+                    20000,
+                    0.0004
+                ],
+                [
+                    50000,
+                    0.0003
+                ],
+                [
+                    100000,
+                    0.0002
+                ]
+            ]
+        },
+        "feeCurrency": "USDT"
+    },
+    "TRX/USDT": {
+        "id": "TRXUSDT",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 1e-7
+        },
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 1e-7
+            },
+            "cost": {
+                "min": 1e-7
+            },
+            "leverage": {
+                "min": 1,
+                "max": 10
+            }
+        },
+        "info": {
+            "type": "spot",
+            "base_currency": "TRX",
+            "quote_currency": "USDT",
+            "status": "working",
+            "quantity_increment": "1",
+            "tick_size": "0.0000001",
+            "take_rate": "0.0025",
+            "make_rate": "0.001",
+            "fee_currency": "USDT",
+            "margin_trading": true,
+            "max_initial_leverage": "10.00"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0025,
+        "maker": 0.001,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0007
+                ],
+                [
+                    100,
+                    0.0006
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    5000,
+                    0.0002
+                ],
+                [
+                    10000,
+                    0.0001
+                ],
+                [
+                    20000,
+                    0
+                ],
+                [
+                    50000,
+                    -0.0001
+                ],
+                [
+                    100000,
+                    -0.0001
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0008
+                ],
+                [
+                    100,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0007
+                ],
+                [
+                    1000,
+                    0.0006
+                ],
+                [
+                    5000,
+                    0.0006
+                ],
+                [
+                    10000,
+                    0.0005
+                ],
+                [
+                    20000,
+                    0.0004
+                ],
+                [
+                    50000,
+                    0.0003
+                ],
+                [
+                    100000,
+                    0.0002
+                ]
+            ]
+        },
+        "feeCurrency": "USDT"
+    },
+    "LTC/USDT:USDT": {
+        "id": "LTCUSDT_PERP",
+        "symbol": "LTC/USDT:USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 0.01,
+            "price": 0.001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.01
+            },
+            "price": {
+                "min": 0.001
+            },
+            "cost": {
+                "min": 0.00001
+            },
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "type": "futures",
+            "contract_type": "perpetual",
+            "expiry": null,
+            "underlying": "LTC",
+            "base_currency": null,
+            "quote_currency": "USDT",
+            "status": "working",
+            "quantity_increment": "0.01",
+            "tick_size": "0.001",
+            "take_rate": "0.0007",
+            "make_rate": "0.0002",
+            "fee_currency": "USDT",
+            "margin_trading": true,
+            "max_initial_leverage": "50.00"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0007,
+        "maker": 0.0002,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0007
+                ],
+                [
+                    100,
+                    0.0006
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    5000,
+                    0.0002
+                ],
+                [
+                    10000,
+                    0.0001
+                ],
+                [
+                    20000,
+                    0
+                ],
+                [
+                    50000,
+                    -0.0001
+                ],
+                [
+                    100000,
+                    -0.0001
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0008
+                ],
+                [
+                    100,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0007
+                ],
+                [
+                    1000,
+                    0.0006
+                ],
+                [
+                    5000,
+                    0.0006
+                ],
+                [
+                    10000,
+                    0.0005
+                ],
+                [
+                    20000,
+                    0.0004
+                ],
+                [
+                    50000,
+                    0.0003
+                ],
+                [
+                    100000,
+                    0.0002
+                ]
+            ]
+        },
+        "feeCurrency": "USDT"
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTCUSDT_PERP",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {
+                "min": 0.01
+            },
+            "cost": {
+                "min": 0.000001
+            },
+            "leverage": {
+                "min": 1,
+                "max": 100
+            }
+        },
+        "info": {
+            "type": "futures",
+            "contract_type": "perpetual",
+            "expiry": null,
+            "underlying": "BTC",
+            "base_currency": null,
+            "quote_currency": "USDT",
+            "status": "working",
+            "quantity_increment": "0.0001",
+            "tick_size": "0.01",
+            "take_rate": "0.0007",
+            "make_rate": "0.0002",
+            "fee_currency": "USDT",
+            "margin_trading": true,
+            "max_initial_leverage": "100.00"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0007,
+        "maker": 0.0002,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0007
+                ],
+                [
+                    100,
+                    0.0006
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    5000,
+                    0.0002
+                ],
+                [
+                    10000,
+                    0.0001
+                ],
+                [
+                    20000,
+                    0
+                ],
+                [
+                    50000,
+                    -0.0001
+                ],
+                [
+                    100000,
+                    -0.0001
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0008
+                ],
+                [
+                    100,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0007
+                ],
+                [
+                    1000,
+                    0.0006
+                ],
+                [
+                    5000,
+                    0.0006
+                ],
+                [
+                    10000,
+                    0.0005
+                ],
+                [
+                    20000,
+                    0.0004
+                ],
+                [
+                    50000,
+                    0.0003
+                ],
+                [
+                    100000,
+                    0.0002
+                ]
+            ]
+        },
+        "feeCurrency": "USDT"
+    },
+    "ADA/USDT:USDT": {
+        "id": "ADAUSDT_PERP",
+        "symbol": "ADA/USDT:USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {
+                "min": 0.00001
+            },
+            "leverage": {
+                "min": 1,
+                "max": 75
+            }
+        },
+        "info": {
+            "type": "futures",
+            "contract_type": "perpetual",
+            "expiry": null,
+            "underlying": "ADA",
+            "base_currency": null,
+            "quote_currency": "USDT",
+            "status": "working",
+            "quantity_increment": "1",
+            "tick_size": "0.00001",
+            "take_rate": "0.0007",
+            "make_rate": "0.0002",
+            "fee_currency": "USDT",
+            "margin_trading": true,
+            "max_initial_leverage": "75.00"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0007,
+        "maker": 0.0002,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0007
+                ],
+                [
+                    100,
+                    0.0006
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    5000,
+                    0.0002
+                ],
+                [
+                    10000,
+                    0.0001
+                ],
+                [
+                    20000,
+                    0
+                ],
+                [
+                    50000,
+                    -0.0001
+                ],
+                [
+                    100000,
+                    -0.0001
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0008
+                ],
+                [
+                    100,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0007
+                ],
+                [
+                    1000,
+                    0.0006
+                ],
+                [
+                    5000,
+                    0.0006
+                ],
+                [
+                    10000,
+                    0.0005
+                ],
+                [
+                    20000,
+                    0.0004
+                ],
+                [
+                    50000,
+                    0.0003
+                ],
+                [
+                    100000,
+                    0.0002
+                ]
+            ]
+        },
+        "feeCurrency": "USDT"
+    },
+    "XRP/USDT:USDT": {
+        "id": "XRPUSDT_PERP",
+        "symbol": "XRP/USDT:USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 0.0001
+            },
+            "cost": {
+                "min": 0.0001
+            },
+            "leverage": {
+                "min": 1,
+                "max": 75
+            }
+        },
+        "info": {
+            "type": "futures",
+            "contract_type": "perpetual",
+            "expiry": null,
+            "underlying": "XRP",
+            "base_currency": null,
+            "quote_currency": "USDT",
+            "status": "working",
+            "quantity_increment": "1",
+            "tick_size": "0.0001",
+            "take_rate": "0.0007",
+            "make_rate": "0.0002",
+            "fee_currency": "USDT",
+            "margin_trading": true,
+            "max_initial_leverage": "75.00"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0007,
+        "maker": 0.0002,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0007
+                ],
+                [
+                    100,
+                    0.0006
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    5000,
+                    0.0002
+                ],
+                [
+                    10000,
+                    0.0001
+                ],
+                [
+                    20000,
+                    0
+                ],
+                [
+                    50000,
+                    -0.0001
+                ],
+                [
+                    100000,
+                    -0.0001
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0008
+                ],
+                [
+                    100,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0007
+                ],
+                [
+                    1000,
+                    0.0006
+                ],
+                [
+                    5000,
+                    0.0006
+                ],
+                [
+                    10000,
+                    0.0005
+                ],
+                [
+                    20000,
+                    0.0004
+                ],
+                [
+                    50000,
+                    0.0003
+                ],
+                [
+                    100000,
+                    0.0002
+                ]
+            ]
+        },
+        "feeCurrency": "USDT"
+    },
+    "TRX/USDT:USDT": {
+        "id": "TRXUSDT_PERP",
+        "symbol": "TRX/USDT:USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 1,
+            "price": 1e-7
+        },
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 1e-7
+            },
+            "cost": {
+                "min": 1e-7
+            },
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "type": "futures",
+            "contract_type": "perpetual",
+            "expiry": null,
+            "underlying": "TRX",
+            "base_currency": null,
+            "quote_currency": "USDT",
+            "status": "working",
+            "quantity_increment": "1",
+            "tick_size": "0.0000001",
+            "take_rate": "0.0007",
+            "make_rate": "0.0002",
+            "fee_currency": "USDT",
+            "margin_trading": true,
+            "max_initial_leverage": "50.00"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0007,
+        "maker": 0.0002,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0007
+                ],
+                [
+                    100,
+                    0.0006
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    5000,
+                    0.0002
+                ],
+                [
+                    10000,
+                    0.0001
+                ],
+                [
+                    20000,
+                    0
+                ],
+                [
+                    50000,
+                    -0.0001
+                ],
+                [
+                    100000,
+                    -0.0001
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.0009
+                ],
+                [
+                    10,
+                    0.0008
+                ],
+                [
+                    100,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0007
+                ],
+                [
+                    1000,
+                    0.0006
+                ],
+                [
+                    5000,
+                    0.0006
+                ],
+                [
+                    10000,
+                    0.0005
+                ],
+                [
+                    20000,
+                    0.0004
+                ],
+                [
+                    50000,
+                    0.0003
+                ],
+                [
+                    100000,
+                    0.0002
+                ]
+            ]
+        },
+        "feeCurrency": "USDT"
+    }
+}

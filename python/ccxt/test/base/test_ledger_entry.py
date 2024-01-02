@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_ledger_entry(exchange, skipped_properties, method, entry, requested_code, now):
     format = {
@@ -36,7 +34,7 @@ def test_ledger_entry(exchange, skipped_properties, method, entry, requested_cod
     }
     empty_allowed_for = ['referenceId', 'referenceAccount', 'id']
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
-    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry, now)
+    test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, now)
     test_shared_methods.assert_currency_code(exchange, skipped_properties, method, entry, entry['currency'], requested_code)
     #
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'direction', ['in', 'out'])
@@ -45,4 +43,3 @@ def test_ledger_entry(exchange, skipped_properties, method, entry, requested_cod
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'amount', '0')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'before', '0')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'after', '0')
-    test_shared_methods.assert_fee_structure(exchange, skipped_properties, method, entry, 'fee')

@@ -1,8 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
-use React\Async;
-use React\Promise;
 
 // ----------------------------------------------------------------------------
 
@@ -10,7 +7,9 @@ use React\Promise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/../base/test_ticker.php';
+use React\Async;
+use React\Promise;
+include_once PATH_TO_CCXT . '/test/base/test_ticker.php';
 
 function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
@@ -20,7 +19,7 @@ function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
         $checked_symbol = null;
         try {
             $tickers = Async\await($exchange->fetch_tickers());
-        } catch(Exception $e) {
+        } catch(\Throwable $e) {
             $tickers = Async\await($exchange->fetch_tickers([$symbol]));
             $checked_symbol = $symbol;
         }

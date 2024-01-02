@@ -1,5 +1,7 @@
+import { Future } from './Future.js';
 export default class Client {
     connected: Promise<any>;
+    disconnected: ReturnType<typeof Future>;
     futures: {};
     rejections: {};
     keepAlive: number;
@@ -43,7 +45,7 @@ export default class Client {
     onError(error: any): void;
     onClose(event: any): void;
     onUpgrade(message: any): void;
-    send(message: any): Promise<unknown>;
+    send(message: any): Promise<any>;
     close(): void;
     onMessage(messageEvent: any): void;
 }

@@ -1,6 +1,6 @@
-import { RequestTimeout, NetworkError ,NotSupported, BaseError } from '../../base/errors.js';
+import { RequestTimeout, NetworkError, NotSupported, BaseError } from '../../base/errors.js';
 import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
-import { createFuture } from './Future.js';
+import { Future } from './Future.js';
 
 import {
     isNode,
@@ -12,29 +12,55 @@ import { utf8 } from '../../static_dependencies/scure-base/index.js';
 
 export default class Client {
     connected: Promise<any>
+
+    disconnected: ReturnType<typeof Future>
+
     futures: {}
+
     rejections: {}
+
     keepAlive: number
+
     connection: any
+
     connectionTimeout: any
+
     verbose: boolean
+
     connectionTimer: any
+
     lastPong: any
+
     maxPingPongMisses: any
+
     pingInterval: any
+
     connectionEstablished: any
+
     gunzip: any
+
     error: any
+
     inflate: any
+
     url: string
+
     isConnected: any
+
     onConnectedCallback: any
+
     onMessageCallback: any
+
     onErrorCallback: any
+
     onCloseCallback: any
+
     ping: any
+
     subscriptions: {}
+
     throttle: any
+
     constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         const defaults = {
             url,
@@ -68,12 +94,12 @@ export default class Client {
         }
         Object.assign (this, deepExtend (defaults, config))
         // connection-related Future
-        this.connected = createFuture ()
+        this.connected = Future ()
     }
 
     future (messageHash) {
         if (!(messageHash in this.futures)) {
-            this.futures[messageHash] = createFuture ()
+            this.futures[messageHash] = Future ()
         }
         const future = this.futures[messageHash]
         if (messageHash in this.rejections) {
@@ -237,6 +263,7 @@ export default class Client {
         this.onErrorCallback (this, this.error)
     }
 
+    /* eslint-disable no-shadow */
     onClose (event) {
         if (this.verbose) {
             this.log (new Date (), 'onClose', event)
@@ -244,6 +271,9 @@ export default class Client {
         if (!this.error) {
             // todo: exception types for server-side disconnects
             this.reset (new NetworkError ('connection closed by remote server, closing code ' + String (event.code)))
+        }
+        if (this.disconnected !== undefined) {
+            this.disconnected.resolve (true);
         }
         this.onCloseCallback (this, event)
     }
@@ -261,8 +291,9 @@ export default class Client {
             this.log (new Date (), 'sending', message)
         }
         message = (typeof message === 'string') ? message : JSON.stringify (message)
-        const future = createFuture ()
+        const future = Future ()
         if (isNode) {
+            /* eslint-disable no-inner-declarations */
             function onSendComplete (error) {
                 if (error) {
                     future.reject (error)
@@ -288,21 +319,18 @@ export default class Client {
 
         let message : Buffer | string = messageEvent.data
         let arrayBuffer : Uint8Array
-        if (this.gunzip || this.inflate) {
-            if (typeof message === 'string') {
-                arrayBuffer = utf8.decode (message)
-            } else {
-                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
-            }
-            if (this.gunzip) {
-                arrayBuffer = gunzipSync (arrayBuffer)
-            } else if (this.inflate) {
-                arrayBuffer = inflateSync (arrayBuffer)
-            }
-            message = utf8.encode (arrayBuffer)
-        }
         if (typeof message !== 'string') {
-            message = message.toString ()
+            if (this.gunzip || this.inflate) {
+                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
+                if (this.gunzip) {
+                    arrayBuffer = gunzipSync (arrayBuffer)
+                } else if (this.inflate) {
+                    arrayBuffer = inflateSync (arrayBuffer)
+                }
+                message = utf8.encode (arrayBuffer)
+            } else {
+                message = message.toString ()
+            }
         }
         try {
             if (isJsonEncodedObject (message)) {

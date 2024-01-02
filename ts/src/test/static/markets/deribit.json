@@ -1,0 +1,44 @@
+{
+  "BTC/USDT": {
+    "id": "BTC_USDT",
+    "symbol": "BTC/USDT",
+    "base": "BTC",
+    "quote": "USDT",
+    "settle": "",
+    "baseId": "BTC",
+    "quoteId": "USDT",
+    "settleId": "",
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "active": true,
+    "contract": false,
+    "linear": false,
+    "inverse": true,
+    "taker": "0",
+    "maker": "0",
+    "contractSize": "0.0001",
+    "expiry": "32503708800000",
+    "expiryDatetime": "3000-01-01T08:00:00.000Z",
+    "precision": {
+      "amount": 0.0001,
+      "price": 0.01
+    },
+    "limits": {
+      "leverage": {},
+      "amount": {
+        "min": 0.0001
+      },
+      "price": {
+        "min": 0.01
+      },
+      "cost": {}
+    },
+    "created": 1702374650000,
+    "strike": "",
+    "optionType": ""
+  }
+}

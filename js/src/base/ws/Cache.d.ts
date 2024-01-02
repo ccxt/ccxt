@@ -16,4 +16,8 @@ declare class ArrayCacheBySymbolById extends ArrayCache {
     constructor(maxSize?: any);
     append(item: any): void;
 }
-export { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, };
+declare class ArrayCacheBySymbolBySide extends ArrayCache {
+    constructor();
+    append(item: any): void;
+}
+export { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, };
