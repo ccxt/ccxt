@@ -901,9 +901,41 @@ export default class oanda extends Exchange {
         //             halfSpreadCost: '0.0001',
         //             fullVWAP: '114.824',
         //             reason: 'LIMIT_ORDER',
-        //             tradeOpened: [Object],
-        //             fullPrice: [Object],
-        //             homeConversionFactors: [Object]
+        //             tradeOpened: { // present if it opens a new position
+        //                  price: "1.09420",
+        //                  tradeID: "100",
+        //                  units: "1",
+        //                  guaranteedExecutionFee: "0.0000",
+        //                  quoteGuaranteedExecutionFee: "0",
+        //                  halfSpreadCost: "0.0000",
+        //                  initialMarginRequired: "5.4710",
+        //             }
+        //             tradeClosed: [ // present if it closes an existing position
+        //               {
+        //                 tradeID: "96",
+        //                 units: "1",
+        //                 realizedPL: "-0.0004",
+        //                 financing: "0.0000",
+        //                 baseFinancing: "0.00000000000000",
+        //                 price: "1.09392",
+        //                 guaranteedExecutionFee: "0.0000",
+        //                 quoteGuaranteedExecutionFee: "0",
+        //                 halfSpreadCost: "0.0000",
+        //               },
+        //             ]
+        //             fullPrice:  {
+        //                  closeoutBid: "1.09407",
+        //                  closeoutAsk: "1.09425",
+        //                  timestamp: "2024-01-02T21:15:47.080776698Z",
+        //                  bids: [ { price: "1.09412", liquidity: "1000000", }, { price: "1.09410", liquidity: "2000000", }, ... ],
+        //                  asks: [ { price: "1.09420", liquidity: "1000000", }, { price: "1.09423", liquidity: "2000000", }, ... ],
+        //              }
+        //              homeConversionFactors: {
+        //                  gainQuoteHome: { actor: "1", },
+        //                  lossQuoteHome: { factor: "1", },
+        //                  gainBaseHome: { factor: "1.08868920", },
+        //                  lossBaseHome: { factor: "1.09963080", },
+        //              }
         //         },
         //
         //         // Note: if order is rejected, then the response has 'orderCancelTransaction' member too
@@ -1028,28 +1060,31 @@ export default class oanda extends Exchange {
         let timestamp = undefined;
         let type = undefined;
         let price = undefined;
+        let average = undefined;
         let timeInForce = undefined;
         let amount = undefined;
         let filled = undefined;
         let remaining = undefined;
         let status = undefined;
         let side = undefined;
-        if ('orderCreateTransaction' in order) { // comes from 'createOrder' or 'editOrder', however, this key has different order
-            const orderCreateTransaction = this.safeValue (order, 'orderCreateTransaction');
-            const orderCancelTransaction = this.safeValue (order, 'orderCancelTransaction');
+        const orderCreateTransaction = this.safeValue (order, 'orderCreateTransaction');
+        const orderFillTransaction = this.safeValue (order, 'orderFillTransaction');
+        const orderCancelTransaction = this.safeValue (order, 'orderCancelTransaction');
+        if (orderCreateTransaction !== undefined) {
             const keys = Object.keys (order);
             const keysLength = keys.length;
             // Note: in 'editOrder', the first key is always 'orderCancelTransaction', in createOrder, it's 'orderCreateTransaction'
             const lastKey = this.safeString (keys, keysLength - 1);
-            // const orderFillTransaction = this.safeValue (order, 'orderFillTransaction'); // TO_DO : this is for 'trades'
             id = this.safeString (orderCreateTransaction, 'id');
             marketId = this.safeString (orderCreateTransaction, 'instrument');
             timestamp = this.parseDate (this.safeString (orderCreateTransaction, 'time'));
             price = this.safeString (orderCreateTransaction, 'price');
             timeInForce = this.parseTimeInForce (this.safeString (orderCreateTransaction, 'timeInForce'));
-            amount = this.safeString (orderCreateTransaction, 'units');
-            side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
-            amount = Precise.stringAbs (amount);
+            const amountRaw = this.safeString (orderCreateTransaction, 'units');
+            side = Precise.stringGt (amountRaw, '0') ? 'buy' : 'sell';
+            amount = Precise.stringAbs (amountRaw);
+            filled = this.safeString (orderFillTransaction, 'units');
+            average = this.safeString (orderFillTransaction, 'fullVWAP');
             type = this.parseOrderTransactionType (this.safeString (orderCreateTransaction, 'type'));
             let tempStatus = undefined;
             // depending the last key, we find out the order status.
@@ -1100,7 +1135,7 @@ export default class oanda extends Exchange {
             'postOnly': undefined,
             'price': price,
             'stopPrice': undefined,
-            'average': undefined,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
