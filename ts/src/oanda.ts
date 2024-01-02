@@ -5,7 +5,7 @@ import Exchange from './abstract/oanda.js';
 // @ts-ignore
 import { ExchangeError, BadRequest, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction, Dictionary } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -41,12 +41,13 @@ export default class oanda extends Exchange {
                 'createReduceOnlyOrder': false,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBidsAsks': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
-                'fetchDepositsWithdrawals': true,
                 'fetchDepositAddress': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -72,7 +73,6 @@ export default class oanda extends Exchange {
                 'fetchStatus': false,
                 'fetchTicker': undefined,
                 'fetchTickers': undefined,
-                'fetchBidsAsks': true,
                 'fetchTime': false,
                 'fetchTrades': false,
                 'fetchWithdrawals': false,
@@ -474,7 +474,7 @@ export default class oanda extends Exchange {
         return prices;
     }
 
-    async fetchBidsAsks (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
+    async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name oanda#fetchBidsAsks
