@@ -1897,7 +1897,7 @@ export default class bingx extends Exchange {
         //     }
         //
         if (typeof response === 'string') {
-            response = JSON.parse (response);
+            response = this.parseJson (response);
         }
         const data = this.safeValue (response, 'data', {});
         const order = this.safeValue (data, 'order', data);
@@ -2166,7 +2166,7 @@ export default class bingx extends Exchange {
         if ((stopLoss !== undefined) && (typeof stopLoss !== 'number')) {
             //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
             if (typeof stopLoss === 'string') {
-                stopLoss = JSON.parse (stopLoss);
+                stopLoss = this.parseJson (stopLoss);
             }
             stopLossPrice = this.safeNumber (stopLoss, 'stopPrice');
         }
@@ -2178,7 +2178,7 @@ export default class bingx extends Exchange {
         if ((takeProfit !== undefined) && (typeof takeProfit !== 'number')) {
             //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
             if (typeof takeProfit === 'string') {
-                takeProfit = JSON.parse (takeProfit);
+                takeProfit = this.parseJson (takeProfit);
             }
             takeProfitPrice = this.safeNumber (takeProfit, 'stopPrice');
         }
