@@ -470,6 +470,18 @@
                     "LTC/USDT"
                 ],
                 "output": "{\"symbol\":\"ltcusdt\"}"
+            },
+            {
+                "description": "Swap cancel all trailing orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_track_cancelall?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-01-03T01%3A01%3A08&Signature=ug%2FwGTlkVE%2BmL5C%2BkBJV83nXrF8%2B8pLKOtSpdflruCU%3D",
+                "input": [
+                  "BTC/USDT:USDT",
+                  {
+                    "trailing": true
+                  }
+                ],
+                "output": "{\"contract_code\":\"BTC-USDT\"}"
             }
         ],
         "fetchPositions": [

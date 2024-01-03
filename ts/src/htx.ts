@@ -5716,8 +5716,9 @@ export default class htx extends Exchange {
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.stop] *contract only* if the orders are stop trigger orders or not
-         * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
+         * @param {boolean} [params.stop] *contract only* if the orders are stop trigger orders or not
+         * @param {boolean} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
+         * @param {boolean} [params.trailing] *contract only* set to true if you want to cancel all trailing orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -5757,7 +5758,8 @@ export default class htx extends Exchange {
             request['contract_code'] = market['id'];
             const stop = this.safeValue (params, 'stop');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-            params = this.omit (params, [ 'stop', 'stopLossTakeProfit' ]);
+            const trailing = this.safeValue (params, 'trailing', false);
+            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing' ]);
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
@@ -5767,6 +5769,8 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerCancelall (this.extend (request, params));
                     } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTpslCancelall (this.extend (request, params));
+                    } else if (trailing) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTrackCancelall (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCancelall (this.extend (request, params));
                     }
@@ -5775,6 +5779,8 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall (this.extend (request, params));
                     } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall (this.extend (request, params));
+                    } else if (trailing) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossCancelall (this.extend (request, params));
                     }
@@ -5785,6 +5791,8 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerCancelall (this.extend (request, params));
                     } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslCancelall (this.extend (request, params));
+                    } else if (trailing) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTrackCancelall (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostSwapApiV1SwapCancelall (this.extend (request, params));
                     }
@@ -5793,6 +5801,8 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostApiV1ContractTriggerCancelall (this.extend (request, params));
                     } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostApiV1ContractTpslCancelall (this.extend (request, params));
+                    } else if (trailing) {
+                        response = await this.contractPrivatePostApiV1ContractTrackCancelall (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostApiV1ContractCancelall (this.extend (request, params));
                     }
