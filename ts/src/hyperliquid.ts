@@ -2,12 +2,12 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError } from './base/errors.js';
-import { Precise } from './base/Precise.js';
+import { ExchangeError, ArgumentsRequired } from './base/errors.js';
+// import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Market } from './base/types.js';
-// Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation
+import type { Market, Balances } from './base/types.js';
+// Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Position, Liquidation
 //  ---------------------------------------------------------------------------
 
 /**
@@ -47,7 +47,7 @@ export default class hyperliquid extends Exchange {
                 'createReduceOnlyOrder': false,
                 'editOrder': false,
                 'fetchAccounts': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -323,6 +323,58 @@ export default class hyperliquid extends Exchange {
             'created': undefined,
             'info': market,
         };
+    }
+
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name hyperliquid#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] *required* Onchain address in 42-character hexadecimal format; e.g. 0x0000000000000000000000000000000000000000
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        const user = this.safeString (params, 'user');
+        if (user === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a amount argument');
+        }
+        const request = {
+            'type': 'clearinghouseState',
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     {
+        //         "assetPositions": [],
+        //         "crossMaintenanceMarginUsed": "0.0",
+        //         "crossMarginSummary": {
+        //             "accountValue": "100.0",
+        //             "totalMarginUsed": "0.0",
+        //             "totalNtlPos": "0.0",
+        //             "totalRawUsd": "100.0"
+        //         },
+        //         "marginSummary": {
+        //             "accountValue": "100.0",
+        //             "totalMarginUsed": "0.0",
+        //             "totalNtlPos": "0.0",
+        //             "totalRawUsd": "100.0"
+        //         },
+        //         "time": "1704261007014",
+        //         "withdrawable": "100.0"
+        //     }
+        //
+        const data = this.safeValue (response, 'marginSummary', {});
+        const result = {
+            'info': response,
+            'USDC': {
+                'total': this.safeFloat (data, 'accountValue'),
+                'used': this.safeFloat (data, 'totalMarginUsed'),
+            },
+        };
+        const timestamp = this.safeInteger (response, 'time');
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        return this.safeBalance (result);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
