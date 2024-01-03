@@ -1476,7 +1476,7 @@ class phemex extends Exchange {
         $response = null;
         if ($type === 'spot') {
             $response = $this->v1GetMdSpotTicker24hrAll ($query);
-        } elseif ($subType === 'inverse' || $market['settle'] === 'USD') {
+        } elseif ($subType === 'inverse' || $this->safe_string($market, 'settle') === 'USD') {
             $response = $this->v1GetMdTicker24hrAll ($query);
         } else {
             $response = $this->v2GetMdV2Ticker24hrAll ($query);

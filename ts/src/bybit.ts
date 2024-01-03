@@ -628,6 +628,8 @@ export default class bybit extends Exchange {
                     '131215': BadRequest, // Amount error
                     '131216': ExchangeError, // Query balance error
                     '131217': ExchangeError, // Risk check error
+                    '131231': NotSupported, // Transfers into this account are not supported
+                    '131232': NotSupported, // Transfers out this account are not supported
                     '131002': BadRequest, // Parameter error
                     '131003': ExchangeError, // Interal error
                     '131004': AuthenticationError, // KYC needed

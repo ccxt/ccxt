@@ -621,7 +621,14 @@ class coinsph extends Exchange {
         $defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         $options = $this->safe_value($this->options, 'fetchTickers', array());
         $method = $this->safe_string($options, 'method', $defaultMethod);
-        $tickers = $this->$method (array_merge($request, $params));
+        $tickers = null;
+        if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
+            $tickers = $this->publicGetOpenapiQuoteV1TickerPrice (array_merge($request, $params));
+        } elseif ($method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
+            $tickers = $this->publicGetOpenapiQuoteV1TickerBookTicker (array_merge($request, $params));
+        } else {
+            $tickers = $this->publicGetOpenapiQuoteV1Ticker24hr (array_merge($request, $params));
+        }
         return $this->parse_tickers($tickers, $symbols, $params);
     }
 
@@ -640,7 +647,14 @@ class coinsph extends Exchange {
         $defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         $options = $this->safe_value($this->options, 'fetchTicker', array());
         $method = $this->safe_string($options, 'method', $defaultMethod);
-        $ticker = $this->$method (array_merge($request, $params));
+        $ticker = null;
+        if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
+            $ticker = $this->publicGetOpenapiQuoteV1TickerPrice (array_merge($request, $params));
+        } elseif ($method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
+            $ticker = $this->publicGetOpenapiQuoteV1TickerBookTicker (array_merge($request, $params));
+        } else {
+            $ticker = $this->publicGetOpenapiQuoteV1Ticker24hr (array_merge($request, $params));
+        }
         return $this->parse_ticker($ticker, $market);
     }
 

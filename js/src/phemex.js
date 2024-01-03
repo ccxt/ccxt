@@ -1488,7 +1488,7 @@ export default class phemex extends Exchange {
         if (type === 'spot') {
             response = await this.v1GetMdSpotTicker24hrAll(query);
         }
-        else if (subType === 'inverse' || market['settle'] === 'USD') {
+        else if (subType === 'inverse' || this.safeString(market, 'settle') === 'USD') {
             response = await this.v1GetMdTicker24hrAll(query);
         }
         else {

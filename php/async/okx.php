@@ -3036,12 +3036,13 @@ class okx extends Exchange {
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->trigger] true if trigger orders
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
             if ($stop) {
                 $orderInner = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
                 return $this->safe_value($orderInner, 0);
@@ -3408,6 +3409,7 @@ class okx extends Exchange {
              * @param {string} $id the $order $id
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra and exchange specific parameters
+             * @param {boolean} [$params->trigger] true if fetching trigger orders
              * @return ~@link https://docs.ccxt.com/#/?$id=$order-structure an $order structure~
              */
             if ($symbol === null) {
@@ -3425,7 +3427,7 @@ class okx extends Exchange {
             $options = $this->safe_value($this->options, 'fetchOrder', array());
             $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrder');
             $method = $this->safe_string($params, 'method', $defaultMethod);
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
             if ($stop) {
                 $method = 'privateGetTradeOrderAlgo';
                 if ($clientOrderId !== null) {
@@ -3440,7 +3442,7 @@ class okx extends Exchange {
                     $request['ordId'] = $id;
                 }
             }
-            $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId', 'stop' ));
+            $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId', 'stop', 'trigger' ));
             $response = null;
             if ($method === 'privateGetTradeOrderAlgo') {
                 $response = Async\await($this->privateGetTradeOrderAlgo (array_merge($request, $query)));
@@ -3596,7 +3598,7 @@ class okx extends Exchange {
             $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrdersPending');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $ordType = $this->safe_string($params, 'ordType');
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
             if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
                 $method = 'privateGetTradeOrdersAlgoPending';
                 if ($stop) {
@@ -3605,7 +3607,7 @@ class okx extends Exchange {
                     }
                 }
             }
-            $query = $this->omit($params, array( 'method', 'stop' ));
+            $query = $this->omit($params, array( 'method', 'stop', 'trigger' ));
             $response = null;
             if ($method === 'privateGetTradeOrdersAlgoPending') {
                 $response = Async\await($this->privateGetTradeOrdersAlgoPending (array_merge($request, $query)));
@@ -3758,7 +3760,7 @@ class okx extends Exchange {
             $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrdersHistory');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $ordType = $this->safe_string($params, 'ordType');
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
             if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
                 $method = 'privateGetTradeOrdersAlgoHistory';
                 $algoId = $this->safe_string($params, 'algoId');
@@ -3782,7 +3784,7 @@ class okx extends Exchange {
                     $query = $this->omit($query, array( 'until', 'till' ));
                 }
             }
-            $send = $this->omit($query, array( 'method', 'stop', 'ordType' ));
+            $send = $this->omit($query, array( 'method', 'stop', 'ordType', 'trigger' ));
             $response = null;
             if ($method === 'privateGetTradeOrdersAlgoHistory') {
                 $response = Async\await($this->privateGetTradeOrdersAlgoHistory (array_merge($request, $send)));
@@ -3899,6 +3901,7 @@ class okx extends Exchange {
              * fetches information on multiple closed orders made by the user
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-3-months
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -3908,6 +3911,7 @@ class okx extends Exchange {
              * @param {string} [$params->algoId] Algo ID "'433845797218942976'"
              * @param {int} [$params->until] timestamp in ms to fetch orders for
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {string} [$params->method] $method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -3944,7 +3948,7 @@ class okx extends Exchange {
             $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrdersHistory');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $ordType = $this->safe_string($params, 'ordType');
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
             if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
                 $method = 'privateGetTradeOrdersAlgoHistory';
                 if ($stop) {
@@ -3964,10 +3968,12 @@ class okx extends Exchange {
                 }
                 $request['state'] = 'filled';
             }
-            $send = $this->omit($query, array( 'method', 'stop' ));
+            $send = $this->omit($query, array( 'method', 'stop', 'trigger' ));
             $response = null;
             if ($method === 'privateGetTradeOrdersAlgoHistory') {
                 $response = Async\await($this->privateGetTradeOrdersAlgoHistory (array_merge($request, $send)));
+            } elseif ($method === 'privateGetTradeOrdersHistoryArchive') {
+                $response = Async\await($this->privateGetTradeOrdersHistoryArchive (array_merge($request, $send)));
             } else {
                 $response = Async\await($this->privateGetTradeOrdersHistory (array_merge($request, $send)));
             }

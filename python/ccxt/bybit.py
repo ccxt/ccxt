@@ -641,6 +641,8 @@ class bybit(Exchange, ImplicitAPI):
                     '131215': BadRequest,  # Amount error
                     '131216': ExchangeError,  # Query balance error
                     '131217': ExchangeError,  # Risk check error
+                    '131231': NotSupported,  # Transfers into self account are not supported
+                    '131232': NotSupported,  # Transfers out self account are not supported
                     '131002': BadRequest,  # Parameter error
                     '131003': ExchangeError,  # Interal error
                     '131004': AuthenticationError,  # KYC needed

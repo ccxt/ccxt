@@ -1445,7 +1445,7 @@ class phemex(Exchange, ImplicitAPI):
         response = None
         if type == 'spot':
             response = self.v1GetMdSpotTicker24hrAll(query)
-        elif subType == 'inverse' or market['settle'] == 'USD':
+        elif subType == 'inverse' or self.safe_string(market, 'settle') == 'USD':
             response = self.v1GetMdTicker24hrAll(query)
         else:
             response = self.v2GetMdV2Ticker24hrAll(query)

@@ -208,7 +208,7 @@ class bybit extends bybit$1 {
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false);
-        const messageHash = 'tickers::' + symbols.join(',');
+        const messageHashes = [];
         const url = this.getUrlByMarketType(symbols[0], false, params);
         params = this.cleanParams(params);
         const options = this.safeValue(this.options, 'watchTickers', {});
@@ -218,8 +218,9 @@ class bybit extends bybit$1 {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             topics.push(topic + '.' + marketId);
+            messageHashes.push('ticker:' + symbols[i]);
         }
-        const ticker = await this.watchTopics(url, messageHash, topics, params);
+        const ticker = await this.watchTopics(url, messageHashes, topics, params);
         if (this.newUpdates) {
             return ticker;
         }
@@ -355,17 +356,6 @@ class bybit extends bybit$1 {
         this.tickers[symbol] = parsed;
         const messageHash = 'ticker:' + symbol;
         client.resolve(this.tickers[symbol], messageHash);
-        // watchTickers part
-        const messageHashes = this.findMessageHashes(client, 'tickers::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHashTicker = messageHashes[i];
-            const parts = messageHashTicker.split('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split(',');
-            if (this.inArray(parsed['symbol'], symbols)) {
-                client.resolve(parsed, messageHashTicker);
-            }
-        }
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
@@ -886,10 +876,15 @@ class bybit extends bybit$1 {
         }
         const trades = this.myTrades;
         const symbols = {};
-        const method = spot ? 'parseWsTrade' : 'parseTrade';
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
-            const parsed = this[method](rawTrade);
+            let parsed = undefined;
+            if (spot) {
+                parsed = this.parseWsTrade(rawTrade);
+            }
+            else {
+                parsed = this.parseTrade(rawTrade);
+            }
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             trades.append(parsed);

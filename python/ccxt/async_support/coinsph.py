@@ -628,7 +628,13 @@ class coinsph(Exchange, ImplicitAPI):
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
         options = self.safe_value(self.options, 'fetchTickers', {})
         method = self.safe_string(options, 'method', defaultMethod)
-        tickers = await getattr(self, method)(self.extend(request, params))
+        tickers = None
+        if method == 'publicGetOpenapiQuoteV1TickerPrice':
+            tickers = await self.publicGetOpenapiQuoteV1TickerPrice(self.extend(request, params))
+        elif method == 'publicGetOpenapiQuoteV1TickerBookTicker':
+            tickers = await self.publicGetOpenapiQuoteV1TickerBookTicker(self.extend(request, params))
+        else:
+            tickers = await self.publicGetOpenapiQuoteV1Ticker24hr(self.extend(request, params))
         return self.parse_tickers(tickers, symbols, params)
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -646,7 +652,13 @@ class coinsph(Exchange, ImplicitAPI):
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
         options = self.safe_value(self.options, 'fetchTicker', {})
         method = self.safe_string(options, 'method', defaultMethod)
-        ticker = await getattr(self, method)(self.extend(request, params))
+        ticker = None
+        if method == 'publicGetOpenapiQuoteV1TickerPrice':
+            ticker = await self.publicGetOpenapiQuoteV1TickerPrice(self.extend(request, params))
+        elif method == 'publicGetOpenapiQuoteV1TickerBookTicker':
+            ticker = await self.publicGetOpenapiQuoteV1TickerBookTicker(self.extend(request, params))
+        else:
+            ticker = await self.publicGetOpenapiQuoteV1Ticker24hr(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
