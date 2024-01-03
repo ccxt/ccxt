@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Market, Balances, Int, OrderBook } from './base/types.js';
+import type { Market, Balances, Int, OrderBook, OHLCV } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 /**
@@ -77,7 +77,7 @@ export default class hyperliquid extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': false,
@@ -381,6 +381,7 @@ export default class hyperliquid extends Exchange {
          * @method
          * @name hyperliquid#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -422,6 +423,84 @@ export default class hyperliquid extends Exchange {
         };
         const timestamp = this.safeInteger (response, 'time');
         return this.parseOrderBook (result, market['symbol'], timestamp, 'bids', 'asks', 'px', 'sz');
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name hyperliquid#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents, support '1m', '15m', '1h', '1d'
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const until = this.safeInteger (params, 'until', this.milliseconds ());
+        if (since === undefined) {
+            since = 0;
+        }
+        if (limit === undefined) {
+            limit = 500;
+        }
+        params = this.omit (params, [ 'until' ]);
+        const request = {
+            'type': 'candleSnapshot',
+            'req': {
+                'coin': market['base'],
+                'interval': timeframe,
+                'startTime': since,
+                'endTime': until,
+            },
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "T": 1704287699999,
+        //             "c": "2226.4",
+        //             "h": "2247.9",
+        //             "i": "15m",
+        //             "l": "2224.6",
+        //             "n": 46,
+        //             "o": "2247.9",
+        //             "s": "ETH",
+        //             "t": 1704286800000,
+        //             "v": "591.6427"
+        //         }
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     {
+        //         "T": 1704287699999,
+        //         "c": "2226.4",
+        //         "h": "2247.9",
+        //         "i": "15m",
+        //         "l": "2224.6",
+        //         "n": 46,
+        //         "o": "2247.9",
+        //         "s": "ETH",
+        //         "t": 1704286800000,
+        //         "v": "591.6427"
+        //     }
+        //
+        return [
+            this.safeInteger (ohlcv, 'T'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
+        ];
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
