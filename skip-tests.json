@@ -1654,7 +1654,6 @@
     },
     "bitteam": {
         "skip": "tmp timeout",
-        "until": "2023-01-05",
         "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {
