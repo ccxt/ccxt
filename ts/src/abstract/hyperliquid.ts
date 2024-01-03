@@ -10,6 +10,7 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicPostInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostExchange (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

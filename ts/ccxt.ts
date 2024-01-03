@@ -109,6 +109,7 @@ import hollaex from  './src/hollaex.js'
 import htx from  './src/htx.js'
 import huobi from  './src/huobi.js'
 import huobijp from  './src/huobijp.js'
+import hyperliquid from  './src/hyperliquid.js'
 import idex from  './src/idex.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
@@ -268,6 +269,7 @@ const exchanges = {
     'htx':                    htx,
     'huobi':                  huobi,
     'huobijp':                huobijp,
+    'hyperliquid':            hyperliquid,
     'idex':                   idex,
     'independentreserve':     independentreserve,
     'indodax':                indodax,
@@ -505,6 +507,7 @@ export {
     htx,
     huobi,
     huobijp,
+    hyperliquid,
     idex,
     independentreserve,
     indodax,
