@@ -21,7 +21,7 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![BitMart Trading Journey Through CCXT – Win VIP Fee Rates and Dive into a $30,000 Rewards Pool](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/287287291-697bdaf6-6ded-4c53-abb5-511a37ffd1bb.jpg)](https://www.bitmart.com/activity/CCXT-Promotion?r=rQCFLh)
+[![CCXT_APP_basic_mode_banner](https://github.com/ccxt/ccxt/assets/43336371/c112c89d-567a-4b03-bb4d-1ca7a07ae2f7)](https://x.woo.org/en/ccxt-competition-1)
 
 ## See Also
 
