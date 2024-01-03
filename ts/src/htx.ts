@@ -3804,8 +3804,9 @@ export default class htx extends Exchange {
         let response = undefined;
         const stop = this.safeValue (params, 'stop');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-        params = this.omit (params, [ 'stop', 'stopLossTakeProfit' ]);
-        if (stop || stopLossTakeProfit) {
+        const trailing = this.safeValue (params, 'trailing', false);
+        params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing' ]);
+        if (stop || stopLossTakeProfit || trailing) {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
@@ -3829,6 +3830,8 @@ export default class htx extends Exchange {
                     response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerHisorders (this.extend (request, params));
                 } else if (stopLossTakeProfit) {
                     response = await this.contractPrivatePostLinearSwapApiV1SwapTpslHisorders (this.extend (request, params));
+                } else if (trailing) {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapTrackHisorders (this.extend (request, params));
                 } else {
                     response = await this.contractPrivatePostLinearSwapApiV3SwapHisorders (this.extend (request, params));
                 }
@@ -3837,6 +3840,8 @@ export default class htx extends Exchange {
                     response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders (this.extend (request, params));
                 } else if (stopLossTakeProfit) {
                     response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders (this.extend (request, params));
+                } else if (trailing) {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders (this.extend (request, params));
                 } else {
                     response = await this.contractPrivatePostLinearSwapApiV3SwapCrossHisorders (this.extend (request, params));
                 }
@@ -3847,6 +3852,8 @@ export default class htx extends Exchange {
                     response = await this.contractPrivatePostSwapApiV1SwapTriggerHisorders (this.extend (request, params));
                 } else if (stopLossTakeProfit) {
                     response = await this.contractPrivatePostSwapApiV1SwapTpslHisorders (this.extend (request, params));
+                } else if (trailing) {
+                    response = await this.contractPrivatePostSwapApiV1SwapTrackHisorders (this.extend (request, params));
                 } else {
                     response = await this.contractPrivatePostSwapApiV3SwapHisorders (this.extend (request, params));
                 }
@@ -3856,6 +3863,8 @@ export default class htx extends Exchange {
                     response = await this.contractPrivatePostApiV1ContractTriggerHisorders (this.extend (request, params));
                 } else if (stopLossTakeProfit) {
                     response = await this.contractPrivatePostApiV1ContractTpslHisorders (this.extend (request, params));
+                } else if (trailing) {
+                    response = await this.contractPrivatePostApiV1ContractTrackHisorders (this.extend (request, params));
                 } else {
                     response = await this.contractPrivatePostApiV3ContractHisorders (this.extend (request, params));
                 }
@@ -4035,6 +4044,7 @@ export default class htx extends Exchange {
          * @param {bool} [params.stop] *contract only* if the orders are stop trigger orders or not
          * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
          * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.trailing] set to true if you want to fetch trailing stop orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
