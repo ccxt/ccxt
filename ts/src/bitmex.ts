@@ -1926,10 +1926,35 @@ export default class bitmex extends Exchange {
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        const trailingAmount = this.safeNumber2 (params, 'trailingAmount', 'pegOffsetValue');
+        let trailingAmount = this.safeString2 (params, 'trailingAmount', 'pegOffsetValue');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTrailingAmountOrder) {
-            request['pegOffsetValue'] = trailingAmount;
+            const triggerDirection = this.safeString (params, 'triggerDirection');
+            const triggerAbove = (triggerDirection === 'above');
+            if ((type === 'limit') || (type === 'market')) {
+                this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
+            }
+            let orderType = undefined;
+            if (type === 'limit') {
+                if (side === 'buy') {
+                    orderType = triggerAbove ? 'StopLimit' : 'LimitIfTouched';
+                } else {
+                    orderType = triggerAbove ? 'LimitIfTouched' : 'StopLimit';
+                }
+            } else if (type === 'market') {
+                if (side === 'buy') {
+                    orderType = triggerAbove ? 'Stop' : 'MarketIfTouched';
+                } else {
+                    orderType = triggerAbove ? 'MarketIfTouched' : 'Stop';
+                }
+            }
+            const isStopSellOrder = (side === 'sell') && ((orderType === 'Stop') || (orderType === 'StopLimit'));
+            const isBuyIfTouchedOrder = (side === 'buy') && ((orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched'));
+            if (isStopSellOrder || isBuyIfTouchedOrder) {
+                trailingAmount = '-' + trailingAmount;
+            }
+            request['pegOffsetValue'] = this.parseToNumeric (trailingAmount);
+            params = this.omit (params, [ 'triggerDirection', 'trailingAmount' ]);
         }
         const origClOrdID = this.safeString2 (params, 'origClOrdID', 'clientOrderId');
         if (origClOrdID !== undefined) {
