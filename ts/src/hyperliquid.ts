@@ -6,8 +6,7 @@ import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Market, Balances } from './base/types.js';
-// Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Position, Liquidation
+import type { Market, Balances, Int, OrderBook } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 /**
@@ -83,7 +82,7 @@ export default class hyperliquid extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
@@ -375,6 +374,54 @@ export default class hyperliquid extends Exchange {
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
         return this.safeBalance (result);
+    }
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name hyperliquid#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'type': 'l2Book',
+            'coin': market['base'],
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     {
+        //         "coin": "ETH",
+        //         "levels": [
+        //             [
+        //                 {
+        //                     "n": "2",
+        //                     "px": "2216.2",
+        //                     "sz": "74.0637"
+        //                 }
+        //             ],
+        //             [
+        //                 {
+        //                     "n": "2",
+        //                     "px": "2216.5",
+        //                     "sz": "70.5893"
+        //                 }
+        //             ]
+        //         ],
+        //         "time": "1704290104840"
+        //     }
+        //
+        const data = this.safeValue (response, 'levels', []);
+        const result = {
+            'bids': this.safeValue (data, 0, []),
+            'asks': this.safeValue (data, 1, []),
+        };
+        const timestamp = this.safeInteger (response, 'time');
+        return this.parseOrderBook (result, market['symbol'], timestamp, 'bids', 'asks', 'px', 'sz');
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
