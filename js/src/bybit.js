@@ -629,6 +629,8 @@ export default class bybit extends Exchange {
                     '131215': BadRequest,
                     '131216': ExchangeError,
                     '131217': ExchangeError,
+                    '131231': NotSupported,
+                    '131232': NotSupported,
                     '131002': BadRequest,
                     '131003': ExchangeError,
                     '131004': AuthenticationError,

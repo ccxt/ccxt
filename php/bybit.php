@@ -622,6 +622,8 @@ class bybit extends Exchange {
                     '131215' => '\\ccxt\\BadRequest', // Amount error
                     '131216' => '\\ccxt\\ExchangeError', // Query balance error
                     '131217' => '\\ccxt\\ExchangeError', // Risk check error
+                    '131231' => '\\ccxt\\NotSupported', // Transfers into this account are not supported
+                    '131232' => '\\ccxt\\NotSupported', // Transfers out this account are not supported
                     '131002' => '\\ccxt\\BadRequest', // Parameter error
                     '131003' => '\\ccxt\\ExchangeError', // Interal error
                     '131004' => '\\ccxt\\AuthenticationError', // KYC needed

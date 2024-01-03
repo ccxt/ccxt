@@ -4674,6 +4674,8 @@ class htx(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
+        :param float [params.trailingPercent]: *contract only* the percent to trail away from the current market price
+        :param float [params.trailingTriggerPrice]: *contract only* the price to trigger a trailing order, default uses the price argument
         :returns dict: request to be sent to the exchange
         """
         market = self.market(symbol)
@@ -4694,6 +4696,9 @@ class htx(Exchange, ImplicitAPI):
         triggerPrice = self.safe_number_2(params, 'stopPrice', 'trigger_price')
         stopLossTriggerPrice = self.safe_number_2(params, 'stopLossPrice', 'sl_trigger_price')
         takeProfitTriggerPrice = self.safe_number_2(params, 'takeProfitPrice', 'tp_trigger_price')
+        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callback_rate')
+        trailingTriggerPrice = self.safe_number(params, 'trailingTriggerPrice', price)
+        isTrailingPercentOrder = trailingPercent is not None
         isStop = triggerPrice is not None
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
@@ -4714,6 +4719,11 @@ class htx(Exchange, ImplicitAPI):
                 request['tp_trigger_price'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                 if price is not None:
                     request['tp_order_price'] = self.price_to_precision(symbol, price)
+        elif isTrailingPercentOrder:
+            trailingPercentString = Precise.string_div(trailingPercent, '100')
+            request['callback_rate'] = self.parse_to_numeric(trailingPercentString)
+            request['active_price'] = trailingTriggerPrice
+            request['order_price_type'] = self.safe_string(params, 'order_price_type', 'formula_price')
         else:
             clientOrderId = self.safe_integer_2(params, 'client_order_id', 'clientOrderId')
             if clientOrderId is not None:
@@ -4722,7 +4732,7 @@ class htx(Exchange, ImplicitAPI):
             if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
                 request['price'] = self.price_to_precision(symbol, price)
         if not isStopLossTriggerOrder and not isTakeProfitTriggerOrder:
-            leverRate = self.safe_integer_2(params, 'leverRate', 'lever_rate', 1)
+            leverRate = self.safe_integer_n(params, ['leverRate', 'lever_rate', 'leverage'], 1)
             reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only', False)
             openOrClose = 'close' if (reduceOnly) else 'open'
             offset = self.safe_string(params, 'offset', openOrClose)
@@ -4730,11 +4740,12 @@ class htx(Exchange, ImplicitAPI):
             if reduceOnly:
                 request['reduce_only'] = 1
             request['lever_rate'] = leverRate
-            request['order_price_type'] = type
+            if not isTrailingPercentOrder:
+                request['order_price_type'] = type
         broker = self.safe_value(self.options, 'broker', {})
         brokerId = self.safe_string(broker, 'id')
         request['channel_code'] = brokerId
-        params = self.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce'])
+        params = self.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice'])
         return self.extend(request, params)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
@@ -4765,6 +4776,8 @@ class htx(Exchange, ImplicitAPI):
         :param int [params.leverRate]: *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.trailingPercent]: *contract only* the percent to trail away from the current market price
+        :param float [params.trailingTriggerPrice]: *contract only* the price to trigger a trailing order, default uses the price argument
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -4772,11 +4785,15 @@ class htx(Exchange, ImplicitAPI):
         triggerPrice = self.safe_number_2(params, 'stopPrice', 'trigger_price')
         stopLossTriggerPrice = self.safe_number_2(params, 'stopLossPrice', 'sl_trigger_price')
         takeProfitTriggerPrice = self.safe_number_2(params, 'takeProfitPrice', 'tp_trigger_price')
+        trailingPercent = self.safe_number(params, 'trailingPercent')
+        isTrailingPercentOrder = trailingPercent is not None
         isStop = triggerPrice is not None
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         response = None
         if market['spot']:
+            if isTrailingPercentOrder:
+                raise NotSupported(self.id + ' createOrder() does not support trailing orders for spot markets')
             spotRequest = self.create_spot_order_request(symbol, type, side, amount, price, params)
             response = self.spotPrivatePostV1OrderOrdersPlace(spotRequest)
         else:
@@ -4790,6 +4807,8 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostLinearSwapApiV1SwapTriggerOrder(contractRequest)
                     elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
                         response = self.contractPrivatePostLinearSwapApiV1SwapTpslOrder(contractRequest)
+                    elif isTrailingPercentOrder:
+                        response = self.contractPrivatePostLinearSwapApiV1SwapTrackOrder(contractRequest)
                     else:
                         response = self.contractPrivatePostLinearSwapApiV1SwapOrder(contractRequest)
                 elif marginMode == 'cross':
@@ -4797,6 +4816,8 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder(contractRequest)
                     elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder(contractRequest)
+                    elif isTrailingPercentOrder:
+                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTrackOrder(contractRequest)
                     else:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossOrder(contractRequest)
             elif market['inverse']:
@@ -4805,6 +4826,8 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostSwapApiV1SwapTriggerOrder(contractRequest)
                     elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
                         response = self.contractPrivatePostSwapApiV1SwapTpslOrder(contractRequest)
+                    elif isTrailingPercentOrder:
+                        response = self.contractPrivatePostSwapApiV1SwapTrackOrder(contractRequest)
                     else:
                         response = self.contractPrivatePostSwapApiV1SwapOrder(contractRequest)
                 elif market['future']:
@@ -4812,6 +4835,8 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostApiV1ContractTriggerOrder(contractRequest)
                     elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
                         response = self.contractPrivatePostApiV1ContractTpslOrder(contractRequest)
+                    elif isTrailingPercentOrder:
+                        response = self.contractPrivatePostApiV1ContractTrackOrder(contractRequest)
                     else:
                         response = self.contractPrivatePostApiV1ContractOrder(contractRequest)
         #

@@ -435,7 +435,13 @@ export default class lykke extends Exchange {
         };
         // publicGetTickers or publicGetPrices
         const method = this.safeString(this.options, 'fetchTickerMethod', 'publicGetTickers');
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'publicGetPrices') {
+            response = await this.publicGetPrices(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetTickers(this.extend(request, params));
+        }
         const ticker = this.safeValue(response, 'payload', []);
         //
         // publicGetTickers
@@ -789,8 +795,13 @@ export default class lykke extends Exchange {
         if (type === 'limit') {
             query['price'] = parseFloat(this.priceToPrecision(market['symbol'], price));
         }
-        const method = 'privatePostOrders' + this.capitalize(type);
-        const result = await this[method](this.extend(query, params));
+        let result = undefined;
+        if (this.capitalize(type) === 'Market') {
+            result = await this.privatePostOrdersMarket(this.extend(query, params));
+        }
+        else {
+            result = await this.privatePostOrdersLimit(this.extend(query, params));
+        }
         //
         // market
         //

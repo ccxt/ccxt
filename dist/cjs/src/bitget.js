@@ -4742,8 +4742,8 @@ class bitget extends bitget$1 {
         }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('cancelOrders', params);
-        const stop = this.safeValue(params, 'stop');
-        params = this.omit(params, 'stop');
+        const stop = this.safeValue2(params, 'stop', 'trigger');
+        params = this.omit(params, ['stop', 'trigger']);
         const orderIdList = [];
         for (let i = 0; i < ids.length; i++) {
             const individualId = ids[i];
@@ -4839,8 +4839,8 @@ class bitget extends bitget$1 {
         const request = {
             'symbol': market['id'],
         };
-        const stop = this.safeValue(params, 'stop');
-        params = this.omit(params, 'stop');
+        const stop = this.safeValue2(params, 'stop', 'trigger');
+        params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
         if (market['spot']) {
             if (marginMode !== undefined) {

@@ -4936,6 +4936,8 @@ export default class htx extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
+         * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
+         * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
@@ -4958,6 +4960,9 @@ export default class htx extends Exchange {
         const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'trigger_price');
         const stopLossTriggerPrice = this.safeNumber2 (params, 'stopLossPrice', 'sl_trigger_price');
         const takeProfitTriggerPrice = this.safeNumber2 (params, 'takeProfitPrice', 'tp_trigger_price');
+        const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callback_rate');
+        const trailingTriggerPrice = this.safeNumber (params, 'trailingTriggerPrice', price);
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStop = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
@@ -4982,6 +4987,11 @@ export default class htx extends Exchange {
                     request['tp_order_price'] = this.priceToPrecision (symbol, price);
                 }
             }
+        } else if (isTrailingPercentOrder) {
+            const trailingPercentString = Precise.stringDiv (trailingPercent, '100');
+            request['callback_rate'] = this.parseToNumeric (trailingPercentString);
+            request['active_price'] = trailingTriggerPrice;
+            request['order_price_type'] = this.safeString (params, 'order_price_type', 'formula_price');
         } else {
             const clientOrderId = this.safeInteger2 (params, 'client_order_id', 'clientOrderId');
             if (clientOrderId !== undefined) {
@@ -4993,7 +5003,7 @@ export default class htx extends Exchange {
             }
         }
         if (!isStopLossTriggerOrder && !isTakeProfitTriggerOrder) {
-            const leverRate = this.safeInteger2 (params, 'leverRate', 'lever_rate', 1);
+            const leverRate = this.safeIntegerN (params, [ 'leverRate', 'lever_rate', 'leverage' ], 1);
             const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only', false);
             const openOrClose = (reduceOnly) ? 'close' : 'open';
             const offset = this.safeString (params, 'offset', openOrClose);
@@ -5002,12 +5012,14 @@ export default class htx extends Exchange {
                 request['reduce_only'] = 1;
             }
             request['lever_rate'] = leverRate;
-            request['order_price_type'] = type;
+            if (!isTrailingPercentOrder) {
+                request['order_price_type'] = type;
+            }
         }
         const broker = this.safeValue (this.options, 'broker', {});
         const brokerId = this.safeString (broker, 'id');
         request['channel_code'] = brokerId;
-        params = this.omit (params, [ 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce' ]);
+        params = this.omit (params, [ 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice' ]);
         return this.extend (request, params);
     }
 
@@ -5041,6 +5053,8 @@ export default class htx extends Exchange {
          * @param {int} [params.leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
          * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+         * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
+         * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -5048,11 +5062,16 @@ export default class htx extends Exchange {
         const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'trigger_price');
         const stopLossTriggerPrice = this.safeNumber2 (params, 'stopLossPrice', 'sl_trigger_price');
         const takeProfitTriggerPrice = this.safeNumber2 (params, 'takeProfitPrice', 'tp_trigger_price');
+        const trailingPercent = this.safeNumber (params, 'trailingPercent');
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStop = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         let response = undefined;
         if (market['spot']) {
+            if (isTrailingPercentOrder) {
+                throw new NotSupported (this.id + ' createOrder() does not support trailing orders for spot markets');
+            }
             const spotRequest = await this.createSpotOrderRequest (symbol, type, side, amount, price, params);
             response = await this.spotPrivatePostV1OrderOrdersPlace (spotRequest);
         } else {
@@ -5066,6 +5085,8 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTpslOrder (contractRequest);
+                    } else if (isTrailingPercentOrder) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTrackOrder (contractRequest);
                     } else {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapOrder (contractRequest);
                     }
@@ -5074,6 +5095,8 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder (contractRequest);
+                    } else if (isTrailingPercentOrder) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTrackOrder (contractRequest);
                     } else {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOrder (contractRequest);
                     }
@@ -5084,6 +5107,8 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslOrder (contractRequest);
+                    } else if (isTrailingPercentOrder) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTrackOrder (contractRequest);
                     } else {
                         response = await this.contractPrivatePostSwapApiV1SwapOrder (contractRequest);
                     }
@@ -5092,6 +5117,8 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostApiV1ContractTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostApiV1ContractTpslOrder (contractRequest);
+                    } else if (isTrailingPercentOrder) {
+                        response = await this.contractPrivatePostApiV1ContractTrackOrder (contractRequest);
                     } else {
                         response = await this.contractPrivatePostApiV1ContractOrder (contractRequest);
                     }

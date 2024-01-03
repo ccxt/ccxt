@@ -4891,6 +4891,8 @@ class htx extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
+         * @param {float} [$params->trailingPercent] *contract only* the percent to trail away from the current $market $price
+         * @param {float} [$params->trailingTriggerPrice] *contract only* the $price to trigger a trailing order, default uses the $price argument
          * @return {array} $request to be sent to the exchange
          */
         $market = $this->market($symbol);
@@ -4913,6 +4915,9 @@ class htx extends Exchange {
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'trigger_price');
         $stopLossTriggerPrice = $this->safe_number_2($params, 'stopLossPrice', 'sl_trigger_price');
         $takeProfitTriggerPrice = $this->safe_number_2($params, 'takeProfitPrice', 'tp_trigger_price');
+        $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callback_rate');
+        $trailingTriggerPrice = $this->safe_number($params, 'trailingTriggerPrice', $price);
+        $isTrailingPercentOrder = $trailingPercent !== null;
         $isStop = $triggerPrice !== null;
         $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
         $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
@@ -4937,6 +4942,11 @@ class htx extends Exchange {
                     $request['tp_order_price'] = $this->price_to_precision($symbol, $price);
                 }
             }
+        } elseif ($isTrailingPercentOrder) {
+            $trailingPercentString = Precise::string_div($trailingPercent, '100');
+            $request['callback_rate'] = $this->parse_to_numeric($trailingPercentString);
+            $request['active_price'] = $trailingTriggerPrice;
+            $request['order_price_type'] = $this->safe_string($params, 'order_price_type', 'formula_price');
         } else {
             $clientOrderId = $this->safe_integer_2($params, 'client_order_id', 'clientOrderId');
             if ($clientOrderId !== null) {
@@ -4948,7 +4958,7 @@ class htx extends Exchange {
             }
         }
         if (!$isStopLossTriggerOrder && !$isTakeProfitTriggerOrder) {
-            $leverRate = $this->safe_integer_2($params, 'leverRate', 'lever_rate', 1);
+            $leverRate = $this->safe_integer_n($params, array( 'leverRate', 'lever_rate', 'leverage' ), 1);
             $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only', false);
             $openOrClose = ($reduceOnly) ? 'close' : 'open';
             $offset = $this->safe_string($params, 'offset', $openOrClose);
@@ -4957,12 +4967,14 @@ class htx extends Exchange {
                 $request['reduce_only'] = 1;
             }
             $request['lever_rate'] = $leverRate;
-            $request['order_price_type'] = $type;
+            if (!$isTrailingPercentOrder) {
+                $request['order_price_type'] = $type;
+            }
         }
         $broker = $this->safe_value($this->options, 'broker', array());
         $brokerId = $this->safe_string($broker, 'id');
         $request['channel_code'] = $brokerId;
-        $params = $this->omit($params, array( 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce' ));
+        $params = $this->omit($params, array( 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice' ));
         return array_merge($request, $params);
     }
 
@@ -4994,6 +5006,8 @@ class htx extends Exchange {
          * @param {int} [$params->leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
          * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->trailingPercent] *contract only* the percent to trail away from the current $market $price
+         * @param {float} [$params->trailingTriggerPrice] *contract only* the $price to trigger a trailing order, default uses the $price argument
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -5001,11 +5015,16 @@ class htx extends Exchange {
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'trigger_price');
         $stopLossTriggerPrice = $this->safe_number_2($params, 'stopLossPrice', 'sl_trigger_price');
         $takeProfitTriggerPrice = $this->safe_number_2($params, 'takeProfitPrice', 'tp_trigger_price');
+        $trailingPercent = $this->safe_number($params, 'trailingPercent');
+        $isTrailingPercentOrder = $trailingPercent !== null;
         $isStop = $triggerPrice !== null;
         $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
         $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
         $response = null;
         if ($market['spot']) {
+            if ($isTrailingPercentOrder) {
+                throw new NotSupported($this->id . ' createOrder() does not support trailing orders for spot markets');
+            }
             $spotRequest = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = $this->spotPrivatePostV1OrderOrdersPlace ($spotRequest);
         } else {
@@ -5019,6 +5038,8 @@ class htx extends Exchange {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapTriggerOrder ($contractRequest);
                     } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapTpslOrder ($contractRequest);
+                    } elseif ($isTrailingPercentOrder) {
+                        $response = $this->contractPrivatePostLinearSwapApiV1SwapTrackOrder ($contractRequest);
                     } else {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapOrder ($contractRequest);
                     }
@@ -5027,6 +5048,8 @@ class htx extends Exchange {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder ($contractRequest);
                     } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder ($contractRequest);
+                    } elseif ($isTrailingPercentOrder) {
+                        $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTrackOrder ($contractRequest);
                     } else {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossOrder ($contractRequest);
                     }
@@ -5037,6 +5060,8 @@ class htx extends Exchange {
                         $response = $this->contractPrivatePostSwapApiV1SwapTriggerOrder ($contractRequest);
                     } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                         $response = $this->contractPrivatePostSwapApiV1SwapTpslOrder ($contractRequest);
+                    } elseif ($isTrailingPercentOrder) {
+                        $response = $this->contractPrivatePostSwapApiV1SwapTrackOrder ($contractRequest);
                     } else {
                         $response = $this->contractPrivatePostSwapApiV1SwapOrder ($contractRequest);
                     }
@@ -5045,6 +5070,8 @@ class htx extends Exchange {
                         $response = $this->contractPrivatePostApiV1ContractTriggerOrder ($contractRequest);
                     } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                         $response = $this->contractPrivatePostApiV1ContractTpslOrder ($contractRequest);
+                    } elseif ($isTrailingPercentOrder) {
+                        $response = $this->contractPrivatePostApiV1ContractTrackOrder ($contractRequest);
                     } else {
                         $response = $this->contractPrivatePostApiV1ContractOrder ($contractRequest);
                     }

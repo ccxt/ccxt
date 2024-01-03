@@ -537,6 +537,19 @@
                 "ordType": "conditional"
               }
             ]
+          },
+          {
+            "description": "closed orders using archive endpoint",
+            "method": "fetchClosedOrders",
+            "url": "https://www.okx.com/api/v5/trade/orders-history-archive?instId=LTC-USDT-SWAP&instType=SWAP&limit=1&state=filled",
+            "input": [
+              "LTC/USDT:USDT",
+              null,
+              1,
+              {
+                "method": "privateGetTradeOrdersHistoryArchive"
+              }
+            ]
           }
         ],
         "cancelOrder": [

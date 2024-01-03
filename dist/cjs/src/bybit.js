@@ -626,6 +626,8 @@ class bybit extends bybit$1 {
                     '131215': errors.BadRequest,
                     '131216': errors.ExchangeError,
                     '131217': errors.ExchangeError,
+                    '131231': errors.NotSupported,
+                    '131232': errors.NotSupported,
                     '131002': errors.BadRequest,
                     '131003': errors.ExchangeError,
                     '131004': errors.AuthenticationError,
