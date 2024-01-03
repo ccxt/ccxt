@@ -2,12 +2,12 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation } from './base/types.js';
-
+// import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import type { Market } from './base/types.js';
+// Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation
 //  ---------------------------------------------------------------------------
 
 /**
@@ -195,145 +195,135 @@ export default class hyperliquid extends Exchange {
         const request = {
             'type': 'metaAndAssetCtxs',
         };
-        const response = await this.publicPostInfo(this.extend (request, params));
-        return response;
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "universe": [
+        //                 {
+        //                     "maxLeverage": 50,
+        //                     "name": "SOL",
+        //                     "onlyIsolated": false,
+        //                     "szDecimals": 2
+        //                 }
+        //             ]
+        //         },
+        //         [
+        //             {
+        //                 "dayNtlVlm": "9450588.2273",
+        //                 "funding": "0.0000198",
+        //                 "impactPxs": [
+        //                     "108.04",
+        //                     "108.06"
+        //                 ],
+        //                 "markPx": "108.04",
+        //                 "midPx": "108.05",
+        //                 "openInterest": "10764.48",
+        //                 "oraclePx": "107.99",
+        //                 "premium": "0.00055561",
+        //                 "prevDayPx": "111.81"
+        //             }
+        //         ]
+        //     ]
+        //
+        let meta = this.safeValue (response, 0, {});
+        meta = this.safeValue (meta, 'universe', []);
+        const assetCtxs = this.safeValue (response, 1, {});
+        const result = [];
+        for (let i = 0; i < meta.length; i++) {
+            const data = Object.assign (this.safeValue (meta, i, {}), this.safeValue (assetCtxs, i, {}));
+            result.push (data);
+        }
+        return this.parseMarkets (result);
     }
 
-    // parseMarket (market): Market {
-    //     //
-    //     //
-    //     const marketId = this.safeString (market, 'symbol');
-    //     const quoteId = this.safeString (market, 'quoteCoin');
-    //     const baseId = this.safeString (market, 'baseCoin');
-    //     const quote = this.safeCurrencyCode (quoteId);
-    //     const base = this.safeCurrencyCode (baseId);
-    //     const supportMarginCoins = this.safeValue (market, 'supportMarginCoins', []);
-    //     let settleId = undefined;
-    //     if (this.inArray (baseId, supportMarginCoins)) {
-    //         settleId = baseId;
-    //     } else if (this.inArray (quoteId, supportMarginCoins)) {
-    //         settleId = quoteId;
-    //     } else {
-    //         settleId = this.safeString (supportMarginCoins, 0);
-    //     }
-    //     const settle = this.safeCurrencyCode (settleId);
-    //     let symbol = base + '/' + quote;
-    //     let type = undefined;
-    //     let swap = false;
-    //     let spot = false;
-    //     let future = false;
-    //     let contract = false;
-    //     let pricePrecision = undefined;
-    //     let amountPrecision = undefined;
-    //     let linear = undefined;
-    //     let inverse = undefined;
-    //     let expiry = undefined;
-    //     let expiryDatetime = undefined;
-    //     const symbolType = this.safeString (market, 'symbolType');
-    //     if (symbolType === undefined) {
-    //         type = 'spot';
-    //         spot = true;
-    //         pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision')));
-    //         amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision')));
-    //     } else {
-    //         if (symbolType === 'perpetual') {
-    //             type = 'swap';
-    //             swap = true;
-    //             symbol = symbol + ':' + settle;
-    //         } else if (symbolType === 'delivery') {
-    //             expiry = this.safeInteger (market, 'deliveryTime');
-    //             expiryDatetime = this.iso8601 (expiry);
-    //             const expiryParts = expiryDatetime.split ('-');
-    //             const yearPart = this.safeString (expiryParts, 0);
-    //             const dayPart = this.safeString (expiryParts, 2);
-    //             const year = yearPart.slice (2, 4);
-    //             const month = this.safeString (expiryParts, 1);
-    //             const day = dayPart.slice (0, 2);
-    //             const expiryString = year + month + day;
-    //             type = 'future';
-    //             future = true;
-    //             symbol = symbol + ':' + settle + '-' + expiryString;
-    //         }
-    //         contract = true;
-    //         inverse = (base === settle);
-    //         linear = !inverse;
-    //         const priceDecimals = this.safeInteger (market, 'pricePlace');
-    //         const amountDecimals = this.safeInteger (market, 'volumePlace');
-    //         const priceStep = this.safeString (market, 'priceEndStep');
-    //         const amountStep = this.safeString (market, 'minTradeNum');
-    //         const precisePrice = new Precise (priceStep);
-    //         precisePrice.decimals = Math.max (precisePrice.decimals, priceDecimals);
-    //         precisePrice.reduce ();
-    //         const priceString = precisePrice.toString ();
-    //         pricePrecision = this.parseNumber (priceString);
-    //         const preciseAmount = new Precise (amountStep);
-    //         preciseAmount.decimals = Math.max (preciseAmount.decimals, amountDecimals);
-    //         preciseAmount.reduce ();
-    //         const amountString = preciseAmount.toString ();
-    //         amountPrecision = this.parseNumber (amountString);
-    //     }
-    //     const status = this.safeString2 (market, 'status', 'symbolStatus');
-    //     let active = undefined;
-    //     if (status !== undefined) {
-    //         active = ((status === 'online') || (status === 'normal'));
-    //     }
-    //     let minCost = undefined;
-    //     if (quote === 'USDT') {
-    //         minCost = this.safeNumber (market, 'minTradeUSDT');
-    //     }
-    //     const contractSize = contract ? 1 : undefined;
-    //     return {
-    //         'id': marketId,
-    //         'symbol': symbol,
-    //         'base': base,
-    //         'quote': quote,
-    //         'settle': settle,
-    //         'baseId': baseId,
-    //         'quoteId': quoteId,
-    //         'settleId': settleId,
-    //         'type': type,
-    //         'spot': spot,
-    //         'margin': undefined,
-    //         'swap': swap,
-    //         'future': future,
-    //         'option': false,
-    //         'active': active,
-    //         'contract': contract,
-    //         'linear': linear,
-    //         'inverse': inverse,
-    //         'taker': this.safeNumber (market, 'takerFeeRate'),
-    //         'maker': this.safeNumber (market, 'makerFeeRate'),
-    //         'contractSize': contractSize,
-    //         'expiry': expiry,
-    //         'expiryDatetime': expiryDatetime,
-    //         'strike': undefined,
-    //         'optionType': undefined,
-    //         'precision': {
-    //             'amount': amountPrecision,
-    //             'price': pricePrecision,
-    //         },
-    //         'limits': {
-    //             'leverage': {
-    //                 'min': this.safeNumber (market, 'minLever'),
-    //                 'max': this.safeNumber (market, 'maxLever'),
-    //             },
-    //             'amount': {
-    //                 'min': this.safeNumber2 (market, 'minTradeNum', 'minTradeAmount'),
-    //                 'max': this.safeNumber (market, 'maxTradeAmount'),
-    //             },
-    //             'price': {
-    //                 'min': undefined,
-    //                 'max': undefined,
-    //             },
-    //             'cost': {
-    //                 'min': minCost,
-    //                 'max': undefined,
-    //             },
-    //         },
-    //         'created': this.safeInteger (market, 'launchTime'),
-    //         'info': market,
-    //     };
-    // }
+    parseMarket (market): Market {
+        //
+        //     {
+        //         "maxLeverage": "50",
+        //         "name": "ETH",
+        //         "onlyIsolated": false,
+        //         "szDecimals": "4",
+        //         "dayNtlVlm": "1709813.11535",
+        //         "funding": "0.00004807",
+        //         "impactPxs": [
+        //             "2369.3",
+        //             "2369.6"
+        //         ],
+        //         "markPx": "2369.6",
+        //         "midPx": "2369.45",
+        //         "openInterest": "1815.4712",
+        //         "oraclePx": "2367.3",
+        //         "premium": "0.00090821",
+        //         "prevDayPx": "2381.5"
+        //     }
+        //
+        const quoteId = 'USD';
+        const baseId = this.safeString (market, 'name');
+        const quote = this.safeCurrencyCode (quoteId);
+        const base = this.safeCurrencyCode (baseId);
+        const settleId = 'USDC';
+        const settle = this.safeCurrencyCode (settleId);
+        let symbol = base + '/' + quote;
+        const contract = true;
+        const swap = true;
+        if (contract) {
+            if (swap) {
+                symbol = symbol + ':' + settle;
+            }
+        }
+        return {
+            'id': undefined,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': 'swap',
+            'spot': false,
+            'margin': undefined,
+            'swap': swap,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': contract,
+            'linear': true,
+            'inverse': false,
+            'taker': undefined,
+            'maker': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
+    }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
@@ -363,7 +353,7 @@ export default class hyperliquid extends Exchange {
         const url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         if (method === 'POST') {
             headers = {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             };
             body = this.json (params);
         }
