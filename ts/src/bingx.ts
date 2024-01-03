@@ -1348,18 +1348,11 @@ export default class bingx extends Exchange {
         const close = this.safeString (ticker, 'lastPrice');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         const baseVolume = this.safeString (ticker, 'volume');
-        let percentage = undefined;
-        let change = undefined;
-        if (market['swap']) {
-            // right now only swap uses the 24h change, spot will be added soon
-            percentage = this.safeString (ticker, 'priceChangePercent');
-            change = this.safeString (ticker, 'priceChange');
+        let percentage = this.safeString (ticker, 'priceChangePercent');
+        if (percentage !== undefined) {
+            percentage = percentage.replace ('%', '');
         }
-        // let percentage = this.safeString (ticker, 'priceChangePercent');
-        // if (percentage !== undefined) {
-        //     percentage = percentage.replace ('%', '');
-        // } similarly to change, it's not ccxt's percentage because it does priceChange/open, and priceChange is high-low
-        // const change = this.safeString (ticker, 'priceChange'); // this is not ccxt's change because it does high-low instead of last-open
+        const change = this.safeString (ticker, 'priceChange');
         const ts = this.safeInteger (ticker, 'closeTime');
         const datetime = this.iso8601 (ts);
         const bid = this.safeString (ticker, 'bidPrice');
