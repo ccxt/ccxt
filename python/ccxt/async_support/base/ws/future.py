@@ -13,7 +13,7 @@ class Future(asyncio.Future):
 
     @classmethod
     def race(cls, futures):
-        future = cls()
+        future = Future()
         coro = asyncio.wait(futures, return_when=asyncio.FIRST_COMPLETED)
         task = asyncio.create_task(coro)
 
