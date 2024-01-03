@@ -4044,7 +4044,7 @@ export default class htx extends Exchange {
          * @param {bool} [params.stop] *contract only* if the orders are stop trigger orders or not
          * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.trailing] set to true if you want to fetch trailing stop orders
+         * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -4117,6 +4117,7 @@ export default class htx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.stop] *contract only* if the orders are stop trigger orders or not
          * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
+         * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -4163,7 +4164,8 @@ export default class htx extends Exchange {
             request['contract_code'] = market['id'];
             const stop = this.safeValue (params, 'stop');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-            params = this.omit (params, [ 'stop', 'stopLossTakeProfit' ]);
+            const trailing = this.safeValue (params, 'trailing', false);
+            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing' ]);
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
@@ -4173,6 +4175,8 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerOpenorders (this.extend (request, params));
                     } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTpslOpenorders (this.extend (request, params));
+                    } else if (trailing) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTrackOpenorders (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapOpenorders (this.extend (request, params));
                     }
@@ -4181,6 +4185,8 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders (this.extend (request, params));
                     } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders (this.extend (request, params));
+                    } else if (trailing) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOpenorders (this.extend (request, params));
                     }
@@ -4191,6 +4197,8 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOpenorders (this.extend (request, params));
                     } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslOpenorders (this.extend (request, params));
+                    } else if (trailing) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTrackOpenorders (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostSwapApiV1SwapOpenorders (this.extend (request, params));
                     }
@@ -4200,6 +4208,8 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostApiV1ContractTriggerOpenorders (this.extend (request, params));
                     } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostApiV1ContractTpslOpenorders (this.extend (request, params));
+                    } else if (trailing) {
+                        response = await this.contractPrivatePostApiV1ContractTrackOpenorders (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostApiV1ContractOpenorders (this.extend (request, params));
                     }
@@ -4349,6 +4359,45 @@ export default class htx extends Exchange {
         //             "total_size": 1
         //         },
         //         "ts": 1683179527011
+        //     }
+        //
+        // trailing
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "contract_type": "swap",
+        //                     "business_type": "swap",
+        //                     "pair": "BTC-USDT",
+        //                     "symbol": "BTC",
+        //                     "contract_code": "BTC-USDT",
+        //                     "volume": 1.000000000000000000,
+        //                     "order_type": 1,
+        //                     "direction": "sell",
+        //                     "offset": "close",
+        //                     "lever_rate": 1,
+        //                     "order_id": 1192021437253877761,
+        //                     "order_id_str": "1192021437253877761",
+        //                     "order_source": "api",
+        //                     "created_at": 1704241657328,
+        //                     "order_price_type": "formula_price",
+        //                     "status": 2,
+        //                     "callback_rate": 0.050000000000000000,
+        //                     "active_price": 50000.000000000000000000,
+        //                     "is_active": 0,
+        //                     "margin_mode": "cross",
+        //                     "margin_account": "USDT",
+        //                     "trade_partition": "USDT",
+        //                     "reduce_only": 1
+        //                 },
+        //             ],
+        //             "total_page": 1,
+        //             "current_page": 1,
+        //             "total_size": 2
+        //         },
+        //         "ts": 1704242440106
         //     }
         //
         let orders = this.safeValue (response, 'data');
@@ -4612,6 +4661,33 @@ export default class htx extends Exchange {
         //         "trade_partition": "USDT"
         //     }
         //
+        // trailing: fetchOpenOrders
+        //
+        //     {
+        //         "contract_type": "swap",
+        //         "business_type": "swap",
+        //         "pair": "BTC-USDT",
+        //         "symbol": "BTC",
+        //         "contract_code": "BTC-USDT",
+        //         "volume": 1.000000000000000000,
+        //         "order_type": 1,
+        //         "direction": "sell",
+        //         "offset": "close",
+        //         "lever_rate": 1,
+        //         "order_id": 1192021437253877761,
+        //         "order_id_str": "1192021437253877761",
+        //         "order_source": "api",
+        //         "created_at": 1704241657328,
+        //         "order_price_type": "formula_price",
+        //         "status": 2,
+        //         "callback_rate": 0.050000000000000000,
+        //         "active_price": 50000.000000000000000000,
+        //         "is_active": 0,
+        //         "margin_mode": "cross",
+        //         "margin_account": "USDT",
+        //         "trade_partition": "USDT",
+        //         "reduce_only": 1
+        //     }
         //
         // trigger: fetchOrders
         //
