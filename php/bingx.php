@@ -2199,6 +2199,7 @@ class bingx extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] a unique $id for the order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
@@ -2208,8 +2209,14 @@ class bingx extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'orderId' => $id,
         );
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientOrderID');
+        $params = $this->omit($params, array( 'clientOrderId' ));
+        if ($clientOrderId !== null) {
+            $request['clientOrderID'] = $clientOrderId;
+        } else {
+            $request['orderId'] = $id;
+        }
         $response = null;
         list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
         if ($marketType === 'spot') {

@@ -1810,6 +1810,7 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @param {array} [$params->triggerDirection] the direction whenever the trigger happens with relation to $price - 'above' or 'below'
+         * @param {float} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
@@ -1817,7 +1818,7 @@ class bitmex extends Exchange {
         $orderType = $this->capitalize($type);
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         if ($reduceOnly !== null) {
-            if (($market['type'] !== 'swap') && ($market['type'] !== 'future')) {
+            if ((!$market['swap']) && (!$market['future'])) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for swap and future markets only');
             }
         }
@@ -1830,40 +1831,50 @@ class bitmex extends Exchange {
             'ordType' => $orderType,
             'text' => $brokerId,
         );
-        $customTriggerType = ($orderType === 'Stop') || ($orderType === 'StopLimit') || ($orderType === 'MarketIfTouched') || ($orderType === 'LimitIfTouched');
         // support for unified trigger format
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
-        if (($triggerPrice !== null) && !$customTriggerType) {
-            $request['stopPx'] = floatval($this->price_to_precision($symbol, $triggerPrice));
+        $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'pegOffsetValue');
+        $isTriggerOrder = $triggerPrice !== null;
+        $isTrailingAmountOrder = $trailingAmount !== null;
+        if ($isTriggerOrder || $isTrailingAmountOrder) {
             $triggerDirection = $this->safe_string($params, 'triggerDirection');
-            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection' ));
             $triggerAbove = ($triggerDirection === 'above');
-            $this->check_required_argument('createOrder', $triggerDirection, 'triggerDirection', array( 'above', 'below' ));
-            $this->check_required_argument('createOrder', $side, 'side', array( 'buy', 'sell' ));
+            if (($type === 'limit') || ($type === 'market')) {
+                $this->check_required_argument('createOrder', $triggerDirection, 'triggerDirection', array( 'above', 'below' ));
+            }
             if ($type === 'limit') {
-                $request['price'] = floatval($this->price_to_precision($symbol, $price));
                 if ($side === 'buy') {
-                    $request['ordType'] = $triggerAbove ? 'StopLimit' : 'LimitIfTouched';
+                    $orderType = $triggerAbove ? 'StopLimit' : 'LimitIfTouched';
                 } else {
-                    $request['ordType'] = $triggerAbove ? 'LimitIfTouched' : 'StopLimit';
+                    $orderType = $triggerAbove ? 'LimitIfTouched' : 'StopLimit';
                 }
             } elseif ($type === 'market') {
                 if ($side === 'buy') {
-                    $request['ordType'] = $triggerAbove ? 'Stop' : 'MarketIfTouched';
+                    $orderType = $triggerAbove ? 'Stop' : 'MarketIfTouched';
                 } else {
-                    $request['ordType'] = $triggerAbove ? 'MarketIfTouched' : 'Stop';
+                    $orderType = $triggerAbove ? 'MarketIfTouched' : 'Stop';
                 }
             }
-        } elseif ($customTriggerType) {
-            if ($triggerPrice === null) {
-                // if exchange specific trigger types were provided
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice (stopPx|stopPrice) parameter for the ' . $orderType . ' order type');
+            if ($isTrailingAmountOrder) {
+                $isStopSellOrder = ($side === 'sell') && (($orderType === 'Stop') || ($orderType === 'StopLimit'));
+                $isBuyIfTouchedOrder = ($side === 'buy') && (($orderType === 'MarketIfTouched') || ($orderType === 'LimitIfTouched'));
+                if ($isStopSellOrder || $isBuyIfTouchedOrder) {
+                    $trailingAmount = '-' . $trailingAmount;
+                }
+                $request['pegOffsetValue'] = $this->parse_to_numeric($trailingAmount);
+                $request['pegPriceType'] = 'TrailingStopPeg';
+            } else {
+                if ($triggerPrice === null) {
+                    // if exchange specific trigger types were provided
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice (stopPx|stopPrice) parameter for the ' . $orderType . ' order type');
+                }
+                $request['stopPx'] = $this->parse_to_numeric($this->price_to_precision($symbol, $triggerPrice));
             }
-            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'stopPx' ));
-            $request['stopPx'] = floatval($this->price_to_precision($symbol, $triggerPrice));
+            $request['ordType'] = $orderType;
+            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection', 'trailingAmount' ));
         }
         if (($orderType === 'Limit') || ($orderType === 'StopLimit') || ($orderType === 'LimitIfTouched')) {
-            $request['price'] = floatval($this->price_to_precision($symbol, $price));
+            $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
         }
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         if ($clientOrderId !== null) {
@@ -1877,6 +1888,36 @@ class bitmex extends Exchange {
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->load_markets();
         $request = array();
+        $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'pegOffsetValue');
+        $isTrailingAmountOrder = $trailingAmount !== null;
+        if ($isTrailingAmountOrder) {
+            $triggerDirection = $this->safe_string($params, 'triggerDirection');
+            $triggerAbove = ($triggerDirection === 'above');
+            if (($type === 'limit') || ($type === 'market')) {
+                $this->check_required_argument('createOrder', $triggerDirection, 'triggerDirection', array( 'above', 'below' ));
+            }
+            $orderType = null;
+            if ($type === 'limit') {
+                if ($side === 'buy') {
+                    $orderType = $triggerAbove ? 'StopLimit' : 'LimitIfTouched';
+                } else {
+                    $orderType = $triggerAbove ? 'LimitIfTouched' : 'StopLimit';
+                }
+            } elseif ($type === 'market') {
+                if ($side === 'buy') {
+                    $orderType = $triggerAbove ? 'Stop' : 'MarketIfTouched';
+                } else {
+                    $orderType = $triggerAbove ? 'MarketIfTouched' : 'Stop';
+                }
+            }
+            $isStopSellOrder = ($side === 'sell') && (($orderType === 'Stop') || ($orderType === 'StopLimit'));
+            $isBuyIfTouchedOrder = ($side === 'buy') && (($orderType === 'MarketIfTouched') || ($orderType === 'LimitIfTouched'));
+            if ($isStopSellOrder || $isBuyIfTouchedOrder) {
+                $trailingAmount = '-' . $trailingAmount;
+            }
+            $request['pegOffsetValue'] = $this->parse_to_numeric($trailingAmount);
+            $params = $this->omit($params, array( 'triggerDirection', 'trailingAmount' ));
+        }
         $origClOrdID = $this->safe_string_2($params, 'origClOrdID', 'clientOrderId');
         if ($origClOrdID !== null) {
             $request['origClOrdID'] = $origClOrdID;

@@ -2107,6 +2107,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: a unique id for the order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -2115,8 +2116,13 @@ class bingx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'orderId': id,
         }
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOrderID')
+        params = self.omit(params, ['clientOrderId'])
+        if clientOrderId is not None:
+            request['clientOrderID'] = clientOrderId
+        else:
+            request['orderId'] = id
         response = None
         marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
         if marketType == 'spot':

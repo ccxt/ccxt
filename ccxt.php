@@ -94,6 +94,7 @@ require_once PATH_TO_CCXT . 'ExchangeNotAvailable.php';
 require_once PATH_TO_CCXT . 'OnMaintenance.php';
 require_once PATH_TO_CCXT . 'InvalidNonce.php';
 require_once PATH_TO_CCXT . 'RequestTimeout.php';
+require_once PATH_TO_CCXT . 'ExchangeClosedByUser.php';
 
 
 require_once PATH_TO_WS_CCXT . 'ClientTrait.php';

@@ -2234,6 +2234,7 @@ export default class bingx extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2243,8 +2244,15 @@ export default class bingx extends Exchange {
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
-            'orderId': id,
         };
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientOrderID');
+        params = this.omit(params, ['clientOrderId']);
+        if (clientOrderId !== undefined) {
+            request['clientOrderID'] = clientOrderId;
+        }
+        else {
+            request['orderId'] = id;
+        }
         let response = undefined;
         const [marketType, query] = this.handleMarketTypeAndParams('cancelOrder', market, params);
         if (marketType === 'spot') {

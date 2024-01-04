@@ -4,7 +4,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { RequestTimeout, NetworkError, NotSupported, BaseError } from '../../base/errors.js';
+import { RequestTimeout, NetworkError, NotSupported, BaseError, ExchangeClosedByUser } from '../../base/errors.js';
 import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
 import { Future } from './Future.js';
 import { isNode, isJsonEncodedObject, deepExtend, milliseconds, } from '../../base/functions.js';
@@ -208,6 +208,9 @@ export default class Client {
             // todo: exception types for server-side disconnects
             this.reset(new NetworkError('connection closed by remote server, closing code ' + String(event.code)));
         }
+        if (this.error instanceof ExchangeClosedByUser) {
+            this.reset(this.error);
+        }
         if (this.disconnected !== undefined) {
             this.disconnected.resolve(true);
         }
@@ -228,6 +231,7 @@ export default class Client {
         const future = Future();
         if (isNode) {
             /* eslint-disable no-inner-declarations */
+            /* eslint-disable jsdoc/require-jsdoc */
             function onSendComplete(error) {
                 if (error) {
                     future.reject(error);

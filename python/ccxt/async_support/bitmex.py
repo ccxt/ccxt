@@ -1733,6 +1733,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.triggerPrice]: the price at which a trigger order is triggered at
         :param dict [params.triggerDirection]: the direction whenever the trigger happens with relation to price - 'above' or 'below'
+        :param float [params.trailingAmount]: the quote amount to trail away from the current market price
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
@@ -1740,7 +1741,7 @@ class bitmex(Exchange, ImplicitAPI):
         orderType = self.capitalize(type)
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is not None:
-            if (market['type'] != 'swap') and (market['type'] != 'future'):
+            if (not market['swap']) and (not market['future']):
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only')
         brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
         qty = self.parse_to_int(self.amount_to_precision(symbol, amount))
@@ -1751,35 +1752,42 @@ class bitmex(Exchange, ImplicitAPI):
             'ordType': orderType,
             'text': brokerId,
         }
-        customTriggerType = (orderType == 'Stop') or (orderType == 'StopLimit') or (orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched')
         # support for unified trigger format
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPx', 'stopPrice'])
-        if (triggerPrice is not None) and not customTriggerType:
-            request['stopPx'] = float(self.price_to_precision(symbol, triggerPrice))
+        trailingAmount = self.safe_string_2(params, 'trailingAmount', 'pegOffsetValue')
+        isTriggerOrder = triggerPrice is not None
+        isTrailingAmountOrder = trailingAmount is not None
+        if isTriggerOrder or isTrailingAmountOrder:
             triggerDirection = self.safe_string(params, 'triggerDirection')
-            params = self.omit(params, ['triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection'])
             triggerAbove = (triggerDirection == 'above')
-            self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
-            self.check_required_argument('createOrder', side, 'side', ['buy', 'sell'])
+            if (type == 'limit') or (type == 'market'):
+                self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
             if type == 'limit':
-                request['price'] = float(self.price_to_precision(symbol, price))
                 if side == 'buy':
-                    request['ordType'] = 'StopLimit' if triggerAbove else 'LimitIfTouched'
+                    orderType = 'StopLimit' if triggerAbove else 'LimitIfTouched'
                 else:
-                    request['ordType'] = 'LimitIfTouched' if triggerAbove else 'StopLimit'
+                    orderType = 'LimitIfTouched' if triggerAbove else 'StopLimit'
             elif type == 'market':
                 if side == 'buy':
-                    request['ordType'] = 'Stop' if triggerAbove else 'MarketIfTouched'
+                    orderType = 'Stop' if triggerAbove else 'MarketIfTouched'
                 else:
-                    request['ordType'] = 'MarketIfTouched' if triggerAbove else 'Stop'
-        elif customTriggerType:
-            if triggerPrice is None:
-                # if exchange specific trigger types were provided
-                raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice(stopPx|stopPrice) parameter for the ' + orderType + ' order type')
-            params = self.omit(params, ['triggerPrice', 'stopPrice', 'stopPx'])
-            request['stopPx'] = float(self.price_to_precision(symbol, triggerPrice))
+                    orderType = 'MarketIfTouched' if triggerAbove else 'Stop'
+            if isTrailingAmountOrder:
+                isStopSellOrder = (side == 'sell') and ((orderType == 'Stop') or (orderType == 'StopLimit'))
+                isBuyIfTouchedOrder = (side == 'buy') and ((orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched'))
+                if isStopSellOrder or isBuyIfTouchedOrder:
+                    trailingAmount = '-' + trailingAmount
+                request['pegOffsetValue'] = self.parse_to_numeric(trailingAmount)
+                request['pegPriceType'] = 'TrailingStopPeg'
+            else:
+                if triggerPrice is None:
+                    # if exchange specific trigger types were provided
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice(stopPx|stopPrice) parameter for the ' + orderType + ' order type')
+                request['stopPx'] = self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice))
+            request['ordType'] = orderType
+            params = self.omit(params, ['triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection', 'trailingAmount'])
         if (orderType == 'Limit') or (orderType == 'StopLimit') or (orderType == 'LimitIfTouched'):
-            request['price'] = float(self.price_to_precision(symbol, price))
+            request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
             request['clOrdID'] = clientOrderId
@@ -1790,6 +1798,30 @@ class bitmex(Exchange, ImplicitAPI):
     async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
         request = {}
+        trailingAmount = self.safe_string_2(params, 'trailingAmount', 'pegOffsetValue')
+        isTrailingAmountOrder = trailingAmount is not None
+        if isTrailingAmountOrder:
+            triggerDirection = self.safe_string(params, 'triggerDirection')
+            triggerAbove = (triggerDirection == 'above')
+            if (type == 'limit') or (type == 'market'):
+                self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
+            orderType = None
+            if type == 'limit':
+                if side == 'buy':
+                    orderType = 'StopLimit' if triggerAbove else 'LimitIfTouched'
+                else:
+                    orderType = 'LimitIfTouched' if triggerAbove else 'StopLimit'
+            elif type == 'market':
+                if side == 'buy':
+                    orderType = 'Stop' if triggerAbove else 'MarketIfTouched'
+                else:
+                    orderType = 'MarketIfTouched' if triggerAbove else 'Stop'
+            isStopSellOrder = (side == 'sell') and ((orderType == 'Stop') or (orderType == 'StopLimit'))
+            isBuyIfTouchedOrder = (side == 'buy') and ((orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched'))
+            if isStopSellOrder or isBuyIfTouchedOrder:
+                trailingAmount = '-' + trailingAmount
+            request['pegOffsetValue'] = self.parse_to_numeric(trailingAmount)
+            params = self.omit(params, ['triggerDirection', 'trailingAmount'])
         origClOrdID = self.safe_string_2(params, 'origClOrdID', 'clientOrderId')
         if origClOrdID is not None:
             request['origClOrdID'] = origClOrdID
