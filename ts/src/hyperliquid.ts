@@ -85,7 +85,7 @@ export default class hyperliquid extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
-                'fetchPosition': false,
+                'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
@@ -549,7 +549,7 @@ export default class hyperliquid extends Exchange {
             const timestamp = this.safeInteger (entry, 'time');
             result.push ({
                 'info': entry,
-                'symbol': this.safeSymbol (undefined, market, undefined, 'swap'),
+                'symbol': this.safeSymbol (undefined, market),
                 'fundingRate': this.safeNumber (entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -694,6 +694,9 @@ export default class hyperliquid extends Exchange {
         if (entry === undefined) {
             entry = { ...order };
         }
+        const coin = this.safeString (entry, 'coin');
+        const marketId = coin + '/USD:USDC';
+        const symbol = this.safeSymbol (marketId, undefined);
         const timestamp = this.safeInteger2 (order, 'timestamp', 'statusTimestamp');
         const status = this.safeString (order, 'status');
         let side = this.safeString (entry, 'side');
@@ -708,7 +711,7 @@ export default class hyperliquid extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
-            'symbol': this.safeSymbol (undefined, market, undefined, undefined),
+            'symbol': symbol,
             'type': this.safeStringLower (entry, 'orderType'),
             'timeInForce': this.safeStringUpper (entry, 'tif'),
             'postOnly': undefined,
@@ -831,6 +834,21 @@ export default class hyperliquid extends Exchange {
         }, market);
     }
 
+    async fetchPosition (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#fetchPosition
+         * @description fetch data on an open position
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] *required* Onchain address in 42-character hexadecimal format; e.g. 0x0000000000000000000000000000000000000000
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        const positions = await this.fetchPositions ([ symbol ], params);
+        return this.safeValue (positions, 0, {});
+    }
+
     async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
@@ -846,6 +864,7 @@ export default class hyperliquid extends Exchange {
         if (user === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchBalance() requires a user argument');
         }
+        symbols = this.marketSymbols (symbols);
         const request = {
             'type': 'clearinghouseState',
         };
@@ -933,7 +952,7 @@ export default class hyperliquid extends Exchange {
         const entry = this.safeValue (position, 'position', {});
         const coin = this.safeString (entry, 'coin');
         const marketId = coin + '/USD:USDC';
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, undefined);
         const symbol = market['symbol'];
         const leverage = this.safeValue (entry, 'leverage', {});
         const isIsolated = (this.safeString (leverage, 'type') === 'isolated');
