@@ -970,11 +970,11 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#editOrder
+         * @description edit a trade order
          * @see https://docs.woo.org/#edit-order
          * @see https://docs.woo.org/#edit-order-by-client_order_id
          * @see https://docs.woo.org/#edit-algo-order
          * @see https://docs.woo.org/#edit-algo-order-by-client_order_id
-         * @description edit a trade order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -985,6 +985,9 @@ export default class woo extends Exchange {
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
          * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+         * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
+         * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+         * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1006,8 +1009,25 @@ export default class woo extends Exchange {
         if (stopPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice' ]);
-        const isStop = (stopPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
+        const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activatedPrice', price);
+        const trailingAmount = this.safeString2 (params, 'trailingAmount', 'callbackValue');
+        const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRate');
+        const isTrailingAmountOrder = trailingAmount !== undefined;
+        const isTrailingPercentOrder = trailingPercent !== undefined;
+        const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
+        if (isTrailing) {
+            if (trailingTriggerPrice !== undefined) {
+                request['activatedPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
+            }
+            if (isTrailingAmountOrder) {
+                request['callbackValue'] = trailingAmount;
+            } else if (isTrailingPercentOrder) {
+                const convertedTrailingPercent = Precise.stringDiv (trailingPercent, '100');
+                request['callbackRate'] = convertedTrailingPercent;
+            }
+        }
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
+        const isStop = isTrailing || (stopPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
         let response = undefined;
         if (isByClientOrder) {
             request['client_order_id'] = clientOrderIdExchangeSpecific;
