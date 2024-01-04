@@ -135,6 +135,19 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Swap trailing orders",
+                "method": "fetchOrders",
+                "url": "https://api.staging.woo.org/v3/algo/orders?algoType=TRAILING_STOP&symbol=PERP_BTC_USDT",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "trailing": true
+                  }
+                ]
             }
         ],
         "fetchMyTrades": [
