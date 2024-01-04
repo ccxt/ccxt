@@ -69,6 +69,42 @@
                   }
                 ],
                 "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_quantity=0.1&order_type=MARKET&reduce_only=true&side=SELL&symbol=PERP_LTC_USDT"
+            },
+            {
+                "description": "Swap trailingAmount reduceOnly order",
+                "method": "createOrder",
+                "url": "https://api.staging.woo.org/v3/algo/order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "trailingAmount": "1000",
+                    "trailingTriggerPrice": "50000",
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"activatedPrice\":\"50000\",\"algoType\":\"TRAILING_STOP\",\"callbackValue\":\"1000\",\"quantity\":\"0.0001\",\"reduceOnly\":true,\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDT\",\"type\":\"MARKET\"}"
+            },
+            {
+                "description": "Swap trailingPercent reduceOnly order",
+                "method": "createOrder",
+                "url": "https://api.staging.woo.org/v3/algo/order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "trailingPercent": "5",
+                    "trailingTriggerPrice": "50000",
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"activatedPrice\":\"50000\",\"algoType\":\"TRAILING_STOP\",\"callbackRate\":\"0.05\",\"quantity\":\"0.0001\",\"reduceOnly\":true,\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDT\",\"type\":\"MARKET\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
