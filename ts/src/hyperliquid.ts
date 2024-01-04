@@ -81,7 +81,7 @@ export default class hyperliquid extends Exchange {
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
@@ -598,7 +598,62 @@ export default class hyperliquid extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-order-status-by-oid-or-cloid
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] *required* Onchain address in 42-character hexadecimal format; e.g. 0x0000000000000000000000000000000000000000
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const user = this.safeString (params, 'user');
+        if (user === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a user argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'type': 'orderStatus',
+            'oid': this.parseToNumeric (id),
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     {
+        //         "order": {
+        //             "order": {
+        //                 "children": [],
+        //                 "cloid": null,
+        //                 "coin": "ETH",
+        //                 "isPositionTpsl": false,
+        //                 "isTrigger": false,
+        //                 "limitPx": "2000.0",
+        //                 "oid": "3991946565",
+        //                 "orderType": "Limit",
+        //                 "origSz": "0.1",
+        //                 "reduceOnly": false,
+        //                 "side": "B",
+        //                 "sz": "0.1",
+        //                 "tif": "Gtc",
+        //                 "timestamp": "1704346468838",
+        //                 "triggerCondition": "N/A",
+        //                 "triggerPx": "0.0"
+        //             },
+        //             "status": "open",
+        //             "statusTimestamp": "1704346468838"
+        //         },
+        //         "status": "order"
+        //     }
+        //
+        const data = this.safeValue (response, 'order');
+        return this.parseOrder (data, market);
+    }
+
     parseOrder (order, market: Market = undefined): Order {
+        //
+        //  fetchOpenOrders
         //
         //     {
         //         "coin": "ETH",
@@ -610,37 +665,63 @@ export default class hyperliquid extends Exchange {
         //         "timestamp": 1704346468838
         //     }
         //
-        const symbol = this.safeSymbol (undefined, market, undefined, 'swap');
-        const timestamp = this.safeInteger (order, 'timestamp');
-        const price = this.safeString (order, 'limitPx');
-        const amount = this.safeString (order, 'sz');
-        const id = this.safeString (order, 'oid');
-        let side = this.safeString (order, 'side');
+        //  fetchOrder
+        //
+        //     {
+        //         "order": {
+        //             "children": [],
+        //             "cloid": null,
+        //             "coin": "ETH",
+        //             "isPositionTpsl": false,
+        //             "isTrigger": false,
+        //             "limitPx": "2000.0",
+        //             "oid": "3991946565",
+        //             "orderType": "Limit",
+        //             "origSz": "0.1",
+        //             "reduceOnly": false,
+        //             "side": "B",
+        //             "sz": "0.1",
+        //             "tif": "Gtc",
+        //             "timestamp": "1704346468838",
+        //             "triggerCondition": "N/A",
+        //             "triggerPx": "0.0"
+        //         },
+        //         "status": "open",
+        //         "statusTimestamp": "1704346468838"
+        //     }
+        //
+        let entry = this.safeValue (order, 'order');
+        if (entry === undefined) {
+            entry = { ...order };
+        }
+        const timestamp = this.safeInteger2 (order, 'timestamp', 'statusTimestamp');
+        const status = this.safeString (order, 'status');
+        let side = this.safeString (entry, 'side');
         if (side !== undefined) {
             side = (side === 'A') ? 'sell' : 'buy';
         }
         return this.safeOrder ({
             'info': order,
-            'id': id,
+            'id': this.safeString (entry, 'oid'),
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
-            'symbol': symbol,
-            'type': undefined,
-            'timeInForce': undefined,
+            'symbol': this.safeSymbol (undefined, market, undefined, undefined),
+            'type': this.safeStringLower (entry, 'orderType'),
+            'timeInForce': this.safeStringUpper (entry, 'tif'),
             'postOnly': undefined,
-            'reduceOnly': undefined,
+            'reduceOnly': this.safeValue (entry, 'reduceOnly'),
             'side': side,
-            'price': price,
-            'triggerPrice': undefined,
-            'amount': amount,
+            'price': this.safeNumber (entry, 'limitPx'),
+            'triggerPrice': this.safeValue (entry, 'isTrigger') ? this.safeNumber (entry, 'triggerPx') : undefined,
+            'amount': this.safeNumber (entry, 'sz'),
             'cost': undefined,
             'average': undefined,
             'filled': undefined,
             'remaining': undefined,
-            'status': undefined,
+            'status': status,
             'fee': undefined,
             'trades': undefined,
         }, market);
