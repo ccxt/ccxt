@@ -2157,7 +2157,7 @@ export default class bingx extends Exchange {
             'currency': feeCurrencyCode,
             'cost': Precise.stringAbs (feeCost),
         };
-        const clientOrderId = this.safeString2 (order, 'clientOrderId', 'c');
+        const clientOrderId = this.safeStringN (order, [ 'clientOrderId', 'c', 'clientOrderID' ]);
         let stopLoss = this.safeValue (order, 'stopLoss');
         let stopLossPrice = undefined;
         if (stopLoss !== undefined) {
