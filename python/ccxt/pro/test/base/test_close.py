@@ -38,7 +38,7 @@ async def test_close():
     print('Testing exchange.close(): Open watch multiple, resolve, should close with no errors')
     await exchange.watch_trades_for_symbols(['BTC/USD', 'ETH/USD', 'LTC/USD'])
     print('ticker received')
-    await exchange.close()  
+    await exchange.close()
     print('PASSED - exchange closed with no errors')
     # --------------------------------------------
     print('Testing exchange.close(): Awaiting future should throw ClosedByUser')

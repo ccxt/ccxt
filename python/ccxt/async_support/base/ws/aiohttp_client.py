@@ -92,13 +92,12 @@ class AiohttpClient(Client):
         if self.ping_looper:
             self.ping_looper.cancel()
         if self.receive_looper:
-            self.receive_looper.cancel()
-                     # cancel all pending futures stored in self.futures
+            self.receive_looper.cancel()  # cancel all pending futures stored in self.futures
         for key in self.futures:
             future = self.futures[key]
             if not future.done():
                 if future.is_race_future:
-                     future.cancel() # this is an "internal" future so we want to cancel it silently
+                    future.cancel()  # this is an "internal" future so we want to cancel it silently
                 else:
                     future.reject(ExchangeClosedByUser('Connection closed by the user'))
 

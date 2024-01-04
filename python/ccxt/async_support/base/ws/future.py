@@ -30,7 +30,7 @@ class Future(asyncio.Future):
                 exceptions = []
                 for f in complete:
                     if f._state == 'CANCELLED':
-                        continue # was canceled internally
+                        continue  # was canceled internally
                     err = f.exception()
                     if err:
                         exceptions.append(err)
@@ -43,7 +43,7 @@ class Future(asyncio.Future):
                     futures_list = list(complete)
                     are_all_canceled = all(f._state == 'CANCELLED' for f in futures_list)
                     if are_all_canceled and future._state == 'PENDING':
-                        future.set_exception(ExchangeClosedByUser ('Connection closed by the user'))
+                        future.set_exception(ExchangeClosedByUser('Connection closed by the user'))
                         return
                     first = futures_list[0]
                     first_result = first.result()
