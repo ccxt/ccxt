@@ -94,6 +94,12 @@ class AiohttpClient(Client):
         if self.receive_looper:
             self.receive_looper.cancel()
 
+        # cancel all pending futures stored in self.futures
+        for key in self.futures:
+            future = self.futures[key]
+            if not future.done():
+                future.cancel()
+
     async def ping_loop(self):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'ping loop')
