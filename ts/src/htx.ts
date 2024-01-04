@@ -122,7 +122,7 @@ export default class htx extends Exchange {
                 'repayIsolatedMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
-                'setPositionMode': false,
+                'setPositionMode': true,
                 'signIn': undefined,
                 'transfer': true,
                 'withdraw': true,
@@ -8780,5 +8780,75 @@ export default class htx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
+    }
+
+    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name htx#setPositionMode
+         * @description set hedged to true or false
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-position-mode
+         * @param {bool} hedged set to true to for hedged mode, must be set separately for each market in isolated margin mode, and each settle currency in cross margin mode
+         * @param {string} [symbol] unified market symbol, required for isolated margin mode and for cross margin mode when params["settle"] is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] "cross" (default) or "isolated"
+         * @param {string} [params.settle] required for cross margin mode if symbol is undefined
+         * @returns {object} response from the exchange
+         */
+        await this.loadMarkets ();
+        const posMode = hedged ? 'dual_side' : 'single_side';
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setPositionMode', params, 'cross');
+        const request = {
+            'position_mode': posMode,
+        };
+        let response = undefined;
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' setPositionMode requires a symbol argument for isolated margin mode');
+            }
+            request['margin_account'] = market['id'];
+            response = await this.contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode (this.extend (request, params));
+            //
+            //    {
+            //        "status": "ok",
+            //        "data": [
+            //            {
+            //                "margin_account": "BTC-USDT",
+            //                "position_mode": "single_side"
+            //            }
+            //        ],
+            //        "ts": 1566899973811
+            //    }
+            //
+        } else {
+            let settle = this.safeString2 (params, 'settle', 'margin_account');
+            if ((settle === undefined) && (symbol === undefined)) {
+                throw new ArgumentsRequired (this.id + ' requires either a symbol argument or an extra argument params["settle"] for cross margin mode');
+            } else if (settle === undefined) {
+                settle = market['settle'];
+            }
+            const currency = this.currency (settle);
+            request['margin_account'] = currency['id'].toUpperCase ();
+            response = await this.contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode (this.extend (request, params));
+            //
+            //    {
+            //        "status": "ok",
+            //        "data": [
+            //            {
+            //                "margin_account": "USDT",
+            //                "position_mode": "single_side"
+            //            }
+            //        ],
+            //        "ts": 1566899973811
+            //    }
+            //
+        }
+        return response;
     }
 }
