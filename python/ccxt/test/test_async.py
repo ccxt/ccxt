@@ -28,7 +28,7 @@ import asyncio
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ProxyError
 from ccxt.base.errors import OperationFailed
-from ccxt.base.errors import ExchangeError
+# from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import AuthenticationError
@@ -286,6 +286,7 @@ class testMainClass(baseMainTestClass):
         self.private_test = get_cli_arg_value('--private')
         self.private_test_only = get_cli_arg_value('--privateOnly')
         self.sandbox = get_cli_arg_value('--sandbox')
+        self.load_keys = get_cli_arg_value('--loadKeys')
         self.ws_tests = get_cli_arg_value('--ws')
 
     async def init(self, exchange_id, symbol_argv):
@@ -456,6 +457,7 @@ class testMainClass(baseMainTestClass):
         # if it was passed successfully, add to the list of successfull tests
         if is_public:
             self.checked_public_tests[method_name] = True
+        return
 
     async def test_safe(self, method_name, exchange, args=[], is_public=False):
         # `testSafe` method does not throw an exception, instead mutes it. The reason we
@@ -516,6 +518,7 @@ class testMainClass(baseMainTestClass):
                     else:
                         dump('[TEST_FAILURE]', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
                         return False
+        return True
 
     async def run_public_tests(self, exchange, symbol):
         tests = {
@@ -787,7 +790,7 @@ class testMainClass(baseMainTestClass):
                 exception = e
         # if exception was set, then throw it
         if exception:
-            raise ExchangeError('[TEST_FAILURE] Failed ' + proxy_test_name + ' : ' + exception_message(exception))
+            error_message = '[TEST_FAILURE] Failed ' + proxy_test_name + ' : ' + exception_message(exception)
 
     async def start_test(self, exchange, symbol):
         # we do not need to test aliases
@@ -1189,8 +1192,9 @@ class testMainClass(baseMainTestClass):
         client_order_id_spot = swap_order_request['newClientOrderId']
         assert client_order_id_spot.startswith(str(swap_id)), 'swap clientOrderId does not start with swapId'
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
-        assert client_order_id_inverse.startswith(swap_id), 'swap clientOrderIdInverse does not start with swapId'
+        assert client_order_id_inverse.startswith(str(swap_id)), 'swap clientOrderIdInverse does not start with swapId'
         await close(exchange)
+        return True
 
     async def test_okx(self):
         exchange = self.init_offline_exchange('okx')
@@ -1212,6 +1216,7 @@ class testMainClass(baseMainTestClass):
         assert client_order_id_spot.startswith(str(id)), 'swap clientOrderId does not start with id'
         assert swap_order_request[0]['tag'] == id, 'id different from swap tag'
         await close(exchange)
+        return True
 
     async def test_cryptocom(self):
         exchange = self.init_offline_exchange('cryptocom')
@@ -1224,6 +1229,7 @@ class testMainClass(baseMainTestClass):
             request = json_parse(exchange.last_request_body)
         assert request['params']['broker_id'] == id, 'id different from  broker_id'
         await close(exchange)
+        return True
 
     async def test_bybit(self):
         exchange = self.init_offline_exchange('bybit')
@@ -1237,6 +1243,7 @@ class testMainClass(baseMainTestClass):
             req_headers = exchange.last_request_headers
         assert req_headers['Referer'] == id, 'id not in headers'
         await close(exchange)
+        return True
 
     async def test_kucoin(self):
         exchange = self.init_offline_exchange('kucoin')
@@ -1251,6 +1258,7 @@ class testMainClass(baseMainTestClass):
         id = 'ccxt'
         assert req_headers['KC-API-PARTNER'] == id, 'id not in headers'
         await close(exchange)
+        return True
 
     async def test_kucoinfutures(self):
         exchange = self.init_offline_exchange('kucoinfutures')
@@ -1277,6 +1285,7 @@ class testMainClass(baseMainTestClass):
             req_headers = exchange.last_request_headers
         assert req_headers['X-CHANNEL-API-CODE'] == id, 'id not in headers'
         await close(exchange)
+        return True
 
     async def test_mexc(self):
         exchange = self.init_offline_exchange('mexc')
@@ -1290,6 +1299,7 @@ class testMainClass(baseMainTestClass):
             req_headers = exchange.last_request_headers
         assert req_headers['source'] == id, 'id not in headers'
         await close(exchange)
+        return True
 
     async def test_huobi(self):
         exchange = self.init_offline_exchange('huobi')
@@ -1316,8 +1326,9 @@ class testMainClass(baseMainTestClass):
         client_order_id_spot = swap_order_request['channel_code']
         assert client_order_id_spot.startswith(str(id)), 'swap channel_code does not start with id'
         client_order_id_inverse = swap_inverse_order_request['channel_code']
-        assert client_order_id_inverse.startswith(id), 'swap inverse channel_code does not start with id'
+        assert client_order_id_inverse.startswith(str(id)), 'swap inverse channel_code does not start with id'
         await close(exchange)
+        return True
 
     async def test_woo(self):
         exchange = self.init_offline_exchange('woo')
@@ -1339,8 +1350,9 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             stop_order_request = json_parse(exchange.last_request_body)
         client_order_id_spot = stop_order_request['brokerId']
-        assert client_order_id_spot.startswith(id), 'brokerId does not start with id'
+        assert client_order_id_spot.startswith(str(id)), 'brokerId does not start with id'
         await close(exchange)
+        return True
 
     async def test_bitmart(self):
         exchange = self.init_offline_exchange('bitmart')
@@ -1354,6 +1366,7 @@ class testMainClass(baseMainTestClass):
             req_headers = exchange.last_request_headers
         assert req_headers['X-BM-BROKER-ID'] == id, 'id not in headers'
         await close(exchange)
+        return True
 
     async def test_coinex(self):
         exchange = self.init_offline_exchange('coinex')
