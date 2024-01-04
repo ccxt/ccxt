@@ -98,7 +98,7 @@ class AiohttpClient(Client):
         for key in self.futures:
             future = self.futures[key]
             if not future.done():
-                future.cancel()
+                future.reject(Exception('Connection closed by the user'))
 
     async def ping_loop(self):
         if self.verbose:
