@@ -4,6 +4,7 @@ import ccxt, { Exchange } from '../../../../ccxt.js';
 
 async function watchTickerLoop (exchange) {
     const method = 'watchTicker';
+    /* eslint-disable */
     while (true) {
         console.log ('creating future');
         const ticker = await exchange.watchTicker ('BTC/USDT');
@@ -13,6 +14,7 @@ async function watchTickerLoop (exchange) {
 
 async function watchOrderBookForSymbolsLoop (exchange: Exchange) {
     const method = 'watchTicker';
+    /* eslint-disable */
     while (true) {
         const trades = await exchange.watchTradesForSymbols ([ 'BTC/USDT', 'ETH/USDT', 'LTC/USDT' ]);
     }

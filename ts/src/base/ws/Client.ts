@@ -297,6 +297,7 @@ export default class Client {
         const future = Future ()
         if (isNode) {
             /* eslint-disable no-inner-declarations */
+            /* eslint-disable jsdoc/require-jsdoc */
             function onSendComplete (error) {
                 if (error) {
                     future.reject (error)
