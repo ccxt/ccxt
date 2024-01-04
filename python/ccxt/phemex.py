@@ -457,6 +457,7 @@ class phemex(Exchange, ImplicitAPI):
                     '35104': InsufficientFunds,  # {"code":35104,"msg":"phemex.spot.wallet.balance.notenough","data":null}
                     '39995': RateLimitExceeded,  # {"code": "39995","msg": "Too many requests."}
                     '39996': PermissionDenied,  # {"code": "39996","msg": "Access denied."}
+                    '39997': BadSymbol,  # {"code":39997,"msg":"Symbol not listed sMOVRUSDT","data":null}
                 },
                 'broad': {
                     '401 Insufficient privilege': PermissionDenied,  # {"code": "401","msg": "401 Insufficient privilege."}

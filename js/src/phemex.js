@@ -442,7 +442,8 @@ export default class phemex extends Exchange {
                     '34003': PermissionDenied,
                     '35104': InsufficientFunds,
                     '39995': RateLimitExceeded,
-                    '39996': PermissionDenied, // {"code": "39996","msg": "Access denied."}
+                    '39996': PermissionDenied,
+                    '39997': BadSymbol, // {"code":39997,"msg":"Symbol not listed sMOVRUSDT","data":null}
                 },
                 'broad': {
                     '401 Insufficient privilege': PermissionDenied,

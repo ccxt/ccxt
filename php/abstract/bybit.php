@@ -343,6 +343,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_get_v5_position_closed_pnl($params = array()) {
         return $this->request('v5/position/closed-pnl', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_v5_position_move_history($params = array()) {
+        return $this->request('v5/position/move-history', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_v5_pre_upgrade_order_history($params = array()) {
         return $this->request('v5/pre-upgrade/order/history', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -771,6 +774,9 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function private_post_v5_position_add_margin($params = array()) {
         return $this->request('v5/position/add-margin', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_v5_position_move_positions($params = array()) {
+        return $this->request('v5/position/move-positions', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_post_v5_position_confirm_pending_mmr($params = array()) {
         return $this->request('v5/position/confirm-pending-mmr', 'private', 'POST', $params, null, null, array("cost" => 5));
@@ -1201,6 +1207,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function privateGetV5PositionClosedPnl($params = array()) {
         return $this->request('v5/position/closed-pnl', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function privateGetV5PositionMoveHistory($params = array()) {
+        return $this->request('v5/position/move-history', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetV5PreUpgradeOrderHistory($params = array()) {
         return $this->request('v5/pre-upgrade/order/history', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1629,6 +1638,9 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privatePostV5PositionAddMargin($params = array()) {
         return $this->request('v5/position/add-margin', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostV5PositionMovePositions($params = array()) {
+        return $this->request('v5/position/move-positions', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostV5PositionConfirmPendingMmr($params = array()) {
         return $this->request('v5/position/confirm-pending-mmr', 'private', 'POST', $params, null, null, array("cost" => 5));
