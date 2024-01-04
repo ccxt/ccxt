@@ -903,7 +903,7 @@ export default class binance extends binanceRest {
         };
         const newTickers = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
         if (this.newUpdates) {
-            return newTickers;
+            return this.indexBy (newTickers, 'symbol');
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
