@@ -1686,7 +1686,7 @@ export default class bingx extends Exchange {
         const isMarketOrder = type === 'MARKET';
         const isSpot = marketType === 'spot';
         const exchangeClientOrderId = isSpot ? 'newClientOrderId' : 'clientOrderID';
-        const clientOrderId = this.safeString2 (params, exchangeClientOrderId, 'newClientOrderId');
+        const clientOrderId = this.safeString2 (params, exchangeClientOrderId, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request[exchangeClientOrderId] = clientOrderId;
         }
