@@ -1203,9 +1203,9 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#fetchOrders
+         * @description fetches information on multiple orders made by the user
          * @see https://docs.woo.org/#get-orders
          * @see https://docs.woo.org/#get-algo-orders
-         * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1213,19 +1213,21 @@ export default class woo extends Exchange {
          * @param {boolean} [params.stop] whether the order is a stop/algo order
          * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
          * @param {string} [params.side] 'buy' or 'sell'
+         * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
         let market: Market = undefined;
         const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, 'stop');
+        const trailing = this.safeValue (params, 'trailing', false);
+        params = this.omit (params, [ 'stop', 'trailing' ]);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            if (stop) {
+            if (stop || trailing) {
                 request['createdTimeStart'] = since;
             } else {
                 request['start_t'] = since;
@@ -1233,9 +1235,11 @@ export default class woo extends Exchange {
         }
         if (stop) {
             request['algoType'] = 'stop';
+        } else if (trailing) {
+            request['algoType'] = 'TRAILING_STOP';
         }
         let response = undefined;
-        if (stop) {
+        if (stop || trailing) {
             response = await this.v3PrivateGetAlgoOrders (this.extend (request, params));
         } else {
             response = await this.v1PrivateGetOrders (this.extend (request, params));
