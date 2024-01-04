@@ -106,7 +106,8 @@
             },
             "watchTicker": {
                 "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
-            }
+            },
+            "watchOrderBook": "out of order update"
         }
     },
     "binanceusdm": {
@@ -744,6 +745,7 @@
         }
     },
     "cryptocom": {
+        "skipWs": "timeout",
         "skipMethods": {
             "proxies": "probably they do not permit our proxy",
             "loadMarkets": {
@@ -1655,6 +1657,7 @@
         }
     },
     "bitteam": {
+        "skip": "tmp timeout",
         "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {

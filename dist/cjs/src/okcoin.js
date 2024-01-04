@@ -1971,7 +1971,7 @@ class okcoin extends okcoin$1 {
             // 'ordId': id,
         };
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
-        const stop = this.safeValue(params, 'stop');
+        const stop = this.safeValue2(params, 'stop', 'trigger');
         if (stop) {
             if (clientOrderId !== undefined) {
                 request['algoClOrdId'] = clientOrderId;
@@ -1988,7 +1988,7 @@ class okcoin extends okcoin$1 {
                 request['ordId'] = id;
             }
         }
-        const query = this.omit(params, ['clientOrderId', 'stop']);
+        const query = this.omit(params, ['clientOrderId', 'stop', 'trigger']);
         let response = undefined;
         if (stop) {
             response = await this.privateGetTradeOrderAlgo(this.extend(request, query));

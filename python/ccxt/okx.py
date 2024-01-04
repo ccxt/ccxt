@@ -2875,11 +2875,12 @@ class okx(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: True if trigger orders
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
         if stop:
             orderInner = self.cancel_orders([id], symbol, params)
             return self.safe_value(orderInner, 0)
@@ -3218,6 +3219,7 @@ class okx(Exchange, ImplicitAPI):
         :param str id: the order id
         :param str symbol: unified market symbol
         :param dict [params]: extra and exchange specific parameters
+        :param boolean [params.trigger]: True if fetching trigger orders
         :returns: `an order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -3234,7 +3236,7 @@ class okx(Exchange, ImplicitAPI):
         options = self.safe_value(self.options, 'fetchOrder', {})
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrder')
         method = self.safe_string(params, 'method', defaultMethod)
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
         if stop:
             method = 'privateGetTradeOrderAlgo'
             if clientOrderId is not None:
@@ -3246,7 +3248,7 @@ class okx(Exchange, ImplicitAPI):
                 request['clOrdId'] = clientOrderId
             else:
                 request['ordId'] = id
-        query = self.omit(params, ['method', 'clOrdId', 'clientOrderId', 'stop'])
+        query = self.omit(params, ['method', 'clOrdId', 'clientOrderId', 'stop', 'trigger'])
         response = None
         if method == 'privateGetTradeOrderAlgo':
             response = self.privateGetTradeOrderAlgo(self.extend(request, query))
@@ -3395,13 +3397,13 @@ class okx(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersPending')
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
         if stop or (ordType in algoOrderTypes):
             method = 'privateGetTradeOrdersAlgoPending'
             if stop:
                 if ordType is None:
                     raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"')
-        query = self.omit(params, ['method', 'stop'])
+        query = self.omit(params, ['method', 'stop', 'trigger'])
         response = None
         if method == 'privateGetTradeOrdersAlgoPending':
             response = self.privateGetTradeOrdersAlgoPending(self.extend(request, query))
@@ -3548,7 +3550,7 @@ class okx(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersHistory')
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
         if stop or (ordType in algoOrderTypes):
             method = 'privateGetTradeOrdersAlgoHistory'
             algoId = self.safe_string(params, 'algoId')
@@ -3566,7 +3568,7 @@ class okx(Exchange, ImplicitAPI):
             if until is not None:
                 request['end'] = until
                 query = self.omit(query, ['until', 'till'])
-        send = self.omit(query, ['method', 'stop', 'ordType'])
+        send = self.omit(query, ['method', 'stop', 'ordType', 'trigger'])
         response = None
         if method == 'privateGetTradeOrdersAlgoHistory':
             response = self.privateGetTradeOrdersAlgoHistory(self.extend(request, send))
@@ -3679,6 +3681,7 @@ class okx(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-3-months
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -3688,6 +3691,7 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.algoId]: Algo ID "'433845797218942976'"
         :param int [params.until]: timestamp in ms to fetch orders for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.method]: method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -3721,7 +3725,7 @@ class okx(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersHistory')
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
         if stop or (ordType in algoOrderTypes):
             method = 'privateGetTradeOrdersAlgoHistory'
             if stop:
@@ -3736,10 +3740,12 @@ class okx(Exchange, ImplicitAPI):
                 request['end'] = until
                 query = self.omit(query, ['until', 'till'])
             request['state'] = 'filled'
-        send = self.omit(query, ['method', 'stop'])
+        send = self.omit(query, ['method', 'stop', 'trigger'])
         response = None
         if method == 'privateGetTradeOrdersAlgoHistory':
             response = self.privateGetTradeOrdersAlgoHistory(self.extend(request, send))
+        elif method == 'privateGetTradeOrdersHistoryArchive':
+            response = self.privateGetTradeOrdersHistoryArchive(self.extend(request, send))
         else:
             response = self.privateGetTradeOrdersHistory(self.extend(request, send))
         #

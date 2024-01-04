@@ -5108,7 +5108,7 @@ export default class binance extends Exchange {
         }
     }
 
-    async cancelOrders (ids: Int[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name binance#cancelOrders

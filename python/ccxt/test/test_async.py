@@ -1159,7 +1159,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1189,9 +1189,8 @@ class testMainClass(baseMainTestClass):
         client_order_id_spot = swap_order_request['newClientOrderId']
         assert client_order_id_spot.startswith(str(swap_id)), 'swap clientOrderId does not start with swapId'
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
-        assert client_order_id_inverse.startswith(str(swap_id)), 'swap clientOrderIdInverse does not start with swapId'
+        assert client_order_id_inverse.startswith(swap_id), 'swap clientOrderIdInverse does not start with swapId'
         await close(exchange)
-        return True
 
     async def test_okx(self):
         exchange = self.init_offline_exchange('okx')
@@ -1213,7 +1212,6 @@ class testMainClass(baseMainTestClass):
         assert client_order_id_spot.startswith(str(id)), 'swap clientOrderId does not start with id'
         assert swap_order_request[0]['tag'] == id, 'id different from swap tag'
         await close(exchange)
-        return True
 
     async def test_cryptocom(self):
         exchange = self.init_offline_exchange('cryptocom')
@@ -1226,7 +1224,6 @@ class testMainClass(baseMainTestClass):
             request = json_parse(exchange.last_request_body)
         assert request['params']['broker_id'] == id, 'id different from  broker_id'
         await close(exchange)
-        return True
 
     async def test_bybit(self):
         exchange = self.init_offline_exchange('bybit')
@@ -1240,7 +1237,6 @@ class testMainClass(baseMainTestClass):
             req_headers = exchange.last_request_headers
         assert req_headers['Referer'] == id, 'id not in headers'
         await close(exchange)
-        return True
 
     async def test_kucoin(self):
         exchange = self.init_offline_exchange('kucoin')
@@ -1255,7 +1251,6 @@ class testMainClass(baseMainTestClass):
         id = 'ccxt'
         assert req_headers['KC-API-PARTNER'] == id, 'id not in headers'
         await close(exchange)
-        return True
 
     async def test_kucoinfutures(self):
         exchange = self.init_offline_exchange('kucoinfutures')
@@ -1282,7 +1277,6 @@ class testMainClass(baseMainTestClass):
             req_headers = exchange.last_request_headers
         assert req_headers['X-CHANNEL-API-CODE'] == id, 'id not in headers'
         await close(exchange)
-        return True
 
     async def test_mexc(self):
         exchange = self.init_offline_exchange('mexc')
@@ -1296,7 +1290,6 @@ class testMainClass(baseMainTestClass):
             req_headers = exchange.last_request_headers
         assert req_headers['source'] == id, 'id not in headers'
         await close(exchange)
-        return True
 
     async def test_huobi(self):
         exchange = self.init_offline_exchange('huobi')
@@ -1323,9 +1316,8 @@ class testMainClass(baseMainTestClass):
         client_order_id_spot = swap_order_request['channel_code']
         assert client_order_id_spot.startswith(str(id)), 'swap channel_code does not start with id'
         client_order_id_inverse = swap_inverse_order_request['channel_code']
-        assert client_order_id_inverse.startswith(str(id)), 'swap inverse channel_code does not start with id'
+        assert client_order_id_inverse.startswith(id), 'swap inverse channel_code does not start with id'
         await close(exchange)
-        return True
 
     async def test_woo(self):
         exchange = self.init_offline_exchange('woo')
@@ -1347,9 +1339,8 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             stop_order_request = json_parse(exchange.last_request_body)
         client_order_id_spot = stop_order_request['brokerId']
-        assert client_order_id_spot.startswith(str(id)), 'brokerId does not start with id'
+        assert client_order_id_spot.startswith(id), 'brokerId does not start with id'
         await close(exchange)
-        return True
 
     async def test_bitmart(self):
         exchange = self.init_offline_exchange('bitmart')
@@ -1363,7 +1354,6 @@ class testMainClass(baseMainTestClass):
             req_headers = exchange.last_request_headers
         assert req_headers['X-BM-BROKER-ID'] == id, 'id not in headers'
         await close(exchange)
-        return True
 
     async def test_coinex(self):
         exchange = self.init_offline_exchange('coinex')
@@ -1378,6 +1368,19 @@ class testMainClass(baseMainTestClass):
         assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
         await close(exchange)
         return True
+
+    async def test_bingx(self):
+        exchange = self.init_offline_exchange('bingx')
+        req_headers = None
+        id = 'CCXT'
+        assert exchange.options['broker'] == id, 'id not in options'
+        try:
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            req_headers = exchange.last_request_headers
+        assert req_headers['X-SOURCE-KEY'] == id, 'id not in headers'
+        await close(exchange)
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************

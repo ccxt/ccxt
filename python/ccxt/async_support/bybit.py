@@ -296,6 +296,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/position/list': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/execution/list': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/position/closed-pnl': 5,  # 10/s => cost = 50 / 10 = 5
+                        'v5/position/move-history': 5,  # 10/s => cost = 50 / 10 = 5
                         # pre-upgrade
                         'v5/pre-upgrade/order/history': 5,
                         'v5/pre-upgrade/execution/list': 5,
@@ -460,6 +461,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/position/trading-stop': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/position/set-auto-add-margin': 5,
                         'v5/position/add-margin': 5,
+                        'v5/position/move-positions': 5,
                         'v5/position/confirm-pending-mmr': 5,
                         # account
                         'v5/account/upgrade-to-uta': 5,
@@ -642,6 +644,8 @@ class bybit(Exchange, ImplicitAPI):
                     '131215': BadRequest,  # Amount error
                     '131216': ExchangeError,  # Query balance error
                     '131217': ExchangeError,  # Risk check error
+                    '131231': NotSupported,  # Transfers into self account are not supported
+                    '131232': NotSupported,  # Transfers out self account are not supported
                     '131002': BadRequest,  # Parameter error
                     '131003': ExchangeError,  # Interal error
                     '131004': AuthenticationError,  # KYC needed

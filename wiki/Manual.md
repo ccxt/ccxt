@@ -3982,6 +3982,7 @@ There are different types of orders that a user can send to the exchange, regula
 - [Stop Loss Orders](#stop-loss-orders) – almost the same as trigger orders, but used to close a position to stop further losses on that position: when the price reaches `triggerPrice` then the stop loss order is triggered that results in placing another regular limit or market order to close a position at a specific limit `price` or at market price (a position with a stop loss order attached to it).
 - [Take Profit Orders](#take-profit-orders) – a counterpart to stop loss orders, this type of order is used to close a position to take existing profits on that position: when the price reaches `triggerPrice` then the take profit order is triggered that results in placing another regular limit or market order to close a position at a specific limit `price` or at market price (a position with a take profit order attached to it).
 - [StopLoss And TakeProfit Orders Attached To A Position](#stoploss-and-takeprofit-orders-attached-to-a-position) – advanced orders, consisting of three orders of types listed above: a regular limit or market order placed to enter a position with stop loss and/or take profit orders that will be placed upon opening that position and will be used to close that position later (when a stop loss is reached, it will close the position and will cancel its take profit counterpart, and vice versa, when a take profit is reached, it will close the position and will cancel its stop loss counterpart, these two counterparts are also known as "OCO orders – one cancels the other), apart from the `amount` (and `price` for the limit order) to open a position it will also require a `triggerPrice` for a stop loss order (with a limit `price` if it's a stop loss limit order) and/or a `triggerPrice` for a take profit order (with a limit `price` if it's a take profit limit order).
+- [Trailing Orders](#trailing-orders) – an order that is automatically adjusted relative to an open position, `trailingAmount` can be set to trail a specified quote amount behind the open position or `trailingPercent` can be set to trail a specified percent behind the open position, when the market price of the position is equal to the trailing order this results in entering a new position or exiting a position depending on if the trailing order has the `reduceOnly` parameter set to true or not.
 
 Placing an order always requires a `symbol` that the user has to specify (which market you want to trade).
 
@@ -4524,6 +4525,69 @@ $params = {
         // 'price': 160.33, // this field is not necessary for a market take profit order
         'triggerPrice': 150.75,
     }
+}
+$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+```
+<!-- tabs:end -->
+
+#### Trailing Orders
+
+**Trailing** Orders trail behind an open position. Implemented by supplying float parameters for `trailingPercent` or `trailingAmount`.
+
+* A trailing order continually adjusts the order price at a fixed percent or fixed quote amount away from the current market price.
+* A trailing order trails behind a position as it moves in one direction, but not in the opposite direction.
+* If the position value rises, the trailing order changes, but if the position value drops the trailing order stays the same until the order is executed.
+* A trailing order can be placed independently after opening a position.
+* Implemented by filling in either the `trailingPercent` or `trailingAmount` parameter depending on the exchange.
+* The price argument can be used as the `trailingTriggerPrice`, and the type argument can be used to differentiate between limit and market trailing orders if needed.
+
+*Not supported by all exchanges.*
+
+*Note: This is still under unification and is a work in progress*
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+symbol = 'BTC/USDT:USDT';
+type = 'market';
+side = 'sell';
+amount = 1.0;
+price = undefined;
+const params = {
+    'trailingPercent': 1.0, // percentage away from the current market price 1.0 is equal to 1%
+    // 'trailingAmount': 100.0, // quote amount away from the current market price
+    // 'trailingTriggerPrice': 44500.0, // the price to trigger activating a trailing stop order
+    // 'reduceOnly': true, // set to true if you want to close a position, set to false if you want to open a new position
+}
+const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+```
+#### **Python**
+```python
+symbol = 'BTC/USDT:USDT'
+type = 'market'
+side = 'sell'
+amount = 1.0
+price = None
+params = {
+    'trailingPercent': 1.0, # percentage away from the current market price 1.0 is equal to 1%
+    # 'trailingAmount': 100.0, # quote amount away from the current market price
+    # 'trailingTriggerPrice': 44500.0, # the price to trigger activating a trailing stop order
+    # 'reduceOnly': True, # set to True if you want to close a position, set to False if you want to open a new position
+}
+order = exchange.create_order (symbol, type, side, amount, price, params)
+```
+#### **PHP**
+```php
+$symbol = 'BTC/USDT:USDT';
+$type = 'market';
+$side = 'sell';
+$amount = 1.0;
+$price = null;
+$params = {
+    'trailingPercent': 1.0, // percentage away from the current market price 1.0 is equal to 1%
+    // 'trailingAmount': 100.0, // quote amount away from the current market price
+    // 'trailingTriggerPrice': 44500.0, // the price to trigger activating a trailing stop order
+    // 'reduceOnly': true, // set to true if you want to close a position, set to false if you want to open a new position
 }
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
