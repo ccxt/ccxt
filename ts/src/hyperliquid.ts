@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Market, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, Trade } from './base/types.js';
+import type { Market, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, Trade, Strings } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 /**
@@ -87,7 +87,7 @@ export default class hyperliquid extends Exchange {
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': false,
@@ -829,6 +829,147 @@ export default class hyperliquid extends Exchange {
             'cost': undefined,
             'fee': { 'cost': fee, 'currency': 'USDC' },
         }, market);
+    }
+
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#fetchPositions
+         * @description fetch all open positions
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] *required* Onchain address in 42-character hexadecimal format; e.g. 0x0000000000000000000000000000000000000000
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        const user = this.safeString (params, 'user');
+        if (user === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a user argument');
+        }
+        const request = {
+            'type': 'clearinghouseState',
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     {
+        //         "assetPositions": [
+        //             {
+        //                 "position": {
+        //                     "coin": "ETH",
+        //                     "cumFunding": {
+        //                         "allTime": "0.0",
+        //                         "sinceChange": "0.0",
+        //                         "sinceOpen": "0.0"
+        //                     },
+        //                     "entryPx": "2213.9",
+        //                     "leverage": {
+        //                         "rawUsd": "-475.23904",
+        //                         "type": "isolated",
+        //                         "value": "20"
+        //                     },
+        //                     "liquidationPx": "2125.00856238",
+        //                     "marginUsed": "24.88097",
+        //                     "maxLeverage": "50",
+        //                     "positionValue": "500.12001",
+        //                     "returnOnEquity": "0.0",
+        //                     "szi": "0.2259",
+        //                     "unrealizedPnl": "0.0"
+        //                 },
+        //                 "type": "oneWay"
+        //             }
+        //         ],
+        //         "crossMaintenanceMarginUsed": "0.0",
+        //         "crossMarginSummary": {
+        //             "accountValue": "100.0",
+        //             "totalMarginUsed": "0.0",
+        //             "totalNtlPos": "0.0",
+        //             "totalRawUsd": "100.0"
+        //         },
+        //         "marginSummary": {
+        //             "accountValue": "100.0",
+        //             "totalMarginUsed": "0.0",
+        //             "totalNtlPos": "0.0",
+        //             "totalRawUsd": "100.0"
+        //         },
+        //         "time": "1704261007014",
+        //         "withdrawable": "100.0"
+        //     }
+        //
+        const data = this.safeValue (response, 'assetPositions', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            result.push (this.parsePosition (data[i], undefined));
+        }
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+    }
+
+    parsePosition (position, market: Market = undefined) {
+        //
+        //     {
+        //         "position": {
+        //             "coin": "ETH",
+        //             "cumFunding": {
+        //                 "allTime": "0.0",
+        //                 "sinceChange": "0.0",
+        //                 "sinceOpen": "0.0"
+        //             },
+        //             "entryPx": "2213.9",
+        //             "leverage": {
+        //                 "rawUsd": "-475.23904",
+        //                 "type": "isolated",
+        //                 "value": "20"
+        //             },
+        //             "liquidationPx": "2125.00856238",
+        //             "marginUsed": "24.88097",
+        //             "maxLeverage": "50",
+        //             "positionValue": "500.12001",
+        //             "returnOnEquity": "0.0",
+        //             "szi": "0.2259",
+        //             "unrealizedPnl": "0.0"
+        //         },
+        //         "type": "oneWay"
+        //     }
+        //
+        const entry = this.safeValue (position, 'position', {});
+        const coin = this.safeString (entry, 'coin');
+        const marketId = coin + '/USD:USDC';
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const leverage = this.safeValue (entry, 'leverage', {});
+        const isIsolated = (this.safeString (leverage, 'type') === 'isolated');
+        const quantity = this.safeNumber (leverage, 'rawUsd');
+        let side = undefined;
+        if (quantity !== undefined) {
+            side = (quantity > 0) ? 'short' : 'long';
+        }
+        const unrealizedPnl = this.safeNumber (entry, 'unrealizedPnl');
+        const initialMargin = this.safeNumber (entry, 'marginUsed');
+        const percentage = unrealizedPnl / initialMargin * 100;
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'isolated': isIsolated,
+            'hedged': undefined,
+            'side': side,
+            'contracts': this.parseNumber (quantity),
+            'contractSize': undefined,
+            'entryPrice': this.safeNumber (entry, 'entryPx'),
+            'markPrice': undefined,
+            'notional': this.safeNumber (entry, 'positionValue'),
+            'leverage': this.safeNumber (leverage, 'value'),
+            'collateral': undefined,
+            'initialMargin': initialMargin,
+            'maintenanceMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'unrealizedPnl': unrealizedPnl,
+            'liquidationPrice': this.safeNumber (entry, 'liquidationPx'),
+            'marginMode': undefined,
+            'percentage': percentage,
+        });
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
