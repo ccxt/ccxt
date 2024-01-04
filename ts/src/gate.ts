@@ -986,6 +986,10 @@ export default class gate extends Exchange {
     }
 
     async fetchSpotMarkets (params = {}) {
+        /**
+         * @method
+         * @param params extra params specific to gate
+         */
         const marginResponse = await this.publicMarginGetCurrencyPairs (params);
         const spotMarketsResponse = await this.publicSpotGetCurrencyPairs (params);
         const marginMarkets = this.indexBy (marginResponse, 'id');
