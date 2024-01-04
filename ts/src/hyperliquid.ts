@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Market, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order } from './base/types.js';
+import type { Market, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, Trade } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 /**
@@ -76,7 +76,7 @@ export default class hyperliquid extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyLiquidations': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
@@ -514,7 +514,6 @@ export default class hyperliquid extends Exchange {
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest funding rate
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
         await this.loadMarkets ();
@@ -644,6 +643,110 @@ export default class hyperliquid extends Exchange {
             'status': undefined,
             'fee': undefined,
             'trades': undefined,
+        }, market);
+    }
+
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] *required* Onchain address in 42-character hexadecimal format; e.g. 0x0000000000000000000000000000000000000000
+         * @param {int} [params.until] timestamp in ms of the latest trade
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        const user = this.safeString (params, 'user');
+        if (user === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a user argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {};
+        if (since !== undefined) {
+            request['type'] = 'userFillsByTime';
+            request['startTime'] = since;
+        } else {
+            request['type'] = 'userFills';
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "closedPnl": "0.19343",
+        //             "coin": "ETH",
+        //             "crossed": true,
+        //             "dir": "Close Long",
+        //             "fee": "0.050062",
+        //             "hash": "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
+        //             "liquidationMarkPx": null,
+        //             "oid": 3929354691,
+        //             "px": "2381.1",
+        //             "side": "A",
+        //             "startPosition": "0.0841",
+        //             "sz": "0.0841",
+        //             "tid": 128423918764978,
+        //             "time": 1704262888911
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade, market: Market = undefined): Trade {
+        //
+        //     {
+        //         "closedPnl": "0.19343",
+        //         "coin": "ETH",
+        //         "crossed": true,
+        //         "dir": "Close Long",
+        //         "fee": "0.050062",
+        //         "hash": "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
+        //         "liquidationMarkPx": null,
+        //         "oid": 3929354691,
+        //         "px": "2381.1",
+        //         "side": "A",
+        //         "startPosition": "0.0841",
+        //         "sz": "0.0841",
+        //         "tid": 128423918764978,
+        //         "time": 1704262888911
+        //     }
+        //
+        const timestamp = this.safeInteger (trade, 'time');
+        const price = this.safeString (trade, 'px');
+        const amount = this.safeString (trade, 'sz');
+        market = this.safeMarket (undefined, market, undefined, undefined);
+        const symbol = market['symbol'];
+        const id = this.safeString (trade, 'tid');
+        let side = this.safeString (trade, 'side');
+        if (side !== undefined) {
+            side = (side === 'A') ? 'sell' : 'buy';
+        }
+        const fee = this.safeString (trade, 'fee');
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': undefined,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': { 'cost': fee, 'currency': 'USDC' },
         }, market);
     }
 
