@@ -38,6 +38,15 @@ async function testClose () {
 
     // --------------------------------------------
 
+    console.log ('Testing exchange.close(): call watch_multiple, resolve, should close with no errors');
+    await exchange.watchTradesForSymbols ([ 'BTC/USDT', 'ETH/USDT' ]);
+    console.log ('ticker received');
+    await exchange.close ();
+    console.log ('PASSED - exchange closed with no errors');
+
+    // --------------------------------------------
+
+    
     console.log ('Testing exchange.close(): Awaiting future should throw ClosedByUser');
     try {
         closeAfter (exchange, 5000);

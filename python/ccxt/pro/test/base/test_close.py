@@ -35,6 +35,12 @@ async def test_close():
     await exchange.close()
     print('PASSED - exchange closed with no errors')
     # --------------------------------------------
+    print('Testing exchange.close(): Open watch multiple, resolve, should close with no errors')
+    await exchange.watch_trades_for_symbols(['BTC/USD', 'ETH/USD', 'LTC/USD'])
+    print('ticker received')
+    await exchange.close()  
+    print('PASSED - exchange closed with no errors')
+    # --------------------------------------------
     print('Testing exchange.close(): Awaiting future should throw ClosedByUser')
     try:
         await gather(close_after(exchange, 5), watch_ticker_loop(exchange))
