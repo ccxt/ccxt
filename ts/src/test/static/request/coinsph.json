@@ -137,6 +137,26 @@
                   2
                 ]
             }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://api.pro.coins.ph/openapi/quote/v1/ticker/24hr",
+                "input": [
+                    
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://api.pro.coins.ph/openapi/quote/v1/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
         ]
     }
 }

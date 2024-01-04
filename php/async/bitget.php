@@ -4691,8 +4691,8 @@ class bitget extends Exchange {
             }
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrders', $params);
-            $stop = $this->safe_value($params, 'stop');
-            $params = $this->omit($params, 'stop');
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
             $orderIdList = array();
             for ($i = 0; $i < count($ids); $i++) {
                 $individualId = $ids[$i];
@@ -4783,8 +4783,8 @@ class bitget extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $stop = $this->safe_value($params, 'stop');
-            $params = $this->omit($params, 'stop');
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
             $response = null;
             if ($market['spot']) {
                 if ($marginMode !== null) {

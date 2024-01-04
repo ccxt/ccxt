@@ -1286,7 +1286,7 @@ export default class kucoinfutures extends kucoin {
          * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-stop-orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.stop] When true, all the trigger orders will be cancelled
+         * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
          * @returns Response from the exchange
          */
         await this.loadMarkets ();
@@ -1294,8 +1294,8 @@ export default class kucoinfutures extends kucoin {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, 'stop');
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
         if (stop) {
             response = await this.futuresPrivateDeleteStopOrders (this.extend (request, params));
@@ -1466,7 +1466,7 @@ export default class kucoinfutures extends kucoin {
          * @param {int} [since] timestamp in ms of the earliest order to retrieve
          * @param {int} [limit] The maximum number of orders to retrieve
          * @param {object} [params] exchange specific parameters
-         * @param {bool} [params.stop] set to true to retrieve untriggered stop orders
+         * @param {bool} [params.trigger] set to true to retrieve untriggered stop orders
          * @param {int} [params.until] End time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit or market
@@ -1479,9 +1479,9 @@ export default class kucoinfutures extends kucoin {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrdersByStatus', symbol, since, limit, params) as Order[];
         }
-        const stop = this.safeValue (params, 'stop');
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
         const until = this.safeInteger2 (params, 'until', 'till');
-        params = this.omit (params, [ 'stop', 'until', 'till' ]);
+        params = this.omit (params, [ 'stop', 'until', 'till', 'trigger' ]);
         if (status === 'closed') {
             status = 'done';
         } else if (status === 'open') {
