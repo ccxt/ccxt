@@ -273,6 +273,43 @@
                     "USDT"
                 ]
             }
+        ],
+        "editOrder": [
+            {
+                "description": "Swap edit trailingPercent order",
+                "method": "editOrder",
+                "url": "https://api.staging.woo.org/v3/algo/order/1111779",
+                "input": [
+                  "1111779",
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "trailingPercent": "4"
+                  }
+                ],
+                "output": "{\"callbackRate\":\"0.04\",\"quantity\":\"0.0001\"}"
+            },
+            {
+                "description": "Swap edit trailingAmount order",
+                "method": "editOrder",
+                "url": "https://api.staging.woo.org/v3/algo/order/1111778",
+                "input": [
+                  "1111778",
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "trailingAmount": "1000",
+                    "trailingTriggerPrice": "51000"
+                  }
+                ],
+                "output": "{\"activatedPrice\":\"51000\",\"callbackValue\":\"1000\",\"quantity\":\"0.0001\"}"
+            }
         ]
     }
 }
