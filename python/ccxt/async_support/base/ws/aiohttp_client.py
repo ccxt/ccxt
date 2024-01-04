@@ -98,7 +98,10 @@ class AiohttpClient(Client):
         for key in self.futures:
             future = self.futures[key]
             if not future.done():
-                future.reject(Exception('Connection closed by the user'))
+                if future.is_race_future:
+                     future.cancel() # this is an "internal" future so we want to cancel it silently
+                else:
+                    future.reject(Exception('Connection closed by the user'))
 
     async def ping_loop(self):
         if self.verbose:
