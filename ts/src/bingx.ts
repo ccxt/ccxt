@@ -2425,7 +2425,7 @@ export default class bingx extends Exchange {
         }
         let response = undefined;
         if (market['spot']) {
-            const spotReqKey = areClientOrderIds ? 'clientOrderIds' : 'orderIds';
+            const spotReqKey = areClientOrderIds ? 'clientOrderIDs' : 'orderIds';
             request[spotReqKey] = parsedIds.join (',');
             response = await this.spotV1PrivatePostTradeCancelOrders (this.extend (request, params));
         } else {
