@@ -8789,11 +8789,10 @@ export default class htx extends Exchange {
          * @description set hedged to true or false
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-position-mode
-         * @param {bool} hedged set to true to for hedged mode, must be set separately for each market in isolated margin mode, and each settle currency in cross margin mode
-         * @param {string} [symbol] unified market symbol, required for isolated margin mode and for cross margin mode when params["settle"] is undefined
+         * @param {bool} hedged set to true to for hedged mode, must be set separately for each market in isolated margin mode, only valid for linear markets
+         * @param {string} [symbol] unified market symbol, required for isolated margin mode
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] "cross" (default) or "isolated"
-         * @param {string} [params.settle] required for cross margin mode if symbol is undefined
          * @returns {object} response from the exchange
          */
         await this.loadMarkets ();
@@ -8808,6 +8807,9 @@ export default class htx extends Exchange {
             'position_mode': posMode,
         };
         let response = undefined;
+        if ((market !== undefined) && (market['inverse'])) {
+            throw new BadRequest (this.id + ' setPositionMode can only be used for linear markets');
+        }
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' setPositionMode requires a symbol argument for isolated margin mode');
@@ -8827,14 +8829,7 @@ export default class htx extends Exchange {
             //    }
             //
         } else {
-            let settle = this.safeString2 (params, 'settle', 'margin_account');
-            if ((settle === undefined) && (symbol === undefined)) {
-                throw new ArgumentsRequired (this.id + ' requires either a symbol argument or an extra argument params["settle"] for cross margin mode');
-            } else if (settle === undefined) {
-                settle = market['settle'];
-            }
-            const currency = this.currency (settle);
-            request['margin_account'] = currency['id'].toUpperCase ();
+            request['margin_account'] = 'USDT';
             response = await this.contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode (this.extend (request, params));
             //
             //    {
