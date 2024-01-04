@@ -4243,8 +4243,7 @@ exchange.create_limit_sell_order (symbol, amount, price[, params])
 
 #### Trigger Order
 
-<a name="Trigger Orders" id="Trigger Orders"></a>
-<a name="Stop Orders" id="Stop Orders"></a>
+<a name="Stop Orders" id="Stop Orders"></a><a name="Trigger Orders" id="Trigger Orders"></a>
 The term "Stop order" has been widely used in the traditional finance and trading, however we think that term is a bit ambigious, so in CCXT we use term "Trigger order" instead of "Stop order". When symbol's price reaches your "trigger" (a.k.a. "stop") price, the order is activated.
 
 We have different classification of trigger orders:
