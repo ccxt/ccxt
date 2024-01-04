@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Market, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, Trade, Strings } from './base/types.js';
+import type { Market, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, Trade, Strings, Position } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 /**
@@ -809,7 +809,9 @@ export default class hyperliquid extends Exchange {
         const timestamp = this.safeInteger (trade, 'time');
         const price = this.safeString (trade, 'px');
         const amount = this.safeString (trade, 'sz');
-        market = this.safeMarket (undefined, market, undefined, undefined);
+        const coin = this.safeString (trade, 'coin');
+        const marketId = coin + '/USD:USDC';
+        market = this.safeMarket (marketId, undefined);
         const symbol = market['symbol'];
         const id = this.safeString (trade, 'tid');
         let side = this.safeString (trade, 'side');
@@ -846,7 +848,7 @@ export default class hyperliquid extends Exchange {
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         const positions = await this.fetchPositions ([ symbol ], params);
-        return this.safeValue (positions, 0, {});
+        return this.safeValue (positions, 0, {}) as Position;
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
