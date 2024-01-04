@@ -35,6 +35,7 @@ public class Tests
     public static bool orderBookTests = false;
     public static bool info = false;
     public static bool debug = false;
+    public static bool raceCondition = false;
 
     public static string[] args;
 
@@ -46,6 +47,7 @@ public class Tests
         baseTests = isBase;
         cacheTests = args.Contains("--cache");
         orderBookTests = args.Contains("--orderbook");
+        raceCondition = args.Contains("--race");
         var argsWithoutOptions = args.Where(arg => !arg.StartsWith("--")).ToList();
         if (argsWithoutOptions.Count > 0)
         {
@@ -84,6 +86,7 @@ public class Tests
     static void Main(string[] args)
     {
 
+        Console.WriteLine("C# version: " + Environment.Version.ToString());
         Tests.args = args;
         ReadConfig();
         InitOptions(args);
@@ -104,6 +107,12 @@ public class Tests
         if (orderBookTests)
         {
             OrderBookTests();
+            return;
+        }
+
+        if (raceCondition)
+        {
+            RaceConditionTests();
             return;
         }
 
@@ -131,5 +140,12 @@ public class Tests
     {
         tests.OrderBookTests();
         Helper.Green(" [C#] OrderBook tests passed");
+    }
+
+    static void RaceConditionTests()
+    {
+        var res = tests.RaceTest();
+        res.Wait();
+        Helper.Green(" [C#] RaceCondition tests passed");
     }
 }
