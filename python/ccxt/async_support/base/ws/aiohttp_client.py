@@ -99,7 +99,7 @@ class AiohttpClient(Client):
             future = self.futures[key]
             if not future.done():
                 if future.is_race_future:
-                     future.cancel() # this is an "internal" future so we want to cancel it silently
+                    future.cancel()  # this is an "internal" future so we want to cancel it silently
                 else:
                     future.reject(Exception('Connection closed by the user'))
 
