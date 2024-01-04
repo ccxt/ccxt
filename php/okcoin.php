@@ -1921,7 +1921,7 @@ class okcoin extends Exchange {
             // 'ordId' => $id,
         );
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
-        $stop = $this->safe_value($params, 'stop');
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
         if ($stop) {
             if ($clientOrderId !== null) {
                 $request['algoClOrdId'] = $clientOrderId;
@@ -1935,7 +1935,7 @@ class okcoin extends Exchange {
                 $request['ordId'] = $id;
             }
         }
-        $query = $this->omit($params, array( 'clientOrderId', 'stop' ));
+        $query = $this->omit($params, array( 'clientOrderId', 'stop', 'trigger' ));
         $response = null;
         if ($stop) {
             $response = $this->privateGetTradeOrderAlgo (array_merge($request, $query));

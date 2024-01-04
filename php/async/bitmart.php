@@ -202,6 +202,7 @@ class bitmart extends Exchange {
                         'contract/private/order-history' => 10,
                         'contract/private/position' => 10,
                         'contract/private/get-open-orders' => 1.2,
+                        'contract/private/current-plan-order' => 1.2,
                         'contract/private/trades' => 10,
                     ),
                     'post' => array(
@@ -2502,8 +2503,8 @@ class bitmart extends Exchange {
             if ($market['spot']) {
                 $response = Async\await($this->privatePostSpotV3CancelOrder (array_merge($request, $params)));
             } else {
-                $stop = $this->safe_value($params, 'stop');
-                $params = $this->omit($params, array( 'stop' ));
+                $stop = $this->safe_value_2($params, 'stop', 'trigger');
+                $params = $this->omit($params, array( 'stop', 'trigger' ));
                 if (!$stop) {
                     $response = Async\await($this->privatePostContractPrivateCancelOrder (array_merge($request, $params)));
                 } else {
@@ -2672,6 +2673,7 @@ class bitmart extends Exchange {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
              * @see https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
+             * @see https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
              * fetch all unfilled currently open orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -2683,6 +2685,7 @@ class bitmart extends Exchange {
              * @param {string} [$params->order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
              * @param {string} [$params->orderType] *swap only* 'limit', 'market', or 'trailing'
              * @param {boolean} [$params->trailing] *swap only* set to true if you want to fetch $trailing orders
+             * @param {boolean} [$params->trigger] *swap only* set to true if you want to fetch trigger orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -2714,16 +2717,22 @@ class bitmart extends Exchange {
                 }
                 $response = Async\await($this->privatePostSpotV4QueryOpenOrders (array_merge($request, $params)));
             } elseif ($type === 'swap') {
-                $trailing = $this->safe_value($params, 'trailing', false);
-                $orderType = $this->safe_string($params, 'orderType');
-                $params = $this->omit($params, array( 'orderType', 'trailing' ));
-                if ($trailing) {
-                    $orderType = 'trailing';
+                $isStop = $this->safe_value_2($params, 'stop', 'trigger');
+                $params = $this->omit($params, array( 'stop', 'trigger' ));
+                if ($isStop) {
+                    $response = Async\await($this->privateGetContractPrivateCurrentPlanOrder (array_merge($request, $params)));
+                } else {
+                    $trailing = $this->safe_value($params, 'trailing', false);
+                    $orderType = $this->safe_string($params, 'orderType');
+                    $params = $this->omit($params, array( 'orderType', 'trailing' ));
+                    if ($trailing) {
+                        $orderType = 'trailing';
+                    }
+                    if ($orderType !== null) {
+                        $request['type'] = $orderType;
+                    }
+                    $response = Async\await($this->privateGetContractPrivateGetOpenOrders (array_merge($request, $params)));
                 }
-                if ($orderType !== null) {
-                    $request['type'] = $orderType;
-                }
-                $response = Async\await($this->privateGetContractPrivateGetOpenOrders (array_merge($request, $params)));
             } else {
                 throw new NotSupported($this->id . ' fetchOpenOrders() does not support ' . $type . ' orders, only spot and swap orders are accepted');
             }

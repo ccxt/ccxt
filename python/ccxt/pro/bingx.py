@@ -37,6 +37,7 @@ class bingx(ccxt.async_support.bingx):
                 },
             },
             'options': {
+                'listenKeyRefreshRate': 3540000,  # 1 hour(59 mins so we have 1min to renew the token)
                 'ws': {
                     'gunzip': True,
                 },
@@ -581,7 +582,7 @@ class bingx(ccxt.async_support.bingx):
         lastAuthenticatedTime = self.safe_integer(self.options, 'lastAuthenticatedTime', 0)
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)  # 1 hour
         if time - lastAuthenticatedTime > listenKeyRefreshRate:
-            response = await self.userAuthPrivatePostUserDataStream({'listenKey': listenKey})  # self.extend the expiry
+            response = await self.userAuthPrivatePutUserDataStream({'listenKey': listenKey})  # self.extend the expiry
             self.options['listenKey'] = self.safe_string(response, 'listenKey')
             self.options['lastAuthenticatedTime'] = time
 

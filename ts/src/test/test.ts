@@ -1367,7 +1367,8 @@ export default class testMainClass extends baseMainTestClass {
             this.testHuobi (),
             this.testWoo (),
             this.testBitmart (),
-            this.testCoinex ()
+            this.testCoinex (),
+            this.testBingx ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1615,6 +1616,21 @@ export default class testMainClass extends baseMainTestClass {
         assert (clientOrderId.startsWith (id.toString ()), 'clientOrderId does not start with id');
         await close (exchange);
         return true;
+    }
+
+    async testBingx () {
+        const exchange = this.initOfflineExchange ('bingx');
+        let reqHeaders = undefined;
+        const id = 'CCXT';
+        assert (exchange.options['broker'] === id, 'id not in options');
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert (reqHeaders['X-SOURCE-KEY'] === id, 'id not in headers');
+        await close (exchange);
     }
 }
 // ***** AUTO-TRANSPILER-END *****

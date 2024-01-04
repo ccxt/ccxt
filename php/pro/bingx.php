@@ -36,6 +36,7 @@ class bingx extends \ccxt\async\bingx {
                 ),
             ),
             'options' => array(
+                'listenKeyRefreshRate' => 3540000, // 1 hour (59 mins so we have 1min to renew the token)
                 'ws' => array(
                     'gunzip' => true,
                 ),
@@ -645,7 +646,7 @@ class bingx extends \ccxt\async\bingx {
             $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000); // 1 hour
             if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
-                $response = Async\await($this->userAuthPrivatePostUserDataStream (array( 'listenKey' => $listenKey ))); // extend the expiry
+                $response = Async\await($this->userAuthPrivatePutUserDataStream (array( 'listenKey' => $listenKey ))); // extend the expiry
                 $this->options['listenKey'] = $this->safe_string($response, 'listenKey');
                 $this->options['lastAuthenticatedTime'] = $time;
             }

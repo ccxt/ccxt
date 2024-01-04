@@ -67,19 +67,7 @@ public partial class Exchange
 
     public object safeTimestamp(object obj, object key, object defaultValue = null)
     {
-        var value = safeValue(obj, key, defaultValue);
-        if (value == null)
-            return null;
-        if (value is string && ((string)value).IndexOf(".") > -1)
-        {
-            return Convert.ToInt64(Convert.ToDouble(value, CultureInfo.InvariantCulture)) * 1000;
-        }
-        // if (value.GetType() == typeof(double))
-        // {
-        //     return Convert.ToInt64(value) * 1000;
-        // }
-        // return (Int64)(value) * 1000;
-        return Convert.ToInt64(value, CultureInfo.InvariantCulture.NumberFormat) * 1000;
+        return safeTimestampN(obj, new List<object> { key }, defaultValue);
     }
 
     public object safeTimestamp2(object obj, object key1, object key2, object defaultValue = null)

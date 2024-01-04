@@ -1378,7 +1378,7 @@ class testMainClass extends baseMainTestClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_huobi(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_huobi(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1412,9 +1412,8 @@ class testMainClass extends baseMainTestClass {
         $client_order_id_spot = $swap_order_request['newClientOrderId'];
         assert(str_starts_with($client_order_id_spot, ((string) $swap_id)), 'swap clientOrderId does not start with swapId');
         $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
-        assert(str_starts_with($client_order_id_inverse, ((string) $swap_id)), 'swap clientOrderIdInverse does not start with swapId');
+        assert(str_starts_with($client_order_id_inverse, $swap_id), 'swap clientOrderIdInverse does not start with swapId');
         close($exchange);
-        return true;
     }
 
     public function test_okx() {
@@ -1439,7 +1438,6 @@ class testMainClass extends baseMainTestClass {
         assert(str_starts_with($client_order_id_spot, ((string) $id)), 'swap clientOrderId does not start with id');
         assert($swap_order_request[0]['tag'] === $id, 'id different from swap tag');
         close($exchange);
-        return true;
     }
 
     public function test_cryptocom() {
@@ -1454,7 +1452,6 @@ class testMainClass extends baseMainTestClass {
         }
         assert($request['params']['broker_id'] === $id, 'id different from  broker_id');
         close($exchange);
-        return true;
     }
 
     public function test_bybit() {
@@ -1470,7 +1467,6 @@ class testMainClass extends baseMainTestClass {
         }
         assert($req_headers['Referer'] === $id, 'id not in headers');
         close($exchange);
-        return true;
     }
 
     public function test_kucoin() {
@@ -1487,7 +1483,6 @@ class testMainClass extends baseMainTestClass {
         $id = 'ccxt';
         assert($req_headers['KC-API-PARTNER'] === $id, 'id not in headers');
         close($exchange);
-        return true;
     }
 
     public function test_kucoinfutures() {
@@ -1518,7 +1513,6 @@ class testMainClass extends baseMainTestClass {
         }
         assert($req_headers['X-CHANNEL-API-CODE'] === $id, 'id not in headers');
         close($exchange);
-        return true;
     }
 
     public function test_mexc() {
@@ -1534,7 +1528,6 @@ class testMainClass extends baseMainTestClass {
         }
         assert($req_headers['source'] === $id, 'id not in headers');
         close($exchange);
-        return true;
     }
 
     public function test_huobi() {
@@ -1565,9 +1558,8 @@ class testMainClass extends baseMainTestClass {
         $client_order_id_spot = $swap_order_request['channel_code'];
         assert(str_starts_with($client_order_id_spot, ((string) $id)), 'swap channel_code does not start with id');
         $client_order_id_inverse = $swap_inverse_order_request['channel_code'];
-        assert(str_starts_with($client_order_id_inverse, ((string) $id)), 'swap inverse channel_code does not start with id');
+        assert(str_starts_with($client_order_id_inverse, $id), 'swap inverse channel_code does not start with id');
         close($exchange);
-        return true;
     }
 
     public function test_woo() {
@@ -1592,9 +1584,8 @@ class testMainClass extends baseMainTestClass {
             $stop_order_request = json_parse($exchange->last_request_body);
         }
         $client_order_id_spot = $stop_order_request['brokerId'];
-        assert(str_starts_with($client_order_id_spot, ((string) $id)), 'brokerId does not start with id');
+        assert(str_starts_with($client_order_id_spot, $id), 'brokerId does not start with id');
         close($exchange);
-        return true;
     }
 
     public function test_bitmart() {
@@ -1610,7 +1601,6 @@ class testMainClass extends baseMainTestClass {
         }
         assert($req_headers['X-BM-BROKER-ID'] === $id, 'id not in headers');
         close($exchange);
-        return true;
     }
 
     public function test_coinex() {
@@ -1627,6 +1617,21 @@ class testMainClass extends baseMainTestClass {
         assert(str_starts_with($client_order_id, ((string) $id)), 'clientOrderId does not start with id');
         close($exchange);
         return true;
+    }
+
+    public function test_bingx() {
+        $exchange = $this->init_offline_exchange('bingx');
+        $req_headers = null;
+        $id = 'CCXT';
+        assert($exchange->options['broker'] === $id, 'id not in options');
+        try {
+            $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            // we expect an error here, we're only interested in the headers
+            $req_headers = $exchange->last_request_headers;
+        }
+        assert($req_headers['X-SOURCE-KEY'] === $id, 'id not in headers');
+        close($exchange);
     }
 }
 

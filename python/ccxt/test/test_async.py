@@ -28,7 +28,7 @@ import asyncio
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ProxyError
 from ccxt.base.errors import OperationFailed
-from ccxt.base.errors import ExchangeError
+# from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import AuthenticationError
@@ -286,6 +286,7 @@ class testMainClass(baseMainTestClass):
         self.private_test = get_cli_arg_value('--private')
         self.private_test_only = get_cli_arg_value('--privateOnly')
         self.sandbox = get_cli_arg_value('--sandbox')
+        self.load_keys = get_cli_arg_value('--loadKeys')
         self.ws_tests = get_cli_arg_value('--ws')
 
     async def init(self, exchange_id, symbol_argv):
@@ -456,6 +457,7 @@ class testMainClass(baseMainTestClass):
         # if it was passed successfully, add to the list of successfull tests
         if is_public:
             self.checked_public_tests[method_name] = True
+        return
 
     async def test_safe(self, method_name, exchange, args=[], is_public=False):
         # `testSafe` method does not throw an exception, instead mutes it. The reason we
@@ -516,6 +518,7 @@ class testMainClass(baseMainTestClass):
                     else:
                         dump('[TEST_FAILURE]', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
                         return False
+        return True
 
     async def run_public_tests(self, exchange, symbol):
         tests = {
@@ -787,7 +790,7 @@ class testMainClass(baseMainTestClass):
                 exception = e
         # if exception was set, then throw it
         if exception:
-            raise ExchangeError('[TEST_FAILURE] Failed ' + proxy_test_name + ' : ' + exception_message(exception))
+            error_message = '[TEST_FAILURE] Failed ' + proxy_test_name + ' : ' + exception_message(exception)
 
     async def start_test(self, exchange, symbol):
         # we do not need to test aliases
@@ -1159,7 +1162,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1378,6 +1381,19 @@ class testMainClass(baseMainTestClass):
         assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
         await close(exchange)
         return True
+
+    async def test_bingx(self):
+        exchange = self.init_offline_exchange('bingx')
+        req_headers = None
+        id = 'CCXT'
+        assert exchange.options['broker'] == id, 'id not in options'
+        try:
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            req_headers = exchange.last_request_headers
+        assert req_headers['X-SOURCE-KEY'] == id, 'id not in headers'
+        await close(exchange)
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************

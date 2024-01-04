@@ -53,7 +53,7 @@ class alpaca extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createOrder' => true,
-                'fetchBalance' => true,
+                'fetchBalance' => false,
                 'fetchBidsAsks' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
@@ -356,10 +356,16 @@ class alpaca extends Exchange {
         //
         $marketId = $this->safe_string($asset, 'symbol');
         $parts = explode('/', $marketId);
+        $assetClass = $this->safe_string($asset, 'class');
         $baseId = $this->safe_string($parts, 0);
         $quoteId = $this->safe_string($parts, 1);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        // Us equity markets do not include $quote in $symbol->
+        // We can safely coerce us_equity $quote to USD
+        if ($quote === null && $assetClass === 'us_equity') {
+            $quote = 'USD';
+        }
         $symbol = $base . '/' . $quote;
         $status = $this->safe_string($asset, 'status');
         $active = ($status === 'active');

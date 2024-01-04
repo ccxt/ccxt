@@ -1116,98 +1116,98 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
         exit_script(0)
 
     def test_binance(self):
-        binance = self.init_offline_exchange('binance')
+        exchange = self.init_offline_exchange('binance')
         spot_id = 'x-R4BD3S82'
         spot_order_request = None
         try:
-            binance.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            spot_order_request = self.urlencoded_to_dict(binance.last_request_body)
+            spot_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         client_order_id = spot_order_request['newClientOrderId']
         assert client_order_id.startswith(spot_id), 'spot clientOrderId does not start with spotId'
         swap_id = 'x-xcKtGhcu'
         swap_order_request = None
         try:
-            binance.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+            exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            swap_order_request = self.urlencoded_to_dict(binance.last_request_body)
+            swap_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         swap_inverse_order_request = None
         try:
-            binance.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
+            exchange.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            swap_inverse_order_request = self.urlencoded_to_dict(binance.last_request_body)
+            swap_inverse_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         client_order_id_spot = swap_order_request['newClientOrderId']
         assert client_order_id_spot.startswith(swap_id), 'swap clientOrderId does not start with swapId'
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
         assert client_order_id_inverse.startswith(swap_id), 'swap clientOrderIdInverse does not start with swapId'
-        close(binance)
+        close(exchange)
 
     def test_okx(self):
-        okx = self.init_offline_exchange('okx')
+        exchange = self.init_offline_exchange('okx')
         id = 'e847386590ce4dBC'
         spot_order_request = None
         try:
-            okx.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            spot_order_request = json_parse(okx.last_request_body)
+            spot_order_request = json_parse(exchange.last_request_body)
         client_order_id = spot_order_request[0]['clOrdId']  # returns order inside array
         assert client_order_id.startswith(id), 'spot clientOrderId does not start with id'
         assert spot_order_request[0]['tag'] == id, 'id different from spot tag'
         swap_order_request = None
         try:
-            okx.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+            exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            swap_order_request = json_parse(okx.last_request_body)
+            swap_order_request = json_parse(exchange.last_request_body)
         client_order_id_spot = swap_order_request[0]['clOrdId']
         assert client_order_id_spot.startswith(id), 'swap clientOrderId does not start with id'
         assert swap_order_request[0]['tag'] == id, 'id different from swap tag'
-        close(okx)
+        close(exchange)
 
     def test_cryptocom(self):
-        cryptocom = self.init_offline_exchange('cryptocom')
+        exchange = self.init_offline_exchange('cryptocom')
         id = 'CCXT'
-        cryptocom.load_markets()
+        exchange.load_markets()
         request = None
         try:
-            cryptocom.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            request = json_parse(cryptocom.last_request_body)
+            request = json_parse(exchange.last_request_body)
         assert request['params']['broker_id'] == id, 'id different from  broker_id'
-        close(cryptocom)
+        close(exchange)
 
     def test_bybit(self):
-        bybit = self.init_offline_exchange('bybit')
+        exchange = self.init_offline_exchange('bybit')
         req_headers = None
         id = 'CCXT'
-        assert bybit.options['brokerId'] == id, 'id not in options'
+        assert exchange.options['brokerId'] == id, 'id not in options'
         try:
-            bybit.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = bybit.last_request_headers
+            req_headers = exchange.last_request_headers
         assert req_headers['Referer'] == id, 'id not in headers'
-        close(bybit)
+        close(exchange)
 
     def test_kucoin(self):
-        kucoin = self.init_offline_exchange('kucoin')
+        exchange = self.init_offline_exchange('kucoin')
         req_headers = None
-        assert kucoin.options['partner']['spot']['id'] == 'ccxt', 'id not in options'
-        assert kucoin.options['partner']['spot']['key'] == '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options'
+        assert exchange.options['partner']['spot']['id'] == 'ccxt', 'id not in options'
+        assert exchange.options['partner']['spot']['key'] == '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options'
         try:
-            kucoin.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = kucoin.last_request_headers
+            req_headers = exchange.last_request_headers
         id = 'ccxt'
         assert req_headers['KC-API-PARTNER'] == id, 'id not in headers'
-        close(kucoin)
+        close(exchange)
 
     def test_kucoinfutures(self):
         kucoin = self.init_offline_exchange('kucoinfutures')
@@ -1223,93 +1223,93 @@ class testMainClass(baseMainTestClass):
         close(kucoin)
 
     def test_bitget(self):
-        bitget = self.init_offline_exchange('bitget')
+        exchange = self.init_offline_exchange('bitget')
         req_headers = None
         id = 'p4sve'
-        assert bitget.options['broker'] == id, 'id not in options'
+        assert exchange.options['broker'] == id, 'id not in options'
         try:
-            bitget.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = bitget.last_request_headers
+            req_headers = exchange.last_request_headers
         assert req_headers['X-CHANNEL-API-CODE'] == id, 'id not in headers'
-        close(bitget)
+        close(exchange)
 
     def test_mexc(self):
-        mexc = self.init_offline_exchange('mexc')
+        exchange = self.init_offline_exchange('mexc')
         req_headers = None
         id = 'CCXT'
-        assert mexc.options['broker'] == id, 'id not in options'
-        mexc.load_markets()
+        assert exchange.options['broker'] == id, 'id not in options'
+        exchange.load_markets()
         try:
-            mexc.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = mexc.last_request_headers
+            req_headers = exchange.last_request_headers
         assert req_headers['source'] == id, 'id not in headers'
-        close(mexc)
+        close(exchange)
 
     def test_huobi(self):
-        huobi = self.init_offline_exchange('huobi')
+        exchange = self.init_offline_exchange('huobi')
         # spot test
         id = 'AA03022abc'
         spot_order_request = None
         try:
-            huobi.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            spot_order_request = json_parse(huobi.last_request_body)
+            spot_order_request = json_parse(exchange.last_request_body)
         client_order_id = spot_order_request['client-order-id']
         assert client_order_id.startswith(id), 'spot clientOrderId does not start with id'
         # swap test
         swap_order_request = None
         try:
-            huobi.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+            exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            swap_order_request = json_parse(huobi.last_request_body)
+            swap_order_request = json_parse(exchange.last_request_body)
         swap_inverse_order_request = None
         try:
-            huobi.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
+            exchange.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            swap_inverse_order_request = json_parse(huobi.last_request_body)
+            swap_inverse_order_request = json_parse(exchange.last_request_body)
         client_order_id_spot = swap_order_request['channel_code']
         assert client_order_id_spot.startswith(id), 'swap channel_code does not start with id'
         client_order_id_inverse = swap_inverse_order_request['channel_code']
         assert client_order_id_inverse.startswith(id), 'swap inverse channel_code does not start with id'
-        close(huobi)
+        close(exchange)
 
     def test_woo(self):
-        woo = self.init_offline_exchange('woo')
+        exchange = self.init_offline_exchange('woo')
         # spot test
         id = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
         spot_order_request = None
         try:
-            woo.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            spot_order_request = self.urlencoded_to_dict(woo.last_request_body)
+            spot_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         broker_id = spot_order_request['broker_id']
         assert broker_id.startswith(id), 'broker_id does not start with id'
         # swap test
         stop_order_request = None
         try:
-            woo.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, {
+            exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, {
                 'stopPrice': 30000,
             })
         except Exception as e:
-            stop_order_request = json_parse(woo.last_request_body)
+            stop_order_request = json_parse(exchange.last_request_body)
         client_order_id_spot = stop_order_request['brokerId']
         assert client_order_id_spot.startswith(id), 'brokerId does not start with id'
-        close(woo)
+        close(exchange)
 
     def test_bitmart(self):
-        bitmart = self.init_offline_exchange('bitmart')
+        exchange = self.init_offline_exchange('bitmart')
         req_headers = None
         id = 'CCXTxBitmart000'
-        assert bitmart.options['brokerId'] == id, 'id not in options'
-        bitmart.load_markets()
+        assert exchange.options['brokerId'] == id, 'id not in options'
+        exchange.load_markets()
         try:
-            bitmart.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = bitmart.last_request_headers
+            req_headers = exchange.last_request_headers
         assert req_headers['X-BM-BROKER-ID'] == id, 'id not in headers'
-        close(bitmart)
+        close(exchange)
 
     def test_coinex(self):
         exchange = self.init_offline_exchange('coinex')
@@ -1322,6 +1322,19 @@ class testMainClass(baseMainTestClass):
             spot_order_request = json_parse(exchange.last_request_body)
         client_order_id = spot_order_request['client_id']
         assert client_order_id.startswith(id), 'clientOrderId does not start with id'
+        close(exchange)
+
+    def test_bingx(self):
+        exchange = self.init_offline_exchange('bingx')
+        req_headers = None
+        id = 'CCXT'
+        assert exchange.options['broker'] == id, 'id not in options'
+        try:
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            req_headers = exchange.last_request_headers
+        assert req_headers['X-SOURCE-KEY'] == id, 'id not in headers'
         close(exchange)
 
 # ***** AUTO-TRANSPILER-END *****

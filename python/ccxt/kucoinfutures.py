@@ -1228,15 +1228,15 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :see: https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-stop-orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param dict [params.stop]: When True, all the trigger orders will be cancelled
+        :param dict [params.trigger]: When True, all the trigger orders will be cancelled
         :returns: Response from the exchange
         """
         self.load_markets()
         request = {}
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
-        stop = self.safe_value(params, 'stop')
-        params = self.omit(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
+        params = self.omit(params, ['stop', 'trigger'])
         response = None
         if stop:
             response = self.futuresPrivateDeleteStopOrders(self.extend(request, params))
@@ -1399,7 +1399,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order to retrieve
         :param int [limit]: The maximum number of orders to retrieve
         :param dict [params]: exchange specific parameters
-        :param bool [params.stop]: set to True to retrieve untriggered stop orders
+        :param bool [params.trigger]: set to True to retrieve untriggered stop orders
         :param int [params.until]: End time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit or market
@@ -1411,9 +1411,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOrdersByStatus', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchOrdersByStatus', symbol, since, limit, params)
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
         until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['stop', 'until', 'till'])
+        params = self.omit(params, ['stop', 'until', 'till', 'trigger'])
         if status == 'closed':
             status = 'done'
         elif status == 'open':

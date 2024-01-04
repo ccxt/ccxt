@@ -1260,7 +1260,7 @@ class kucoinfutures extends kucoin {
          * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-$stop-orders
          * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {array} [$params->stop] When true, all the trigger orders will be cancelled
+         * @param {array} [$params->trigger] When true, all the trigger orders will be cancelled
          * @return Response from the exchange
          */
         $this->load_markets();
@@ -1268,8 +1268,8 @@ class kucoinfutures extends kucoin {
         if ($symbol !== null) {
             $request['symbol'] = $this->market_id($symbol);
         }
-        $stop = $this->safe_value($params, 'stop');
-        $params = $this->omit($params, 'stop');
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
         if ($stop) {
             $response = $this->futuresPrivateDeleteStopOrders (array_merge($request, $params));
@@ -1436,7 +1436,7 @@ class kucoinfutures extends kucoin {
          * @param {int} [$since] timestamp in ms of the earliest order to retrieve
          * @param {int} [$limit] The maximum number of $orders to retrieve
          * @param {array} [$params] exchange specific parameters
-         * @param {bool} [$params->stop] set to true to retrieve untriggered $stop $orders
+         * @param {bool} [$params->trigger] set to true to retrieve untriggered $stop $orders
          * @param {int} [$params->until] End time in ms
          * @param {string} [$params->side] buy or sell
          * @param {string} [$params->type] $limit or $market
@@ -1449,9 +1449,9 @@ class kucoinfutures extends kucoin {
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchOrdersByStatus', $symbol, $since, $limit, $params);
         }
-        $stop = $this->safe_value($params, 'stop');
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
         $until = $this->safe_integer_2($params, 'until', 'till');
-        $params = $this->omit($params, array( 'stop', 'until', 'till' ));
+        $params = $this->omit($params, array( 'stop', 'until', 'till', 'trigger' ));
         if ($status === 'closed') {
             $status = 'done';
         } elseif ($status === 'open') {
