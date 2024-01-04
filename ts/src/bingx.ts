@@ -1903,11 +1903,26 @@ export default class bingx extends Exchange {
         //     }
         //
         if (typeof response === 'string') {
+            // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
+            // and JSON.parse can not handle them in JS, so we have to use .parseJson
+            // however, when order has an attached SL/TP, their value types need extra parsing
+            response = this.fixStringifiedJsonMembers (response);
             response = this.parseJson (response);
         }
         const data = this.safeValue (response, 'data', {});
         const order = this.safeValue (data, 'order', data);
         return this.parseOrder (order, market);
+    }
+
+    fixStringifiedJsonMembers (content) {
+        // when stringified json has members with their values also stringified, like:
+        // '{"code":0, "data":{"order":{"orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"{\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1}","reduceOnly":false}}}'
+        // we can fix with below manipulations
+        // @ts-ignore
+        let modifiedContent = content.replaceAll ('\\', '');
+        modifiedContent = modifiedContent.replace ('"{', '{');
+        modifiedContent = modifiedContent.replace ('}"', '}');
+        return modifiedContent;
     }
 
     async createOrders (orders: OrderRequest[], params = {}) {
