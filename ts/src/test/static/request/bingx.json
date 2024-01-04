@@ -262,6 +262,36 @@
                     }
                   }
                 ]
+            },
+            {
+                "description": "swap order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?clientOrderID=myorder1&positionSide=LONG&price=50&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1704360714849&type=LIMIT&signature=2881d13ae74453035b973ab795af3f1052e4cbb88829d407d3cbe687bcb03afe",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  50,
+                  {
+                    "clientOrderId": "myorder1"
+                  }
+                ]
+            },
+            {
+                "description": "spot order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?clientOrderId=myorder1&newClientOrderId=myorder1&price=50&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1704360855187&type=LIMIT&signature=db4adedce73fa75cfda1dafccc45d6b2b16566bbcc751a5df7ef27bc7e5e3bef",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  50,
+                  {
+                    "clientOrderId": "myorder1"
+                  }
+                ]
             }
         ],
         "createOrders": [
