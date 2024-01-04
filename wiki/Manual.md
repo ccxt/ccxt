@@ -4241,46 +4241,45 @@ exchange.create_limit_buy_order (symbol, amount, price[, params])
 exchange.create_limit_sell_order (symbol, amount, price[, params])
 ```
 
-#### Stop Orders
+#### Trigger Order
 
-Coming from traditional trading, the term "Stop" order has been a bit ambigious, so instead of it, in CCXT we use term "Trigger" order. When symbol's price reaches your "trigger"("stop") price, the order is activated - if you had chosen *market* order, then it will be executed immediately, if you have chosen limit order, it will be placed in the orderbook.
+<a name="Trigger Orders" id="Trigger Orders"></a>
+<a name="Stop Orders" id="Stop Orders"></a>
+The term "Stop order" has been widely used in the traditional finance and trading, however we think that term is a bit ambigious, so in CCXT we use term "Trigger order" instead of "Stop order". When symbol's price reaches your "trigger" (a.k.a. "stop") price, the order is activated.
 
 We have different classification of trigger orders:
 * stand-alone [Trigger order](#trigger-orders) to buy/sell coin (open/close position)
 * stand-alone [Stop-Loss](#stop-loss-orders) or [Take-Profit](#take-profit-orders) order which are only designed to close an open position.
 * an attached Stop-Loss or Take-Profit order into a primary order ([Conditional Trigger Order](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
 
+##### Basic trigger order
 
-##### Trigger Orders
-
-Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open or close a position.
-
-* Typically, it is activated when price of the underlying asset/contract crosses the `triggerPrice` from **any direction**. However, some exchanges' API require to set `triggerDirection` too, which triggers order depending whether price is above or below `triggerPrice`. For example, if you want to trigger  limit order (buy 0.1 `ETH` at limit price `1500`) once pair price crosses `1700`:
+It is independent basic trigger order, that can increase or reduce your position. Implemented by specifying a `triggerPrice` parameter. e.g. you want to activate `buy 0.3 ETH at limit price 1000` when price crosses `1234`:
 
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript
 const params = {
-    'triggerPrice': 1700,
+    'triggerPrice': 1234,
 }
-const order = await exchange.createOrder ('ETH/USDT', 'market', 'buy', 0.1, 1500, params)
+const order = await exchange.createOrder ('ETH/USDT', 'limit', 'buy', 0.3, 1000, params)
 ```
 #### **Python**
 ```python
 params = {
-    'triggerPrice': 1700,
+    'triggerPrice': 1234,
 }
-order = exchange.create_order('ETH/USDT', 'market', 'buy', 0.1, 1500, params)
+order = exchange.create_order('ETH/USDT', 'limit', 'buy', 0.3, 1000, params)
 ```
 #### **PHP**
 ```php
 $params = {
-    'triggerPrice': 1700,
+    'triggerPrice': 1234,
 }
-$order = $exchange->create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, $params)
+$order = $exchange->create_order ('ETH/USDT', 'limit', 'buy', 0.3, 1000, params)
 ```
 <!-- tabs:end -->
-However, if some exchanges require that you provided `triggerDirection`, with either `above` or `below` values:
+Typically, it means to cross the price from **any direction**, however some exchanges' API require you to set param `triggerDirection` to either `'above'` or `'below'` values:
 
 ```
 params = {
@@ -4289,9 +4288,12 @@ params = {
 }
 ```
 
-##### Stop Loss Orders
+Note, you can also add `reduceOnly: true` param to trigger order, so it can act like "stop-loss" or "take-profit" order.
 
-The same as Trigger Orders, but the direction matters. Implemented by specifying a `stopLossPrice` parameter (for the spot loss triggerPrice), and also automatically implemented `triggerDirection` on behalf of user, so instead of regular Trigger Order, you can use this as an alternative.
+##### Stop Loss Order
+
+<a name="Stop Loss Orders" id="Stop Loss Orders"></a>
+The same as [Trigger Order](#trigger-order), but the direction matters. Implemented by specifying a `stopLossPrice` parameter (for the spot loss triggerPrice), and also automatically implemented `triggerDirection` on behalf of user, so instead of regular Trigger Order, you can use this as an alternative.
 
 Suppose you entered a long position (you bought) at 1000 and want to protect yourself from losses from a possible price drop below 700. You would place a stop loss order with triggerPrice at 700. For that stop loss order either you would specify a limit price or it will be executed at market price.
 
@@ -4372,9 +4374,10 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ```
 <!-- tabs:end -->
 
-##### Take Profit Orders
+##### Take Profit Order
 
-The same as Stop Loss Orders, but the direction matters. Implemented by specifying a `takeProfitPrice` parameter (for the take profit triggerPrice).
+<a name="Take Profit Orders" id="Take Profit Orders"></a>
+The same as [Trigger Order](#trigger-order), but the direction matters. Implemented by specifying a `takeProfitPrice` parameter (for the take profit triggerPrice).
 
 Suppose you entered a long position (you bought) at 1000 and want to get your profits from a possible price pump above 1300. You would place a take profit order with triggerPrice at 1300. For that take profit order either you would specify a limit price or it will be executed at market price.
 
