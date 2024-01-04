@@ -2476,7 +2476,7 @@ export default class binance extends Exchange {
         account['debt'] = Precise.stringAdd(debt, interest);
         return account;
     }
-    parseBalance(response, type = undefined, marginMode = undefined) {
+    parseBalanceCustom(response, type = undefined, marginMode = undefined) {
         const result = {
             'info': response,
         };
@@ -2819,7 +2819,7 @@ export default class binance extends Exchange {
         //       }
         //     ]
         //
-        return this.parseBalance(response, type, marginMode);
+        return this.parseBalanceCustom(response, type, marginMode);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -8753,7 +8753,7 @@ export default class binance extends Exchange {
         }
         return this.safeValue(config, 'cost', 1);
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         const response = await this.fetch2(path, api, method, params, headers, body, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api === 'private') {
@@ -9382,6 +9382,7 @@ export default class binance extends Exchange {
         else {
             return this.parseOpenInterest(response, market);
         }
+        return undefined;
     }
     parseOpenInterest(interest, market = undefined) {
         const timestamp = this.safeInteger2(interest, 'timestamp', 'time');

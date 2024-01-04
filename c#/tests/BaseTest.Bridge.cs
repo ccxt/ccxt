@@ -140,10 +140,10 @@ public partial class BaseTest
             }
             return true;
         }
-        else if (a is dict)
+        else if (a is IDictionary<string, object>)
         {
-            var dict1 = a as dict;
-            var dict2 = b as dict;
+            var dict1 = a as IDictionary<string, object>;
+            var dict2 = b as IDictionary<string, object>;
 
             var keysA = dict1.Keys;
             foreach (var key in keysA)

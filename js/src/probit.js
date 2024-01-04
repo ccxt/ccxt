@@ -425,8 +425,8 @@ export default class probit extends Exchange {
             const networkList = {};
             for (let j = 0; j < platformsByPriority.length; j++) {
                 const network = platformsByPriority[j];
-                const networkId = this.safeString(network, 'id');
-                const networkCode = this.networkIdToCode(networkId);
+                const idInner = this.safeString(network, 'id');
+                const networkCode = this.networkIdToCode(idInner);
                 const currentDepositSuspended = this.safeValue(network, 'deposit_suspended');
                 const currentWithdrawalSuspended = this.safeValue(network, 'withdrawal_suspended');
                 const currentDeposit = !currentDepositSuspended;
@@ -447,7 +447,7 @@ export default class probit extends Exchange {
                     }
                 }
                 networkList[networkCode] = {
-                    'id': networkId,
+                    'id': idInner,
                     'network': networkCode,
                     'active': currentActive,
                     'deposit': currentDeposit,

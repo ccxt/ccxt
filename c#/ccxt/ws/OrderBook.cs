@@ -1,15 +1,11 @@
-using System.Globalization;
-using System.Net;
-using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 
 namespace ccxt;
 
-using dict = Dictionary<string, object>;
+using dict = IDictionary<string, object>;
 
-public class OrderBook : dict
+public class OrderBook : CustomConcurrentDictionary<string, object>
 {
-    public List<object> cache = new List<object>();
+    public IList<object> cache = new SlimConcurrentList<object>();
     public Asks asks;
     public Bids bids;
 
@@ -19,16 +15,16 @@ public class OrderBook : dict
         // this.depth = depth;
         var depth = (depth2 == null) ? Int32.MaxValue : Convert.ToInt32(depth2);
 
-        var defaults = new dict
+        var defaults = new CustomConcurrentDictionary<string, object>
         {
-            { "bids", new List<object>() },
-            { "asks", new List<object>() },
+            { "bids", new SlimConcurrentList<object>() },
+            { "asks", new SlimConcurrentList<object>() },
             { "timestamp", null },
             { "datetime", null },
             { "nonce", null },
             { "symbol", null },
         };
-        var snapshotCopy = new dict(snapshot as dict);
+        var snapshotCopy = new Dictionary<string, object>(snapshot as dict);
         defaults["bids"] = Exchange.SafeValue(snapshotCopy, "bids", defaults["bids"]);
         defaults["asks"] = Exchange.SafeValue(snapshotCopy, "asks", defaults["asks"]);
         defaults["timestamp"] = Exchange.SafeValue(snapshotCopy, "timestamp", defaults["timestamp"]);
@@ -57,6 +53,7 @@ public class OrderBook : dict
 
     public OrderBook limit()
     {
+
         this.asks.limit();
         this.bids.limit();
         return this;
@@ -106,9 +103,9 @@ public class CountedOrderBook : OrderBook
 {
     public CountedAsks asks;
     public CountedBids bids;
-    public CountedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot, new dict {
-       {"asks", new CountedAsks(Exchange.SafeValue(snapshot, "asks", new List<object>()), depth2)},
-       {"bids", new CountedBids(Exchange.SafeValue(snapshot, "bids", new List<object>()), depth2)}
+    public CountedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot, new CustomConcurrentDictionary<string, object> {
+       {"asks", new CountedAsks(Exchange.SafeValue(snapshot, "asks", new SlimConcurrentList<object>()), depth2)},
+       {"bids", new CountedBids(Exchange.SafeValue(snapshot, "bids", new SlimConcurrentList<object>()), depth2)}
     }), depth2)
     {
 
@@ -129,9 +126,9 @@ public class IndexedOrderBook : OrderBook
 {
     public IndexedAsks asks;
     public IndexedBids bids;
-    public IndexedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot, new dict {
-       {"asks", new IndexedAsks(Exchange.SafeValue(snapshot, "asks", new List<object>()), depth2)},
-       {"bids", new IndexedBids(Exchange.SafeValue(snapshot, "bids", new List<object>()), depth2)}
+    public IndexedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot, new CustomConcurrentDictionary<string, object> {
+       {"asks", new IndexedAsks(Exchange.SafeValue(snapshot, "asks", new SlimConcurrentList<object>()), depth2)},
+       {"bids", new IndexedBids(Exchange.SafeValue(snapshot, "bids", new SlimConcurrentList<object>()), depth2)}
     }), depth2)
     {
 

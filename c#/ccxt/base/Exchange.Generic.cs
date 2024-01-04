@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 
-using dict = Dictionary<string, object>;
+using dict = IDictionary<string, object>;
 using list = List<object>;
 
 public partial class Exchange
@@ -92,7 +92,7 @@ public partial class Exchange
     {
 
         var a = (dict)aa;
-        var outDict = new dict();
+        var outDict = new Dictionary<string, object>();
         var keysA = new List<string>(a.Keys);
         foreach (string key in keysA)
             outDict[(string)key] = a[key];
@@ -110,22 +110,22 @@ public partial class Exchange
     public object deepExtend2(params object[] objs)
     {
         // old implementation
-        object outDict = new dict();
+        object outDict = new Dictionary<string, object>();
         foreach (object obj in objs)
         {
             var obj2 = obj;
             if (obj2 == null)
             {
-                obj2 = new dict();
+                obj2 = new Dictionary<string, object>();
             }
-            if (obj2.GetType() == typeof(dict))
+            if (obj2 is dict)
             {
                 var keys = new List<string>(((dict)obj2).Keys);
                 foreach (string key in keys)
                 {
 
                     var value = ((dict)obj2)[key];
-                    if (value != null && value.GetType() == typeof(dict))
+                    if (value != null && value is dict)
                     {
                         if (((dict)outDict).ContainsKey(key))
                         {
@@ -160,10 +160,10 @@ public partial class Exchange
             if (x == null)
                 continue;
 
-            if (x.GetType() == typeof(dict))
+            if (x is dict)
             {
-                if (outObj == null || outObj.GetType() != typeof(dict))
-                    outObj = new dict();
+                if (outObj == null || !(outObj is dict))
+                    outObj = new Dictionary<string, object>();
 
                 var dictX = (dict)x;
                 var dictXKeys = new List<string>(dictX.Keys);
@@ -190,13 +190,13 @@ public partial class Exchange
 
     public bool isArray(object a)
     {
-        return a is List<object>;
+        return a is IList<object>;
     }
 
-    public dict indexBy(object a, object key2)
+    public Dictionary<string, object> indexBy(object a, object key2)
     {
         // var key = (string)key2;
-        // var outDict = new dict();
+        // var outDict = new Dictionary<string, object>();
 
         // List<object> input = null;
         // if (a.GetType() == typeof(List<object>))
@@ -226,7 +226,7 @@ public partial class Exchange
         //     }
         // }
         // return outDict;
-        var outDict = new dict();
+        var outDict = new Dictionary<string, object>();
         var targetX = new List<object>() { };
         if (a.GetType() == typeof(List<object>))
         {
@@ -239,7 +239,7 @@ public partial class Exchange
         foreach (object elem in targetX)
         {
             // var elem2 = (dict)elem;
-            if (elem.GetType() == typeof(dict))
+            if (elem is dict)
             {
                 var elem2 = (dict)elem;
                 if (elem2.ContainsKey((string)key2))
@@ -273,10 +273,10 @@ public partial class Exchange
         return outDict;
     }
 
-    public dict groupBy(object trades, object key2)
+    public Dictionary<string, object> groupBy(object trades, object key2)
     {
         var key = (string)key2;
-        var outDict = new dict();
+        var outDict = new Dictionary<string, object>();
         var list = (List<object>)trades;
         foreach (object elem in list)
         {

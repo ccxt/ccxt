@@ -18,7 +18,7 @@ export default class woo extends wooRest {
     handleTrade(client: Client, message: any): void;
     parseWsTrade(trade: any, market?: any): Trade;
     checkRequiredUid(error?: boolean): boolean;
-    authenticate(params?: {}): any;
+    authenticate(params?: {}): Promise<any>;
     watchPrivate(messageHash: any, message: any, params?: {}): Promise<any>;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseWsOrder(order: any, market?: any): Order;
@@ -26,8 +26,8 @@ export default class woo extends wooRest {
     handleOrder(client: Client, message: any): void;
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: any, message: any): void;
-    handleMessage(client: Client, message: any): any;
-    ping(client: any): {
+    handleMessage(client: Client, message: any): void;
+    ping(client: Client): {
         event: string;
     };
     handlePing(client: Client, message: any): {

@@ -60,19 +60,20 @@ export default class kucoinfutures extends kucoinfuturesRest {
             },
         });
     }
-    negotiate(privateChannel, params = {}) {
+    async negotiate(privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue(this.options, 'urls', {});
         const spawaned = this.safeValue(urls, connectId);
         if (spawaned !== undefined) {
-            return spawaned;
+            return await spawaned;
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
-        urls[connectId] = this.spawn(this.negotiateHelper, privateChannel, params);
+        urls[connectId] = this.spawn(this.negotiateHelper, privateChannel, params); // we have to wait here otherwsie in c# will not work
         this.options['urls'] = urls;
-        return urls[connectId];
+        const future = urls[connectId];
+        return await future;
     }
     async negotiateHelper(privateChannel, params = {}) {
         let response = undefined;
@@ -923,11 +924,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
             'position.adjustRiskLimit': this.handlePosition,
         };
         const method = this.safeValue(methods, subject);
-        if (method === undefined) {
-            return message;
-        }
-        else {
-            return method.call(this, client, message);
+        if (method !== undefined) {
+            method.call(this, client, message);
         }
     }
     ping(client) {
@@ -976,7 +974,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         };
         const method = this.safeValue(methods, type);
         if (method !== undefined) {
-            return method.call(this, client, message);
+            method.call(this, client, message);
         }
     }
 }

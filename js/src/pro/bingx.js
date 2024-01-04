@@ -574,7 +574,7 @@ export default class bingx extends bingxRest {
     }
     setBalanceCache(client, type, subscriptionHash, params) {
         if (subscriptionHash in client.subscriptions) {
-            return undefined;
+            return;
         }
         const fetchBalanceSnapshot = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if (fetchBalanceSnapshot) {

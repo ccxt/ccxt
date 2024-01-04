@@ -311,9 +311,9 @@ public partial class Exchange
             obj = new List<object>((object[])obj);
         }
 
-        if (obj is dict)
+        if (obj is IDictionary<string, object>)
         {
-            var dict = (dict)obj;
+            var dict = (IDictionary<string, object>)obj;
             foreach (var key2 in keys)
             {
                 if (key2 == null)

@@ -682,9 +682,9 @@ public partial class Exchange
         }
 
 
-        if (value is dict)
+        if (value is IDictionary<string, object>)
         {
-            var dictValue = (dict)value;
+            var dictValue = (IDictionary<string, object>)value;
             if (dictValue.ContainsKey((string)key))
             {
                 return dictValue[(string)key];
@@ -694,7 +694,7 @@ public partial class Exchange
                 return null;
             }
         }
-        else if (value is List<object>)
+        else if (value is IList<object>)
         {
             // check here if index is out of bounds
             int parsed = Convert.ToInt32(key);
@@ -825,22 +825,22 @@ public partial class Exchange
         {
             return false;
         }
-        if (obj is (List<object>))
+        if (obj is (IList<object>))
         {
-            return ((List<object>)obj).Contains(key);
+            return ((IList<object>)obj).Contains(key);
         }
-        else if (obj is (List<string>))
+        else if (obj is (IList<string>))
         {
-            return ((List<string>)obj).Contains((string)key);
+            return ((IList<string>)obj).Contains((string)key);
         }
         else if (obj is (List<Int64>))
         {
             return ((List<Int64>)obj).Contains((Int64)key);
         }
-        else if (obj is (dict))
+        else if (obj is (IDictionary<string, object>))
         {
             if (key is (string))
-                return ((dict)obj).ContainsKey((string)key);
+                return ((IDictionary<string, object>)obj).ContainsKey((string)key);
             else
                 return false;
         }

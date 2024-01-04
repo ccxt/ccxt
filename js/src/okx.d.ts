@@ -1,5 +1,5 @@
 import Exchange from './abstract/okx.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency } from './base/types.js';
 /**
  * @class okx
  * @augments Exchange
@@ -110,17 +110,7 @@ export default class okx extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPositionsForSymbol(symbol: string, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
-    }>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: string;
@@ -193,7 +183,7 @@ export default class okx extends Exchange {
     setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
     setPositionMode(hedged: any, symbol?: Str, params?: {}): Promise<any>;
     setMarginMode(marginMode: any, symbol?: Str, params?: {}): Promise<any>;
-    fetchCrossBorrowRates(params?: {}): Promise<any[]>;
+    fetchCrossBorrowRates(params?: {}): Promise<any>;
     fetchCrossBorrowRate(code: string, params?: {}): Promise<{
         currency: string;
         rate: number;

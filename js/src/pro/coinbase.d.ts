@@ -16,5 +16,5 @@ export default class coinbase extends coinbaseRest {
     handleOrderBookHelper(orderbook: any, updates: any): void;
     handleOrderBook(client: any, message: any): any;
     handleSubscriptionStatus(client: any, message: any): any;
-    handleMessage(client: any, message: any): any;
+    handleMessage(client: any, message: any): void;
 }
