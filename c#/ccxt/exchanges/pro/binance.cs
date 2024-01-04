@@ -17,7 +17,7 @@ public partial class binanceWs : binance
                 { "watchBalance", true },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
-                { "watchOHLCVForSymbols", true },
+                { "watchOHLCVForSymbols", false },
                 { "watchOrderBook", true },
                 { "watchOrderBookForSymbols", true },
                 { "watchOrders", true },
@@ -152,30 +152,6 @@ public partial class binanceWs : binance
         // valid <levels> are 5, 10, or 20
         //
         // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object market = this.market(symbol);
-        if (isTrue(!isEqual(limit, null)))
-        {
-            if (isTrue(getValue(market, "contract")))
-            {
-                if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(limit, 5))) && isTrue((!isEqual(limit, 10)))) && isTrue((!isEqual(limit, 20)))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 100)))) && isTrue((!isEqual(limit, 500)))) && isTrue((!isEqual(limit, 1000)))))
-                {
-                    throw new ExchangeError ((string)add(this.id, " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000")) ;
-                }
-            } else
-            {
-                if (isTrue(isGreaterThan(limit, 5000)))
-                {
-                    throw new ExchangeError ((string)add(this.id, " watchOrderBook limit argument must be less than or equal to 5000")) ;
-                }
-            }
-        }
-        object type = getValue(market, "type");
-        if (isTrue(getValue(market, "contract")))
-        {
-            type = ((bool) isTrue(getValue(market, "linear"))) ? "future" : "delivery";
-        }
         //
         // notice the differences between trading futures and spot trading
         // the algorithms use different urls in step 1
@@ -207,30 +183,8 @@ public partial class binanceWs : binance
         // 8. If the quantity is 0, remove the price level.
         // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
         //
-        object name = "depth";
-        object messageHash = add(add(getValue(market, "lowercaseId"), "@"), name);
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, messageHash));
-        object requestId = this.requestId(url);
-        object watchOrderBookRate = this.safeString(this.options, "watchOrderBookRate", "100");
-        object request = new Dictionary<string, object>() {
-            { "method", "SUBSCRIBE" },
-            { "params", new List<object>() {add(add(add(messageHash, "@"), watchOrderBookRate), "ms")} },
-            { "id", requestId },
-        };
-        object subscription = new Dictionary<string, object>() {
-            { "id", ((object)requestId).ToString() },
-            { "messageHash", messageHash },
-            { "name", name },
-            { "symbol", getValue(market, "symbol") },
-            { "method", this.handleOrderBookSubscription },
-            { "limit", limit },
-            { "type", type },
-            { "params", parameters },
-        };
-        object message = this.extend(request, parameters);
-        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        object orderbook = await this.watch(url, messageHash, message, messageHash, subscription);
-        return (orderbook as ccxt.OrderBook).limit();
+        parameters ??= new Dictionary<string, object>();
+        return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
 
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
@@ -254,17 +208,19 @@ public partial class binanceWs : binance
             type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
         }
         object name = "depth";
-        object messageHash = add("multipleOrderbook::", String.Join(",", ((List<object>)symbols).ToArray()));
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, "multipleOrderbook"));
         object requestId = this.requestId(url);
         object watchOrderBookRate = this.safeString(this.options, "watchOrderBookRate", "100");
         object subParams = new List<object>() {};
+        object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            object symbolHash = add(add(add(add(add(getValue(market, "lowercaseId"), "@"), name), "@"), watchOrderBookRate), "ms");
-            ((List<object>)subParams).Add(symbolHash);
+            object messageHash = add(add(getValue(market, "lowercaseId"), "@"), name);
+            ((IList<object>)messageHashes).Add(messageHash);
+            object symbolHash = add(add(add(messageHash, "@"), watchOrderBookRate), "ms");
+            ((IList<object>)subParams).Add(symbolHash);
         }
         object request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
@@ -273,7 +229,6 @@ public partial class binanceWs : binance
         };
         object subscription = new Dictionary<string, object>() {
             { "id", ((object)requestId).ToString() },
-            { "messageHash", messageHash },
             { "name", name },
             { "symbols", symbols },
             { "method", this.handleOrderBookSubscription },
@@ -282,14 +237,16 @@ public partial class binanceWs : binance
             { "params", parameters },
         };
         object message = this.extend(request, parameters);
-        object orderbook = await this.watch(url, messageHash, message, messageHash, subscription);
+        object orderbook = await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
         return (orderbook as ccxt.OrderBook).limit();
     }
 
     public async virtual Task fetchOrderBookSnapshot(WebSocketClient client, object message, object subscription)
     {
-        object messageHash = this.safeString(subscription, "messageHash");
+        object name = this.safeString(subscription, "name");
         object symbol = this.safeString(subscription, "symbol");
+        object market = this.market(symbol);
+        object messageHash = add(add(getValue(market, "lowercaseId"), "@"), name);
         try
         {
             object defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
@@ -423,7 +380,7 @@ public partial class binanceWs : binance
         if (isTrue(isEqual(nonce, null)))
         {
             // 2. Buffer the events you receive from the stream.
-            ((List<object>)(orderbook as ccxt.OrderBook).cache).Add(message);
+            ((IList<object>)(orderbook as ccxt.OrderBook).cache).Add(message);
         } else
         {
             try
@@ -454,8 +411,6 @@ public partial class binanceWs : binance
                             if (isTrue(isLessThan(nonce, getValue(orderbook, "nonce"))))
                             {
                                 callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
-                                // watchOrderBookForSymbols part (dry logic)
-                                this.resolvePromiseIfMessagehashMatches(client as WebSocketClient, "multipleOrderbook::", symbol, orderbook);
                             }
                         } else
                         {
@@ -476,8 +431,6 @@ public partial class binanceWs : binance
                             if (isTrue(isLessThanOrEqual(nonce, getValue(orderbook, "nonce"))))
                             {
                                 callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
-                                // watchOrderBookForSymbols part (dry logic)
-                                this.resolvePromiseIfMessagehashMatches(client as WebSocketClient, "multipleOrderbook::", symbol, orderbook);
                             }
                         } else
                         {
@@ -566,11 +519,10 @@ public partial class binanceWs : binance
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object currentMessageHash = add(add(getValue(market, "lowercaseId"), "@"), name);
-            ((List<object>)subParams).Add(currentMessageHash);
+            ((IList<object>)subParams).Add(currentMessageHash);
         }
-        object messageHash = add("multipleTrades::", String.Join(",", ((List<object>)symbols).ToArray()));
         object query = this.omit(parameters, "type");
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, messageHash));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, "multipleTrades"));
         object requestId = this.requestId(url);
         object request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
@@ -580,7 +532,7 @@ public partial class binanceWs : binance
         object subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
-        object trades = await this.watch(url, messageHash, this.extend(request, query), messageHash, subscribe);
+        object trades = await this.watchMultiple(url, subParams, this.extend(request, query), subParams, subscribe);
         if (isTrue(this.newUpdates))
         {
             object first = this.safeValue(trades, 0);
@@ -603,33 +555,7 @@ public partial class binanceWs : binance
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object market = this.market(symbol);
-        object options = this.safeValue(this.options, "watchTrades", new Dictionary<string, object>() {});
-        object name = this.safeString(options, "name", "trade");
-        object messageHash = add(add(getValue(market, "lowercaseId"), "@"), name);
-        object type = getValue(market, "type");
-        if (isTrue(getValue(market, "contract")))
-        {
-            type = ((bool) isTrue(getValue(market, "linear"))) ? "future" : "delivery";
-        }
-        object query = this.omit(parameters, "type");
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, messageHash));
-        object requestId = this.requestId(url);
-        object request = new Dictionary<string, object>() {
-            { "method", "SUBSCRIBE" },
-            { "params", new List<object>() {messageHash} },
-            { "id", requestId },
-        };
-        object subscribe = new Dictionary<string, object>() {
-            { "id", requestId },
-        };
-        object trades = await this.watch(url, messageHash, this.extend(request, query), messageHash, subscribe);
-        if (isTrue(this.newUpdates))
-        {
-            limit = callDynamically(trades, "getLimit", new object[] {getValue(market, "symbol"), limit});
-        }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     public override object parseWsTrade(object trade, object market = null)
@@ -825,8 +751,6 @@ public partial class binanceWs : binance
         callDynamically(tradesArray, "append", new object[] {trade});
         ((Dictionary<string, object>)this.trades)[(string)symbol] = tradesArray;
         callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, messageHash});
-        // watchTradesForSymbols part
-        this.resolvePromiseIfMessagehashMatches(client as WebSocketClient, "multipleTrades::", symbol, tradesArray);
     }
 
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -878,72 +802,6 @@ public partial class binanceWs : binance
             limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
         }
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-    }
-
-    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
-    {
-        /**
-        * @method
-        * @name binance#watchOHLCVForSymbols
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object options = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
-        object nameOption = this.safeString(options, "name", "kline");
-        object name = this.safeString(parameters, "name", nameOption);
-        parameters = this.omit(parameters, "name");
-        object firstMarket = this.market(getValue(getValue(symbolsAndTimeframes, 0), 0));
-        object type = getValue(firstMarket, "type");
-        if (isTrue(getValue(firstMarket, "contract")))
-        {
-            type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
-        }
-        object subParams = new List<object>() {};
-        object hashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
-        {
-            object data = getValue(symbolsAndTimeframes, i);
-            object symbolString = getValue(data, 0);
-            object timeframeString = getValue(data, 1);
-            object interval = this.safeString(this.timeframes, timeframeString, timeframeString);
-            object market = this.market(symbolString);
-            object marketId = getValue(market, "lowercaseId");
-            if (isTrue(isEqual(name, "indexPriceKline")))
-            {
-                // weird behavior for index price kline we can't use the perp suffix
-                marketId = ((string)marketId).Replace((string)"_perp", (string)"");
-            }
-            object topic = add(add(add(add(marketId, "@"), name), "_"), interval);
-            ((List<object>)subParams).Add(topic);
-            ((List<object>)hashes).Add(add(add(symbolString, "#"), timeframeString));
-        }
-        object messageHash = add("multipleOHLCV::", String.Join(",", ((List<object>)hashes).ToArray()));
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, messageHash));
-        object requestId = this.requestId(url);
-        object request = new Dictionary<string, object>() {
-            { "method", "SUBSCRIBE" },
-            { "params", subParams },
-            { "id", requestId },
-        };
-        object subscribe = new Dictionary<string, object>() {
-            { "id", requestId },
-        };
-        var symboltimeframestoredVariable = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscribe);
-        var symbol = ((List<object>) symboltimeframestoredVariable)[0];
-        var timeframe = ((List<object>) symboltimeframestoredVariable)[1];
-        var stored = ((List<object>) symboltimeframestoredVariable)[2];
-        if (isTrue(this.newUpdates))
-        {
-            limit = callDynamically(stored, "getLimit", new object[] {symbol, limit});
-        }
-        object filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
-        return this.createOHLCVObject(symbol, timeframe, filtered);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -1006,8 +864,6 @@ public partial class binanceWs : binance
         }
         callDynamically(stored, "append", new object[] {parsed});
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
-        // watchOHLCVForSymbols part
-        this.resolveMultipleOHLCV(client as WebSocketClient, "multipleOHLCV::", symbol, timeframe, stored);
     }
 
     public async override Task<object> watchTicker(object symbol, object parameters = null)
@@ -1069,12 +925,12 @@ public partial class binanceWs : binance
             market = this.market(getValue(symbols, 0));
         }
         var typeparametersVariable = this.handleMarketTypeAndParams("watchTickers", market, parameters);
-        type = ((List<object>)typeparametersVariable)[0];
-        parameters = ((List<object>)typeparametersVariable)[1];
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("watchTickers", market, parameters);
-        subType = ((List<object>)subTypeparametersVariable)[0];
-        parameters = ((List<object>)subTypeparametersVariable)[1];
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(this.isLinear(type, subType)))
         {
             type = "future";
@@ -1088,10 +944,6 @@ public partial class binanceWs : binance
         parameters = this.omit(parameters, "name");
         object wsParams = new List<object>() {};
         object messageHash = "tickers";
-        if (isTrue(!isEqual(symbols, null)))
-        {
-            messageHash = add("tickers::", String.Join(",", ((List<object>)symbols).ToArray()));
-        }
         if (isTrue(isEqual(name, "bookTicker")))
         {
             if (isTrue(isEqual(marketIds, null)))
@@ -1101,7 +953,7 @@ public partial class binanceWs : binance
             // simulate watchTickers with subscribe multiple individual bookTicker topic
             for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
             {
-                ((List<object>)wsParams).Add(add(((string)getValue(marketIds, i)).ToLower(), "@bookTicker"));
+                ((IList<object>)wsParams).Add(add(((string)getValue(marketIds, i)).ToLower(), "@bookTicker"));
             }
         } else
         {
@@ -1174,15 +1026,14 @@ public partial class binanceWs : binance
             eventVar = "ticker";
         }
         object timestamp = null;
-        object now = this.milliseconds();
         if (isTrue(isEqual(eventVar, "bookTicker")))
         {
             // take the event timestamp, if available, for spot tickers it is not
-            timestamp = this.safeInteger(message, "E", now);
+            timestamp = this.safeInteger(message, "E");
         } else
         {
             // take the timestamp of the closing price for candlestick streams
-            timestamp = this.safeInteger(message, "C", now);
+            timestamp = this.safeInteger(message, "C");
         }
         object marketId = this.safeString(message, "s");
         object symbol = this.safeSymbol(marketId, null, null, marketType);
@@ -1286,12 +1137,12 @@ public partial class binanceWs : binance
         object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
         object rawTickers = new List<object>() {};
         object newTickers = new List<object>() {};
-        if (isTrue((message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (isTrue(((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             rawTickers = message;
         } else
         {
-            ((List<object>)rawTickers).Add(message);
+            ((IList<object>)rawTickers).Add(message);
         }
         for (object i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
         {
@@ -1299,22 +1150,7 @@ public partial class binanceWs : binance
             object result = this.parseWsTicker(ticker, marketType);
             object symbol = getValue(result, "symbol");
             ((Dictionary<string, object>)this.tickers)[(string)symbol] = result;
-            ((List<object>)newTickers).Add(result);
-        }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "tickers::");
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
-        {
-            object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-            object tickers = this.filterByArray(newTickers, "symbol", symbols);
-            object tickersSymbols = new List<object>(((Dictionary<string,object>)tickers).Keys);
-            object numTickers = getArrayLength(tickersSymbols);
-            if (isTrue(isGreaterThan(numTickers, 0)))
-            {
-                callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, messageHash});
-            }
+            ((IList<object>)newTickers).Add(result);
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {newTickers, "tickers"});
     }
@@ -1364,12 +1200,12 @@ public partial class binanceWs : binance
         object query = null;
         object type = null;
         var typequeryVariable = this.handleMarketTypeAndParams("authenticate", null, parameters);
-        type = ((List<object>)typequeryVariable)[0];
-        query = ((List<object>)typequeryVariable)[1];
+        type = ((IList<object>)typequeryVariable)[0];
+        query = ((IList<object>)typequeryVariable)[1];
         object subType = null;
         var subTypequeryVariable = this.handleSubTypeAndParams("authenticate", null, query);
-        subType = ((List<object>)subTypequeryVariable)[0];
-        query = ((List<object>)subTypequeryVariable)[1];
+        subType = ((IList<object>)subTypequeryVariable)[0];
+        query = ((IList<object>)subTypequeryVariable)[1];
         if (isTrue(this.isLinear(type, subType)))
         {
             type = "future";
@@ -1379,8 +1215,8 @@ public partial class binanceWs : binance
         }
         object marginMode = null;
         var marginModequeryVariable = this.handleMarginModeAndParams("authenticate", query);
-        marginMode = ((List<object>)marginModequeryVariable)[0];
-        query = ((List<object>)marginModequeryVariable)[1];
+        marginMode = ((IList<object>)marginModequeryVariable)[0];
+        query = ((IList<object>)marginModequeryVariable)[1];
         object isIsolatedMargin = (isEqual(marginMode, "isolated"));
         object isCrossMargin = isTrue((isEqual(marginMode, "cross"))) || isTrue((isEqual(marginMode, null)));
         object symbol = this.safeString(query, "symbol");
@@ -1391,19 +1227,18 @@ public partial class binanceWs : binance
         object delay = this.sum(listenKeyRefreshRate, 10000);
         if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), delay)))
         {
-            object method = "publicPostUserDataStream";
+            object response = null;
             if (isTrue(isEqual(type, "future")))
             {
-                method = "fapiPrivatePostListenKey";
+                response = await this.fapiPrivatePostListenKey(query);
             } else if (isTrue(isEqual(type, "delivery")))
             {
-                method = "dapiPrivatePostListenKey";
+                response = await this.dapiPrivatePostListenKey(query);
             } else if (isTrue(isTrue(isEqual(type, "margin")) && isTrue(isCrossMargin)))
             {
-                method = "sapiPostUserDataStream";
+                response = await this.sapiPostUserDataStream(query);
             } else if (isTrue(isIsolatedMargin))
             {
-                method = "sapiPostUserDataStreamIsolated";
                 if (isTrue(isEqual(symbol, null)))
                 {
                     throw new ArgumentsRequired ((string)add(this.id, " authenticate() requires a symbol argument for isolated margin mode")) ;
@@ -1412,8 +1247,11 @@ public partial class binanceWs : binance
                 query = this.extend(query, new Dictionary<string, object>() {
                     { "symbol", marketId },
                 });
+                response = await this.sapiPostUserDataStreamIsolated(query);
+            } else
+            {
+                response = await this.publicPostUserDataStream(query);
             }
-            object response = await ((Task<object>)callDynamically(this, method, new object[] { query }));
             ((Dictionary<string, object>)this.options)[(string)type] = this.extend(options, new Dictionary<string, object>() {
                 { "listenKey", this.safeString(response, "listenKey") },
                 { "lastAuthenticatedTime", time },
@@ -1444,29 +1282,30 @@ public partial class binanceWs : binance
             // A network error happened: we can't renew a listen key that does not exist.
             return;
         }
-        object method = "publicPutUserDataStream";
         object request = new Dictionary<string, object>() {};
         object symbol = this.safeString(parameters, "symbol");
         object sendParams = this.omit(parameters, new List<object>() {"type", "symbol"});
-        if (isTrue(isEqual(type, "future")))
-        {
-            method = "fapiPrivatePutListenKey";
-        } else if (isTrue(isEqual(type, "delivery")))
-        {
-            method = "dapiPrivatePutListenKey";
-        } else
-        {
-            ((Dictionary<string, object>)request)["listenKey"] = listenKey;
-            if (isTrue(isEqual(type, "margin")))
-            {
-                ((Dictionary<string, object>)request)["symbol"] = symbol;
-                method = "sapiPutUserDataStream";
-            }
-        }
         object time = this.milliseconds();
         try
         {
-            await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, sendParams) }));
+            if (isTrue(isEqual(type, "future")))
+            {
+                await this.fapiPrivatePutListenKey(this.extend(request, sendParams));
+            } else if (isTrue(isEqual(type, "delivery")))
+            {
+                await this.dapiPrivatePutListenKey(this.extend(request, sendParams));
+            } else
+            {
+                ((Dictionary<string, object>)request)["listenKey"] = listenKey;
+                if (isTrue(isEqual(type, "margin")))
+                {
+                    ((Dictionary<string, object>)request)["symbol"] = symbol;
+                    await this.sapiPutUserDataStream(this.extend(request, sendParams));
+                } else
+                {
+                    await this.publicPutUserDataStream(this.extend(request, sendParams));
+                }
+            }
         } catch(Exception error)
         {
             object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), getValue(getValue(this.options, type), "listenKey"));
@@ -1560,8 +1399,8 @@ public partial class binanceWs : binance
         object messageHash = ((object)requestId).ToString();
         object returnRateLimits = false;
         var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "createOrderWs", "returnRateLimits", false);
-        returnRateLimits = ((List<object>)returnRateLimitsparametersVariable)[0];
-        parameters = ((List<object>)returnRateLimitsparametersVariable)[1];
+        returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
+        parameters = ((IList<object>)returnRateLimitsparametersVariable)[1];
         object payload = new Dictionary<string, object>() {
             { "returnRateLimits", returnRateLimits },
         };
@@ -1644,8 +1483,8 @@ public partial class binanceWs : binance
         object type = this.safeString(parameters, "type", defaultType);
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("watchBalance", null, parameters);
-        subType = ((List<object>)subTypeparametersVariable)[0];
-        parameters = ((List<object>)subTypeparametersVariable)[1];
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(this.isLinear(type, subType)))
         {
             type = "future";
@@ -1749,7 +1588,7 @@ public partial class binanceWs : binance
             if (isTrue(inOp(getValue(this.balance, accountType), code)))
             {
                 object previousValue = getValue(getValue(getValue(this.balance, accountType), code), "free");
-                if (isTrue(!((previousValue).GetType() == typeof(string))))
+                if (isTrue(!(previousValue is string)))
                 {
                     previousValue = this.numberToString(previousValue);
                 }
@@ -1836,8 +1675,8 @@ public partial class binanceWs : binance
         object payload = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object returnRateLimits = false;
         var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "createOrderWs", "returnRateLimits", false);
-        returnRateLimits = ((List<object>)returnRateLimitsparametersVariable)[0];
-        parameters = ((List<object>)returnRateLimitsparametersVariable)[1];
+        returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
+        parameters = ((IList<object>)returnRateLimitsparametersVariable)[1];
         ((Dictionary<string, object>)payload)["returnRateLimits"] = returnRateLimits;
         object test = this.safeValue(parameters, "test", false);
         parameters = this.omit(parameters, "test");
@@ -1987,8 +1826,8 @@ public partial class binanceWs : binance
         object payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, parameters);
         object returnRateLimits = false;
         var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "editOrderWs", "returnRateLimits", false);
-        returnRateLimits = ((List<object>)returnRateLimitsparametersVariable)[0];
-        parameters = ((List<object>)returnRateLimitsparametersVariable)[1];
+        returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
+        parameters = ((IList<object>)returnRateLimitsparametersVariable)[1];
         ((Dictionary<string, object>)payload)["returnRateLimits"] = returnRateLimits;
         object message = new Dictionary<string, object>() {
             { "id", messageHash },
@@ -2101,8 +1940,8 @@ public partial class binanceWs : binance
         object messageHash = ((object)requestId).ToString();
         object returnRateLimits = false;
         var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "cancelOrderWs", "returnRateLimits", false);
-        returnRateLimits = ((List<object>)returnRateLimitsparametersVariable)[0];
-        parameters = ((List<object>)returnRateLimitsparametersVariable)[1];
+        returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
+        parameters = ((IList<object>)returnRateLimitsparametersVariable)[1];
         object payload = new Dictionary<string, object>() {
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },
@@ -2145,8 +1984,8 @@ public partial class binanceWs : binance
         object messageHash = ((object)requestId).ToString();
         object returnRateLimits = false;
         var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "returnRateLimits", false);
-        returnRateLimits = ((List<object>)returnRateLimitsparametersVariable)[0];
-        parameters = ((List<object>)returnRateLimitsparametersVariable)[1];
+        returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
+        parameters = ((IList<object>)returnRateLimitsparametersVariable)[1];
         object payload = new Dictionary<string, object>() {
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },
@@ -2185,8 +2024,8 @@ public partial class binanceWs : binance
         object messageHash = ((object)requestId).ToString();
         object returnRateLimits = false;
         var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderWs", "returnRateLimits", false);
-        returnRateLimits = ((List<object>)returnRateLimitsparametersVariable)[0];
-        parameters = ((List<object>)returnRateLimitsparametersVariable)[1];
+        returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
+        parameters = ((IList<object>)returnRateLimitsparametersVariable)[1];
         object payload = new Dictionary<string, object>() {
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },
@@ -2210,7 +2049,7 @@ public partial class binanceWs : binance
         return await this.watch(url, messageHash, message, messageHash, subscription);
     }
 
-    public async virtual Task<object> fetchOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -2239,8 +2078,8 @@ public partial class binanceWs : binance
         object messageHash = ((object)requestId).ToString();
         object returnRateLimits = false;
         var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderWs", "returnRateLimits", false);
-        returnRateLimits = ((List<object>)returnRateLimitsparametersVariable)[0];
-        parameters = ((List<object>)returnRateLimitsparametersVariable)[1];
+        returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
+        parameters = ((IList<object>)returnRateLimitsparametersVariable)[1];
         object payload = new Dictionary<string, object>() {
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },
@@ -2278,8 +2117,8 @@ public partial class binanceWs : binance
         object messageHash = ((object)requestId).ToString();
         object returnRateLimits = false;
         var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderWs", "returnRateLimits", false);
-        returnRateLimits = ((List<object>)returnRateLimitsparametersVariable)[0];
-        parameters = ((List<object>)returnRateLimitsparametersVariable)[1];
+        returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
+        parameters = ((IList<object>)returnRateLimitsparametersVariable)[1];
         object payload = new Dictionary<string, object>() {
             { "returnRateLimits", returnRateLimits },
         };
@@ -2308,7 +2147,7 @@ public partial class binanceWs : binance
         * @description watches information on multiple orders made by the user
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of  orde structures to retrieve
+        * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -2320,16 +2159,16 @@ public partial class binanceWs : binance
         {
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
-            messageHash = add(messageHash, add("::", symbol));
+            messageHash = add(messageHash, add(":", symbol));
         }
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
-        type = ((List<object>)typeparametersVariable)[0];
-        parameters = ((List<object>)typeparametersVariable)[1];
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("watchOrders", market, parameters);
-        subType = ((List<object>)subTypeparametersVariable)[0];
-        parameters = ((List<object>)subTypeparametersVariable)[1];
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(this.isLinear(type, subType)))
         {
             type = "future";
@@ -2352,80 +2191,12 @@ public partial class binanceWs : binance
         this.setBalanceCache(client as WebSocketClient, type);
         this.setPositionsCache(client as WebSocketClient, type);
         object message = null;
-        object newOrder = await this.watch(url, messageHash, message, type);
+        object orders = await this.watch(url, messageHash, message, type);
         if (isTrue(this.newUpdates))
         {
-            return newOrder;
+            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySymbolSinceLimit(this.orders, symbol, since, limit, true);
-    }
-
-    public async override Task<object> watchOrdersForSymbols(object symbols = null, object since = null, object limit = null, object parameters = null)
-    {
-        /**
-        * @method
-        * @name binance#watchOrdersForSymbols
-        * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
-        * @description watches information on multiple orders made by the user
-        * @param {string[]} symbols unified symbol of the market to fetch orders for
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of trade structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
-        parameters ??= new Dictionary<string, object>();
-        object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("authenticate", parameters);
-        marginMode = ((List<object>)marginModeparametersVariable)[0];
-        parameters = ((List<object>)marginModeparametersVariable)[1];
-        object isIsolatedMargin = (isEqual(marginMode, "isolated"));
-        if (isTrue(isIsolatedMargin))
-        {
-            throw new NotSupported ((string)add(this.id, " watchOrdersForSymbols does not support isolated margin markets, use watchOrders instead")) ;
-        }
-        await this.loadMarkets();
-        object type = null;
-        object market = this.getMarketFromSymbols(symbols);
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchOrdersForSymbols", market, parameters);
-        type = ((List<object>)typeparametersVariable)[0];
-        parameters = ((List<object>)typeparametersVariable)[1];
-        symbols = this.marketSymbols(symbols, type, true, true, true);
-        object messageHash = "orders";
-        if (isTrue(!isEqual(symbols, null)))
-        {
-            messageHash = add(add(messageHash, "::"), String.Join(",", ((List<object>)symbols).ToArray()));
-        }
-        object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("watchOrdersForSymbols", market, parameters);
-        subType = ((List<object>)subTypeparametersVariable)[0];
-        parameters = ((List<object>)subTypeparametersVariable)[1];
-        if (isTrue(this.isLinear(type, subType)))
-        {
-            type = "future";
-        } else if (isTrue(this.isInverse(type, subType)))
-        {
-            type = "delivery";
-        }
-        parameters = this.extend(parameters, new Dictionary<string, object>() {
-            { "type", type },
-        });
-        await this.authenticate(parameters);
-        object urlType = type;
-        if (isTrue(isEqual(type, "margin")))
-        {
-            urlType = "spot"; // spot-margin shares the same stream as regular spot
-        }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/"), getValue(getValue(this.options, type), "listenKey"));
-        var client = this.client(url);
-        this.setBalanceCache(client as WebSocketClient, type);
-        this.setPositionsCache(client as WebSocketClient, type);
-        object message = null;
-        object newOrders = await this.watch(url, messageHash, message, type);
-        if (isTrue(this.newUpdates))
-        {
-            return newOrders;
-        }
-        return this.filterBySymbolsSinceLimit(this.orders, symbols, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
 
     public override object parseWsOrder(object order, object market = null)
@@ -2697,7 +2468,7 @@ public partial class binanceWs : binance
         if (!isTrue(this.isEmpty(symbols)))
         {
             market = this.getMarketFromSymbols(symbols);
-            messageHash = add("::", String.Join(",", ((List<object>)symbols).ToArray()));
+            messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
         }
         object type = this.handleMarketTypeAndParams("watchPositions", market, parameters);
         if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
@@ -2706,8 +2477,8 @@ public partial class binanceWs : binance
         }
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("watchPositions", market, parameters);
-        subType = ((List<object>)subTypeparametersVariable)[0];
-        parameters = ((List<object>)subTypeparametersVariable)[1];
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(this.isLinear(type, subType)))
         {
             type = "future";
@@ -2839,7 +2610,7 @@ public partial class binanceWs : binance
             object timestamp = this.safeInteger(message, "E");
             ((Dictionary<string, object>)position)["timestamp"] = timestamp;
             ((Dictionary<string, object>)position)["datetime"] = this.iso8601(timestamp);
-            ((List<object>)newPositions).Add(position);
+            ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
         object messageHashes = this.findMessageHashes(client as WebSocketClient, add(accountType, ":positions::"));
@@ -2929,8 +2700,8 @@ public partial class binanceWs : binance
         object messageHash = ((object)requestId).ToString();
         object returnRateLimits = false;
         var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTradesWs", "returnRateLimits", false);
-        returnRateLimits = ((List<object>)returnRateLimitsparametersVariable)[0];
-        parameters = ((List<object>)returnRateLimitsparametersVariable)[1];
+        returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
+        parameters = ((IList<object>)returnRateLimitsparametersVariable)[1];
         object payload = new Dictionary<string, object>() {
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },
@@ -2999,7 +2770,7 @@ public partial class binanceWs : binance
         * @description watches information on multiple trades made by the user
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of  orde structures to retrieve
+        * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         */
@@ -3013,12 +2784,12 @@ public partial class binanceWs : binance
             symbol = getValue(market, "symbol");
         }
         var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
-        type = ((List<object>)typeparametersVariable)[0];
-        parameters = ((List<object>)typeparametersVariable)[1];
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("watchMyTrades", market, parameters);
-        subType = ((List<object>)subTypeparametersVariable)[0];
-        parameters = ((List<object>)subTypeparametersVariable)[1];
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(this.isLinear(type, subType)))
         {
             type = "future";
@@ -3094,7 +2865,7 @@ public partial class binanceWs : binance
                             }
                             if (isTrue(insertNewFeeCurrency))
                             {
-                                ((List<object>)getValue(order, "fees")).Add(tradeFee);
+                                ((IList<object>)getValue(order, "fees")).Add(tradeFee);
                             }
                         } else if (isTrue(!isEqual(fee, null)))
                         {
@@ -3116,7 +2887,7 @@ public partial class binanceWs : binance
                         }
                         // save this trade in the order
                         object orderTrades = this.safeValue(order, "trades", new List<object>() {});
-                        ((List<object>)orderTrades).Add(trade);
+                        ((IList<object>)orderTrades).Add(trade);
                         ((Dictionary<string, object>)order)["trades"] = orderTrades;
                     }
                 }
@@ -3170,8 +2941,10 @@ public partial class binanceWs : binance
                 }
             }
             callDynamically(cachedOrders, "append", new object[] {parsed});
-            this.resolvePromiseIfMessagehashMatches(client as WebSocketClient, "orders::", symbol, parsed);
-            callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, "orders"});
+            object messageHash = "orders";
+            object symbolSpecificMessageHash = add("orders:", symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {cachedOrders, messageHash});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {cachedOrders, symbolSpecificMessageHash});
         }
     }
 
@@ -3266,7 +3039,7 @@ public partial class binanceWs : binance
             { "ORDER_TRADE_UPDATE", this.handleOrderUpdate },
         };
         object eventVar = this.safeString(message, "e");
-        if (isTrue((message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (isTrue(((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             object data = getValue(message, 0);
             eventVar = add(this.safeString(data, "e"), "@arr");
