@@ -308,6 +308,17 @@
                 "output": "{\"symbol\":\"LTCUSDT\",\"orderFilter\":\"Order\",\"orderId\":\"1513125485218108928\",\"category\":\"spot\"}"
             }
         ],
+        "cancelAllOrders": [
+            {
+                "description": "Swap cancel all open orders",
+                "method": "cancelAllOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/cancel-all",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"linear\"}"
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Spot fetchOpenOrders",
