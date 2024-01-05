@@ -1,3 +1,3 @@
 import CCXT from 'ccxt';
 const exchange = new CCXT['binance']()
-await exchange.loadMarkets()
+console.log(await exchange.fetch('https://api.ipify.org'));
