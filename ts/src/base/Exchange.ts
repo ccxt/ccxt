@@ -1050,9 +1050,13 @@ export default class Exchange {
                 }
                 catch (e) {
                     // node v20 - browser-compatible implementation https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch
-                    this.fetchImplementation = fetch
-                    this.AbortError = DOMException
-                    this.FetchError = TypeError
+                    if (typeof fetch === 'function') {
+                        this.fetchImplementation = fetch
+                        this.AbortError = DOMException
+                        this.FetchError = TypeError
+                    } else {
+                        throw new Error ('Seems, "fetch" function is not available in your node-js version, please use latest node-js version');
+                    }
                 }
             } else {
                 this.fetchImplementation = self.fetch
