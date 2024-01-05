@@ -1743,6 +1743,8 @@ export default class deribit extends Exchange {
          * @param {float} amount how much of currency you want to trade. For perpetual and futures the amount is in USD. For options it is in corresponding cryptocurrency contracts currency.
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.trigger] the trigger type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
+         * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1771,12 +1773,15 @@ export default class deribit extends Exchange {
             // 'trigger': 'index_price', // mark_price, last_price, required for stop_limit orders
             // 'advanced': 'usd', // 'implv', advanced option order type, options only
         };
+        const trigger = this.safeString (params, 'trigger', 'last_price');
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
         // only stop loss sell orders are allowed when price crossed from above
         const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         // only take profit buy orders are allowed when price crossed from below
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const trailingAmount = this.safeNumber2 (params, 'trailingAmount', 'trigger_offset');
+        const isTrailingAmountOrder = trailingAmount !== undefined;
         const isStopLimit = type === 'stop_limit';
         const isStopMarket = type === 'stop_market';
         const isTakeLimit = type === 'take_limit';
@@ -1797,10 +1802,14 @@ export default class deribit extends Exchange {
         } else {
             request['type'] = 'market';
         }
-        if (isStopOrder) {
+        if (isTrailingAmountOrder) {
+            request['trigger'] = trigger;
+            request['type'] = 'trailing_stop';
+            request['trigger_offset'] = trailingAmount;
+        } else if (isStopOrder) {
             const triggerPrice = (stopLossPrice !== undefined) ? stopLossPrice : takeProfitPrice;
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
-            request['trigger'] = 'last_price'; // required
+            request['trigger'] = trigger;
             if (isStopLossOrder) {
                 if (isMarketOrder) {
                     // stop_market (sell only)
@@ -1837,7 +1846,7 @@ export default class deribit extends Exchange {
                 request['time_in_force'] = 'fill_or_kill';
             }
         }
-        params = this.omit (params, [ 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly' ]);
+        params = this.omit (params, [ 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'trailingAmount' ]);
         let response = undefined;
         if (this.capitalize (side) === 'Buy') {
             response = await this.privateGetBuy (this.extend (request, params));
