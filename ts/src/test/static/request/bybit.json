@@ -230,6 +230,22 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"20\"}"
+            },
+            {
+                "description": "Swap trailingAmount order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/unified/v3/private/position/trading-stop",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.001,
+                  null,
+                  {
+                    "trailingAmount": "1000"
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"0.001\",\"trailingStop\":\"1000\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
