@@ -1913,11 +1913,23 @@ export default class deribit extends Exchange {
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name deribit#editOrder
+         * @description edit a trade order
+         * @see https://docs.deribit.com/#private-edit
+         * @param {string} id edit order id
+         * @param {string} [symbol] unified symbol of the market to edit an order in
+         * @param {string} [type] 'market' or 'limit'
+         * @param {string} [side] 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
-        }
-        if (price === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument');
         }
         await this.loadMarkets ();
         const request = {
@@ -1925,13 +1937,21 @@ export default class deribit extends Exchange {
             // for perpetual and futures the amount is in USD
             // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
             'amount': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price), // required
             // 'post_only': false, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
             // 'reject_post_only': false, // if true the order is put to order book unmodified or request is rejected
             // 'reduce_only': false, // if true, the order is intended to only reduce a current position
             // 'stop_price': false, // stop price, required for stop_limit orders
             // 'advanced': 'usd', // 'implv', advanced option order type, options only
         };
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const trailingAmount = this.safeNumber2 (params, 'trailingAmount', 'trigger_offset');
+        const isTrailingAmountOrder = trailingAmount !== undefined;
+        if (isTrailingAmountOrder) {
+            request['trigger_offset'] = trailingAmount;
+            params = this.omit (params, 'trigger_offset');
+        }
         const response = await this.privateGetEdit (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         const order = this.safeValue (result, 'order');
