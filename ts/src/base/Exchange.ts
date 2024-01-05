@@ -340,6 +340,7 @@ export default class Exchange {
     lastRestRequestTimestamp:number;
 
     targetAccount = undefined
+    disableProxy = false
 
     stablePairs = {}
 
@@ -910,6 +911,9 @@ export default class Exchange {
     proxyModulesLoaded:boolean = false;
 
     async loadProxyModules () {
+        if (this.disableProxy) {
+            return;
+        }
         this.proxyModulesLoaded = true;
         // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
         this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
