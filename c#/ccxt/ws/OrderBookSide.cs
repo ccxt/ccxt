@@ -99,7 +99,7 @@ public class OrderBookSide : SlimConcurrentList<object>
         {
 
             this.side = side;
-            this._depth = (depth == null) ? Int32.MaxValue : (int)depth;
+            this._depth = (depth == null) ? Int32.MaxValue : Convert.ToInt32(depth);
             // var deltas = (List<object>)deltas2;
             // for (var i = 0; i < deltas.Count; i++)
             // {
