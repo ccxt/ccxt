@@ -234,7 +234,7 @@
             {
                 "description": "Swap trailingAmount order",
                 "method": "createOrder",
-                "url": "https://api-testnet.bybit.com/unified/v3/private/position/trading-stop",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
                 "input": [
                   "BTC/USDT:USDT",
                   "market",

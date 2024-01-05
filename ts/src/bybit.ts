@@ -3486,7 +3486,7 @@ export default class bybit extends Exchange {
          * @name bybit#createOrder
          * @description create a trade order
          * @see https://bybit-exchange.github.io/docs/v5/order/create-order
-         * @see https://bybit-exchange.github.io/docs/derivatives/unified/trading-stop
+         * @see https://bybit-exchange.github.io/docs/v5/position/trading-stop
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -3508,8 +3508,8 @@ export default class bybit extends Exchange {
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-         * @param {string} [params.trailingAmount] *linear swap only* the quote amount to trail away from the current market price
-         * @param {string} [params.trailingTriggerPrice] *linear swap only* the price to trigger a trailing order, default uses the price argument
+         * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
+         * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3525,7 +3525,7 @@ export default class bybit extends Exchange {
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
         if (isTrailingAmountOrder) {
-            response = await this.privatePostUnifiedV3PrivatePositionTradingStop (orderRequest);
+            response = await this.privatePostV5PositionTradingStop (orderRequest);
         } else {
             response = await this.privatePostV5OrderCreate (orderRequest); // already extended inside createOrderRequest
         }
@@ -3639,9 +3639,6 @@ export default class bybit extends Exchange {
         const isTakeProfit = takeProfit !== undefined;
         const isBuy = side === 'buy';
         if (isTrailingAmountOrder) {
-            if (!market['swap'] && !market['linear']) {
-                throw new NotSupported (this.id + ' createOrder() supports linear swap markets only');
-            }
             if (trailingTriggerPrice !== undefined) {
                 request['activePrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
             }
