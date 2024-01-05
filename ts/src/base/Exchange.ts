@@ -914,16 +914,18 @@ export default class Exchange {
             return;
         }
         this.proxyModulesLoaded = true;
-        // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-        this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
-        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
-        if (this.socksProxyAgentModuleChecked === false) {
-            this.socksProxyAgentModuleChecked = true;
-            try {
-                // @ts-ignore
-                this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
-            } catch (e) {}
-        }
+        try {
+            // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
+            this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
+            this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+            if (this.socksProxyAgentModuleChecked === false) {
+                this.socksProxyAgentModuleChecked = true;
+                try {
+                    // @ts-ignore
+                    this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
+                } catch (e) {}
+            }
+        } catch (e) {}
     }
 
     setProxyAgents (httpProxy, httpsProxy, socksProxy) {
@@ -1037,13 +1039,21 @@ export default class Exchange {
 
         if (this.fetchImplementation === undefined) {
             if (isNode) {
-                const module = await import (/* webpackIgnore: true */'../static_dependencies/node-fetch/index.js')
                 if (this.agent === undefined) {
                     this.agent = this.httpsAgent;
                 }
-                this.AbortError = module.AbortError
-                this.fetchImplementation = module.default
-                this.FetchError = module.FetchError
+                try {
+                    const module = await import (/* webpackIgnore: true */'../static_dependencies/node-fetch/index.js')
+                    this.AbortError = module.AbortError
+                    this.fetchImplementation = module.default
+                    this.FetchError = module.FetchError
+                }
+                catch (e) {
+                    // node v20 - browser-compatible implementation https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch
+                    this.fetchImplementation = fetch
+                    this.AbortError = DOMException
+                    this.FetchError = TypeError
+                }
             } else {
                 this.fetchImplementation = self.fetch
                 this.AbortError = DOMException
