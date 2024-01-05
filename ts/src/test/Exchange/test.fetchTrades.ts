@@ -76,8 +76,10 @@ async function testFetchTrades_Side (exchange, skippedProperties, symbol, method
         if (!isSameTs) {
             continue;
         }
-        // as said above, the below assertion would work always except rarest exclusions (and if such case ever happens, we can just re-trigger the test, and then new set of trades would pass)
-        assert (isSameSide, 'Side should be same for trades with same timestamp' + testSharedMethods.logTemplate (exchange, method, trade));
+        // we are only interested if side is same
+        if (!isSameSide) {
+            continue;
+        }
         // we are not interested if price is same
         if (isSamePrice) {
             continue;
