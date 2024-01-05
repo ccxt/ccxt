@@ -12,10 +12,8 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_market(exchange, skipped_properties, method, market):
     format = {
@@ -189,3 +187,4 @@ def test_market(exchange, skipped_properties, method, market):
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['baseId'], market['base'])
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['quoteId'], market['quote'])
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['settleId'], market['settle'])
+    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, market, None, 'created')

@@ -1,0 +1,1169 @@
+{
+    "BTC": {
+        "id": "btc",
+        "name": "Bitcoin",
+        "code": "BTC",
+        "info": {
+            "coin": "btc",
+            "coinFulName": "Bitcoin",
+            "chains": [
+                "BTC",
+                "TRX",
+                "BRC20"
+            ],
+            "chainDetail": [
+                {
+                    "chain": "BTC",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00100000",
+                    "minWithdraw": "0.00200000",
+                    "maxWithdraw": "100.00000000"
+                },
+                {
+                    "chain": "TRX",
+                    "enableWithdraw": false,
+                    "enableDeposit": false,
+                    "withdrawFee": "0.00010000",
+                    "minWithdraw": "0.00100000",
+                    "maxWithdraw": "99.00000000"
+                },
+                {
+                    "chain": "BRC20",
+                    "enableWithdraw": false,
+                    "enableDeposit": false,
+                    "withdrawFee": "0.00020000",
+                    "minWithdraw": "0.00040000",
+                    "maxWithdraw": "1000000000000.00000000"
+                }
+            ]
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "BTC": {
+                "info": {
+                    "chain": "BTC",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00100000",
+                    "minWithdraw": "0.00200000",
+                    "maxWithdraw": "100.00000000"
+                },
+                "id": "BTC",
+                "network": "BTC",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.002,
+                        "max": 100
+                    }
+                }
+            },
+            "TRC20": {
+                "info": {
+                    "chain": "TRX",
+                    "enableWithdraw": false,
+                    "enableDeposit": false,
+                    "withdrawFee": "0.00010000",
+                    "minWithdraw": "0.00100000",
+                    "maxWithdraw": "99.00000000"
+                },
+                "id": "TRX",
+                "network": "TRC20",
+                "deposit": false,
+                "withdraw": false,
+                "active": false,
+                "fee": 0.0001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.001,
+                        "max": 99
+                    }
+                }
+            },
+            "BRC20": {
+                "info": {
+                    "chain": "BRC20",
+                    "enableWithdraw": false,
+                    "enableDeposit": false,
+                    "withdrawFee": "0.00020000",
+                    "minWithdraw": "0.00040000",
+                    "maxWithdraw": "1000000000000.00000000"
+                },
+                "id": "BRC20",
+                "network": "BRC20",
+                "deposit": false,
+                "withdraw": false,
+                "active": false,
+                "fee": 0.0002,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.0004,
+                        "max": 1000000000000
+                    }
+                }
+            }
+        },
+        "fee": 0.0001,
+        "limits": {
+            "withdraw": {
+                "min": 0.0004,
+                "max": 1000000000000
+            }
+        }
+    },
+    "USDT": {
+        "id": "usdt",
+        "name": "TetherUS",
+        "code": "USDT",
+        "info": {
+            "coin": "usdt",
+            "coinFulName": "TetherUS",
+            "chains": [
+                "OMNI",
+                "AVAXC",
+                "ETH",
+                "TRX",
+                "MATIC",
+                "BSC",
+                "SOL",
+                "Arbitrum",
+                "OPTIMISM"
+            ],
+            "chainDetail": [
+                {
+                    "chain": "OMNI",
+                    "enableWithdraw": false,
+                    "enableDeposit": false,
+                    "withdrawFee": "1.28",
+                    "minWithdraw": "2.56",
+                    "maxWithdraw": "1000.00"
+                },
+                {
+                    "chain": "AVAXC",
+                    "enableWithdraw": false,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00",
+                    "minWithdraw": "2.00",
+                    "maxWithdraw": "1000000000000000.00"
+                },
+                {
+                    "chain": "ETH",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "12.00",
+                    "minWithdraw": "24.00",
+                    "maxWithdraw": "2000000.00"
+                },
+                {
+                    "chain": "TRX",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00",
+                    "minWithdraw": "2.00",
+                    "maxWithdraw": "2000000.00"
+                },
+                {
+                    "chain": "MATIC",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00",
+                    "minWithdraw": "2.00",
+                    "maxWithdraw": "1000000000000000.00"
+                },
+                {
+                    "chain": "BSC",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00",
+                    "minWithdraw": "2.00",
+                    "maxWithdraw": "2000000.00"
+                },
+                {
+                    "chain": "SOL",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00",
+                    "minWithdraw": "2.00",
+                    "maxWithdraw": "2000000.00"
+                },
+                {
+                    "chain": "Arbitrum",
+                    "enableWithdraw": false,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.000000",
+                    "minWithdraw": "2.000000",
+                    "maxWithdraw": "1000000000000000.000000"
+                },
+                {
+                    "chain": "OPTIMISM",
+                    "enableWithdraw": false,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.000000",
+                    "minWithdraw": "2.000000",
+                    "maxWithdraw": "1000000000000.000000"
+                }
+            ]
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "OMNI": {
+                "info": {
+                    "chain": "OMNI",
+                    "enableWithdraw": false,
+                    "enableDeposit": false,
+                    "withdrawFee": "1.28",
+                    "minWithdraw": "2.56",
+                    "maxWithdraw": "1000.00"
+                },
+                "id": "OMNI",
+                "network": "OMNI",
+                "deposit": false,
+                "withdraw": false,
+                "active": false,
+                "fee": 1.28,
+                "limits": {
+                    "withdraw": {
+                        "min": 2.56,
+                        "max": 1000
+                    }
+                }
+            },
+            "AVAXC": {
+                "info": {
+                    "chain": "AVAXC",
+                    "enableWithdraw": false,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00",
+                    "minWithdraw": "2.00",
+                    "maxWithdraw": "1000000000000000.00"
+                },
+                "id": "AVAXC",
+                "network": "AVAXC",
+                "deposit": true,
+                "withdraw": false,
+                "active": false,
+                "fee": 1,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 1000000000000000
+                    }
+                }
+            },
+            "ERC20": {
+                "info": {
+                    "chain": "ETH",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "12.00",
+                    "minWithdraw": "24.00",
+                    "maxWithdraw": "2000000.00"
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 12,
+                "limits": {
+                    "withdraw": {
+                        "min": 24,
+                        "max": 2000000
+                    }
+                }
+            },
+            "TRC20": {
+                "info": {
+                    "chain": "TRX",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00",
+                    "minWithdraw": "2.00",
+                    "maxWithdraw": "2000000.00"
+                },
+                "id": "TRX",
+                "network": "TRC20",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 1,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 2000000
+                    }
+                }
+            },
+            "MATIC": {
+                "info": {
+                    "chain": "MATIC",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00",
+                    "minWithdraw": "2.00",
+                    "maxWithdraw": "1000000000000000.00"
+                },
+                "id": "MATIC",
+                "network": "MATIC",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 1,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 1000000000000000
+                    }
+                }
+            },
+            "BSC": {
+                "info": {
+                    "chain": "BSC",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00",
+                    "minWithdraw": "2.00",
+                    "maxWithdraw": "2000000.00"
+                },
+                "id": "BSC",
+                "network": "BSC",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 1,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 2000000
+                    }
+                }
+            },
+            "SOL": {
+                "info": {
+                    "chain": "SOL",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00",
+                    "minWithdraw": "2.00",
+                    "maxWithdraw": "2000000.00"
+                },
+                "id": "SOL",
+                "network": "SOL",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 1,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 2000000
+                    }
+                }
+            },
+            "Arbitrum": {
+                "info": {
+                    "chain": "Arbitrum",
+                    "enableWithdraw": false,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.000000",
+                    "minWithdraw": "2.000000",
+                    "maxWithdraw": "1000000000000000.000000"
+                },
+                "id": "Arbitrum",
+                "network": "Arbitrum",
+                "deposit": true,
+                "withdraw": false,
+                "active": false,
+                "fee": 1,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 1000000000000000
+                    }
+                }
+            },
+            "OPTIMISM": {
+                "info": {
+                    "chain": "OPTIMISM",
+                    "enableWithdraw": false,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.000000",
+                    "minWithdraw": "2.000000",
+                    "maxWithdraw": "1000000000000.000000"
+                },
+                "id": "OPTIMISM",
+                "network": "OPTIMISM",
+                "deposit": true,
+                "withdraw": false,
+                "active": false,
+                "fee": 1,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 1000000000000
+                    }
+                }
+            }
+        },
+        "fee": 1,
+        "limits": {
+            "withdraw": {
+                "min": 2,
+                "max": 1000000000000000
+            }
+        }
+    },
+    "LTC": {
+        "id": "ltc",
+        "name": "Litecoin",
+        "code": "LTC",
+        "info": {
+            "coin": "ltc",
+            "coinFulName": "Litecoin",
+            "chains": [
+                "LTC"
+            ],
+            "chainDetail": [
+                {
+                    "chain": "LTC",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00100000",
+                    "minWithdraw": "0.10000000",
+                    "maxWithdraw": "10000.00000000"
+                }
+            ]
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "LTC": {
+                "info": {
+                    "chain": "LTC",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00100000",
+                    "minWithdraw": "0.10000000",
+                    "maxWithdraw": "10000.00000000"
+                },
+                "id": "LTC",
+                "network": "LTC",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.1,
+                        "max": 10000
+                    }
+                }
+            }
+        },
+        "fee": 0.001,
+        "limits": {
+            "withdraw": {
+                "min": 0.1,
+                "max": 10000
+            }
+        }
+    },
+    "ETH": {
+        "id": "eth",
+        "name": "Ethereum",
+        "code": "ETH",
+        "info": {
+            "coin": "eth",
+            "coinFulName": "Ethereum",
+            "chains": [
+                "ETH",
+                "BSC",
+                "OPTIMISM",
+                "Arbitrum",
+                "Arbitrum Nova",
+                "zkSync",
+                "LINEA",
+                "Starknet",
+                "BASE"
+            ],
+            "chainDetail": [
+                {
+                    "chain": "ETH",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.01000000",
+                    "minWithdraw": "0.02000000",
+                    "maxWithdraw": "100.00000000"
+                },
+                {
+                    "chain": "BSC",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00020000",
+                    "minWithdraw": "0.00040000",
+                    "maxWithdraw": "1000000000000000.00000000"
+                },
+                {
+                    "chain": "OPTIMISM",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00020000",
+                    "minWithdraw": "0.00040000",
+                    "maxWithdraw": "1000000000000000.00000000"
+                },
+                {
+                    "chain": "Arbitrum",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.0003",
+                    "minWithdraw": "0.0006",
+                    "maxWithdraw": "1000000000000000.0000"
+                },
+                {
+                    "chain": "Arbitrum Nova",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00020000",
+                    "minWithdraw": "0.00040000",
+                    "maxWithdraw": "1000000000000000.00000000"
+                },
+                {
+                    "chain": "zkSync",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00050000",
+                    "minWithdraw": "0.00100000",
+                    "maxWithdraw": "1000000000000000.00000000"
+                },
+                {
+                    "chain": "LINEA",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00020000",
+                    "minWithdraw": "0.00040000",
+                    "maxWithdraw": "1000000000000000.00000000"
+                },
+                {
+                    "chain": "Starknet",
+                    "enableWithdraw": false,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00020000",
+                    "minWithdraw": "0.00040000",
+                    "maxWithdraw": "1000000000000000.00000000"
+                },
+                {
+                    "chain": "BASE",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00020000",
+                    "minWithdraw": "0.00040000",
+                    "maxWithdraw": "1000000000000000.00000000"
+                }
+            ]
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "ETH": {
+                "info": {
+                    "chain": "ETH",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.01000000",
+                    "minWithdraw": "0.02000000",
+                    "maxWithdraw": "100.00000000"
+                },
+                "id": "ETH",
+                "network": "ETH",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.01,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.02,
+                        "max": 100
+                    }
+                }
+            },
+            "BSC": {
+                "info": {
+                    "chain": "BSC",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00020000",
+                    "minWithdraw": "0.00040000",
+                    "maxWithdraw": "1000000000000000.00000000"
+                },
+                "id": "BSC",
+                "network": "BSC",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.0002,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.0004,
+                        "max": 1000000000000000
+                    }
+                }
+            },
+            "OPTIMISM": {
+                "info": {
+                    "chain": "OPTIMISM",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00020000",
+                    "minWithdraw": "0.00040000",
+                    "maxWithdraw": "1000000000000000.00000000"
+                },
+                "id": "OPTIMISM",
+                "network": "OPTIMISM",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.0002,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.0004,
+                        "max": 1000000000000000
+                    }
+                }
+            },
+            "Arbitrum": {
+                "info": {
+                    "chain": "Arbitrum",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.0003",
+                    "minWithdraw": "0.0006",
+                    "maxWithdraw": "1000000000000000.0000"
+                },
+                "id": "Arbitrum",
+                "network": "Arbitrum",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.0003,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.0006,
+                        "max": 1000000000000000
+                    }
+                }
+            },
+            "Arbitrum Nova": {
+                "info": {
+                    "chain": "Arbitrum Nova",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00020000",
+                    "minWithdraw": "0.00040000",
+                    "maxWithdraw": "1000000000000000.00000000"
+                },
+                "id": "Arbitrum Nova",
+                "network": "Arbitrum Nova",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.0002,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.0004,
+                        "max": 1000000000000000
+                    }
+                }
+            },
+            "zkSync": {
+                "info": {
+                    "chain": "zkSync",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00050000",
+                    "minWithdraw": "0.00100000",
+                    "maxWithdraw": "1000000000000000.00000000"
+                },
+                "id": "zkSync",
+                "network": "zkSync",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.0005,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.001,
+                        "max": 1000000000000000
+                    }
+                }
+            },
+            "LINEA": {
+                "info": {
+                    "chain": "LINEA",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00020000",
+                    "minWithdraw": "0.00040000",
+                    "maxWithdraw": "1000000000000000.00000000"
+                },
+                "id": "LINEA",
+                "network": "LINEA",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.0002,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.0004,
+                        "max": 1000000000000000
+                    }
+                }
+            },
+            "Starknet": {
+                "info": {
+                    "chain": "Starknet",
+                    "enableWithdraw": false,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00020000",
+                    "minWithdraw": "0.00040000",
+                    "maxWithdraw": "1000000000000000.00000000"
+                },
+                "id": "Starknet",
+                "network": "Starknet",
+                "deposit": true,
+                "withdraw": false,
+                "active": false,
+                "fee": 0.0002,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.0004,
+                        "max": 1000000000000000
+                    }
+                }
+            },
+            "BASE": {
+                "info": {
+                    "chain": "BASE",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.00020000",
+                    "minWithdraw": "0.00040000",
+                    "maxWithdraw": "1000000000000000.00000000"
+                },
+                "id": "BASE",
+                "network": "BASE",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.0002,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.0004,
+                        "max": 1000000000000000
+                    }
+                }
+            }
+        },
+        "fee": 0.0002,
+        "limits": {
+            "withdraw": {
+                "min": 0.0004,
+                "max": 1000000000000000
+            }
+        }
+    },
+    "ADA": {
+        "id": "ada",
+        "name": "Cardano",
+        "code": "ADA",
+        "info": {
+            "coin": "ada",
+            "coinFulName": "Cardano",
+            "chains": [
+                "ADA"
+            ],
+            "chainDetail": [
+                {
+                    "chain": "ADA",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "5.000000",
+                    "minWithdraw": "10.000000",
+                    "maxWithdraw": "2000000.000000"
+                }
+            ]
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "ADA": {
+                "info": {
+                    "chain": "ADA",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "5.000000",
+                    "minWithdraw": "10.000000",
+                    "maxWithdraw": "2000000.000000"
+                },
+                "id": "ADA",
+                "network": "ADA",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 5,
+                "limits": {
+                    "withdraw": {
+                        "min": 10,
+                        "max": 2000000
+                    }
+                }
+            }
+        },
+        "fee": 5,
+        "limits": {
+            "withdraw": {
+                "min": 10,
+                "max": 2000000
+            }
+        }
+    },
+    "XRP": {
+        "id": "xrp",
+        "name": "XRP",
+        "code": "XRP",
+        "info": {
+            "coin": "xrp",
+            "coinFulName": "XRP",
+            "chains": [
+                "XRPL"
+            ],
+            "chainDetail": [
+                {
+                    "chain": "XRPL",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.20000000",
+                    "minWithdraw": "0.40000000",
+                    "maxWithdraw": "2000000.00000000"
+                }
+            ]
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "XRPL": {
+                "info": {
+                    "chain": "XRPL",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "0.20000000",
+                    "minWithdraw": "0.40000000",
+                    "maxWithdraw": "2000000.00000000"
+                },
+                "id": "XRPL",
+                "network": "XRPL",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.2,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.4,
+                        "max": 2000000
+                    }
+                }
+            }
+        },
+        "fee": 0.2,
+        "limits": {
+            "withdraw": {
+                "min": 0.4,
+                "max": 2000000
+            }
+        }
+    },
+    "USDC": {
+        "id": "usdc",
+        "name": "USD Coin",
+        "code": "USDC",
+        "info": {
+            "coin": "usdc",
+            "coinFulName": "USD Coin",
+            "chains": [
+                "ETH",
+                "SOL",
+                "TRX",
+                "MATIC",
+                "BSC",
+                "XLM",
+                "ALGO",
+                "OPTIMISM"
+            ],
+            "chainDetail": [
+                {
+                    "chain": "ETH",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "13.00000000",
+                    "minWithdraw": "26.00000000",
+                    "maxWithdraw": "2000000.00000000"
+                },
+                {
+                    "chain": "SOL",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00000000",
+                    "minWithdraw": "2.00000000",
+                    "maxWithdraw": "2000000.00000000"
+                },
+                {
+                    "chain": "TRX",
+                    "enableWithdraw": false,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00000000",
+                    "minWithdraw": "2.00000000",
+                    "maxWithdraw": "2000000.00000000"
+                },
+                {
+                    "chain": "MATIC",
+                    "enableWithdraw": false,
+                    "enableDeposit": false,
+                    "withdrawFee": "1.00000000",
+                    "minWithdraw": "2.00000000",
+                    "maxWithdraw": "2000000.00000000"
+                },
+                {
+                    "chain": "BSC",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00000000",
+                    "minWithdraw": "2.00000000",
+                    "maxWithdraw": "2000000.00000000"
+                },
+                {
+                    "chain": "XLM",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00000000",
+                    "minWithdraw": "2.00000000",
+                    "maxWithdraw": "10000000.00000000"
+                },
+                {
+                    "chain": "ALGO",
+                    "enableWithdraw": false,
+                    "enableDeposit": false,
+                    "withdrawFee": "1.0000",
+                    "minWithdraw": "2.0000",
+                    "maxWithdraw": "1000000000000000.0000"
+                },
+                {
+                    "chain": "OPTIMISM",
+                    "enableWithdraw": false,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.000000",
+                    "minWithdraw": "2.000000",
+                    "maxWithdraw": "1000000000000000.000000"
+                }
+            ]
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "chain": "ETH",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "13.00000000",
+                    "minWithdraw": "26.00000000",
+                    "maxWithdraw": "2000000.00000000"
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 13,
+                "limits": {
+                    "withdraw": {
+                        "min": 26,
+                        "max": 2000000
+                    }
+                }
+            },
+            "SOL": {
+                "info": {
+                    "chain": "SOL",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00000000",
+                    "minWithdraw": "2.00000000",
+                    "maxWithdraw": "2000000.00000000"
+                },
+                "id": "SOL",
+                "network": "SOL",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 1,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 2000000
+                    }
+                }
+            },
+            "TRC20": {
+                "info": {
+                    "chain": "TRX",
+                    "enableWithdraw": false,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00000000",
+                    "minWithdraw": "2.00000000",
+                    "maxWithdraw": "2000000.00000000"
+                },
+                "id": "TRX",
+                "network": "TRC20",
+                "deposit": true,
+                "withdraw": false,
+                "active": false,
+                "fee": 1,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 2000000
+                    }
+                }
+            },
+            "MATIC": {
+                "info": {
+                    "chain": "MATIC",
+                    "enableWithdraw": false,
+                    "enableDeposit": false,
+                    "withdrawFee": "1.00000000",
+                    "minWithdraw": "2.00000000",
+                    "maxWithdraw": "2000000.00000000"
+                },
+                "id": "MATIC",
+                "network": "MATIC",
+                "deposit": false,
+                "withdraw": false,
+                "active": false,
+                "fee": 1,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 2000000
+                    }
+                }
+            },
+            "BSC": {
+                "info": {
+                    "chain": "BSC",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00000000",
+                    "minWithdraw": "2.00000000",
+                    "maxWithdraw": "2000000.00000000"
+                },
+                "id": "BSC",
+                "network": "BSC",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 1,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 2000000
+                    }
+                }
+            },
+            "XLM": {
+                "info": {
+                    "chain": "XLM",
+                    "enableWithdraw": true,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.00000000",
+                    "minWithdraw": "2.00000000",
+                    "maxWithdraw": "10000000.00000000"
+                },
+                "id": "XLM",
+                "network": "XLM",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 1,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 10000000
+                    }
+                }
+            },
+            "ALGO": {
+                "info": {
+                    "chain": "ALGO",
+                    "enableWithdraw": false,
+                    "enableDeposit": false,
+                    "withdrawFee": "1.0000",
+                    "minWithdraw": "2.0000",
+                    "maxWithdraw": "1000000000000000.0000"
+                },
+                "id": "ALGO",
+                "network": "ALGO",
+                "deposit": false,
+                "withdraw": false,
+                "active": false,
+                "fee": 1,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 1000000000000000
+                    }
+                }
+            },
+            "OPTIMISM": {
+                "info": {
+                    "chain": "OPTIMISM",
+                    "enableWithdraw": false,
+                    "enableDeposit": true,
+                    "withdrawFee": "1.000000",
+                    "minWithdraw": "2.000000",
+                    "maxWithdraw": "1000000000000000.000000"
+                },
+                "id": "OPTIMISM",
+                "network": "OPTIMISM",
+                "deposit": true,
+                "withdraw": false,
+                "active": false,
+                "fee": 1,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 1000000000000000
+                    }
+                }
+            }
+        },
+        "fee": 1,
+        "limits": {
+            "withdraw": {
+                "min": 2,
+                "max": 1000000000000000
+            }
+        }
+    }
+}

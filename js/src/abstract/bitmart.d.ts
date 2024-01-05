@@ -52,11 +52,13 @@ interface Exchange {
     privateGetSpotV1MarginIsolatedAccount(params?: {}): Promise<implicitReturnType>;
     privateGetSpotV1TradeFee(params?: {}): Promise<implicitReturnType>;
     privateGetSpotV1UserFee(params?: {}): Promise<implicitReturnType>;
+    privateGetSpotV1BrokerRebate(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateAssetsDetail(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateOrder(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateOrderHistory(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivatePosition(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateGetOpenOrders(params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivateCurrentPlanOrder(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateTrades(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1SubToMain(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountSubV1SubToMain(params?: {}): Promise<implicitReturnType>;

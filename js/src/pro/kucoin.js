@@ -14,6 +14,13 @@ export default class kucoin extends kucoinRest {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'cancelOrderWs': false,
+                'cancelOrdersWs': false,
+                'cancelAllOrdersWs': false,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
@@ -46,8 +53,9 @@ export default class kucoin extends kucoinRest {
     negotiate(privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue(this.options, 'urls', {});
-        if (connectId in urls) {
-            return urls[connectId];
+        const spawaned = this.safeValue(urls, connectId);
+        if (spawaned !== undefined) {
+            return spawaned;
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
@@ -63,18 +71,18 @@ export default class kucoin extends kucoinRest {
             response = await this.privatePostBulletPrivate(params);
             //
             //     {
-            //         code: "200000",
-            //         data: {
-            //             instanceServers: [
+            //         "code": "200000",
+            //         "data": {
+            //             "instanceServers": [
             //                 {
-            //                     pingInterval:  50000,
-            //                     endpoint: "wss://push-private.kucoin.com/endpoint",
-            //                     protocol: "websocket",
-            //                     encrypt: true,
-            //                     pingTimeout: 10000
+            //                     "pingInterval":  50000,
+            //                     "endpoint": "wss://push-private.kucoin.com/endpoint",
+            //                     "protocol": "websocket",
+            //                     "encrypt": true,
+            //                     "pingTimeout": 10000
             //                 }
             //             ],
-            //             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+            //             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
             //         }
             //     }
             //
@@ -117,14 +125,32 @@ export default class kucoin extends kucoinRest {
         }
         return await this.watch(url, messageHash, message, subscriptionHash, subscription);
     }
+    async subscribeMultiple(url, messageHashes, topic, subscriptionHashes, params = {}, subscription = undefined) {
+        const requestId = this.requestId().toString();
+        const request = {
+            'id': requestId,
+            'type': 'subscribe',
+            'topic': topic,
+            'response': true,
+        };
+        const message = this.extend(request, params);
+        const client = this.client(url);
+        for (let i = 0; i < subscriptionHashes.length; i++) {
+            const subscriptionHash = subscriptionHashes[i];
+            if (!(subscriptionHash in client.subscriptions)) {
+                client.subscriptions[requestId] = subscriptionHash;
+            }
+        }
+        return await this.watchMultiple(url, messageHashes, message, subscriptionHashes, subscription);
+    }
     async watchTicker(symbol, params = {}) {
         /**
          * @method
          * @name kucoin#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -141,8 +167,8 @@ export default class kucoin extends kucoinRest {
          * @name kucoin#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -198,18 +224,18 @@ export default class kucoin extends kucoinRest {
         // market/ticker
         //
         //     {
-        //         type: 'message',
-        //         topic: '/market/ticker:BTC-USDT',
-        //         subject: 'trade.ticker',
-        //         data: {
-        //             bestAsk: '62163',
-        //             bestAskSize: '0.99011388',
-        //             bestBid: '62162.9',
-        //             bestBidSize: '0.04794181',
-        //             price: '62162.9',
-        //             sequence: '1621383371852',
-        //             size: '0.00832274',
-        //             time: 1634641987564
+        //         "type": "message",
+        //         "topic": "/market/ticker:BTC-USDT",
+        //         "subject": "trade.ticker",
+        //         "data": {
+        //             "bestAsk": "62163",
+        //             "bestAskSize": "0.99011388",
+        //             "bestBid": "62162.9",
+        //             "bestBidSize": "0.04794181",
+        //             "price": "62162.9",
+        //             "sequence": "1621383371852",
+        //             "size": "0.00832274",
+        //             "time": 1634641987564
         //         }
         //     }
         //
@@ -259,7 +285,7 @@ export default class kucoin extends kucoinRest {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the kucoin api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -278,22 +304,22 @@ export default class kucoin extends kucoinRest {
     handleOHLCV(client, message) {
         //
         //     {
-        //         data: {
-        //             symbol: 'BTC-USDT',
-        //             candles: [
-        //                 '1624881240',
-        //                 '34138.8',
-        //                 '34121.6',
-        //                 '34138.8',
-        //                 '34097.9',
-        //                 '3.06097133',
-        //                 '104430.955068564'
+        //         "data": {
+        //             "symbol": "BTC-USDT",
+        //             "candles": [
+        //                 "1624881240",
+        //                 "34138.8",
+        //                 "34121.6",
+        //                 "34138.8",
+        //                 "34097.9",
+        //                 "3.06097133",
+        //                 "104430.955068564"
         //             ],
-        //             time: 1624881284466023700
+        //             "time": 1624881284466023700
         //         },
-        //         subject: 'trade.candles.update',
-        //         topic: '/market/candles:BTC-USDT_1min',
-        //         type: 'message'
+        //         "subject": "trade.candles.update",
+        //         "topic": "/market/candles:BTC-USDT_1min",
+        //         "type": "message"
         //     }
         //
         const data = this.safeValue(message, 'data', {});
@@ -326,20 +352,10 @@ export default class kucoin extends kucoinRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets();
-        const url = await this.negotiate(false);
-        const market = this.market(symbol);
-        symbol = market['symbol'];
-        const topic = '/market/match:' + market['id'];
-        const messageHash = 'trades:' + symbol;
-        const trades = await this.subscribe(url, messageHash, topic, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
-        }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         /**
@@ -349,8 +365,8 @@ export default class kucoin extends kucoinRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
@@ -358,12 +374,18 @@ export default class kucoin extends kucoinRest {
         }
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const url = await this.negotiate(false);
-        symbols = this.marketSymbols(symbols);
         const marketIds = this.marketIds(symbols);
+        const url = await this.negotiate(false);
+        const messageHashes = [];
+        const subscriptionHashes = [];
         const topic = '/market/match:' + marketIds.join(',');
-        const messageHash = 'multipleTrades::' + symbols.join(',');
-        const trades = await this.subscribe(url, messageHash, topic, params);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push('trades:' + symbol);
+            const marketId = marketIds[i];
+            subscriptionHashes.push('/market/match:' + marketId);
+        }
+        const trades = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, params);
         if (this.newUpdates) {
             const first = this.safeValue(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
@@ -374,21 +396,21 @@ export default class kucoin extends kucoinRest {
     handleTrade(client, message) {
         //
         //     {
-        //         data: {
-        //             sequence: '1568787654360',
-        //             symbol: 'BTC-USDT',
-        //             side: 'buy',
-        //             size: '0.00536577',
-        //             price: '9345',
-        //             takerOrderId: '5e356c4a9f1a790008f8d921',
-        //             time: '1580559434436443257',
-        //             type: 'match',
-        //             makerOrderId: '5e356bffedf0010008fa5d7f',
-        //             tradeId: '5e356c4aeefabd62c62a1ece'
+        //         "data": {
+        //             "sequence": "1568787654360",
+        //             "symbol": "BTC-USDT",
+        //             "side": "buy",
+        //             "size": "0.00536577",
+        //             "price": "9345",
+        //             "takerOrderId": "5e356c4a9f1a790008f8d921",
+        //             "time": "1580559434436443257",
+        //             "type": "match",
+        //             "makerOrderId": "5e356bffedf0010008fa5d7f",
+        //             "tradeId": "5e356c4aeefabd62c62a1ece"
         //         },
-        //         subject: 'trade.l3match',
-        //         topic: '/market/match:BTC-USDT',
-        //         type: 'message'
+        //         "subject": "trade.l3match",
+        //         "topic": "/market/match:BTC-USDT",
+        //         "type": "message"
         //     }
         //
         const data = this.safeValue(message, 'data', {});
@@ -403,8 +425,6 @@ export default class kucoin extends kucoinRest {
         }
         trades.append(trade);
         client.resolve(trades, messageHash);
-        // watchMultipleTrades
-        this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, trades);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -413,8 +433,8 @@ export default class kucoin extends kucoinRest {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         //
         // https://docs.kucoin.com/#level-2-market-data
@@ -431,24 +451,7 @@ export default class kucoin extends kucoinRest {
         // If the size=0, update the sequence and remove the price of which the
         // size is 0 out of level 2. Fr other cases, please update the price.
         //
-        if (limit !== undefined) {
-            if ((limit !== 20) && (limit !== 100)) {
-                throw new ExchangeError(this.id + " watchOrderBook 'limit' argument must be undefined, 20 or 100");
-            }
-        }
-        await this.loadMarkets();
-        const url = await this.negotiate(false);
-        const market = this.market(symbol);
-        symbol = market['symbol'];
-        const topic = '/market/level2:' + market['id'];
-        const messageHash = 'orderbook:' + symbol;
-        const subscription = {
-            'method': this.handleOrderBookSubscription,
-            'symbol': symbol,
-            'limit': limit,
-        };
-        const orderbook = await this.subscribe(url, messageHash, topic, params, subscription);
-        return orderbook.limit();
+        return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         /**
@@ -457,7 +460,7 @@ export default class kucoin extends kucoinRest {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string[]} symbols unified array of symbols
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the kucoin api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const symbolsLength = symbols.length;
@@ -474,13 +477,20 @@ export default class kucoin extends kucoinRest {
         const marketIds = this.marketIds(symbols);
         const url = await this.negotiate(false);
         const topic = '/market/level2:' + marketIds.join(',');
-        const messageHash = 'multipleOrderbook::' + symbols.join(',');
+        const messageHashes = [];
+        const subscriptionHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push('orderbook:' + symbol);
+            const marketId = marketIds[i];
+            subscriptionHashes.push('/market/level2:' + marketId);
+        }
         const subscription = {
             'method': this.handleOrderBookSubscription,
             'symbols': symbols,
             'limit': limit,
         };
-        const orderbook = await this.subscribe(url, messageHash, topic, params, subscription);
+        const orderbook = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, params, subscription);
         return orderbook.limit();
     }
     handleOrderBook(client, message) {
@@ -538,8 +548,6 @@ export default class kucoin extends kucoinRest {
         }
         this.handleDelta(storedOrderBook, data);
         client.resolve(storedOrderBook, messageHash);
-        // watchMultipleOrderBook
-        this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbook::', symbol, storedOrderBook);
     }
     getCacheIndex(orderbook, cache) {
         const firstDelta = this.safeValue(cache, 0);
@@ -598,8 +606,8 @@ export default class kucoin extends kucoinRest {
     handleSubscriptionStatus(client, message) {
         //
         //     {
-        //         id: '1578090438322',
-        //         type: 'ack'
+        //         "id": "1578090438322",
+        //         "type": "ack"
         //     }
         //
         const id = this.safeString(message, 'id');
@@ -618,8 +626,8 @@ export default class kucoin extends kucoinRest {
         // involves system status and maintenance updates
         //
         //     {
-        //         id: '1578090234088', // connectId
-        //         type: 'welcome',
+        //         "id": "1578090234088", // connectId
+        //         "type": "welcome",
         //     }
         //
         return message;
@@ -631,13 +639,16 @@ export default class kucoin extends kucoinRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] trigger orders are watched if true
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        const stop = this.safeValue2(params, 'stop', 'trigger');
+        params = this.omit(params, ['stop', 'trigger']);
         const url = await this.negotiate(true);
-        const topic = '/spotMarket/tradeOrders';
+        const topic = stop ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
         const request = {
             'privateChannel': true,
         };
@@ -660,59 +671,79 @@ export default class kucoin extends kucoinRest {
             'match': 'open',
             'update': 'open',
             'canceled': 'canceled',
+            'cancel': 'canceled',
+            'TRIGGERED': 'triggered',
         };
         return this.safeString(statuses, status, status);
     }
     parseWsOrder(order, market = undefined) {
         //
-        //     {
-        //         'symbol': 'XCAD-USDT',
-        //         'orderType': 'limit',
-        //         'side': 'buy',
-        //         'orderId': '6249167327218b000135e749',
-        //         'type': 'canceled',
-        //         'orderTime': 1648957043065280224,
-        //         'size': '100.452',
-        //         'filledSize': '0',
-        //         'price': '2.9635',
-        //         'clientOid': 'buy-XCAD-USDT-1648957043010159',
-        //         'remainSize': '0',
-        //         'status': 'done',
-        //         'ts': 1648957054031001037
-        //     }
+        // /spotMarket/tradeOrders
         //
-        const id = this.safeString(order, 'orderId');
-        const clientOrderId = this.safeString(order, 'clientOid');
-        const orderType = this.safeStringLower(order, 'orderType');
-        const price = this.safeString(order, 'price');
-        const filled = this.safeString(order, 'filledSize');
-        const amount = this.safeString(order, 'size');
+        //    {
+        //        "symbol": "XCAD-USDT",
+        //        "orderType": "limit",
+        //        "side": "buy",
+        //        "orderId": "6249167327218b000135e749",
+        //        "type": "canceled",
+        //        "orderTime": 1648957043065280224,
+        //        "size": "100.452",
+        //        "filledSize": "0",
+        //        "price": "2.9635",
+        //        "clientOid": "buy-XCAD-USDT-1648957043010159",
+        //        "remainSize": "0",
+        //        "status": "done",
+        //        "ts": 1648957054031001037
+        //    }
+        //
+        // /spotMarket/advancedOrders
+        //
+        //    {
+        //        "createdAt": 1589789942337,
+        //        "orderId": "5ec244f6a8a75e0009958237",
+        //        "orderPrice": "0.00062",
+        //        "orderType": "stop",
+        //        "side": "sell",
+        //        "size": "1",
+        //        "stop": "entry",
+        //        "stopPrice": "0.00062",
+        //        "symbol": "KCS-BTC",
+        //        "tradeType": "TRADE",
+        //        "triggerSuccess": true,
+        //        "ts": 1589790121382281286,
+        //        "type": "triggered"
+        //    }
+        //
         const rawType = this.safeString(order, 'type');
-        const status = this.parseWsOrderStatus(rawType);
-        const timestamp = this.safeInteger(order, 'orderTime');
+        let status = this.parseWsOrderStatus(rawType);
+        const timestamp = this.safeInteger2(order, 'orderTime', 'createdAt');
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
-        const side = this.safeStringLower(order, 'side');
+        const triggerPrice = this.safeString(order, 'stopPrice');
+        const triggerSuccess = this.safeValue(order, 'triggerSuccess');
+        const triggerFail = (triggerSuccess !== true) && (triggerSuccess !== undefined); // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
+        if ((status === 'triggered') && triggerFail) {
+            status = 'canceled';
+        }
         return this.safeOrder({
             'info': order,
-            'symbol': symbol,
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'symbol': market['symbol'],
+            'id': this.safeString(order, 'orderId'),
+            'clientOrderId': this.safeString(order, 'clientOid'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
-            'type': orderType,
+            'type': this.safeStringLower(order, 'orderType'),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'amount': amount,
+            'side': this.safeStringLower(order, 'side'),
+            'price': this.safeString2(order, 'price', 'orderPrice'),
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'amount': this.safeString(order, 'size'),
             'cost': undefined,
             'average': undefined,
-            'filled': filled,
+            'filled': this.safeString(order, 'filledSize'),
             'remaining': undefined,
             'status': status,
             'fee': undefined,
@@ -720,32 +751,51 @@ export default class kucoin extends kucoinRest {
         }, market);
     }
     handleOrder(client, message) {
+        //
+        // Trigger Orders
+        //
+        //    {
+        //        "createdAt": 1692745706437,
+        //        "error": "Balance insufficient!",       // not always there
+        //        "orderId": "vs86kp757vlda6ni003qs70v",
+        //        "orderPrice": "0.26",
+        //        "orderType": "stop",
+        //        "side": "sell",
+        //        "size": "5",
+        //        "stop": "loss",
+        //        "stopPrice": "0.26",
+        //        "symbol": "ADA-USDT",
+        //        "tradeType": "TRADE",
+        //        "triggerSuccess": false,                // not always there
+        //        "ts": "1692745706442929298",
+        //        "type": "open"
+        //    }
+        //
         const messageHash = 'orders';
         const data = this.safeValue(message, 'data');
         const parsed = this.parseWsOrder(data);
         const symbol = this.safeString(parsed, 'symbol');
         const orderId = this.safeString(parsed, 'id');
+        const triggerPrice = this.safeValue(parsed, 'triggerPrice');
+        const isTriggerOrder = (triggerPrice !== undefined);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
+            this.triggerOrders = new ArrayCacheBySymbolById(limit);
         }
-        const cachedOrders = this.orders;
+        const cachedOrders = isTriggerOrder ? this.triggerOrders : this.orders;
         const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
         const order = this.safeValue(orders, orderId);
         if (order !== undefined) {
             // todo add others to calculate average etc
-            const stopPrice = this.safeValue(order, 'stopPrice');
-            if (stopPrice !== undefined) {
-                parsed['stopPrice'] = stopPrice;
-            }
             if (order['status'] === 'closed') {
                 parsed['status'] = 'closed';
             }
         }
         cachedOrders.append(parsed);
-        client.resolve(this.orders, messageHash);
+        client.resolve(cachedOrders, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
-        client.resolve(this.orders, symbolSpecificMessageHash);
+        client.resolve(cachedOrders, symbolSpecificMessageHash);
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -755,8 +805,8 @@ export default class kucoin extends kucoinRest {
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         const url = await this.negotiate(true);
@@ -793,17 +843,17 @@ export default class kucoin extends kucoinRest {
     parseWsTrade(trade, market = undefined) {
         //
         // {
-        //     fee: 0.00262148,
-        //     feeCurrency: 'USDT',
-        //     feeRate: 0.001,
-        //     orderId: '62417436b29df8000183df2f',
-        //     orderType: 'market',
-        //     price: 131.074,
-        //     side: 'sell',
-        //     size: 0.02,
-        //     symbol: 'LTC-USDT',
-        //     time: '1648456758734571745',
-        //     tradeId: '624174362e113d2f467b3043'
+        //     "fee": 0.00262148,
+        //     "feeCurrency": "USDT",
+        //     "feeRate": 0.001,
+        //     "orderId": "62417436b29df8000183df2f",
+        //     "orderType": "market",
+        //     "price": 131.074,
+        //     "side": "sell",
+        //     "size": 0.02,
+        //     "symbol": "LTC-USDT",
+        //     "time": "1648456758734571745",
+        //     "tradeId": "624174362e113d2f467b3043"
         //   }
         //
         const marketId = this.safeString(trade, 'symbol');
@@ -845,8 +895,8 @@ export default class kucoin extends kucoinRest {
          * @method
          * @name kucoin#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const url = await this.negotiate(true);
@@ -942,6 +992,7 @@ export default class kucoin extends kucoinRest {
             'account.balance': this.handleBalance,
             '/spot/tradeFills': this.handleMyTrade,
             'orderChange': this.handleOrder,
+            'stopOrder': this.handleOrder,
         };
         const method = this.safeValue(methods, subject);
         if (method === undefined) {
@@ -968,13 +1019,20 @@ export default class kucoin extends kucoinRest {
     handleErrorMessage(client, message) {
         //
         //    {
-        //        id: '1',
-        //        type: 'error',
-        //        code: 415,
-        //        data: 'type is not supported'
+        //        "id": "1",
+        //        "type": "error",
+        //        "code": 415,
+        //        "data": "type is not supported"
         //    }
         //
         const data = this.safeString(message, 'data', '');
+        if (data === 'token is expired') {
+            let type = 'public';
+            if (client.url.indexOf('connectId=private') >= 0) {
+                type = 'private';
+            }
+            this.options['urls'][type] = undefined;
+        }
         this.handleErrors(undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
     }
     handleMessage(client, message) {
