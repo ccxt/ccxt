@@ -914,18 +914,16 @@ export default class Exchange {
             return;
         }
         this.proxyModulesLoaded = true;
-        try {
-            // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-            this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
-            this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
-            if (this.socksProxyAgentModuleChecked === false) {
-                this.socksProxyAgentModuleChecked = true;
-                try {
-                    // @ts-ignore
-                    this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
-                } catch (e) {}
-            }
-        } catch (e) {}
+        // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
+        this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
+        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+        if (this.socksProxyAgentModuleChecked === false) {
+            this.socksProxyAgentModuleChecked = true;
+            try {
+                // @ts-ignore
+                this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
+            } catch (e) {}
+        }
     }
 
     setProxyAgents (httpProxy, httpsProxy, socksProxy) {
