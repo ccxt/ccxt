@@ -478,18 +478,18 @@ class NewTranspiler {
         let returnStatement = "";
         if (unwrappedType.startsWith('List<')) {
             if (unwrappedType === 'List<Dictionary<string, object>>') {
-                returnStatement = `return ((List<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();`
+                returnStatement = `return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();`
             } else {
-                returnStatement = `return ((List<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
+                returnStatement = `return ((IList<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
             }
         } else if (unwrappedType.startsWith('Dictionary<string,') && unwrappedType !== 'Dictionary<string, object>' && !unwrappedType.startsWith('Dictionary')) {
             const type = this.unwrapDictionaryIfNeeded(unwrappedType);
             const returnParts = [
-                `var keys = ((Dictionary<string, object>)res).Keys.ToList();`,
+                `var keys = ((IDictionary<string, object>)res).Keys.ToList();`,
                 `        var result = new Dictionary<string, ${type}>();`,
                 `        foreach (var key in keys)`,
                 `        {`,
-                `            result[key] = new ${type}(((Dictionary<string,object>)res)[key]);`,
+                `            result[key] = new ${type}(((IDictionary<string,object>)res)[key]);`,
                 `        }`,
                 `        return result;`,
             ].join("\n");
