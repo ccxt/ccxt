@@ -805,7 +805,6 @@ class NewTranspiler {
                 this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
             }
         }
-
         exchanges.map ((file, idx) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws))
 
         const classes = {}
@@ -816,10 +815,15 @@ class NewTranspiler {
     createCSharpClass(csharpVersion, ws = false) {
         const csharpImports = this.getCsharpImports(csharpVersion, ws).join("\n") + "\n\n";
         let content = csharpVersion.content;
+
+        const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
+        const baseWsClassExec = baseWsClassRegex.exec(content);
+        const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
         if (!ws) {
             content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
         } else {
-            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1Ws : $1");
+            const wsParent =  baseWsClass.endsWith('Rest') ? baseWsClass.replace('Rest', '') : baseWsClass + 'Ws';
+            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1Ws : ${wsParent}`);
         }
         content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
         // WS fixes
