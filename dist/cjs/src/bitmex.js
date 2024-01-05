@@ -123,6 +123,7 @@ class bitmex extends bitmex$1 {
                         'chat/connected': 5,
                         'chat/pinned': 5,
                         'funding': 5,
+                        'guild': 5,
                         'instrument': 5,
                         'instrument/active': 5,
                         'instrument/activeAndIndices': 5,
@@ -151,6 +152,7 @@ class bitmex extends bitmex$1 {
                 },
                 'private': {
                     'get': {
+                        'address': 5,
                         'apiKey': 5,
                         'execution': 5,
                         'execution/tradeHistory': 5,
@@ -163,21 +165,33 @@ class bitmex extends bitmex$1 {
                         'user/affiliateStatus': 5,
                         'user/checkReferralCode': 5,
                         'user/commission': 5,
+                        'user/csa': 5,
                         'user/depositAddress': 5,
                         'user/executionHistory': 5,
+                        'user/getWalletTransferAccounts': 5,
                         'user/margin': 5,
                         'user/quoteFillRatio': 5,
                         'user/quoteValueRatio': 5,
+                        'user/staking': 5,
+                        'user/staking/instruments': 5,
+                        'user/staking/tiers': 5,
                         'user/tradingVolume': 5,
+                        'user/unstakingRequests': 5,
                         'user/wallet': 5,
                         'user/walletHistory': 5,
                         'user/walletSummary': 5,
+                        'userAffiliates': 5,
                         'userEvent': 5,
                     },
                     'post': {
+                        'address': 5,
                         'chat': 5,
+                        'guild': 5,
+                        'guild/archive': 5,
                         'guild/join': 5,
+                        'guild/kick': 5,
                         'guild/leave': 5,
+                        'guild/sharesTrades': 5,
                         'order': 1,
                         'order/cancelAllAfter': 5,
                         'order/closePosition': 5,
@@ -185,6 +199,7 @@ class bitmex extends bitmex$1 {
                         'position/leverage': 1,
                         'position/riskLimit': 5,
                         'position/transferMargin': 1,
+                        'user/addSubaccount': 5,
                         'user/cancelWithdrawal': 5,
                         'user/communicationToken': 5,
                         'user/confirmEmail': 5,
@@ -192,13 +207,18 @@ class bitmex extends bitmex$1 {
                         'user/logout': 5,
                         'user/preferences': 5,
                         'user/requestWithdrawal': 5,
+                        'user/unstakingRequests': 5,
+                        'user/updateSubaccount': 5,
+                        'user/walletTransfer': 5,
                     },
                     'put': {
+                        'guild': 5,
                         'order': 1,
                     },
                     'delete': {
                         'order': 1,
                         'order/all': 1,
+                        'user/unstakingRequests': 5,
                     },
                 },
             },
@@ -1586,13 +1606,11 @@ class bitmex extends bitmex$1 {
         let fee = undefined;
         const feeCostString = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, 'execComm')));
         if (feeCostString !== undefined) {
-            const currencyId = this.safeString(trade, 'settlCurrency');
-            const feeCurrencyCode = this.safeCurrencyCode(currencyId);
-            const feeRateString = this.safeString(trade, 'commission');
+            const currencyId = this.safeString2(trade, 'settlCurrency', 'currency');
             fee = {
-                'cost': Precise["default"].stringAbs(feeCostString),
-                'currency': feeCurrencyCode,
-                'rate': Precise["default"].stringAbs(feeRateString),
+                'cost': feeCostString,
+                'currency': this.safeCurrencyCode(currencyId),
+                'rate': this.safeString(trade, 'commission'),
             };
         }
         // Trade or Funding
