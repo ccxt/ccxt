@@ -20,15 +20,15 @@ public partial class Exchange
         public void resolve(object data = null)
         {
             this.tcs.SetResult(data);
-            this.tcs = new TaskCompletionSource<object>(); // reset
-            this.task = this.tcs.Task;
+            // this.tcs = new TaskCompletionSource<object>(); // reset
+            // this.task = this.tcs.Task;
         }
 
         public void reject(object data)
         {
             this.tcs.SetException(new Exception(data.ToString()));
-            this.tcs = new TaskCompletionSource<object>(); // reset
-            this.task = this.tcs.Task;
+            // this.tcs = new TaskCompletionSource<object>(); // reset
+            // this.task = this.tcs.Task;
         }
 
         public TaskAwaiter<object> GetAwaiter()
