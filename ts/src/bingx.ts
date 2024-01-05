@@ -1920,8 +1920,8 @@ export default class bingx extends Exchange {
         // we can fix with below manipulations
         // @ts-ignore
         let modifiedContent = content.replaceAll ('\\', '');
-        modifiedContent = modifiedContent.replace ('"{', '{');
-        modifiedContent = modifiedContent.replace ('}"', '}');
+        modifiedContent = modifiedContent.replaceAll ('"{', '{');
+        modifiedContent = modifiedContent.replaceAll ('}"', '}');
         return modifiedContent;
     }
 
