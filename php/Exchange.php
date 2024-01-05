@@ -2082,7 +2082,7 @@ class Exchange {
     }
 
     function clone($obj) {
-        return is_array($obj) ? $obj : $this->extend($obj);
+        return is_array($obj) ? $obj : $this->deep_extend($obj);
     }
 
     function parse_to_big_int($value) {
