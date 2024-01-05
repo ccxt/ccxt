@@ -98,13 +98,19 @@ class cryptocom extends \ccxt\async\cryptocom {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $topics = array();
+            $messageHashes = array();
+            if (!$limit) {
+                $limit = 150;
+            }
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $currentTopic = 'book' . '.' . $market['id'];
+                $currentTopic = 'book' . '.' . $market['id'] . '.' . $limit;
+                $messageHash = 'orderbook:' . $market['symbol'];
+                $messageHashes[] = $messageHash;
                 $topics[] = $currentTopic;
             }
-            $orderbook = Async\await($this->watch_public_multiple($topics, $topics, $params));
+            $orderbook = Async\await($this->watch_public_multiple($messageHashes, $topics, $params));
             return $orderbook->limit ();
         }) ();
     }
@@ -131,7 +137,6 @@ class cryptocom extends \ccxt\async\cryptocom {
         //      ]
         // }
         //
-        $messageHash = $this->safe_string($message, 'subscription');
         $marketId = $this->safe_string($message, 'instrument_name');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
@@ -147,6 +152,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
         $orderbook->reset ($snapshot);
         $this->orderbooks[$symbol] = $orderbook;
+        $messageHash = 'orderbook:' . $symbol;
         $client->resolve ($orderbook, $messageHash);
     }
 
