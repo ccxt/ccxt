@@ -914,18 +914,29 @@ export default class Exchange {
             return;
         }
         this.proxyModulesLoaded = true;
+        // we have to handle it with below nested way, because of dynamic
+        // import issues (https://github.com/ccxt/ccxt/pull/20687)
         try {
             // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
             this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
             this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
-            if (this.socksProxyAgentModuleChecked === false) {
-                this.socksProxyAgentModuleChecked = true;
-                try {
-                    // @ts-ignore
-                    this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
-                } catch (e) {}
-            }
-        } catch (e) {}
+        } catch (e) {
+            // if several users are using those frameworks which cause exceptions,
+            // let them to be able to load modules still, by installing them
+            try {
+                // @ts-ignore
+                this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
+                // @ts-ignore
+                this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
+            } catch { }
+        }
+        if (this.socksProxyAgentModuleChecked === false) {
+            this.socksProxyAgentModuleChecked = true;
+            try {
+                // @ts-ignore
+                this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
+            } catch (e) {}
+        }
     }
 
     setProxyAgents (httpProxy, httpsProxy, socksProxy) {
@@ -1049,9 +1060,12 @@ export default class Exchange {
                     this.FetchError = module.FetchError
                 }
                 catch (e) {
-                    // node v20 - browser-compatible implementation https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch
+                    // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
+                    // so let them to fallback to node's native fetch
                     if (typeof fetch === 'function') {
                         this.fetchImplementation = fetch
+                        // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
+                        // it throws same error types
                         this.AbortError = DOMException
                         this.FetchError = TypeError
                     } else {
