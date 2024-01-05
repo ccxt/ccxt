@@ -343,8 +343,8 @@ export default class bitfinex extends bitfinexRest {
                     const delta2 = delta[2];
                     const size = (delta2 < 0) ? -delta2 : delta2;
                     const side = (delta2 < 0) ? 'asks' : 'bids';
-                    const bookside = orderbook[side];
-                    bookside.store (delta[0], size, delta[1]);
+                    const countedBookSide = orderbook[side];
+                    countedBookSide.store (delta[0], size, delta[1]);
                 }
             }
             client.resolve (orderbook, messageHash);
@@ -364,8 +364,8 @@ export default class bitfinex extends bitfinexRest {
                 const message3Value = message[3];
                 const size = (message3Value < 0) ? -message3Value : message3Value;
                 const side = (message3Value < 0) ? 'asks' : 'bids';
-                const bookside = orderbook[side];
-                bookside.store (message[1], size, message[2]);
+                const countedBookSide = orderbook[side];
+                countedBookSide.store (message[1], size, message[2]);
             }
             client.resolve (orderbook, messageHash);
         }

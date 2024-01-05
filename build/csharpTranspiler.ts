@@ -81,6 +81,7 @@ class NewTranspiler {
             [/(\w+)(\.cache)/gm, '($1 as ccxt.OrderBook)$2'],
             //  [/(\w+)(\.reset)/gm, '($1 as ccxt.OrderBook)$2'],
             [/((?:this\.)?\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
+            [/(countedBookSide)\.store\(((.+),(.+),(.+))\)/gm, '($1 as CountedOrderBookSide).store($2)'],
             [/(\w+)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IndexedOrderBookSide).store($2)'],
             [/(\w+)\.store\(((.+),(.+))\)/gm, '($1 as OrderBookSide).store($2)'],
             [/(\w+)(\.storeArray\(.+\))/gm, '($1 as OrderBookSide)$2'],
