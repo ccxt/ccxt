@@ -340,7 +340,6 @@ export default class Exchange {
     lastRestRequestTimestamp:number;
 
     targetAccount = undefined
-    disableProxy = false
 
     stablePairs = {}
 
@@ -903,6 +902,11 @@ export default class Exchange {
         console.log (... args)
     }
 
+    async ioFileExistsAsync (filePath) {
+        const fs = await import (/* webpackIgnore: true */ 'fs');
+        return fs.existsSync (filePath);
+    }
+
     httpProxyAgentModule:any = undefined;
     httpsProxyAgentModule:any = undefined;
     socksProxyAgentModule:any = undefined;
@@ -911,20 +915,22 @@ export default class Exchange {
     proxyModulesLoaded:boolean = false;
 
     async loadProxyModules () {
-        if (this.disableProxy) {
+        if (this.proxyModulesLoaded) {
             return;
         }
         this.proxyModulesLoaded = true;
-        // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-        this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
-        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
-        if (this.socksProxyAgentModuleChecked === false) {
-            this.socksProxyAgentModuleChecked = true;
-            try {
-                // @ts-ignore
-                this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
-            } catch (e) {}
-        }
+        try {
+            // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
+            this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
+            this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+            if (this.socksProxyAgentModuleChecked === false) {
+                this.socksProxyAgentModuleChecked = true;
+                try {
+                    // @ts-ignore
+                    this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
+                } catch (e) {}
+            }
+        } catch (e) {}
     }
 
     setProxyAgents (httpProxy, httpsProxy, socksProxy) {
@@ -1013,11 +1019,10 @@ export default class Exchange {
         // proxy agents
         const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
         this.checkConflictingProxies (httpProxy || httpsProxy || socksProxy, proxyUrl);
+        // skip proxies on the browser
         if (isNode) {
-            // skip this on the browser
-            if (!this.proxyModulesLoaded) {
-                await this.loadProxyModules (); // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
-            }
+            // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
+            await this.loadProxyModules ();
         }
         const chosenAgent = this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
         // user-agent
