@@ -95,10 +95,13 @@ export default class cryptocom extends cryptocomRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const topics = [];
+        if (!limit) {
+            limit = 150;
+        }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const currentTopic = 'book' + '.' + market['id'];
+            const currentTopic = 'book' + '.' + market['id'] + '.' + limit;
             topics.push (currentTopic);
         }
         const orderbook = await this.watchPublicMultiple (topics, topics, params);
