@@ -161,6 +161,24 @@
                     "toAccount"
                 ]
             }
+        ],
+        "editOrder": [
+            {
+                "description": "Swap edit a trailingAmount order",
+                "method": "editOrder",
+                "url": "https://test.deribit.com/api/v2/private/edit?order_id=USDT-TSTS-32&amount=0.001&trigger_offset=2500&trailingAmount=2500",
+                "input": [
+                  "USDT-TSTS-32",
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.001,
+                  null,
+                  {
+                    "trailingAmount": 2500
+                  }
+                ]
+            }
         ]
     }
 }
