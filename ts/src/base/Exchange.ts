@@ -902,11 +902,6 @@ export default class Exchange {
         console.log (... args)
     }
 
-    async ioFileExistsAsync (filePath) {
-        const fs = await import (/* webpackIgnore: true */ 'fs');
-        return fs.existsSync (filePath);
-    }
-
     httpProxyAgentModule:any = undefined;
     httpsProxyAgentModule:any = undefined;
     socksProxyAgentModule:any = undefined;
