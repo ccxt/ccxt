@@ -597,7 +597,7 @@ class Exchange(object):
                 url,
                 data=body,
                 headers=request_headers,
-                timeout=int(self.timeout / 1000),
+                timeout=(self.timeout / 1000),
                 proxies=proxies,
                 verify=self.verify and self.validateServerSsl
             )
