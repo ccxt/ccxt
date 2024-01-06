@@ -1740,7 +1740,7 @@ export default class deribit extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade. For perpetual and futures the amount is in USD. For options it is in corresponding cryptocurrency contracts currency.
+         * @param {float} amount how much you want to trade in units of the base currency. For inverse perpetual and futures the amount is in the quote currency USD. For options it is in the underlying assets base currency.
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.trigger] the trigger type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
@@ -1749,18 +1749,11 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['inverse']) {
-            amount = this.amountToPrecision (symbol, amount);
-        } else if (market['settle'] === 'USDC') {
-            amount = this.amountToPrecision (symbol, amount);
-        } else {
-            amount = this.currencyToPrecision (symbol, amount);
-        }
         const request = {
             'instrument_name': market['id'],
             // for perpetual and futures the amount is in USD
             // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
-            'amount': amount,
+            'amount': this.amountToPrecision (symbol, amount),
             'type': type, // limit, stop_limit, market, stop_market, default is limit
             // 'label': 'string', // user-defined label for the order (maximum 64 characters)
             // 'price': this.priceToPrecision (symbol, 123.45), // only for limit and stop_limit orders
