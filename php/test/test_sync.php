@@ -174,6 +174,7 @@ function exception_message($exc) {
             $output .= "\n";
         }
     }
+    $output = preg_replace('/(\n(.*?)\/home\/travis\/build\/ccxt\/ccxt\/vendor\/)(.*?)\r/', '', $output); // remove excessive lines like: https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L3483
     $origin_message = null;
     try{
         $origin_message = $exc->getMessage() . "\n" . $exc->getFile() . ':' . $exc->getLine();
@@ -1274,6 +1275,10 @@ class testMainClass extends baseMainTestClass {
             for ($j = 0; $j < count($results); $j++) {
                 $result = $results[$j];
                 $description = $exchange->safe_value($result, 'description');
+                $is_disabled = $exchange->safe_value($result, 'disabled', false);
+                if ($is_disabled) {
+                    continue;
+                }
                 if (($test_name !== null) && ($test_name !== $description)) {
                     continue;
                 }

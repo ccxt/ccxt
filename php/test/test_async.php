@@ -1304,6 +1304,10 @@ class testMainClass extends baseMainTestClass {
                 for ($j = 0; $j < count($results); $j++) {
                     $result = $results[$j];
                     $description = $exchange->safe_value($result, 'description');
+                    $is_disabled = $exchange->safe_value($result, 'disabled', false);
+                    if ($is_disabled) {
+                        continue;
+                    }
                     if (($test_name !== null) && ($test_name !== $description)) {
                         continue;
                     }

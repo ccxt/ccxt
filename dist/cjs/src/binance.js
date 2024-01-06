@@ -4414,6 +4414,8 @@ class binance extends binance$1 {
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {boolean} [params.sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
          * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
+         * @param {float} [params.trailingPercent] the percent to trail away from the current market price
+         * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -4462,6 +4464,8 @@ class binance extends binance$1 {
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the exchange API endpoint
          * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
+         * @param {float} [params.trailingPercent] the percent to trail away from the current market price
+         * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market(symbol);
@@ -4475,9 +4479,12 @@ class binance extends binance$1 {
         const stopLossPrice = this.safeValue(params, 'stopLossPrice', triggerPrice); // fallback to stopLoss
         const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
         const trailingDelta = this.safeValue(params, 'trailingDelta');
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activationPrice', price);
+        const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
-        params = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice']);
+        params = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent']);
         const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
         const request = {
             'symbol': market['id'],
@@ -4498,7 +4505,14 @@ class binance extends binance$1 {
         }
         let uppercaseType = type.toUpperCase();
         let stopPrice = undefined;
-        if (isStopLoss) {
+        if (isTrailingPercentOrder) {
+            uppercaseType = 'TRAILING_STOP_MARKET';
+            request['callbackRate'] = trailingPercent;
+            if (trailingTriggerPrice !== undefined) {
+                request['activationPrice'] = this.priceToPrecision(symbol, trailingTriggerPrice);
+            }
+        }
+        else if (isStopLoss) {
             stopPrice = stopLossPrice;
             if (isMarketOrder) {
                 // spot STOP_LOSS market orders are not a valid order type
@@ -4642,9 +4656,8 @@ class binance extends binance$1 {
         }
         else if (uppercaseType === 'TRAILING_STOP_MARKET') {
             quantityIsRequired = true;
-            const callbackRate = this.safeNumber(query, 'callbackRate');
-            if (callbackRate === undefined) {
-                throw new errors.InvalidOrder(this.id + ' createOrder() requires a callbackRate extra param for a ' + type + ' order');
+            if (trailingPercent === undefined) {
+                throw new errors.InvalidOrder(this.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order');
             }
         }
         if (quantityIsRequired) {
