@@ -216,6 +216,23 @@
                     }
                 ],
                 "output": "timestamp=1699380695835&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu392bafca1fb740208ee8d3&newOrderRespType=RESULT&type=LIMIT&quantity=0.2&price=50&timeInForce=GTX&recvWindow=10000&signature=27dfce7c02d210d4d88f029e34550f153283e849b34bbf80aebbc7f860937b84"
+            },
+            {
+                "description": "Swap trailingPercent order",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.1,
+                  null,
+                  {
+                    "trailingPercent": 5,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "timestamp=1704512493514&symbol=BTCUSDT&side=SELL&callbackRate=5&newClientOrderId=x-xcKtGhcufdcb378c830d451392c9a2&newOrderRespType=RESULT&type=TRAILING_STOP_MARKET&quantity=0.1&reduceOnly=true&recvWindow=10000&signature=381024e31ce5868d69dd3e12668b9b47514c1211e7d0021a7939cb26d07f679a"
             }
         ],
         "createOrders": [
