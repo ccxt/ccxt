@@ -479,6 +479,19 @@
                 "ordType": "conditional"
               }
             ]
+          },
+          {
+            "description": "Swap fetch open trailing orders",
+            "method": "fetchOpenOrders",
+            "url": "https://www.okx.com/api/v5/trade/orders-algo-pending?instId=BTC-USDT-SWAP&ordType=move_order_stop",
+            "input": [
+              "BTC/USDT:USDT",
+              null,
+              null,
+              {
+                "trailing": true
+              }
+            ]
           }
         ],
         "fetchCanceledOrders": [
