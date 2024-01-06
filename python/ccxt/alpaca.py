@@ -355,10 +355,15 @@ class alpaca(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(asset, 'symbol')
         parts = marketId.split('/')
+        assetClass = self.safe_string(asset, 'class')
         baseId = self.safe_string(parts, 0)
         quoteId = self.safe_string(parts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        # Us equity markets do not include quote in symbol.
+        # We can safely coerce us_equity quote to USD
+        if quote is None and assetClass == 'us_equity':
+            quote = 'USD'
         symbol = base + '/' + quote
         status = self.safe_string(asset, 'status')
         active = (status == 'active')

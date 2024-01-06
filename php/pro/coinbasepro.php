@@ -138,7 +138,6 @@ class coinbasepro extends \ccxt\async\coinbasepro {
     public function watch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-$channel
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint

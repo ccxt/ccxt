@@ -4198,6 +4198,8 @@ class binance(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :param boolean [params.sor]: *spot only* whether to use SOR(Smart Order Routing) or not, default is False
         :param boolean [params.test]: *spot only* whether to use the test endpoint or not, default is False
+        :param float [params.trailingPercent]: the percent to trail away from the current market price
+        :param float [params.trailingTriggerPrice]: the price to trigger a trailing order, default uses the price argument
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -4237,6 +4239,8 @@ class binance(Exchange, ImplicitAPI):
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the exchange API endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
+        :param float [params.trailingPercent]: the percent to trail away from the current market price
+        :param float [params.trailingTriggerPrice]: the price to trigger a trailing order, default uses the price argument
         :returns dict: request to be sent to the exchange
         """
         market = self.market(symbol)
@@ -4250,9 +4254,12 @@ class binance(Exchange, ImplicitAPI):
         stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)  # fallback to stopLoss
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         trailingDelta = self.safe_value(params, 'trailingDelta')
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activationPrice', price)
+        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
+        isTrailingPercentOrder = trailingPercent is not None
         isStopLoss = stopLossPrice is not None or trailingDelta is not None
         isTakeProfit = takeProfitPrice is not None
-        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice'])
+        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent'])
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         request = {
             'symbol': market['id'],
@@ -4269,7 +4276,12 @@ class binance(Exchange, ImplicitAPI):
                 params = self.omit(params, 'reduceOnly')
         uppercaseType = type.upper()
         stopPrice = None
-        if isStopLoss:
+        if isTrailingPercentOrder:
+            uppercaseType = 'TRAILING_STOP_MARKET'
+            request['callbackRate'] = trailingPercent
+            if trailingTriggerPrice is not None:
+                request['activationPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
+        elif isStopLoss:
             stopPrice = stopLossPrice
             if isMarketOrder:
                 # spot STOP_LOSS market orders are not a valid order type
@@ -4380,9 +4392,8 @@ class binance(Exchange, ImplicitAPI):
             stopPriceIsRequired = True
         elif uppercaseType == 'TRAILING_STOP_MARKET':
             quantityIsRequired = True
-            callbackRate = self.safe_number(query, 'callbackRate')
-            if callbackRate is None:
-                raise InvalidOrder(self.id + ' createOrder() requires a callbackRate extra param for a ' + type + ' order')
+            if trailingPercent is None:
+                raise InvalidOrder(self.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order')
         if quantityIsRequired:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         if priceIsRequired:
@@ -4829,7 +4840,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             return response
 
-    def cancel_orders(self, ids: List[Int], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :see: https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade

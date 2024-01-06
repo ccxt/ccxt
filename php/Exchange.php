@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.4';
+$version = '4.2.8';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.4';
+    const VERSION = '4.2.8';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2082,7 +2082,7 @@ class Exchange {
     }
 
     function clone($obj) {
-        return is_array($obj) ? $obj : $this->extend($obj);
+        return is_array($obj) ? $obj : $this->deep_extend($obj);
     }
 
     function parse_to_big_int($value) {

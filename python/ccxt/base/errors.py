@@ -45,6 +45,7 @@ error_hierarchy = {
                 'RequestTimeout': {},
             },
         },
+        'ExchangeClosedByUser': {},
     },
 }
 
@@ -189,6 +190,10 @@ class RequestTimeout(NetworkError):
     pass
 
 
+class ExchangeClosedByUser(BaseError):
+    pass
+
+
 __all__ = [
     'error_hierarchy',
     'BaseError',
@@ -225,5 +230,6 @@ __all__ = [
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
-    'RequestTimeout'
+    'RequestTimeout',
+    'ExchangeClosedByUser'
 ]

@@ -124,8 +124,7 @@ export default class coinbasepro extends coinbaseproRest {
     async watchTickers(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name okx#watchTickers
-         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+         * @name coinbasepro#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
