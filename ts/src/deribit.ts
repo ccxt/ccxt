@@ -1751,8 +1751,6 @@ export default class deribit extends Exchange {
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
-            // for perpetual and futures the amount is in USD
-            // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
             'amount': this.amountToPrecision (symbol, amount),
             'type': type, // limit, stop_limit, market, stop_market, default is limit
             // 'label': 'string', // user-defined label for the order (maximum 64 characters)
@@ -1915,7 +1913,7 @@ export default class deribit extends Exchange {
          * @param {string} [symbol] unified symbol of the market to edit an order in
          * @param {string} [type] 'market' or 'limit'
          * @param {string} [side] 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of the base currency
+         * @param {float} amount how much you want to trade in units of the base currency, inverse swap and future use the quote currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
@@ -1927,8 +1925,6 @@ export default class deribit extends Exchange {
         await this.loadMarkets ();
         const request = {
             'order_id': id,
-            // for perpetual and futures the amount is in USD
-            // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
             'amount': this.amountToPrecision (symbol, amount),
             // 'post_only': false, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
             // 'reject_post_only': false, // if true the order is put to order book unmodified or request is rejected
