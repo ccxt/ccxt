@@ -1211,6 +1211,10 @@ export default class testMainClass extends baseMainTestClass {
             for (let j = 0; j < results.length; j++) {
                 const result = results[j];
                 const description = exchange.safeValue(result, 'description');
+                const isDisabled = exchange.safeValue(result, 'disabled', false);
+                if (isDisabled) {
+                    continue;
+                }
                 if ((testName !== undefined) && (testName !== description)) {
                     continue;
                 }

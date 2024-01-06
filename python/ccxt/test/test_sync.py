@@ -1058,6 +1058,9 @@ class testMainClass(baseMainTestClass):
             for j in range(0, len(results)):
                 result = results[j]
                 description = exchange.safe_value(result, 'description')
+                is_disabled = exchange.safe_value(result, 'disabled', False)
+                if is_disabled:
+                    continue
                 if (test_name is not None) and (test_name != description):
                     continue
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
