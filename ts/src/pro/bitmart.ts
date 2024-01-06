@@ -299,18 +299,25 @@ export default class bitmart extends bitmartRest {
         let type = 'spot';
         [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         symbols = this.marketSymbols (symbols);
+        const messageHash = 'tickers_' + type;
+        let request = undefined;
         if (type === 'spot') {
-            throw new NotSupported (this.id + ' watchTickers() does not support ' + type + ' markets. Use watchTicker() instead');
+            const marketIds = this.marketIds (symbols);
+            const finalArray = [];
+            for (let i = 0; i < marketIds.length; i++) {
+                finalArray.push ('spot/ticker:' + marketIds[i]);
+            }
+            request = {
+                'op': 'subscribe',
+                'args': finalArray,
+            };
+        } else {
+            request = {
+                'action': 'subscribe',
+                'args': [ 'futures/ticker' ],
+            };
         }
         const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
-        if (type === 'swap') {
-            type = 'futures';
-        }
-        const messageHash = 'tickers';
-        const request = {
-            'action': 'subscribe',
-            'args': [ 'futures/ticker' ],
-        };
         const newTickers = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         const result = this.newUpdates ? newTickers : this.tickers;
         return this.filterByArray (result, 'symbol', symbols);
