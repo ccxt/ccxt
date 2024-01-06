@@ -106,6 +106,9 @@
             },
             "watchTicker": {
                 "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
+            },
+            "watchTickers": {
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L2414"
             }
         }
     },
