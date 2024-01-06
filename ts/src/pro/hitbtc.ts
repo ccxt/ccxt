@@ -353,10 +353,8 @@ export default class hitbtc extends hitbtcRest {
             },
         };
         const tickers = await this.subscribePublic (name, symbols, this.deepExtend (request, params));
-        if (this.newUpdates) {
-            return tickers;
-        }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        const result = this.newUpdates ? tickers : this.tickers;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
