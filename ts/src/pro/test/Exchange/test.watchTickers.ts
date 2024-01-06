@@ -25,7 +25,8 @@ async function testWatchTickersHelper (exchange, skippedProperties, argSymbols, 
             now = exchange.milliseconds ();
             continue;
         }
-        assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
+        // todo: why don't we return dict from watchTickers?
+        assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
         const values = Object.values (response);
         let checkedSymbol = undefined;
         if (argSymbols !== undefined && argSymbols.length === 1) {
@@ -34,6 +35,14 @@ async function testWatchTickersHelper (exchange, skippedProperties, argSymbols, 
         for (let i = 0; i < values.length; i++) {
             const ticker = values[i];
             testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
+        }
+        // ensure that same symbol is not repeated multiple times in array
+        const uniqueSymbols = [];
+        for (let i = 0; i < values.length; i++) {
+            const ticker = values[i];
+            const symbol = ticker['symbol'];
+            assert (!uniqueSymbols.includes (symbol), exchange.id + ' ' + method + ' ' + exchange.json (response) + ' returned multiple entries for same symbol ' + symbol);
+            uniqueSymbols.push (symbol);
         }
     }
 }
