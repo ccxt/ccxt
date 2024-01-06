@@ -642,6 +642,19 @@
               }
             ],
             "output": "[{\"algoId\":\"641788035268431872\",\"instId\":\"LTC-USDT-SWAP\"}]"
+          },
+          {
+            "description": "Swap cancel trailing order",
+            "method": "cancelOrder",
+            "url": "https://www.okx.com/api/v5/trade/cancel-algos",
+            "input": [
+              "663756560224751616",
+              "BTC/USDT:USDT",
+              {
+                "trailing": true
+              }
+            ],
+            "output": "[{\"algoId\":\"663756560224751616\",\"instId\":\"BTC-USDT-SWAP\"}]"
           }
         ],
         "cancelOrders": [
@@ -705,6 +718,21 @@
               }
             ],
             "output": "[{\"algoId\":\"639637720528322560\",\"instId\":\"LTC-USDT-SWAP\"},{\"algoId\":\"635260475386888192\",\"instId\":\"LTC-USDT-SWAP\"}]"
+          },
+          {
+            "description": "Swap cancel multiple trailing orders",
+            "method": "cancelOrders",
+            "url": "https://www.okx.com/api/v5/trade/cancel-algos",
+            "input": [
+              [
+                "663748219972878336"
+              ],
+              "BTC/USDT:USDT",
+              {
+                "trailing": true
+              }
+            ],
+            "output": "[{\"algoId\":\"663748219972878336\",\"instId\":\"BTC-USDT-SWAP\"}]"
           }
         ],
         "closePosition": [
