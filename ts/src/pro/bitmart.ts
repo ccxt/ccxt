@@ -312,10 +312,8 @@ export default class bitmart extends bitmartRest {
             'args': [ 'futures/ticker' ],
         };
         const newTickers = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        if (this.newUpdates) {
-            return newTickers;
-        }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        const result = this.newUpdates ? newTickers : this.tickers;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
