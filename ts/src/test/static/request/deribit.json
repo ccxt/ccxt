@@ -50,7 +50,7 @@
             {
                 "description": "Swap trailingAmount order",
                 "method": "createOrder",
-                "url": "https://test.deribit.com/api/v2/private/sell?instrument_name=BTC_USDT-PERPETUAL&amount=0.001&type=trailing_stop&trigger=last_price&trigger_offset=1000",
+                "url": "https://test.deribit.com/api/v2/private/sell?instrument_name=BTC_USDT-PERPETUAL&amount=0.001&type=trailing_stop&trigger=last_price&trigger_offset=1000.0",
                 "input": [
                   "BTC/USDT:USDT",
                   "market",
@@ -58,7 +58,7 @@
                   0.001,
                   null,
                   {
-                    "trailingAmount": 1000
+                    "trailingAmount": 1000.0
                   }
                 ]
             }
@@ -166,7 +166,7 @@
             {
                 "description": "Swap edit a trailingAmount order",
                 "method": "editOrder",
-                "url": "https://test.deribit.com/api/v2/private/edit?order_id=USDT-TSTS-32&amount=0.001&trigger_offset=2500&trailingAmount=2500",
+                "url": "https://test.deribit.com/api/v2/private/edit?order_id=USDT-TSTS-32&amount=0.001&trigger_offset=2500&trailingAmount=2500.0",
                 "input": [
                   "USDT-TSTS-32",
                   "BTC/USDT:USDT",
@@ -175,7 +175,7 @@
                   0.001,
                   null,
                   {
-                    "trailingAmount": 2500
+                    "trailingAmount": 2500.0
                   }
                 ]
             }
