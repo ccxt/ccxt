@@ -4466,6 +4466,7 @@ export default class binance extends Exchange {
         let stopPrice = undefined;
         if (isTrailingPercentOrder) {
             uppercaseType = 'TRAILING_STOP_MARKET';
+            request['callbackRate'] = trailingPercent;
             if (trailingTriggerPrice !== undefined) {
                 request['activationPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
             }
