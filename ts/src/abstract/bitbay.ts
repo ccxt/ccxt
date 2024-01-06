@@ -47,6 +47,8 @@ interface zonda {
     v1_01PrivatePostBalancesBITBAYBalance (params?: {}): Promise<implicitReturnType>;
     v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (params?: {}): Promise<implicitReturnType>;
     v1_01PrivatePostFiatCantorExchange (params?: {}): Promise<implicitReturnType>;
+    v1_01PrivatePostApiPaymentsWithdrawalsCrypto (params?: {}): Promise<implicitReturnType>;
+    v1_01PrivatePostApiPaymentsWithdrawalsFiat (params?: {}): Promise<implicitReturnType>;
     v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (params?: {}): Promise<implicitReturnType>;
     v1_01PrivateDeleteTradingStopOfferSymbolIdSidePrice (params?: {}): Promise<implicitReturnType>;
     v1_01PrivatePutBalancesBITBAYBalanceId (params?: {}): Promise<implicitReturnType>;

@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,7 +7,8 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/test_shared_methods.php';
+use \ccxt\Precise;
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_market($exchange, $skipped_properties, $method, $market) {
     $format = array(
@@ -200,4 +200,5 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['quoteId'], $market['quote']);
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['settleId'], $market['settle']);
     }
+    assert_timestamp($exchange, $skipped_properties, $method, $market, null, 'created');
 }

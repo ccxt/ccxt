@@ -1,0 +1,980 @@
+{
+    "BTC/USD": {
+        "id": "btc_usd",
+        "symbol": "BTC/USD",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "btc",
+        "quoteId": "usd",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 1
+        },
+        "limits": {
+            "amount": {
+                "min": 6e-7,
+                "max": 600
+            },
+            "price": {
+                "min": 800,
+                "max": 300000
+            },
+            "cost": {
+                "min": 0.5,
+                "max": 10000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "default_chart": "tradingview",
+            "minimum_price": "800",
+            "fees": {
+                "flat_rate": {
+                    "maker": "0.00095",
+                    "taker": "0.00099"
+                },
+                "structure": [
+                    {
+                        "volume": "1000",
+                        "maker": "0.0025",
+                        "taker": "0.003"
+                    },
+                    {
+                        "volume": "5000",
+                        "maker": "0.0021",
+                        "taker": "0.0026"
+                    },
+                    {
+                        "volume": "10000",
+                        "maker": "0.0018",
+                        "taker": "0.0022"
+                    },
+                    {
+                        "volume": "50000",
+                        "maker": "0.0015",
+                        "taker": "0.0019"
+                    },
+                    {
+                        "volume": "100000",
+                        "maker": "0.0012",
+                        "taker": "0.0016"
+                    },
+                    {
+                        "volume": "1000000",
+                        "maker": "0.001",
+                        "taker": "0.0012"
+                    },
+                    {
+                        "volume": "5000000",
+                        "maker": "0.00085",
+                        "taker": "0.00095"
+                    },
+                    {
+                        "volume": "10000000",
+                        "maker": "0.00072",
+                        "taker": "0.00082"
+                    },
+                    {
+                        "volume": "20000000",
+                        "maker": "0.0006",
+                        "taker": "0.00069"
+                    },
+                    {
+                        "volume": "30000000",
+                        "maker": "0.0005",
+                        "taker": "0.0006"
+                    },
+                    {
+                        "volume": "9999999999",
+                        "maker": "0.0004",
+                        "taker": "0.0005"
+                    }
+                ]
+            },
+            "maximum_price": "300000",
+            "book": "btc_usd",
+            "minimum_value": "0.50000",
+            "maximum_amount": "600",
+            "maximum_value": "10000000",
+            "minimum_amount": "0.0000006",
+            "tick_size": "1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.003,
+        "maker": 0.0025,
+        "tiers": {
+            "taker": [
+                [
+                    1000,
+                    0.003
+                ],
+                [
+                    5000,
+                    0.0026
+                ],
+                [
+                    10000,
+                    0.0022
+                ],
+                [
+                    50000,
+                    0.0019
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    1000000,
+                    0.0012
+                ],
+                [
+                    5000000,
+                    0.00095
+                ],
+                [
+                    10000000,
+                    0.00082
+                ],
+                [
+                    20000000,
+                    0.00069
+                ],
+                [
+                    30000000,
+                    0.0006
+                ],
+                [
+                    9999999999,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    1000,
+                    0.0025
+                ],
+                [
+                    5000,
+                    0.0021
+                ],
+                [
+                    10000,
+                    0.0018
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    1000000,
+                    0.001
+                ],
+                [
+                    5000000,
+                    0.00085
+                ],
+                [
+                    10000000,
+                    0.00072
+                ],
+                [
+                    20000000,
+                    0.0006
+                ],
+                [
+                    30000000,
+                    0.0005
+                ],
+                [
+                    9999999999,
+                    0.0004
+                ]
+            ]
+        }
+    },
+    "LTC/USD": {
+        "id": "ltc_usd",
+        "symbol": "LTC/USD",
+        "base": "LTC",
+        "quote": "USD",
+        "baseId": "ltc",
+        "quoteId": "usd",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001,
+                "max": 100000
+            },
+            "price": {
+                "min": 3,
+                "max": 1000
+            },
+            "cost": {
+                "min": 0.5,
+                "max": 10000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "default_chart": "tradingview",
+            "minimum_price": "3",
+            "fees": {
+                "flat_rate": {
+                    "maker": "0.00095",
+                    "taker": "0.00099"
+                },
+                "structure": [
+                    {
+                        "volume": "1000",
+                        "maker": "0.0025",
+                        "taker": "0.003"
+                    },
+                    {
+                        "volume": "5000",
+                        "maker": "0.0021",
+                        "taker": "0.0026"
+                    },
+                    {
+                        "volume": "10000",
+                        "maker": "0.0018",
+                        "taker": "0.0022"
+                    },
+                    {
+                        "volume": "50000",
+                        "maker": "0.0015",
+                        "taker": "0.0019"
+                    },
+                    {
+                        "volume": "100000",
+                        "maker": "0.0012",
+                        "taker": "0.0016"
+                    },
+                    {
+                        "volume": "1000000",
+                        "maker": "0.001",
+                        "taker": "0.0012"
+                    },
+                    {
+                        "volume": "5000000",
+                        "maker": "0.00085",
+                        "taker": "0.00095"
+                    },
+                    {
+                        "volume": "10000000",
+                        "maker": "0.00072",
+                        "taker": "0.00082"
+                    },
+                    {
+                        "volume": "20000000",
+                        "maker": "0.0006",
+                        "taker": "0.00069"
+                    },
+                    {
+                        "volume": "30000000",
+                        "maker": "0.0005",
+                        "taker": "0.0006"
+                    },
+                    {
+                        "volume": "9999999999",
+                        "maker": "0.0004",
+                        "taker": "0.0005"
+                    }
+                ]
+            },
+            "maximum_price": "1000",
+            "book": "ltc_usd",
+            "minimum_value": "0.50000",
+            "maximum_amount": "100000",
+            "maximum_value": "10000000",
+            "minimum_amount": "0.0001",
+            "tick_size": "0.001"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.003,
+        "maker": 0.0025,
+        "tiers": {
+            "taker": [
+                [
+                    1000,
+                    0.003
+                ],
+                [
+                    5000,
+                    0.0026
+                ],
+                [
+                    10000,
+                    0.0022
+                ],
+                [
+                    50000,
+                    0.0019
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    1000000,
+                    0.0012
+                ],
+                [
+                    5000000,
+                    0.00095
+                ],
+                [
+                    10000000,
+                    0.00082
+                ],
+                [
+                    20000000,
+                    0.00069
+                ],
+                [
+                    30000000,
+                    0.0006
+                ],
+                [
+                    9999999999,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    1000,
+                    0.0025
+                ],
+                [
+                    5000,
+                    0.0021
+                ],
+                [
+                    10000,
+                    0.0018
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    1000000,
+                    0.001
+                ],
+                [
+                    5000000,
+                    0.00085
+                ],
+                [
+                    10000000,
+                    0.00072
+                ],
+                [
+                    20000000,
+                    0.0006
+                ],
+                [
+                    30000000,
+                    0.0005
+                ],
+                [
+                    9999999999,
+                    0.0004
+                ]
+            ]
+        }
+    },
+    "ETH/USD": {
+        "id": "eth_usd",
+        "symbol": "ETH/USD",
+        "base": "ETH",
+        "quote": "USD",
+        "baseId": "eth",
+        "quoteId": "usd",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.000008,
+                "max": 8000
+            },
+            "price": {
+                "min": 60,
+                "max": 20000
+            },
+            "cost": {
+                "min": 0.5,
+                "max": 10000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "default_chart": "tradingview",
+            "minimum_price": "60",
+            "fees": {
+                "flat_rate": {
+                    "maker": "0.00095",
+                    "taker": "0.00099"
+                },
+                "structure": [
+                    {
+                        "volume": "1000",
+                        "maker": "0.0025",
+                        "taker": "0.003"
+                    },
+                    {
+                        "volume": "5000",
+                        "maker": "0.0021",
+                        "taker": "0.0026"
+                    },
+                    {
+                        "volume": "10000",
+                        "maker": "0.0018",
+                        "taker": "0.0022"
+                    },
+                    {
+                        "volume": "50000",
+                        "maker": "0.0015",
+                        "taker": "0.0019"
+                    },
+                    {
+                        "volume": "100000",
+                        "maker": "0.0012",
+                        "taker": "0.0016"
+                    },
+                    {
+                        "volume": "1000000",
+                        "maker": "0.001",
+                        "taker": "0.0012"
+                    },
+                    {
+                        "volume": "5000000",
+                        "maker": "0.00085",
+                        "taker": "0.00095"
+                    },
+                    {
+                        "volume": "10000000",
+                        "maker": "0.00072",
+                        "taker": "0.00082"
+                    },
+                    {
+                        "volume": "20000000",
+                        "maker": "0.0006",
+                        "taker": "0.00069"
+                    },
+                    {
+                        "volume": "30000000",
+                        "maker": "0.0005",
+                        "taker": "0.0006"
+                    },
+                    {
+                        "volume": "9999999999",
+                        "maker": "0.0004",
+                        "taker": "0.0005"
+                    }
+                ]
+            },
+            "maximum_price": "20000",
+            "book": "eth_usd",
+            "minimum_value": "0.50000",
+            "maximum_amount": "8000",
+            "maximum_value": "10000000",
+            "minimum_amount": "0.000008",
+            "tick_size": "0.1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.003,
+        "maker": 0.0025,
+        "tiers": {
+            "taker": [
+                [
+                    1000,
+                    0.003
+                ],
+                [
+                    5000,
+                    0.0026
+                ],
+                [
+                    10000,
+                    0.0022
+                ],
+                [
+                    50000,
+                    0.0019
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    1000000,
+                    0.0012
+                ],
+                [
+                    5000000,
+                    0.00095
+                ],
+                [
+                    10000000,
+                    0.00082
+                ],
+                [
+                    20000000,
+                    0.00069
+                ],
+                [
+                    30000000,
+                    0.0006
+                ],
+                [
+                    9999999999,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    1000,
+                    0.0025
+                ],
+                [
+                    5000,
+                    0.0021
+                ],
+                [
+                    10000,
+                    0.0018
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    1000000,
+                    0.001
+                ],
+                [
+                    5000000,
+                    0.00085
+                ],
+                [
+                    10000000,
+                    0.00072
+                ],
+                [
+                    20000000,
+                    0.0006
+                ],
+                [
+                    30000000,
+                    0.0005
+                ],
+                [
+                    9999999999,
+                    0.0004
+                ]
+            ]
+        }
+    },
+    "BTC/USDT": {
+        "id": "btc_usdt",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "btc",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 1
+        },
+        "limits": {
+            "amount": {
+                "min": 6e-7,
+                "max": 600
+            },
+            "price": {
+                "min": 800,
+                "max": 300000
+            },
+            "cost": {
+                "min": 0.5,
+                "max": 10000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "default_chart": "tradingview",
+            "minimum_price": "800",
+            "fees": {
+                "flat_rate": {
+                    "maker": "0.00095",
+                    "taker": "0.00099"
+                },
+                "structure": [
+                    {
+                        "volume": "500000",
+                        "maker": "0.00095",
+                        "taker": "0.00099"
+                    },
+                    {
+                        "volume": "1000000",
+                        "maker": "0.0009",
+                        "taker": "0.00099"
+                    },
+                    {
+                        "volume": "1500000",
+                        "maker": "0.00084",
+                        "taker": "0.00099"
+                    },
+                    {
+                        "volume": "3000000",
+                        "maker": "0.0008",
+                        "taker": "0.00095"
+                    },
+                    {
+                        "volume": "5000000",
+                        "maker": "0.00075",
+                        "taker": "0.0009"
+                    },
+                    {
+                        "volume": "10000000",
+                        "maker": "0.00069",
+                        "taker": "0.0008"
+                    },
+                    {
+                        "volume": "15000000",
+                        "maker": "0.0006",
+                        "taker": "0.00069"
+                    },
+                    {
+                        "volume": "20000000",
+                        "maker": "0.0005",
+                        "taker": "0.0006"
+                    },
+                    {
+                        "volume": "9999999999",
+                        "maker": "0.0004",
+                        "taker": "0.0005"
+                    }
+                ]
+            },
+            "maximum_price": "300000",
+            "book": "btc_usdt",
+            "minimum_value": "0.50000",
+            "maximum_amount": "600",
+            "maximum_value": "10000000",
+            "minimum_amount": "0.0000006",
+            "tick_size": "1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.00099,
+        "maker": 0.00095,
+        "tiers": {
+            "taker": [
+                [
+                    500000,
+                    0.00099
+                ],
+                [
+                    1000000,
+                    0.00099
+                ],
+                [
+                    1500000,
+                    0.00099
+                ],
+                [
+                    3000000,
+                    0.00095
+                ],
+                [
+                    5000000,
+                    0.0009
+                ],
+                [
+                    10000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.00069
+                ],
+                [
+                    20000000,
+                    0.0006
+                ],
+                [
+                    9999999999,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    500000,
+                    0.00095
+                ],
+                [
+                    1000000,
+                    0.0009
+                ],
+                [
+                    1500000,
+                    0.00084
+                ],
+                [
+                    3000000,
+                    0.0008
+                ],
+                [
+                    5000000,
+                    0.00075
+                ],
+                [
+                    10000000,
+                    0.00069
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    20000000,
+                    0.0005
+                ],
+                [
+                    9999999999,
+                    0.0004
+                ]
+            ]
+        }
+    },
+    "XRP/USDT": {
+        "id": "xrp_usdt",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "xrp",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.02,
+                "max": 20000000
+            },
+            "price": {
+                "min": 0.03,
+                "max": 10
+            },
+            "cost": {
+                "min": 0.5,
+                "max": 10000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "default_chart": "depth",
+            "minimum_price": "0.03",
+            "fees": {
+                "flat_rate": {
+                    "maker": "0.00095",
+                    "taker": "0.00099"
+                },
+                "structure": [
+                    {
+                        "volume": "500000",
+                        "maker": "0.00095",
+                        "taker": "0.00099"
+                    },
+                    {
+                        "volume": "1000000",
+                        "maker": "0.00090",
+                        "taker": "0.00099"
+                    },
+                    {
+                        "volume": "1500000",
+                        "maker": "0.00084",
+                        "taker": "0.00099"
+                    },
+                    {
+                        "volume": "3000000",
+                        "maker": "0.00080",
+                        "taker": "0.00095"
+                    },
+                    {
+                        "volume": "5000000",
+                        "maker": "0.00075",
+                        "taker": "0.00090"
+                    },
+                    {
+                        "volume": "10000000",
+                        "maker": "0.00069",
+                        "taker": "0.00080"
+                    },
+                    {
+                        "volume": "15000000",
+                        "maker": "0.00060",
+                        "taker": "0.00069"
+                    },
+                    {
+                        "volume": "20000000",
+                        "maker": "0.00050",
+                        "taker": "0.00060"
+                    },
+                    {
+                        "volume": "9999999999",
+                        "maker": "0.00040",
+                        "taker": "0.00050"
+                    }
+                ]
+            },
+            "maximum_price": "10.0",
+            "book": "xrp_usdt",
+            "minimum_value": "0.5",
+            "maximum_amount": "20000000",
+            "maximum_value": "10000000",
+            "minimum_amount": "0.02",
+            "tick_size": "0.00001"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.00099,
+        "maker": 0.00095,
+        "tiers": {
+            "taker": [
+                [
+                    500000,
+                    0.00099
+                ],
+                [
+                    1000000,
+                    0.00099
+                ],
+                [
+                    1500000,
+                    0.00099
+                ],
+                [
+                    3000000,
+                    0.00095
+                ],
+                [
+                    5000000,
+                    0.0009
+                ],
+                [
+                    10000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.00069
+                ],
+                [
+                    20000000,
+                    0.0006
+                ],
+                [
+                    9999999999,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    500000,
+                    0.00095
+                ],
+                [
+                    1000000,
+                    0.0009
+                ],
+                [
+                    1500000,
+                    0.00084
+                ],
+                [
+                    3000000,
+                    0.0008
+                ],
+                [
+                    5000000,
+                    0.00075
+                ],
+                [
+                    10000000,
+                    0.00069
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    20000000,
+                    0.0005
+                ],
+                [
+                    9999999999,
+                    0.0004
+                ]
+            ]
+        }
+    }
+}

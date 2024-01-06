@@ -11,6 +11,8 @@ error_hierarchy = {
             'BadRequest': {
                 'BadSymbol': {},
                 'MarginModeAlreadySet': {},
+                'NoChange': {},
+                'OperationRejected': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -29,17 +31,21 @@ error_hierarchy = {
                 'ContractUnavailable': {},
             },
             'NotSupported': {},
+            'ProxyError': {},
         },
-        'NetworkError': {
-            'DDoSProtection': {
-                'RateLimitExceeded': {},
+        'OperationFailed': {
+            'NetworkError': {
+                'DDoSProtection': {
+                    'RateLimitExceeded': {},
+                },
+                'ExchangeNotAvailable': {
+                    'OnMaintenance': {},
+                },
+                'InvalidNonce': {},
+                'RequestTimeout': {},
             },
-            'ExchangeNotAvailable': {
-                'OnMaintenance': {},
-            },
-            'InvalidNonce': {},
-            'RequestTimeout': {},
         },
+        'ExchangeClosedByUser': {},
     },
 }
 
@@ -81,6 +87,14 @@ class BadSymbol(BadRequest):
 
 
 class MarginModeAlreadySet(BadRequest):
+    pass
+
+
+class NoChange(BadRequest):
+    pass
+
+
+class OperationRejected(BadRequest):
     pass
 
 
@@ -140,7 +154,15 @@ class NotSupported(ExchangeError):
     pass
 
 
-class NetworkError(BaseError):
+class ProxyError(ExchangeError):
+    pass
+
+
+class OperationFailed(BaseError):
+    pass
+
+
+class NetworkError(OperationFailed):
     pass
 
 
@@ -168,6 +190,10 @@ class RequestTimeout(NetworkError):
     pass
 
 
+class ExchangeClosedByUser(BaseError):
+    pass
+
+
 __all__ = [
     'error_hierarchy',
     'BaseError',
@@ -180,6 +206,8 @@ __all__ = [
     'BadRequest',
     'BadSymbol',
     'MarginModeAlreadySet',
+    'NoChange',
+    'OperationRejected',
     'BadResponse',
     'NullResponse',
     'InsufficientFunds',
@@ -194,11 +222,14 @@ __all__ = [
     'DuplicateOrderId',
     'ContractUnavailable',
     'NotSupported',
+    'ProxyError',
+    'OperationFailed',
     'NetworkError',
     'DDoSProtection',
     'RateLimitExceeded',
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
-    'RequestTimeout'
+    'RequestTimeout',
+    'ExchangeClosedByUser'
 ]

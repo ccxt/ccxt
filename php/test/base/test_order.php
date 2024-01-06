@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,7 +7,7 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/test_shared_methods.php';
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 include_once __DIR__ . '/test_trade.php';
 
 function test_order($exchange, $skipped_properties, $method, $entry, $symbol, $now) {
@@ -37,9 +36,9 @@ function test_order($exchange, $skipped_properties, $method, $entry, $symbol, $n
     );
     $empty_allowed_for = ['clientOrderId', 'stopPrice', 'trades', 'timestamp', 'datetime', 'lastTradeTimestamp', 'average', 'type', 'timeInForce', 'postOnly', 'side', 'price', 'amount', 'cost', 'filled', 'remaining', 'status', 'fee']; // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
-    assert_timestamp($exchange, $skipped_properties, $method, $entry, $now);
+    assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now);
     //
-    assert_in_array($exchange, $skipped_properties, $method, $entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK']);
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK', 'PO']);
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'status', ['open', 'closed', 'canceled']);
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'side', ['buy', 'sell']);
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'postOnly', [true, false]);

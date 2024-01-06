@@ -21,7 +21,7 @@ function testTrade (exchange, skippedProperties, method, entry, symbol, now) {
     // removed side because some public endpoints return trades without side
     const emptyAllowedFor = [ 'fees', 'fee', 'symbol', 'order', 'id', 'takerOrMaker', 'timestamp', 'datetime' ];
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry, now);
+    testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry, now);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
     //
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'side', [ 'buy', 'sell' ]);
