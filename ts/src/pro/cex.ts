@@ -297,17 +297,18 @@ export default class cex extends cexRest {
             ],
         };
         const request = this.deepExtend (message, params);
-        const ticker = await this.watch (url, messageHash, request, messageHash);
-        const tickerSymbol = ticker['symbol'];
-        if (symbols !== undefined && !this.inArray (tickerSymbol, symbols)) {
-            return await this.watchTickers (symbols, params);
+        let ticker = undefined;
+        while (ticker === undefined || !this.inArray (ticker['symbol'], symbols)) {
+            ticker = await this.watch (url, messageHash, request, messageHash);
         }
+        let result = undefined;
         if (this.newUpdates) {
-            const result = {};
-            result[tickerSymbol] = ticker;
-            return this.filterByArray (result, 'symbol', symbols);
+            result = {};
+            result[ticker['symbol']] = ticker;
+        } else {
+            result = this.tickers;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTickerWs (symbol: string, params = {}) {
