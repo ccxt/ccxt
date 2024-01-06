@@ -3789,7 +3789,7 @@ export default class okx extends Exchange {
                 query = this.omit (query, [ 'until', 'till' ]);
             }
         }
-        const send = this.omit (query, [ 'method', 'stop', 'ordType', 'trigger' ]);
+        const send = this.omit (query, [ 'method', 'stop', 'ordType', 'trigger', 'trailing' ]);
         let response = undefined;
         if (method === 'privateGetTradeOrdersAlgoHistory') {
             response = await this.privateGetTradeOrdersAlgoHistory (this.extend (request, send));
@@ -3917,6 +3917,7 @@ export default class okx extends Exchange {
          * @param {int} [params.until] timestamp in ms to fetch orders for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {string} [params.method] method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
+         * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3954,14 +3955,20 @@ export default class okx extends Exchange {
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        if (stop || (ordType in algoOrderTypes)) {
+        const trailing = this.safeValue (params, 'trailing', false);
+        if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoHistory';
+            request['state'] = 'effective';
+        } 
+        if (trailing) {
+            request['ordType'] = 'move_order_stop';
+        } else if (stop || (ordType in algoOrderTypes)) {
             if (stop) {
                 if (ordType === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
+                request['ordType'] = ordType;
             }
-            request['state'] = 'effective';
         } else {
             if (since !== undefined) {
                 request['begin'] = since;
@@ -3973,7 +3980,7 @@ export default class okx extends Exchange {
             }
             request['state'] = 'filled';
         }
-        const send = this.omit (query, [ 'method', 'stop', 'trigger' ]);
+        const send = this.omit (query, [ 'method', 'stop', 'trigger', 'trailing' ]);
         let response = undefined;
         if (method === 'privateGetTradeOrdersAlgoHistory') {
             response = await this.privateGetTradeOrdersAlgoHistory (this.extend (request, send));
