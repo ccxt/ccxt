@@ -144,10 +144,8 @@ export default class coinbasepro extends coinbaseproRest {
         const channel = 'ticker';
         const messageHash = 'tickers::';
         const newTickers = await this.subscribeMultiple (channel, symbols, messageHash, params);
-        if (this.newUpdates) {
-            return newTickers;
-        }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        const result = this.newUpdates ? newTickers : this.tickers;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
