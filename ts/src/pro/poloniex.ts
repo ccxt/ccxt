@@ -386,10 +386,8 @@ export default class poloniex extends poloniexRest {
         const name = 'ticker';
         symbols = this.marketSymbols (symbols);
         const newTickers = await this.subscribe (name, name, false, symbols, params);
-        if (this.newUpdates) {
-            return newTickers;
-        }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        const result = this.newUpdates ? newTickers : this.tickers;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
