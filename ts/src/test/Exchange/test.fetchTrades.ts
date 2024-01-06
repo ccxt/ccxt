@@ -44,20 +44,20 @@ async function testFetchTrades_Side (exchange, skippedProperties, symbol, method
     if (('timestamp' in skippedProperties) || ('side' in skippedProperties)) {
         return;
     }
-    // Check whether side is correct. This can be found out deterministically, by checking
-    // an order that has been filled with multiple trades at the same time (but on different
-    // prices). The price between first and last trade will definitely be directional.
-    // for example, take order with three fills:
-    //     - 1600000000073 : z.z ETH at xxxx.xx
-    //     - 1600000000111 : 1.3 ETH at 1750.40
+    // Check whether side is correct. This can be found out deterministically,
+    // by checking an order that has been filled with multiple trades at the
+    // same time (but on different prices). The price between first and last
+    // trade will definitely be directional. for example, an order with 3 fills:
+    //     - 1600000000073 : ...
+    //     - 1600000000111 : 0.4 ETH at 1750.40
     //     - 1600000000111 : 0.9 ETH at 1750.41
-    //     - 1600000000111 : 0.2 ETH at 1750.42
-    //     - 1600000000252 : y.y ETH at xxxx.xx
-    // here it's definitely visible that the trades have been `buy` as it happened on same timestamp
-    // and are increasing in price. if it was `sell` the prices would have been in decreasing order.
-    // note, that it's nearly impossible tha two different market order has been accepted by
-    // exchange at the same timestamp, so we don't consider such exceptional rarest cases (even
-    // if it ever happens, the test can be re-triggered shortly after some set of new trades)
+    //     - 1600000000111 : 0.33 ETH at 1750.42
+    //     - 1600000000252 : ...
+    // here it's definitely visible that the trades have been `buy` as it happened
+    // on same timestamp and trades are increasing in price. if it was `sell` the
+    // prices would have been in decreasing order. it's nearly impossible to happen
+    // otherwie (if such rare event happens ever, the test can be restarted and
+    // the new run would not meet such exceptional case)
     let lastTs = undefined;
     let lastPrice = undefined;
     let lastSide = undefined;
