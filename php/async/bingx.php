@@ -1929,8 +1929,8 @@ class bingx extends Exchange {
         // we can fix with below manipulations
         // @ts-ignore
         $modifiedContent = str_replace('\\', '', $content);
-        $modifiedContent = str_replace('"array(', 'array(', $modifiedContent);
-        $modifiedContent = str_replace(', $modifiedContent)"', ')');
+        $modifiedContent = str_replace('"' . $this->transpilerSafeBracketStart, $this->transpilerSafeBracketStart, $modifiedContent);
+        $modifiedContent = str_replace($this->transpilerSafeBracketEnd . '"', $this->transpilerSafeBracketEnd, $modifiedContent);
         return $modifiedContent;
     }
 

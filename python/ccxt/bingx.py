@@ -1809,8 +1809,8 @@ class bingx(Exchange, ImplicitAPI):
         # we can fix with below manipulations
         # @ts-ignore
         modifiedContent = content.replace('\\', '')
-        modifiedContent = modifiedContent.replace('"{', '{')
-        modifiedContent = modifiedContent.replace('}"', '}')
+        modifiedContent = modifiedContent.replace('"' + self.transpilerSafeBracketStart, self.transpilerSafeBracketStart)
+        modifiedContent = modifiedContent.replace(self.transpilerSafeBracketEnd + '"', self.transpilerSafeBracketEnd)
         return modifiedContent
 
     def create_orders(self, orders: List[OrderRequest], params={}):

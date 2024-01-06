@@ -273,6 +273,8 @@ export default class Exchange {
     last_request_url      = undefined
     last_request_path     = undefined
 
+    transpilerSafeBracketStart = '{';
+    transpilerSafeBracketEnd = '}'; 
     id: string = undefined
 
     markets: Dictionary<any> = undefined
