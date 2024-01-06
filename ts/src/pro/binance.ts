@@ -902,10 +902,8 @@ export default class binance extends binanceRest {
             'id': requestId,
         };
         const newTickers = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
-        if (this.newUpdates) {
-            return this.filterByArray (newTickers, 'symbol', symbols);
-        }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        const result = this.newUpdates ? newTickers : this.tickers;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseWsTicker (message, marketType) {
