@@ -449,10 +449,8 @@ export default class coinex extends coinexRest {
         };
         const request = this.deepExtend (subscribe, params);
         const newTickers = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
-            return newTickers;
-        }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        const result = this.newUpdates ? newTickers : this.tickers;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
