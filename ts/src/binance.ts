@@ -4438,8 +4438,8 @@ export default class binance extends Exchange {
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);  // fallback to stopLoss
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const trailingDelta = this.safeValue (params, 'trailingDelta');
-        const trailingTriggerPrice = this.safeNumber2 (params, 'trailingTriggerPrice', 'activationPrice', price);
-        const trailingPercent = this.safeNumber2 (params, 'trailingPercent', 'callbackRate');
+        const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activationPrice', price);
+        const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRate');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
