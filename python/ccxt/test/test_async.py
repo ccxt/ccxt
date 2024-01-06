@@ -1117,7 +1117,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1336,6 +1336,18 @@ class testMainClass(baseMainTestClass):
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
         assert req_headers['X-SOURCE-KEY'] == id, 'id not in headers'
+        await close(exchange)
+
+    async def test_phemex(self):
+        exchange = self.init_offline_exchange('phemex')
+        id = 'CCXT'
+        request = None
+        try:
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        client_order_id = request['clOrdID']
+        assert client_order_id.startswith(id), 'clOrdID does not start with id'
         await close(exchange)
 
 # ***** AUTO-TRANSPILER-END *****

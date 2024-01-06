@@ -198,6 +198,7 @@ export default class bitmart extends Exchange {
                         'contract/private/order-history': 10,
                         'contract/private/position': 10,
                         'contract/private/get-open-orders': 1.2,
+                        'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
                     },
                     'post': {
@@ -2667,6 +2668,7 @@ export default class bitmart extends Exchange {
          * @name bitmart#fetchOpenOrders
          * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
          * @see https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
+         * @see https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -2678,6 +2680,7 @@ export default class bitmart extends Exchange {
          * @param {string} [params.order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
          * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
          * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
+         * @param {boolean} [params.trigger] *swap only* set to true if you want to fetch trigger orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2709,16 +2712,22 @@ export default class bitmart extends Exchange {
             }
             response = await this.privatePostSpotV4QueryOpenOrders (this.extend (request, params));
         } else if (type === 'swap') {
-            const trailing = this.safeValue (params, 'trailing', false);
-            let orderType = this.safeString (params, 'orderType');
-            params = this.omit (params, [ 'orderType', 'trailing' ]);
-            if (trailing) {
-                orderType = 'trailing';
+            const isStop = this.safeValue2 (params, 'stop', 'trigger');
+            params = this.omit (params, [ 'stop', 'trigger' ]);
+            if (isStop) {
+                response = await this.privateGetContractPrivateCurrentPlanOrder (this.extend (request, params));
+            } else {
+                const trailing = this.safeValue (params, 'trailing', false);
+                let orderType = this.safeString (params, 'orderType');
+                params = this.omit (params, [ 'orderType', 'trailing' ]);
+                if (trailing) {
+                    orderType = 'trailing';
+                }
+                if (orderType !== undefined) {
+                    request['type'] = orderType;
+                }
+                response = await this.privateGetContractPrivateGetOpenOrders (this.extend (request, params));
             }
-            if (orderType !== undefined) {
-                request['type'] = orderType;
-            }
-            response = await this.privateGetContractPrivateGetOpenOrders (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchOpenOrders() does not support ' + type + ' orders, only spot and swap orders are accepted');
         }

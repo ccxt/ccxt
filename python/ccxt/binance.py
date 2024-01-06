@@ -4829,7 +4829,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             return response
 
-    def cancel_orders(self, ids: List[Int], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :see: https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade

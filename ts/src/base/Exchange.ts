@@ -130,7 +130,8 @@ import {
     , ExchangeNotAvailable
     , ArgumentsRequired
     , RateLimitExceeded,
-    BadRequest} from "./errors.js"
+    BadRequest,
+    ExchangeClosedByUser} from "./errors.js"
 
 import { Precise } from './Precise.js'
 
@@ -1502,10 +1503,15 @@ export default class Exchange {
         const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i] as WsClient;
-            delete this.clients[client.url];
+            client.error = new ExchangeClosedByUser (this.id + ' closedByUser');
             closedClients.push(client.close ());
         }
-        return Promise.all (closedClients);
+        await Promise.all (closedClients);
+        for (let i = 0; i < clients.length; i++) {
+            const client = clients[i] as WsClient;
+            delete this.clients[client.url];
+        }
+        return;
     }
 
     async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {

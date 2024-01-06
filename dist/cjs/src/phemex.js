@@ -439,7 +439,8 @@ class phemex extends phemex$1 {
                     '34003': errors.PermissionDenied,
                     '35104': errors.InsufficientFunds,
                     '39995': errors.RateLimitExceeded,
-                    '39996': errors.PermissionDenied, // {"code": "39996","msg": "Access denied."}
+                    '39996': errors.PermissionDenied,
+                    '39997': errors.BadSymbol, // {"code":39997,"msg":"Symbol not listed sMOVRUSDT","data":null}
                 },
                 'broad': {
                     '401 Insufficient privilege': errors.PermissionDenied,
@@ -451,7 +452,7 @@ class phemex extends phemex$1 {
                 },
             },
             'options': {
-                'brokerId': 'ccxt2022',
+                'brokerId': 'CCXT',
                 'x-phemex-request-expiry': 60,
                 'createOrderByQuoteRequiresPrice': true,
                 'networks': {
@@ -1485,7 +1486,7 @@ class phemex extends phemex$1 {
         if (type === 'spot') {
             response = await this.v1GetMdSpotTicker24hrAll(query);
         }
-        else if (subType === 'inverse' || market['settle'] === 'USD') {
+        else if (subType === 'inverse' || this.safeString(market, 'settle') === 'USD') {
             response = await this.v1GetMdTicker24hrAll(query);
         }
         else {

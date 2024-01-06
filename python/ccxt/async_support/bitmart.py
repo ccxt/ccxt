@@ -213,6 +213,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/order-history': 10,
                         'contract/private/position': 10,
                         'contract/private/get-open-orders': 1.2,
+                        'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
                     },
                     'post': {
@@ -2517,6 +2518,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         :see: https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
         :see: https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
+        :see: https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -2528,6 +2530,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param str [params.order_state]: *swap* the order state, 'all' or 'partially_filled', default is 'all'
         :param str [params.orderType]: *swap only* 'limit', 'market', or 'trailing'
         :param boolean [params.trailing]: *swap only* set to True if you want to fetch trailing orders
+        :param boolean [params.trigger]: *swap only* set to True if you want to fetch trigger orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2554,14 +2557,19 @@ class bitmart(Exchange, ImplicitAPI):
                 request['endTime'] = until
             response = await self.privatePostSpotV4QueryOpenOrders(self.extend(request, params))
         elif type == 'swap':
-            trailing = self.safe_value(params, 'trailing', False)
-            orderType = self.safe_string(params, 'orderType')
-            params = self.omit(params, ['orderType', 'trailing'])
-            if trailing:
-                orderType = 'trailing'
-            if orderType is not None:
-                request['type'] = orderType
-            response = await self.privateGetContractPrivateGetOpenOrders(self.extend(request, params))
+            isStop = self.safe_value_2(params, 'stop', 'trigger')
+            params = self.omit(params, ['stop', 'trigger'])
+            if isStop:
+                response = await self.privateGetContractPrivateCurrentPlanOrder(self.extend(request, params))
+            else:
+                trailing = self.safe_value(params, 'trailing', False)
+                orderType = self.safe_string(params, 'orderType')
+                params = self.omit(params, ['orderType', 'trailing'])
+                if trailing:
+                    orderType = 'trailing'
+                if orderType is not None:
+                    request['type'] = orderType
+                response = await self.privateGetContractPrivateGetOpenOrders(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchOpenOrders() does not support ' + type + ' orders, only spot and swap orders are accepted')
         #

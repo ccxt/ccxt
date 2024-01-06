@@ -124,7 +124,6 @@ class coinbasepro(ccxt.async_support.coinbasepro):
 
     async def watch_tickers(self, symbols: Strings = None, params={}):
         """
-        :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint

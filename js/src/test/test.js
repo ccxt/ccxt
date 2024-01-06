@@ -1293,7 +1293,8 @@ export default class testMainClass extends baseMainTestClass {
             this.testWoo(),
             this.testBitmart(),
             this.testCoinex(),
-            this.testBingx()
+            this.testBingx(),
+            this.testPhemex(),
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1549,6 +1550,20 @@ export default class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert(reqHeaders['X-SOURCE-KEY'] === id, 'id not in headers');
+        await close(exchange);
+    }
+    async testPhemex() {
+        const exchange = this.initOfflineExchange('phemex');
+        const id = 'CCXT';
+        let request = undefined;
+        try {
+            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        const clientOrderId = request['clOrdID'];
+        assert(clientOrderId.startsWith(id), 'clOrdID does not start with id');
         await close(exchange);
     }
 }
