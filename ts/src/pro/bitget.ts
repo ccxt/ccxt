@@ -157,10 +157,8 @@ export default class bitget extends bitgetRest {
             messageHashes.push ('ticker:' + symbol);
         }
         const tickers = await this.watchPublicMultiple (messageHashes, topics, params);
-        if (this.newUpdates) {
-            return tickers;
-        }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        const result = this.newUpdates ? tickers : this.tickers;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
