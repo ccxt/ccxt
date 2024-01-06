@@ -92,13 +92,19 @@ export default class cryptocom extends cryptocomRest {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const topics = [];
+        const messageHashes = [];
+        if (!limit) {
+            limit = 150;
+        }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const currentTopic = 'book' + '.' + market['id'];
+            const currentTopic = 'book' + '.' + market['id'] + '.' + limit;
+            const messageHash = 'orderbook:' + market['symbol'];
+            messageHashes.push(messageHash);
             topics.push(currentTopic);
         }
-        const orderbook = await this.watchPublicMultiple(topics, topics, params);
+        const orderbook = await this.watchPublicMultiple(messageHashes, topics, params);
         return orderbook.limit();
     }
     handleOrderBookSnapshot(client, message) {
@@ -123,7 +129,6 @@ export default class cryptocom extends cryptocomRest {
         //      ]
         // }
         //
-        const messageHash = this.safeString(message, 'subscription');
         const marketId = this.safeString(message, 'instrument_name');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
@@ -139,6 +144,7 @@ export default class cryptocom extends cryptocomRest {
         }
         orderbook.reset(snapshot);
         this.orderbooks[symbol] = orderbook;
+        const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {

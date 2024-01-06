@@ -354,6 +354,20 @@
                     "LTC/USDT:USDT"
                 ],
                 "output": "{\"trade_type\":0,\"status\":\"0\",\"contract\":\"LTC-USDT\",\"type\":1}"
+            },
+            {
+                "description": "Swap trailing orders",
+                "method": "fetchOrders",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_track_hisorders?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-01-03T01%3A04%3A36&Signature=I6EJNAfLRNWZfi6wOmVkBY9AB8KAmYfePQ7zPXRMz9E%3D",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "trailing": true
+                  }
+                ],
+                "output": "{\"trade_type\":0,\"status\":\"0\",\"contract_code\":\"BTC-USDT\",\"create_date\":90}"
             }
         ],
         "fetchOrder": [
@@ -470,6 +484,18 @@
                     "LTC/USDT"
                 ],
                 "output": "{\"symbol\":\"ltcusdt\"}"
+            },
+            {
+                "description": "Swap cancel all trailing orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_track_cancelall?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-01-03T01%3A01%3A08&Signature=ug%2FwGTlkVE%2BmL5C%2BkBJV83nXrF8%2B8pLKOtSpdflruCU%3D",
+                "input": [
+                  "BTC/USDT:USDT",
+                  {
+                    "trailing": true
+                  }
+                ],
+                "output": "{\"contract_code\":\"BTC-USDT\"}"
             }
         ],
         "fetchPositions": [
@@ -1009,6 +1035,39 @@
                     "BTC/USD:BTC-231124"
                 ],
                 "output": "{\"type\":\"30,31\",\"symbol\":\"BTC231124\"}"
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set the position mode to one-way in an isolated market",
+                "method": "setPositionMode",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_switch_position_mode?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-01-04T06%3A44%3A13&Signature=e%2BJpiijAu1PQRjrKNJOKBluTLmmiMMvxMXHfgDVQSyg%3D",
+                "input": [
+                  false,
+                  "ADA/USDT:USDT",
+                  {
+                    "marginMode": "isolated"
+                  }
+                ],
+                "output": "{\"position_mode\":\"single_side\",\"margin_account\":\"ADA-USDT\"}"
+            },
+            {
+                "description": "Set the position mode to one way for cross margin mode",
+                "method": "setPositionMode",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_switch_position_mode?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-01-04T06%3A46%3A05&Signature=NxnMjvMQQue%2FGR4VpDDl3auOxIhDdKUhF0Vlh7ySTgQ%3D",
+                "input": [
+                  false
+                ],
+                "output": "{\"position_mode\":\"single_side\",\"margin_account\":\"USDT\"}"
+            },
+            {
+                "description": "Set the position mode to hedged for cross margin mode",
+                "method": "setPositionMode",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_switch_position_mode?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-01-04T06%3A47%3A02&Signature=HuWNFYDIjJqC1YL%2BAVTjjxNF54h6MN6l13Q91JzkyMA%3D",
+                "input": [
+                  true
+                ],
+                "output": "{\"position_mode\":\"dual_side\",\"margin_account\":\"USDT\"}"
             }
         ]
     }

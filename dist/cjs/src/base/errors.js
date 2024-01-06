@@ -46,6 +46,12 @@ class ExchangeError extends Error {
         this.name = 'ExchangeError';
     }
 }
+class ExchangeClosedByUser extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'ExchangeClosedByUser';
+    }
+}
 class AuthenticationError extends ExchangeError {
     constructor(message) {
         super(message);
@@ -252,7 +258,7 @@ class RequestTimeout extends NetworkError {
 //     // Derived class hierarchy
 //     errorHierarchy
 // )
-const errors = { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed, ProxyError };
+const errors = { BaseError, ExchangeClosedByUser, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed, ProxyError };
 
 exports.AccountNotEnabled = AccountNotEnabled;
 exports.AccountSuspended = AccountSuspended;
@@ -267,6 +273,7 @@ exports.CancelPending = CancelPending;
 exports.ContractUnavailable = ContractUnavailable;
 exports.DDoSProtection = DDoSProtection;
 exports.DuplicateOrderId = DuplicateOrderId;
+exports.ExchangeClosedByUser = ExchangeClosedByUser;
 exports.ExchangeError = ExchangeError;
 exports.ExchangeNotAvailable = ExchangeNotAvailable;
 exports.InsufficientFunds = InsufficientFunds;

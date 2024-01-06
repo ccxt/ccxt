@@ -330,7 +330,7 @@ export default class delta extends Exchange {
             } else if (symbol in this.markets_by_id) {
                 const markets = this.markets_by_id[symbol];
                 return markets[0];
-            } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1) || (symbol.indexOf ('C')) || (symbol.indexOf ('P'))) {
+            } else if ((symbol.endsWith ('-C')) || (symbol.endsWith ('-P')) || (symbol.startsWith ('C-')) || (symbol.startsWith ('P-'))) {
                 return this.createExpiredOptionMarket (symbol);
             }
         }
@@ -338,7 +338,7 @@ export default class delta extends Exchange {
     }
 
     safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        const isOption = (marketId !== undefined) && ((marketId.indexOf ('-C') > -1) || (marketId.indexOf ('-P') > -1) || (marketId.indexOf ('C')) || (marketId.indexOf ('P')));
+        const isOption = (marketId !== undefined) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')) || (marketId.startsWith ('C-')) || (marketId.startsWith ('P-')));
         if (isOption && !(marketId in this.markets_by_id)) {
             // handle expired option contracts
             return this.createExpiredOptionMarket (marketId);

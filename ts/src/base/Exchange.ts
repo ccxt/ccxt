@@ -11,6 +11,7 @@ import {
     BadResponse,
     BadSymbol,
     DDoSProtection,
+    ExchangeClosedByUser,
     ExchangeError,
     ExchangeNotAvailable,
     InvalidAddress,
@@ -1561,10 +1562,15 @@ export default class Exchange {
         const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i] as WsClient;
-            delete this.clients[client.url];
-            closedClients.push (client.close ());
+            client.error = new ExchangeClosedByUser (this.id + ' closedByUser');
+            closedClients.push(client.close ());
         }
-        return Promise.all (closedClients);
+        await Promise.all (closedClients);
+        for (let i = 0; i < clients.length; i++) {
+            const client = clients[i] as WsClient;
+            delete this.clients[client.url];
+        }
+        return;
     }
 
     async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {

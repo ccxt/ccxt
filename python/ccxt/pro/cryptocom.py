@@ -91,12 +91,17 @@ class cryptocom(ccxt.async_support.cryptocom):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         topics = []
+        messageHashes = []
+        if not limit:
+            limit = 150
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            currentTopic = 'book' + '.' + market['id']
+            currentTopic = 'book' + '.' + market['id'] + '.' + limit
+            messageHash = 'orderbook:' + market['symbol']
+            messageHashes.append(messageHash)
             topics.append(currentTopic)
-        orderbook = await self.watch_public_multiple(topics, topics, params)
+        orderbook = await self.watch_public_multiple(messageHashes, topics, params)
         return orderbook.limit()
 
     def handle_order_book_snapshot(self, client: Client, message):
@@ -121,7 +126,6 @@ class cryptocom(ccxt.async_support.cryptocom):
         #      ]
         # }
         #
-        messageHash = self.safe_string(message, 'subscription')
         marketId = self.safe_string(message, 'instrument_name')
         market = self.safe_market(marketId)
         symbol = market['symbol']
@@ -136,6 +140,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             orderbook = self.order_book({}, limit)
         orderbook.reset(snapshot)
         self.orderbooks[symbol] = orderbook
+        messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:

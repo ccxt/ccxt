@@ -262,6 +262,36 @@
                     }
                   }
                 ]
+            },
+            {
+                "description": "swap order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?clientOrderID=myorder1&positionSide=LONG&price=50&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1704360714849&type=LIMIT&signature=2881d13ae74453035b973ab795af3f1052e4cbb88829d407d3cbe687bcb03afe",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  50,
+                  {
+                    "clientOrderId": "myorder1"
+                  }
+                ]
+            },
+            {
+                "description": "spot order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?clientOrderId=myorder1&newClientOrderId=myorder1&price=50&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1704360855187&type=LIMIT&signature=db4adedce73fa75cfda1dafccc45d6b2b16566bbcc751a5df7ef27bc7e5e3bef",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  50,
+                  {
+                    "clientOrderId": "myorder1"
+                  }
+                ]
             }
         ],
         "createOrders": [
@@ -363,6 +393,30 @@
                 "input": [
                     "1720647776204967936",
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Spot cancel order with clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/cancel?clientOrderID=myorder2&symbol=LTC-USDT&timestamp=1704380693563&signature=6ac964ce62bb594df37c7529ae4bd2010ff025ca06644efee2f0dcd1f5e0805f",
+                "input": [
+                  "",
+                  "LTC/USDT",
+                  {
+                    "clientOrderId": "myorder2"
+                  }
+                ]
+            },
+            {
+                "description": "Swap cancel order with clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?clientOrderID=myorder2&symbol=LTC-USDT&timestamp=1704380774663&signature=0f091dc8f55fb10ab73e69d675fdf902a86daf14c3383227a4047190390c1dfb",
+                "input": [
+                  "",
+                  "LTC/USDT:USDT",
+                  {
+                    "clientOrderId": "myorder2"
+                  }
                 ]
             }
         ],

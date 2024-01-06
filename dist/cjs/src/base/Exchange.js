@@ -1236,10 +1236,15 @@ class Exchange {
         const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
-            delete this.clients[client.url];
+            client.error = new errors.ExchangeClosedByUser(this.id + ' closedByUser');
             closedClients.push(client.close());
         }
-        return Promise.all(closedClients);
+        await Promise.all(closedClients);
+        for (let i = 0; i < clients.length; i++) {
+            const client = clients[i];
+            delete this.clients[client.url];
+        }
+        return;
     }
     async loadOrderBook(client, messageHash, symbol, limit = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {

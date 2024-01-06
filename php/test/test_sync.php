@@ -1346,7 +1346,7 @@ class testMainClass extends baseMainTestClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_huobi(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_huobi(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1597,6 +1597,20 @@ class testMainClass extends baseMainTestClass {
             $req_headers = $exchange->last_request_headers;
         }
         assert($req_headers['X-SOURCE-KEY'] === $id, 'id not in headers');
+        close($exchange);
+    }
+
+    public function test_phemex() {
+        $exchange = $this->init_offline_exchange('phemex');
+        $id = 'CCXT';
+        $request = null;
+        try {
+            $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            $request = json_parse($exchange->last_request_body);
+        }
+        $client_order_id = $request['clOrdID'];
+        assert(str_starts_with($client_order_id, $id), 'clOrdID does not start with id');
         close($exchange);
     }
 }

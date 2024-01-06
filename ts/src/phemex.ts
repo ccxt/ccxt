@@ -442,6 +442,7 @@ export default class phemex extends Exchange {
                     '35104': InsufficientFunds, // {"code":35104,"msg":"phemex.spot.wallet.balance.notenough","data":null}
                     '39995': RateLimitExceeded, // {"code": "39995","msg": "Too many requests."}
                     '39996': PermissionDenied, // {"code": "39996","msg": "Access denied."}
+                    '39997': BadSymbol, // {"code":39997,"msg":"Symbol not listed sMOVRUSDT","data":null}
                 },
                 'broad': {
                     '401 Insufficient privilege': PermissionDenied, // {"code": "401","msg": "401 Insufficient privilege."}
@@ -453,7 +454,7 @@ export default class phemex extends Exchange {
                 },
             },
             'options': {
-                'brokerId': 'ccxt2022',
+                'brokerId': 'CCXT',
                 'x-phemex-request-expiry': 60, // in seconds
                 'createOrderByQuoteRequiresPrice': true,
                 'networks': {
