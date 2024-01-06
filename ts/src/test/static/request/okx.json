@@ -517,6 +517,19 @@
                 "ordType": "trigger"
               }
             ]
+          },
+          {
+            "description": "Swap fetch canceled trailing orders",
+            "method": "fetchCanceledOrders",
+            "url": "https://www.okx.com/api/v5/trade/orders-algo-history?instId=BTC-USDT-SWAP&instType=SWAP&state=canceled&ordType=move_order_stop&trailing=true",
+            "input": [
+              "BTC/USDT:USDT",
+              null,
+              null,
+              {
+                "trailing": true
+              }
+            ]
           }
         ],
         "fetchClosedOrders": [
