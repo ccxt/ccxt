@@ -298,10 +298,13 @@ export default class bitmart extends bitmartRest {
         const market = this.getMarketFromSymbols (symbols);
         let type = 'spot';
         [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
         symbols = this.marketSymbols (symbols);
         const messageHash = 'tickers_' + type;
         let request = undefined;
-        if (type === 'spot') {
+        let tickers = undefined;
+        const isSpot = (type === 'spot');
+        if (isSpot) {
             const marketIds = this.marketIds (symbols);
             const finalArray = [];
             for (let i = 0; i < marketIds.length; i++) {
@@ -311,15 +314,20 @@ export default class bitmart extends bitmartRest {
                 'op': 'subscribe',
                 'args': finalArray,
             };
+            tickers = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         } else {
             request = {
                 'action': 'subscribe',
                 'args': [ 'futures/ticker' ],
             };
+            let ticker = undefined;
+            while (ticker === undefined || !this.inArray (ticker['symbol'], symbols)) {
+                ticker = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+            }
+            tickers = {};
+            tickers[ticker['symbol']] = ticker;
         }
-        const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
-        const newTickers = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        const result = this.newUpdates ? newTickers : this.tickers;
+        const result = this.newUpdates ? tickers : this.tickers;
         return this.filterByArray (result, 'symbol', symbols);
     }
 
@@ -904,6 +912,7 @@ export default class bitmart extends bitmartRest {
         if (data === undefined) {
             return;
         }
+        const tickers = {};
         if (isSpot) {
             for (let i = 0; i < data.length; i++) {
                 const ticker = this.parseTicker (data[i]);
@@ -911,13 +920,15 @@ export default class bitmart extends bitmartRest {
                 const marketId = this.safeString (ticker['info'], 'symbol');
                 const messageHash = table + ':' + marketId;
                 this.tickers[symbol] = ticker;
+                tickers[symbol] = ticker;
                 client.resolve (ticker, messageHash);
             }
+            client.resolve (tickers, 'tickers_spot');
         } else {
             const ticker = this.parseWsSwapTicker (data);
             const symbol = this.safeString (ticker, 'symbol');
-            this.tickers[symbol] = ticker;
-            client.resolve (ticker, 'tickers');
+            tickers[symbol] = ticker;
+            client.resolve (ticker, 'tickers_swap');
         }
         return message;
     }
