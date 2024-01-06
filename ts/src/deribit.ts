@@ -1771,7 +1771,7 @@ export default class deribit extends Exchange {
         const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         // only take profit buy orders are allowed when price crossed from below
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const trailingAmount = this.safeNumber2 (params, 'trailingAmount', 'trigger_offset');
+        const trailingAmount = this.safeString2 (params, 'trailingAmount', 'trigger_offset');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isStopLimit = type === 'stop_limit';
         const isStopMarket = type === 'stop_market';
@@ -1796,7 +1796,7 @@ export default class deribit extends Exchange {
         if (isTrailingAmountOrder) {
             request['trigger'] = trigger;
             request['type'] = 'trailing_stop';
-            request['trigger_offset'] = trailingAmount;
+            request['trigger_offset'] = this.parseToNumeric (trailingAmount);
         } else if (isStopOrder) {
             const triggerPrice = (stopLossPrice !== undefined) ? stopLossPrice : takeProfitPrice;
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
@@ -1935,10 +1935,10 @@ export default class deribit extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const trailingAmount = this.safeNumber2 (params, 'trailingAmount', 'trigger_offset');
+        const trailingAmount = this.safeString2 (params, 'trailingAmount', 'trigger_offset');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTrailingAmountOrder) {
-            request['trigger_offset'] = trailingAmount;
+            request['trigger_offset'] = this.parseToNumeric (trailingAmount);
             params = this.omit (params, 'trigger_offset');
         }
         const response = await this.privateGetEdit (this.extend (request, params));
