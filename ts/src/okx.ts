@@ -3798,7 +3798,7 @@ export default class okx extends Exchange {
                 query = this.omit (query, [ 'until', 'till' ]);
             }
         }
-        const send = this.omit (query, [ 'method', 'stop', 'ordType', 'trigger', 'trailing' ]);
+        const send = this.omit (query, [ 'method', 'stop', 'trigger', 'trailing' ]);
         let response = undefined;
         if (method === 'privateGetTradeOrdersAlgoHistory') {
             response = await this.privateGetTradeOrdersAlgoHistory (this.extend (request, send));
