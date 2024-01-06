@@ -34,14 +34,14 @@ function run_tests {
   if [ -z "$rest_pid" ]; then
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node test-commonjs.cjs && node run-tests --js --python-async --php-async $rest_args &
+      node test-commonjs.cjs && node run-tests --js --python-async --php-async --useProxy $rest_args &
       local rest_pid=$!
     fi
   fi
   if [ -z "$ws_pid" ]; then
     if [ -z "$ws_args" ] || { [ -n "$ws_args" ] && [ "$ws_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node run-tests --ws --js --python-async --php-async $ws_args &
+      node run-tests --ws --js --python-async --php-async --useProxy $ws_args &
       local ws_pid=$!
     fi
   fi
