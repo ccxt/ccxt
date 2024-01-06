@@ -17,7 +17,9 @@ async function testFetchTrades_Structure (exchange, skippedProperties, symbol, m
     const logText = testSharedMethods.logTemplate (exchange, method, trades);
     assert (Array.isArray (trades), 'Returned respone is not an array' + logText);
     // check trades length (any normal exchange should be tested against this. If there are any crappy exchange that doesn't have trades, that exchange should be added into skips )
-    assert (trades.length > 0, 'Returned trades should not be empty' + logText);
+    if (!('emptyResponse' in skippedProperties)) {
+        assert (trades.length > 0, 'Returned trades should not be empty' + logText);
+    }
     const now = exchange.milliseconds ();
     for (let i = 0; i < trades.length; i++) {
         testTrade (exchange, skippedProperties, method, trades[i], symbol, now);
@@ -45,13 +47,13 @@ async function testFetchTrades_Side (exchange, skippedProperties, symbol, method
     // Check whether side is correct. This can be found out deterministically, by checking
     // an order that has been filled with multiple trades at the same time (but on different
     // prices). The price between first and last trade will definitely be directional.
-    // for example, take order with two fills:
+    // for example, take order with three fills:
     //     - 1600000000073 : z.z ETH at xxxx.xx
     //     - 1600000000111 : 1.3 ETH at 1750.40
     //     - 1600000000111 : 0.9 ETH at 1750.41
     //     - 1600000000111 : 0.2 ETH at 1750.42
     //     - 1600000000252 : y.y ETH at xxxx.xx
-    // here it's definitely visible taht the trades have been `buy` as it happened on same timestamp
+    // here it's definitely visible that the trades have been `buy` as it happened on same timestamp
     // and are increasing in price. if it was `sell` the prices would have been in decreasing order.
     // note, that it's nearly impossible tha two different market order has been accepted by
     // exchange at the same timestamp, so we don't consider such exceptional rarest cases (even
@@ -72,16 +74,8 @@ async function testFetchTrades_Side (exchange, skippedProperties, symbol, method
         const isSameSide = side === lastSide;
         lastSide = side;
         //
-        // we are not interested in the trades where timestamps are different
-        if (!isSameTs) {
-            continue;
-        }
-        // we are only interested if side is same
-        if (!isSameSide) {
-            continue;
-        }
-        // we are not interested if price is same
-        if (isSamePrice) {
+        // we are only interested in trades, that have: same timestamp, same side but different price
+        if (!isSameTs || !isSameSide || isSamePrice) {
             continue;
         }
         //
