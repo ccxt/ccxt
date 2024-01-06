@@ -305,7 +305,7 @@ export default class cex extends cexRest {
         if (this.newUpdates) {
             const result = {};
             result[tickerSymbol] = ticker;
-            return result;
+            return this.filterByArray (result, 'symbol', symbols);
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
