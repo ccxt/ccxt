@@ -222,6 +222,24 @@
               }
             ],
             "output": "[{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"e847386590ce4dBCdbc74f1714de86ed\",\"tag\":\"e847386590ce4dBC\"}]"      
+          },
+          {
+            "description": "Swap trailingPercent order",
+            "method": "createOrder",
+            "url": "https://www.okx.com/api/v5/trade/order-algo",
+            "input": [
+              "BTC/USDT:USDT",
+              "market",
+              "sell",
+              1,
+              null,
+              {
+                "trailingPercent": "5",
+                "reduceOnly": true,
+                "posSide": "long"
+              }
+            ],
+            "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"move_order_stop\",\"sz\":\"1\",\"tdMode\":\"cross\",\"callbackRatio\":\"0.05\",\"clOrdId\":\"e847386590ce4dBC5328f747a43e97d9\",\"tag\":\"e847386590ce4dBC\",\"reduceOnly\":true,\"posSide\":\"long\"}"
           }
         ],
         "createMarketBuyOrderWithCost": [
