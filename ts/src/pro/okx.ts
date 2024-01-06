@@ -288,10 +288,8 @@ export default class okx extends okxRest {
         let channel = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'tickers');
         const newTickers = await this.subscribeMultiple ('public', channel, symbols, params);
-        if (this.newUpdates) {
-            return newTickers;
-        }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        const result = this.newUpdates ? newTickers : this.tickers;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
