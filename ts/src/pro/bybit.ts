@@ -225,7 +225,13 @@ export default class bybit extends bybitRest {
             messageHashes.push ('ticker:' + symbols[i]);
         }
         const ticker = await this.watchTopics (url, messageHashes, topics, params);
-        const result = this.newUpdates ? ticker : this.tickers;
+        let result = undefined;
+        if (this.newUpdates) {
+            result = {};
+            result[ticker['symbol']] = ticker;
+        } else {
+            result = this.tickers;
+        }
         return this.filterByArray (result, 'symbol', symbols);
     }
 
