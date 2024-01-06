@@ -3031,17 +3031,20 @@ export default class okx extends Exchange {
          * @name okx#cancelOrder
          * @description cancels an open order
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-order
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] true if trigger orders
+         * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        if (stop) {
+        const trailing = this.safeValue (params, 'trailing', false);
+        if (stop || trailing) {
             const orderInner = await this.cancelOrders ([ id ], symbol, params);
             return this.safeValue (orderInner, 0);
         }
@@ -3092,6 +3095,7 @@ export default class okx extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] whether the order is a stop/trigger order
+         * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
@@ -3107,7 +3111,8 @@ export default class okx extends Exchange {
         const clientOrderIds = this.parseIds (this.safeValue2 (params, 'clOrdId', 'clientOrderId'));
         const algoIds = this.parseIds (this.safeValue (params, 'algoId'));
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        if (stop) {
+        const trailing = this.safeValue (params, 'trailing', false);
+        if (stop || trailing) {
             method = 'privatePostTradeCancelAlgos';
         }
         if (clientOrderIds === undefined) {
@@ -3121,7 +3126,7 @@ export default class okx extends Exchange {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (stop) {
+                if (trailing || stop) {
                     request.push ({
                         'algoId': ids[i],
                         'instId': market['id'],
