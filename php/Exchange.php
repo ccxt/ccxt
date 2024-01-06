@@ -327,6 +327,9 @@ class Exchange {
     public $number = 'floatval';
     public $handleContentTypeApplicationZip = false;
 
+    public $transpilerSafeBracketStart = '{';
+    public $transpilerSafeBracketEnd = '}'; 
+
     public $lastRestRequestTimestamp = 0;
     public $lastRestPollTimestamp = 0;
     public $restRequestQueue = null;
