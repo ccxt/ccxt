@@ -143,8 +143,14 @@ export default class coinbasepro extends coinbaseproRest {
         }
         const channel = 'ticker';
         const messageHash = 'tickers::';
-        const newTickers = await this.subscribeMultiple (channel, symbols, messageHash, params);
-        const result = this.newUpdates ? newTickers : this.tickers;
+        let result = undefined;
+        const ticker = await this.subscribeMultiple (channel, symbols, messageHash, params);
+        if (this.newUpdates) {
+            result = {};
+            result[ticker['symbol']] = ticker;
+        } else {
+            result = this.tickers;
+        }
         return this.filterByArray (result, 'symbol', symbols);
     }
 
