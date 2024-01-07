@@ -1078,7 +1078,7 @@ export default class bitmart extends bitmartRest {
             }
         } else {
             const marketId = this.safeString (data, 'symbol');
-            const market = this.safeMarket (marketId, undefined, '', 'swap');
+            const market = this.safeMarket (marketId, undefined, undefined, 'swap');
             const symbol = market['symbol'];
             const items = this.safeValue (data, 'items', []);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
