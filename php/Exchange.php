@@ -4312,7 +4312,7 @@ class Exchange {
                         }
                     }
                 }
-            } elseif ($delimiter !== null) {
+            } elseif ($delimiter !== null && $delimiter !== '') {
                 $parts = explode($delimiter, $marketId);
                 $partsLength = count($parts);
                 if ($partsLength === 2) {

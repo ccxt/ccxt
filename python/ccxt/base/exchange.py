@@ -3484,7 +3484,7 @@ class Exchange(object):
                         currentMarket = markets[i]
                         if currentMarket[marketType]:
                             return currentMarket
-            elif delimiter is not None:
+            elif delimiter is not None and delimiter != '':
                 parts = marketId.split(delimiter)
                 partsLength = len(parts)
                 if partsLength == 2:
