@@ -973,7 +973,12 @@ export default class testMainClass extends baseMainTestClass {
         const result = {};
         if (targetExchange) {
             // read a single exchange
-            result[targetExchange] = ioFileRead (folder + targetExchange + '.json');
+            const path = folder + targetExchange + '.json';
+            if (!ioFileExists (path)) {
+                dump ('[WARN] tests not found: ' + path);
+                return undefined;
+            }
+            result[targetExchange] = ioFileRead (path);
             return result;
         }
         const files = ioDirRead (folder);
@@ -1244,6 +1249,10 @@ export default class testMainClass extends baseMainTestClass {
             for (let j = 0; j < results.length; j++) {
                 const result = results[j];
                 const description = exchange.safeValue (result, 'description');
+                const isDisabled = exchange.safeValue (result, 'disabled', false);
+                if (isDisabled) {
+                    continue;
+                }
                 if ((testName !== undefined) && (testName !== description)) {
                     continue;
                 }
@@ -1274,6 +1283,9 @@ export default class testMainClass extends baseMainTestClass {
     async runStaticTests (type: string, targetExchange: string = undefined, testName: string = undefined) {
         const folder = this.rootDir + './ts/src/test/static/' + type + '/';
         const staticData = this.loadStaticData (folder, targetExchange);
+        if (staticData === undefined) {
+            return;
+        }
         const exchanges = Object.keys (staticData);
         const exchange = initExchange ('Exchange', {}); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         const promises = [];
