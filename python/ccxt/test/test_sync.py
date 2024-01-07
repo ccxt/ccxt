@@ -819,7 +819,11 @@ class testMainClass(baseMainTestClass):
         result = {}
         if target_exchange:
             # read a single exchange
-            result[target_exchange] = io_file_read(folder + target_exchange + '.json')
+            path = folder + target_exchange + '.json'
+            if not io_file_exists(path):
+                dump('[WARN] tests not found: ' + path)
+                return None
+            result[target_exchange] = io_file_read(path)
             return result
         files = io_dir_read(folder)
         for i in range(0, len(files)):
@@ -1084,6 +1088,8 @@ class testMainClass(baseMainTestClass):
     def run_static_tests(self, type, target_exchange=None, test_name=None):
         folder = self.root_dir + './ts/src/test/static/' + type + '/'
         static_data = self.load_static_data(folder, target_exchange)
+        if static_data is None:
+            return
         exchanges = list(static_data.keys())
         exchange = init_exchange('Exchange', {})  # tmp to do the calculations until we have the ast-transpiler transpiling this code
         promises = []

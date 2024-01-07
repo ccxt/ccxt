@@ -989,7 +989,12 @@ class testMainClass extends baseMainTestClass {
         $result = array();
         if ($target_exchange) {
             // read a single exchange
-            $result[$target_exchange] = io_file_read($folder . $target_exchange . '.json');
+            $path = $folder . $target_exchange . '.json';
+            if (!io_file_exists($path)) {
+                dump('[WARN] tests not found: ' . $path);
+                return null;
+            }
+            $result[$target_exchange] = io_file_read($path);
             return $result;
         }
         $files = io_dir_read($folder);
@@ -1309,6 +1314,9 @@ class testMainClass extends baseMainTestClass {
     public function run_static_tests($type, $target_exchange = null, $test_name = null) {
         $folder = $this->root_dir . './ts/src/test/static/' . $type . '/';
         $static_data = $this->load_static_data($folder, $target_exchange);
+        if ($static_data === null) {
+            return;
+        }
         $exchanges = is_array($static_data) ? array_keys($static_data) : array();
         $exchange = init_exchange('Exchange', array()); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         $promises = [];
