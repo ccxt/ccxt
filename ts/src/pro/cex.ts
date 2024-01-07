@@ -297,9 +297,10 @@ export default class cex extends cexRest {
             ],
         };
         const request = this.deepExtend (message, params);
-        let ticker = undefined;
-        while (ticker === undefined || !this.inArray (ticker['symbol'], symbols)) {
-            ticker = await this.watch (url, messageHash, request, messageHash);
+        const ticker = await this.watch (url, messageHash, request, messageHash);
+        const tickerSymbol = ticker['symbol'];
+        if (symbols !== undefined && !this.inArray (tickerSymbol, symbols)) {
+            return await this.watchTickers (symbols, params);
         }
         let result = undefined;
         if (this.newUpdates) {
