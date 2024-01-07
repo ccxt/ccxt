@@ -774,7 +774,9 @@ export default class coinbasepro extends coinbaseproRest {
                 const currentMessageHash = messageHashes[i];
                 const parts = currentMessageHash.split ('::');
                 const symbolsString = parts[1];
-                const symbols = symbolsString.split (',');
+                // @ts-ignore
+                const symbolsStringClean = symbolsString.replaceAll (':', '');
+                const symbols = symbolsStringClean.split (',');
                 if (this.inArray (symbol, symbols)) {
                     client.resolve (ticker, currentMessageHash);
                 }
