@@ -1578,4 +1578,4 @@ export default class testMainClass extends baseMainTestClass {
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass ()).init (exchangeIdFromArgv, exchangeSymbol);
+(new testMainClass ()).init (exchangeIdFromArgv, sanitizedSymnol);
