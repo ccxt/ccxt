@@ -32,7 +32,9 @@ const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
-const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined, argv = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
+const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
+const sanitizedSymnol = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
+
 // non-transpiled part, but shared names among langs
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
@@ -179,14 +181,14 @@ async function importTestFile (filePath) {
 async function getTestFiles (properties, ws = false) {
     const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
-    const files = {};
+    const tests = {};
     const finalPropList = properties.concat ([ proxyTestFileName ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
         const filePathWoExt = path + 'Exchange/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-            files[name] = await importTestFile (filePathWoExt);
+            tests[name] = await importTestFile (filePathWoExt);
         }
     }
     // errors tests
@@ -196,10 +198,10 @@ async function getTestFiles (properties, ws = false) {
         const filePathWoExt = path + '/base/errors/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-            files[name] = await importTestFile (filePathWoExt);
+            tests[name] = await importTestFile (filePathWoExt);
         }
     }
-    return files;
+    return tests;
 }
 
 function setFetchResponse (exchange: Exchange, mockResponse) {
@@ -232,6 +234,15 @@ export default class testMainClass extends baseMainTestClass {
         this.wsTests = getCliArgValue ('--ws');
     }
 
+    getConfigJson (symbol: string = 'BTC/USDT', code: string = 'USDT') {
+        if (this.configContent === '') {
+            this.configContent = ioFileRead (rootDir + './tests-config.json');
+        }
+        let result = this.configContent.replace ('{SYMBOL}', symbol);
+        result = this.configContent.replace ('{CODE}', code);
+        return JSON.parse (this.configContent);
+    }
+
     async init (exchangeId, symbolArgv) {
         this.parseCliArgs ();
 
@@ -262,15 +273,6 @@ export default class testMainClass extends baseMainTestClass {
         const symbol = this.checkIfSpecificTestIsChosen (exchange, symbolArgv);
         await this.startTest (exchange, symbol);
         exitScript (0); // needed to be explicitly finished for WS tests
-    }
-
-    getConfigJson (symbol: string = 'BTC/USDT', code: string = 'USDT') {
-        if (this.configContent === '') {
-            this.configContent = ioFileRead (rootDir + './tests-config.json');
-        }
-        let result = this.configContent.replace ('{SYMBOL}', symbol);
-        result = this.configContent.replace ('{CODE}', code);
-        return JSON.parse (this.configContent);
     }
 
     checkIfSpecificTestIsChosen (exchange, symbolArgv) {
