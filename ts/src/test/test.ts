@@ -68,8 +68,6 @@ type TestConfig = {
     [key: string]: Tests;
 }
 
-const rootDir = DIR_NAME + '/../../../';
-
 class baseMainTestClass {
     lang = 'JS';
     isSynchronous = false;
@@ -90,9 +88,9 @@ class baseMainTestClass {
     checkedPublicTests = {};
     testFiles = {};
     newLine = '\n';
-    rootDir = rootDir;
-    configContent = '';
+    rootDir = DIR_NAME + '/../../../';
     onlySpecificTests = [];
+    configContent = '';
     envVars = process.env;
     proxyTestFileName = proxyTestFileName;
     ext = import.meta.url.split ('.')[1];
@@ -236,7 +234,7 @@ export default class testMainClass extends baseMainTestClass {
 
     getConfigJson (symbol: string = 'BTC/USDT', code: string = 'USDT') {
         if (this.configContent === '') {
-            this.configContent = ioFileRead (rootDir + './tests-config.json');
+            this.configContent = ioFileRead (this.rootDir + './tests-config.json');
         }
         let result = this.configContent.replace ('{SYMBOL}', symbol);
         result = this.configContent.replace ('{CODE}', code);
