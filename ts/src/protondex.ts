@@ -872,7 +872,7 @@ export default class protondex extends Exchange {
         const symbol = this.safeString (market, 'symbol', undefined);
         let amountString = this.safeString (order, 'quantity_init');
         let remainingString = this.safeString (order, 'quantity_curr');
-        const costString = this.safeString (order, 'cost');
+        let costString = this.safeString (order, 'cost');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let type = this.safeString (order, 'order_type');
         if (type !== undefined) {
@@ -882,14 +882,20 @@ export default class protondex extends Exchange {
         const side = this.safeString (order, 'order_side');
         let filled = undefined;
         if (side === '1' && status === 'closed' && symbol !== undefined) {
-            const precision = this.parseToInt (market.info.bid_token.precision);
-            amountString = parseFloat (Precise.stringDiv (amountString, this.safeString (order, 'avgPrice'))).toFixed (precision);
-            remainingString = parseFloat (Precise.stringDiv (remainingString, this.safeString (order, 'avgPrice'))).toFixed (precision);
+            amountString = parseFloat (Precise.stringDiv (amountString, this.safeString (order, 'avgPrice'))).toFixed (market.info.bid_token.precision);
+            remainingString = parseFloat (Precise.stringDiv (remainingString, this.safeString (order, 'avgPrice'))).toFixed (market.info.bid_token.precision);
         } else if (status === 'canceled') {
             if (order['quantity_init'] === order['quantity_change']) {
                 filled = '0';
             } else {
+                remainingString = this.safeString (order, 'quantity_change');
                 filled = (order['quantity_init'] - order['quantity_change']).toString ();
+                if (side === '1' && symbol !== undefined) {
+                    costString = (order['quantity_init'] - order['quantity_change']).toFixed (market.info.ask_token.precision);
+                    amountString = parseFloat (Precise.stringDiv (this.safeString (order, 'quantity_init'), this.safeString (order, 'avgPrice'))).toFixed (market.info.bid_token.precision);
+                    remainingString = parseFloat (Precise.stringDiv (remainingString, this.safeString (order, 'avgPrice'))).toFixed (market.info.bid_token.precision);
+                    filled = parseFloat (Precise.stringDiv (filled, this.safeString (order, 'avgPrice'))).toFixed (market.info.bid_token.precision);
+                }
             }
         }
         const fee = this.safeValue (order, 'fee');
