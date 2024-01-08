@@ -1,0 +1,13 @@
+{
+    "USDC": {
+        "id": null,
+        "code": "USDC",
+        "precision": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    }
+}

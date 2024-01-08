@@ -1,0 +1,147 @@
+{
+    "exchange": "hyperliquid",
+    "skipKeys": [
+        "startTime",
+        "endTime"
+    ],
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [],
+                "output": "{\"type\":\"metaAndAssetCtxs\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": "{\"type\":\"clearinghouseState\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "ETH/USD:USDC"
+                ],
+                "output": "{\"type\":\"l2Book\",\"coin\":\"ETH\"}"
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "ETH/USD:USDC"
+                ],
+                "output": "{\"type\":\"candleSnapshot\",\"req\":{\"coin\":\"ETH\",\"interval\":\"1m\",\"startTime\":0,\"endTime\":1704683640997}}"
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "ETH/USD:USDC",
+                    null,
+                    null,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": "{\"type\":\"fundingHistory\",\"coin\":\"ETH\",\"startTime\":1704323735060,\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "ETH/USD:USDC",
+                    null,
+                    null,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": "{\"type\":\"openOrders\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "3998833804",
+                    "ETH/USD:USDC",
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": "{\"type\":\"orderStatus\",\"oid\":3998833804,\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "ETH/USD:USDC",
+                    null,
+                    null,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": "{\"type\":\"userFills\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "ETH/USD:USDC",
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": "{\"type\":\"clearinghouseState\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    [
+                        "ETH/USD:USDC"
+                    ],
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": "{\"type\":\"clearinghouseState\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
+            }
+        ]
+    }
+}

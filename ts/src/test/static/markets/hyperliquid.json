@@ -1,0 +1,45 @@
+{
+    "ETH/USD:USDC": {
+        "symbol": "ETH/USD:USDC",
+        "base": "ETH",
+        "quote": "USD",
+        "settle": "USDC",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "precision": {},
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "maxLeverage": "50",
+            "name": "ETH",
+            "onlyIsolated": false,
+            "szDecimals": "4",
+            "dayNtlVlm": "92123704.29950003",
+            "funding": "0.0000125",
+            "impactPxs": [
+                "2183.4",
+                "2183.5"
+            ],
+            "markPx": "2182.6",
+            "midPx": "2183.45",
+            "openInterest": "6681.4775",
+            "oraclePx": "2183.0",
+            "premium": "0.00020614",
+            "prevDayPx": "2244.1"
+        }
+    }
+}
