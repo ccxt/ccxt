@@ -1,9 +1,9 @@
 {
     "exchange": {
         "loadMarkets": {
-            "args": [],
             "isWs": false,
-            "public": true
+            "public": true,
+            "args": []
         },
         "fetchTicker": {
             "isWs": false,

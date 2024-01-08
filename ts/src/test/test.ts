@@ -6,7 +6,6 @@ import assert from 'assert';
 import ccxt, { Exchange } from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
 import { unCamelCase } from '../base/functions/string.js';
-import { config, Test, Tests } from './config.js';
 
 // js specific codes //
 const DIR_NAME = fileURLToPath (new URL ('.', import.meta.url));
@@ -40,6 +39,34 @@ function getCliArgValue (arg) {
 }
 
 const proxyTestFileName = 'proxies';
+
+
+type Test = {
+    testFile?: string;
+    isWs?: boolean;
+    public?: boolean;
+    args?: any[];
+    skippedProperties?: {}
+    skip?: string;
+}
+
+type Tests = Test & {
+    skip?: string;
+    skipWs?: string;
+    skipPhpAsync?: string;
+    until?: string;
+    httpProxy?: string;
+    httpsProxy?: string;
+    wsProxy?: string;
+    wssProxy?: string;
+    timeout?: number;
+}
+
+type TestConfig = {
+    [key: string]: Tests;
+}
+
+
 class baseMainTestClass {
     lang = 'JS';
     isSynchronous = false;
