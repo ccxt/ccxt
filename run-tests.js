@@ -11,7 +11,6 @@ import fs from 'fs'
 import ansi from 'ansicolor'
 import log from 'ololog'
 import ps from 'child_process'
-import { config } from './js/src/test/config.js'
 ansi.nice
 /*  --------------------------------------------------------------------------- */
 
@@ -76,7 +75,8 @@ for (const key of Object.keys (exchangeSpecificFlags)) {
 }
 /*  --------------------------------------------------------------------------- */
 
-const testConfig = config ();
+const content = fs.readFileSync ('./skip-tests.json', 'utf8');
+const skipSettings = JSON.parse (content);
 
 if (!exchanges.length) {
 
@@ -208,10 +208,16 @@ const sequentialMap = async (input, fn) => {
 
 const testExchange = async (exchangeId) => {
 
-    const testsConfig = config ();
-    const exchangeConfig = testsConfig[exchangeId];
+    const exchangeConfig = skipSettings[exchangeId];
 
     const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
+
+    // no need to test alias classes
+    if (exchange.alias) {
+        numExchangesTested++;
+        log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped alias]'.yellow)
+        return [];
+    }
 
     if (
         exchangeConfig && 
