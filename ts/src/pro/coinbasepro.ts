@@ -95,7 +95,7 @@ export default class coinbasepro extends coinbaseproRest {
             const symbol = symbols[i];
             market = this.market (symbol);
             productIds.push (market['id']);
-            messageHashes.push (messageHashStart + ':' + market['id']);
+            messageHashes.push (messageHashStart + ':' + market['symbol']);
         }
         let url = this.urls['api']['ws'];
         if ('signature' in params) {
@@ -142,16 +142,14 @@ export default class coinbasepro extends coinbaseproRest {
             throw new BadSymbol (this.id + ' watchTickers requires a non-empty symbols array');
         }
         const channel = 'ticker';
-        const messageHash = 'tickers::';
-        let result = undefined;
+        const messageHash = 'ticker';
         const ticker = await this.subscribeMultiple (channel, symbols, messageHash, params);
         if (this.newUpdates) {
-            result = {};
+            const result = {};
             result[ticker['symbol']] = ticker;
-        } else {
-            result = this.tickers;
+            return result;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -772,21 +770,8 @@ export default class coinbasepro extends coinbaseproRest {
             const ticker = this.parseTicker (message);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            const type = this.safeString (message, 'type');
-            const messageHash = type + ':' + marketId;
+            const messageHash = 'ticker:' + symbol;
             client.resolve (ticker, messageHash);
-            const messageHashes = this.findMessageHashes (client, 'tickers::');
-            for (let i = 0; i < messageHashes.length; i++) {
-                const currentMessageHash = messageHashes[i];
-                const parts = currentMessageHash.split ('::');
-                const marketIdsString = parts[1];
-                // @ts-ignore
-                const marketIdsStringClean = marketIdsString.replaceAll (':', '');
-                const marketIds = marketIdsStringClean.split (',');
-                if (this.inArray (marketId, marketIds)) {
-                    client.resolve (ticker, currentMessageHash);
-                }
-            }
         }
         return message;
     }
