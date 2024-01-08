@@ -771,7 +771,9 @@ export default class coinbasepro extends coinbaseproRest {
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             const messageHash = 'ticker:' + symbol;
+            const idMessageHash = 'ticker:' + marketId;
             client.resolve (ticker, messageHash);
+            client.resolve (ticker, idMessageHash);
         }
         return message;
     }
