@@ -11,6 +11,7 @@ import fs from 'fs'
 import ansi from 'ansicolor'
 import log from 'ololog'
 import ps from 'child_process'
+import { config } from './js/src/test/config.js'
 ansi.nice
 /*  --------------------------------------------------------------------------- */
 
@@ -75,8 +76,7 @@ for (const key of Object.keys (exchangeSpecificFlags)) {
 }
 /*  --------------------------------------------------------------------------- */
 
-const content = fs.readFileSync ('./skip-tests.json', 'utf8');
-const skipSettings = JSON.parse (content);
+const testConfig = config ();
 
 if (!exchanges.length) {
 
@@ -208,6 +208,8 @@ const sequentialMap = async (input, fn) => {
 
 const testExchange = async (exchange) => {
 
+    const exchangeConfig = exchange.deepExtend (testConfigp['exchange'], testConfig[exchange.id])
+
     const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
 
     // no need to test alias classes
@@ -218,23 +220,23 @@ const testExchange = async (exchange) => {
     }
 
     if (
-        skipSettings[exchange] && 
+        exchangeConfig && 
         (
-            (skipSettings[exchange].skip && !wsFlag)
+            (exchangeConfig.skip && !wsFlag)
                 ||
-            (skipSettings[exchange].skipWs && wsFlag)
+            (exchangeConfig.skipWs && wsFlag)
         ) 
     ) {
-        if (!('until' in skipSettings[exchange])) {
+        if (!('until' in exchangeConfig)) {
             // if until not specified, skip forever
             numExchangesTested++;
             log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped]'.yellow)
             return [];
         }
-        if (new Date(skipSettings[exchange].until) > new Date()) {
+        if (new Date(exchangeConfig.until) > new Date()) {
             numExchangesTested++;
             // if untilDate has not been yet reached, skip test for exchange
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped till ' + skipSettings[exchange].until + ']'.yellow)
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped till ' + exchangeConfig.until + ']'.yellow)
             return [];
         }
     }
@@ -273,7 +275,7 @@ const testExchange = async (exchange) => {
         let scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
         // when bulk tests are run, we skip php-async, however, if your specifically run php-async (as a single language from run-tests), lets allow it
         const specificLangSet = (Object.values (langKeys).filter (x => x)).length === 1;
-        if (skipSettings[exchange] && skipSettings[exchange].skipPhpAsync && !specificLangSet) {
+        if (exchangeConfig && exchangeConfig.skipPhpAsync && !specificLangSet) {
             // some exchanges are failing in php async tests with this error:
             // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
             scheduledTests = scheduledTests.filter (x => x.key !== '--php-async');

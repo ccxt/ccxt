@@ -2220,6 +2220,7 @@ class Transpiler {
             tests.push(test);
         }
         this.transpileAndSaveExchangeTests (tests);
+        this.transpileTestConfig ();
     }
 
     createBaseInitFile (pyPath, tests) {
@@ -2234,6 +2235,60 @@ class Transpiler {
 
         log.magenta ('→', finalPath)
         overwriteFile (finalPath, baseContent)
+    }
+
+    transpileTestConfig () {
+        let ts = fs.readFileSync ('./ts/src/test/config.ts').toString ()
+
+        const commentStartLine = '***** AUTO-TRANSPILER-START *****';
+        const commentEndLine = '***** AUTO-TRANSPILER-END *****';
+
+        const mainContent = ts.split (commentStartLine)[1].split (commentEndLine)[0];
+
+        const parserConfig = {
+            'verbose': false,
+            'python':{
+                'uncamelcaseIdentifiers': true,
+            },
+            'php':{
+                'uncamelcaseIdentifiers': true,
+            },
+        };
+        const transpiler = new astTranspiler(parserConfig);
+        let fileConfig = [
+            {
+                language: "php",
+                async: true
+            },
+            {
+                language: "php",
+                async: false
+            },
+            {
+                language: "python",
+                async: true
+            }
+        ]
+        const transpilerResult = transpiler.transpileDifferentLanguages(fileConfig, mainContent);
+        let [ phpAsync, php, python3 ] = [ transpilerResult[0].content, transpilerResult[1].content, transpilerResult[2].content  ];
+        // ########### PYTHON ###########
+        const existinPythonBody = fs.readFileSync ('./python/ccxt/test/config.py').toString ();
+        let newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n# ' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
+        overwriteFile ('./python/ccxt/test/config.py', newPython);
+
+
+        // ########### PHP ###########
+        
+        const existinPhpBody = fs.readFileSync ('./php/test/config.php').toString ();
+        const phpReform = (cont) => {
+            const partBeforClass =  existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n';
+            const partAfterClass = '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1]
+            let newContent = partBeforClass + cont + partAfterClass;
+            newContent = this.phpReplaceException (newContent);
+            return newContent;
+        }
+        let bodyPhpAsync = phpReform (phpAsync);
+        overwriteFile ('./php/test/config.php', bodyPhpAsync);
     }
 
     transpileMainTests (files) {

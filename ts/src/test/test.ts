@@ -6,6 +6,7 @@ import assert from 'assert';
 import ccxt, { Exchange } from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
 import { unCamelCase } from '../base/functions/string.js';
+import { config, Test, Tests } from './config.js';
 
 // js specific codes //
 const DIR_NAME = fileURLToPath (new URL ('.', import.meta.url));
@@ -22,6 +23,7 @@ process.on ('unhandledRejection', (e: any) => {
     // process.exit (1);
 });
 
+
 const AuthenticationError = ccxt.AuthenticationError;
 const NotSupported = ccxt.NotSupported;
 const NetworkError = ccxt.NetworkError;
@@ -31,8 +33,7 @@ const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
-const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
-const sanitizedSymnol = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
+const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined, argv = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
 // non-transpiled part, but shared names among langs
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
@@ -58,7 +59,6 @@ class baseMainTestClass {
     skippedMethods = {};
     checkedPublicTests = {};
     testFiles = {};
-    publicTests = {};
     newLine = '\n';
     rootDir = DIR_NAME + '/../../../';
     rootDirForSkips = DIR_NAME + '/../../../';
@@ -151,14 +151,14 @@ async function importTestFile (filePath) {
 async function getTestFiles (properties, ws = false) {
     const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
-    const tests = {};
+    const files = {};
     const finalPropList = properties.concat ([ proxyTestFileName ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
         const filePathWoExt = path + 'Exchange/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-            tests[name] = await importTestFile (filePathWoExt);
+            files[name] = await importTestFile (filePathWoExt);
         }
     }
     // errors tests
@@ -168,10 +168,10 @@ async function getTestFiles (properties, ws = false) {
         const filePathWoExt = path + '/base/errors/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-            tests[name] = await importTestFile (filePathWoExt);
+            files[name] = await importTestFile (filePathWoExt);
         }
     }
-    return tests;
+    return files;
 }
 
 function setFetchResponse (exchange: Exchange, mockResponse) {
@@ -231,22 +231,24 @@ export default class testMainClass extends baseMainTestClass {
         await this.importFiles (exchange);
         assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         this.expandSettings (exchange);
-        const symbol = this.checkIfSpecificTestIsChosen (symbolArgv);
+        const symbol = this.checkIfSpecificTestIsChosen (exchange, symbolArgv);
         await this.startTest (exchange, symbol);
         exitScript (0); // needed to be explicitly finished for WS tests
     }
 
-    checkIfSpecificTestIsChosen (symbolArgv) {
+    checkIfSpecificTestIsChosen (exchange, symbolArgv) {
         if (symbolArgv !== undefined) {
-            const testFileNames = Object.keys (this.testFiles);
+            const testConfig = config ();
+            const tests = exchange.deepExtend (testConfig['exchange'], testConfig[exchange.id]);
+            const testNames = Object.keys (tests);
             const possibleMethodNames = symbolArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if (possibleMethodNames.length >= 1) {
-                for (let i = 0; i < testFileNames.length; i++) {
-                    const testFileName = testFileNames[i];
+                for (let i = 0; i < testNames.length; i++) {
+                    const testName = testNames[i];
                     for (let j = 0; j < possibleMethodNames.length; j++) {
                         const methodName = possibleMethodNames[j];
-                        if (testFileName === methodName) {
-                            this.onlySpecificTests.push (testFileName);
+                        if (testName.indexOf (methodName) >= 0) {
+                            this.onlySpecificTests.push (testName);
                         }
                     }
                 }
@@ -311,20 +313,19 @@ export default class testMainClass extends baseMainTestClass {
         }
         // credentials
         this.loadCredentialsFromEnv (exchange);
-        // skipped tests
-        const skippedFile = this.rootDirForSkips + 'skip-tests.json';
-        const skippedSettings = ioFileRead (skippedFile);
-        const skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
+        // exchange tests settings
+        const testsConfig = config ();
+        const tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchangeId]);
         // others
-        const timeout = exchange.safeValue (skippedSettingsForExchange, 'timeout');
+        const timeout = exchange.safeValue (tests, 'timeout');
         if (timeout !== undefined) {
             exchange.timeout = timeout;
         }
-        exchange.httpProxy = exchange.safeString (skippedSettingsForExchange, 'httpProxy');
-        exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
-        exchange.wsProxy = exchange.safeString (skippedSettingsForExchange, 'wsProxy');
-        exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
-        this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
+        exchange.httpProxy = exchange.safeString (tests, 'httpProxy');
+        exchange.httpsProxy = exchange.safeString (tests, 'httpsProxy');
+        exchange.wsProxy = exchange.safeString (tests, 'wsProxy');
+        exchange.wssProxy = exchange.safeString (tests, 'wssProxy');
+        this.skippedMethods = exchange.safeValue (tests, 'skipMethods', {});
         this.checkedPublicTests = {};
     }
 
@@ -363,9 +364,13 @@ export default class testMainClass extends baseMainTestClass {
         return result;
     }
 
-    async testMethod (methodName: string, exchange: any, args: any[], isPublic: boolean) {
+    async testMethod (exchange: any, testName: string, test: Test) {
+        const methodName = test['testFile'];
+        const isPublic = test['public'];
+        const args = test['args'];
+        const skip = exchange.safeString (test, 'skip');
         // todo: temporary skip for php
-        if (methodName.indexOf ('OrderBook') >= 0 && this.ext === 'php') {
+        if ((methodName.indexOf ('OrderBook') >= 0) && (this.ext === 'php')) {
             return;
         }
         const isLoadMarkets = (methodName === 'loadMarkets');
@@ -377,11 +382,11 @@ export default class testMainClass extends baseMainTestClass {
         }
         let skipMessage = undefined;
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
-        if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests))) {
+        if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (testName, this.onlySpecificTests))) {
             skipMessage = '[INFO] IGNORED_TEST';
         } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
             skipMessage = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
-        } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
+        } else if (typeof skip === 'string') {
             skipMessage = '[INFO] SKIPPED_TEST';
         } else if (!(methodName in this.testFiles)) {
             skipMessage = '[INFO] UNIMPLEMENTED_TEST';
@@ -398,31 +403,32 @@ export default class testMainClass extends baseMainTestClass {
         }
         if (this.info) {
             const argsStringified = '(' + args.join (',') + ')';
-            dump (this.addPadding ('[INFO] TESTING', 25), this.exchangeHint (exchange), methodName, argsStringified);
+            dump (this.addPadding ('[INFO] TESTING', 25), this.exchangeHint (exchange), testName, argsStringified);
         }
-        const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, {});
+        const skippedProperties = exchange.safeValue (test, 'skippedProperties', {});
         await callMethod (this.testFiles, methodName, exchange, skippedProperties, args);
         // if it was passed successfully, add to the list of successfull tests
         if (isPublic) {
-            this.checkedPublicTests[methodName] = true;
+            this.checkedPublicTests[testName] = true;
         }
     }
 
-    async testSafe (methodName, exchange, args = [], isPublic = false) {
+    async testSafe (exchange, testName: string, test: Test) {
         // `testSafe` method does not throw an exception, instead mutes it. The reason we
         // mute the thrown exceptions here is because we don't want to stop the whole
         // tests queue if any single test-method fails. Instead, they are echoed with
         // formatted message "[TEST_FAILURE] ..." and that output is then regex-matched by
         // run-tests.js, so the exceptions are still printed out to console from there.
+        const isPublic = test['public'];
         const maxRetries = 3;
-        const argsStringified = exchange.json (args); // args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
+        const argsStringified = exchange.json (test['args']); // args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
         for (let i = 0; i < maxRetries; i++) {
             try {
-                await this.testMethod (methodName, exchange, args, isPublic);
+                await this.testMethod (exchange, testName, test);
                 return true;
             }
             catch (e) {
-                const isLoadMarkets = (methodName === 'loadMarkets');
+                const isLoadMarkets = (test['testFile'] === 'loadMarkets');
                 const isAuthError = (e instanceof AuthenticationError);
                 const isNotSupported = (e instanceof NotSupported);
                 const isOperationFailed = (e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
@@ -443,10 +449,10 @@ export default class testMainClass extends baseMainTestClass {
                         }
                         // final step
                         if (shouldFail) {
-                            dump ('[TEST_FAILURE]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified, exceptionMessage (e));
+                            dump ('[TEST_FAILURE]', 'Test could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), testName, argsStringified, exceptionMessage (e));
                             return false;
                         } else {
-                            dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified, exceptionMessage (e));
+                            dump ('[TEST_WARNING]', 'Test could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), testName, argsStringified, exceptionMessage (e));
                             return true;
                         }
                     }
@@ -461,27 +467,27 @@ export default class testMainClass extends baseMainTestClass {
                 else {
                     // if it's loadMarkets, then fail test, because it's mandatory for tests
                     if (isLoadMarkets) {
-                        dump ('[TEST_FAILURE]', 'Exchange can not load markets', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
+                        dump ('[TEST_FAILURE]', 'Exchange can not load markets', exceptionMessage (e), this.exchangeHint (exchange), testName, argsStringified);
                         return false;
                     }
                     // if the specific arguments to the test method throws "NotSupported" exception
                     // then let's don't fail the test
                     if (isNotSupported) {
                         if (this.info) {
-                            dump ('[INFO] NOT_SUPPORTED', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
+                            dump ('[INFO] NOT_SUPPORTED', exceptionMessage (e), this.exchangeHint (exchange), testName, argsStringified);
                         }
                         return true;
                     }
                     // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if (isPublic && isAuthError) {
                         if (this.info) {
-                            dump ('[INFO]', 'Authentication problem for public method', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
+                            dump ('[INFO]', 'Authentication problem for public method', exceptionMessage (e), this.exchangeHint (exchange), testName, argsStringified);
                         }
                         return true;
                     }
                     // in rest of the cases, fail the test
                     else {
-                        dump ('[TEST_FAILURE]', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
+                        dump ('[TEST_FAILURE]', exceptionMessage (e), this.exchangeHint (exchange), testName, argsStringified);
                         return false;
                     }
                 }
@@ -489,71 +495,53 @@ export default class testMainClass extends baseMainTestClass {
         }
     }
 
-    async runPublicTests (exchange, symbol) {
-        let tests = {
-            'fetchCurrencies': [],
-            'fetchTicker': [ symbol ],
-            'fetchTickers': [ symbol ],
-            'fetchOHLCV': [ symbol ],
-            'fetchTrades': [ symbol ],
-            'fetchOrderBook': [ symbol ],
-            'fetchL2OrderBook': [ symbol ],
-            'fetchOrderBooks': [],
-            'fetchBidsAsks': [],
-            'fetchStatus': [],
-            'fetchTime': [],
-        };
-        if (this.wsTests) {
-            tests = {
-                // @ts-ignore
-                'watchOHLCV': [ symbol ],
-                'watchTicker': [ symbol ],
-                'watchOrderBook': [ symbol ],
-                'watchTrades': [ symbol ],
-            };
-        }
-        const market = exchange.market (symbol);
-        const isSpot = market['spot'];
-        if (!this.wsTests) {
-            if (isSpot) {
-                tests['fetchCurrencies'] = [];
-            } else {
-                tests['fetchFundingRates'] = [ symbol ];
-                tests['fetchFundingRate'] = [ symbol ];
-                tests['fetchFundingRateHistory'] = [ symbol ];
-                tests['fetchIndexOHLCV'] = [ symbol ];
-                tests['fetchMarkOHLCV'] = [ symbol ];
-                tests['fetchPremiumIndexOHLCV'] = [ symbol ];
+    filterTest (tests: Tests, key: string, value: any): any {
+        const result = {};
+        const testNames = Object.keys (tests);
+        for (let i = 0; i < testNames.length; i++) {
+            const name = testNames[i];
+            if (tests[name][key] === value) {
+                result[name] = tests[name];
             }
         }
-        this.publicTests = tests;
+        return result;
+    }
+
+    async runPublicTests (exchange, symbol) {
+        const market = exchange.market (symbol);
+        const isSpot = market['spot'];
+        const code = this.getExchangeCode (exchange);
+        const testsConfig = config (symbol, code, isSpot);
+        let tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchange.id]);
+        tests = this.filterTest (tests, 'public', true);
+        tests = this.filterTest (tests, 'isWs', this.wsTests);
         await this.runTests (exchange, tests, true);
     }
 
-    async runTests (exchange: any, tests: any, isPublicTest:boolean) {
+    async runTests (exchange: any, tests: Tests, isPublicTest:boolean) {
         const testNames = Object.keys (tests);
         const promises = [];
         for (let i = 0; i < testNames.length; i++) {
             const testName = testNames[i];
-            const testArgs = tests[testName];
-            promises.push (this.testSafe (testName, exchange, testArgs, isPublicTest));
+            const test = tests[testName];
+            promises.push (this.testSafe (exchange, testName, test));
         }
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
         const results = await Promise.all (promises);
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
-        const failedMethods = [];
+        const failedTests = [];
         for (let i = 0; i < testNames.length; i++) {
             const testName = testNames[i];
             const testReturnedValue = results[i];
             if (!testReturnedValue) {
-                failedMethods.push (testName);
+                failedTests.push (testName);
             }
         }
         const testPrefixString = isPublicTest ? 'PUBLIC_TESTS' : 'PRIVATE_TESTS';
-        if (failedMethods.length) {
-            const errorsString = failedMethods.join (', ');
-            dump ('[TEST_FAILURE]', this.exchangeHint (exchange), testPrefixString, 'Failed methods : ' + errorsString);
+        if (failedTests.length) {
+            const errorsString = failedTests.join (', ');
+            dump ('[TEST_FAILURE]', this.exchangeHint (exchange), testPrefixString, 'Failed tests : ' + errorsString);
         }
         if (this.info) {
             dump (this.addPadding ('[INFO] END ' + testPrefixString + ' ' + this.exchangeHint (exchange), 25));
@@ -561,7 +549,10 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async loadExchange (exchange) {
-        const result = await this.testSafe ('loadMarkets', exchange, [], true);
+        const testsConfig = config ('', '', true);
+        const tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchange.id]);
+        const loadMarketsTest = tests['loadMarkets'];
+        const result = await this.testSafe (exchange, 'loadMarkets', loadMarketsTest);
         if (!result) {
             return false;
         }
@@ -817,83 +808,24 @@ export default class testMainClass extends baseMainTestClass {
         //     await test ('InvalidOrder', exchange, symbol);
         //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
         // }
-        let tests = {
-            'signIn': [ ],
-            'fetchBalance': [ ],
-            'fetchAccounts': [ ],
-            'fetchTransactionFees': [ ],
-            'fetchTradingFees': [ ],
-            'fetchStatus': [ ],
-            'fetchOrders': [ symbol ],
-            'fetchOpenOrders': [ symbol ],
-            'fetchClosedOrders': [ symbol ],
-            'fetchMyTrades': [ symbol ],
-            'fetchLeverageTiers': [ [ symbol ] ],
-            'fetchLedger': [ code ],
-            'fetchTransactions': [ code ],
-            'fetchDeposits': [ code ],
-            'fetchWithdrawals': [ code ],
-            'fetchBorrowInterest': [ code, symbol ],
-            // 'addMargin': [ ],
-            // 'reduceMargin': [ ],
-            // 'setMargin': [ ],
-            // 'setMarginMode': [ ],
-            // 'setLeverage': [ ],
-            'cancelAllOrders': [ symbol ],
-            // 'cancelOrder': [ ],
-            // 'cancelOrders': [ ],
-            'fetchCanceledOrders': [ symbol ],
-            // 'fetchClosedOrder': [ ],
-            // 'fetchOpenOrder': [ ],
-            // 'fetchOrder': [ ],
-            // 'fetchOrderTrades': [ ],
-            'fetchPosition': [ symbol ],
-            'fetchDeposit': [ code ],
-            'createDepositAddress': [ code ],
-            'fetchDepositAddress': [ code ],
-            'fetchDepositAddresses': [ code ],
-            'fetchDepositAddressesByNetwork': [ code ],
-            // 'editOrder': [ ],
-            'fetchBorrowRateHistory': [ code ],
-            'fetchLedgerEntry': [ code ],
-            // 'fetchWithdrawal': [ ],
-            // 'transfer': [ ],
-            // 'withdraw': [ ],
-        };
-        if (this.wsTests) {
-            tests = {
-                // @ts-ignore
-                'watchBalance': [ code ],
-                'watchMyTrades': [ symbol ],
-                'watchOrders': [ symbol ],
-                'watchPosition': [ symbol ],
-                'watchPositions': [ symbol ],
-            };
-        }
         const market = exchange.market (symbol);
         const isSpot = market['spot'];
-        if (!this.wsTests) {
-            if (isSpot) {
-                tests['fetchCurrencies'] = [ ];
-            } else {
-                // derivatives only
-                tests['fetchPositions'] = [ symbol ]; // this test fetches all positions for 1 symbol
-                tests['fetchPosition'] = [ symbol ];
-                tests['fetchPositionRisk'] = [ symbol ];
-                tests['setPositionMode'] = [ symbol ];
-                tests['setMarginMode'] = [ symbol ];
-                tests['fetchOpenInterestHistory'] = [ symbol ];
-                tests['fetchFundingRateHistory'] = [ symbol ];
-                tests['fetchFundingHistory'] = [ symbol ];
-            }
-        }
-        // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
+        const testsConfig = config (symbol, code, isSpot);
+        let tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchange.id]);
+        tests = this.filterTest (tests, 'public', false);
+        tests = this.filterTest (tests, 'isWs', this.wsTests);
         await this.runTests (exchange, tests, false);
     }
 
-    async testProxies (exchange) {
+    async method (exchange) {
         // these tests should be synchronously executed, because of conflicting nature of proxy settings
         const proxyTestName = this.proxyTestFileName;
+        const proxyTest: Test = {
+            'public': true,
+            'testFile': proxyTestName,
+            'args': [],
+            'isWs': false,
+        };
         // todo: temporary skip for sync py
         if (this.ext === 'py' && this.isSynchronous) {
             return;
@@ -903,7 +835,7 @@ export default class testMainClass extends baseMainTestClass {
         let exception = undefined;
         for (let j = 0; j < maxRetries; j++) {
             try {
-                await this.testMethod (proxyTestName, exchange, [], true);
+                await this.testMethod (exchange, proxyTestName, proxyTest);
                 break; // if successfull, then break
             } catch (e) {
                 exception = e;
@@ -932,7 +864,7 @@ export default class testMainClass extends baseMainTestClass {
             }
             // if (exchange.id === 'binance') {
             //     // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
-            //     // await this.testProxies (exchange);
+            //     // await this.method (exchange);
             // }
             await this.testExchange (exchange, symbol);
             await close (exchange);
@@ -1602,4 +1534,4 @@ export default class testMainClass extends baseMainTestClass {
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass ()).init (exchangeIdFromArgv, sanitizedSymnol);
+(new testMainClass ()).init (exchangeIdFromArgv, exchangeSymbol);
