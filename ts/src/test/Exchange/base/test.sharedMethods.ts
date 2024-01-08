@@ -155,7 +155,7 @@ function assertCurrencyCode (exchange, skippedProperties, method, entry, actualC
 }
 
 function assertValidCurrencyIdAndCode (exchange, skippedProperties, method, entry, currencyId, currencyCode) {
-    // this is exclusive exceptional key name to be used in `skippedProperties`, to skip check for currency id and code
+    // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
     if ('currencyIdAndCode' in skippedProperties) {
         return;
     }
