@@ -3145,7 +3145,12 @@ class binance extends binance$1 {
             response = await this.dapiPublicGetTickerBookTicker(params);
         }
         else {
-            response = await this.publicGetTickerBookTicker(params);
+            const request = {};
+            if (symbols !== undefined) {
+                const marketIds = this.marketIds(symbols);
+                request['symbols'] = this.json(marketIds);
+            }
+            response = await this.publicGetTickerBookTicker(this.extend(request, params));
         }
         return this.parseTickers(response, symbols);
     }

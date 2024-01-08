@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bl3p import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Market, OrderBook, OrderSide, OrderType, IndexType, Str, Ticker, Trade
 from typing import List
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -145,7 +145,7 @@ class bl3p(Exchange, ImplicitAPI):
         response = await self.privatePostGENMKTMoneyInfo(params)
         return self.parse_balance(response)
 
-    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
+    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         price = self.safe_string(bidask, priceKey)
         size = self.safe_string(bidask, amountKey)
         return [

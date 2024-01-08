@@ -89,7 +89,7 @@ class coinbasepro extends coinbasepro$1 {
             const symbol = symbols[i];
             market = this.market(symbol);
             productIds.push(market['id']);
-            messageHashes.push(messageHashStart + ':' + market['id']);
+            messageHashes.push(messageHashStart + ':' + market['symbol']);
         }
         let url = this.urls['api']['ws'];
         if ('signature' in params) {
@@ -134,10 +134,12 @@ class coinbasepro extends coinbasepro$1 {
             throw new errors.BadSymbol(this.id + ' watchTickers requires a non-empty symbols array');
         }
         const channel = 'ticker';
-        const messageHash = 'tickers::';
-        const newTickers = await this.subscribeMultiple(channel, symbols, messageHash, params);
+        const messageHash = 'ticker';
+        const ticker = await this.subscribeMultiple(channel, symbols, messageHash, params);
         if (this.newUpdates) {
-            return newTickers;
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
     }
@@ -749,19 +751,10 @@ class coinbasepro extends coinbasepro$1 {
             const ticker = this.parseTicker(message);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            const type = this.safeString(message, 'type');
-            const messageHash = type + ':' + marketId;
+            const messageHash = 'ticker:' + symbol;
+            const idMessageHash = 'ticker:' + marketId;
             client.resolve(ticker, messageHash);
-            const messageHashes = this.findMessageHashes(client, 'tickers::');
-            for (let i = 0; i < messageHashes.length; i++) {
-                const currentMessageHash = messageHashes[i];
-                const parts = currentMessageHash.split('::');
-                const symbolsString = parts[1];
-                const symbols = symbolsString.split(',');
-                if (this.inArray(symbol, symbols)) {
-                    client.resolve(ticker, currentMessageHash);
-                }
-            }
+            client.resolve(ticker, idMessageHash);
         }
         return message;
     }
