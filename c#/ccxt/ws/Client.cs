@@ -77,7 +77,11 @@ public partial class Exchange
             {
                 // var tcs = new TaskCompletionSource<object>();
                 var future = new Future();
-                this.futures[messageHash] = future;
+                lock (this.futures) {
+                    // Console.WriteLine("Adding future, inside lock");
+                    this.futures[messageHash] = future;
+                }
+                // Console.WriteLine("outside lock");
                 // return future.task;
                 return future;
             }
@@ -265,7 +269,7 @@ public partial class Exchange
 
         private async Task Receiving(ClientWebSocket webSocket)
         {
-            var buffer = new byte[1024 * 4 * 10];
+            var buffer = new byte[1000000]; // check best size later
             try
             {
                 while (webSocket.State == WebSocketState.Open)

@@ -24,7 +24,11 @@ public class OrderBook : CustomConcurrentDictionary<string, object>
             { "nonce", null },
             { "symbol", null },
         };
-        var snapshotCopy = new Dictionary<string, object>(snapshot as dict);
+        var snapshotCopy = new Dictionary<string, object>{};
+        if (snapshot != null)
+        {
+            snapshotCopy = new Dictionary<string, object>(snapshot as dict);
+        }
         defaults["bids"] = Exchange.SafeValue(snapshotCopy, "bids", defaults["bids"]);
         defaults["asks"] = Exchange.SafeValue(snapshotCopy, "asks", defaults["asks"]);
         defaults["timestamp"] = Exchange.SafeValue(snapshotCopy, "timestamp", defaults["timestamp"]);
