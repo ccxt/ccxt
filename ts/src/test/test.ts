@@ -500,7 +500,7 @@ export default class testMainClass extends baseMainTestClass {
         const testNames = Object.keys (tests);
         for (let i = 0; i < testNames.length; i++) {
             const name = testNames[i];
-            if (tests[name][key] === value) {
+            if (typeof tests[name] === 'object' && tests[name][key] === value) {
                 result[name] = tests[name];
             }
         }
