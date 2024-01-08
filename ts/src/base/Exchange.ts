@@ -3564,23 +3564,6 @@ export default class Exchange {
         ];
     }
 
-    resolveMessageHashesForSymbol (client, symbol, result, prexif) {
-        const prefixSeparator = '::';
-        const symbolsSeparator = ',';
-        const messageHashes = this.findMessageHashes (client, prexif);
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split (prefixSeparator);
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (symbolsSeparator);
-            if (this.inArray (symbol, symbols)) {
-                const response = {};
-                response[symbol] = result;
-                client.resolve (response, messageHash);
-            }
-        }
-    }
-
     filterByArray (objects, key: IndexType, values = undefined, indexed = true) {
         objects = this.toArray (objects);
         // return all of them if no values were passed
