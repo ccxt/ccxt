@@ -206,43 +206,41 @@ const sequentialMap = async (input, fn) => {
 
 /*  ------------------------------------------------------------------------ */
 
-const testExchange = async (exchangeId) => {
-
-    const exchangeConfig = skipSettings[exchangeId];
+const testExchange = async (exchange) => {
 
     const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
 
     // no need to test alias classes
-    if (exchangeId.alias) {
+    if (exchange.alias) {
         numExchangesTested++;
-        log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchangeId.cyan, wsFlag, '[Skipped alias]'.yellow)
+        log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped alias]'.yellow)
         return [];
     }
 
     if (
-        exchangeConfig && 
+        skipSettings[exchange] && 
         (
-            (exchangeConfig.skip && !wsFlag)
+            (skipSettings[exchange].skip && !wsFlag)
                 ||
-            (exchangeConfig.skipWs && wsFlag)
+            (skipSettings[exchange].skipWs && wsFlag)
         ) 
     ) {
-        if (!('until' in exchangeConfig)) {
+        if (!('until' in skipSettings[exchange])) {
             // if until not specified, skip forever
             numExchangesTested++;
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchangeId.cyan, wsFlag, '[Skipped]'.yellow)
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped]'.yellow)
             return [];
         }
-        if (new Date(exchangeConfig.until) > new Date()) {
+        if (new Date(skipSettings[exchange].until) > new Date()) {
             numExchangesTested++;
             // if untilDate has not been yet reached, skip test for exchange
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchangeId, wsFlag, '[Skipped till ' + exchangeConfig.until + ']'.yellow)
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped till ' + skipSettings[exchange].until + ']'.yellow)
             return [];
         }
     }
 
 /*  Run tests for all/selected languages (in parallel)     */
-    let args = [exchangeId];
+    let args = [exchange];
     if (symbol !== undefined && symbol !== 'all') {
         args.push(symbol);
     }
@@ -275,7 +273,7 @@ const testExchange = async (exchangeId) => {
         let scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
         // when bulk tests are run, we skip php-async, however, if your specifically run php-async (as a single language from run-tests), lets allow it
         const specificLangSet = (Object.values (langKeys).filter (x => x)).length === 1;
-        if (exchangeConfig && exchangeConfig.skipPhpAsync && !specificLangSet) {
+        if (skipSettings[exchange] && skipSettings[exchange].skipPhpAsync && !specificLangSet) {
             // some exchanges are failing in php async tests with this error:
             // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
             scheduledTests = scheduledTests.filter (x => x.key !== '--php-async');
@@ -307,7 +305,7 @@ const testExchange = async (exchangeId) => {
     }
 
     numExchangesTested++;
-    log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchangeId, wsFlag, logMessage)
+    log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, logMessage)
 
     // independenly of the success result, show infos
     // ( these infos will be shown as soon as each exchange test is finished, and will not wait 100% of all tests to be finished )
@@ -326,7 +324,7 @@ const testExchange = async (exchangeId) => {
 
     return {
 
-        exchange: exchangeId,
+        exchange,
         failed,
         hasWarnings,
         explain () {
@@ -336,12 +334,12 @@ const testExchange = async (exchangeId) => {
                     continue;
                 // if failed, then show full output (includes warnings)
                 if (failed) {
-                    log.bright ('\nFAILED'.bgBrightRed.white, exchangeId.red,    '(' + language + ' ' + wsFlag + '):\n')
+                    log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + ' ' + wsFlag + '):\n')
                     log.indent (1) ('\n', output)
                 }
                 // if not failed, but there are warnings, then show them
                 else if (warnings.length) {
-                    log.bright ('\nWARN'.yellow.inverse,     exchangeId.yellow, '(' + language + ' ' + wsFlag + '):\n')
+                    log.bright ('\nWARN'.yellow.inverse,     exchange.yellow, '(' + language + ' ' + wsFlag + '):\n')
                     log.indent (1) ('\n', warnings.join ('\n'))
                 }
             }
