@@ -309,7 +309,7 @@ export default class bitmart extends bitmartRest {
         const isSpot = (type === 'spot');
         if (isSpot) {
             if (symbols === undefined) {
-                throw new ArgumentsRequired (this.id + ' watchTickers() for ' + type + ' requires symbols argument to be provided');
+                throw new ArgumentsRequired (this.id + ' watchTickers() for ' + type + ' market type requires symbols argument to be provided');
             }
             const marketIds = this.marketIds (symbols);
             const finalArray = [];
@@ -326,12 +326,12 @@ export default class bitmart extends bitmartRest {
                 'action': 'subscribe',
                 'args': [ 'futures/ticker' ],
             };
-            const ticker = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-            tickers = {};
-            tickers[ticker['symbol']] = ticker;
+            tickers = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         }
-        const result = this.newUpdates ? tickers : this.tickers;
-        return this.filterByArray (result, 'symbol', symbols);
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -926,10 +926,12 @@ export default class bitmart extends bitmartRest {
                 this.resolveMessageHashesForSymbol (client, symbol, ticker, 'tickers::');
             }
         } else {
+            // on each update for contract markets, single ticker is provided
             const ticker = this.parseWsSwapTicker (data);
             const symbol = this.safeString (ticker, 'symbol');
             this.tickers[symbol] = ticker;
-            client.resolve (ticker, 'tickers');
+            this.resolveMessageHashesForSymbol (client, symbol, ticker, 'tickers::');
+            // client.resolve (ticker, 'tickers::swap');
         }
         return message;
     }
