@@ -213,9 +213,9 @@ const testExchange = async (exchangeId) => {
     const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
 
     // no need to test alias classes
-    if (exchange.alias) {
+    if (exchangeId.alias) {
         numExchangesTested++;
-        log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped alias]'.yellow)
+        log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchangeId.cyan, wsFlag, '[Skipped alias]'.yellow)
         return [];
     }
 
