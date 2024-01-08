@@ -277,15 +277,15 @@ export default class testMainClass extends baseMainTestClass {
         if (symbolArgv !== undefined) {
             const testConfig = this.getConfigJson ();
             const tests = exchange.deepExtend (testConfig['exchange'], testConfig[exchange.id]);
-            const testNames = Object.keys (tests);
+            const testFileNames = Object.keys (tests);
             const possibleMethodNames = symbolArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if (possibleMethodNames.length >= 1) {
-                for (let i = 0; i < testNames.length; i++) {
-                    const testName = testNames[i];
+                for (let i = 0; i < testFileNames.length; i++) {
+                    const testFileName = testFileNames[i];
                     for (let j = 0; j < possibleMethodNames.length; j++) {
                         const methodName = possibleMethodNames[j];
-                        if (testName.indexOf (methodName) >= 0) {
-                            this.onlySpecificTests.push (testName);
+                        if (testFileName.indexOf (methodName) >= 0) {
+                            this.onlySpecificTests.push (testFileName);
                         }
                     }
                 }
