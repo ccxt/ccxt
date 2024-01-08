@@ -930,8 +930,8 @@ export default class bitmart extends bitmartRest {
             const ticker = this.parseWsSwapTicker (data);
             const symbol = this.safeString (ticker, 'symbol');
             this.tickers[symbol] = ticker;
+            client.resolve (ticker, 'tickers::swap');
             this.resolveMessageHashesForSymbol (client, symbol, ticker, 'tickers::');
-            // client.resolve (ticker, 'tickers::swap');
         }
         return message;
     }
