@@ -298,27 +298,40 @@ export default class bitmart extends bitmartRest {
         const market = this.getMarketFromSymbols (symbols);
         let type = 'spot';
         [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
-        symbols = this.marketSymbols (symbols);
-        if (type === 'spot') {
-            throw new NotSupported (this.id + ' watchTickers() does not support ' + type + ' markets. Use watchTicker() instead');
-        }
         const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
-        if (type === 'swap') {
-            type = 'futures';
-        }
-        let messageHash = 'tickers';
+        symbols = this.marketSymbols (symbols);
+        let messageHash = 'tickers::' + type;
         if (symbols !== undefined) {
             messageHash += '::' + symbols.join (',');
         }
-        const request = {
-            'action': 'subscribe',
-            'args': [ 'futures/ticker' ],
-        };
-        const newTickers = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        if (this.newUpdates) {
-            return newTickers;
+        let request = undefined;
+        let tickers = undefined;
+        const isSpot = (type === 'spot');
+        if (isSpot) {
+            if (symbols === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchTickers() for ' + type + ' requires symbols argument to be provided');
+            }
+            const marketIds = this.marketIds (symbols);
+            const finalArray = [];
+            for (let i = 0; i < marketIds.length; i++) {
+                finalArray.push ('spot/ticker:' + marketIds[i]);
+            }
+            request = {
+                'op': 'subscribe',
+                'args': finalArray,
+            };
+            tickers = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        } else {
+            request = {
+                'action': 'subscribe',
+                'args': [ 'futures/ticker' ],
+            };
+            const ticker = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+            tickers = {};
+            tickers[ticker['symbol']] = ticker;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        const result = this.newUpdates ? tickers : this.tickers;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -910,26 +923,33 @@ export default class bitmart extends bitmartRest {
                 const messageHash = table + ':' + marketId;
                 this.tickers[symbol] = ticker;
                 client.resolve (ticker, messageHash);
+                this.resolveMessageHashesForSymbol (client, symbol, ticker, 'tickers::');
             }
         } else {
             const ticker = this.parseWsSwapTicker (data);
             const symbol = this.safeString (ticker, 'symbol');
             this.tickers[symbol] = ticker;
             client.resolve (ticker, 'tickers');
-            const messageHashes = this.findMessageHashes (client, 'tickers::');
-            for (let i = 0; i < messageHashes.length; i++) {
-                const messageHash = messageHashes[i];
-                const parts = messageHash.split ('::');
-                const symbolsString = parts[1];
-                const symbols = symbolsString.split (',');
-                if (this.inArray (symbol, symbols)) {
-                    const response = {};
-                    response[symbol] = ticker;
-                    client.resolve (response, messageHash);
-                }
-            }
         }
         return message;
+    }
+
+    resolveMessageHashesForSymbol (client, symbol, result, prexif) {
+        const prefixSeparator = '::';
+        const symbolsSeparator = ',';
+        const messageHashes = this.findMessageHashes (client, prexif);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split (prefixSeparator);
+            const length = parts.length;
+            const symbolsString = parts[length - 1];
+            const symbols = symbolsString.split (symbolsSeparator);
+            if (this.inArray (symbol, symbols)) {
+                const response = {};
+                response[symbol] = result;
+                client.resolve (response, messageHash);
+            }
+        }
     }
 
     parseWsSwapTicker (ticker, market: Market = undefined) {
