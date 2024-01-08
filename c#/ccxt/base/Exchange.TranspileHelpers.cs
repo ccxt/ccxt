@@ -18,7 +18,7 @@ public partial class Exchange
         if (a == null)
             return null;
 
-        if (a.GetType() == typeof(int))
+        if (a is int)
         {
             return System.Convert.ToInt64(a);
         }
@@ -30,7 +30,7 @@ public partial class Exchange
         {
             a = (Int64)a + 1;
         }
-        else if (a.GetType() == typeof(int))
+        else if (a is int)
         {
             a = (int)a + 1;
         }
@@ -167,27 +167,27 @@ public partial class Exchange
         {
             return (string)value != "";
         }
-        else if (value is (List<object>))
+        else if (value is (IList<object>))
         {
-            return ((List<object>)value).Count > 0;
+            return ((IList<object>)value).Count > 0;
         }
-        else if (value is (List<string>))
+        else if (value is (IList<string>))
         {
-            return ((List<string>)value).Count > 0;
+            return ((IList<string>)value).Count > 0;
         }
-        else if (value is (List<int>))
+        else if (value is (IList<int>))
         {
-            return ((List<string>)value).Count > 0;
+            return ((IList<string>)value).Count > 0;
         }
-        else if (value is (List<Int64>))
+        else if (value is (IList<Int64>))
         {
-            return ((List<string>)value).Count > 0;
+            return ((IList<string>)value).Count > 0;
         }
-        else if (value is (List<double>))
+        else if (value is (IList<double>))
         {
-            return ((List<double>)value).Count > 0;
+            return ((IList<double>)value).Count > 0;
         }
-        else if (value is (Dictionary<string, object>))
+        else if (value is (IDictionary<string, object>))
         {
             return true;
         }
@@ -614,13 +614,13 @@ public partial class Exchange
 
     public static int getIndexOf(object str, object target)
     {
-        if (str is (List<object>))
+        if (str is IList<object>)
         {
-            return ((List<object>)str).IndexOf(target);
+            return ((IList<object>)str).IndexOf(target);
         }
-        else if (str is (List<string>))
+        else if (str is IList<string>)
         {
-            return ((List<string>)str).IndexOf((string)target);
+            return ((IList<string>)str).IndexOf((string)target);
         }
         else if (str is (string))
         {
@@ -754,7 +754,7 @@ public partial class Exchange
 
     public static async Task<List<object>> PromiseAll(object promisesObj)
     {
-        var promises = (List<object>)promisesObj;
+        var promises = (IList<object>)promisesObj;
         var tasks = new List<Task<object>>();
         foreach (var promise in promises)
         {
