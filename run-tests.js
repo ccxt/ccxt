@@ -206,18 +206,12 @@ const sequentialMap = async (input, fn) => {
 
 /*  ------------------------------------------------------------------------ */
 
-const testExchange = async (exchange) => {
+const testExchange = async (exchangeId) => {
 
-    const exchangeConfig = exchange.deepExtend (testConfigp['exchange'], testConfig[exchange.id])
+    const testsConfig = config ();
+    const exchangeConfig = testsConfig[exchangeId];
 
     const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
-
-    // no need to test alias classes
-    if (exchange.alias) {
-        numExchangesTested++;
-        log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped alias]'.yellow)
-        return [];
-    }
 
     if (
         exchangeConfig && 
@@ -230,19 +224,19 @@ const testExchange = async (exchange) => {
         if (!('until' in exchangeConfig)) {
             // if until not specified, skip forever
             numExchangesTested++;
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped]'.yellow)
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchangeId, wsFlag, '[Skipped]'.yellow)
             return [];
         }
         if (new Date(exchangeConfig.until) > new Date()) {
             numExchangesTested++;
             // if untilDate has not been yet reached, skip test for exchange
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped till ' + exchangeConfig.until + ']'.yellow)
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchangeId, wsFlag, '[Skipped till ' + exchangeConfig.until + ']'.yellow)
             return [];
         }
     }
 
 /*  Run tests for all/selected languages (in parallel)     */
-    let args = [exchange];
+    let args = [exchangeId];
     if (symbol !== undefined && symbol !== 'all') {
         args.push(symbol);
     }
@@ -307,7 +301,7 @@ const testExchange = async (exchange) => {
     }
 
     numExchangesTested++;
-    log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, logMessage)
+    log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchangeId, wsFlag, logMessage)
 
     // independenly of the success result, show infos
     // ( these infos will be shown as soon as each exchange test is finished, and will not wait 100% of all tests to be finished )
@@ -326,7 +320,7 @@ const testExchange = async (exchange) => {
 
     return {
 
-        exchange,
+        exchange: exchangeId,
         failed,
         hasWarnings,
         explain () {
@@ -336,12 +330,12 @@ const testExchange = async (exchange) => {
                     continue;
                 // if failed, then show full output (includes warnings)
                 if (failed) {
-                    log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + ' ' + wsFlag + '):\n')
+                    log.bright ('\nFAILED'.bgBrightRed.white, exchangeId.red,    '(' + language + ' ' + wsFlag + '):\n')
                     log.indent (1) ('\n', output)
                 }
                 // if not failed, but there are warnings, then show them
                 else if (warnings.length) {
-                    log.bright ('\nWARN'.yellow.inverse,     exchange.yellow, '(' + language + ' ' + wsFlag + '):\n')
+                    log.bright ('\nWARN'.yellow.inverse,     exchangeId.yellow, '(' + language + ' ' + wsFlag + '):\n')
                     log.indent (1) ('\n', warnings.join ('\n'))
                 }
             }
