@@ -8,32 +8,32 @@
         "fetchTicker": {
             "isWs": false,
             "public": true,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "fetchTickers": {
             "isWs": false,
             "public": true,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "fetchOHLCV": {
             "isWs": false,
             "public": true,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "fetchTrades": {
             "isWs": false,
             "public": true,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "fetchOrderBook": {
             "isWs": false,
             "public": true,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "fetchL2OrderBook": {
             "isWs": false,
             "public": true,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "fetchOrderBooks": {
             "isWs": false,
@@ -125,52 +125,52 @@
         "fetchOrders": {
             "isWs": false,
             "public": false,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "fetchOpenOrders": {
             "isWs": false,
             "public": false,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "fetchClosedOrders": {
             "isWs": false,
             "public": false,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "fetchMyTrades": {
             "isWs": false,
             "public": false,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "fetchLeverageTiers": {
             "isWs": false,
             "public": false,
-            "args": [ [ "_SYMBOL_" ] ]
+            "args": [ [ "${SYMBOL}" ] ]
         },
         "fetchLedger": {
             "isWs": false,
             "public": false,
-            "args": [ "_CODE_" ]
+            "args": [ "${CODE}" ]
         },
         "fetchTransactions": {
             "isWs": false,
             "public": false,
-            "args": [ "_CODE_" ]
+            "args": [ "${CODE}" ]
         },
         "fetchDeposits": {
             "isWs": false,
             "public": false,
-            "args": [ "_CODE_" ]
+            "args": [ "${CODE}" ]
         },
         "fetchWithdrawals": {
             "isWs": false,
             "public": false,
-            "args": [ "_CODE_" ]
+            "args": [ "${CODE}" ]
         },
         "fetchBorrowInterest": {
             "isWs": false,
             "public": false,
-            "args": [ "_CODE_", "_SYMBOL_" ]
+            "args": [ "${CODE}", "${SYMBOL}" ]
         },
         "addMargin": {
             "isWs": false,
@@ -200,7 +200,7 @@
         "cancelAllOrders": {
             "isWs": false,
             "public": false,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "cancelOrder": {
             "isWs": false,
@@ -217,7 +217,7 @@
         "fetchCanceledOrders": {
             "isWs": false,
             "public": false,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "fetchClosedOrder": {
             "isWs": false,
@@ -246,27 +246,27 @@
         "fetchDeposit": {
             "isWs": false,
             "public": false,
-            "args": [ "_CODE_" ]
+            "args": [ "${CODE}" ]
         },
         "createDepositAddress": {
             "isWs": false,
             "public": false,
-            "args": [ "_CODE_" ]
+            "args": [ "${CODE}" ]
         },
         "fetchDepositAddress": {
             "isWs": false,
             "public": false,
-            "args": [ "_CODE_" ]
+            "args": [ "${CODE}" ]
         },
         "fetchDepositAddresses": {
             "isWs": false,
             "public": false,
-            "args": [ "_CODE_" ]
+            "args": [ "${CODE}" ]
         },
         "fetchDepositAddressesByNetwork": {
             "isWs": false,
             "public": false,
-            "args": [ "_CODE_" ]
+            "args": [ "${CODE}" ]
         },
         "editOrder": {
             "isWs": false,
@@ -277,12 +277,12 @@
         "fetchBorrowRateHistory": {
             "isWs": false,
             "public": false,
-            "args": [ "_CODE_" ]
+            "args": [ "${CODE}" ]
         },
         "fetchLedgerEntry": {
             "isWs": false,
             "public": false,
-            "args": [ "_CODE_" ]
+            "args": [ "${CODE}" ]
         },
         "fetchWithdrawal": {
             "isWs": false,
@@ -305,100 +305,100 @@
         "fetchPositions": {
             "isWs": false,
             "public": false,
-            "args": [ "_SYMBOL_" ],
+            "args": [ "${SYMBOL}" ],
             "marketTypes": ["margin", "swap", "future", "option"]
         },
         "fetchPosition": {
             "isWs": false,
             "public": false,
-            "args": [ "_SYMBOL_" ],
+            "args": [ "${SYMBOL}" ],
             "marketTypes": ["margin", "swap", "future", "option"]
         },
         "fetchPositionRisk": {
             "isWs": false,
             "public": false,
-            "args": [ "_SYMBOL_" ],
+            "args": [ "${SYMBOL}" ],
             "marketTypes": ["margin", "swap", "future", "option"]
         },
         "setPositionMode": {
             "isWs": false,
             "public": false,
-            "args": [ "_SYMBOL_" ],
+            "args": [ "${SYMBOL}" ],
             "marketTypes": ["margin", "swap", "future", "option"]
         },
         "fetchOpenInterestHistory": {
             "isWs": false,
             "public": false,
-            "args": [ "_SYMBOL_" ],
+            "args": [ "${SYMBOL}" ],
             "marketTypes": ["margin", "swap", "future", "option"]
         },
         "fetchFundingRateHistory - private": {
             "isWs": false,
             "public": false,
-            "args": [ "_SYMBOL_" ],
+            "args": [ "${SYMBOL}" ],
             "marketTypes": ["margin", "swap", "future", "option"]
 
         },
         "fetchFundingHistory": {
             "isWs": false,
             "public": false,
-            "args": [ "_SYMBOL_" ],
+            "args": [ "${SYMBOL}" ],
             "marketTypes": ["margin", "swap", "future", "option"]
         },
         "watchOHLCV": {
             "isWs": true,
             "public": true,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "watchTicker": {
             "isWs": true,
             "public": true,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "watchOrderBook": {
             "isWs": true,
             "public": true,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "watchTrades": {
             "isWs": true,
             "public": true,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "watchTickers with symbol": {
             "isWs": true,
             "public": true,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "watchBalance": {
             "testFile": "watchBalance",
             "isWs": true,
             "public": false,
-            "args": [ "_CODE_" ]
+            "args": [ "${CODE}" ]
         },
         "watchMyTrades": {
             "testFile": "watchMyTrades",
             "isWs": true,
             "public": false,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "watchOrders": {
             "testFile": "watchOrders",
             "isWs": true,
             "public": false,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "watchPosition": {
             "testFile": "watchPosition",
             "isWs": true,
             "public": false,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         },
         "watchPositions": {
             "testFile": "watchPositions",
             "isWs": true,
             "public": false,
-            "args": [ "_SYMBOL_" ]
+            "args": [ "${SYMBOL}" ]
         }
     },
     "ace": {
