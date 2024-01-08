@@ -284,7 +284,7 @@ export default class testMainClass extends baseMainTestClass {
                     const testFileName = testFileNames[i];
                     for (let j = 0; j < possibleMethodNames.length; j++) {
                         const methodName = possibleMethodNames[j];
-                        if (testFileName.indexOf (methodName) >= 0) {
+                        if (testFileName === methodName) {
                             this.onlySpecificTests.push (testFileName);
                         }
                     }
@@ -352,17 +352,17 @@ export default class testMainClass extends baseMainTestClass {
         this.loadCredentialsFromEnv (exchange);
         // exchange tests settings
         const testsConfig = this.getConfigJson ();
-        const tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchangeId]);
+        const skippedSettingsForExchange = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchangeId]);
         // others
-        const timeout = exchange.safeValue (tests, 'timeout');
+        const timeout = exchange.safeValue (skippedSettingsForExchange, 'timeout');
         if (timeout !== undefined) {
             exchange.timeout = timeout;
         }
-        exchange.httpProxy = exchange.safeString (tests, 'httpProxy');
-        exchange.httpsProxy = exchange.safeString (tests, 'httpsProxy');
-        exchange.wsProxy = exchange.safeString (tests, 'wsProxy');
-        exchange.wssProxy = exchange.safeString (tests, 'wssProxy');
-        this.skippedMethods = exchange.safeValue (tests, 'skipMethods', {});
+        exchange.httpProxy = exchange.safeString (skippedSettingsForExchange, 'httpProxy');
+        exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
+        exchange.wsProxy = exchange.safeString (skippedSettingsForExchange, 'wsProxy');
+        exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
+        this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
     }
 
@@ -450,7 +450,7 @@ export default class testMainClass extends baseMainTestClass {
         }
     }
 
-    async testSafe (exchange, testName: string, test: Test) {
+    async testSafe (exchange, methodName: string, test: Test) {
         // `testSafe` method does not throw an exception, instead mutes it. The reason we
         // mute the thrown exceptions here is because we don't want to stop the whole
         // tests queue if any single test-method fails. Instead, they are echoed with
@@ -461,7 +461,7 @@ export default class testMainClass extends baseMainTestClass {
         const argsStringified = exchange.json (test['args']); // args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
         for (let i = 0; i < maxRetries; i++) {
             try {
-                await this.testMethod (exchange, testName, test);
+                await this.testMethod (exchange, methodName, test);
                 return true;
             }
             catch (e) {
@@ -486,10 +486,10 @@ export default class testMainClass extends baseMainTestClass {
                         }
                         // final step
                         if (shouldFail) {
-                            dump ('[TEST_FAILURE]', 'Test could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), testName, argsStringified, exceptionMessage (e));
+                            dump ('[TEST_FAILURE]', 'Test could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified, exceptionMessage (e));
                             return false;
                         } else {
-                            dump ('[TEST_WARNING]', 'Test could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), testName, argsStringified, exceptionMessage (e));
+                            dump ('[TEST_WARNING]', 'Test could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified, exceptionMessage (e));
                             return true;
                         }
                     }
@@ -504,27 +504,27 @@ export default class testMainClass extends baseMainTestClass {
                 else {
                     // if it's loadMarkets, then fail test, because it's mandatory for tests
                     if (isLoadMarkets) {
-                        dump ('[TEST_FAILURE]', 'Exchange can not load markets', exceptionMessage (e), this.exchangeHint (exchange), testName, argsStringified);
+                        dump ('[TEST_FAILURE]', 'Exchange can not load markets', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
                         return false;
                     }
                     // if the specific arguments to the test method throws "NotSupported" exception
                     // then let's don't fail the test
                     if (isNotSupported) {
                         if (this.info) {
-                            dump ('[INFO] NOT_SUPPORTED', exceptionMessage (e), this.exchangeHint (exchange), testName, argsStringified);
+                            dump ('[INFO] NOT_SUPPORTED', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
                         }
                         return true;
                     }
                     // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if (isPublic && isAuthError) {
                         if (this.info) {
-                            dump ('[INFO]', 'Authentication problem for public method', exceptionMessage (e), this.exchangeHint (exchange), testName, argsStringified);
+                            dump ('[INFO]', 'Authentication problem for public method', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
                         }
                         return true;
                     }
                     // in rest of the cases, fail the test
                     else {
-                        dump ('[TEST_FAILURE]', exceptionMessage (e), this.exchangeHint (exchange), testName, argsStringified);
+                        dump ('[TEST_FAILURE]', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
                         return false;
                     }
                 }
