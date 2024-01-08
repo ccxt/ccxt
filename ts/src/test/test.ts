@@ -401,7 +401,7 @@ export default class testMainClass extends baseMainTestClass {
         return result;
     }
 
-    async testMethod (exchange: any, testName: string, test: Test) {
+    async testMethod (testName: string, exchange: any, test: Test) {
         const methodName = test['testFile'];
         const isPublic = test['public'];
         const args = test['args'];
@@ -450,7 +450,7 @@ export default class testMainClass extends baseMainTestClass {
         }
     }
 
-    async testSafe (exchange, methodName: string, test: Test) {
+    async testSafe (methodName: string, exchange: any, test: Test) {
         // `testSafe` method does not throw an exception, instead mutes it. The reason we
         // mute the thrown exceptions here is because we don't want to stop the whole
         // tests queue if any single test-method fails. Instead, they are echoed with
@@ -461,7 +461,7 @@ export default class testMainClass extends baseMainTestClass {
         const argsStringified = exchange.json (test['args']); // args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
         for (let i = 0; i < maxRetries; i++) {
             try {
-                await this.testMethod (exchange, methodName, test);
+                await this.testMethod (methodName, exchange, test);
                 return true;
             }
             catch (e) {
@@ -486,10 +486,10 @@ export default class testMainClass extends baseMainTestClass {
                         }
                         // final step
                         if (shouldFail) {
-                            dump ('[TEST_FAILURE]', 'Test could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified, exceptionMessage (e));
+                            dump ('[TEST_FAILURE]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified, exceptionMessage (e));
                             return false;
                         } else {
-                            dump ('[TEST_WARNING]', 'Test could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified, exceptionMessage (e));
+                            dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified, exceptionMessage (e));
                             return true;
                         }
                     }
@@ -561,7 +561,7 @@ export default class testMainClass extends baseMainTestClass {
         for (let i = 0; i < testNames.length; i++) {
             const testName = testNames[i];
             const test = tests[testName];
-            promises.push (this.testSafe (exchange, testName, test));
+            promises.push (this.testSafe (testName, exchange, test));
         }
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
@@ -578,7 +578,7 @@ export default class testMainClass extends baseMainTestClass {
         const testPrefixString = isPublicTest ? 'PUBLIC_TESTS' : 'PRIVATE_TESTS';
         if (failedMethods.length) {
             const errorsString = failedMethods.join (', ');
-            dump ('[TEST_FAILURE]', this.exchangeHint (exchange), testPrefixString, 'Failed tests : ' + errorsString);
+            dump ('[TEST_FAILURE]', this.exchangeHint (exchange), testPrefixString, 'Failed methods : ' + errorsString);
         }
         if (this.info) {
             dump (this.addPadding ('[INFO] END ' + testPrefixString + ' ' + this.exchangeHint (exchange), 25));
@@ -589,7 +589,7 @@ export default class testMainClass extends baseMainTestClass {
         const testsConfig = this.getConfigJson ('', '');
         const tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchange.id]);
         const loadMarketsTest = tests['loadMarkets'];
-        const result = await this.testSafe (exchange, 'loadMarkets', loadMarketsTest);
+        const result = await this.testSafe ('loadMarkets', exchange, loadMarketsTest);
         if (!result) {
             return false;
         }
@@ -871,7 +871,7 @@ export default class testMainClass extends baseMainTestClass {
         let exception = undefined;
         for (let j = 0; j < maxRetries; j++) {
             try {
-                await this.testMethod (exchange, proxyTestName, proxyTest);
+                await this.testMethod (proxyTestName, exchange, proxyTest);
                 break; // if successfull, then break
             } catch (e) {
                 exception = e;
