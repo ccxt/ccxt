@@ -230,7 +230,7 @@ const testExchange = async (exchangeId) => {
         if (!('until' in exchangeConfig)) {
             // if until not specified, skip forever
             numExchangesTested++;
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchangeId, wsFlag, '[Skipped]'.yellow)
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchangeId.cyan, wsFlag, '[Skipped]'.yellow)
             return [];
         }
         if (new Date(exchangeConfig.until) > new Date()) {
