@@ -282,6 +282,8 @@ class bitmart(ccxt.async_support.bitmart):
         if type == 'swap':
             type = 'futures'
         messageHash = 'tickers'
+        if symbols is not None:
+            messageHash += '::' + ','.join(symbols)
         request = {
             'action': 'subscribe',
             'args': ['futures/ticker'],
@@ -661,7 +663,7 @@ class bitmart(ccxt.async_support.bitmart):
         #    }
         #
         marketId = self.safe_string(position, 'symbol')
-        market = self.safe_market(marketId, market, '', 'swap')
+        market = self.safe_market(marketId, market, None, 'swap')
         symbol = market['symbol']
         openTimestamp = self.safe_integer(position, 'create_time')
         timestamp = self.safe_integer(position, 'update_time')
@@ -847,6 +849,16 @@ class bitmart(ccxt.async_support.bitmart):
             symbol = self.safe_string(ticker, 'symbol')
             self.tickers[symbol] = ticker
             client.resolve(ticker, 'tickers')
+            messageHashes = self.find_message_hashes(client, 'tickers::')
+            for i in range(0, len(messageHashes)):
+                messageHash = messageHashes[i]
+                parts = messageHash.split('::')
+                symbolsString = parts[1]
+                symbols = symbolsString.split(',')
+                if self.in_array(symbol, symbols):
+                    response = {}
+                    response[symbol] = ticker
+                    client.resolve(response, messageHash)
         return message
 
     def parse_ws_swap_ticker(self, ticker, market: Market = None):
@@ -986,7 +998,7 @@ class bitmart(ccxt.async_support.bitmart):
                 client.resolve(stored, messageHash)
         else:
             marketId = self.safe_string(data, 'symbol')
-            market = self.safe_market(marketId, None, '', 'swap')
+            market = self.safe_market(marketId, None, None, 'swap')
             symbol = market['symbol']
             items = self.safe_value(data, 'items', [])
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})

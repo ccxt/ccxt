@@ -298,7 +298,10 @@ class bitmart extends bitmart$1 {
         if (type === 'swap') {
             type = 'futures';
         }
-        const messageHash = 'tickers';
+        let messageHash = 'tickers';
+        if (symbols !== undefined) {
+            messageHash += '::' + symbols.join(',');
+        }
         const request = {
             'action': 'subscribe',
             'args': ['futures/ticker'],
@@ -704,7 +707,7 @@ class bitmart extends bitmart$1 {
         //    }
         //
         const marketId = this.safeString(position, 'symbol');
-        market = this.safeMarket(marketId, market, '', 'swap');
+        market = this.safeMarket(marketId, market, undefined, 'swap');
         const symbol = market['symbol'];
         const openTimestamp = this.safeInteger(position, 'create_time');
         const timestamp = this.safeInteger(position, 'update_time');
@@ -897,6 +900,18 @@ class bitmart extends bitmart$1 {
             const symbol = this.safeString(ticker, 'symbol');
             this.tickers[symbol] = ticker;
             client.resolve(ticker, 'tickers');
+            const messageHashes = this.findMessageHashes(client, 'tickers::');
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                const parts = messageHash.split('::');
+                const symbolsString = parts[1];
+                const symbols = symbolsString.split(',');
+                if (this.inArray(symbol, symbols)) {
+                    const response = {};
+                    response[symbol] = ticker;
+                    client.resolve(response, messageHash);
+                }
+            }
         }
         return message;
     }
@@ -1046,7 +1061,7 @@ class bitmart extends bitmart$1 {
         }
         else {
             const marketId = this.safeString(data, 'symbol');
-            const market = this.safeMarket(marketId, undefined, '', 'swap');
+            const market = this.safeMarket(marketId, undefined, undefined, 'swap');
             const symbol = market['symbol'];
             const items = this.safeValue(data, 'items', []);
             this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});

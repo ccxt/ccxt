@@ -313,6 +313,9 @@ class bitmart extends \ccxt\async\bitmart {
                 $type = 'futures';
             }
             $messageHash = 'tickers';
+            if ($symbols !== null) {
+                $messageHash .= '::' . implode(',', $symbols);
+            }
             $request = array(
                 'action' => 'subscribe',
                 'args' => array( 'futures/ticker' ),
@@ -725,7 +728,7 @@ class bitmart extends \ccxt\async\bitmart {
         //    }
         //
         $marketId = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($marketId, $market, '', 'swap');
+        $market = $this->safe_market($marketId, $market, null, 'swap');
         $symbol = $market['symbol'];
         $openTimestamp = $this->safe_integer($position, 'create_time');
         $timestamp = $this->safe_integer($position, 'update_time');
@@ -920,6 +923,18 @@ class bitmart extends \ccxt\async\bitmart {
             $symbol = $this->safe_string($ticker, 'symbol');
             $this->tickers[$symbol] = $ticker;
             $client->resolve ($ticker, 'tickers');
+            $messageHashes = $this->find_message_hashes($client, 'tickers::');
+            for ($i = 0; $i < count($messageHashes); $i++) {
+                $messageHash = $messageHashes[$i];
+                $parts = explode('::', $messageHash);
+                $symbolsString = $parts[1];
+                $symbols = explode(',', $symbolsString);
+                if ($this->in_array($symbol, $symbols)) {
+                    $response = array();
+                    $response[$symbol] = $ticker;
+                    $client->resolve ($response, $messageHash);
+                }
+            }
         }
         return $message;
     }
@@ -1070,7 +1085,7 @@ class bitmart extends \ccxt\async\bitmart {
             }
         } else {
             $marketId = $this->safe_string($data, 'symbol');
-            $market = $this->safe_market($marketId, null, '', 'swap');
+            $market = $this->safe_market($marketId, null, null, 'swap');
             $symbol = $market['symbol'];
             $items = $this->safe_value($data, 'items', array());
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());

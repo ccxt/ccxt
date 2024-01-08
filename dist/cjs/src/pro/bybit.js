@@ -222,7 +222,9 @@ class bybit extends bybit$1 {
         }
         const ticker = await this.watchTopics(url, messageHashes, topics, params);
         if (this.newUpdates) {
-            return ticker;
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
     }

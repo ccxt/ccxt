@@ -3780,7 +3780,7 @@ export default class Exchange {
                         }
                     }
                 }
-            } else if (delimiter !== undefined) {
+            } else if (delimiter !== undefined && delimiter !== '') {
                 const parts = marketId.split (delimiter);
                 const partsLength = parts.length;
                 if (partsLength === 2) {

@@ -176,12 +176,28 @@ if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
   exit
 fi
 
-# run base tests (base js,py,php, brokerId and static-tests)
-npm run test-base
+# run base tests (base js,py,php, brokerId )
+# npm run test-base
+npm run test-js-base && npm run test-python-base && npm run test-php-base && npm run id-tests
 
 # rest_args=${REST_EXCHANGES[*]} || "skip"
 rest_args=$(IFS=" " ; echo "${REST_EXCHANGES[*]}") || "skip"
 # ws_args=${WS_EXCHANGES[*]} || "skip"
 ws_args=$(IFS=" " ; echo "${WS_EXCHANGES[*]}") || "skip"
+
+
+#request static tests
+for exchange in "${REST_EXCHANGES[@]}"; do
+  npm run request-js -- $exchange
+  npm run request-py -- $exchange
+  npm run request-php -- $exchange
+done
+
+#response static tests
+for exchange in "${REST_EXCHANGES[@]}"; do
+  npm run response-js -- $exchange
+  npm run response-py -- $exchange
+  npm run response-php -- $exchange
+done
 
 run_tests "$rest_args" "$ws_args"
