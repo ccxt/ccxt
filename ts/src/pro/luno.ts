@@ -232,7 +232,7 @@ export default class luno extends lunoRest {
         };
     }
 
-    parseBidsAsks (bidasks, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = undefined) {
+    parseBidsAsks (bidasks, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
         bidasks = this.toArray (bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
@@ -241,7 +241,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    customParseBidAsk (bidask, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = undefined) {
+    customParseBidAsk (bidask, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const result = [ price, amount ];
