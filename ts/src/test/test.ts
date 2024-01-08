@@ -66,6 +66,7 @@ type TestConfig = {
     [key: string]: Tests;
 }
 
+const rootDir = DIR_NAME + '/../../../';
 
 class baseMainTestClass {
     lang = 'JS';
@@ -87,8 +88,8 @@ class baseMainTestClass {
     checkedPublicTests = {};
     testFiles = {};
     newLine = '\n';
-    rootDir = DIR_NAME + '/../../../';
-    rootDirForSkips = DIR_NAME + '/../../../';
+    rootDir = rootDir;
+    configContent = '';
     onlySpecificTests = [];
     envVars = process.env;
     proxyTestFileName = proxyTestFileName;
@@ -263,9 +264,18 @@ export default class testMainClass extends baseMainTestClass {
         exitScript (0); // needed to be explicitly finished for WS tests
     }
 
+    getConfigJson (symbol: string = 'BTC/USDT', code: string = 'USDT') {
+        if (this.configContent === '') {
+            this.configContent = ioFileRead (rootDir + './tests-config.json');
+        }
+        let result = this.configContent.replace ('{SYMBOL}', symbol);
+        result = this.configContent.replace ('{CODE}', code);
+        return JSON.parse (this.configContent);
+    }
+
     checkIfSpecificTestIsChosen (exchange, symbolArgv) {
         if (symbolArgv !== undefined) {
-            const testConfig = config ();
+            const testConfig = this.getConfigJson ();
             const tests = exchange.deepExtend (testConfig['exchange'], testConfig[exchange.id]);
             const testNames = Object.keys (tests);
             const possibleMethodNames = symbolArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
@@ -341,7 +351,7 @@ export default class testMainClass extends baseMainTestClass {
         // credentials
         this.loadCredentialsFromEnv (exchange);
         // exchange tests settings
-        const testsConfig = config ();
+        const testsConfig = this.getConfigJson ();
         const tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchangeId]);
         // others
         const timeout = exchange.safeValue (tests, 'timeout');
@@ -538,7 +548,7 @@ export default class testMainClass extends baseMainTestClass {
         const market = exchange.market (symbol);
         const isSpot = market['spot'];
         const code = this.getExchangeCode (exchange);
-        const testsConfig = config (symbol, code, isSpot);
+        const testsConfig = this.getConfigJson (symbol, code);
         let tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchange.id]);
         tests = this.filterTest (tests, 'public', true);
         tests = this.filterTest (tests, 'isWs', this.wsTests);
@@ -576,7 +586,7 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async loadExchange (exchange) {
-        const testsConfig = config ('', '', true);
+        const testsConfig = this.getConfigJson ('', '');
         const tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchange.id]);
         const loadMarketsTest = tests['loadMarkets'];
         const result = await this.testSafe (exchange, 'loadMarkets', loadMarketsTest);
@@ -836,8 +846,7 @@ export default class testMainClass extends baseMainTestClass {
         //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
         // }
         const market = exchange.market (symbol);
-        const isSpot = market['spot'];
-        const testsConfig = config (symbol, code, isSpot);
+        const testsConfig = this.getConfigJson (symbol, code);
         let tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchange.id]);
         tests = this.filterTest (tests, 'public', false);
         tests = this.filterTest (tests, 'isWs', this.wsTests);
