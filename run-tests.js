@@ -11,6 +11,7 @@ import fs from 'fs'
 import ansi from 'ansicolor'
 import log from 'ololog'
 import ps from 'child_process'
+import { config } from './js/src/test/config.js'
 ansi.nice
 /*  --------------------------------------------------------------------------- */
 
@@ -75,8 +76,7 @@ for (const key of Object.keys (exchangeSpecificFlags)) {
 }
 /*  --------------------------------------------------------------------------- */
 
-const content = fs.readFileSync ('./skip-tests.json', 'utf8');
-const skipSettings = JSON.parse (content);
+const testConfig = config ();
 
 if (!exchanges.length) {
 
@@ -206,41 +206,37 @@ const sequentialMap = async (input, fn) => {
 
 /*  ------------------------------------------------------------------------ */
 
-const testExchange = async (exchange) => {
+const testExchange = async (exchangeId) => {
+
+    const testsConfig = config ();
+    const exchangeConfig = testsConfig[exchangeId];
 
     const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
 
-    // no need to test alias classes
-    if (exchange.alias) {
-        numExchangesTested++;
-        log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped alias]'.yellow)
-        return [];
-    }
-
     if (
-        skipSettings[exchange] && 
+        exchangeConfig && 
         (
-            (skipSettings[exchange].skip && !wsFlag)
+            (exchangeConfig.skip && !wsFlag)
                 ||
-            (skipSettings[exchange].skipWs && wsFlag)
+            (exchangeConfig.skipWs && wsFlag)
         ) 
     ) {
-        if (!('until' in skipSettings[exchange])) {
+        if (!('until' in exchangeConfig)) {
             // if until not specified, skip forever
             numExchangesTested++;
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped]'.yellow)
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchangeId, wsFlag, '[Skipped]'.yellow)
             return [];
         }
-        if (new Date(skipSettings[exchange].until) > new Date()) {
+        if (new Date(exchangeConfig.until) > new Date()) {
             numExchangesTested++;
             // if untilDate has not been yet reached, skip test for exchange
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped till ' + skipSettings[exchange].until + ']'.yellow)
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchangeId, wsFlag, '[Skipped till ' + exchangeConfig.until + ']'.yellow)
             return [];
         }
     }
 
 /*  Run tests for all/selected languages (in parallel)     */
-    let args = [exchange];
+    let args = [exchangeId];
     if (symbol !== undefined && symbol !== 'all') {
         args.push(symbol);
     }
@@ -273,7 +269,7 @@ const testExchange = async (exchange) => {
         let scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
         // when bulk tests are run, we skip php-async, however, if your specifically run php-async (as a single language from run-tests), lets allow it
         const specificLangSet = (Object.values (langKeys).filter (x => x)).length === 1;
-        if (skipSettings[exchange] && skipSettings[exchange].skipPhpAsync && !specificLangSet) {
+        if (exchangeConfig && exchangeConfig.skipPhpAsync && !specificLangSet) {
             // some exchanges are failing in php async tests with this error:
             // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
             scheduledTests = scheduledTests.filter (x => x.key !== '--php-async');
@@ -305,7 +301,7 @@ const testExchange = async (exchange) => {
     }
 
     numExchangesTested++;
-    log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, logMessage)
+    log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchangeId, wsFlag, logMessage)
 
     // independenly of the success result, show infos
     // ( these infos will be shown as soon as each exchange test is finished, and will not wait 100% of all tests to be finished )
@@ -324,7 +320,7 @@ const testExchange = async (exchange) => {
 
     return {
 
-        exchange,
+        exchange: exchangeId,
         failed,
         hasWarnings,
         explain () {
@@ -334,12 +330,12 @@ const testExchange = async (exchange) => {
                     continue;
                 // if failed, then show full output (includes warnings)
                 if (failed) {
-                    log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + ' ' + wsFlag + '):\n')
+                    log.bright ('\nFAILED'.bgBrightRed.white, exchangeId.red,    '(' + language + ' ' + wsFlag + '):\n')
                     log.indent (1) ('\n', output)
                 }
                 // if not failed, but there are warnings, then show them
                 else if (warnings.length) {
-                    log.bright ('\nWARN'.yellow.inverse,     exchange.yellow, '(' + language + ' ' + wsFlag + '):\n')
+                    log.bright ('\nWARN'.yellow.inverse,     exchangeId.yellow, '(' + language + ' ' + wsFlag + '):\n')
                     log.indent (1) ('\n', warnings.join ('\n'))
                 }
             }
