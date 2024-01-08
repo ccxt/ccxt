@@ -349,9 +349,9 @@ public partial class Exchange
             }
         }
         // duplicated code for now, check this later
-        if (obj is List<object>)
+        if (obj is IList<object>)
         {
-            var list = (List<object>)obj;
+            var list = (IList<object>)obj;
             foreach (var key in keys)
             {
                 var sucess = Int32.TryParse(key.ToString(), out int keyInt);
@@ -374,9 +374,9 @@ public partial class Exchange
         }
 
 
-        if (obj is List<string>)
+        if (obj is IList<string>)
         {
-            var list = (List<string>)obj;
+            var list = (IList<string>)obj;
             foreach (var key in keys)
             {
                 var sucess = Int32.TryParse(key.ToString(), out int keyInt);
@@ -393,9 +393,9 @@ public partial class Exchange
             }
         }
 
-        if (obj is List<int>)
+        if (obj is IList<int>)
         {
-            var list = (List<int>)obj;
+            var list = (IList<int>)obj;
             foreach (var key in keys)
             {
                 if (list.IndexOf((int)key) > -1) // this is wrong apparently

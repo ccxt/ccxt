@@ -502,13 +502,13 @@ public partial class Exchange
             return 0;
         }
 
-        if (value is (List<object>))
+        if (value is (IList<object>))
         {
-            return ((List<object>)value).Count;
+            return ((IList<object>)value).Count;
         }
-        else if (value is (List<string>))
+        else if (value is (IList<string>))
         {
-            return ((List<string>)value).Count;
+            return ((IList<string>)value).Count;
         }
         else if (value is (List<dict>))
         {
@@ -703,7 +703,7 @@ public partial class Exchange
             {
                 return null;
             }
-            return ((List<object>)value)[parsed];
+            return ((IList<object>)value)[parsed];
         }
         else if (value is List<dict>)
         {
