@@ -567,17 +567,17 @@ export default class testMainClass extends baseMainTestClass {
         // promises.push (testThrottle ());
         const results = await Promise.all (promises);
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
-        const failedTests = [];
+        const failedMethods = [];
         for (let i = 0; i < testNames.length; i++) {
             const testName = testNames[i];
             const testReturnedValue = results[i];
             if (!testReturnedValue) {
-                failedTests.push (testName);
+                failedMethods.push (testName);
             }
         }
         const testPrefixString = isPublicTest ? 'PUBLIC_TESTS' : 'PRIVATE_TESTS';
-        if (failedTests.length) {
-            const errorsString = failedTests.join (', ');
+        if (failedMethods.length) {
+            const errorsString = failedMethods.join (', ');
             dump ('[TEST_FAILURE]', this.exchangeHint (exchange), testPrefixString, 'Failed tests : ' + errorsString);
         }
         if (this.info) {
