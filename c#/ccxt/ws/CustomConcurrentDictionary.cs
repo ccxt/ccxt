@@ -5,7 +5,7 @@ namespace ccxt;
 public class CustomConcurrentDictionary<TKey, TValue> : ConcurrentDictionary<TKey, TValue>
 {
 
-    private readonly object _syncRoot = new object();
+    protected readonly object _syncRoot = new object();
 
 
     public CustomConcurrentDictionary()
@@ -17,6 +17,7 @@ public class CustomConcurrentDictionary<TKey, TValue> : ConcurrentDictionary<TKe
     {
         lock (_syncRoot)
         {
+            // Console.WriteLine("CustomConcurrentDictionary with initialValues");
             foreach (var kvp in initialValues)
             {
                 this[kvp.Key] = kvp.Value;
@@ -29,6 +30,7 @@ public class CustomConcurrentDictionary<TKey, TValue> : ConcurrentDictionary<TKe
     {
         lock (_syncRoot)
         {
+            // Console.WriteLine("CustomConcurrentDictionary Add");
             this[key] = value;
         }
     }

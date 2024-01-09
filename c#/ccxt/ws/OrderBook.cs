@@ -1,13 +1,72 @@
 
 namespace ccxt;
 
+using Newtonsoft.Json;
+
+
 using dict = IDictionary<string, object>;
 
 public class OrderBook : CustomConcurrentDictionary<string, object>
 {
-    public IList<object> cache = new SlimConcurrentList<object>();
-    public Asks asks;
-    public Bids bids;
+    // protected readonly object _syncRoot = new object();
+    private IList<object> _cache = new SlimConcurrentList<object>();
+
+    public IList<object> cache
+    {
+        get
+        {
+            lock (_syncRoot)
+            {
+                return _cache;
+            }
+        }
+        set
+        {
+            lock (_syncRoot)
+            {
+                _cache = value;
+            }
+        }
+    }
+
+    private Asks _asks;
+
+    public Asks asks
+    {
+        get
+        {
+            lock (_syncRoot)
+            {
+                return _asks;
+            }
+        }
+        set
+        {
+            lock (_syncRoot)
+            {
+                _asks = value;
+            }
+        }
+    }
+    private Bids _bids;
+
+    public Bids bids
+    {
+        get
+        {
+            lock (_syncRoot)
+            {
+                return _bids;
+            }
+        }
+        set
+        {
+            lock (_syncRoot)
+            {
+                _bids = value;
+            }
+        }
+    }
 
     public OrderBook(object snapshot = null, object depth2 = null)
     {
@@ -24,10 +83,10 @@ public class OrderBook : CustomConcurrentDictionary<string, object>
             { "nonce", null },
             { "symbol", null },
         };
-        var snapshotCopy = new Dictionary<string, object>{};
+        var snapshotCopy = new CustomConcurrentDictionary<string, object> { };
         if (snapshot != null)
         {
-            snapshotCopy = new Dictionary<string, object>(snapshot as dict);
+            snapshotCopy = new CustomConcurrentDictionary<string, object>(snapshot as dict);
         }
         defaults["bids"] = Exchange.SafeValue(snapshotCopy, "bids", defaults["bids"]);
         defaults["asks"] = Exchange.SafeValue(snapshotCopy, "asks", defaults["asks"]);
@@ -58,48 +117,100 @@ public class OrderBook : CustomConcurrentDictionary<string, object>
     public OrderBook limit()
     {
 
-        this.asks.limit();
-        this.bids.limit();
-        return this;
+        lock (_syncRoot)
+        {
+            this.asks.limit();
+            this.bids.limit();
+            return this;
+        }
     }
 
     public OrderBook update(object snapshot)
     {
-        var snapshotNonce = Exchange.SafeValue(snapshot as dict, "nonce");
-        if (snapshotNonce != null && this["nonce"] != null && (long)snapshotNonce <= (long)this["nonce"])
+        lock (_syncRoot)
         {
-            return this;
-        }
+            var snapshotNonce = Exchange.SafeValue(snapshot as dict, "nonce");
+            if (snapshotNonce != null && this["nonce"] != null && (long)snapshotNonce <= (long)this["nonce"])
+            {
+                return this;
+            }
 
-        this["nonce"] = snapshotNonce;
-        this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);
-        this["datetime"] = Exchange.SafeValue(snapshot as dict, "datetime", this["datetime"]);
-        this.reset(snapshot);
-        return null;
+            this["nonce"] = snapshotNonce;
+            this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);
+            this["datetime"] = Exchange.SafeValue(snapshot as dict, "datetime", this["datetime"]);
+            this.reset(snapshot);
+            return null;
+        }
     }
 
     public void reset(object snapshot = null)
     {
-        this.asks._index.Clear();
-        this.asks.Clear();
-
-        var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks") as List<object>;
-        for (var i = 0; i < snapshotAsks.Count; i++)
+        lock (_syncRoot)
         {
-            this.asks.storeArray(snapshotAsks[i] as List<object>);
-        }
+            this.asks._index.Clear();
+            this.asks.Clear();
 
-        this.bids._index.Clear();
-        this.bids.Clear();
-        var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids") as List<object>;
-        for (var i = 0; i < snapshotBids.Count; i++)
-        {
-            this.bids.storeArray(snapshotBids[i] as List<object>);
+            var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks") as List<object>;
+            for (var i = 0; i < snapshotAsks.Count; i++)
+            {
+                this.asks.storeArray(snapshotAsks[i] as List<object>);
+            }
+
+            this.bids._index.Clear();
+            this.bids.Clear();
+            var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids") as List<object>;
+            for (var i = 0; i < snapshotBids.Count; i++)
+            {
+                this.bids.storeArray(snapshotBids[i] as List<object>);
+            }
+            this["nonce"] = Exchange.SafeValue(snapshot as dict, "nonce", this["nonce"]);
+            this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);
+            this["datetime"] = Exchange.Iso8601(this["timestamp"]);
+            this["symbol"] = Exchange.SafeValue(snapshot as dict, "symbol", this["symbol"]);
         }
-        this["nonce"] = Exchange.SafeValue(snapshot as dict, "nonce", this["nonce"]);
-        this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);
-        this["datetime"] = Exchange.Iso8601(this["timestamp"]);
-        this["symbol"] = Exchange.SafeValue(snapshot as dict, "symbol", this["symbol"]);
+    }
+
+    public OrderBook GetCopy()
+    {
+        lock (_syncRoot)
+        {
+            var copy = new OrderBook();
+            copy["nonce"] = this["nonce"];
+            copy["timestamp"] = this["timestamp"];
+            copy["datetime"] = this["datetime"];
+            copy["symbol"] = this["symbol"];
+            copy["asks"] = new Asks(this._asks.ToList());
+            copy["bids"] = new Bids(this._bids.ToList());
+            return copy;
+        }
+    }
+
+    public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
+    {
+        lock (_syncRoot)
+        {
+            return new CustomConcurrentDictionary<string, object>(this).GetEnumerator();
+        }
+    }
+
+    // public IEnumerator<object> GetEnumerator()
+    // {
+    //     lock (_syncRoot)
+    //     {
+    //         return new List<object>(_cache).GetEnumerator();
+    //     }
+    // }
+
+    // Serialize the object safely
+    public string Serialize()
+    {
+        lock (_syncRoot)
+        {
+            // Create an immutable snapshot for serialization
+            var snapshot = new Dictionary<string, object>(this);
+
+            return JsonConvert.SerializeObject(snapshot);
+        }
     }
 }
 

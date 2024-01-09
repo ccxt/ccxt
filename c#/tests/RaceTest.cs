@@ -74,6 +74,8 @@ public partial class BaseTest
                 var randomPrice = rnd.Next();
                 ob.bids.store(Convert.ToDecimal(randomPrice), Convert.ToDecimal(randomAmount));
                 ob.asks.store(Convert.ToDecimal(randomPrice), Convert.ToDecimal(randomAmount));
+                object storedBids = getValue(ob, "bids");
+                (storedBids as OrderBookSide).storeArray(new List<object> { randomPrice, randomAmount });
                 ob.limit();
                 await Task.Delay(50);
             }

@@ -234,6 +234,15 @@ public partial class Exchange
 
     public string json(object obj)
     {
+        // var currentThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+        // Console.WriteLine("[" + currentThreadId.ToString() + "] Will json serialize: " + obj.GetType().ToString());
+        if (obj is ccxt.OrderBook)
+        {
+            // tmp fix
+            var ob = (ccxt.OrderBook)obj;
+            var copy = ob.GetCopy();
+            return Json(copy);
+        }
         return Json(obj);
     }
 
@@ -245,7 +254,7 @@ public partial class Exchange
         // if (obj.GetType() == typeof(dict))
         // {
         //     var obj2 = (dict)obj;
-        //     return JsonSerializer.Serialize<Dictionary<string, object>>(obj2);
+        //     return JsonSerializer.Serialize<Dictionary<string, object>>(obj2)dd;
         // }
         // if (obj.GetType() == typeof(List<object>))
         // {

@@ -251,6 +251,15 @@ public partial class Exchange
         {
             returnResult = ((double)result).ToString(CultureInfo.InvariantCulture);
         }
+        else if (result is double)
+        {
+            returnResult = ((double)result).ToString(CultureInfo.InvariantCulture);
+
+        }
+        else if (result is decimal)
+        {
+            returnResult = ((decimal)result).ToString(CultureInfo.InvariantCulture);
+        }
         else
         {
             returnResult = result.ToString();

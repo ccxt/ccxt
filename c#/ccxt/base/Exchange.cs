@@ -66,11 +66,11 @@ public partial class Exchange
                 }
                 else
                 {
-                    if (value.GetType() == typeof(List<object>))
+                    if (value is IList<object>)
                     {
                         // when endpoints are a list of string
                         endpoints = new List<string>();
-                        var listValue = value as List<object>;
+                        var listValue = value as IList<object>;
                         foreach (var item in listValue)
                         {
                             endpoints.Add(item.ToString());
@@ -583,7 +583,7 @@ public partial class Exchange
     public object arraySlice(object array, object first, object second = null)
     {
         var firstInt = Convert.ToInt32(first);
-        var parsedArray = ((List<object>)array);
+        var parsedArray = ((IList<object>)array);
         if (second == null)
         {
             if (firstInt < 0)
@@ -620,10 +620,10 @@ public partial class Exchange
             return true;
         if (a.GetType() == typeof(string))
             return a.ToString().Length == 0;
-        if (a.GetType() == typeof(List<object>))
-            return ((List<object>)a).Count == 0;
-        if (a.GetType() == typeof(dict))
-            return ((dict)a).Count == 0;
+        if (a is IList<object>)
+            return ((IList<object>)a).Count == 0;
+        if (a is IDictionary<string, object>)
+            return ((IDictionary<string, object>)a).Count == 0;
         return false;
     }
 
