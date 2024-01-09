@@ -1658,7 +1658,7 @@ export default class testMainClass extends baseMainTestClass {
             request = jsonParse (exchange.last_request_body);
         }
         const clientOrderId = request['clOrdID'];
-        assert (clientOrderId.startsWith (id), 'clOrdID does not start with id');
+        assert (clientOrderId.startsWith (id.toString ()), 'clOrdID does not start with id');
         await close (exchange);
     }
 }

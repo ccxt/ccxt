@@ -622,6 +622,15 @@ public partial class Exchange
             prop.SetValue(obj, defaultValue);
         }
     }
+
+    public object fixStringifiedJsonMembers(object content2)
+    {
+        var content = (string)content2;
+        var modified = content.Replace('\\', ' ');
+        modified = modified.Replace("\"{", "{");
+        modified = modified.Replace("}\"", "}");
+        return modified;
+    }
 }
 
 
