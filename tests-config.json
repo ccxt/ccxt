@@ -1,540 +1,554 @@
 {
     "exchange": {
-        "loadMarkets": {
-            "tests": [
-                {
-                    "args": []
+        "methods": {
+            "loadMarkets": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ],
+                "public": true
+            },
+            "fetchTickers": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ],
+                "public": true,
+                "skippedProperties": {
+                    "quoteVolume": "fails almost on all exchanges",
+                    "baseVolume": "same"
                 }
-            ]
-        },
-        "fetchTickers": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ],
-            "skippedProperties": {
-                "quoteVolume": "fails almost on all exchanges",
-                "baseVolume": "same"
+            },
+            "fetchTicker": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ],
+                "public": true
+            },
+            "fetchOHLCV": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ],
+                "public": true
+            },
+            "fetchTrades": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ],
+                "public": true
+            },
+            "fetchOrderBook": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ],
+                "public": true
+            },
+            "fetchL2OrderBook": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ],
+                "public": true
+            },
+            "fetchOrderBooks": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ],
+                "public": true
+            },
+            "fetchBidsAsks": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ],
+                "public": true
+            },
+            "fetchTime": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ],
+                "public": true
+            },
+            "fetchCurrencies": {
+                "tests": [
+                    {
+                        "args": [],
+                        "marketTypes": ["spot"]
+                    }
+                ],
+                "public": true
+            },
+            "fetchFundingRates": {
+                "tests": [
+                    {
+                        "args": [],
+                        "marketTypes": ["swap"]
+                    }
+                ],
+                "public": true
+            },
+            "fetchFundingRate": {
+                "tests": [
+                    {
+                        "args": [],
+                        "marketTypes": ["swap"]
+                    }
+                ],
+                "public": true
+            },
+            "fetchIndexOHLCV": {
+                "tests": [
+                    {
+                        "args": [],
+                        "marketTypes": ["swap"]
+                    }
+                ],
+                "public": true
+            },
+            "fetchMarkOHLCV": {
+                "tests": [
+                    {
+                        "args": [],
+                        "marketTypes": ["swap"]
+                    }
+                ],
+                "public": true
+            },
+            "fetchPremiumIndexOHLCV": {
+                "tests": [
+                    {
+                        "args": [],
+                        "marketTypes": ["swap"]
+                    }
+                ],
+                "public": true
+            },
+            "fetchTransactionFees": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ],
+                "public": true
+            },
+            "fetchTradingFees": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ],
+                "public": true
+            },
+            "fetchLeverageTiers": {
+                "tests": [
+                    {
+                        "args": [["{SYMBOL}"]]
+                    }
+                ],
+                "public": true
+            },
+            "fetchStatus": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ],
+                "public": true
+            },
+            "fetchFundingRateHistory": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"],
+                        "marketTypes": ["swap", "future"]
+                    }
+                ],
+                "public": true
+            },
+            "fetchBorrowInterest": {
+                "tests": [
+                    {
+                        "args": ["{CODE}", "{SYMBOL}"]
+                    }
+                ],
+                "public": true
+            },
+            "fetchBorrowRateHistory": {
+                "tests": [
+                    {
+                        "args": ["{CODE}"]
+                    }
+                ],
+                "public": true
+            },
+
+
+            "signIn": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "fetchBalance": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "fetchAccounts": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "fetchOrders": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ]
+            },
+            "fetchOpenOrders": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ]
+            },
+            "fetchClosedOrders": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ]
+            },
+            "fetchMyTrades": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ]
+            },
+            "fetchLedger": {
+                "tests": [
+                    {
+                        "args": ["{CODE}"]
+                    }
+                ]
+            },
+            "fetchTransactions": {
+                "tests": [
+                    {
+                        "args": ["{CODE}"]
+                    }
+                ]
+            },
+            "fetchDeposits": {
+                "tests": [
+                    {
+                        "args": ["{CODE}"]
+                    }
+                ]
+            },
+            "fetchWithdrawals": {
+                "tests": [
+                    {
+                        "args": ["{CODE}"]
+                    }
+                ]
+            },
+            "addMargin": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "reduceMargin": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "setMargin": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "setMarginMode": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "setLeverage": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "cancelAllOrders": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ]
+            },
+            "cancelOrder": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "cancelOrders": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "fetchCanceledOrders": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ]
+            },
+            "fetchClosedOrder": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "fetchOpenOrder": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "fetchOrder": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "fetchOrderTrades": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "fetchDeposit": {
+                "tests": [
+                    {
+                        "args": ["{CODE}"]
+                    }
+                ]
+            },
+            "createDepositAddress": {
+                "tests": [
+                    {
+                        "args": ["{CODE}"]
+                    }
+                ]
+            },
+            "fetchDepositAddress": {
+                "tests": [
+                    {
+                        "args": ["{CODE}"]
+                    }
+                ]
+            },
+            "fetchDepositAddresses": {
+                "tests": [
+                    {
+                        "args": ["{CODE}"]
+                    }
+                ]
+            },
+            "fetchDepositAddressesByNetwork": {
+                "tests": [
+                    {
+                        "args": ["{CODE}"]
+                    }
+                ]
+            },
+            "editOrder": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "fetchLedgerEntry": {
+                "tests": [
+                    {
+                        "args": ["{CODE}"]
+                    }
+                ]
+            },
+            "fetchWithdrawal": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "transfer": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "withdraw": {
+                "tests": [
+                    {
+                        "args": []
+                    }
+                ]
+            },
+            "fetchPositions": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"],
+                        "marketTypes": ["margin", "swap", "future", "option"]
+                    }
+                ]
+            },
+            "fetchPosition": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"],
+                        "marketTypes": ["margin", "swap", "future", "option"]
+                    }
+                ]
+            },
+            "setPositionMode": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"],
+                        "marketTypes": ["margin", "swap", "future"]
+                    }
+                ]
+            },
+            "fetchFundingHistory": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"],
+                        "marketTypes": ["margin", "swap", "future", "option"]
+                    }
+                ]
+            },
+
+
+            "watchOHLCV": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ],
+                "public": true
+            },
+            "watchTicker": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ],
+                "public": true
+            },
+            "watchOrderBook": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ],
+                "public": true
+            },
+            "watchTrades": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ],
+                "public": true
+            },
+            "watchTickers": {
+                "tests": [
+                    {
+                        "args": []
+                    },
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ],
+                "public": true
+            },
+
+            "watchBalance": {
+                "tests": [
+                    {
+                        "args": ["{CODE}"]
+                    }
+                ]
+            },
+            "watchMyTrades": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ]
+            },
+            "watchOrders": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ]
+            },
+            "watchPosition": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ]
+            },
+            "watchPositions": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"]
+                    }
+                ]
             }
-        },
-        "fetchTicker": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "fetchOHLCV": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "fetchTrades": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "fetchOrderBook": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "fetchL2OrderBook": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "fetchOrderBooks": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchBidsAsks": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchTime": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchCurrencies": {
-            "tests": [
-                {
-                    "args": [],
-                    "marketTypes": ["spot"]
-                }
-            ]
-        },
-        "fetchFundingRates": {
-            "tests": [
-                {
-                    "args": [],
-                    "marketTypes": ["swap"]
-                }
-            ]
-        },
-        "fetchFundingRate": {
-            "tests": [
-                {
-                    "args": [],
-                    "marketTypes": ["swap"]
-                }
-            ]
-        },
-        "fetchFundingRateHistory": {
-            "tests": [
-                {
-                    "args": [],
-                    "marketTypes": ["swap"]
-                }
-            ]
-        },
-        "fetchIndexOHLCV": {
-            "tests": [
-                {
-                    "args": [],
-                    "marketTypes": ["swap"]
-                }
-            ]
-        },
-        "fetchMarkOHLCV": {
-            "tests": [
-                {
-                    "args": [],
-                    "marketTypes": ["swap"]
-                }
-            ]
-        },
-        "fetchPremiumIndexOHLCV": {
-            "tests": [
-                {
-                    "args": [],
-                    "marketTypes": ["swap"]
-                }
-            ]
-        },
-        "signIn": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchBalance": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchAccounts": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchTransactionFees": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchTradingFees": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchStatus": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchOrders": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "fetchOpenOrders": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "fetchClosedOrders": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "fetchMyTrades": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "fetchLeverageTiers": {
-            "tests": [
-                {
-                    "args": [["{SYMBOL}"]]
-                }
-            ]
-        },
-        "fetchLedger": {
-            "tests": [
-                {
-                    "args": ["{CODE}"]
-                }
-            ]
-        },
-        "fetchTransactions": {
-            "tests": [
-                {
-                    "args": ["{CODE}"]
-                }
-            ]
-        },
-        "fetchDeposits": {
-            "tests": [
-                {
-                    "args": ["{CODE}"]
-                }
-            ]
-        },
-        "fetchWithdrawals": {
-            "tests": [
-                {
-                    "args": ["{CODE}"]
-                }
-            ]
-        },
-        "fetchBorrowInterest": {
-            "tests": [
-                {
-                    "args": ["{CODE}", "{SYMBOL}"]
-                }
-            ]
-        },
-        "addMargin": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "reduceMargin": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "setMargin": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "setMarginMode": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "setLeverage": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "cancelAllOrders": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "cancelOrder": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "cancelOrders": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchCanceledOrders": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "fetchClosedOrder": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchOpenOrder": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchOrder": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchOrderTrades": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchDeposit": {
-            "tests": [
-                {
-                    "args": ["{CODE}"]
-                }
-            ]
-        },
-        "createDepositAddress": {
-            "tests": [
-                {
-                    "args": ["{CODE}"]
-                }
-            ]
-        },
-        "fetchDepositAddress": {
-            "tests": [
-                {
-                    "args": ["{CODE}"]
-                }
-            ]
-        },
-        "fetchDepositAddresses": {
-            "tests": [
-                {
-                    "args": ["{CODE}"]
-                }
-            ]
-        },
-        "fetchDepositAddressesByNetwork": {
-            "tests": [
-                {
-                    "args": ["{CODE}"]
-                }
-            ]
-        },
-        "editOrder": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchBorrowRateHistory": {
-            "tests": [
-                {
-                    "args": ["{CODE}"]
-                }
-            ]
-        },
-        "fetchLedgerEntry": {
-            "tests": [
-                {
-                    "args": ["{CODE}"]
-                }
-            ]
-        },
-        "fetchWithdrawal": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "transfer": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "withdraw": {
-            "tests": [
-                {
-                    "args": []
-                }
-            ]
-        },
-        "fetchPositions": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"],
-                    "marketTypes": ["margin", "swap", "future", "option"]
-                }
-            ]
-        },
-        "fetchPosition": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"],
-                    "marketTypes": ["margin", "swap", "future", "option"]
-                }
-            ]
-        },
-        "fetchPositionRisk": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"],
-                    "marketTypes": ["margin", "swap", "future", "option"]
-                }
-            ]
-        },
-        "setPositionMode": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"],
-                    "marketTypes": ["margin", "swap", "future", "option"]
-                }
-            ]
-        },
-        "fetchOpenInterestHistory": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"],
-                    "marketTypes": ["margin", "swap", "future", "option"]
-                }
-            ]
-        },
-        "fetchFundingRateHistory - private": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"],
-                    "marketTypes": ["margin", "swap", "future", "option"]
-                }
-            ]
-        },
-        "fetchFundingHistory": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"],
-                    "marketTypes": ["margin", "swap", "future", "option"]
-                }
-            ]
-        },
-        "watchOHLCV": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "watchTicker": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "watchOrderBook": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "watchTrades": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "watchTickers with symbol": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "watchBalance": {
-            "tests": [
-                {
-                    "args": ["{CODE}"]
-                }
-            ]
-        },
-        "watchMyTrades": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "watchOrders": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "watchPosition": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
-        },
-        "watchPositions": {
-            "tests": [
-                {
-                    "args": ["{SYMBOL}"]
-                }
-            ]
         }
     },
     "ace": {

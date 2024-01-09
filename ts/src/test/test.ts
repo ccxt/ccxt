@@ -31,19 +31,11 @@ const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
-type TestItem = {
-    isWs?: boolean;
-    public?: boolean;
-    args?: any[];
-    skippedProperties?: {}
-    skip?: string;
-}
 
-type Test = TestItem & {
-    testFile?: string;
+type ConfigFileStruct = {
+    [key: string]: ExchangeTestEntry;
 }
-
-type Tests = Test & {
+type ExchangeTestEntry = {
     skip?: string;
     skipWs?: string;
     skipPhpAsync?: string;
@@ -53,11 +45,24 @@ type Tests = Test & {
     wsProxy?: string;
     wssProxy?: string;
     timeout?: number;
+    methods?: MethodsTestEntries;
+}
+type MethodsTestEntries = {
+    [key: string]: MethodTestEntry;
+}
+type MethodTestEntry = {
+    skippedProperties?: {};
+    tests: Test[];
+}
+type Test = {
+    isWs?: boolean;
+    public?: boolean;
+    args?: any[];
+    marketTypes?: string[];
+    skippedProperties?: {}
+    skip?: string;
 }
 
-type TestConfig = {
-    [key: string]: Tests;
-}
 
 const [ processPath, , exchangeIdFromArgv = null, methodOrSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
 // non-transpiled part, but shared names among langs
@@ -230,7 +235,7 @@ export default class testMainClass extends baseMainTestClass {
         this.wsTests = getCliArgValue ('--ws');
     }
 
-    getConfig (symbol = undefined, code = undefined) {
+    getConfig (symbol = undefined, code = undefined): ConfigFileStruct {
         if (this.configContent === '') {
             this.configContent = ioFileRead (this.rootDir + './tests-config.json', false);
         }
@@ -244,7 +249,7 @@ export default class testMainClass extends baseMainTestClass {
         return JSON.parse (this.configContent);
     }
 
-    getConfigForExchange (exchange: any, symbol = undefined, code = undefined) {
+    getConfigForExchange (exchange: any, symbol = undefined, code = undefined): ExchangeTestEntry {
         const config = this.getConfig (symbol, code);
         const mainConfig = config['exchange'];
         const exchangeConfig = exchange.safeValue (config, exchange.id, {});
@@ -286,7 +291,7 @@ export default class testMainClass extends baseMainTestClass {
     checkIfSpecificTestIsChosen (exchange, symbolArgv) {
         if (symbolArgv !== undefined) {
             const tests = this.getConfigForExchange (exchange);
-            const testFileNames = Object.keys (tests);
+            const testFileNames = Object.keys (tests['methods']);
             const possibleMethodNames = symbolArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if (possibleMethodNames.length >= 1) {
                 for (let i = 0; i < testFileNames.length; i++) {
@@ -543,15 +548,15 @@ export default class testMainClass extends baseMainTestClass {
 
     async runPublicTests (exchange, symbol) {
         const market = exchange.market (symbol);
-        const isSpot = market['spot'];
         const code = this.getExchangeCode (exchange);
-        let tests = this.getConfigForExchange (exchange, symbol, code);
-        tests = this.filterTest (tests, 'public', true);
-        tests = this.filterTest (tests, 'isWs', this.wsTests);
+        const exchangeConfig = this.getConfigForExchange (exchange, symbol, code);
+        let tests = exchangeConfig['methods'];
+        tests = this.filterTests (tests, 'public', true);
+        tests = this.filterTests (tests, 'isWs', this.wsTests);
         await this.runTests (exchange, tests, true);
     }
 
-    async runTests (exchange: any, tests: Tests, isPublicTest:boolean) {
+    async runTests (exchange: any, tests: any, isPublicTest:boolean) {
         const testNames = Object.keys (tests);
         const promises = [];
         for (let i = 0; i < testNames.length; i++) {
@@ -633,12 +638,12 @@ export default class testMainClass extends baseMainTestClass {
         return true;
     }
 
-    filterTest (tests: Tests, key: string, value: any): any {
+    filterTests (tests: any, key: string, value: any): any {
         const result = {};
         const testNames = Object.keys (tests);
         for (let i = 0; i < testNames.length; i++) {
             const name = testNames[i];
-            if (typeof tests[name] === 'object' && tests[name][key] === value) {
+            if (tests[name][key] === value) {
                 result[name] = tests[name];
             }
         }
@@ -852,10 +857,8 @@ export default class testMainClass extends baseMainTestClass {
         //     await test ('InvalidOrder', exchange, symbol);
         //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
         // }
-        const market = exchange.market (symbol);
         let tests = this.getConfigForExchange (exchange, symbol, code);
-        tests = this.filterTest (tests, 'public', false);
-        tests = this.filterTest (tests, 'isWs', this.wsTests);
+        tests = this.filterTests (tests, 'private', true);
         await this.runTests (exchange, tests, false);
     }
 
@@ -864,7 +867,6 @@ export default class testMainClass extends baseMainTestClass {
         const proxyTestName = this.proxyTestFileName;
         const proxyTest: Test = {
             'public': true,
-            'testFile': proxyTestName,
             'args': [],
             'isWs': false,
         };
