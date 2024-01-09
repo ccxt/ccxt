@@ -787,7 +787,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
             if (cacheLength === snapshotDelay) {
                 const limit = 0;
-                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
             orderBook.cache.push (data);
             return;
