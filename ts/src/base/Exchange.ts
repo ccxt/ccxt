@@ -4273,6 +4273,7 @@ export default class Exchange {
         if (stopLossAmount !== undefined) {
             params['stopLoss']['amount'] = this.parseToNumeric (stopLossAmount);
         }
+        params = this.omit (params, [ 'takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount' ]);
         if (this.has['createOrderWithTakeProfitAndStopLoss']) {
             return await this.createOrder (symbol, type, side, amount, price, params);
         }
