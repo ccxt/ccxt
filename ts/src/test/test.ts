@@ -247,23 +247,23 @@ export default class testMainClass extends baseMainTestClass {
         return exchange.deepExtend (mainConfig, exchangeConfig);
     }
 
-    async init (exchangeId, symbolArgv) {
+    async init (exchangeId, symbolOrMethodArgv) {
         this.parseCliArgs ();
 
         if (this.responseTests) {
-            await this.runStaticResponseTests (exchangeId, symbolArgv);
+            await this.runStaticResponseTests (exchangeId, symbolOrMethodArgv);
             return;
         }
         if (this.requestTests) {
-            await this.runStaticRequestTests (exchangeId, symbolArgv); // symbol here is the testname
+            await this.runStaticRequestTests (exchangeId, symbolOrMethodArgv); // symbol here is the testname
             return;
         }
         if (this.idTests) {
             await this.runBrokerIdTests ();
             return;
         }
-        const symbolStr = symbolArgv !== undefined ? symbolArgv : 'all';
-        dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.wsTests }, this.newLine);
+        const symbolStr = symbolOrMethodArgv !== undefined ? symbolOrMethodArgv : 'all';
+        dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbolOrMethod': symbolStr, 'isWs': this.wsTests }, this.newLine);
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
@@ -274,7 +274,7 @@ export default class testMainClass extends baseMainTestClass {
         await this.importFiles (exchange);
         assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         this.expandSettings (exchange);
-        const symbol = this.checkIfSpecificTestIsChosen (exchange, symbolArgv);
+        const symbol = this.checkIfSpecificTestIsChosen (exchange, symbolOrMethodArgv);
         await this.startTest (exchange, symbol);
         exitScript (0); // needed to be explicitly finished for WS tests
     }
@@ -356,17 +356,17 @@ export default class testMainClass extends baseMainTestClass {
         // credentials
         this.loadCredentialsFromEnv (exchange);
         // exchange tests settings
-        const skippedSettingsForExchange = this.getConfigForExchange (exchange);
+        const exchangeConfig = this.getConfigForExchange (exchange);
         // others
-        const timeout = exchange.safeValue (skippedSettingsForExchange, 'timeout');
+        const timeout = exchange.safeValue (exchangeConfig, 'timeout');
         if (timeout !== undefined) {
             exchange.timeout = timeout;
         }
-        exchange.httpProxy = exchange.safeString (skippedSettingsForExchange, 'httpProxy');
-        exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
-        exchange.wsProxy = exchange.safeString (skippedSettingsForExchange, 'wsProxy');
-        exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
-        this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
+        exchange.httpProxy = exchange.safeString (exchangeConfig, 'httpProxy');
+        exchange.httpsProxy = exchange.safeString (exchangeConfig, 'httpsProxy');
+        exchange.wsProxy = exchange.safeString (exchangeConfig, 'wsProxy');
+        exchange.wssProxy = exchange.safeString (exchangeConfig, 'wssProxy');
+        this.skippedMethods = exchange.safeValue (exchangeConfig, 'skipMethods', {});
         this.checkedPublicTests = {};
     }
 
