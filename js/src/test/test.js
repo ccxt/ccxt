@@ -918,13 +918,16 @@ export default class testMainClass extends baseMainTestClass {
             throw e;
         }
     }
-    assertStaticError(cond, message, calculatedOutput, storedOutput) {
+    assertStaticError(cond, message, calculatedOutput, storedOutput, key = undefined) {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
         const calculatedString = jsonStringify(calculatedOutput);
         const outputString = jsonStringify(storedOutput);
-        const errorMessage = message + ' expected ' + outputString + ' received: ' + calculatedString;
+        let errorMessage = message + ' expected ' + outputString + ' received: ' + calculatedString;
+        if (key !== undefined) {
+            errorMessage = ' | ' + key + ' | ' + 'computed value: ' + outputString + ' stored value: ' + calculatedString;
+        }
         assert(cond, errorMessage);
     }
     loadMarketsFromFile(id) {
@@ -1004,7 +1007,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         return result;
     }
-    assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput, strictTypeCheck = true) {
+    assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
         if (isNullValue(newOutput) && isNullValue(storedOutput)) {
             return;
         }
@@ -1028,7 +1031,7 @@ export default class testMainClass extends baseMainTestClass {
                 }
                 const storedValue = storedOutput[key];
                 const newValue = newOutput[key];
-                this.assertNewAndStoredOutput(exchange, skipKeys, newValue, storedValue, strictTypeCheck);
+                this.assertNewAndStoredOutput(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
         }
         else if (Array.isArray(storedOutput) && (Array.isArray(newOutput))) {
@@ -1051,19 +1054,19 @@ export default class testMainClass extends baseMainTestClass {
             if (strictTypeCheck) {
                 // upon building the request we want strict type check to make sure all the types are correct
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
-                this.assertStaticError(sanitizedNewOutput === sanitizedStoredOutput, messageError, storedOutput, newOutput);
+                this.assertStaticError(sanitizedNewOutput === sanitizedStoredOutput, messageError, storedOutput, newOutput, assertingKey);
             }
             else {
                 const isBoolean = (typeof sanitizedNewOutput === 'boolean') || (typeof sanitizedStoredOutput === 'boolean');
                 const isString = (typeof sanitizedNewOutput === 'string') || (typeof sanitizedStoredOutput === 'string');
                 const isUndefined = (sanitizedNewOutput === undefined) || (sanitizedStoredOutput === undefined); // undefined is a perfetly valid value
                 if (isBoolean || isString || isUndefined) {
-                    this.assertStaticError(newOutputString === storedOutputString, messageError, storedOutput, newOutput);
+                    this.assertStaticError(newOutputString === storedOutputString, messageError, storedOutput, newOutput, assertingKey);
                 }
                 else {
                     const numericNewOutput = exchange.parseToNumeric(newOutputString);
                     const numericStoredOutput = exchange.parseToNumeric(storedOutputString);
-                    this.assertStaticError(numericNewOutput === numericStoredOutput, messageError, storedOutput, newOutput);
+                    this.assertStaticError(numericNewOutput === numericStoredOutput, messageError, storedOutput, newOutput, assertingKey);
                 }
             }
         }
