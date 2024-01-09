@@ -498,7 +498,8 @@ class poloniex(ccxt.async_support.poloniex):
         marketId = self.safe_string(data, 'symbol')
         symbol = self.safe_symbol(marketId)
         market = self.safe_market(symbol)
-        timeframe = self.find_timeframe(channel)
+        timeframes = self.safe_value(self.options, 'timeframes', {})
+        timeframe = self.find_timeframe(channel, timeframes)
         messageHash = channel + '::' + symbol
         parsed = self.parse_ws_ohlcv(data, market)
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})

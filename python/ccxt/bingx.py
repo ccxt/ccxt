@@ -6,12 +6,12 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bingx import ImplicitAPI
 import hashlib
-import json
 import numbers
 from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -369,6 +369,7 @@ class bingx(Exchange, ImplicitAPI):
                     '80014': BadRequest,
                     '80016': OrderNotFound,
                     '80017': OrderNotFound,
+                    '100414': AccountSuspended,  # {"code":100414,"msg":"Code: 100414, Msg: risk control check fail,code(1)","debugMsg":""}
                     '100437': BadRequest,  # {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                 },
                 'broad': {},
@@ -1290,17 +1291,10 @@ class bingx(Exchange, ImplicitAPI):
         close = self.safe_string(ticker, 'lastPrice')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         baseVolume = self.safe_string(ticker, 'volume')
-        percentage = None
-        change = None
-        if market['swap']:
-            # right now only swap uses the 24h change, spot will be added soon
-            percentage = self.safe_string(ticker, 'priceChangePercent')
-            change = self.safe_string(ticker, 'priceChange')
-        # percentage = self.safe_string(ticker, 'priceChangePercent')
-        # if percentage is not None:
-        #     percentage = percentage.replace('%', '')
-        # } similarly to change, it's not ccxt's percentage because it does priceChange/open, and priceChange is high-low
-        # change = self.safe_string(ticker, 'priceChange')  # self is not ccxt's change because it does high-low instead of last-open
+        percentage = self.safe_string(ticker, 'priceChangePercent')
+        if percentage is not None:
+            percentage = percentage.replace('%', '')
+        change = self.safe_string(ticker, 'priceChange')
         ts = self.safe_integer(ticker, 'closeTime')
         datetime = self.iso8601(ts)
         bid = self.safe_string(ticker, 'bidPrice')
@@ -1608,6 +1602,10 @@ class bingx(Exchange, ImplicitAPI):
         }
         isMarketOrder = type == 'MARKET'
         isSpot = marketType == 'spot'
+        exchangeClientOrderId = 'newClientOrderId' if isSpot else 'clientOrderID'
+        clientOrderId = self.safe_string_2(params, exchangeClientOrderId, 'clientOrderId')
+        if clientOrderId is not None:
+            request[exchangeClientOrderId] = clientOrderId
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if timeInForce == 'IOC':
             request['timeInForce'] = 'IOC'
@@ -1720,7 +1718,7 @@ class bingx(Exchange, ImplicitAPI):
                 positionSide = 'LONG' if (side == 'buy') else 'SHORT'
             request['positionSide'] = positionSide
             request['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
-            params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'takeProfit', 'stopLoss'])
+            params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'takeProfit', 'stopLoss', 'clientOrderId'])
         return self.extend(request, params)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
@@ -1734,6 +1732,7 @@ class bingx(Exchange, ImplicitAPI):
         :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: a unique id for the order
         :param bool [params.postOnly]: True to place a post only order
         :param str [params.timeInForce]: spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
         :param bool [params.reduceOnly]: *swap only* True or False whether the order is reduce only
@@ -1796,7 +1795,10 @@ class bingx(Exchange, ImplicitAPI):
         #     }
         #
         if isinstance(response, str):
-            response = json.loads(response)
+            # broken api engine : order-ids are too long numbers(i.e. 1742930526912864656)
+            # and json.loadscan not handle them in JS, so we have to use .parse_json            # however, when order has an attached SL/TP, their value types need extra parsing
+            response = self.fix_stringified_json_members(response)
+            response = self.parse_json(response)
         data = self.safe_value(response, 'data', {})
         order = self.safe_value(data, 'order', data)
         return self.parse_order(order, market)
@@ -2042,7 +2044,7 @@ class bingx(Exchange, ImplicitAPI):
             'currency': feeCurrencyCode,
             'cost': Precise.string_abs(feeCost),
         }
-        clientOrderId = self.safe_string_2(order, 'clientOrderId', 'c')
+        clientOrderId = self.safe_string_n(order, ['clientOrderID', 'origClientOrderId', 'c'])
         stopLoss = self.safe_value(order, 'stopLoss')
         stopLossPrice = None
         if stopLoss is not None:
@@ -2050,7 +2052,7 @@ class bingx(Exchange, ImplicitAPI):
         if (stopLoss is not None) and ((not isinstance(stopLoss, numbers.Real))):
             #  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
             if isinstance(stopLoss, str):
-                stopLoss = json.loads(stopLoss)
+                stopLoss = self.parse_json(stopLoss)
             stopLossPrice = self.safe_number(stopLoss, 'stopPrice')
         takeProfit = self.safe_value(order, 'takeProfit')
         takeProfitPrice = None
@@ -2059,7 +2061,7 @@ class bingx(Exchange, ImplicitAPI):
         if (takeProfit is not None) and ((not isinstance(takeProfit, numbers.Real))):
             #  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
             if isinstance(takeProfit, str):
-                takeProfit = json.loads(takeProfit)
+                takeProfit = self.parse_json(takeProfit)
             takeProfitPrice = self.safe_number(takeProfit, 'stopPrice')
         return self.safe_order({
             'info': order,
@@ -2109,6 +2111,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: a unique id for the order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -2117,8 +2120,13 @@ class bingx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'orderId': id,
         }
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOrderID')
+        params = self.omit(params, ['clientOrderId'])
+        if clientOrderId is not None:
+            request['clientOrderID'] = clientOrderId
+        else:
+            request['orderId'] = id
         response = None
         marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
         if marketType == 'spot':
@@ -2251,7 +2259,7 @@ class bingx(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' cancelAllOrders is only supported for spot and swap markets.')
         return response
 
-    def cancel_orders(self, ids: List[Int], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
@@ -2281,7 +2289,7 @@ class bingx(Exchange, ImplicitAPI):
             parsedIds.append(stringId)
         response = None
         if market['spot']:
-            spotReqKey = 'clientOrderIds' if areClientOrderIds else 'orderIds'
+            spotReqKey = 'clientOrderIDs' if areClientOrderIds else 'orderIds'
             request[spotReqKey] = ','.join(parsedIds)
             response = self.spotV1PrivatePostTradeCancelOrders(self.extend(request, params))
         else:

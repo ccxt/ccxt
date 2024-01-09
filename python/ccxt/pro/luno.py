@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Int, OrderBook, Trade
+from ccxt.base.types import Int, OrderBook, IndexType, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
@@ -207,9 +207,9 @@ class luno(ccxt.async_support.luno):
         storedOrderBook['nonce'] = nonce
         client.resolve(storedOrderBook, messageHash)
 
-    def custom_parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey='price', amountKey='volume', thirdKey=None):
-        bids = self.parse_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, thirdKey)
-        asks = self.parse_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, thirdKey)
+    def custom_parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2):
+        bids = self.parse_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
+        asks = self.parse_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey)
         return {
             'symbol': symbol,
             'bids': self.sort_by(bids, 0, True),
@@ -219,14 +219,14 @@ class luno(ccxt.async_support.luno):
             'nonce': None,
         }
 
-    def parse_bids_asks(self, bidasks, priceKey='price', amountKey='volume', thirdKey=None):
+    def parse_bids_asks(self, bidasks, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2):
         bidasks = self.to_array(bidasks)
         result = []
         for i in range(0, len(bidasks)):
             result.append(self.custom_parse_bid_ask(bidasks[i], priceKey, amountKey, thirdKey))
         return result
 
-    def custom_parse_bid_ask(self, bidask, priceKey='price', amountKey='volume', thirdKey=None):
+    def custom_parse_bid_ask(self, bidask, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2):
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
         result = [price, amount]

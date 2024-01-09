@@ -539,7 +539,8 @@ class poloniex extends poloniex$1 {
         const marketId = this.safeString(data, 'symbol');
         const symbol = this.safeSymbol(marketId);
         const market = this.safeMarket(symbol);
-        const timeframe = this.findTimeframe(channel);
+        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        const timeframe = this.findTimeframe(channel, timeframes);
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV(data, market);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
