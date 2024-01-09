@@ -235,8 +235,9 @@ export default class testMainClass extends baseMainTestClass {
         if (this.configContent === '') {
             this.configContent = ioFileRead (this.rootDir + './tests-config.json', false);
         }
-        let result = this.configContent.replace ('{SYMBOL}', symbol);
-        result = this.configContent.replace ('{CODE}', code);
+        let result = this.configContent;
+        result = result.replace ('{SYMBOL}', symbol);
+        result = result.replace ('{CODE}', code);
         return JSON.parse (this.configContent);
     }
 
@@ -540,8 +541,7 @@ export default class testMainClass extends baseMainTestClass {
         const market = exchange.market (symbol);
         const isSpot = market['spot'];
         const code = this.getExchangeCode (exchange);
-        const testsConfig = this.getConfigForExchange (exchange, symbol, code);
-        let tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchange.id]);
+        let tests = this.getConfigForExchange (exchange, symbol, code);
         tests = this.filterTest (tests, 'public', true);
         tests = this.filterTest (tests, 'isWs', this.wsTests);
         await this.runTests (exchange, tests, true);
@@ -579,8 +579,7 @@ export default class testMainClass extends baseMainTestClass {
 
     async loadExchange (exchange) {
         const testsConfig = this.getConfigForExchange (exchange, '', '');
-        const tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchange.id]);
-        const loadMarketsTest = tests['loadMarkets'];
+        const loadMarketsTest = testsConfig['loadMarkets'];
         const result = await this.testSafe ('loadMarkets', exchange, loadMarketsTest);
         if (!result) {
             return false;
@@ -850,8 +849,7 @@ export default class testMainClass extends baseMainTestClass {
         //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
         // }
         const market = exchange.market (symbol);
-        const testsConfig = this.getConfigForExchange (exchange, symbol, code);
-        let tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchange.id]);
+        let tests = this.getConfigForExchange (exchange, symbol, code);
         tests = this.filterTest (tests, 'public', false);
         tests = this.filterTest (tests, 'isWs', this.wsTests);
         await this.runTests (exchange, tests, false);
@@ -1582,4 +1580,4 @@ export default class testMainClass extends baseMainTestClass {
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass ()).init (exchangeIdFromArgv, methodOrSymbol);
+(new testMainClass ()).init (exchangeIdFromArgv, methodOrSymbol === '' ? undefined : methodOrSymbol);
