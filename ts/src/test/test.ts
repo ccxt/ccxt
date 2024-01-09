@@ -630,6 +630,18 @@ export default class testMainClass extends baseMainTestClass {
         return true;
     }
 
+    filterTest (tests: Tests, key: string, value: any): any {
+        const result = {};
+        const testNames = Object.keys (tests);
+        for (let i = 0; i < testNames.length; i++) {
+            const name = testNames[i];
+            if (typeof tests[name] === 'object' && tests[name][key] === value) {
+                result[name] = tests[name];
+            }
+        }
+        return result;
+    }
+
     getTestSymbol (exchange, isSpot, symbols) {
         let symbol = undefined;
         for (let i = 0; i < symbols.length; i++) {
