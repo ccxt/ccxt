@@ -464,7 +464,7 @@ export default class testMainClass extends baseMainTestClass {
         }
     }
 
-    async testSafe (methodName: string, exchange: any, test: Test) {
+    async testSafe (methodName: string, exchange: any, methodEntry: MethodTestEntry) {
         // `testSafe` method does not throw an exception, instead mutes it. The reason we
         // mute the thrown exceptions here is because we don't want to stop the whole
         // tests queue if any single test-method fails. Instead, they are echoed with
@@ -587,8 +587,8 @@ export default class testMainClass extends baseMainTestClass {
 
     async loadExchange (exchange) {
         const exchangeConfig = this.getConfigForExchange (exchange);
-        const loadMarketsTest = exchangeConfig['methods']['loadMarkets'];
-        const result = await this.testSafe ('loadMarkets', exchange, loadMarketsTest);
+        const methodTestEntry = exchangeConfig['methods']['loadMarkets'];
+        const result = await this.testSafe ('loadMarkets', exchange, methodTestEntry);
         if (!result) {
             return false;
         }
