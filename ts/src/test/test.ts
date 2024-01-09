@@ -406,14 +406,14 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async testMethod (testName: string, exchange: any, test: Test) {
-        const methodName = test['testFile'];
+        const methodName = test['name'];
         const isPublic = test['public'];
-        const args = test['args'];
-        const skip = exchange.safeString (test, 'skip');
-        // todo: temporary skip for php
-        if ((methodName.indexOf ('OrderBook') >= 0) && (this.ext === 'php')) {
+        const skippedExts = exchange.safeValue (test, 'skippedExtensions', []);
+        if (exchange.inArray (this.ext, skippedExts)) {
             return;
         }
+        const args = test['args'];
+        const skip = exchange.safeString (test, 'skip');
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
         const isProxyTest = (methodName === this.proxyTestFileName);
@@ -534,18 +534,6 @@ export default class testMainClass extends baseMainTestClass {
                 }
             }
         }
-    }
-
-    filterTest (tests: Tests, key: string, value: any): any {
-        const result = {};
-        const testNames = Object.keys (tests);
-        for (let i = 0; i < testNames.length; i++) {
-            const name = testNames[i];
-            if (typeof tests[name] === 'object' && tests[name][key] === value) {
-                result[name] = tests[name];
-            }
-        }
-        return result;
     }
 
     async runPublicTests (exchange, symbol) {
