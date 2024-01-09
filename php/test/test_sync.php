@@ -174,6 +174,7 @@ function exception_message($exc) {
             $output .= "\n";
         }
     }
+    $output = preg_replace('/(\n(.*?)\/home\/travis\/build\/ccxt\/ccxt\/vendor\/)(.*?)\r/', '', $output); // remove excessive lines like: https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L3483
     $origin_message = null;
     try{
         $origin_message = $exc->getMessage() . "\n" . $exc->getFile() . ':' . $exc->getLine();
@@ -991,7 +992,12 @@ class testMainClass extends baseMainTestClass {
         $result = array();
         if ($target_exchange) {
             // read a single exchange
-            $result[$target_exchange] = io_file_read($folder . $target_exchange . '.json');
+            $path = $folder . $target_exchange . '.json';
+            if (!io_file_exists($path)) {
+                dump('[WARN] tests not found: ' . $path);
+                return null;
+            }
+            $result[$target_exchange] = io_file_read($path);
             return $result;
         }
         $files = io_dir_read($folder);
@@ -1305,6 +1311,10 @@ class testMainClass extends baseMainTestClass {
             for ($j = 0; $j < count($results); $j++) {
                 $result = $results[$j];
                 $description = $exchange->safe_value($result, 'description');
+                $is_disabled = $exchange->safe_value($result, 'disabled', false);
+                if ($is_disabled) {
+                    continue;
+                }
                 if (($test_name !== null) && ($test_name !== $description)) {
                     continue;
                 }
@@ -1336,6 +1346,9 @@ class testMainClass extends baseMainTestClass {
     public function run_static_tests($type, $target_exchange = null, $test_name = null) {
         $folder = $this->root_dir . './ts/src/test/static/' . $type . '/';
         $static_data = $this->load_static_data($folder, $target_exchange);
+        if ($static_data === null) {
+            return;
+        }
         $exchanges = is_array($static_data) ? array_keys($static_data) : array();
         $exchange = init_exchange('Exchange', array()); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         $promises = [];
@@ -1378,7 +1391,7 @@ class testMainClass extends baseMainTestClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_huobi(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_huobi(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1631,6 +1644,20 @@ class testMainClass extends baseMainTestClass {
             $req_headers = $exchange->last_request_headers;
         }
         assert($req_headers['X-SOURCE-KEY'] === $id, 'id not in headers');
+        close($exchange);
+    }
+
+    public function test_phemex() {
+        $exchange = $this->init_offline_exchange('phemex');
+        $id = 'CCXT';
+        $request = null;
+        try {
+            $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            $request = json_parse($exchange->last_request_body);
+        }
+        $client_order_id = $request['clOrdID'];
+        assert(str_starts_with($client_order_id, $id), 'clOrdID does not start with id');
         close($exchange);
     }
 }

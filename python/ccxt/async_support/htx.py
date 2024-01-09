@@ -139,7 +139,7 @@ class htx(Exchange, ImplicitAPI):
                 'repayIsolatedMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
-                'setPositionMode': False,
+                'setPositionMode': True,
                 'signIn': None,
                 'transfer': True,
                 'withdraw': True,
@@ -8216,3 +8216,61 @@ class htx(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
+
+    async def set_position_mode(self, hedged, symbol: Str = None, params={}):
+        """
+        set hedged to True or False
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-position-mode
+        :param bool hedged: set to True to for hedged mode, must be set separately for each market in isolated margin mode, only valid for linear markets
+        :param str [symbol]: unified market symbol, required for isolated margin mode
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: "cross"(default) or "isolated"
+        :returns dict: response from the exchange
+        """
+        await self.load_markets()
+        posMode = 'dual_side' if hedged else 'single_side'
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('setPositionMode', params, 'cross')
+        request = {
+            'position_mode': posMode,
+        }
+        response = None
+        if (market is not None) and (market['inverse']):
+            raise BadRequest(self.id + ' setPositionMode can only be used for linear markets')
+        if marginMode == 'isolated':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' setPositionMode requires a symbol argument for isolated margin mode')
+            request['margin_account'] = market['id']
+            response = await self.contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode(self.extend(request, params))
+            #
+            #    {
+            #        "status": "ok",
+            #        "data": [
+            #            {
+            #                "margin_account": "BTC-USDT",
+            #                "position_mode": "single_side"
+            #            }
+            #        ],
+            #        "ts": 1566899973811
+            #    }
+            #
+        else:
+            request['margin_account'] = 'USDT'
+            response = await self.contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode(self.extend(request, params))
+            #
+            #    {
+            #        "status": "ok",
+            #        "data": [
+            #            {
+            #                "margin_account": "USDT",
+            #                "position_mode": "single_side"
+            #            }
+            #        ],
+            #        "ts": 1566899973811
+            #    }
+            #
+        return response

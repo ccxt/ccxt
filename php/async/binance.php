@@ -3129,7 +3129,12 @@ class binance extends Exchange {
             } elseif ($this->is_inverse($type, $subType)) {
                 $response = Async\await($this->dapiPublicGetTickerBookTicker ($params));
             } else {
-                $response = Async\await($this->publicGetTickerBookTicker ($params));
+                $request = array();
+                if ($symbols !== null) {
+                    $marketIds = $this->market_ids($symbols);
+                    $request['symbols'] = $this->json($marketIds);
+                }
+                $response = Async\await($this->publicGetTickerBookTicker (array_merge($request, $params)));
             }
             return $this->parse_tickers($response, $symbols);
         }) ();
@@ -4377,6 +4382,8 @@ class binance extends Exchange {
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @param {boolean} [$params->sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
              * @param {boolean} [$params->test] *spot only* whether to use the $test endpoint or not, default is false
+             * @param {float} [$params->trailingPercent] the percent to trail away from the current $market $price
+             * @param {float} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -4422,6 +4429,8 @@ class binance extends Exchange {
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
+         * @param {float} [$params->trailingPercent] the percent to trail away from the current $market $price
+         * @param {float} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
          * @return {array} $request to be sent to the exchange
          */
         $market = $this->market($symbol);
@@ -4435,9 +4444,12 @@ class binance extends Exchange {
         $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);  // fallback to stopLoss
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
         $trailingDelta = $this->safe_value($params, 'trailingDelta');
+        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activationPrice', $price);
+        $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRate');
+        $isTrailingPercentOrder = $trailingPercent !== null;
         $isStopLoss = $stopLossPrice !== null || $trailingDelta !== null;
         $isTakeProfit = $takeProfitPrice !== null;
-        $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice' ));
+        $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent' ));
         list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
         $request = array(
             'symbol' => $market['id'],
@@ -4458,7 +4470,13 @@ class binance extends Exchange {
         }
         $uppercaseType = strtoupper($type);
         $stopPrice = null;
-        if ($isStopLoss) {
+        if ($isTrailingPercentOrder) {
+            $uppercaseType = 'TRAILING_STOP_MARKET';
+            $request['callbackRate'] = $trailingPercent;
+            if ($trailingTriggerPrice !== null) {
+                $request['activationPrice'] = $this->price_to_precision($symbol, $trailingTriggerPrice);
+            }
+        } elseif ($isStopLoss) {
             $stopPrice = $stopLossPrice;
             if ($isMarketOrder) {
                 // spot STOP_LOSS $market orders are not a valid order $type
@@ -4530,7 +4548,7 @@ class binance extends Exchange {
         //     STOP/TAKE_PROFIT     quantity, $price, $stopPrice
         //     STOP_MARKET          $stopPrice
         //     TAKE_PROFIT_MARKET   $stopPrice
-        //     TRAILING_STOP_MARKET $callbackRate
+        //     TRAILING_STOP_MARKET callbackRate
         //
         if ($uppercaseType === 'MARKET') {
             if ($market['spot']) {
@@ -4584,9 +4602,8 @@ class binance extends Exchange {
             $stopPriceIsRequired = true;
         } elseif ($uppercaseType === 'TRAILING_STOP_MARKET') {
             $quantityIsRequired = true;
-            $callbackRate = $this->safe_number($query, 'callbackRate');
-            if ($callbackRate === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $callbackRate extra param for a ' . $type . ' order');
+            if ($trailingPercent === null) {
+                throw new InvalidOrder($this->id . ' createOrder() requires a $trailingPercent param for a ' . $type . ' order');
             }
         }
         if ($quantityIsRequired) {

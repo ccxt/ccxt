@@ -819,7 +819,11 @@ class testMainClass(baseMainTestClass):
         result = {}
         if target_exchange:
             # read a single exchange
-            result[target_exchange] = io_file_read(folder + target_exchange + '.json')
+            path = folder + target_exchange + '.json'
+            if not io_file_exists(path):
+                dump('[WARN] tests not found: ' + path)
+                return None
+            result[target_exchange] = io_file_read(path)
             return result
         files = io_dir_read(folder)
         for i in range(0, len(files)):
@@ -1058,6 +1062,9 @@ class testMainClass(baseMainTestClass):
             for j in range(0, len(results)):
                 result = results[j]
                 description = exchange.safe_value(result, 'description')
+                is_disabled = exchange.safe_value(result, 'disabled', False)
+                if is_disabled:
+                    continue
                 if (test_name is not None) and (test_name != description):
                     continue
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
@@ -1081,6 +1088,8 @@ class testMainClass(baseMainTestClass):
     def run_static_tests(self, type, target_exchange=None, test_name=None):
         folder = self.root_dir + './ts/src/test/static/' + type + '/'
         static_data = self.load_static_data(folder, target_exchange)
+        if static_data is None:
+            return
         exchanges = list(static_data.keys())
         exchange = init_exchange('Exchange', {})  # tmp to do the calculations until we have the ast-transpiler transpiling this code
         promises = []
@@ -1116,7 +1125,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1335,6 +1344,18 @@ class testMainClass(baseMainTestClass):
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
         assert req_headers['X-SOURCE-KEY'] == id, 'id not in headers'
+        close(exchange)
+
+    def test_phemex(self):
+        exchange = self.init_offline_exchange('phemex')
+        id = 'CCXT'
+        request = None
+        try:
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        client_order_id = request['clOrdID']
+        assert client_order_id.startswith(id), 'clOrdID does not start with id'
         close(exchange)
 
 # ***** AUTO-TRANSPILER-END *****

@@ -329,10 +329,12 @@ export default class testMainClass extends baseMainTestClass {
         if (timeout !== undefined) {
             exchange.timeout = exchange.parseToInt (timeout);
         }
-        exchange.httpProxy = exchange.safeString (skippedSettingsForExchange, 'httpProxy');
-        exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
-        exchange.wsProxy = exchange.safeString (skippedSettingsForExchange, 'wsProxy');
-        exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
+        if (getCliArgValue ('--useProxy')) {
+            exchange.httpProxy = exchange.safeString (skippedSettingsForExchange, 'httpProxy');
+            exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
+            exchange.wsProxy = exchange.safeString (skippedSettingsForExchange, 'wsProxy');
+            exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
+        }
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
     }
@@ -984,7 +986,12 @@ export default class testMainClass extends baseMainTestClass {
         const result = {};
         if (targetExchange) {
             // read a single exchange
-            result[targetExchange] = ioFileRead (folder + targetExchange + '.json');
+            const path = folder + targetExchange + '.json';
+            if (!ioFileExists (path)) {
+                dump ('[WARN] tests not found: ' + path);
+                return undefined;
+            }
+            result[targetExchange] = ioFileRead (path);
             return result;
         }
         const files = ioDirRead (folder);
@@ -1285,6 +1292,14 @@ export default class testMainClass extends baseMainTestClass {
             for (let j = 0; j < results.length; j++) {
                 const result = results[j];
                 const description = exchange.safeValue (result, 'description');
+                const isDisabled = exchange.safeValue (result, 'disabled', false);
+                if (isDisabled) {
+                    continue;
+                }
+                const isDisabledCSharp = exchange.safeValue (result, 'disabledCSharp', false);
+                if (isDisabledCSharp && (this.lang === 'C#')) {
+                    continue;
+                }
                 if ((testName !== undefined) && (testName !== description)) {
                     continue;
                 }
@@ -1316,6 +1331,9 @@ export default class testMainClass extends baseMainTestClass {
     async runStaticTests (type: string, targetExchange: string = undefined, testName: string = undefined) {
         const folder = this.rootDir + './ts/src/test/static/' + type + '/';
         const staticData = this.loadStaticData (folder, targetExchange);
+        if (staticData === undefined) {
+            return;
+        }
         const exchanges = Object.keys (staticData);
         const exchange = initExchange ('Exchange', {}); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         const promises = [];
@@ -1371,7 +1389,8 @@ export default class testMainClass extends baseMainTestClass {
             this.testWoo (),
             this.testBitmart (),
             this.testCoinex (),
-            this.testBingx ()
+            this.testBingx (),
+            this.testPhemex (),
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1633,6 +1652,20 @@ export default class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['X-SOURCE-KEY'] === id, 'id not in headers');
+        await close (exchange);
+    }
+
+    async testPhemex () {
+        const exchange = this.initOfflineExchange ('phemex');
+        const id = 'CCXT';
+        let request = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const clientOrderId = request['clOrdID'];
+        assert (clientOrderId.startsWith (id.toString ()), 'clOrdID does not start with id');
         await close (exchange);
     }
 }

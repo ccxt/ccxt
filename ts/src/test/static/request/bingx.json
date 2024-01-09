@@ -394,6 +394,30 @@
                     "1720647776204967936",
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Spot cancel order with clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/cancel?clientOrderID=myorder2&symbol=LTC-USDT&timestamp=1704380693563&signature=6ac964ce62bb594df37c7529ae4bd2010ff025ca06644efee2f0dcd1f5e0805f",
+                "input": [
+                  "",
+                  "LTC/USDT",
+                  {
+                    "clientOrderId": "myorder2"
+                  }
+                ]
+            },
+            {
+                "description": "Swap cancel order with clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?clientOrderID=myorder2&symbol=LTC-USDT&timestamp=1704380774663&signature=0f091dc8f55fb10ab73e69d675fdf902a86daf14c3383227a4047190390c1dfb",
+                "input": [
+                  "",
+                  "LTC/USDT:USDT",
+                  {
+                    "clientOrderId": "myorder2"
+                  }
+                ]
             }
         ],
         "cancelOrders":[

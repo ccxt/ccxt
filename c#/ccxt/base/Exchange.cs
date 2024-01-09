@@ -679,39 +679,49 @@ public partial class Exchange
         }
     }
 
-    public class DynamicInvoker
+    public object fixStringifiedJsonMembers(object content2)
     {
-        public static object InvokeMethod(object action, object[] parameters)
-        {
-            // var methodName = (string)methodName2;
-            // // Assuming the method is in the current class for simplicity
-            // MethodInfo methodInfo = typeof(DynamicInvoker).GetMethod(methodName);
-
-            // if (methodInfo != null)
-            // {
-            //     Delegate methodDelegate = Delegate.CreateDelegate(typeof(Action), methodInfo);
-            //     methodDelegate.DynamicInvoke(parameters);
-            // }
-            // else
-            // {
-            //     throw new Exception("Method not found.");
-            // }
-            Delegate myDelegate = action as Delegate;
-
-            // Get parameter types
-            // MethodInfo methodInfo = myDelegate.Method;
-            // ParameterInfo[] parametersAux = methodInfo.GetParameters();
-
-            // Prepare arguments (in a real scenario, these would be dynamically determined)
-            // object[] args = new object[parametersAux.Length];
-            // args[0] = 123; // Assuming the first parameter is an int
-            // args[1] = "Hello"; // Assuming the second parameter is a string
-
-            // Dynamically invoke the action
-            var result = myDelegate.DynamicInvoke(parameters);
-            return result;
-        }
+        var content = (string)content2;
+        var modified = content.Replace('\\', ' ');
+        modified = modified.Replace("\"{", "{");
+        modified = modified.Replace("}\"", "}");
+        return modified;
     }
+}
+
+public class DynamicInvoker
+{
+    public static object InvokeMethod(object action, object[] parameters)
+    {
+        // var methodName = (string)methodName2;
+        // // Assuming the method is in the current class for simplicity
+        // MethodInfo methodInfo = typeof(DynamicInvoker).GetMethod(methodName);
+
+        // if (methodInfo != null)
+        // {
+        //     Delegate methodDelegate = Delegate.CreateDelegate(typeof(Action), methodInfo);
+        //     methodDelegate.DynamicInvoke(parameters);
+        // }
+        // else
+        // {
+        //     throw new Exception("Method not found.");
+        // }
+        Delegate myDelegate = action as Delegate;
+
+        // Get parameter types
+        // MethodInfo methodInfo = myDelegate.Method;
+        // ParameterInfo[] parametersAux = methodInfo.GetParameters();
+
+        // Prepare arguments (in a real scenario, these would be dynamically determined)
+        // object[] args = new object[parametersAux.Length];
+        // args[0] = 123; // Assuming the first parameter is an int
+        // args[1] = "Hello"; // Assuming the second parameter is a string
+
+        // Dynamically invoke the action
+        var result = myDelegate.DynamicInvoke(parameters);
+        return result;
+    }
+}
 
 }
 

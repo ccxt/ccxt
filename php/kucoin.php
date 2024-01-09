@@ -2370,7 +2370,7 @@ class kucoin extends Exchange {
         //         }
         //    }
         $responseData = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($responseData, 'items', array());
+        $orders = $this->safe_value($responseData, 'items', $responseData);
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 

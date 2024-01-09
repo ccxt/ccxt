@@ -1078,7 +1078,7 @@ class lykke extends lykke$1 {
         //
         return this.parseTrades(payload, market, since, limit);
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeString(bidask, priceKey);
         const amount = Precise["default"].stringAbs(this.safeString(bidask, amountKey));
         return [this.parseNumber(price), this.parseNumber(amount)];

@@ -230,7 +230,9 @@ class bybit extends \ccxt\async\bybit {
             }
             $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
             if ($this->newUpdates) {
-                return $ticker;
+                $result = array();
+                $result[$ticker['symbol']] = $ticker;
+                return $result;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();

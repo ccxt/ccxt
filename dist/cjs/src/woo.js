@@ -765,9 +765,9 @@ class woo extends woo$1 {
         /**
          * @method
          * @name woo#createOrder
+         * @description create a trade order
          * @see https://docs.woo.org/#send-order
          * @see https://docs.woo.org/#send-algo-order
-         * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -781,6 +781,9 @@ class woo extends woo$1 {
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @param {float} [params.algoType] 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+         * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
+         * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+         * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only');
@@ -797,7 +800,13 @@ class woo extends woo$1 {
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
         const algoType = this.safeString(params, 'algoType');
-        const isStop = stopPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', price);
+        const trailingAmount = this.safeString2(params, 'trailingAmount', 'callbackValue');
+        const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
+        const isTrailingAmountOrder = trailingAmount !== undefined;
+        const isTrailingPercentOrder = trailingPercent !== undefined;
+        const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
+        const isStop = isTrailing || stopPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
@@ -862,7 +871,21 @@ class woo extends woo$1 {
         if (clientOrderId !== undefined) {
             request[clientOrderIdKey] = clientOrderId;
         }
-        if (stopPrice !== undefined) {
+        if (isTrailing) {
+            if (trailingTriggerPrice === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a trailingTriggerPrice parameter for trailing orders');
+            }
+            request['activatedPrice'] = this.priceToPrecision(symbol, trailingTriggerPrice);
+            request['algoType'] = 'TRAILING_STOP';
+            if (isTrailingAmountOrder) {
+                request['callbackValue'] = trailingAmount;
+            }
+            else if (isTrailingPercentOrder) {
+                const convertedTrailingPercent = Precise["default"].stringDiv(trailingPercent, '100');
+                request['callbackRate'] = convertedTrailingPercent;
+            }
+        }
+        else if (stopPrice !== undefined) {
             if (algoType !== 'TRAILING_STOP') {
                 request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
                 request['algoType'] = 'STOP';
@@ -901,7 +924,7 @@ class woo extends woo$1 {
             }
             request['childOrders'] = [outterOrder];
         }
-        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit']);
+        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice']);
         let response = undefined;
         if (isStop) {
             response = await this.v3PrivatePostAlgoOrder(this.extend(request, params));
@@ -947,11 +970,11 @@ class woo extends woo$1 {
         /**
          * @method
          * @name woo#editOrder
+         * @description edit a trade order
          * @see https://docs.woo.org/#edit-order
          * @see https://docs.woo.org/#edit-order-by-client_order_id
          * @see https://docs.woo.org/#edit-algo-order
          * @see https://docs.woo.org/#edit-algo-order-by-client_order_id
-         * @description edit a trade order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -962,6 +985,9 @@ class woo extends woo$1 {
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
          * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+         * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
+         * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+         * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -983,8 +1009,26 @@ class woo extends woo$1 {
         if (stopPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
         }
-        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice']);
-        const isStop = (stopPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', price);
+        const trailingAmount = this.safeString2(params, 'trailingAmount', 'callbackValue');
+        const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
+        const isTrailingAmountOrder = trailingAmount !== undefined;
+        const isTrailingPercentOrder = trailingPercent !== undefined;
+        const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
+        if (isTrailing) {
+            if (trailingTriggerPrice !== undefined) {
+                request['activatedPrice'] = this.priceToPrecision(symbol, trailingTriggerPrice);
+            }
+            if (isTrailingAmountOrder) {
+                request['callbackValue'] = trailingAmount;
+            }
+            else if (isTrailingPercentOrder) {
+                const convertedTrailingPercent = Precise["default"].stringDiv(trailingPercent, '100');
+                request['callbackRate'] = convertedTrailingPercent;
+            }
+        }
+        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent']);
+        const isStop = isTrailing || (stopPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
         let response = undefined;
         if (isByClientOrder) {
             request['client_order_id'] = clientOrderIdExchangeSpecific;
@@ -1184,9 +1228,9 @@ class woo extends woo$1 {
         /**
          * @method
          * @name woo#fetchOrders
+         * @description fetches information on multiple orders made by the user
          * @see https://docs.woo.org/#get-orders
          * @see https://docs.woo.org/#get-algo-orders
-         * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1194,19 +1238,21 @@ class woo extends woo$1 {
          * @param {boolean} [params.stop] whether the order is a stop/algo order
          * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
          * @param {string} [params.side] 'buy' or 'sell'
+         * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
         const stop = this.safeValue(params, 'stop');
-        params = this.omit(params, 'stop');
+        const trailing = this.safeValue(params, 'trailing', false);
+        params = this.omit(params, ['stop', 'trailing']);
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            if (stop) {
+            if (stop || trailing) {
                 request['createdTimeStart'] = since;
             }
             else {
@@ -1216,8 +1262,11 @@ class woo extends woo$1 {
         if (stop) {
             request['algoType'] = 'stop';
         }
+        else if (trailing) {
+            request['algoType'] = 'TRAILING_STOP';
+        }
         let response = undefined;
-        if (stop) {
+        if (stop || trailing) {
             response = await this.v3PrivateGetAlgoOrders(this.extend(request, params));
         }
         else {
