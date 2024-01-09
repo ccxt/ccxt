@@ -552,7 +552,6 @@ export default class testMainClass extends baseMainTestClass {
         const exchangeConfig = this.getConfigForExchange (exchange, symbol, code);
         let tests = exchangeConfig['methods'];
         tests = this.filterTests (tests, 'public', true);
-        tests = this.filterTests (tests, 'isWs', this.wsTests);
         await this.runTests (exchange, tests, true);
     }
 
@@ -587,8 +586,8 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async loadExchange (exchange) {
-        const testsConfig = this.getConfigForExchange (exchange);
-        const loadMarketsTest = testsConfig['loadMarkets'];
+        const exchangeConfig = this.getConfigForExchange (exchange);
+        const loadMarketsTest = exchangeConfig['methods']['loadMarkets'];
         const result = await this.testSafe ('loadMarkets', exchange, loadMarketsTest);
         if (!result) {
             return false;
@@ -858,7 +857,7 @@ export default class testMainClass extends baseMainTestClass {
         //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
         // }
         let tests = this.getConfigForExchange (exchange, symbol, code);
-        tests = this.filterTests (tests, 'private', true);
+        tests = this.filterTests (tests, 'public', undefined);
         await this.runTests (exchange, tests, false);
     }
 
