@@ -11,7 +11,7 @@ public partial class BaseTest
 
     async public Task ReadList(IList<object> list)
     {
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 150; i++)
         {
             // Console.WriteLine("ReadList");
             JsonConvert.SerializeObject(list);
@@ -22,7 +22,7 @@ public partial class BaseTest
 
     async public Task UpdateList(IList<object> list)
     {
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 150; i++)
         {
             // Console.WriteLine("UpdateList");
             list.Add("test");
@@ -32,44 +32,58 @@ public partial class BaseTest
     }
     async public Task ReadOrderBook(OrderBook ob)
     {
-        for (int i = 0; i < 20; i++)
+        await Task.Run(async () =>
         {
-            // Console.WriteLine("ReadOrderBook");
-            Exchange.Json(ob["nonce"]);
-            Exchange.Json(ob["datetime"]);
-            Exchange.Json(ob["timestamp"]);
-            Exchange.Json(ob["symbol"]);
-            Exchange.Json(ob["asks"]);
-            Exchange.Json(ob["bids"]);
-            Exchange.Json(ob.asks);
-            Exchange.Json(ob.bids);
-            Exchange.Json(ob.cache);
-            Exchange.Json(ob);
-            await Task.Delay(100);
-        }
+            await Task.Delay(500);
+            Thread thread = Thread.CurrentThread;
+            Console.WriteLine("Thread Read: " + thread.ManagedThreadId);
+            for (int i = 0; i < 150; i++)
+            {
+                // Console.WriteLine("ReadOrderBook");
+                Exchange.Json(ob["nonce"]);
+                Exchange.Json(ob["datetime"]);
+                Exchange.Json(ob["timestamp"]);
+                Exchange.Json(ob["symbol"]);
+                Exchange.Json(ob["asks"]);
+                Exchange.Json(ob["bids"]);
+                Exchange.Json(ob.asks);
+                Exchange.Json(ob.bids);
+                Exchange.Json(ob.cache);
+                Exchange.Json(ob);
+                await Task.Delay(49);
+            }
+        });
+
     }
 
     async public Task UpdateOrderBook(OrderBook ob)
     {
-        Random rnd = new Random();
-        for (int i = 0; i < 20; i++)
+        await Task.Run(async () =>
         {
-            // Console.WriteLine("UpdateOrderBook");
-            ob["nonce"] = Convert.ToInt64(ob["nonce"]) + 1;
-            ob["datetime"] = Exchange.Iso8601(ob["nonce"]);
-            ob["timestamp"] = ob["nonce"];
-            var randomAmount = rnd.Next();
-            var randomPrice = rnd.Next();
-            ob.bids.store(Convert.ToDecimal(randomPrice), Convert.ToDecimal(randomAmount));
-            ob.asks.store(Convert.ToDecimal(randomPrice), Convert.ToDecimal(randomAmount));
-            await Task.Delay(110);
-        }
+            await Task.Delay(500);
+            Thread thread = Thread.CurrentThread;
+            Console.WriteLine("Thread Update: " + thread.ManagedThreadId);
+            Random rnd = new Random();
+            for (int i = 0; i < 150; i++)
+            {
+                // Console.WriteLine("UpdateOrderBook");
+                ob["nonce"] = Convert.ToInt64(ob["nonce"]) + 1;
+                ob["datetime"] = Exchange.Iso8601(ob["nonce"]);
+                ob["timestamp"] = Convert.ToInt64(ob["timestamp"]) + 1;
+                var randomAmount = rnd.Next();
+                var randomPrice = rnd.Next();
+                ob.bids.store(Convert.ToDecimal(randomPrice), Convert.ToDecimal(randomAmount));
+                ob.asks.store(Convert.ToDecimal(randomPrice), Convert.ToDecimal(randomAmount));
+                ob.limit();
+                await Task.Delay(50);
+            }
+        });
     }
 
     async public Task UpdateAsks(Asks asks)
     {
         Random rnd = new Random();
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 150; i++)
         {
             // Console.WriteLine("UpdateAsks");
             var randomAmount = rnd.Next();
@@ -81,7 +95,7 @@ public partial class BaseTest
 
     async public Task ReadAsks(Asks asks)
     {
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 150; i++)
         {
             // Console.WriteLine("ReadAsks");
             Exchange.Json(asks);
@@ -91,7 +105,7 @@ public partial class BaseTest
 
     async public Task ReadArrayCache(ArrayCache arrayCache)
     {
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 150; i++)
         {
             Exchange.Json(arrayCache);
             await Task.Delay(101);
@@ -100,7 +114,7 @@ public partial class BaseTest
 
     async Task UpdateArrayCache(ArrayCache arrayCache)
     {
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 150; i++)
         {
             arrayCache.append(new Dictionary<string, object>() {
             { "symbol", "BTC/USDT" },
@@ -126,13 +140,14 @@ public partial class BaseTest
         var orderBook = new OrderBook(orderBookInput);
         var arrayCache = new ArrayCache(3);
 
-        var task1 = Task.Run(() => Task.WhenAll(ReadAsks(asks), UpdateAsks(asks)));
+        // var task1 = Task.Run(() => Task.WhenAll(ReadAsks(asks), UpdateAsks(asks)));
 
         var task2 = Task.Run(() => Task.WhenAll(ReadOrderBook(orderBook), UpdateOrderBook(orderBook)));
 
-        var task3 = Task.Run(() => Task.WhenAll(ReadArrayCache(arrayCache), UpdateArrayCache(arrayCache)));
+        // var task3 = Task.Run(() => Task.WhenAll(ReadArrayCache(arrayCache), UpdateArrayCache(arrayCache)));
 
-        await Task.WhenAll(task1, task2, task3);
+        // await Task.WhenAll(task1, task2, task3);
+        await task2;
 
     }
 }
