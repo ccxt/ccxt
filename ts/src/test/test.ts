@@ -22,7 +22,6 @@ process.on ('unhandledRejection', (e: any) => {
     // process.exit (1);
 });
 
-
 const AuthenticationError = ccxt.AuthenticationError;
 const NotSupported = ccxt.NotSupported;
 const NetworkError = ccxt.NetworkError;
@@ -31,17 +30,6 @@ const ProxyError = ccxt.ProxyError;
 const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
-
-const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
-const sanitizedSymnol = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
-
-// non-transpiled part, but shared names among langs
-function getCliArgValue (arg) {
-    return process.argv.includes (arg) || false;
-}
-
-const proxyTestFileName = 'proxies';
-
 
 type Test = {
     testFile?: string;
@@ -68,6 +56,14 @@ type TestConfig = {
     [key: string]: Tests;
 }
 
+const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
+const sanitizedSymnol = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
+// non-transpiled part, but shared names among langs
+function getCliArgValue (arg) {
+    return process.argv.includes (arg) || false;
+}
+
+const proxyTestFileName = 'proxies';
 class baseMainTestClass {
     lang = 'JS';
     isSynchronous = false;
@@ -87,6 +83,7 @@ class baseMainTestClass {
     skippedMethods = {};
     checkedPublicTests = {};
     testFiles = {};
+    publicTests = {};
     newLine = '\n';
     rootDir = DIR_NAME + '/../../../';
     onlySpecificTests = [];
