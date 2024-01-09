@@ -82,7 +82,6 @@ class baseMainTestClass {
     privateTest = false;
     privateTestOnly = false;
     sandbox = false;
-    skippedMethods = {};
     checkedPublicTests = {};
     testFiles = {};
     publicTests = {};
@@ -231,17 +230,21 @@ export default class testMainClass extends baseMainTestClass {
         this.wsTests = getCliArgValue ('--ws');
     }
 
-    getConfig (symbol: string = 'BTC/USDT', code: string = 'USDT') {
+    getConfig (symbol = undefined, code = undefined) {
         if (this.configContent === '') {
             this.configContent = ioFileRead (this.rootDir + './tests-config.json', false);
         }
         let result = this.configContent;
-        result = result.replace ('{SYMBOL}', symbol);
-        result = result.replace ('{CODE}', code);
+        if (symbol !== undefined) {
+            result = result.replace ('{SYMBOL}', symbol);
+        }
+        if (code !== undefined) {
+            result = result.replace ('{CODE}', code);
+        }
         return JSON.parse (this.configContent);
     }
 
-    getConfigForExchange (exchange: any, symbol: string = 'BTC/USDT', code: string = 'USDT') {
+    getConfigForExchange (exchange: any, symbol = undefined, code = undefined) {
         const config = this.getConfig (symbol, code);
         const mainConfig = config['exchange'];
         const exchangeConfig = exchange.safeValue (config, exchange.id, {});
@@ -369,7 +372,6 @@ export default class testMainClass extends baseMainTestClass {
             exchange.wsProxy = exchange.safeString (skippedSettingsForExchange, 'wsProxy');
             exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
         }
-        this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
     }
 
@@ -580,7 +582,7 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async loadExchange (exchange) {
-        const testsConfig = this.getConfigForExchange (exchange, '', '');
+        const testsConfig = this.getConfigForExchange (exchange);
         const loadMarketsTest = testsConfig['loadMarkets'];
         const result = await this.testSafe ('loadMarkets', exchange, loadMarketsTest);
         if (!result) {
