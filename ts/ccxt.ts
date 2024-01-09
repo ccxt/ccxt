@@ -70,7 +70,6 @@ import bithumb from  './src/bithumb.js'
 import bitmart from  './src/bitmart.js'
 import bitmex from  './src/bitmex.js'
 import bitopro from  './src/bitopro.js'
-import bitpanda from  './src/bitpanda.js'
 import bitrue from  './src/bitrue.js'
 import bitso from  './src/bitso.js'
 import bitstamp from  './src/bitstamp.js'
@@ -128,6 +127,7 @@ import novadax from  './src/novadax.js'
 import oceanex from  './src/oceanex.js'
 import okcoin from  './src/okcoin.js'
 import okx from  './src/okx.js'
+import onetrading from  './src/onetrading.js'
 import p2b from  './src/p2b.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
@@ -162,7 +162,6 @@ import bitgetPro from  './src/pro/bitget.js'
 import bitmartPro from  './src/pro/bitmart.js'
 import bitmexPro from  './src/pro/bitmex.js'
 import bitoproPro from  './src/pro/bitopro.js'
-import bitpandaPro from  './src/pro/bitpanda.js'
 import bitruePro from  './src/pro/bitrue.js'
 import bitstampPro from  './src/pro/bitstamp.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
@@ -195,6 +194,7 @@ import mexcPro from  './src/pro/mexc.js'
 import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
 import okxPro from  './src/pro/okx.js'
+import onetradingPro from  './src/pro/onetrading.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
 import poloniexfuturesPro from  './src/pro/poloniexfutures.js'
@@ -229,7 +229,6 @@ const exchanges = {
     'bitmart':                bitmart,
     'bitmex':                 bitmex,
     'bitopro':                bitopro,
-    'bitpanda':               bitpanda,
     'bitrue':                 bitrue,
     'bitso':                  bitso,
     'bitstamp':               bitstamp,
@@ -287,6 +286,7 @@ const exchanges = {
     'oceanex':                oceanex,
     'okcoin':                 okcoin,
     'okx':                    okx,
+    'onetrading':             onetrading,
     'p2b':                    p2b,
     'paymium':                paymium,
     'phemex':                 phemex,
@@ -321,7 +321,6 @@ const pro = {
     'bitmart':                bitmartPro,
     'bitmex':                 bitmexPro,
     'bitopro':                bitoproPro,
-    'bitpanda':               bitpandaPro,
     'bitrue':                 bitruePro,
     'bitstamp':               bitstampPro,
     'bitvavo':                bitvavoPro,
@@ -354,6 +353,7 @@ const pro = {
     'ndax':                   ndaxPro,
     'okcoin':                 okcoinPro,
     'okx':                    okxPro,
+    'onetrading':             onetradingPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
     'poloniexfutures':        poloniexfuturesPro,
@@ -466,7 +466,6 @@ export {
     bitmart,
     bitmex,
     bitopro,
-    bitpanda,
     bitrue,
     bitso,
     bitstamp,
@@ -524,6 +523,7 @@ export {
     oceanex,
     okcoin,
     okx,
+    onetrading,
     p2b,
     paymium,
     phemex,
