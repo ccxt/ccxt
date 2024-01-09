@@ -642,6 +642,35 @@
                 "skippedProperties": {
                     "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
                 }
+            },
+            "watchTickers": {
+                "skippedProperties": {
+                    "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
+                },
+                "tests": [
+                    {
+                        "args": [ "_SYMBOL_", { "name": "ticker" } ]
+                    },
+                    {
+                        "args": [ "_SYMBOL_", { "name": "bookTicker" } ]
+                    }
+                ]
+            },
+            "fetchPositionRisk": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"],
+                        "marketTypes": ["margin", "swap", "future", "option"]
+                    }
+                ]
+            },
+            "fetchOpenInterestHistory": {
+                "tests": [
+                    {
+                        "args": ["{SYMBOL}"],
+                        "marketTypes": ["margin", "swap", "future", "option"]
+                    }
+                ]
             }
         }
     },
