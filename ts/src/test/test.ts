@@ -248,22 +248,22 @@ export default class testMainClass extends baseMainTestClass {
         return exchange.deepExtend (mainConfig, exchangeConfig);
     }
 
-    async init (exchangeId, symbolOrMethodArgv) {
+    async init (exchangeId, symbolArgv) {
         this.parseCliArgs ();
 
         if (this.responseTests) {
-            await this.runStaticResponseTests (exchangeId, symbolOrMethodArgv);
+            await this.runStaticResponseTests (exchangeId, symbolArgv);
             return;
         }
         if (this.requestTests) {
-            await this.runStaticRequestTests (exchangeId, symbolOrMethodArgv); // symbol here is the testname
+            await this.runStaticRequestTests (exchangeId, symbolArgv); // symbol here is the testname
             return;
         }
         if (this.idTests) {
             await this.runBrokerIdTests ();
             return;
         }
-        const symbolStr = symbolOrMethodArgv !== undefined ? symbolOrMethodArgv : 'all';
+        const symbolStr = symbolArgv !== undefined ? symbolArgv : 'all';
         dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbolOrMethod': symbolStr, 'isWs': this.wsTests }, this.newLine);
         const exchangeArgs = {
             'verbose': this.verbose,
@@ -275,7 +275,7 @@ export default class testMainClass extends baseMainTestClass {
         await this.importFiles (exchange);
         assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         this.expandSettings (exchange);
-        const symbol = this.checkIfSpecificTestIsChosen (exchange, symbolOrMethodArgv);
+        const symbol = this.checkIfSpecificTestIsChosen (exchange, symbolArgv);
         await this.startTest (exchange, symbol);
         exitScript (0); // needed to be explicitly finished for WS tests
     }
