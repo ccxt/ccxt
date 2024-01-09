@@ -555,6 +555,7 @@ export default class Exchange {
     getProperty(obj: any, property: any, defaultValue?: any): any;
     setProperty(obj: any, property: any, defaultValue?: any): void;
     axolotl(payload: any, hexKey: any, ed25519: any): string;
+    fixStringifiedJsonMembers(content: any): any;
     handleDeltas(orderbook: any, deltas: any): void;
     handleDelta(bookside: any, delta: any): void;
     getCacheIndex(orderbook: any, deltas: any): number;

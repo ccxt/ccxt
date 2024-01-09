@@ -1804,16 +1804,6 @@ class bingx(Exchange, ImplicitAPI):
         order = self.safe_value(data, 'order', data)
         return self.parse_order(order, market)
 
-    def fix_stringified_json_members(self, content):
-        # when stringified json has members with their values also stringified, like:
-        # '{"code":0, "data":{"order":{"orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"{\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1}","reduceOnly":false}}}'
-        # we can fix with below manipulations
-        # @ts-ignore
-        modifiedContent = content.replace('\\', '')
-        modifiedContent = modifiedContent.replace('"{', '{')
-        modifiedContent = modifiedContent.replace('}"', '}')
-        return modifiedContent
-
     async def create_orders(self, orders: List[OrderRequest], params={}):
         """
         create a list of trade orders

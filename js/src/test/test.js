@@ -296,10 +296,12 @@ export default class testMainClass extends baseMainTestClass {
         if (timeout !== undefined) {
             exchange.timeout = timeout;
         }
-        exchange.httpProxy = exchange.safeString(skippedSettingsForExchange, 'httpProxy');
-        exchange.httpsProxy = exchange.safeString(skippedSettingsForExchange, 'httpsProxy');
-        exchange.wsProxy = exchange.safeString(skippedSettingsForExchange, 'wsProxy');
-        exchange.wssProxy = exchange.safeString(skippedSettingsForExchange, 'wssProxy');
+        if (getCliArgValue('--useProxy')) {
+            exchange.httpProxy = exchange.safeString(skippedSettingsForExchange, 'httpProxy');
+            exchange.httpsProxy = exchange.safeString(skippedSettingsForExchange, 'httpsProxy');
+            exchange.wsProxy = exchange.safeString(skippedSettingsForExchange, 'wsProxy');
+            exchange.wssProxy = exchange.safeString(skippedSettingsForExchange, 'wssProxy');
+        }
         this.skippedMethods = exchange.safeValue(skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
     }

@@ -1295,6 +1295,17 @@ class Exchange {
     axolotl(payload, hexKey, ed25519) {
         return crypto.axolotl(payload, hexKey, ed25519);
     }
+    fixStringifiedJsonMembers(content) {
+        // used for instance in bingx
+        // when stringified json has members with their values also stringified, like:
+        // '{"code":0, "data":{"order":{"orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"{\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1}","reduceOnly":false}}}'
+        // we can fix with below manipulations
+        // @ts-ignore
+        let modifiedContent = content.replaceAll('\\', '');
+        modifiedContent = modifiedContent.replaceAll('"{', '{');
+        modifiedContent = modifiedContent.replaceAll('}"', '}');
+        return modifiedContent;
+    }
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // ########################################################################
