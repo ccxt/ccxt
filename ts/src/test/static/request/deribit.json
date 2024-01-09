@@ -24,7 +24,7 @@
         ],
         "createOrder": [
             {
-                "description": "create Order",
+                "description": "Spot limit buy order",
                 "method": "createOrder",
                 "url": "https://www.deribit.com/api/v2/private/buy?instrument_name=BTC_USDT&amount=0.0002&type=limit&price=25000",
                 "input": [
@@ -36,7 +36,7 @@
                 ]
             },
             {
-                "description": "create Order",
+                "description": "Spot limit sell order",
                 "method": "createOrder",
                 "url": "https://www.deribit.com/api/v2/private/sell?instrument_name=BTC_USDT&amount=0.0002&type=limit&price=25000",
                 "input": [
@@ -45,6 +45,21 @@
                     "sell",
                     0.0002,
                     25000
+                ]
+            },
+            {
+                "description": "Swap trailingAmount order",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/sell?instrument_name=BTC_USDT-PERPETUAL&amount=0.001&type=trailing_stop&trigger=last_price&trigger_offset=1000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.001,
+                  null,
+                  {
+                    "trailingAmount": 1000
+                  }
                 ]
             }
         ],
@@ -144,6 +159,24 @@
                     1,
                     null,
                     "toAccount"
+                ]
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Swap edit a trailingAmount order",
+                "method": "editOrder",
+                "url": "https://test.deribit.com/api/v2/private/edit?order_id=USDT-TSTS-32&amount=0.001&trigger_offset=2500&trailingAmount=2500",
+                "input": [
+                  "USDT-TSTS-32",
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.001,
+                  null,
+                  {
+                    "trailingAmount": 2500
+                  }
                 ]
             }
         ]

@@ -444,10 +444,12 @@ class testMainClass extends baseMainTestClass {
         if ($timeout !== null) {
             $exchange->timeout = $timeout;
         }
-        $exchange->http_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpProxy');
-        $exchange->https_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpsProxy');
-        $exchange->ws_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'wsProxy');
-        $exchange->wss_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'wssProxy');
+        if (get_cli_arg_value('--useProxy')) {
+            $exchange->http_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpProxy');
+            $exchange->https_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpsProxy');
+            $exchange->ws_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'wsProxy');
+            $exchange->wss_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'wssProxy');
+        }
         $this->skipped_methods = $exchange->safe_value($skipped_settings_for_exchange, 'skipMethods', array());
         $this->checked_public_tests = array();
     }

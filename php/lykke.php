@@ -1067,7 +1067,7 @@ class lykke extends Exchange {
         return $this->parse_trades($payload, $market, $since, $limit);
     }
 
-    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
+    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $price = $this->safe_string($bidask, $priceKey);
         $amount = Precise::string_abs($this->safe_string($bidask, $amountKey));
         return array( $this->parse_number($price), $this->parse_number($amount) );

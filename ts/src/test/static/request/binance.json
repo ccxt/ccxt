@@ -1303,6 +1303,19 @@
                 ],
                 "output": "timestamp=1699441011001&dualSidePosition=true&recvWindow=10000&signature=f932a4e8dd21ce1dcea84d8ab2fd9451c31b77c710d1adb9c51f54adc520cd90"
             }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "Fetch Bids Asks spot with array of symbols",
+                "method": "fetchBidsAsks",
+                "url": "https://testnet.binance.vision/api/v3/ticker/bookTicker?symbols=%5B%22BTCUSDT%22%2C%22LTCUSDT%22%5D",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "LTC/USDT"
+                  ]
+                ]
+            }
         ]
     }
 }

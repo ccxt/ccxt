@@ -147,7 +147,7 @@ class ImplicitAPI:
     private_get_v5_asset_deposit_query_internal_record = privateGetV5AssetDepositQueryInternalRecord = Entry('v5/asset/deposit/query-internal-record', 'private', 'GET', {'cost': 5})
     private_get_v5_asset_deposit_query_address = privateGetV5AssetDepositQueryAddress = Entry('v5/asset/deposit/query-address', 'private', 'GET', {'cost': 10})
     private_get_v5_asset_deposit_query_sub_member_address = privateGetV5AssetDepositQuerySubMemberAddress = Entry('v5/asset/deposit/query-sub-member-address', 'private', 'GET', {'cost': 10})
-    private_get_v5_asset_coin_query_info = privateGetV5AssetCoinQueryInfo = Entry('v5/asset/coin/query-info', 'private', 'GET', {'cost': 25})
+    private_get_v5_asset_coin_query_info = privateGetV5AssetCoinQueryInfo = Entry('v5/asset/coin/query-info', 'private', 'GET', {'cost': 28})
     private_get_v5_asset_withdraw_query_record = privateGetV5AssetWithdrawQueryRecord = Entry('v5/asset/withdraw/query-record', 'private', 'GET', {'cost': 10})
     private_get_v5_asset_withdraw_withdrawable_amount = privateGetV5AssetWithdrawWithdrawableAmount = Entry('v5/asset/withdraw/withdrawable-amount', 'private', 'GET', {'cost': 5})
     private_get_v5_user_query_sub_members = privateGetV5UserQuerySubMembers = Entry('v5/user/query-sub-members', 'private', 'GET', {'cost': 5})

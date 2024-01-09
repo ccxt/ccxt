@@ -1923,17 +1923,6 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function fix_stringified_json_members($content) {
-        // when stringified json has members with their values also stringified, like:
-        // 'array("code":0, "data":array("order":array("orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"array(\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1)","reduceOnly":false)))'
-        // we can fix with below manipulations
-        // @ts-ignore
-        $modifiedContent = str_replace('\\', '', $content);
-        $modifiedContent = str_replace('"array(', 'array(', $modifiedContent);
-        $modifiedContent = str_replace(', $modifiedContent)"', ')');
-        return $modifiedContent;
-    }
-
     public function create_orders(array $orders, $params = array ()) {
         return Async\async(function () use ($orders, $params) {
             /**

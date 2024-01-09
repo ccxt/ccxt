@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.9';
+$version = '4.2.11';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.9';
+    const VERSION = '4.2.11';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2117,6 +2117,17 @@ class Exchange {
         return self::underscore($str);
     }
 
+    public function fix_stringified_json_members($content) {
+        // when stringified json has members with their values also stringified, like:
+        // 'array("code":0, "data":array("order":array("orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"array(\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1)","reduceOnly":false)))'
+        // we can fix with below manipulations
+        // @ts-ignore
+        $modifiedContent = str_replace('\\', '', $content);
+        $modifiedContent = str_replace('"{', '{', $modifiedContent);
+        $modifiedContent = str_replace('}"', '}', $modifiedContent);
+        return $modifiedContent;
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -3740,11 +3751,11 @@ class Exchange {
         return $result;
     }
 
-    public function parse_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1) {
+    public function parse_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $bidasks = $this->to_array($bidasks);
         $result = array();
         for ($i = 0; $i < count($bidasks); $i++) {
-            $result[] = $this->parse_bid_ask($bidasks[$i], $priceKey, $amountKey);
+            $result[] = $this->parse_bid_ask($bidasks[$i], $priceKey, $amountKey, $countOrIdKey);
         }
         return $result;
     }
@@ -3915,9 +3926,9 @@ class Exchange {
         return $this->parse_number($value, $d);
     }
 
-    public function parse_order_book(array $orderbook, string $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 0, int|string $amountKey = 1) {
-        $bids = $this->parse_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey);
-        $asks = $this->parse_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey);
+    public function parse_order_book(array $orderbook, string $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+        $bids = $this->parse_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
+        $asks = $this->parse_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
         return array(
             'symbol' => $symbol,
             'bids' => $this->sort_by($bids, 0, true),
@@ -4262,10 +4273,15 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchBidsAsks() is not supported yet');
     }
 
-    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1) {
+    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
-        return array( $price, $amount );
+        $countOrId = $this->safe_integer($bidask, $countOrIdKey);
+        $bidAsk = array( $price, $amount );
+        if ($countOrId !== null) {
+            $bidAsk[] = $countOrId;
+        }
+        return $bidAsk;
     }
 
     public function safe_currency(?string $currencyId, ?array $currency = null) {
@@ -4476,6 +4492,30 @@ class Exchange {
         } else {
             // check if exchange has properties for this method
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
+            if ($exchangeWideMethodOptions !== null) {
+                // check if the option is defined inside this method's props
+                $value = $this->safe_value_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
+            }
+            if ($value === null) {
+                // if it's still null, check if global exchange-wide option exists
+                $value = $this->safe_value_2($this->options, $optionName, $defaultOptionName);
+            }
+            // if it's still null, use the default $value
+            $value = ($value !== null) ? $value : $defaultValue;
+        }
+        return array( $value, $params );
+    }
+
+    public function handle_option_and_params_2($params, $methodName, $methodName2, $optionName, $defaultValue = null) {
+        // This method can be used to obtain method specific properties, i.e => $this->handle_option_and_params($params, 'fetchPosition', 'marginMode', 'isolated')
+        $defaultOptionName = 'default' . $this->capitalize ($optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if $params contain the key
+        $value = $this->safe_value_2($params, $optionName, $defaultOptionName);
+        if ($value !== null) {
+            $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
+        } else {
+            // check if exchange has properties for this method
+            $exchangeWideMethodOptions = $this->safe_value_2($this->options, $methodName, $methodName2);
             if ($exchangeWideMethodOptions !== null) {
                 // check if the option is defined inside this method's props
                 $value = $this->safe_value_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);

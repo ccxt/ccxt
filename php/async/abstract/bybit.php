@@ -443,7 +443,7 @@ abstract class bybit extends \ccxt\async\Exchange {
         return $this->request('v5/asset/deposit/query-sub-member-address', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function private_get_v5_asset_coin_query_info($params = array()) {
-        return $this->request('v5/asset/coin/query-info', 'private', 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('v5/asset/coin/query-info', 'private', 'GET', $params, null, null, array("cost" => 28));
     }
     public function private_get_v5_asset_withdraw_query_record($params = array()) {
         return $this->request('v5/asset/withdraw/query-record', 'private', 'GET', $params, null, null, array("cost" => 10));
@@ -1307,7 +1307,7 @@ abstract class bybit extends \ccxt\async\Exchange {
         return $this->request('v5/asset/deposit/query-sub-member-address', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function privateGetV5AssetCoinQueryInfo($params = array()) {
-        return $this->request('v5/asset/coin/query-info', 'private', 'GET', $params, null, null, array("cost" => 25));
+        return $this->request('v5/asset/coin/query-info', 'private', 'GET', $params, null, null, array("cost" => 28));
     }
     public function privateGetV5AssetWithdrawQueryRecord($params = array()) {
         return $this->request('v5/asset/withdraw/query-record', 'private', 'GET', $params, null, null, array("cost" => 10));

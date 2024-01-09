@@ -62,6 +62,7 @@ parser.add_argument('--verbose', action='store_true', help='enable verbose outpu
 parser.add_argument('--ws', action='store_true', help='websockets version')
 parser.add_argument('--info', action='store_true', help='enable info output')
 parser.add_argument('--static', action='store_true', help='run static tests')
+parser.add_argument('--useProxy', action='store_true', help='run static tests')
 parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
 parser.add_argument('--responseTests', action='store_true', help='run response tests')
 parser.add_argument('--requestTests', action='store_true', help='run response tests')
@@ -368,10 +369,11 @@ class testMainClass(baseMainTestClass):
         timeout = exchange.safe_value(skipped_settings_for_exchange, 'timeout')
         if timeout is not None:
             exchange.timeout = timeout
-        exchange.http_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpProxy')
-        exchange.https_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpsProxy')
-        exchange.ws_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wsProxy')
-        exchange.wss_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wssProxy')
+        if get_cli_arg_value('--useProxy'):
+            exchange.http_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpProxy')
+            exchange.https_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpsProxy')
+            exchange.ws_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wsProxy')
+            exchange.wss_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wssProxy')
         self.skipped_methods = exchange.safe_value(skipped_settings_for_exchange, 'skipMethods', {})
         self.checked_public_tests = {}
 
