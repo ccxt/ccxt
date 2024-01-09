@@ -219,7 +219,9 @@ class bybit(ccxt.async_support.bybit):
             messageHashes.append('ticker:' + symbols[i])
         ticker = await self.watch_topics(url, messageHashes, topics, params)
         if self.newUpdates:
-            return ticker
+            result = {}
+            result[ticker['symbol']] = ticker
+            return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):

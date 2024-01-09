@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bingx.js';
-import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired } from './base/errors.js';
+import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -354,6 +354,7 @@ export default class bingx extends Exchange {
                     '80014': BadRequest,
                     '80016': OrderNotFound,
                     '80017': OrderNotFound,
+                    '100414': AccountSuspended, // {"code":100414,"msg":"Code: 100414, Msg: risk control check fail,code(1)","debugMsg":""}
                     '100437': BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                 },
                 'broad': {},
@@ -1903,11 +1904,26 @@ export default class bingx extends Exchange {
         //     }
         //
         if (typeof response === 'string') {
+            // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
+            // and JSON.parse can not handle them in JS, so we have to use .parseJson
+            // however, when order has an attached SL/TP, their value types need extra parsing
+            response = this.fixStringifiedJsonMembers (response);
             response = this.parseJson (response);
         }
         const data = this.safeValue (response, 'data', {});
         const order = this.safeValue (data, 'order', data);
         return this.parseOrder (order, market);
+    }
+
+    fixStringifiedJsonMembers (content) {
+        // when stringified json has members with their values also stringified, like:
+        // '{"code":0, "data":{"order":{"orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"{\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1}","reduceOnly":false}}}'
+        // we can fix with below manipulations
+        // @ts-ignore
+        let modifiedContent = content.replaceAll ('\\', '');
+        modifiedContent = modifiedContent.replaceAll ('"{', '{');
+        modifiedContent = modifiedContent.replaceAll ('}"', '}');
+        return modifiedContent;
     }
 
     async createOrders (orders: OrderRequest[], params = {}) {
@@ -2240,6 +2256,7 @@ export default class bingx extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2249,8 +2266,14 @@ export default class bingx extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'orderId': id,
         };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOrderID');
+        params = this.omit (params, [ 'clientOrderId' ]);
+        if (clientOrderId !== undefined) {
+            request['clientOrderID'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
         let response = undefined;
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         if (marketType === 'spot') {

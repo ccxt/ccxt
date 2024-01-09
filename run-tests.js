@@ -39,6 +39,7 @@ const debugKeys = {
 const exchangeSpecificFlags = {
     '--ws': false,
     '--sandbox': false,
+    '--useProxy': false,
     '--verbose': false,
     '--private': false,
     '--privateOnly': false,

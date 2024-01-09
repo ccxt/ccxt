@@ -2422,7 +2422,7 @@ export default class kucoin extends Exchange {
         //         }
         //    }
         const responseData = this.safeValue(response, 'data', {});
-        const orders = this.safeValue(responseData, 'items', []);
+        const orders = this.safeValue(responseData, 'items', responseData);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {

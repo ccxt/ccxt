@@ -3452,6 +3452,7 @@ class bybit extends Exchange {
         /**
          * create a trade $order
          * @see https://bybit-exchange.github.io/docs/v5/order/create-$order
+         * @see https://bybit-exchange.github.io/docs/v5/position/trading-stop
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -3473,6 +3474,8 @@ class bybit extends Exchange {
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
+         * @param {string} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
+         * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing $order, default uses the $price argument
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -3483,8 +3486,15 @@ class bybit extends Exchange {
         if ($isUsdcSettled && !$isUnifiedAccount) {
             return $this->create_usdc_order($symbol, $type, $side, $amount, $price, $params);
         }
+        $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'trailingStop');
+        $isTrailingAmountOrder = $trailingAmount !== null;
         $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-        $response = $this->privatePostV5OrderCreate ($orderRequest); // already extended inside createOrderRequest
+        $response = null;
+        if ($isTrailingAmountOrder) {
+            $response = $this->privatePostV5PositionTradingStop ($orderRequest);
+        } else {
+            $response = $this->privatePostV5OrderCreate ($orderRequest); // already extended inside createOrderRequest
+        }
         //
         //     {
         //         "retCode" => 0,
@@ -3586,12 +3596,20 @@ class bybit extends Exchange {
         $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
+        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activePrice', $price);
+        $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'trailingStop');
+        $isTrailingAmountOrder = $trailingAmount !== null;
         $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
         $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
         $isStopLoss = $stopLoss !== null;
         $isTakeProfit = $takeProfit !== null;
         $isBuy = $side === 'buy';
-        if ($triggerPrice !== null) {
+        if ($isTrailingAmountOrder) {
+            if ($trailingTriggerPrice !== null) {
+                $request['activePrice'] = $this->price_to_precision($symbol, $trailingTriggerPrice);
+            }
+            $request['trailingStop'] = $trailingAmount;
+        } elseif ($triggerPrice !== null) {
             $triggerDirection = $this->safe_string($params, 'triggerDirection');
             $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'triggerDirection' ));
             if ($market['spot']) {
@@ -3641,7 +3659,7 @@ class bybit extends Exchange {
             // mandatory field for options
             $request['orderLinkId'] = $this->uuid16();
         }
-        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit' ));
+        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice' ));
         return array_merge($request, $params);
     }
 

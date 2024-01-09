@@ -130,7 +130,8 @@ import {
     , ExchangeNotAvailable
     , ArgumentsRequired
     , RateLimitExceeded,
-    BadRequest} from "./errors.js"
+    BadRequest,
+    ExchangeClosedByUser} from "./errors.js"
 
 import { Precise } from './Precise.js'
 
@@ -1506,10 +1507,15 @@ export default class Exchange {
         const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i] as WsClient;
-            delete this.clients[client.url];
+            client.error = new ExchangeClosedByUser (this.id + ' closedByUser');
             closedClients.push(client.close ());
         }
-        return Promise.all (closedClients);
+        await Promise.all (closedClients);
+        for (let i = 0; i < clients.length; i++) {
+            const client = clients[i] as WsClient;
+            delete this.clients[client.url];
+        }
+        return;
     }
 
     async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {
@@ -3216,11 +3222,11 @@ export default class Exchange {
         return result;
     }
 
-    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1) {
+    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         bidasks = this.toArray (bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
-            result.push (this.parseBidAsk (bidasks[i], priceKey, amountKey));
+            result.push (this.parseBidAsk (bidasks[i], priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -3395,9 +3401,9 @@ export default class Exchange {
         return this.parseNumber (value, d);
     }
 
-    parseOrderBook (orderbook: object, symbol: string, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1): OrderBook {
-        const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey);
-        const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey);
+    parseOrderBook (orderbook: object, symbol: string, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): OrderBook {
+        const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy (bids, 0, true),
@@ -3756,10 +3762,15 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchLedgerEntry() is not supported yet');
     }
 
-    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1) {
+    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
-        return [ price, amount ];
+        const countOrId = this.safeInteger (bidask, countOrIdKey);
+        const bidAsk = [ price, amount ];
+        if (countOrId !== undefined) {
+            bidAsk.push (countOrId);
+        }
+        return bidAsk;
     }
 
     safeCurrency (currencyId: Str, currency: Currency = undefined): CurrencyInterface {
@@ -3806,7 +3817,7 @@ export default class Exchange {
                         }
                     }
                 }
-            } else if (delimiter !== undefined) {
+            } else if (delimiter !== undefined && delimiter !== '') {
                 const parts = marketId.split (delimiter);
                 const partsLength = parts.length;
                 if (partsLength === 2) {
@@ -3970,6 +3981,30 @@ export default class Exchange {
         } else {
             // check if exchange has properties for this method
             const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
+            if (exchangeWideMethodOptions !== undefined) {
+                // check if the option is defined inside this method's props
+                value = this.safeValue2 (exchangeWideMethodOptions, optionName, defaultOptionName);
+            }
+            if (value === undefined) {
+                // if it's still undefined, check if global exchange-wide option exists
+                value = this.safeValue2 (this.options, optionName, defaultOptionName);
+            }
+            // if it's still undefined, use the default value
+            value = (value !== undefined) ? value : defaultValue;
+        }
+        return [ value, params ];
+    }
+
+    handleOptionAndParams2 (params, methodName, methodName2, optionName, defaultValue = undefined) {
+        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
+        const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if params contain the key
+        let value = this.safeValue2 (params, optionName, defaultOptionName);
+        if (value !== undefined) {
+            params = this.omit (params, [ optionName, defaultOptionName ]);
+        } else {
+            // check if exchange has properties for this method
+            const exchangeWideMethodOptions = this.safeValue2 (this.options, methodName, methodName2);
             if (exchangeWideMethodOptions !== undefined) {
                 // check if the option is defined inside this method's props
                 value = this.safeValue2 (exchangeWideMethodOptions, optionName, defaultOptionName);

@@ -117,7 +117,7 @@ class htx extends Exchange {
                 'repayIsolatedMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
-                'setPositionMode' => false,
+                'setPositionMode' => true,
                 'signIn' => null,
                 'transfer' => true,
                 'withdraw' => true,
@@ -8671,5 +8671,68 @@ class htx extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
+        /**
+         * set $hedged to true or false
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-position-mode
+         * @param {bool} $hedged set to true to for $hedged mode, must be set separately for each $market in isolated margin mode, only valid for linear markets
+         * @param {string} [$symbol] unified $market $symbol, required for isolated margin mode
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] "cross" (default) or "isolated"
+         * @return {array} $response from the exchange
+         */
+        $this->load_markets();
+        $posMode = $hedged ? 'dual_side' : 'single_side';
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('setPositionMode', $params, 'cross');
+        $request = array(
+            'position_mode' => $posMode,
+        );
+        $response = null;
+        if (($market !== null) && ($market['inverse'])) {
+            throw new BadRequest($this->id . ' setPositionMode can only be used for linear markets');
+        }
+        if ($marginMode === 'isolated') {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' setPositionMode requires a $symbol argument for isolated margin mode');
+            }
+            $request['margin_account'] = $market['id'];
+            $response = $this->contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode (array_merge($request, $params));
+            //
+            //    {
+            //        "status" => "ok",
+            //        "data" => array(
+            //            {
+            //                "margin_account" => "BTC-USDT",
+            //                "position_mode" => "single_side"
+            //            }
+            //        ),
+            //        "ts" => 1566899973811
+            //    }
+            //
+        } else {
+            $request['margin_account'] = 'USDT';
+            $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode (array_merge($request, $params));
+            //
+            //    {
+            //        "status" => "ok",
+            //        "data" => array(
+            //            {
+            //                "margin_account" => "USDT",
+            //                "position_mode" => "single_side"
+            //            }
+            //        ),
+            //        "ts" => 1566899973811
+            //    }
+            //
+        }
+        return $response;
     }
 }

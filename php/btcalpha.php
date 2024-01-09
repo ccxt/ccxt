@@ -355,7 +355,7 @@ class btcalpha extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], null, 'buy', 'sell', 'price', 'amount');
     }
 
-    public function parse_bids_asks($bidasks, $priceKey = 0, $amountKey = 1) {
+    public function parse_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $result = array();
         for ($i = 0; $i < count($bidasks); $i++) {
             $bidask = $bidasks[$i];
