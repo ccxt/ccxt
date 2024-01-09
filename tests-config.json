@@ -1,406 +1,316 @@
 {
-    "exchange": {
-        "loadMarkets": {
-            "isWs": false,
-            "public": true,
+    "exchange": [
+        {
+            "name": "loadMarkets",
             "args": []
         },
-        "fetchTicker": {
-            "isWs": false,
-            "public": true,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "fetchTicker",
+            "args": ["{SYMBOL}"]
         },
-        "fetchTickers": {
-            "isWs": false,
-            "public": true,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "fetchTickers",
+            "args": ["{SYMBOL}"]
         },
-        "fetchOHLCV": {
-            "isWs": false,
-            "public": true,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "fetchOHLCV",
+            "args": ["{SYMBOL}"]
         },
-        "fetchTrades": {
-            "isWs": false,
-            "public": true,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "fetchTrades",
+            "args": ["{SYMBOL}"]
         },
-        "fetchOrderBook": {
-            "isWs": false,
-            "public": true,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "fetchOrderBook",
+            "args": ["{SYMBOL}"]
         },
-        "fetchL2OrderBook": {
-            "isWs": false,
-            "public": true,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "fetchL2OrderBook",
+            "args": ["{SYMBOL}"]
         },
-        "fetchOrderBooks": {
-            "isWs": false,
-            "public": true,
+        {
+            "name": "fetchOrderBooks",
             "args": []
         },
-        "fetchBidsAsks": {
-            "isWs": false,
-            "public": true,
+        {
+            "name": "fetchBidsAsks",
             "args": []
         },
-        "fetchTime": {
-            "isWs": false,
-            "public": true,
+        {
+            "name": "fetchTime",
             "args": []
         },
-        "fetchCurrencies": {
-            "isWs": false,
-            "public": true,
+        {
+            "name": "fetchCurrencies",
             "args": [],
             "marketTypes": ["spot"]
         },
-        "fetchFundingRates": {
-            "isWs": false,
-            "public": true,
+        {
+            "name": "fetchFundingRates",
             "args": [],
             "marketTypes": ["swap"]
         },
-        "fetchFundingRate": {
-            "isWs": false,
-            "public": true,
+        {
+            "name": "fetchFundingRate",
             "args": [],
             "marketTypes": ["swap"]
         },
-        "fetchFundingRateHistory": {
-            "isWs": false,
-            "public": true,
+        {
+            "name": "fetchFundingRateHistory",
             "args": [],
             "marketTypes": ["swap"]
         },
-        "fetchIndexOHLCV": {
-            "isWs": false,
-            "public": true,
+        {
+            "name": "fetchIndexOHLCV",
             "args": [],
             "marketTypes": ["swap"]
         },
-        "fetchMarkOHLCV": {
-            "isWs": false,
-            "public": true,
+        {
+            "name": "fetchMarkOHLCV",
             "args": [],
             "marketTypes": ["swap"]
         },
-        "fetchPremiumIndexOHLCV": {
-            "isWs": false,
-            "public": true,
+        {
+            "name": "fetchPremiumIndexOHLCV",
             "args": [],
             "marketTypes": ["swap"]
         },
-        "signIn": {
-            "isWs": false,
-            "public": false,
+        {
+            "name": "signIn",
             "args": []
         },
-        "fetchBalance": {
-            "isWs": false,
-            "public": false,
+        {
+            "name": "fetchBalance",
             "args": []
         },
-        "fetchAccounts": {
-            "isWs": false,
-            "public": false,
+        {
+            "name": "fetchAccounts",
             "args": []
         },
-        "fetchTransactionFees": {
-            "isWs": false,
-            "public": false,
+        {
+            "name": "fetchTransactionFees",
             "args": []
         },
-        "fetchTradingFees": {
-            "isWs": false,
-            "public": false,
+        {
+            "name": "fetchTradingFees",
             "args": []
         },
-        "fetchStatus": {
-            "isWs": false,
-            "public": false,
+        {
+            "name": "fetchStatus",
             "args": []
         },
-        "fetchOrders": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "fetchOrders",
+            "args": ["{SYMBOL}"]
         },
-        "fetchOpenOrders": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "fetchOpenOrders",
+            "args": ["{SYMBOL}"]
         },
-        "fetchClosedOrders": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "fetchClosedOrders",
+            "args": ["{SYMBOL}"]
         },
-        "fetchMyTrades": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "fetchMyTrades",
+            "args": ["{SYMBOL}"]
         },
-        "fetchLeverageTiers": {
-            "isWs": false,
-            "public": false,
-            "args": [ [ "{SYMBOL}" ] ]
+        {
+            "name": "fetchLeverageTiers",
+            "args": [["{SYMBOL}"]]
         },
-        "fetchLedger": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{CODE}" ]
+        {
+            "name": "fetchLedger",
+            "args": ["{CODE}"]
         },
-        "fetchTransactions": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{CODE}" ]
+        {
+            "name": "fetchTransactions",
+            "args": ["{CODE}"]
         },
-        "fetchDeposits": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{CODE}" ]
+        {
+            "name": "fetchDeposits",
+            "args": ["{CODE}"]
         },
-        "fetchWithdrawals": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{CODE}" ]
+        {
+            "name": "fetchWithdrawals",
+            "args": ["{CODE}"]
         },
-        "fetchBorrowInterest": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{CODE}", "{SYMBOL}" ]
+        {
+            "name": "fetchBorrowInterest",
+            "args": ["{CODE}", "{SYMBOL}"]
         },
-        "addMargin": {
-            "isWs": false,
-            "public": false,
+        {
+            "name": "addMargin",
             "args": []
         },
-        "reduceMargin": {
-            "isWs": false,
-            "public": false,
+        {
+            "name": "reduceMargin",
             "args": []
         },
-        "setMargin": {
-            "isWs": false,
-            "public": false,
+        {
+            "name": "setMargin",
             "args": []
         },
-        "setMarginMode": {
-            "isWs": false,
-            "public": false,
+        {
+            "name": "setMarginMode",
             "args": []
         },
-        "setLeverage": {
-            "isWs": false,
-            "public": false,
+        {
+            "name": "setLeverage",
             "args": []
         },
-        "cancelAllOrders": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "cancelAllOrders",
+            "args": ["{SYMBOL}"]
         },
-        "cancelOrder": {
-            "isWs": false,
-            "public": false,
-            "args": [],
-            "skip": true
+        {
+            "name": "cancelOrder",
+            "args": []
         },
-        "cancelOrders": {
-            "isWs": false,
-            "public": false,
-            "args": [],
-            "skip": true
+        {
+            "name": "cancelOrders",
+            "args": []
         },
-        "fetchCanceledOrders": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "fetchCanceledOrders",
+            "args": ["{SYMBOL}"]
         },
-        "fetchClosedOrder": {
-            "isWs": false,
-            "public": false,
-            "args": [],
-            "skip": true
+        {
+            "name": "fetchClosedOrder",
+            "args": []
         },
-        "fetchOpenOrder": {
-            "isWs": false,
-            "public": false,
-            "args": [],
-            "skip": true
+        {
+            "name": "fetchOpenOrder",
+            "args": []
         },
-        "fetchOrder": {
-            "isWs": false,
-            "public": false,
-            "args": [],
-            "skip": true
+        {
+            "name": "fetchOrder",
+            "args": []
         },
-        "fetchOrderTrades": {
-            "isWs": false,
-            "public": false,
-            "args": [],
-            "skip": true
+        {
+            "name": "fetchOrderTrades",
+            "args": []
         },
-        "fetchDeposit": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{CODE}" ]
+        {
+            "name": "fetchDeposit",
+            "args": ["{CODE}"]
         },
-        "createDepositAddress": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{CODE}" ]
+        {
+            "name": "createDepositAddress",
+            "args": ["{CODE}"]
         },
-        "fetchDepositAddress": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{CODE}" ]
+        {
+            "name": "fetchDepositAddress",
+            "args": ["{CODE}"]
         },
-        "fetchDepositAddresses": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{CODE}" ]
+        {
+            "name": "fetchDepositAddresses",
+            "args": ["{CODE}"]
         },
-        "fetchDepositAddressesByNetwork": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{CODE}" ]
+        {
+            "name": "fetchDepositAddressesByNetwork",
+            "args": ["{CODE}"]
         },
-        "editOrder": {
-            "isWs": false,
-            "public": false,
-            "args": [],
-            "skip": true
+        {
+            "name": "editOrder",
+            "args": []
         },
-        "fetchBorrowRateHistory": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{CODE}" ]
+        {
+            "name": "fetchBorrowRateHistory",
+            "args": ["{CODE}"]
         },
-        "fetchLedgerEntry": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{CODE}" ]
+        {
+            "name": "fetchLedgerEntry",
+            "args": ["{CODE}"]
         },
-        "fetchWithdrawal": {
-            "isWs": false,
-            "public": false,
-            "args": [],
-            "skip": true
+        {
+            "name": "fetchWithdrawal",
+            "args": []
         },
-        "transfer": {
-            "isWs": false,
-            "public": false,
-            "args": [],
-            "skip": true
+        {
+            "name": "transfer",
+            "args": []
         },
-        "withdraw": {
-            "isWs": false,
-            "public": false,
-            "args": [],
-            "skip": true
+        {
+            "name": "withdraw",
+            "args": []
         },
-        "fetchPositions": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{SYMBOL}" ],
+        {
+            "name": "fetchPositions",
+            "args": ["{SYMBOL}"],
             "marketTypes": ["margin", "swap", "future", "option"]
         },
-        "fetchPosition": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{SYMBOL}" ],
+        {
+            "name": "fetchPosition",
+            "args": ["{SYMBOL}"],
             "marketTypes": ["margin", "swap", "future", "option"]
         },
-        "fetchPositionRisk": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{SYMBOL}" ],
+        {
+            "name": "fetchPositionRisk",
+            "args": ["{SYMBOL}"],
             "marketTypes": ["margin", "swap", "future", "option"]
         },
-        "setPositionMode": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{SYMBOL}" ],
+        {
+            "name": "setPositionMode",
+            "args": ["{SYMBOL}"],
             "marketTypes": ["margin", "swap", "future", "option"]
         },
-        "fetchOpenInterestHistory": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{SYMBOL}" ],
+        {
+            "name": "fetchOpenInterestHistory",
+            "args": ["{SYMBOL}"],
             "marketTypes": ["margin", "swap", "future", "option"]
         },
-        "fetchFundingRateHistory - private": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{SYMBOL}" ],
-            "marketTypes": ["margin", "swap", "future", "option"]
-
-        },
-        "fetchFundingHistory": {
-            "isWs": false,
-            "public": false,
-            "args": [ "{SYMBOL}" ],
+        {
+            "name": "fetchFundingRateHistory - private",
+            "args": ["{SYMBOL}"],
             "marketTypes": ["margin", "swap", "future", "option"]
         },
-        "watchOHLCV": {
-            "isWs": true,
-            "public": true,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "fetchFundingHistory",
+            "args": ["{SYMBOL}"],
+            "marketTypes": ["margin", "swap", "future", "option"]
         },
-        "watchTicker": {
-            "isWs": true,
-            "public": true,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "watchOHLCV",
+            "args": ["{SYMBOL}"]
         },
-        "watchOrderBook": {
-            "isWs": true,
-            "public": true,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "watchTicker",
+            "args": ["{SYMBOL}"]
         },
-        "watchTrades": {
-            "isWs": true,
-            "public": true,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "watchOrderBook",
+            "args": ["{SYMBOL}"]
         },
-        "watchTickers with symbol": {
-            "isWs": true,
-            "public": true,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "watchTrades",
+            "args": ["{SYMBOL}"]
         },
-        "watchBalance": {
-            "testFile": "watchBalance",
-            "isWs": true,
-            "public": false,
-            "args": [ "{CODE}" ]
+        {
+            "name": "watchTickers with symbol",
+            "args": ["{SYMBOL}"]
         },
-        "watchMyTrades": {
-            "testFile": "watchMyTrades",
-            "isWs": true,
-            "public": false,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "watchBalance",
+            "args": ["{CODE}"]
         },
-        "watchOrders": {
-            "testFile": "watchOrders",
-            "isWs": true,
-            "public": false,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "watchMyTrades",
+            "args": ["{SYMBOL}"]
         },
-        "watchPosition": {
-            "testFile": "watchPosition",
-            "isWs": true,
-            "public": false,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "watchOrders",
+            "args": ["{SYMBOL}"]
         },
-        "watchPositions": {
-            "testFile": "watchPositions",
-            "isWs": true,
-            "public": false,
-            "args": [ "{SYMBOL}" ]
+        {
+            "name": "watchPosition",
+            "args": ["{SYMBOL}"]
+        },
+        {
+            "name": "watchPositions",
+            "args": ["{SYMBOL}"]
         }
-    },
+    ],
     "ace": {
         "skip": "temp",
         "skipWs": true,

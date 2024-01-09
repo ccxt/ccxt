@@ -31,13 +31,16 @@ const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
-type Test = {
-    testFile?: string;
+type TestItem = {
     isWs?: boolean;
     public?: boolean;
     args?: any[];
     skippedProperties?: {}
     skip?: string;
+}
+
+type Test = TestItem & {
+    testFile?: string;
 }
 
 type Tests = Test & {
@@ -56,8 +59,7 @@ type TestConfig = {
     [key: string]: Tests;
 }
 
-const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
-const sanitizedSymnol = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
+const [ processPath, , exchangeIdFromArgv = null, methodOrSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
 // non-transpiled part, but shared names among langs
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
@@ -229,13 +231,20 @@ export default class testMainClass extends baseMainTestClass {
         this.wsTests = getCliArgValue ('--ws');
     }
 
-    getConfigJson (symbol: string = 'BTC/USDT', code: string = 'USDT') {
+    getConfig (symbol: string = 'BTC/USDT', code: string = 'USDT') {
         if (this.configContent === '') {
-            this.configContent = ioFileRead (this.rootDir + './tests-config.json');
+            this.configContent = ioFileRead (this.rootDir + './tests-config.json', false);
         }
         let result = this.configContent.replace ('{SYMBOL}', symbol);
         result = this.configContent.replace ('{CODE}', code);
         return JSON.parse (this.configContent);
+    }
+
+    getConfigForExchange (exchange: any, symbol: string = 'BTC/USDT', code: string = 'USDT') {
+        const config = this.getConfig (symbol, code);
+        const mainConfig = config['exchange'];
+        const exchangeConfig = exchange.safeValue (config, exchange.id, {});
+        return exchange.deepExtend (mainConfig, exchangeConfig);
     }
 
     async init (exchangeId, symbolArgv) {
@@ -272,8 +281,7 @@ export default class testMainClass extends baseMainTestClass {
 
     checkIfSpecificTestIsChosen (exchange, symbolArgv) {
         if (symbolArgv !== undefined) {
-            const testConfig = this.getConfigJson ();
-            const tests = exchange.deepExtend (testConfig['exchange'], testConfig[exchange.id]);
+            const tests = this.getConfigForExchange (exchange);
             const testFileNames = Object.keys (tests);
             const possibleMethodNames = symbolArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if (possibleMethodNames.length >= 1) {
@@ -348,8 +356,7 @@ export default class testMainClass extends baseMainTestClass {
         // credentials
         this.loadCredentialsFromEnv (exchange);
         // exchange tests settings
-        const testsConfig = this.getConfigJson ();
-        const skippedSettingsForExchange = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchangeId]);
+        const skippedSettingsForExchange = this.getConfigForExchange (exchange);
         // others
         const timeout = exchange.safeValue (skippedSettingsForExchange, 'timeout');
         if (timeout !== undefined) {
@@ -545,7 +552,7 @@ export default class testMainClass extends baseMainTestClass {
         const market = exchange.market (symbol);
         const isSpot = market['spot'];
         const code = this.getExchangeCode (exchange);
-        const testsConfig = this.getConfigJson (symbol, code);
+        const testsConfig = this.getConfigForExchange (exchange, symbol, code);
         let tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchange.id]);
         tests = this.filterTest (tests, 'public', true);
         tests = this.filterTest (tests, 'isWs', this.wsTests);
@@ -583,7 +590,7 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async loadExchange (exchange) {
-        const testsConfig = this.getConfigJson ('', '');
+        const testsConfig = this.getConfigForExchange (exchange, '', '');
         const tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchange.id]);
         const loadMarketsTest = tests['loadMarkets'];
         const result = await this.testSafe ('loadMarkets', exchange, loadMarketsTest);
@@ -843,14 +850,14 @@ export default class testMainClass extends baseMainTestClass {
         //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
         // }
         const market = exchange.market (symbol);
-        const testsConfig = this.getConfigJson (symbol, code);
+        const testsConfig = this.getConfigForExchange (exchange, symbol, code);
         let tests = exchange.deepExtend (testsConfig['exchange'], testsConfig[exchange.id]);
         tests = this.filterTest (tests, 'public', false);
         tests = this.filterTest (tests, 'isWs', this.wsTests);
         await this.runTests (exchange, tests, false);
     }
 
-    async method (exchange) {
+    async testProxies (exchange) {
         // these tests should be synchronously executed, because of conflicting nature of proxy settings
         const proxyTestName = this.proxyTestFileName;
         const proxyTest: Test = {
@@ -897,7 +904,7 @@ export default class testMainClass extends baseMainTestClass {
             }
             // if (exchange.id === 'binance') {
             //     // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
-            //     // await this.method (exchange);
+            //     // await this.testProxies (exchange);
             // }
             await this.testExchange (exchange, symbol);
             await close (exchange);
@@ -1575,4 +1582,4 @@ export default class testMainClass extends baseMainTestClass {
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass ()).init (exchangeIdFromArgv, sanitizedSymnol);
+(new testMainClass ()).init (exchangeIdFromArgv, methodOrSymbol);
