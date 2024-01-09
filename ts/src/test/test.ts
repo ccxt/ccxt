@@ -264,7 +264,7 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         const symbolStr = symbolArgv !== undefined ? symbolArgv : 'all';
-        dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbolOrMethod': symbolStr, 'isWs': this.wsTests }, this.newLine);
+        dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.wsTests }, this.newLine);
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
@@ -357,17 +357,17 @@ export default class testMainClass extends baseMainTestClass {
         // credentials
         this.loadCredentialsFromEnv (exchange);
         // exchange tests settings
-        const exchangeConfig = this.getConfigForExchange (exchange);
+        const skippedSettingsForExchange = this.getConfigForExchange (exchange);
         // others
-        const timeout = exchange.safeValue (exchangeConfig, 'timeout');
+        const timeout = exchange.safeValue (skippedSettingsForExchange, 'timeout');
         if (timeout !== undefined) {
             exchange.timeout = timeout;
         }
-        exchange.httpProxy = exchange.safeString (exchangeConfig, 'httpProxy');
-        exchange.httpsProxy = exchange.safeString (exchangeConfig, 'httpsProxy');
-        exchange.wsProxy = exchange.safeString (exchangeConfig, 'wsProxy');
-        exchange.wssProxy = exchange.safeString (exchangeConfig, 'wssProxy');
-        this.skippedMethods = exchange.safeValue (exchangeConfig, 'skipMethods', {});
+        exchange.httpProxy = exchange.safeString (skippedSettingsForExchange, 'httpProxy');
+        exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
+        exchange.wsProxy = exchange.safeString (skippedSettingsForExchange, 'wsProxy');
+        exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
+        this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
     }
 
