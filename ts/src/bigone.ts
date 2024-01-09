@@ -640,8 +640,9 @@ export default class bigone extends Exchange {
         for (let i = 0; i < contractResponse.length; i++) {
             const market = contractResponse[i];
             const marketId = this.safeString (market, 'symbol');
-            const baseId = marketId.slice (0, 3);
-            const quoteId = marketId.slice (3);
+            const index = marketId.indexOf ('USD');
+            const baseId = marketId.slice (0, index);
+            const quoteId = marketId.slice (index);
             const inverse = (quoteId === 'USD');
             const settleId = inverse ? baseId : quoteId;
             const base = this.safeCurrencyCode (baseId);
