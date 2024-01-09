@@ -3283,9 +3283,17 @@ export default class bitget extends Exchange {
             if (method === 'publicSpotGetV2SpotMarketCandles') {
                 response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
             } else if (method === 'publicSpotGetV2SpotMarketHistoryCandles') {
-                const until = this.safeInteger2 (params, 'until', 'till');
+                const until = this.safeIntegerN (params, [ 'until', 'till', 'endTime' ]);
                 params = this.omit (params, [ 'until', 'till' ]);
-                if (until === undefined) {
+                if (since !== undefined) {
+                    if (limit === undefined) {
+                        limit = 100; // exchange default
+                    }
+                    const duration = this.parseTimeframe (timeframe) * 1000;
+                    request['endTime'] = this.sum (since, duration * limit);
+                } else if (until !== undefined) {
+                    request['endTime'] = until;
+                } else {
                     request['endTime'] = this.milliseconds ();
                 }
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
