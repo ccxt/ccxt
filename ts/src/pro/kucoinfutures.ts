@@ -611,7 +611,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             const limit = this.safeInteger (subscription, 'limit');
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
             if (cacheLength === snapshotDelay) {
-                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
             storedOrderBook.cache.push (data);
             return;
