@@ -4221,6 +4221,14 @@ export default class Exchange {
          * @param {float} [takeProfit] the take profit price, in units of the quote currency
          * @param {float} [stopLoss] the stop loss price, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
+         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
+         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (takeProfit !== undefined) {
@@ -4232,6 +4240,38 @@ export default class Exchange {
             params['stopLoss'] = {
                 'triggerPrice': stopLoss,
             };
+        }
+        const takeProfitType = this.safeString (params, 'takeProfitType');
+        const takeProfitPriceType = this.safeString (params, 'takeProfitPriceType');
+        const takeProfitLimitPrice = this.safeString (params, 'takeProfitLimitPrice');
+        const takeProfitAmount = this.safeString (params, 'takeProfitAmount');
+        const stopLossType = this.safeString (params, 'stopLossType');
+        const stopLossPriceType = this.safeString (params, 'stopLossPriceType');
+        const stopLossLimitPrice = this.safeString (params, 'stopLossLimitPrice');
+        const stopLossAmount = this.safeString (params, 'stopLossAmount');
+        if (takeProfitType !== undefined) {
+            params['takeProfit']['type'] = takeProfitType;
+        }
+        if (takeProfitPriceType !== undefined) {
+            params['takeProfit']['priceType'] = takeProfitPriceType;
+        }
+        if (takeProfitLimitPrice !== undefined) {
+            params['takeProfit']['price'] = this.parseToNumeric (takeProfitLimitPrice);
+        }
+        if (takeProfitAmount !== undefined) {
+            params['takeProfit']['amount'] = this.parseToNumeric (takeProfitAmount);
+        }
+        if (stopLossType !== undefined) {
+            params['stopLoss']['type'] = stopLossType;
+        }
+        if (stopLossPriceType !== undefined) {
+            params['stopLoss']['priceType'] = stopLossPriceType;
+        }
+        if (stopLossLimitPrice !== undefined) {
+            params['stopLoss']['price'] = this.parseToNumeric (stopLossLimitPrice);
+        }
+        if (stopLossAmount !== undefined) {
+            params['stopLoss']['amount'] = this.parseToNumeric (stopLossAmount);
         }
         if (this.has['createOrderWithTakeProfitAndStopLoss']) {
             return await this.createOrder (symbol, type, side, amount, price, params);
