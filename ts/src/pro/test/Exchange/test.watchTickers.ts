@@ -5,9 +5,8 @@ import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js
 
 async function testWatchTickers (exchange, skippedProperties, symbol) {
     const withoutSymbol = testWatchTickersHelper (exchange, skippedProperties, undefined);
-    // temporarily remove the below promise, until exchanges filter PR's are merged
-    // const withSymbol = testWatchTickersHelper (exchange, skippedProperties, [ symbol ]);
-    await Promise.all ([ withoutSymbol ]);
+    const withSymbol = testWatchTickersHelper (exchange, skippedProperties, [ symbol ]);
+    await Promise.all ([ withSymbol, withoutSymbol ]);
 }
 
 async function testWatchTickersHelper (exchange, skippedProperties, argSymbols, argParams = {}) {
