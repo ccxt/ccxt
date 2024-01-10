@@ -2322,13 +2322,15 @@ export default class lbank extends Exchange {
         const isAuthorized = this.checkRequiredCredentials (false);
         let result = undefined;
         if (isAuthorized === true) {
-            let method = this.safeString (params, 'method');
+            const options = this.safeValue (this.options, 'fetchTransactionFees', {});
+            const defaultMethod = this.safeString (options, 'method', 'fetchPrivateTransactionFees');
+            const method = this.safeString (params, 'method', defaultMethod);
             params = this.omit (params, 'method');
-            if (method === undefined) {
-                const options = this.safeValue (this.options, 'fetchTransactionFees', {});
-                method = this.safeString (options, 'method', 'fetchPrivateTransactionFees');
+            if (method === 'fetchPublicTransactionFees') {
+                result = await this.fetchPublicTransactionFees (params);
+            } else {
+                result = await this.fetchPrivateTransactionFees (params);
             }
-            result = await this[method] (params);
         } else {
             result = await this.fetchPublicTransactionFees (params);
         }
