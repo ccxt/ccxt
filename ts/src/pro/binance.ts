@@ -2293,7 +2293,8 @@ export default class binance extends binanceRest {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
         }
-        let type = this.handleMarketTypeAndParams ('watchPositions', market, params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
         if (type === 'spot' || type === 'margin') {
             type = 'future';
         }
