@@ -22,7 +22,7 @@ async function testWatchTickersHelper (exchange, skippedProperties, argSymbols, 
             // to "all tickers" itself, and it requires symbols to be set
             // so, in such case, if it's arguments-required exception, we don't
             // mark tests as failed, but just skip them
-            if (testSharedMethods.isArgumentsRequiredException (e)) {
+            if (testSharedMethods.isArgumentsRequiredException (e) && !(argSymbols.length)) {
                 // todo: provide random symbols to try
                 return;
             }
