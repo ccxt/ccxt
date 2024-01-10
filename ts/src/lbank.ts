@@ -1379,14 +1379,16 @@ export default class lbank extends Exchange {
         if (clientOrderId !== undefined) {
             request['custom_id'] = clientOrderId;
         }
-        let method = undefined;
-        method = this.safeString (params, 'method');
+        const options = this.safeValue (this.options, 'createOrder', {});
+        const defaultMethod = this.safeString (options, 'method', 'spotPrivatePostSupplementCreateOrder');
+        const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
-        if (method === undefined) {
-            const options = this.safeValue (this.options, 'createOrder', {});
-            method = this.safeString (options, 'method', 'spotPrivatePostSupplementCreateOrder');
+        let response = undefined;
+        if (method === 'spotPrivatePostCreateOrder') {
+            response = await this.spotPrivatePostCreateOrder (this.extend (request, params));
+        } else {
+            response = await this.spotPrivatePostSupplementCreateOrder (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //      {
         //          "result":true,
