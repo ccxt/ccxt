@@ -97,7 +97,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             symbol = symbols[i]
             market = self.market(symbol)
             productIds.append(market['id'])
-            messageHashes.append(messageHashStart + ':' + market['id'])
+            messageHashes.append(messageHashStart + ':' + market['symbol'])
         url = self.urls['api']['ws']
         if 'signature' in params:
             # need to distinguish between public trades and user trades
@@ -135,10 +135,12 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         if symbolsLength == 0:
             raise BadSymbol(self.id + ' watchTickers requires a non-empty symbols array')
         channel = 'ticker'
-        messageHash = 'tickers::'
-        newTickers = await self.subscribe_multiple(channel, symbols, messageHash, params)
+        messageHash = 'ticker'
+        ticker = await self.subscribe_multiple(channel, symbols, messageHash, params)
         if self.newUpdates:
-            return newTickers
+            result = {}
+            result[ticker['symbol']] = ticker
+            return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
@@ -695,17 +697,10 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             ticker = self.parse_ticker(message)
             symbol = ticker['symbol']
             self.tickers[symbol] = ticker
-            type = self.safe_string(message, 'type')
-            messageHash = type + ':' + marketId
+            messageHash = 'ticker:' + symbol
+            idMessageHash = 'ticker:' + marketId
             client.resolve(ticker, messageHash)
-            messageHashes = self.find_message_hashes(client, 'tickers::')
-            for i in range(0, len(messageHashes)):
-                currentMessageHash = messageHashes[i]
-                parts = currentMessageHash.split('::')
-                symbolsString = parts[1]
-                symbols = symbolsString.split(',')
-                if self.in_array(symbol, symbols):
-                    client.resolve(ticker, currentMessageHash)
+            client.resolve(ticker, idMessageHash)
         return message
 
     def parse_ticker(self, ticker, market=None) -> Ticker:

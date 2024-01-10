@@ -910,10 +910,26 @@ export default class Exchange {
     proxyModulesLoaded:boolean = false;
 
     async loadProxyModules () {
+        if (this.proxyModulesLoaded) {
+            return;
+        }
         this.proxyModulesLoaded = true;
-        // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-        this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
-        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+        // we have to handle it with below nested way, because of dynamic
+        // import issues (https://github.com/ccxt/ccxt/pull/20687)
+        try {
+            // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
+            this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
+            this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+        } catch (e) {
+            // if several users are using those frameworks which cause exceptions,
+            // let them to be able to load modules still, by installing them
+            try {
+                // @ts-ignore
+                this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
+                // @ts-ignore
+                this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
+            } catch { }
+        }
         if (this.socksProxyAgentModuleChecked === false) {
             this.socksProxyAgentModuleChecked = true;
             try {
@@ -1009,11 +1025,10 @@ export default class Exchange {
         // proxy agents
         const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
         this.checkConflictingProxies (httpProxy || httpsProxy || socksProxy, proxyUrl);
+        // skip proxies on the browser
         if (isNode) {
-            // skip this on the browser
-            if (!this.proxyModulesLoaded) {
-                await this.loadProxyModules (); // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
-            }
+            // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
+            await this.loadProxyModules ();
         }
         const chosenAgent = this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
         // user-agent
@@ -1035,13 +1050,28 @@ export default class Exchange {
 
         if (this.fetchImplementation === undefined) {
             if (isNode) {
-                const module = await import (/* webpackIgnore: true */'../static_dependencies/node-fetch/index.js')
                 if (this.agent === undefined) {
                     this.agent = this.httpsAgent;
                 }
-                this.AbortError = module.AbortError
-                this.fetchImplementation = module.default
-                this.FetchError = module.FetchError
+                try {
+                    const module = await import (/* webpackIgnore: true */'../static_dependencies/node-fetch/index.js')
+                    this.AbortError = module.AbortError
+                    this.fetchImplementation = module.default
+                    this.FetchError = module.FetchError
+                }
+                catch (e) {
+                    // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
+                    // so let them to fallback to node's native fetch
+                    if (typeof fetch === 'function') {
+                        this.fetchImplementation = fetch
+                        // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
+                        // it throws same error types
+                        this.AbortError = DOMException
+                        this.FetchError = TypeError
+                    } else {
+                        throw new Error ('Seems, "fetch" function is not available in your node-js version, please use latest node-js version');
+                    }
+                }
             } else {
                 this.fetchImplementation = self.fetch
                 this.AbortError = DOMException
@@ -1573,6 +1603,18 @@ export default class Exchange {
 
     axolotl(payload, hexKey, ed25519) {
         return axolotl(payload, hexKey, ed25519);
+    }
+
+    fixStringifiedJsonMembers (content) {
+        // used for instance in bingx
+        // when stringified json has members with their values also stringified, like:
+        // '{"code":0, "data":{"order":{"orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"{\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1}","reduceOnly":false}}}'
+        // we can fix with below manipulations
+        // @ts-ignore
+        let modifiedContent = content.replaceAll ('\\', '');
+        modifiedContent = modifiedContent.replaceAll ('"{', '{');
+        modifiedContent = modifiedContent.replaceAll ('}"', '}');
+        return modifiedContent;
     }
 
     /* eslint-enable */

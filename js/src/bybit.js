@@ -319,7 +319,7 @@ export default class bybit extends Exchange {
                         'v5/asset/deposit/query-internal-record': 5,
                         'v5/asset/deposit/query-address': 10,
                         'v5/asset/deposit/query-sub-member-address': 10,
-                        'v5/asset/coin/query-info': 25,
+                        'v5/asset/coin/query-info': 28,
                         'v5/asset/withdraw/query-record': 10,
                         'v5/asset/withdraw/withdrawable-amount': 5,
                         // user

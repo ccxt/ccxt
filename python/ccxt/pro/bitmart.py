@@ -275,22 +275,34 @@ class bitmart(ccxt.async_support.bitmart):
         market = self.get_market_from_symbols(symbols)
         type = 'spot'
         type, params = self.handle_market_type_and_params('watchTickers', market, params)
-        symbols = self.market_symbols(symbols)
-        if type == 'spot':
-            raise NotSupported(self.id + ' watchTickers() does not support ' + type + ' markets. Use watchTicker() instead')
         url = self.implode_hostname(self.urls['api']['ws'][type]['public'])
-        if type == 'swap':
-            type = 'futures'
-        messageHash = 'tickers'
+        symbols = self.market_symbols(symbols)
+        messageHash = 'tickers::' + type
         if symbols is not None:
             messageHash += '::' + ','.join(symbols)
-        request = {
-            'action': 'subscribe',
-            'args': ['futures/ticker'],
-        }
-        newTickers = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        request = None
+        tickers = None
+        isSpot = (type == 'spot')
+        if isSpot:
+            if symbols is None:
+                raise ArgumentsRequired(self.id + ' watchTickers() for ' + type + ' market type requires symbols argument to be provided')
+            marketIds = self.market_ids(symbols)
+            finalArray = []
+            for i in range(0, len(marketIds)):
+                finalArray.append('spot/ticker:' + marketIds[i])
+            request = {
+                'op': 'subscribe',
+                'args': finalArray,
+            }
+            tickers = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        else:
+            request = {
+                'action': 'subscribe',
+                'args': ['futures/ticker'],
+            }
+            tickers = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
         if self.newUpdates:
-            return newTickers
+            return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -844,22 +856,30 @@ class bitmart(ccxt.async_support.bitmart):
                 messageHash = table + ':' + marketId
                 self.tickers[symbol] = ticker
                 client.resolve(ticker, messageHash)
+                self.resolve_message_hashes_for_symbol(client, symbol, ticker, 'tickers::')
         else:
+            # on each update for contract markets, single ticker is provided
             ticker = self.parse_ws_swap_ticker(data)
             symbol = self.safe_string(ticker, 'symbol')
             self.tickers[symbol] = ticker
-            client.resolve(ticker, 'tickers')
-            messageHashes = self.find_message_hashes(client, 'tickers::')
-            for i in range(0, len(messageHashes)):
-                messageHash = messageHashes[i]
-                parts = messageHash.split('::')
-                symbolsString = parts[1]
-                symbols = symbolsString.split(',')
-                if self.in_array(symbol, symbols):
-                    response = {}
-                    response[symbol] = ticker
-                    client.resolve(response, messageHash)
+            client.resolve(ticker, 'tickers::swap')
+            self.resolve_message_hashes_for_symbol(client, symbol, ticker, 'tickers::')
         return message
+
+    def resolve_message_hashes_for_symbol(self, client, symbol, result, prexif):
+        prefixSeparator = '::'
+        symbolsSeparator = ','
+        messageHashes = self.find_message_hashes(client, prexif)
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split(prefixSeparator)
+            length = len(parts)
+            symbolsString = parts[length - 1]
+            symbols = symbolsString.split(symbolsSeparator)
+            if self.in_array(symbol, symbols):
+                response = {}
+                response[symbol] = result
+                client.resolve(response, messageHash)
 
     def parse_ws_swap_ticker(self, ticker, market: Market = None):
         #

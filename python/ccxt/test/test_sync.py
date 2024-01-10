@@ -62,6 +62,7 @@ parser.add_argument('--verbose', action='store_true', help='enable verbose outpu
 parser.add_argument('--ws', action='store_true', help='websockets version')
 parser.add_argument('--info', action='store_true', help='enable info output')
 parser.add_argument('--static', action='store_true', help='run static tests')
+parser.add_argument('--useProxy', action='store_true', help='run static tests')
 parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
 parser.add_argument('--responseTests', action='store_true', help='run response tests')
 parser.add_argument('--requestTests', action='store_true', help='run response tests')
@@ -368,10 +369,11 @@ class testMainClass(baseMainTestClass):
         timeout = exchange.safe_value(skipped_settings_for_exchange, 'timeout')
         if timeout is not None:
             exchange.timeout = timeout
-        exchange.http_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpProxy')
-        exchange.https_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpsProxy')
-        exchange.ws_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wsProxy')
-        exchange.wss_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wssProxy')
+        if get_cli_arg_value('--useProxy'):
+            exchange.http_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpProxy')
+            exchange.https_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpsProxy')
+            exchange.ws_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wsProxy')
+            exchange.wss_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wssProxy')
         self.skipped_methods = exchange.safe_value(skipped_settings_for_exchange, 'skipMethods', {})
         self.checked_public_tests = {}
 
@@ -792,13 +794,15 @@ class testMainClass(baseMainTestClass):
             close(exchange)
             raise e
 
-    def assert_static_error(self, cond, message, calculated_output, stored_output):
+    def assert_static_error(self, cond, message, calculated_output, stored_output, key=None):
         #  -----------------------------------------------------------------------------
         #  --- Init of static tests functions------------------------------------------
         #  -----------------------------------------------------------------------------
         calculated_string = json_stringify(calculated_output)
         output_string = json_stringify(stored_output)
         error_message = message + ' expected ' + output_string + ' received: ' + calculated_string
+        if key is not None:
+            error_message = ' | ' + key + ' | ' + 'computed value: ' + output_string + ' stored value: ' + calculated_string
         assert cond, error_message
 
     def load_markets_from_file(self, id):
@@ -868,7 +872,7 @@ class testMainClass(baseMainTestClass):
             result[key] = value
         return result
 
-    def assert_new_and_stored_output(self, exchange, skip_keys, new_output, stored_output, strict_type_check=True):
+    def assert_new_and_stored_output(self, exchange, skip_keys, new_output, stored_output, strict_type_check=True, asserting_key=None):
         if is_null_value(new_output) and is_null_value(stored_output):
             return
         if not new_output and not stored_output:
@@ -888,7 +892,7 @@ class testMainClass(baseMainTestClass):
                     self.assert_static_error(False, 'output key missing: ' + key, stored_output, new_output)
                 stored_value = stored_output[key]
                 new_value = new_output[key]
-                self.assert_new_and_stored_output(exchange, skip_keys, new_value, stored_value, strict_type_check)
+                self.assert_new_and_stored_output(exchange, skip_keys, new_value, stored_value, strict_type_check, key)
         elif isinstance(stored_output, list) and (isinstance(new_output, list)):
             stored_array_length = len(stored_output)
             new_array_length = len(new_output)
@@ -907,17 +911,17 @@ class testMainClass(baseMainTestClass):
             if strict_type_check:
                 # upon building the request we want strict type check to make sure all the types are correct
                 # when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
-                self.assert_static_error(sanitized_new_output == sanitized_stored_output, message_error, stored_output, new_output)
+                self.assert_static_error(sanitized_new_output == sanitized_stored_output, message_error, stored_output, new_output, asserting_key)
             else:
                 is_boolean = (isinstance(sanitized_new_output, bool)) or (isinstance(sanitized_stored_output, bool))
                 is_string = (isinstance(sanitized_new_output, str)) or (isinstance(sanitized_stored_output, str))
                 is_undefined = (sanitized_new_output is None) or (sanitized_stored_output is None)  # undefined is a perfetly valid value
                 if is_boolean or is_string or is_undefined:
-                    self.assert_static_error(new_output_string == stored_output_string, message_error, stored_output, new_output)
+                    self.assert_static_error(new_output_string == stored_output_string, message_error, stored_output, new_output, asserting_key)
                 else:
                     numeric_new_output = exchange.parse_to_numeric(new_output_string)
                     numeric_stored_output = exchange.parse_to_numeric(stored_output_string)
-                    self.assert_static_error(numeric_new_output == numeric_stored_output, message_error, stored_output, new_output)
+                    self.assert_static_error(numeric_new_output == numeric_stored_output, message_error, stored_output, new_output, asserting_key)
 
     def assert_static_request_output(self, exchange, type, skip_keys, stored_url, request_url, stored_output, new_output):
         if stored_url != request_url:

@@ -3129,7 +3129,12 @@ class binance extends Exchange {
             } elseif ($this->is_inverse($type, $subType)) {
                 $response = Async\await($this->dapiPublicGetTickerBookTicker ($params));
             } else {
-                $response = Async\await($this->publicGetTickerBookTicker ($params));
+                $request = array();
+                if ($symbols !== null) {
+                    $marketIds = $this->market_ids($symbols);
+                    $request['symbols'] = $this->json($marketIds);
+                }
+                $response = Async\await($this->publicGetTickerBookTicker (array_merge($request, $params)));
             }
             return $this->parse_tickers($response, $symbols);
         }) ();

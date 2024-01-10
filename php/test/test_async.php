@@ -444,10 +444,12 @@ class testMainClass extends baseMainTestClass {
         if ($timeout !== null) {
             $exchange->timeout = $timeout;
         }
-        $exchange->http_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpProxy');
-        $exchange->https_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpsProxy');
-        $exchange->ws_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'wsProxy');
-        $exchange->wss_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'wssProxy');
+        if (get_cli_arg_value('--useProxy')) {
+            $exchange->http_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpProxy');
+            $exchange->https_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpsProxy');
+            $exchange->ws_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'wsProxy');
+            $exchange->wss_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'wssProxy');
+        }
         $this->skipped_methods = $exchange->safe_value($skipped_settings_for_exchange, 'skipMethods', array());
         $this->checked_public_tests = array();
     }
@@ -981,13 +983,16 @@ class testMainClass extends baseMainTestClass {
         }) ();
     }
 
-    public function assert_static_error($cond, $message, $calculated_output, $stored_output) {
+    public function assert_static_error($cond, $message, $calculated_output, $stored_output, $key = null) {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
         $calculated_string = json_stringify($calculated_output);
         $output_string = json_stringify($stored_output);
         $error_message = $message . ' expected ' . $output_string . ' received: ' . $calculated_string;
+        if ($key !== null) {
+            $error_message = ' | ' . $key . ' | ' . 'computed value: ' . $output_string . ' stored value: ' . $calculated_string;
+        }
         assert($cond, $error_message);
     }
 
@@ -1073,7 +1078,7 @@ class testMainClass extends baseMainTestClass {
         return $result;
     }
 
-    public function assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true) {
+    public function assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
         if (is_null_value($new_output) && is_null_value($stored_output)) {
             return;
         }
@@ -1097,7 +1102,7 @@ class testMainClass extends baseMainTestClass {
                 }
                 $stored_value = $stored_output[$key];
                 $new_value = $new_output[$key];
-                $this->assert_new_and_stored_output($exchange, $skip_keys, $new_value, $stored_value, $strict_type_check);
+                $this->assert_new_and_stored_output($exchange, $skip_keys, $new_value, $stored_value, $strict_type_check, $key);
             }
         } elseif (gettype($stored_output) === 'array' && array_keys($stored_output) === array_keys(array_keys($stored_output)) && (gettype($new_output) === 'array' && array_keys($new_output) === array_keys(array_keys($new_output)))) {
             $stored_array_length = count($stored_output);
@@ -1118,17 +1123,17 @@ class testMainClass extends baseMainTestClass {
             if ($strict_type_check) {
                 // upon building the request we want strict type check to make sure all the types are correct
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
-                $this->assert_static_error($sanitized_new_output === $sanitized_stored_output, $message_error, $stored_output, $new_output);
+                $this->assert_static_error($sanitized_new_output === $sanitized_stored_output, $message_error, $stored_output, $new_output, $asserting_key);
             } else {
                 $is_boolean = (is_bool($sanitized_new_output)) || (is_bool($sanitized_stored_output));
                 $is_string = (is_string($sanitized_new_output)) || (is_string($sanitized_stored_output));
                 $is_undefined = ($sanitized_new_output === null) || ($sanitized_stored_output === null); // undefined is a perfetly valid value
                 if ($is_boolean || $is_string || $is_undefined) {
-                    $this->assert_static_error($new_output_string === $stored_output_string, $message_error, $stored_output, $new_output);
+                    $this->assert_static_error($new_output_string === $stored_output_string, $message_error, $stored_output, $new_output, $asserting_key);
                 } else {
                     $numeric_new_output = $exchange->parse_to_numeric($new_output_string);
                     $numeric_stored_output = $exchange->parse_to_numeric($stored_output_string);
-                    $this->assert_static_error($numeric_new_output === $numeric_stored_output, $message_error, $stored_output, $new_output);
+                    $this->assert_static_error($numeric_new_output === $numeric_stored_output, $message_error, $stored_output, $new_output, $asserting_key);
                 }
             }
         }

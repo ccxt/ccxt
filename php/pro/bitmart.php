@@ -304,25 +304,38 @@ class bitmart extends \ccxt\async\bitmart {
             $market = $this->get_market_from_symbols($symbols);
             $type = 'spot';
             list($type, $params) = $this->handle_market_type_and_params('watchTickers', $market, $params);
-            $symbols = $this->market_symbols($symbols);
-            if ($type === 'spot') {
-                throw new NotSupported($this->id . ' watchTickers() does not support ' . $type . ' markets. Use watchTicker() instead');
-            }
             $url = $this->implode_hostname($this->urls['api']['ws'][$type]['public']);
-            if ($type === 'swap') {
-                $type = 'futures';
-            }
-            $messageHash = 'tickers';
+            $symbols = $this->market_symbols($symbols);
+            $messageHash = 'tickers::' . $type;
             if ($symbols !== null) {
                 $messageHash .= '::' . implode(',', $symbols);
             }
-            $request = array(
-                'action' => 'subscribe',
-                'args' => array( 'futures/ticker' ),
-            );
-            $newTickers = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+            $request = null;
+            $tickers = null;
+            $isSpot = ($type === 'spot');
+            if ($isSpot) {
+                if ($symbols === null) {
+                    throw new ArgumentsRequired($this->id . ' watchTickers() for ' . $type . ' $market $type requires $symbols argument to be provided');
+                }
+                $marketIds = $this->market_ids($symbols);
+                $finalArray = array();
+                for ($i = 0; $i < count($marketIds); $i++) {
+                    $finalArray[] = 'spot/ticker:' . $marketIds[$i];
+                }
+                $request = array(
+                    'op' => 'subscribe',
+                    'args' => $finalArray,
+                );
+                $tickers = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+            } else {
+                $request = array(
+                    'action' => 'subscribe',
+                    'args' => array( 'futures/ticker' ),
+                );
+                $tickers = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+            }
             if ($this->newUpdates) {
-                return $newTickers;
+                return $tickers;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
@@ -917,26 +930,35 @@ class bitmart extends \ccxt\async\bitmart {
                 $messageHash = $table . ':' . $marketId;
                 $this->tickers[$symbol] = $ticker;
                 $client->resolve ($ticker, $messageHash);
+                $this->resolve_message_hashes_for_symbol($client, $symbol, $ticker, 'tickers::');
             }
         } else {
+            // on each update for contract markets, single $ticker is provided
             $ticker = $this->parse_ws_swap_ticker($data);
             $symbol = $this->safe_string($ticker, 'symbol');
             $this->tickers[$symbol] = $ticker;
-            $client->resolve ($ticker, 'tickers');
-            $messageHashes = $this->find_message_hashes($client, 'tickers::');
-            for ($i = 0; $i < count($messageHashes); $i++) {
-                $messageHash = $messageHashes[$i];
-                $parts = explode('::', $messageHash);
-                $symbolsString = $parts[1];
-                $symbols = explode(',', $symbolsString);
-                if ($this->in_array($symbol, $symbols)) {
-                    $response = array();
-                    $response[$symbol] = $ticker;
-                    $client->resolve ($response, $messageHash);
-                }
-            }
+            $client->resolve ($ticker, 'tickers::swap');
+            $this->resolve_message_hashes_for_symbol($client, $symbol, $ticker, 'tickers::');
         }
         return $message;
+    }
+
+    public function resolve_message_hashes_for_symbol($client, $symbol, $result, $prexif) {
+        $prefixSeparator = '::';
+        $symbolsSeparator = ',';
+        $messageHashes = $this->find_message_hashes($client, $prexif);
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode($prefixSeparator, $messageHash);
+            $length = count($parts);
+            $symbolsString = $parts[$length - 1];
+            $symbols = explode($symbolsSeparator, $symbolsString);
+            if ($this->in_array($symbol, $symbols)) {
+                $response = array();
+                $response[$symbol] = $result;
+                $client->resolve ($response, $messageHash);
+            }
+        }
     }
 
     public function parse_ws_swap_ticker($ticker, ?array $market = null) {
