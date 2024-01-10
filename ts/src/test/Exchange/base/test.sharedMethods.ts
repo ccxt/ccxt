@@ -1,7 +1,7 @@
 
 import assert from 'assert';
 import Precise from '../../../base/Precise.js';
-import { OperationFailed, OnMaintenance } from '../../../base/errors.js';
+import { OperationFailed, OnMaintenance, ArgumentsRequired } from '../../../base/errors.js';
 
 function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
@@ -9,6 +9,10 @@ function logTemplate (exchange, method, entry) {
 
 function isTemporaryFailure (e) {
     return (e instanceof OperationFailed) && (!(e instanceof OnMaintenance));
+}
+
+function isArgumentsRequiredException (e) {
+    return (e instanceof ArgumentsRequired);
 }
 
 function stringValue (value) {
@@ -368,6 +372,7 @@ function setProxyOptions (exchange, skippedProperties, proxyUrl, httpProxy, http
 export default {
     logTemplate,
     isTemporaryFailure,
+    isArgumentsRequiredException,
     assertTimestamp,
     assertTimestampAndDatetime,
     assertStructure,
