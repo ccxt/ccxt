@@ -1934,13 +1934,17 @@ export default class lbank extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        let method = this.safeString (params, 'method');
+        const options = this.safeValue (this.options, 'fetchDepositAddress', {});
+        const defaultMethod = this.safeString (options, 'method', 'fetchDepositAddressDefault');
+        const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
-        if (method === undefined) {
-            const options = this.safeValue (this.options, 'fetchDepositAddress', {});
-            method = this.safeString (options, 'method', 'fetchDepositAddressDefault');
+        let response = undefined;
+        if (method === 'fetchDepositAddressSupplement') {
+            response = await this.fetchDepositAddressSupplement (code, params);
+        } else {
+            response = await this.fetchDepositAddressDefault (code, params);
         }
-        return await this[method] (code, params);
+        return response;
     }
 
     async fetchDepositAddressDefault (code: string, params = {}) {

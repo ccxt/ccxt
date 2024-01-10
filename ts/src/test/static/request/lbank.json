@@ -133,7 +133,7 @@
         ],
         "fetchTrades": [
             {
-                "description": "Fetch trades",
+                "description": "Fetch trades - default",
                 "method": "fetchTrades",
                 "url": "https://api.lbank.info/v2/trades.do?size=5&symbol=ltc_usdt&time=1704896297866",
                 "input": [
@@ -143,7 +143,7 @@
                 ]
             },
             {
-                "description": "Fetch trades",
+                "description": "Fetch trades - supplement",
                 "method": "fetchTrades",
                 "url": "https://api.lbank.info/v2/supplement/trades.do?size=5&symbol=ltc_usdt&time=1704896297866",
                 "input": [
@@ -154,6 +154,29 @@
                         "method": "spotPublicGetSupplementTrades"
                     }
                 ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address - default",
+                "method": "fetchDepositAddress",
+                "url": "https://api.lbank.info/v2/get_deposit_address.do",
+                "input": [
+                    "USDT"
+                ],
+                "output": "api_key=41b03aa0-69d1-4d93-93cb-274470458c35&sign=NBYGa7S42oCh1677mRZoM8jSUDJz6ucU86gfbYw7FseeoKK8gC0797t%2BvuhxYk4QzxutD3eGi6iiAylgaMQ1pjfJQUpu3ouR4DkaekJGe0pWSz2HzbvDkoyHedEdsE8maYlt7CVYeQmj5fNSGwKdSoi6yo6Gnym1CoeNNqTcMfY%3D&assetCode=usdt&netWork=trc20"
+            },
+            {
+                "description": "Fetch deposit address - supplement",
+                "method": "fetchDepositAddress",
+                "url": "https://api.lbank.info/v2/supplement/get_deposit_address.do",
+                "input": [
+                    "USDT",
+                    {
+                        "method": "fetchDepositAddressSupplement"
+                    }
+                ],
+                "output": "api_key=41b03aa0-69d1-4d93-93cb-274470458c35&sign=NBYGa7S42oCh1677mRZoM8jSUDJz6ucU86gfbYw7FseeoKK8gC0797t%2BvuhxYk4QzxutD3eGi6iiAylgaMQ1pjfJQUpu3ouR4DkaekJGe0pWSz2HzbvDkoyHedEdsE8maYlt7CVYeQmj5fNSGwKdSoi6yo6Gnym1CoeNNqTcMfY%3D&coin=usdt"
             }
         ]
     }
