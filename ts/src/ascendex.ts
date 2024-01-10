@@ -6,13 +6,13 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market } from './base/types.js';
+import type { FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class ascendex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class ascendex extends Exchange {
     describe () {
@@ -1676,7 +1676,7 @@ export default class ascendex extends Exchange {
          * @description create a list of trade orders
          * @see https://ascendex.github.io/ascendex-pro-api/#place-batch-orders
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#place-batch-orders
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly] true or false
@@ -2000,7 +2000,7 @@ export default class ascendex extends Exchange {
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-current-history-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

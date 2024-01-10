@@ -159,7 +159,7 @@ export default class bitpanda extends bitpandaRest {
                 },
             ],
         };
-        return await this.watchMultiple(messageHash, request, subscriptionHash, [symbol], params);
+        return await this.watchMany(messageHash, request, subscriptionHash, [symbol], params);
     }
     async watchTickers(symbols = undefined, params = {}) {
         /**
@@ -187,7 +187,7 @@ export default class bitpanda extends bitpandaRest {
                 },
             ],
         };
-        const tickers = await this.watchMultiple(messageHash, request, subscriptionHash, symbols, params);
+        const tickers = await this.watchMany(messageHash, request, subscriptionHash, symbols, params);
         return this.filterByArray(tickers, 'symbol', symbols);
     }
     handleTicker(client, message) {
@@ -330,7 +330,7 @@ export default class bitpanda extends bitpandaRest {
                 },
             ],
         };
-        const orderbook = await this.watchMultiple(messageHash, request, subscriptionHash, [symbol], params);
+        const orderbook = await this.watchMany(messageHash, request, subscriptionHash, [symbol], params);
         return orderbook.limit();
     }
     handleOrderBook(client, message) {
@@ -426,7 +426,7 @@ export default class bitpanda extends bitpandaRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.channel] can listen to orders using ACCOUNT_HISTORY or TRADING
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1286,7 +1286,7 @@ export default class bitpanda extends bitpandaRest {
         }
         return message;
     }
-    async watchMultiple(messageHash, request, subscriptionHash, symbols = [], params = {}) {
+    async watchMany(messageHash, request, subscriptionHash, symbols = [], params = {}) {
         let marketIds = [];
         const numSymbols = symbols.length;
         if (numSymbols === 0) {

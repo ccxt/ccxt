@@ -6,13 +6,13 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class okx
- * @extends Exchange
+ * @augments Exchange
  */
 export default class okx extends Exchange {
     describe () {
@@ -32,10 +32,11 @@ export default class okx extends Exchange {
                 'future': true,
                 'option': true,
                 'addMargin': true,
-                'borrowMargin': true,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': true,
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketSellOrderWithCost': true,
@@ -158,8 +159,7 @@ export default class okx extends Exchange {
                 'referral': {
                     // old reflink 0% discount https://www.okx.com/join/1888677
                     // new reflink 20% discount https://www.okx.com/join/CCXT2023
-                    // okx + ccxt campaign reflink with 20% discount https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023
-                    'url': 'https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023',
+                    'url': 'https://www.okx.com/join/CCXT2023',
                     'discount': 0.2,
                 },
                 'test': {
@@ -251,6 +251,7 @@ export default class okx extends Exchange {
                         // rfq
                         'rfq/counterparties': 4,
                         'rfq/maker-instrument-settings': 4,
+                        'rfq/mmp-config': 4,
                         'rfq/rfqs': 10,
                         'rfq/quotes': 10,
                         'rfq/trades': 4,
@@ -390,6 +391,7 @@ export default class okx extends Exchange {
                         'rfq/execute-quote': 15,
                         'rfq/maker-instrument-settings': 4,
                         'rfq/mmp-reset': 4,
+                        'rfq/mmp-config': 100,
                         'rfq/create-quote': 0.4,
                         'rfq/cancel-quote': 0.4,
                         'rfq/cancel-batch-quotes': 10,
@@ -870,8 +872,8 @@ export default class okx extends Exchange {
                     'ALGO': 'Algorand',
                     'BHP': 'BHP',
                     'APT': 'Aptos',
-                    'ARBONE': 'Arbitrum one',
-                    'AVAXC': 'Avalanche C-Chain',
+                    'ARBONE': 'Arbitrum One',
+                    'AVAXC': 'Avalanche C',
                     'AVAXX': 'Avalanche X-Chain',
                     'ARK': 'ARK',
                     'AR': 'Arweave',
@@ -1218,9 +1220,16 @@ export default class okx extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const event = data[i];
             const state = this.safeString (event, 'state');
+            update['eta'] = this.safeInteger (event, 'end');
+            update['url'] = this.safeString (event, 'href');
             if (state === 'ongoing') {
-                update['eta'] = this.safeInteger (event, 'end');
                 update['status'] = 'maintenance';
+            } else if (state === 'scheduled') {
+                update['status'] = 'ok';
+            } else if (state === 'completed') {
+                update['status'] = 'ok';
+            } else if (state === 'canceled') {
+                update['status'] = 'ok';
             }
         }
         return update;
@@ -2600,6 +2609,8 @@ export default class okx extends Exchange {
         const stopLossDefined = (stopLoss !== undefined);
         const takeProfit = this.safeValue (params, 'takeProfit');
         const takeProfitDefined = (takeProfit !== undefined);
+        const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRatio');
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2 (params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the request
         let margin = false;
@@ -2630,7 +2641,7 @@ export default class okx extends Exchange {
         const isMarketOrder = type === 'market';
         let postOnly = false;
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'post_only', params);
-        params = this.omit (params, [ 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit' ]);
+        params = this.omit (params, [ 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent' ]);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
@@ -2684,7 +2695,11 @@ export default class okx extends Exchange {
         } else if (fok) {
             request['ordType'] = 'fok';
         }
-        if (stopLossDefined || takeProfitDefined) {
+        if (isTrailingPercentOrder) {
+            const convertedTrailingPercent = Precise.stringDiv (trailingPercent, '100');
+            request['callbackRatio'] = convertedTrailingPercent;
+            request['ordType'] = 'move_order_stop';
+        } else if (stopLossDefined || takeProfitDefined) {
             if (stopLossDefined) {
                 const stopLossTriggerPrice = this.safeValueN (stopLoss, [ 'triggerPrice', 'stopPrice', 'slTriggerPx' ]);
                 if (stopLossTriggerPrice === undefined) {
@@ -2816,6 +2831,7 @@ export default class okx extends Exchange {
          * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
          * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
          * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
+         * @param {string} [params.trailingPercent] the percent to trail away from the current market price
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2823,7 +2839,7 @@ export default class okx extends Exchange {
         let request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let method = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders');
         const requestOrdType = this.safeString (request, 'ordType');
-        if ((requestOrdType === 'trigger') || (requestOrdType === 'conditional') || (type === 'oco') || (type === 'move_order_stop') || (type === 'iceberg') || (type === 'twap')) {
+        if ((requestOrdType === 'trigger') || (requestOrdType === 'conditional') || (requestOrdType === 'move_order_stop') || (type === 'move_order_stop') || (type === 'oco') || (type === 'iceberg') || (type === 'twap')) {
             method = 'privatePostTradeOrderAlgo';
         }
         if ((method !== 'privatePostTradeOrder') && (method !== 'privatePostTradeOrderAlgo') && (method !== 'privatePostTradeBatchOrders')) {
@@ -2857,7 +2873,7 @@ export default class okx extends Exchange {
          * @name okx#createOrders
          * @description create a list of trade orders
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3021,16 +3037,20 @@ export default class okx extends Exchange {
          * @name okx#cancelOrder
          * @description cancels an open order
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-order
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.trigger] true if trigger orders
+         * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        const stop = this.safeValue (params, 'stop');
-        if (stop) {
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trailing = this.safeValue (params, 'trailing', false);
+        if (stop || trailing) {
             const orderInner = await this.cancelOrders ([ id ], symbol, params);
             return this.safeValue (orderInner, 0);
         }
@@ -3081,6 +3101,7 @@ export default class okx extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] whether the order is a stop/trigger order
+         * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
@@ -3096,7 +3117,8 @@ export default class okx extends Exchange {
         const clientOrderIds = this.parseIds (this.safeValue2 (params, 'clOrdId', 'clientOrderId'));
         const algoIds = this.parseIds (this.safeValue (params, 'algoId'));
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        if (stop) {
+        const trailing = this.safeValue (params, 'trailing', false);
+        if (stop || trailing) {
             method = 'privatePostTradeCancelAlgos';
         }
         if (clientOrderIds === undefined) {
@@ -3110,7 +3132,7 @@ export default class okx extends Exchange {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (stop) {
+                if (trailing || stop) {
                     request.push ({
                         'algoId': ids[i],
                         'instId': market['id'],
@@ -3130,7 +3152,12 @@ export default class okx extends Exchange {
                 });
             }
         }
-        const response = await this[method] (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        let response = undefined;
+        if (method === 'privatePostTradeCancelAlgos') {
+            response = await this.privatePostTradeCancelAlgos (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        } else {
+            response = await this.privatePostTradeCancelBatchOrders (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        }
         //
         //     {
         //         "code": "0",
@@ -3393,8 +3420,9 @@ export default class okx extends Exchange {
          * @param {string} id the order id
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra and exchange specific parameters
+         * @param {boolean} [params.trigger] true if fetching trigger orders
          * @returns [an order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -3410,7 +3438,7 @@ export default class okx extends Exchange {
         const options = this.safeValue (this.options, 'fetchOrder', {});
         const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrder');
         let method = this.safeString (params, 'method', defaultMethod);
-        const stop = this.safeValue (params, 'stop');
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
         if (stop) {
             method = 'privateGetTradeOrderAlgo';
             if (clientOrderId !== undefined) {
@@ -3425,8 +3453,13 @@ export default class okx extends Exchange {
                 request['ordId'] = id;
             }
         }
-        const query = this.omit (params, [ 'method', 'clOrdId', 'clientOrderId', 'stop' ]);
-        const response = await this[method] (this.extend (request, query));
+        const query = this.omit (params, [ 'method', 'clOrdId', 'clientOrderId', 'stop', 'trigger' ]);
+        let response = undefined;
+        if (method === 'privateGetTradeOrderAlgo') {
+            response = await this.privateGetTradeOrderAlgo (this.extend (request, query));
+        } else {
+            response = await this.privateGetTradeOrder (this.extend (request, query));
+        }
         //
         // Spot and Swap
         //
@@ -3532,7 +3565,6 @@ export default class okx extends Exchange {
         /**
          * @method
          * @name okx#fetchOpenOrders
-         * @description Fetch orders that are still open
          * @description fetch all unfilled currently open orders
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-list
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-list
@@ -3545,6 +3577,7 @@ export default class okx extends Exchange {
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3576,17 +3609,27 @@ export default class okx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrdersPending');
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
-        const stop = this.safeValue (params, 'stop');
-        if (stop || (ordType in algoOrderTypes)) {
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trailing = this.safeValue (params, 'trailing', false);
+        if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoPending';
+        }
+        if (trailing) {
+            request['ordType'] = 'move_order_stop';
+        } else if (stop || (ordType in algoOrderTypes)) {
             if (stop) {
                 if (ordType === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
             }
         }
-        const query = this.omit (params, [ 'method', 'stop' ]);
-        const response = await this[method] (this.extend (request, query));
+        const query = this.omit (params, [ 'method', 'stop', 'trigger', 'trailing' ]);
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoPending') {
+            response = await this.privateGetTradeOrdersAlgoPending (this.extend (request, query));
+        } else {
+            response = await this.privateGetTradeOrdersPending (this.extend (request, query));
+        }
         //
         //     {
         //         "code": "0",
@@ -3701,6 +3744,7 @@ export default class okx extends Exchange {
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {int} [params.until] timestamp in ms to fetch orders for
+         * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3733,8 +3777,12 @@ export default class okx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrdersHistory');
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
-        const stop = this.safeValue (params, 'stop');
-        if (stop || (ordType in algoOrderTypes)) {
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trailing = this.safeValue (params, 'trailing', false);
+        if (trailing) {
+            method = 'privateGetTradeOrdersAlgoHistory';
+            request['ordType'] = 'move_order_stop';
+        } else if (stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoHistory';
             const algoId = this.safeString (params, 'algoId');
             if (algoId !== undefined) {
@@ -3745,7 +3793,6 @@ export default class okx extends Exchange {
                 if (ordType === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
-                request['ordType'] = ordType;
             }
         } else {
             if (since !== undefined) {
@@ -3757,8 +3804,13 @@ export default class okx extends Exchange {
                 query = this.omit (query, [ 'until', 'till' ]);
             }
         }
-        const send = this.omit (query, [ 'method', 'stop', 'ordType' ]);
-        const response = await this[method] (this.extend (request, send));
+        const send = this.omit (query, [ 'method', 'stop', 'trigger', 'trailing' ]);
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoHistory') {
+            response = await this.privateGetTradeOrdersAlgoHistory (this.extend (request, send));
+        } else {
+            response = await this.privateGetTradeOrdersHistory (this.extend (request, send));
+        }
         //
         //     {
         //         "code": "0",
@@ -3869,15 +3921,18 @@ export default class okx extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-3-months
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.stop] True if fetching trigger or conditional orders
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {int} [params.until] timestamp in ms to fetch orders for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {string} [params.method] method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
+         * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3914,15 +3969,20 @@ export default class okx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrdersHistory');
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
-        const stop = this.safeValue (params, 'stop');
-        if (stop || (ordType in algoOrderTypes)) {
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trailing = this.safeValue (params, 'trailing', false);
+        if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoHistory';
+            request['state'] = 'effective';
+        }
+        if (trailing) {
+            request['ordType'] = 'move_order_stop';
+        } else if (stop || (ordType in algoOrderTypes)) {
             if (stop) {
                 if (ordType === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
             }
-            request['state'] = 'effective';
         } else {
             if (since !== undefined) {
                 request['begin'] = since;
@@ -3934,8 +3994,15 @@ export default class okx extends Exchange {
             }
             request['state'] = 'filled';
         }
-        const send = this.omit (query, [ 'method', 'stop' ]);
-        const response = await this[method] (this.extend (request, send));
+        const send = this.omit (query, [ 'method', 'stop', 'trigger', 'trailing' ]);
+        let response = undefined;
+        if (method === 'privateGetTradeOrdersAlgoHistory') {
+            response = await this.privateGetTradeOrdersAlgoHistory (this.extend (request, send));
+        } else if (method === 'privateGetTradeOrdersHistoryArchive') {
+            response = await this.privateGetTradeOrdersHistoryArchive (this.extend (request, send));
+        } else {
+            response = await this.privateGetTradeOrdersHistory (this.extend (request, send));
+        }
         //
         //     {
         //         "code": "0",
@@ -4191,7 +4258,14 @@ export default class okx extends Exchange {
             request['ccy'] = currency['id'];
         }
         [ request, params ] = this.handleUntilOption ('end', request, params);
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (method === 'privateGetAccountBillsArchive') {
+            response = await this.privateGetAccountBillsArchive (this.extend (request, query));
+        } else if (method === 'privateGetAssetBills') {
+            response = await this.privateGetAssetBills (this.extend (request, query));
+        } else {
+            response = await this.privateGetAccountBills (this.extend (request, query));
+        }
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -4424,15 +4498,16 @@ export default class okx extends Exchange {
         //     },
         //
         if (chain === 'USDT-Polygon') {
-            networkData = this.safeValue (networksById, 'USDT-Polygon-Bridge');
+            networkData = this.safeValue2 (networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon');
         }
         const network = this.safeString (networkData, 'network');
+        const networkCode = this.networkIdToCode (network, code);
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': networkCode,
             'info': depositAddress,
         };
     }
@@ -5114,7 +5189,12 @@ export default class okx extends Exchange {
         }
         const fetchPositionsOptions = this.safeValue (this.options, 'fetchPositions', {});
         const method = this.safeString (fetchPositionsOptions, 'method', 'privateGetAccountPositions');
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'privateGetAccountPositionsHistory') {
+            response = await this.privateGetAccountPositionsHistory (this.extend (request, params));
+        } else {
+            response = await this.privateGetAccountPositions (this.extend (request, params));
+        }
         //
         //     {
         //         "code": "0",
@@ -7154,6 +7234,73 @@ export default class okx extends Exchange {
             'underlyingPrice': undefined,
             'info': greeks,
         };
+    }
+
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name okx#closePosition
+         * @description closes open positions for a market
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.clientOrderId] a unique identifier for the order
+         * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
+         * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
+         * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const code = this.safeString (params, 'code');
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params, 'cross');
+        const request = {
+            'instId': market['id'],
+            'mgnMode': marginMode,
+        };
+        if (side !== undefined) {
+            if ((side === 'buy')) {
+                request['posSide'] = 'long';
+            } else if (side === 'sell') {
+                request['posSide'] = 'short';
+            } else {
+                request['posSide'] = side;
+            }
+        }
+        if (clientOrderId !== undefined) {
+            request['clOrdId'] = clientOrderId;
+        }
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['ccy'] = currency['id'];
+        }
+        const response = await this.privatePostTradeClosePosition (this.extend (request, params));
+        //
+        //    {
+        //        "code": "1",
+        //        "data": [
+        //            {
+        //                "clOrdId":"e847386590ce4dBCe903bbc394dc88bf",
+        //                "ordId":"",
+        //                "sCode":"51000",
+        //                "sMsg":"Parameter posSide error ",
+        //                "tag":"e847386590ce4dBC"
+        //            }
+        //        ],
+        //        "inTime": "1701877077101064",
+        //        "msg": "All operations failed",
+        //        "outTime": "1701877077102579"
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const order = this.safeValue (data, 0);
+        return this.parseOrder (order, market);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

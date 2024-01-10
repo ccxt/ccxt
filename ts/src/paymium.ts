@@ -6,13 +6,13 @@ import { ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import type { Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class paymium
- * @extends Exchange
+ * @augments Exchange
  */
 export default class paymium extends Exchange {
     describe () {

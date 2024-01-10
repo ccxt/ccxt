@@ -48,6 +48,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closePosition': False,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
@@ -1728,7 +1729,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :see: https://api.hitbtc.com/#margin-orders-history
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported
         :param bool [params.margin]: True for fetching margin orders
@@ -2660,6 +2661,8 @@ class hitbtc(Exchange, ImplicitAPI):
         marketType = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('fetchPositions', None, params)
+        if marketType == 'spot':
+            marketType = 'swap'
         marginMode, params = self.handle_margin_mode_and_params('fetchPositions', params)
         params = self.omit(params, ['marginMode', 'margin'])
         response = None
@@ -3264,12 +3267,47 @@ class hitbtc(Exchange, ImplicitAPI):
             }
         return result
 
+    def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+        """
+        closes open positions for a market
+        :see: https://api.hitbtc.com/#close-all-futures-margin-positions
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.symbol]: *required* unified market symbol
+        :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross'
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('closePosition', params, 'cross')
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'margin_mode': marginMode,
+        }
+        response = self.privateDeleteFuturesPositionMarginModeSymbol(self.extend(request, params))
+        #
+        # {
+        #     "id":"202471640",
+        #     "symbol":"TRXUSDT_PERP",
+        #     "margin_mode":"Cross",
+        #     "leverage":"1.00",
+        #     "quantity":"0",
+        #     "price_entry":"0",
+        #     "price_margin_call":"0",
+        #     "price_liquidation":"0",
+        #     "pnl":"0.001234100000",
+        #     "created_at":"2023-10-29T14:46:13.235Z",
+        #     "updated_at":"2023-12-19T09:34:40.014Z"
+        # }
+        #
+        return self.parse_order(response, market)
+
     def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns array: the marginMode in lowercase
+        :returns Array: the marginMode in lowercase
         """
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_value(params, 'margin', False)

@@ -3,11 +3,11 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, Exchange
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 /**
  * @class coinlist
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinlist extends Exchange {
     describe () {
@@ -27,7 +27,6 @@ export default class coinlist extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -106,7 +105,8 @@ export default class coinlist extends Exchange {
                 'fetchWithdrawals': false,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -1123,11 +1123,10 @@ export default class coinlist extends Exchange {
         //         "net_liquidation_value_usd": "string"
         //     }
         //
-        const timestamp = this.milliseconds ();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const totalBalances = this.safeValue (response, 'asset_balances', {});
         const usedBalances = this.safeValue (response, 'asset_holds', {});
@@ -1234,7 +1233,7 @@ export default class coinlist extends Exchange {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve (default 200, max 500)
+         * @param {int} [limit] the maximum number of order structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {string|string[]} [params.status] the status of the order - 'accepted', 'done', 'canceled', 'rejected', 'pending' (default [ 'accepted', 'done', 'canceled', 'rejected', 'pending' ])

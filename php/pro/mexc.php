@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class mexc extends \ccxt\async\mexc {
 
@@ -72,7 +73,7 @@ class mexc extends \ccxt\async\mexc {
         ));
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -218,7 +219,7 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
@@ -366,7 +367,7 @@ class mexc extends \ccxt\async\mexc {
         );
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
@@ -536,7 +537,7 @@ class mexc extends \ccxt\async\mexc {
         $this->handle_bookside_delta($bidsOrderSide, $bids);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
@@ -625,7 +626,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
@@ -753,7 +754,7 @@ class mexc extends \ccxt\async\mexc {
         ), $market);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-$orders
@@ -761,9 +762,9 @@ class mexc extends \ccxt\async\mexc {
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @$params {string|null} $params->type the $type of $orders to retrieve, can be 'spot' or 'margin'
+             * @param {string|null} $params->type the $type of $orders to retrieve, can be 'spot' or 'margin'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -1009,7 +1010,7 @@ class mexc extends \ccxt\async\mexc {
         return $this->safe_string($timeInForceIds, $timeInForce);
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte

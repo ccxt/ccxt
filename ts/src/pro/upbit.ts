@@ -3,7 +3,7 @@
 
 import upbitRest from '../upbit.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -53,7 +53,7 @@ export default class upbit extends upbitRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name upbit#watchTicker
@@ -65,7 +65,7 @@ export default class upbit extends upbitRest {
         return await this.watchPublic (symbol, 'ticker');
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name upbit#watchTrades
@@ -85,7 +85,7 @@ export default class upbit extends upbitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name upbit#watchOrderBook

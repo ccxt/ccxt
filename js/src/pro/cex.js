@@ -413,7 +413,7 @@ export default class cex extends cexRest {
          * @see https://docs.cex.io/#ws-api-get-balance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -735,7 +735,7 @@ export default class cex extends cexRest {
                 'rate': undefined,
             };
         }
-        const timestamp = this.safeInteger(data, 'time', this.milliseconds());
+        const timestamp = this.safeInteger(data, 'time');
         order['timestamp'] = timestamp;
         order['datetime'] = this.iso8601(timestamp);
         order = this.safeOrder(order);

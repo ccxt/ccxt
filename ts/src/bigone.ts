@@ -2,18 +2,18 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bigone.js';
-import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class bigone
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bigone extends Exchange {
     describe () {
@@ -26,13 +26,14 @@ export default class bigone extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
+                'margin': false,
                 'swap': undefined, // has but unimplemented
                 'future': undefined, // has but unimplemented
-                'option': undefined,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -82,6 +83,8 @@ export default class bigone extends Exchange {
                 'api': {
                     'public': 'https://{hostname}/api/v3',
                     'private': 'https://{hostname}/api/v3/viewer',
+                    'contractPublic': 'https://{hostname}/api/contract/v2',
+                    'contractPrivate': 'https://{hostname}/api/contract/v2',
                     'webExchange': 'https://{hostname}/api/',
                 },
                 'www': 'https://big.one',
@@ -119,6 +122,38 @@ export default class bigone extends Exchange {
                         'orders/cancel',
                         'withdrawals',
                         'transfer',
+                    ],
+                },
+                'contractPublic': {
+                    'get': [
+                        'instruments',
+                        'depth@{symbol}/snapshot',
+                        'instruments/difference',
+                        'instruments/prices',
+                    ],
+                },
+                'contractPrivate': {
+                    'get': [
+                        'accounts',
+                        'orders/{id}',
+                        'orders',
+                        'orders/opening',
+                        'orders/count',
+                        'orders/opening/count',
+                        'trades',
+                        'trades/count',
+                    ],
+                    'post': [
+                        'orders',
+                        'orders/batch',
+                    ],
+                    'put': [
+                        'positions/{symbol}/margin',
+                        'positions/{symbol}/risk-limit',
+                    ],
+                    'delete': [
+                        'orders/{id}',
+                        'orders/batch',
                     ],
                 },
                 'webExchange': {
@@ -515,67 +550,154 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
+        const contractResponse = await this.contractPublicGetInstruments (params);
+        //
+        //    [
+        //        {
+        //            "usdtPrice": 1.00031998,
+        //            "symbol": "BTCUSD",
+        //            "btcPrice": 34700.4,
+        //            "ethPrice": 1787.83,
+        //            "nextFundingRate": 0.00010,
+        //            "fundingRate": 0.00010,
+        //            "latestPrice": 34708.5,
+        //            "last24hPriceChange": 0.0321,
+        //            "indexPrice": 34700.4,
+        //            "volume24h": 261319063,
+        //            "turnover24h": 8204.129380685496,
+        //            "nextFundingTime": 1698285600000,
+        //            "markPrice": 34702.4646738,
+        //            "last24hMaxPrice": 35127.5,
+        //            "volume24hInUsd": 0.0,
+        //            "openValue": 32.88054722085945,
+        //            "last24hMinPrice": 33552.0,
+        //            "openInterest": 1141372.0
+        //        }
+        //        ...
+        //    ]
+        //
         const markets = this.safeValue (response, 'data', []);
-        return this.parseMarkets (markets);
-    }
-
-    parseMarket (market): Market {
-        const id = this.safeString (market, 'name');
-        const baseAsset = this.safeValue (market, 'base_asset', {});
-        const quoteAsset = this.safeValue (market, 'quote_asset', {});
-        const baseId = this.safeString (baseAsset, 'symbol');
-        const quoteId = this.safeString (quoteAsset, 'symbol');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        return {
-            'id': id,
-            'symbol': base + '/' + quote,
-            'base': base,
-            'quote': quote,
-            'settle': undefined,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'settleId': undefined,
-            'type': 'spot',
-            'spot': true,
-            'margin': false,
-            'swap': false,
-            'future': false,
-            'option': false,
-            'active': true,
-            'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
-            'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'strike': undefined,
-            'optionType': undefined,
-            'precision': {
-                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_scale'))),
-                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_scale'))),
-            },
-            'limits': {
-                'leverage': {
-                    'min': undefined,
-                    'max': undefined,
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const baseAsset = this.safeValue (market, 'base_asset', {});
+            const quoteAsset = this.safeValue (market, 'quote_asset', {});
+            const baseId = this.safeString (baseAsset, 'symbol');
+            const quoteId = this.safeString (quoteAsset, 'symbol');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            result.push (this.safeMarketStructure ({
+                'id': this.safeString (market, 'name'),
+                'uuid': this.safeString (market, 'id'),
+                'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_scale'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_scale'))),
                 },
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_quote_value'),
+                        'max': this.safeNumber (market, 'max_quote_value'),
+                    },
                 },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
+                'created': undefined,
+                'info': market,
+            }));
+        }
+        for (let i = 0; i < contractResponse.length; i++) {
+            const market = contractResponse[i];
+            const marketId = this.safeString (market, 'symbol');
+            const index = marketId.indexOf ('USD');
+            const baseId = marketId.slice (0, index);
+            const quoteId = marketId.slice (index);
+            const inverse = (quoteId === 'USD');
+            const settleId = inverse ? baseId : quoteId;
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            result.push (this.safeMarketStructure ({
+                'id': marketId,
+                'symbol': base + '/' + quote + ':' + settle,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': true,
+                'linear': !inverse,
+                'inverse': inverse,
+                'contractSize': 1,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': undefined,
+                    'price': undefined,
                 },
-                'cost': {
-                    'min': this.safeNumber (market, 'min_quote_value'),
-                    'max': this.safeNumber (market, 'max_quote_value'),
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
-            },
-            'created': undefined,
-            'info': market,
-        };
+                'info': market,
+            }));
+        }
+        return result;
     }
 
     parseTicker (ticker, market: Market = undefined): Ticker {
@@ -1164,13 +1286,18 @@ export default class bigone extends Exchange {
         /**
          * @method
          * @name bigone#createMarketBuyOrderWithCost
-         * @see https://open.big.one/docs/spot_orders.html#create-order
          * @description create a market buy order by providing the symbol and cost
+         * @see https://open.big.one/docs/spot_orders.html#create-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
         params['createMarketBuyOrderRequiresPrice'] = false;
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
@@ -1190,6 +1317,7 @@ export default class bigone extends Exchange {
          * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} operator *stop order only* GTE or LTE (default)
@@ -1362,7 +1490,7 @@ export default class bigone extends Exchange {
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1501,7 +1629,7 @@ export default class bigone extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1521,7 +1649,7 @@ export default class bigone extends Exchange {
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         headers = {};
-        if (api === 'public' || api === 'webExchange') {
+        if (api === 'public' || api === 'webExchange' || api === 'contractPublic') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -1542,7 +1670,7 @@ export default class bigone extends Exchange {
                 }
             } else if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
-                body = this.json (query);
+                body = query;
             }
         }
         headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
@@ -1946,7 +2074,7 @@ export default class bigone extends Exchange {
         //
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
-        if (code !== '0') {
+        if ((code !== '0') && (code !== undefined)) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.80'
+__version__ = '4.2.11'
 
 # -----------------------------------------------------------------------------
 
@@ -89,7 +89,7 @@ class Exchange(BaseExchange):
         return self.session
 
     def __del__(self):
-        if self.session is not None:
+        if self.session is not None or self.socks_proxy_sessions is not None:
             self.logger.warning(self.id + " requires to release all resources with an explicit call to the .close() coroutine. If you are using the exchange instance with async coroutines, add `await exchange.close()` to your code into a place when you're done with the exchange and don't need the exchange instance anymore (at the end of your async coroutine).")
 
     if sys.version_info >= (3, 5):
@@ -107,11 +107,14 @@ class Exchange(BaseExchange):
             else:
                 self.asyncio_loop = asyncio.get_event_loop()
             self.throttle.loop = self.asyncio_loop
-        if self.own_session and self.session is None:
+
+        if self.ssl_context is None:
             # Create our SSL context object with our CA cert file
-            context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+            self.ssl_context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+
+        if self.own_session and self.session is None:
             # Pass this SSL context to aiohttp and create a TCPConnector
-            connector = aiohttp.TCPConnector(ssl=context, loop=self.asyncio_loop, enable_cleanup_closed=True)
+            connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True)
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
@@ -120,6 +123,13 @@ class Exchange(BaseExchange):
             if self.own_session:
                 await self.session.close()
             self.session = None
+        await self.close_proxy_sessions()
+
+    async def close_proxy_sessions(self):
+        if self.socks_proxy_sessions is not None:
+            for url in self.socks_proxy_sessions:
+                await self.socks_proxy_sessions[url].close()
+            self.socks_proxy_sessions = None
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -134,7 +144,7 @@ class Exchange(BaseExchange):
             url = proxyUrl + url
         # proxy agents
         final_proxy = None  # set default
-        final_session = None
+        proxy_session = None
         httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
         if httpProxy:
             final_proxy = httpProxy
@@ -144,17 +154,20 @@ class Exchange(BaseExchange):
             if ProxyConnector is None:
                 raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
             # Create our SSL context object with our CA cert file
-            context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
             self.open()  # ensure `asyncio_loop` is set
             connector = ProxyConnector.from_url(
                 socksProxy,
                 # extra args copied from self.open()
-                ssl=context,
+                ssl=self.ssl_context,
                 loop=self.asyncio_loop,
                 enable_cleanup_closed=True
             )
             # override session
-            final_session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
+            if (self.socks_proxy_sessions is None):
+                self.socks_proxy_sessions = {}
+            if (socksProxy not in self.socks_proxy_sessions):
+                self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
+            proxy_session = self.socks_proxy_sessions[socksProxy]
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
             final_proxy = self.aiohttp_proxy
@@ -175,7 +188,8 @@ class Exchange(BaseExchange):
         request_body = body
         encoded_body = body.encode() if body else None
         self.open()
-        session_method = getattr(final_session if final_session is not None else self.session, method.lower())
+        final_session = proxy_session if proxy_session is not None else self.session
+        session_method = getattr(final_session, method.lower())
 
         http_response = None
         http_status_code = None
@@ -365,20 +379,18 @@ class Exchange(BaseExchange):
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
-        self.set_client_session_proxy(url)
+            self.clients[url].proxy = self.get_ws_proxy()
         return self.clients[url]
 
-    def set_client_session_proxy(self, url):
-        final_proxy = None  # set default
-        httpProxy, httpsProxy = self.check_ws_proxy_settings()
+    def get_ws_proxy(self):
+        httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
         if httpProxy:
-            final_proxy = httpProxy
+            return httpProxy
         elif httpsProxy:
-            final_proxy = httpsProxy
-        if (final_proxy):
-            self.clients[url].proxy = final_proxy
-        else:
-            self.clients[url].proxy = None
+            return httpsProxy
+        elif socksProxy:
+            return socksProxy
+        return None
 
     def delay(self, timeout, method, *args):
         return self.asyncio_loop.call_later(timeout / 1000, self.spawn, method, *args)
@@ -388,6 +400,45 @@ class Exchange(BaseExchange):
         if always:
             raise NotSupported(self.id + '.handle_message() not implemented yet')
         return {}
+
+    def watch_multiple(self, url, message_hashes, message=None, subscribe_hashes=None, subscription=None):
+        # base exchange self.open starts the aiohttp Session in an async context
+        self.open()
+        backoff_delay = 0
+        client = self.client(url)
+
+        future = Future.race([client.future(message_hash) for message_hash in message_hashes])
+
+        missing_subscriptions = []
+        if subscribe_hashes is not None:
+            for subscribe_hash in subscribe_hashes:
+                if subscribe_hash not in client.subscriptions:
+                    missing_subscriptions.append(subscribe_hash)
+                    client.subscriptions[subscribe_hash] = subscription or True
+
+        connected = client.connected if client.connected.done() \
+            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+
+        def after(fut):
+            # todo: decouple signing from subscriptions
+            options = self.safe_value(self.options, 'ws')
+            cost = self.safe_value(options, 'cost', 1)
+            if message:
+                async def send_message():
+                    if self.enableRateLimit:
+                        await client.throttle(cost)
+                    try:
+                        await client.send(message)
+                    except ConnectionError as e:
+                        for subscribe_hash in missing_subscriptions:
+                            del client.subscriptions[subscribe_hash]
+                        future.reject(e)
+                asyncio.ensure_future(send_message())
+
+        if missing_subscriptions:
+            connected.add_done_callback(after)
+
+        return future
 
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         # base exchange self.open starts the aiohttp Session in an async context
@@ -422,11 +473,7 @@ class Exchange(BaseExchange):
                 asyncio.ensure_future(send_message())
 
         if not subscribed:
-            try:
-                connected.add_done_callback(after)
-            except Exception as e:
-                del client.subscriptions[subscribe_hash]
-                future.reject(e)
+            connected.add_done_callback(after)
 
         return future
 
@@ -441,7 +488,7 @@ class Exchange(BaseExchange):
 
     def on_close(self, client, error):
         if client.error:
-            # connection closed due to an error
+            # connection closed by the user or due to an error
             pass
         else:
             # server disconnected a working connection
@@ -893,7 +940,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if self.options['createMarketOrderWithCost'] or (self.options['createMarketBuyOrderWithCost'] and self.options['createMarketSellOrderWithCost']):
+        if self.has['createMarketOrderWithCost'] or (self.has['createMarketBuyOrderWithCost'] and self.has['createMarketSellOrderWithCost']):
             return await self.create_order(symbol, 'market', side, cost, 1, params)
         raise NotSupported(self.id + ' createMarketOrderWithCost() is not supported yet')
 
@@ -905,7 +952,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if self.options['createMarketBuyOrderRequiresPrice'] or self.options['createMarketBuyOrderWithCost']:
+        if self.options['createMarketBuyOrderRequiresPrice'] or self.has['createMarketBuyOrderWithCost']:
             return await self.create_order(symbol, 'market', 'buy', cost, 1, params)
         raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is not supported yet')
 
@@ -948,6 +995,9 @@ class Exchange(BaseExchange):
     async def fetch_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
+    async def fetch_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchOrdersWs() is not supported yet')
+
     async def fetch_order_trades(self, id: str, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderTrades() is not supported yet')
 
@@ -955,13 +1005,28 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' watchOrders() is not supported yet')
 
     async def fetch_open_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrders']:
+            orders = await self.fetch_orders(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'open')
         raise NotSupported(self.id + ' fetchOpenOrders() is not supported yet')
 
     async def fetch_open_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrdersWs']:
+            orders = await self.fetchOrdersWs(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'open')
         raise NotSupported(self.id + ' fetchOpenOrdersWs() is not supported yet')
 
     async def fetch_closed_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrders']:
+            orders = await self.fetch_orders(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'closed')
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
+
+    async def fetch_closed_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrdersWs']:
+            orders = await self.fetchOrdersWs(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'closed')
+        raise NotSupported(self.id + ' fetchClosedOrdersWs() is not supported yet')
 
     async def fetch_my_trades(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
@@ -1010,11 +1075,14 @@ class Exchange(BaseExchange):
     async def fetch_funding_history(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
 
-    async def close_position(self, symbol: str, side: OrderSide = None, marginMode: str = None, params={}):
+    async def close_position(self, symbol: str, side: OrderSide = None, params={}):
         raise NotSupported(self.id + ' closePositions() is not supported yet')
 
     async def close_all_positions(self, params={}):
         raise NotSupported(self.id + ' closeAllPositions() is not supported yet')
+
+    async def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
+        raise BadRequest(self.id + ' fetchL3OrderBook() is not supported yet')
 
     async def fetch_deposit_address(self, code: str, params={}):
         if self.has['fetchDepositAddresses']:

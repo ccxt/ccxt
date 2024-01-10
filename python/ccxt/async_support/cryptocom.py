@@ -44,10 +44,14 @@ class cryptocom(Exchange, ImplicitAPI):
                 'future': True,
                 'option': True,
                 'addMargin': False,
-                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': False,
+                'closePosition': True,
+                'createMarketBuyOrderWithCost': False,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,
                 'fetchAccounts': True,
@@ -107,7 +111,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
-                'repayMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -141,7 +146,10 @@ class cryptocom(Exchange, ImplicitAPI):
                     'derivatives': 'https://deriv-api.crypto.com/v1',
                 },
                 'www': 'https://crypto.com/',
-                'referral': 'https://crypto.com/exch/5835vstech',
+                'referral': {
+                    'url': 'https://crypto.com/exch/kdacthrnxt',
+                    'discount': 0.15,
+                },
                 'doc': [
                     'https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html',
                     'https://exchange-docs.crypto.com/spot/index.html',
@@ -749,6 +757,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #                     "p": "26386.00",
         #                     "q": "0.00453",
         #                     "t": 1686944282062,
+        #                     "tn" : 1704476468851524373,
         #                     "d": "4611686018455979970",
         #                     "i": "BTC_USD"
         #                 },
@@ -1101,7 +1110,7 @@ class cryptocom(Exchange, ImplicitAPI):
         create a list of trade orders
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1243,19 +1252,24 @@ class cryptocom(Exchange, ImplicitAPI):
             request['type'] = uppercaseType
         if (side == 'buy') and ((uppercaseType == 'MARKET') or (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT')):
             # use createmarketBuy logic here
-            if self.options['createMarketBuyOrderRequiresPrice']:
-                cost = self.safe_number_2(params, 'cost', 'notional')
-                params = self.omit(params, 'cost')
-                if price is None and cost is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False to supply the cost in the amount argument(the exchange-specific behaviour)')
+            quoteAmount = None
+            createMarketBuyOrderRequiresPrice = True
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            cost = self.safe_number_2(params, 'cost', 'notional')
+            params = self.omit(params, 'cost')
+            if cost is not None:
+                quoteAmount = self.cost_to_precision(symbol, cost)
+            elif createMarketBuyOrderRequiresPrice:
+                if price is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
                 else:
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
-                    quoteAmount = Precise.string_mul(amountString, priceString)
-                    amount = cost if (cost is not None) else self.parse_number(quoteAmount)
-                    request['notional'] = self.cost_to_precision(symbol, amount)
+                    costRequest = Precise.string_mul(amountString, priceString)
+                    quoteAmount = self.cost_to_precision(symbol, costRequest)
             else:
-                request['notional'] = self.cost_to_precision(symbol, amount)
+                quoteAmount = self.cost_to_precision(symbol, amount)
+            request['notional'] = quoteAmount
         else:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         params = self.omit(params, ['postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
@@ -1747,6 +1761,7 @@ class cryptocom(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(ticker, 't')
         marketId = self.safe_string(ticker, 'i')
         market = self.safe_market(marketId, market, '_')
+        quote = self.safe_string(market, 'quote')
         last = self.safe_string(ticker, 'a')
         return self.safe_ticker({
             'symbol': market['symbol'],
@@ -1767,7 +1782,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'percentage': self.safe_string(ticker, 'c'),
             'average': None,
             'baseVolume': self.safe_string(ticker, 'v'),
-            'quoteVolume': self.safe_string(ticker, 'vv'),
+            'quoteVolume': self.safe_string(ticker, 'vv') if (quote == 'USD') else None,
             'info': ticker,
         }, market)
 
@@ -1779,7 +1794,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #         "s": "sell",
         #         "p": "26386.00",
         #         "q": "0.00453",
-        #         "t": 1686944282062,
+        #         "tn": 1686944282062,
+        #         "tn": 1704476468851524373,
         #         "d": "4611686018455979970",
         #         "i": "BTC_USD"
         #     }
@@ -2072,7 +2088,7 @@ class cryptocom(Exchange, ImplicitAPI):
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns array: the marginMode in lowercase
+        :returns Array: the marginMode in lowercase
         """
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_value(params, 'margin', False)
@@ -2682,6 +2698,47 @@ class cryptocom(Exchange, ImplicitAPI):
             else:
                 returnString += str(value)
         return returnString
+
+    async def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+        """
+        closes open positions for a market
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
+        :param str symbol: Unified CCXT market symbol
+        :param str [marginMode]: not used by cryptocom.closePositions
+        :param str [side]: not used by cryptocom.closePositions
+        :param dict [params]: extra parameters specific to the okx api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param str [params.type]: LIMIT or MARKET
+        :param number [params.price]: for limit orders only
+        :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instrument_name': market['id'],
+            'type': 'MARKET',
+        }
+        type = self.safe_string_upper(params, 'type')
+        price = self.safe_string(params, 'price')
+        if type is not None:
+            request['type'] = type
+        if price is not None:
+            request['price'] = self.price_to_precision(market['symbol'], price)
+        response = await self.v1PrivatePostPrivateClosePosition(self.extend(request, params))
+        #
+        #    {
+        #        "id" : 1700830813298,
+        #        "method" : "private/close-position",
+        #        "code" : 0,
+        #        "result" : {
+        #            "client_oid" : "179a909d-5614-655b-0d0e-9e85c9a25c85",
+        #            "order_id" : "6142909897021751347"
+        #        }
+        #    }
+        #
+        result = self.safe_value(response, 'result')
+        return self.parse_order(result, market)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         type = self.safe_string(api, 0)

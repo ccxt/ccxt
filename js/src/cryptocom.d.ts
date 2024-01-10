@@ -1,8 +1,8 @@
 import Exchange from './abstract/cryptocom.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
 /**
  * @class cryptocom
- * @extends Exchange
+ * @augments Exchange
  */
 export default class cryptocom extends Exchange {
     describe(): any;
@@ -99,6 +99,7 @@ export default class cryptocom extends Exchange {
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
     nonce(): number;
     paramsToString(object: any, level: any): any;
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

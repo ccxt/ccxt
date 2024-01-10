@@ -6,14 +6,14 @@
 
 // ---------------------------------------------------------------------------
 import Exchange from './abstract/woo.js';
-import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, ArgumentsRequired } from './base/errors.js';
+import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
 /**
  * @class woo
- * @extends Exchange
+ * @augments Exchange
  */
 export default class woo extends Exchange {
     describe() {
@@ -34,14 +34,16 @@ export default class woo extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelWithdraw': false,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
+                'createMarketBuyOrderWithCost': true,
                 'createMarketOrder': false,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': false,
@@ -90,7 +92,6 @@ export default class woo extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'repayMargin': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'transfer': true,
@@ -744,13 +745,32 @@ export default class woo extends Exchange {
         }
         return result;
     }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name woo#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://docs.woo.org/#send-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name woo#createOrder
+         * @description create a trade order
          * @see https://docs.woo.org/#send-order
          * @see https://docs.woo.org/#send-algo-order
-         * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -763,9 +783,14 @@ export default class woo extends Exchange {
          * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @param {float} [params.algoType] 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+         * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
+         * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+         * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only');
+        params = this.omit(params, ['reduceOnly', 'reduce_only']);
         const orderType = type.toUpperCase();
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -778,7 +803,13 @@ export default class woo extends Exchange {
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
         const algoType = this.safeString(params, 'algoType');
-        const isStop = stopPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', price);
+        const trailingAmount = this.safeString2(params, 'trailingAmount', 'callbackValue');
+        const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
+        const isTrailingAmountOrder = trailingAmount !== undefined;
+        const isTrailingPercentOrder = trailingPercent !== undefined;
+        const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
+        const isStop = isTrailing || stopPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
@@ -808,26 +839,29 @@ export default class woo extends Exchange {
         if (isMarket && !isStop) {
             // for market buy it requires the amount of quote currency to spend
             if (market['spot'] && orderSide === 'BUY') {
-                const cost = this.safeNumber(params, 'cost');
-                if (this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true)) {
-                    if (cost === undefined) {
-                        if (price === undefined) {
-                            throw new InvalidOrder(this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or alternatively, supply the total cost value in the 'order_amount' in  exchange-specific parameters");
-                        }
-                        else {
-                            const amountString = this.numberToString(amount);
-                            const priceString = this.numberToString(price);
-                            const orderAmount = Precise.stringMul(amountString, priceString);
-                            request['order_amount'] = this.costToPrecision(symbol, orderAmount);
-                        }
+                let quoteAmount = undefined;
+                let createMarketBuyOrderRequiresPrice = true;
+                [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber2(params, 'cost', 'order_amount');
+                params = this.omit(params, ['cost', 'order_amount']);
+                if (cost !== undefined) {
+                    quoteAmount = this.costToPrecision(symbol, cost);
+                }
+                else if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                     }
                     else {
-                        request['order_amount'] = this.costToPrecision(symbol, cost);
+                        const amountString = this.numberToString(amount);
+                        const priceString = this.numberToString(price);
+                        const costRequest = Precise.stringMul(amountString, priceString);
+                        quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
                 }
                 else {
-                    request['order_amount'] = this.costToPrecision(symbol, amount);
+                    quoteAmount = this.costToPrecision(symbol, amount);
                 }
+                request['order_amount'] = quoteAmount;
             }
             else {
                 request['order_quantity'] = this.amountToPrecision(symbol, amount);
@@ -840,7 +874,21 @@ export default class woo extends Exchange {
         if (clientOrderId !== undefined) {
             request[clientOrderIdKey] = clientOrderId;
         }
-        if (stopPrice !== undefined) {
+        if (isTrailing) {
+            if (trailingTriggerPrice === undefined) {
+                throw new ArgumentsRequired(this.id + ' createOrder() requires a trailingTriggerPrice parameter for trailing orders');
+            }
+            request['activatedPrice'] = this.priceToPrecision(symbol, trailingTriggerPrice);
+            request['algoType'] = 'TRAILING_STOP';
+            if (isTrailingAmountOrder) {
+                request['callbackValue'] = trailingAmount;
+            }
+            else if (isTrailingPercentOrder) {
+                const convertedTrailingPercent = Precise.stringDiv(trailingPercent, '100');
+                request['callbackRate'] = convertedTrailingPercent;
+            }
+        }
+        else if (stopPrice !== undefined) {
             if (algoType !== 'TRAILING_STOP') {
                 request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
                 request['algoType'] = 'STOP';
@@ -879,7 +927,7 @@ export default class woo extends Exchange {
             }
             request['childOrders'] = [outterOrder];
         }
-        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit']);
+        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice']);
         let response = undefined;
         if (isStop) {
             response = await this.v3PrivatePostAlgoOrder(this.extend(request, params));
@@ -925,11 +973,11 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#editOrder
+         * @description edit a trade order
          * @see https://docs.woo.org/#edit-order
          * @see https://docs.woo.org/#edit-order-by-client_order_id
          * @see https://docs.woo.org/#edit-algo-order
          * @see https://docs.woo.org/#edit-algo-order-by-client_order_id
-         * @description edit a trade order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -940,6 +988,9 @@ export default class woo extends Exchange {
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
          * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+         * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
+         * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+         * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -961,8 +1012,26 @@ export default class woo extends Exchange {
         if (stopPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
         }
-        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice']);
-        const isStop = (stopPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', price);
+        const trailingAmount = this.safeString2(params, 'trailingAmount', 'callbackValue');
+        const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
+        const isTrailingAmountOrder = trailingAmount !== undefined;
+        const isTrailingPercentOrder = trailingPercent !== undefined;
+        const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
+        if (isTrailing) {
+            if (trailingTriggerPrice !== undefined) {
+                request['activatedPrice'] = this.priceToPrecision(symbol, trailingTriggerPrice);
+            }
+            if (isTrailingAmountOrder) {
+                request['callbackValue'] = trailingAmount;
+            }
+            else if (isTrailingPercentOrder) {
+                const convertedTrailingPercent = Precise.stringDiv(trailingPercent, '100');
+                request['callbackRate'] = convertedTrailingPercent;
+            }
+        }
+        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent']);
+        const isStop = isTrailing || (stopPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
         let response = undefined;
         if (isByClientOrder) {
             request['client_order_id'] = clientOrderIdExchangeSpecific;
@@ -1162,29 +1231,31 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#fetchOrders
+         * @description fetches information on multiple orders made by the user
          * @see https://docs.woo.org/#get-orders
          * @see https://docs.woo.org/#get-algo-orders
-         * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.stop] whether the order is a stop/algo order
          * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
          * @param {string} [params.side] 'buy' or 'sell'
+         * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
         const stop = this.safeValue(params, 'stop');
-        params = this.omit(params, 'stop');
+        const trailing = this.safeValue(params, 'trailing', false);
+        params = this.omit(params, ['stop', 'trailing']);
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            if (stop) {
+            if (stop || trailing) {
                 request['createdTimeStart'] = since;
             }
             else {
@@ -1194,8 +1265,11 @@ export default class woo extends Exchange {
         if (stop) {
             request['algoType'] = 'stop';
         }
+        else if (trailing) {
+            request['algoType'] = 'TRAILING_STOP';
+        }
         let response = undefined;
-        if (stop) {
+        if (stop || trailing) {
             response = await this.v3PrivateGetAlgoOrders(this.extend(request, params));
         }
         else {

@@ -12,7 +12,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitforex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitforex extends Exchange {
     describe() {
@@ -30,7 +30,6 @@ export default class bitforex extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
@@ -78,7 +77,8 @@ export default class bitforex extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,

@@ -5,7 +5,7 @@ import mexcRest from '../mexc.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Str } from '../base/types.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -71,7 +71,7 @@ export default class mexc extends mexcRest {
         });
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name mexc3#watchTicker
@@ -209,7 +209,7 @@ export default class mexc extends mexcRest {
         return await this.watch (url, messageHash, message, channel);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name mexc3#watchOHLCV
@@ -357,7 +357,7 @@ export default class mexc extends mexcRest {
         ];
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name mexc3#watchOrderBook
@@ -527,7 +527,7 @@ export default class mexc extends mexcRest {
         this.handleBooksideDelta (bidsOrderSide, bids);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name mexc3#watchTrades
@@ -616,7 +616,7 @@ export default class mexc extends mexcRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name mexc3#watchMyTrades
@@ -744,7 +744,7 @@ export default class mexc extends mexcRest {
         }, market);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name mexc3#watchOrders
@@ -753,9 +753,9 @@ export default class mexc extends mexcRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @params {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'margin'
+         * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'margin'
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1000,7 +1000,7 @@ export default class mexc extends mexcRest {
         return this.safeString (timeInForceIds, timeInForce);
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name mexc3#watchBalance

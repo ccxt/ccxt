@@ -230,6 +230,22 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"20\"}"
+            },
+            {
+                "description": "Swap trailingAmount order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.001,
+                  null,
+                  {
+                    "trailingAmount": "1000"
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"0.001\",\"trailingStop\":\"1000\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -290,6 +306,17 @@
                     "LTC/USDT"
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"orderFilter\":\"Order\",\"orderId\":\"1513125485218108928\",\"category\":\"spot\"}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Swap cancel all open orders",
+                "method": "cancelAllOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/cancel-all",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"linear\"}"
             }
         ],
         "fetchOpenOrders": [

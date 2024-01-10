@@ -12,7 +12,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 // ---------------------------------------------------------------------------
 /**
  * @class bl3p
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bl3p extends Exchange {
     describe() {
@@ -149,7 +149,7 @@ export default class bl3p extends Exchange {
         const response = await this.privatePostGENMKTMoneyInfo(params);
         return this.parseBalance(response);
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeString(bidask, priceKey);
         const size = this.safeString(bidask, amountKey);
         return [

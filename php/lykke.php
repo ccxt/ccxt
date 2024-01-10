@@ -429,7 +429,12 @@ class lykke extends Exchange {
         );
         // publicGetTickers or publicGetPrices
         $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetTickers');
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($method === 'publicGetPrices') {
+            $response = $this->publicGetPrices (array_merge($request, $params));
+        } else {
+            $response = $this->publicGetTickers (array_merge($request, $params));
+        }
         $ticker = $this->safe_value($response, 'payload', array());
         //
         // publicGetTickers
@@ -782,8 +787,12 @@ class lykke extends Exchange {
         if ($type === 'limit') {
             $query['price'] = floatval($this->price_to_precision($market['symbol'], $price));
         }
-        $method = 'privatePostOrders' . $this->capitalize($type);
-        $result = $this->$method (array_merge($query, $params));
+        $result = null;
+        if ($this->capitalize($type) === 'Market') {
+            $result = $this->privatePostOrdersMarket (array_merge($query, $params));
+        } else {
+            $result = $this->privatePostOrdersLimit (array_merge($query, $params));
+        }
         //
         // $market
         //
@@ -963,7 +972,7 @@ class lykke extends Exchange {
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -1058,7 +1067,7 @@ class lykke extends Exchange {
         return $this->parse_trades($payload, $market, $since, $limit);
     }
 
-    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
+    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $price = $this->safe_string($bidask, $priceKey);
         $amount = Precise::string_abs($this->safe_string($bidask, $amountKey));
         return array( $this->parse_number($price), $this->parse_number($amount) );

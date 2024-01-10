@@ -196,6 +196,12 @@ abstract class coinex extends \ccxt\Exchange {
     public function private_put_balance_deposit_address_coin_type($params = array()) {
         return $this->request('balance/deposit/address/{coin_type}', 'private', 'PUT', $params, null, null, array("cost" => 40));
     }
+    public function private_put_sub_account_unfrozen($params = array()) {
+        return $this->request('sub_account/unfrozen', 'private', 'PUT', $params, null, null, array("cost" => 40));
+    }
+    public function private_put_sub_account_frozen($params = array()) {
+        return $this->request('sub_account/frozen', 'private', 'PUT', $params, null, null, array("cost" => 40));
+    }
     public function private_put_sub_account_auth_api_user_auth_id($params = array()) {
         return $this->request('sub_account/auth/api/{user_auth_id}', 'private', 'PUT', $params, null, null, array("cost" => 40));
     }
@@ -217,8 +223,17 @@ abstract class coinex extends \ccxt\Exchange {
     public function private_delete_order_stop_pending_id($params = array()) {
         return $this->request('order/stop/pending/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 13.334));
     }
+    public function private_delete_order_pending_by_client_id($params = array()) {
+        return $this->request('order/pending/by_client_id', 'private', 'DELETE', $params, null, null, array("cost" => 40));
+    }
+    public function private_delete_order_stop_pending_by_client_id($params = array()) {
+        return $this->request('order/stop/pending/by_client_id', 'private', 'DELETE', $params, null, null, array("cost" => 40));
+    }
     public function private_delete_sub_account_auth_api_user_auth_id($params = array()) {
         return $this->request('sub_account/auth/api/{user_auth_id}', 'private', 'DELETE', $params, null, null, array("cost" => 40));
+    }
+    public function private_delete_sub_account_authorize_id($params = array()) {
+        return $this->request('sub_account/authorize/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 40));
     }
     public function perpetualpublic_get_ping($params = array()) {
         return $this->request('ping', 'perpetualPublic', 'GET', $params, null, null, array("cost" => 1));
@@ -247,11 +262,11 @@ abstract class coinex extends \ccxt\Exchange {
     public function perpetualpublic_get_market_funding_history($params = array()) {
         return $this->request('market/funding_history', 'perpetualPublic', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function perpetualpublic_get_market_user_deals($params = array()) {
-        return $this->request('market/user_deals', 'perpetualPublic', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function perpetualpublic_get_market_kline($params = array()) {
         return $this->request('market/kline', 'perpetualPublic', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function perpetualprivate_get_market_user_deals($params = array()) {
+        return $this->request('market/user_deals', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function perpetualprivate_get_asset_query($params = array()) {
         return $this->request('asset/query', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
@@ -274,11 +289,26 @@ abstract class coinex extends \ccxt\Exchange {
     public function perpetualprivate_get_order_stop_status($params = array()) {
         return $this->request('order/stop_status', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 8));
     }
+    public function perpetualprivate_get_position_finished($params = array()) {
+        return $this->request('position/finished', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
+    }
     public function perpetualprivate_get_position_pending($params = array()) {
         return $this->request('position/pending', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
     }
     public function perpetualprivate_get_position_funding($params = array()) {
         return $this->request('position/funding', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function perpetualprivate_get_position_adl_history($params = array()) {
+        return $this->request('position/adl_history', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function perpetualprivate_get_market_preference($params = array()) {
+        return $this->request('market/preference', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function perpetualprivate_get_position_margin_history($params = array()) {
+        return $this->request('position/margin_history', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function perpetualprivate_get_position_settle_history($params = array()) {
+        return $this->request('position/settle_history', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
     }
     public function perpetualprivate_post_market_adjust_leverage($params = array()) {
         return $this->request('market/adjust_leverage', 'perpetualPrivate', 'POST', $params, null, null, array("cost" => 1));
@@ -336,6 +366,15 @@ abstract class coinex extends \ccxt\Exchange {
     }
     public function perpetualprivate_post_position_market_close($params = array()) {
         return $this->request('position/market_close', 'perpetualPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function perpetualprivate_post_order_cancel_by_client_id($params = array()) {
+        return $this->request('order/cancel/by_client_id', 'perpetualPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function perpetualprivate_post_order_cancel_stop_by_client_id($params = array()) {
+        return $this->request('order/cancel_stop/by_client_id', 'perpetualPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function perpetualprivate_post_market_preference($params = array()) {
+        return $this->request('market/preference', 'perpetualPrivate', 'POST', $params, null, null, array("cost" => 20));
     }
     public function publicGetAmmMarket($params = array()) {
         return $this->request('amm/market', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -526,6 +565,12 @@ abstract class coinex extends \ccxt\Exchange {
     public function privatePutBalanceDepositAddressCoinType($params = array()) {
         return $this->request('balance/deposit/address/{coin_type}', 'private', 'PUT', $params, null, null, array("cost" => 40));
     }
+    public function privatePutSubAccountUnfrozen($params = array()) {
+        return $this->request('sub_account/unfrozen', 'private', 'PUT', $params, null, null, array("cost" => 40));
+    }
+    public function privatePutSubAccountFrozen($params = array()) {
+        return $this->request('sub_account/frozen', 'private', 'PUT', $params, null, null, array("cost" => 40));
+    }
     public function privatePutSubAccountAuthApiUserAuthId($params = array()) {
         return $this->request('sub_account/auth/api/{user_auth_id}', 'private', 'PUT', $params, null, null, array("cost" => 40));
     }
@@ -547,8 +592,17 @@ abstract class coinex extends \ccxt\Exchange {
     public function privateDeleteOrderStopPendingId($params = array()) {
         return $this->request('order/stop/pending/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 13.334));
     }
+    public function privateDeleteOrderPendingByClientId($params = array()) {
+        return $this->request('order/pending/by_client_id', 'private', 'DELETE', $params, null, null, array("cost" => 40));
+    }
+    public function privateDeleteOrderStopPendingByClientId($params = array()) {
+        return $this->request('order/stop/pending/by_client_id', 'private', 'DELETE', $params, null, null, array("cost" => 40));
+    }
     public function privateDeleteSubAccountAuthApiUserAuthId($params = array()) {
         return $this->request('sub_account/auth/api/{user_auth_id}', 'private', 'DELETE', $params, null, null, array("cost" => 40));
+    }
+    public function privateDeleteSubAccountAuthorizeId($params = array()) {
+        return $this->request('sub_account/authorize/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 40));
     }
     public function perpetualPublicGetPing($params = array()) {
         return $this->request('ping', 'perpetualPublic', 'GET', $params, null, null, array("cost" => 1));
@@ -577,11 +631,11 @@ abstract class coinex extends \ccxt\Exchange {
     public function perpetualPublicGetMarketFundingHistory($params = array()) {
         return $this->request('market/funding_history', 'perpetualPublic', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function perpetualPublicGetMarketUserDeals($params = array()) {
-        return $this->request('market/user_deals', 'perpetualPublic', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function perpetualPublicGetMarketKline($params = array()) {
         return $this->request('market/kline', 'perpetualPublic', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function perpetualPrivateGetMarketUserDeals($params = array()) {
+        return $this->request('market/user_deals', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function perpetualPrivateGetAssetQuery($params = array()) {
         return $this->request('asset/query', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
@@ -604,11 +658,26 @@ abstract class coinex extends \ccxt\Exchange {
     public function perpetualPrivateGetOrderStopStatus($params = array()) {
         return $this->request('order/stop_status', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 8));
     }
+    public function perpetualPrivateGetPositionFinished($params = array()) {
+        return $this->request('position/finished', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
+    }
     public function perpetualPrivateGetPositionPending($params = array()) {
         return $this->request('position/pending', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
     }
     public function perpetualPrivateGetPositionFunding($params = array()) {
         return $this->request('position/funding', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function perpetualPrivateGetPositionAdlHistory($params = array()) {
+        return $this->request('position/adl_history', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function perpetualPrivateGetMarketPreference($params = array()) {
+        return $this->request('market/preference', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function perpetualPrivateGetPositionMarginHistory($params = array()) {
+        return $this->request('position/margin_history', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function perpetualPrivateGetPositionSettleHistory($params = array()) {
+        return $this->request('position/settle_history', 'perpetualPrivate', 'GET', $params, null, null, array("cost" => 40));
     }
     public function perpetualPrivatePostMarketAdjustLeverage($params = array()) {
         return $this->request('market/adjust_leverage', 'perpetualPrivate', 'POST', $params, null, null, array("cost" => 1));
@@ -666,5 +735,14 @@ abstract class coinex extends \ccxt\Exchange {
     }
     public function perpetualPrivatePostPositionMarketClose($params = array()) {
         return $this->request('position/market_close', 'perpetualPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function perpetualPrivatePostOrderCancelByClientId($params = array()) {
+        return $this->request('order/cancel/by_client_id', 'perpetualPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function perpetualPrivatePostOrderCancelStopByClientId($params = array()) {
+        return $this->request('order/cancel_stop/by_client_id', 'perpetualPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function perpetualPrivatePostMarketPreference($params = array()) {
+        return $this->request('market/preference', 'perpetualPrivate', 'POST', $params, null, null, array("cost" => 20));
     }
 }

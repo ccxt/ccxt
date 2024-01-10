@@ -1203,9 +1203,14 @@ class poloniexfutures extends Exchange {
             if ($symbol !== null) {
                 $request['symbol'] = $this->market_id($symbol);
             }
-            $stop = $this->safe_value($params, 'stop');
-            $method = $stop ? 'privateDeleteStopOrders' : 'privateDeleteOrders';
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
+            $response = null;
+            if ($stop) {
+                $response = Async\await($this->privateDeleteStopOrders (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateDeleteOrders (array_merge($request, $params)));
+            }
             //
             //   {
             //       "code" => "200000",
@@ -1268,9 +1273,9 @@ class poloniexfutures extends Exchange {
              * @return An ~@link https://docs.ccxt.com/#/?id=$order-structure array of $order structures~
              */
             Async\await($this->load_markets());
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
             $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'stop', 'until', 'till' ));
+            $params = $this->omit($params, array( 'triger', 'stop', 'until', 'till' ));
             if ($status === 'closed') {
                 $status = 'done';
             }
@@ -1291,8 +1296,12 @@ class poloniexfutures extends Exchange {
             if ($until !== null) {
                 $request['endAt'] = $until;
             }
-            $method = $stop ? 'privateGetStopOrders' : 'privateGetOrders';
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($stop) {
+                $response = Async\await($this->privateGetStopOrders (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+            }
             //
             //    {
             //        "code" => "200000",
@@ -1382,7 +1391,7 @@ class poloniexfutures extends Exchange {
              * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->till] end time in ms
              * @param {string} [$params->side] buy or sell
@@ -1405,19 +1414,19 @@ class poloniexfutures extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $method = 'privateGetOrdersOrderId';
+            $response = null;
             if ($id === null) {
                 $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
                 if ($clientOrderId === null) {
                     throw new InvalidOrder($this->id . ' fetchOrder() requires parameter $id or $params->clientOid');
                 }
                 $request['clientOid'] = $clientOrderId;
-                $method = 'privateGetOrdersByClientOid';
                 $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
+                $response = Async\await($this->privateGetClientOrderIdClientOid (array_merge($request, $params)));
             } else {
                 $request['order-id'] = $id;
+                $response = Async\await($this->privateGetOrdersOrderId (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -1743,7 +1752,7 @@ class poloniexfutures extends Exchange {
         $version = $this->safe_string($params, 'version', $defaultVersion);
         $tail = '/api/' . $version . '/' . $this->implode_params($path, $params);
         $url .= $tail;
-        $query = $this->omit($params, $path);
+        $query = $this->omit($params, $this->extract_params($path));
         $queryLength = $query;
         if ($api === 'public') {
             if ($queryLength) {

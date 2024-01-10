@@ -27,10 +27,11 @@ class okx extends Exchange {
                 'future' => true,
                 'option' => true,
                 'addMargin' => true,
-                'borrowMargin' => true,
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => true,
                 'createDepositAddress' => false,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketSellOrderWithCost' => true,
@@ -153,8 +154,7 @@ class okx extends Exchange {
                 'referral' => array(
                     // old reflink 0% discount https://www.okx.com/join/1888677
                     // new reflink 20% discount https://www.okx.com/join/CCXT2023
-                    // okx . ccxt campaign reflink with 20% discount https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023
-                    'url' => 'https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023',
+                    'url' => 'https://www.okx.com/join/CCXT2023',
                     'discount' => 0.2,
                 ),
                 'test' => array(
@@ -246,6 +246,7 @@ class okx extends Exchange {
                         // rfq
                         'rfq/counterparties' => 4,
                         'rfq/maker-instrument-settings' => 4,
+                        'rfq/mmp-config' => 4,
                         'rfq/rfqs' => 10,
                         'rfq/quotes' => 10,
                         'rfq/trades' => 4,
@@ -385,6 +386,7 @@ class okx extends Exchange {
                         'rfq/execute-quote' => 15,
                         'rfq/maker-instrument-settings' => 4,
                         'rfq/mmp-reset' => 4,
+                        'rfq/mmp-config' => 100,
                         'rfq/create-quote' => 0.4,
                         'rfq/cancel-quote' => 0.4,
                         'rfq/cancel-batch-quotes' => 10,
@@ -865,8 +867,8 @@ class okx extends Exchange {
                     'ALGO' => 'Algorand',
                     'BHP' => 'BHP',
                     'APT' => 'Aptos',
-                    'ARBONE' => 'Arbitrum one',
-                    'AVAXC' => 'Avalanche C-Chain',
+                    'ARBONE' => 'Arbitrum One',
+                    'AVAXC' => 'Avalanche C',
                     'AVAXX' => 'Avalanche X-Chain',
                     'ARK' => 'ARK',
                     'AR' => 'Arweave',
@@ -2565,6 +2567,8 @@ class okx extends Exchange {
         $stopLossDefined = ($stopLoss !== null);
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $takeProfitDefined = ($takeProfit !== null);
+        $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRatio');
+        $isTrailingPercentOrder = $trailingPercent !== null;
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
         $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so be extended into the $request
         $margin = false;
@@ -2595,7 +2599,7 @@ class okx extends Exchange {
         $isMarketOrder = $type === 'market';
         $postOnly = false;
         list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $type === 'post_only', $params);
-        $params = $this->omit($params, array( 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit' ));
+        $params = $this->omit($params, array( 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent' ));
         $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
         $fok = ($timeInForce === 'FOK') || ($type === 'fok');
         $trigger = ($triggerPrice !== null) || ($type === 'trigger');
@@ -2649,7 +2653,11 @@ class okx extends Exchange {
         } elseif ($fok) {
             $request['ordType'] = 'fok';
         }
-        if ($stopLossDefined || $takeProfitDefined) {
+        if ($isTrailingPercentOrder) {
+            $convertedTrailingPercent = Precise::string_div($trailingPercent, '100');
+            $request['callbackRatio'] = $convertedTrailingPercent;
+            $request['ordType'] = 'move_order_stop';
+        } elseif ($stopLossDefined || $takeProfitDefined) {
             if ($stopLossDefined) {
                 $stopLossTriggerPrice = $this->safe_value_n($stopLoss, array( 'triggerPrice', 'stopPrice', 'slTriggerPx' ));
                 if ($stopLossTriggerPrice === null) {
@@ -2779,6 +2787,7 @@ class okx extends Exchange {
          * @param {float} [$params->stopLoss.price] used for stop loss limit orders, not used for stop loss $market $price orders
          * @param {string} [$params->stopLoss.type] 'market' or 'limit' used to specify the stop loss $price $type
          * @param {string} [$params->positionSide] if position mode is one-way => set to 'net', if position mode is hedge-mode => set to 'long' or 'short'
+         * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -2786,7 +2795,7 @@ class okx extends Exchange {
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $method = $this->safe_string($this->options, 'createOrder', 'privatePostTradeBatchOrders');
         $requestOrdType = $this->safe_string($request, 'ordType');
-        if (($requestOrdType === 'trigger') || ($requestOrdType === 'conditional') || ($type === 'oco') || ($type === 'move_order_stop') || ($type === 'iceberg') || ($type === 'twap')) {
+        if (($requestOrdType === 'trigger') || ($requestOrdType === 'conditional') || ($requestOrdType === 'move_order_stop') || ($type === 'move_order_stop') || ($type === 'oco') || ($type === 'iceberg') || ($type === 'twap')) {
             $method = 'privatePostTradeOrderAlgo';
         }
         if (($method !== 'privatePostTradeOrder') && ($method !== 'privatePostTradeOrderAlgo') && ($method !== 'privatePostTradeBatchOrders')) {
@@ -2818,7 +2827,7 @@ class okx extends Exchange {
         /**
          * create a list of trade $orders
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-$orders
-         * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -2978,16 +2987,20 @@ class okx extends Exchange {
         /**
          * cancels an open $order
          * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-cancel-$order
+         * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-post-cancel-algo-$order
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->trigger] true if trigger orders
+         * @param {boolean} [$params->trailing] set to true if you want to cancel a $trailing $order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
-        $stop = $this->safe_value($params, 'stop');
-        if ($stop) {
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $trailing = $this->safe_value($params, 'trailing', false);
+        if ($stop || $trailing) {
             $orderInner = $this->cancel_orders(array( $id ), $symbol, $params);
             return $this->safe_value($orderInner, 0);
         }
@@ -3034,6 +3047,7 @@ class okx extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/trigger order
+         * @param {boolean} [$params->trailing] set to true if you want to cancel $trailing orders
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         // TODO : the original endpoint signature differs, according to that you can skip individual $symbol and assign $ids in batch. At this moment, `$params` is not being used too.
@@ -3049,7 +3063,8 @@ class okx extends Exchange {
         $clientOrderIds = $this->parse_ids($this->safe_value_2($params, 'clOrdId', 'clientOrderId'));
         $algoIds = $this->parse_ids($this->safe_value($params, 'algoId'));
         $stop = $this->safe_value_2($params, 'stop', 'trigger');
-        if ($stop) {
+        $trailing = $this->safe_value($params, 'trailing', false);
+        if ($stop || $trailing) {
             $method = 'privatePostTradeCancelAlgos';
         }
         if ($clientOrderIds === null) {
@@ -3063,7 +3078,7 @@ class okx extends Exchange {
                 }
             }
             for ($i = 0; $i < count($ids); $i++) {
-                if ($stop) {
+                if ($trailing || $stop) {
                     $request[] = array(
                         'algoId' => $ids[$i],
                         'instId' => $market['id'],
@@ -3083,7 +3098,12 @@ class okx extends Exchange {
                 );
             }
         }
-        $response = $this->$method ($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+        $response = null;
+        if ($method === 'privatePostTradeCancelAlgos') {
+            $response = $this->privatePostTradeCancelAlgos ($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+        } else {
+            $response = $this->privatePostTradeCancelBatchOrders ($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+        }
         //
         //     {
         //         "code" => "0",
@@ -3344,8 +3364,9 @@ class okx extends Exchange {
          * @param {string} $id the $order $id
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra and exchange specific parameters
+         * @param {boolean} [$params->trigger] true if fetching trigger orders
          * @return ~@link https://docs.ccxt.com/#/?$id=$order-structure an $order structure~
-        */
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
@@ -3361,7 +3382,7 @@ class okx extends Exchange {
         $options = $this->safe_value($this->options, 'fetchOrder', array());
         $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrder');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $stop = $this->safe_value($params, 'stop');
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
         if ($stop) {
             $method = 'privateGetTradeOrderAlgo';
             if ($clientOrderId !== null) {
@@ -3376,8 +3397,13 @@ class okx extends Exchange {
                 $request['ordId'] = $id;
             }
         }
-        $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId', 'stop' ));
-        $response = $this->$method (array_merge($request, $query));
+        $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId', 'stop', 'trigger' ));
+        $response = null;
+        if ($method === 'privateGetTradeOrderAlgo') {
+            $response = $this->privateGetTradeOrderAlgo (array_merge($request, $query));
+        } else {
+            $response = $this->privateGetTradeOrder (array_merge($request, $query));
+        }
         //
         // Spot and Swap
         //
@@ -3481,7 +3507,6 @@ class okx extends Exchange {
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * Fetch orders that are still open
          * fetch all unfilled currently open orders
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-list
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-list
@@ -3494,6 +3519,7 @@ class okx extends Exchange {
          * @param {string} [$params->ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [$params->algoId] Algo ID "'433845797218942976'"
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->trailing] set to true if you want to fetch $trailing orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -3525,17 +3551,27 @@ class okx extends Exchange {
         $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrdersPending');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $ordType = $this->safe_string($params, 'ordType');
-        $stop = $this->safe_value($params, 'stop');
-        if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $trailing = $this->safe_value($params, 'trailing', false);
+        if ($trailing || $stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
             $method = 'privateGetTradeOrdersAlgoPending';
+        }
+        if ($trailing) {
+            $request['ordType'] = 'move_order_stop';
+        } elseif ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
             if ($stop) {
                 if ($ordType === null) {
                     throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
             }
         }
-        $query = $this->omit($params, array( 'method', 'stop' ));
-        $response = $this->$method (array_merge($request, $query));
+        $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'trailing' ));
+        $response = null;
+        if ($method === 'privateGetTradeOrdersAlgoPending') {
+            $response = $this->privateGetTradeOrdersAlgoPending (array_merge($request, $query));
+        } else {
+            $response = $this->privateGetTradeOrdersPending (array_merge($request, $query));
+        }
         //
         //     {
         //         "code" => "0",
@@ -3648,6 +3684,7 @@ class okx extends Exchange {
          * @param {string} [$params->ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [$params->algoId] Algo ID "'433845797218942976'"
          * @param {int} [$params->until] timestamp in ms to fetch orders for
+         * @param {boolean} [$params->trailing] set to true if you want to fetch $trailing orders
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -3680,8 +3717,12 @@ class okx extends Exchange {
         $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrdersHistory');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $ordType = $this->safe_string($params, 'ordType');
-        $stop = $this->safe_value($params, 'stop');
-        if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $trailing = $this->safe_value($params, 'trailing', false);
+        if ($trailing) {
+            $method = 'privateGetTradeOrdersAlgoHistory';
+            $request['ordType'] = 'move_order_stop';
+        } elseif ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
             $method = 'privateGetTradeOrdersAlgoHistory';
             $algoId = $this->safe_string($params, 'algoId');
             if ($algoId !== null) {
@@ -3692,7 +3733,6 @@ class okx extends Exchange {
                 if ($ordType === null) {
                     throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
-                $request['ordType'] = $ordType;
             }
         } else {
             if ($since !== null) {
@@ -3704,8 +3744,13 @@ class okx extends Exchange {
                 $query = $this->omit($query, array( 'until', 'till' ));
             }
         }
-        $send = $this->omit($query, array( 'method', 'stop', 'ordType' ));
-        $response = $this->$method (array_merge($request, $send));
+        $send = $this->omit($query, array( 'method', 'stop', 'trigger', 'trailing' ));
+        $response = null;
+        if ($method === 'privateGetTradeOrdersAlgoHistory') {
+            $response = $this->privateGetTradeOrdersAlgoHistory (array_merge($request, $send));
+        } else {
+            $response = $this->privateGetTradeOrdersHistory (array_merge($request, $send));
+        }
         //
         //     {
         //         "code" => "0",
@@ -3814,15 +3859,18 @@ class okx extends Exchange {
          * fetches information on multiple closed orders made by the user
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-3-months
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->stop] True if fetching trigger or conditional orders
          * @param {string} [$params->ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [$params->algoId] Algo ID "'433845797218942976'"
          * @param {int} [$params->until] timestamp in ms to fetch orders for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {string} [$params->method] $method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
+         * @param {boolean} [$params->trailing] set to true if you want to fetch $trailing orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -3859,15 +3907,20 @@ class okx extends Exchange {
         $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrdersHistory');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $ordType = $this->safe_string($params, 'ordType');
-        $stop = $this->safe_value($params, 'stop');
-        if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $trailing = $this->safe_value($params, 'trailing', false);
+        if ($trailing || $stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
             $method = 'privateGetTradeOrdersAlgoHistory';
+            $request['state'] = 'effective';
+        }
+        if ($trailing) {
+            $request['ordType'] = 'move_order_stop';
+        } elseif ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
             if ($stop) {
                 if ($ordType === null) {
                     throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
             }
-            $request['state'] = 'effective';
         } else {
             if ($since !== null) {
                 $request['begin'] = $since;
@@ -3879,8 +3932,15 @@ class okx extends Exchange {
             }
             $request['state'] = 'filled';
         }
-        $send = $this->omit($query, array( 'method', 'stop' ));
-        $response = $this->$method (array_merge($request, $send));
+        $send = $this->omit($query, array( 'method', 'stop', 'trigger', 'trailing' ));
+        $response = null;
+        if ($method === 'privateGetTradeOrdersAlgoHistory') {
+            $response = $this->privateGetTradeOrdersAlgoHistory (array_merge($request, $send));
+        } elseif ($method === 'privateGetTradeOrdersHistoryArchive') {
+            $response = $this->privateGetTradeOrdersHistoryArchive (array_merge($request, $send));
+        } else {
+            $response = $this->privateGetTradeOrdersHistory (array_merge($request, $send));
+        }
         //
         //     {
         //         "code" => "0",
@@ -4130,7 +4190,14 @@ class okx extends Exchange {
             $request['ccy'] = $currency['id'];
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if ($method === 'privateGetAccountBillsArchive') {
+            $response = $this->privateGetAccountBillsArchive (array_merge($request, $query));
+        } elseif ($method === 'privateGetAssetBills') {
+            $response = $this->privateGetAssetBills (array_merge($request, $query));
+        } else {
+            $response = $this->privateGetAccountBills (array_merge($request, $query));
+        }
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -4363,15 +4430,16 @@ class okx extends Exchange {
         //     ),
         //
         if ($chain === 'USDT-Polygon') {
-            $networkData = $this->safe_value($networksById, 'USDT-Polygon-Bridge');
+            $networkData = $this->safe_value_2($networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon');
         }
         $network = $this->safe_string($networkData, 'network');
+        $networkCode = $this->network_id_to_code($network, $code);
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => $network,
+            'network' => $networkCode,
             'info' => $depositAddress,
         );
     }
@@ -5033,7 +5101,12 @@ class okx extends Exchange {
         }
         $fetchPositionsOptions = $this->safe_value($this->options, 'fetchPositions', array());
         $method = $this->safe_string($fetchPositionsOptions, 'method', 'privateGetAccountPositions');
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($method === 'privateGetAccountPositionsHistory') {
+            $response = $this->privateGetAccountPositionsHistory (array_merge($request, $params));
+        } else {
+            $response = $this->privateGetAccountPositions (array_merge($request, $params));
+        }
         //
         //     {
         //         "code" => "0",
@@ -7024,6 +7097,71 @@ class okx extends Exchange {
             'underlyingPrice' => null,
             'info' => $greeks,
         );
+    }
+
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): array {
+        /**
+         * closes open positions for a $market
+         * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-close-positions
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {string} [$side] 'buy' or 'sell', leave in net mode
+         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {string} [$params->clientOrderId] a unique identifier for the $order
+         * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross;
+         * @param {string} [$params->code] *required in the case of closing cross MARGIN position for Single-$currency margin* margin $currency
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {boolean} [$params->autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a $market $order-> false or true, the default is false
+         * @param {string} [$params->tag] $order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
+         * @return {array[]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $code = $this->safe_string($params, 'code');
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('closePosition', $params, 'cross');
+        $request = array(
+            'instId' => $market['id'],
+            'mgnMode' => $marginMode,
+        );
+        if ($side !== null) {
+            if (($side === 'buy')) {
+                $request['posSide'] = 'long';
+            } elseif ($side === 'sell') {
+                $request['posSide'] = 'short';
+            } else {
+                $request['posSide'] = $side;
+            }
+        }
+        if ($clientOrderId !== null) {
+            $request['clOrdId'] = $clientOrderId;
+        }
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['ccy'] = $currency['id'];
+        }
+        $response = $this->privatePostTradeClosePosition (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => "1",
+        //        "data" => array(
+        //            {
+        //                "clOrdId":"e847386590ce4dBCe903bbc394dc88bf",
+        //                "ordId":"",
+        //                "sCode":"51000",
+        //                "sMsg":"Parameter posSide error ",
+        //                "tag":"e847386590ce4dBC"
+        //            }
+        //        ),
+        //        "inTime" => "1701877077101064",
+        //        "msg" => "All operations failed",
+        //        "outTime" => "1701877077102579"
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $order = $this->safe_value($data, 0);
+        return $this->parse_order($order, $market);
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

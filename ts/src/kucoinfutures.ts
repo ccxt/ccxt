@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import { Int, OrderSide, OrderType, OHLCV, Order, Trade, FundingRateHistory, FundingHistory, Balances, Str, Ticker, OrderBook, Transaction, Strings, Market, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Order, Trade, FundingRateHistory, FundingHistory, Balances, Str, Ticker, OrderBook, Transaction, Strings, Market, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -31,6 +31,8 @@ export default class kucoinfutures extends kucoin {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closePosition': true,
+                'closePositions': false,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
@@ -151,6 +153,7 @@ export default class kucoinfutures extends kucoin {
                         'positions': 4.44,
                         'funding-history': 4.44,
                         'sub/api-key': 1,
+                        'trade-statistics': 1,
                     },
                     'post': {
                         'withdrawals': 1,
@@ -172,6 +175,7 @@ export default class kucoinfutures extends kucoin {
                         'orders': 4.44,
                         'stopOrders': 1,
                         'sub/api-key': 1,
+                        'orders/client-order/{clientOid}': 1,
                     },
                 },
                 'webExchange': {
@@ -710,10 +714,6 @@ export default class kucoinfutures extends kucoin {
         return orderbook;
     }
 
-    async fetchL3OrderBook (symbol: string, limit: Int = undefined, params = {}) {
-        throw new BadRequest (this.id + ' fetchL3OrderBook() is not supported yet');
-    }
-
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
@@ -1244,13 +1244,26 @@ export default class kucoinfutures extends kucoin {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] cancel order by client order id
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
-            'orderId': id,
-        };
-        const response = await this.futuresPrivateDeleteOrdersOrderId (this.extend (request, params));
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        params = this.omit (params, [ 'clientOrderId' ]);
+        const request = {};
+        let response = undefined;
+        if (clientOrderId !== undefined) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument when cancelling by clientOrderId');
+            }
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+            request['clientOid'] = clientOrderId;
+            response = await this.futuresPrivateDeleteOrdersClientOrderClientOid (this.extend (request, params));
+        } else {
+            request['orderId'] = id;
+            response = await this.futuresPrivateDeleteOrdersOrderId (this.extend (request, params));
+        }
         //
         //   {
         //       "code": "200000",
@@ -1273,7 +1286,7 @@ export default class kucoinfutures extends kucoin {
          * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-stop-orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.stop] When true, all the trigger orders will be cancelled
+         * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
          * @returns Response from the exchange
          */
         await this.loadMarkets ();
@@ -1281,8 +1294,8 @@ export default class kucoinfutures extends kucoin {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, 'stop');
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
         if (stop) {
             response = await this.futuresPrivateDeleteStopOrders (this.extend (request, params));
@@ -1453,7 +1466,7 @@ export default class kucoinfutures extends kucoin {
          * @param {int} [since] timestamp in ms of the earliest order to retrieve
          * @param {int} [limit] The maximum number of orders to retrieve
          * @param {object} [params] exchange specific parameters
-         * @param {bool} [params.stop] set to true to retrieve untriggered stop orders
+         * @param {bool} [params.trigger] set to true to retrieve untriggered stop orders
          * @param {int} [params.until] End time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit or market
@@ -1466,9 +1479,9 @@ export default class kucoinfutures extends kucoin {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrdersByStatus', symbol, since, limit, params) as Order[];
         }
-        const stop = this.safeValue (params, 'stop');
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
         const until = this.safeInteger2 (params, 'until', 'till');
-        params = this.omit (params, [ 'stop', 'until', 'till' ]);
+        params = this.omit (params, [ 'stop', 'until', 'till', 'trigger' ]);
         if (status === 'closed') {
             status = 'done';
         } else if (status === 'open') {
@@ -1561,7 +1574,7 @@ export default class kucoinfutures extends kucoin {
          * @see https://docs.kucoin.com/futures/#get-order-list
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.till] end time in ms
          * @param {string} [params.side] buy or sell
@@ -1727,14 +1740,18 @@ export default class kucoinfutures extends kucoin {
         const cancelExist = this.safeValue (order, 'cancelExist', false);
         let status = isActive ? 'open' : 'closed';
         status = cancelExist ? 'canceled' : status;
-        const fee = {
-            'currency': feeCurrency,
-            'cost': feeCost,
-        };
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCost,
+            };
+        }
         const clientOrderId = this.safeString (order, 'clientOid');
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         const postOnly = this.safeValue (order, 'postOnly');
+        const reduceOnly = this.safeValue (order, 'reduceOnly');
         const lastUpdateTimestamp = this.safeInteger (order, 'updatedAt');
         return this.safeOrder ({
             'id': orderId,
@@ -1743,6 +1760,7 @@ export default class kucoinfutures extends kucoin {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': side,
             'amount': amount,
             'price': price,
@@ -2438,5 +2456,40 @@ export default class kucoinfutures extends kucoin {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
+    }
+
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name kucoinfutures#closePosition
+         * @description closes open positions for a market
+         * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} side not used by kucoinfutures closePositions
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.clientOrderId] client order id of the order
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let clientOrderId = this.safeString (params, 'clientOrderId');
+        const testOrder = this.safeValue (params, 'test', false);
+        params = this.omit (params, [ 'test', 'clientOrderId' ]);
+        if (clientOrderId === undefined) {
+            clientOrderId = this.numberToString (this.nonce ());
+        }
+        const request = {
+            'symbol': market['id'],
+            'closeOrder': true,
+            'clientOid': clientOrderId,
+            'type': 'market',
+        };
+        let response = undefined;
+        if (testOrder) {
+            response = await this.futuresPrivatePostOrdersTest (this.extend (request, params));
+        } else {
+            response = await this.futuresPrivatePostOrders (this.extend (request, params));
+        }
+        return this.parseOrder (response, market);
     }
 }

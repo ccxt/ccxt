@@ -2,5 +2,183 @@
     "exchange": "deribit",
     "skipKeys": [],
     "outputType": "json",
-    "methods": {}
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "fetch Trades",
+                "method": "fetchTrades",
+                "url": "https://www.deribit.com/api/v2/public/get_last_trades_by_instrument?instrument_name=BTC_USDT&include_old=true",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch Trades",
+                "method": "fetchTrades",
+                "url": "https://www.deribit.com/api/v2/public/get_last_trades_by_instrument_and_time?instrument_name=BTC_USDT&include_old=true&start_timestamp=1703665611074",
+                "input": [
+                    "BTC/USDT",
+                    1703665611074
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot limit buy order",
+                "method": "createOrder",
+                "url": "https://www.deribit.com/api/v2/private/buy?instrument_name=BTC_USDT&amount=0.0002&type=limit&price=25000",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0002,
+                    25000
+                ]
+            },
+            {
+                "description": "Spot limit sell order",
+                "method": "createOrder",
+                "url": "https://www.deribit.com/api/v2/private/sell?instrument_name=BTC_USDT&amount=0.0002&type=limit&price=25000",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "sell",
+                    0.0002,
+                    25000
+                ]
+            },
+            {
+                "description": "Swap trailingAmount order",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/sell?instrument_name=BTC_USDT-PERPETUAL&amount=0.001&type=trailing_stop&trigger=last_price&trigger_offset=1000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.001,
+                  null,
+                  {
+                    "trailingAmount": 1000
+                  }
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel All Orders",
+                "method": "cancelAllOrders",
+                "url": "https://www.deribit.com/api/v2/private/cancel_all",
+                "input": [
+                ]
+            },
+            {
+                "description": "cancel All Orders",
+                "method": "cancelAllOrders",
+                "url": "https://www.deribit.com/api/v2/private/cancel_all_by_instrument?instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch Open Orders",
+                "method": "fetchOpenOrders",
+                "url": "https://www.deribit.com/api/v2/private/get_open_orders_by_currency?currency=BTC",
+                "input": [
+                ]
+            },
+            {
+                "description": "fetch Open Orders",
+                "method": "fetchOpenOrders",
+                "url": "https://www.deribit.com/api/v2/private/get_open_orders_by_instrument?instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch Closed Orders",
+                "method": "fetchClosedOrders",
+                "url": "https://www.deribit.com/api/v2/private/get_order_history_by_currency?currency=BTC",
+                "input": [
+                ]
+            },
+            {
+                "description": "fetch Closed Orders",
+                "method": "fetchClosedOrders",
+                "url": "https://www.deribit.com/api/v2/private/get_order_history_by_instrument?instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch My Trades",
+                "method": "fetchMyTrades",
+                "url": "https://www.deribit.com/api/v2/private/get_user_trades_by_currency?include_old=true&currency=BTC",
+                "input": [
+                ]
+            },
+            {
+                "description": "fetch My Trades",
+                "method": "fetchMyTrades",
+                "url": "https://www.deribit.com/api/v2/private/get_user_trades_by_instrument?include_old=true&instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch My Trades",
+                "method": "fetchMyTrades",
+                "url": "https://www.deribit.com/api/v2/private/get_user_trades_by_currency_and_time?include_old=true&currency=BTC&start_timestamp=1703665611074",
+                "input": [
+                    null,
+                    1703665611074
+                ]
+            },
+            {
+                "description": "fetch My Trades",
+                "method": "fetchMyTrades",
+                "url": "https://www.deribit.com/api/v2/private/get_user_trades_by_instrument_and_time?include_old=true&instrument_name=BTC_USDT&start_timestamp=1703665611074",
+                "input": [
+                    "BTC/USDT",
+                    1703665611074
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer",
+                "method": "transfer",
+                "url": "https://www.deribit.com/api/v2/private/submit_transfer_to_subaccount?amount=1&currency=USDT&destination=toAccount",
+                "input": [
+                    "USDT",
+                    1,
+                    null,
+                    "toAccount"
+                ]
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Swap edit a trailingAmount order",
+                "method": "editOrder",
+                "url": "https://test.deribit.com/api/v2/private/edit?order_id=USDT-TSTS-32&amount=0.001&trigger_offset=2500&trailingAmount=2500",
+                "input": [
+                  "USDT-TSTS-32",
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.001,
+                  null,
+                  {
+                    "trailingAmount": 2500
+                  }
+                ]
+            }
+        ]
+    }
 }

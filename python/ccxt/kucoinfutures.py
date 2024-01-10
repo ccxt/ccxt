@@ -46,6 +46,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closePosition': True,
+                'closePositions': False,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
@@ -166,6 +168,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'positions': 4.44,
                         'funding-history': 4.44,
                         'sub/api-key': 1,
+                        'trade-statistics': 1,
                     },
                     'post': {
                         'withdrawals': 1,
@@ -187,6 +190,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'orders': 4.44,
                         'stopOrders': 1,
                         'sub/api-key': 1,
+                        'orders/client-order/{clientOid}': 1,
                     },
                 },
                 'webExchange': {
@@ -692,9 +696,6 @@ class kucoinfutures(kucoin, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
-    def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
-        raise BadRequest(self.id + ' fetchL3OrderBook() is not supported yet')
-
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -1190,13 +1191,24 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: cancel order by client order id
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
-            'orderId': id,
-        }
-        response = self.futuresPrivateDeleteOrdersOrderId(self.extend(request, params))
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
+        params = self.omit(params, ['clientOrderId'])
+        request = {}
+        response = None
+        if clientOrderId is not None:
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument when cancelling by clientOrderId')
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            request['clientOid'] = clientOrderId
+            response = self.futuresPrivateDeleteOrdersClientOrderClientOid(self.extend(request, params))
+        else:
+            request['orderId'] = id
+            response = self.futuresPrivateDeleteOrdersOrderId(self.extend(request, params))
         #
         #   {
         #       "code": "200000",
@@ -1216,15 +1228,15 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :see: https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-stop-orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param dict [params.stop]: When True, all the trigger orders will be cancelled
+        :param dict [params.trigger]: When True, all the trigger orders will be cancelled
         :returns: Response from the exchange
         """
         self.load_markets()
         request = {}
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
-        stop = self.safe_value(params, 'stop')
-        params = self.omit(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
+        params = self.omit(params, ['stop', 'trigger'])
         response = None
         if stop:
             response = self.futuresPrivateDeleteStopOrders(self.extend(request, params))
@@ -1387,7 +1399,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order to retrieve
         :param int [limit]: The maximum number of orders to retrieve
         :param dict [params]: exchange specific parameters
-        :param bool [params.stop]: set to True to retrieve untriggered stop orders
+        :param bool [params.trigger]: set to True to retrieve untriggered stop orders
         :param int [params.until]: End time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit or market
@@ -1399,9 +1411,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOrdersByStatus', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchOrdersByStatus', symbol, since, limit, params)
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
         until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['stop', 'until', 'till'])
+        params = self.omit(params, ['stop', 'until', 'till', 'trigger'])
         if status == 'closed':
             status = 'done'
         elif status == 'open':
@@ -1485,7 +1497,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :see: https://docs.kucoin.com/futures/#get-order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.till]: end time in ms
         :param str [params.side]: buy or sell
@@ -1642,14 +1654,17 @@ class kucoinfutures(kucoin, ImplicitAPI):
         cancelExist = self.safe_value(order, 'cancelExist', False)
         status = 'open' if isActive else 'closed'
         status = 'canceled' if cancelExist else status
-        fee = {
-            'currency': feeCurrency,
-            'cost': feeCost,
-        }
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCost,
+            }
         clientOrderId = self.safe_string(order, 'clientOid')
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'stopPrice')
         postOnly = self.safe_value(order, 'postOnly')
+        reduceOnly = self.safe_value(order, 'reduceOnly')
         lastUpdateTimestamp = self.safe_integer(order, 'updatedAt')
         return self.safe_order({
             'id': orderId,
@@ -1658,6 +1673,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': side,
             'amount': amount,
             'price': price,
@@ -2298,3 +2314,33 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
+
+    def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+        """
+        closes open positions for a market
+        :see: https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
+        :param str symbol: Unified CCXT market symbol
+        :param str side: not used by kucoinfutures closePositions
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.clientOrderId]: client order id of the order
+        :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        testOrder = self.safe_value(params, 'test', False)
+        params = self.omit(params, ['test', 'clientOrderId'])
+        if clientOrderId is None:
+            clientOrderId = self.number_to_string(self.nonce())
+        request = {
+            'symbol': market['id'],
+            'closeOrder': True,
+            'clientOid': clientOrderId,
+            'type': 'market',
+        }
+        response = None
+        if testOrder:
+            response = self.futuresPrivatePostOrdersTest(self.extend(request, params))
+        else:
+            response = self.futuresPrivatePostOrders(self.extend(request, params))
+        return self.parse_order(response, market)

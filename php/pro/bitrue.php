@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitrue extends \ccxt\async\bitrue {
 
@@ -56,7 +57,7 @@ class bitrue extends \ccxt\async\bitrue {
         ));
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -171,7 +172,7 @@ class bitrue extends \ccxt\async\bitrue {
         $this->balance = $this->safe_balance($this->balance);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on user $orders
@@ -299,7 +300,7 @@ class bitrue extends \ccxt\async\bitrue {
         ), $market);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);

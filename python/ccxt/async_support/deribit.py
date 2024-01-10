@@ -1286,12 +1286,15 @@ class deribit(Exchange, ImplicitAPI):
             'instrument_name': market['id'],
             'include_old': True,
         }
-        method = 'publicGetGetLastTradesByInstrument' if (since is None) else 'publicGetGetLastTradesByInstrumentAndTime'
         if since is not None:
             request['start_timestamp'] = since
         if limit is not None:
             request['count'] = min(limit, 1000)  # default 10
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if since is None:
+            response = await self.publicGetGetLastTradesByInstrument(self.extend(request, params))
+        else:
+            response = await self.publicGetGetLastTradesByInstrumentAndTime(self.extend(request, params))
         #
         #      {
         #          "jsonrpc":"2.0",
@@ -1662,24 +1665,18 @@ class deribit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade. For perpetual and futures the amount is in USD. For options it is in corresponding cryptocurrency contracts currency.
+        :param float amount: how much you want to trade in units of the base currency. For inverse perpetual and futures the amount is in the quote currency USD. For options it is in the underlying assets base currency.
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.trigger]: the trigger type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
+        :param float [params.trailingAmount]: the quote amount to trail away from the current market price
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        if market['inverse']:
-            amount = self.amount_to_precision(symbol, amount)
-        elif market['settle'] == 'USDC':
-            amount = self.amount_to_precision(symbol, amount)
-        else:
-            amount = self.currency_to_precision(symbol, amount)
         request = {
             'instrument_name': market['id'],
-            # for perpetual and futures the amount is in USD
-            # for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
-            'amount': amount,
+            'amount': self.amount_to_precision(symbol, amount),
             'type': type,  # limit, stop_limit, market, stop_market, default is limit
             # 'label': 'string',  # user-defined label for the order(maximum 64 characters)
             # 'price': self.price_to_precision(symbol, 123.45),  # only for limit and stop_limit orders
@@ -1692,12 +1689,15 @@ class deribit(Exchange, ImplicitAPI):
             # 'trigger': 'index_price',  # mark_price, last_price, required for stop_limit orders
             # 'advanced': 'usd',  # 'implv', advanced option order type, options only
         }
+        trigger = self.safe_string(params, 'trigger', 'last_price')
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
         # only stop loss sell orders are allowed when price crossed from above
         stopLossPrice = self.safe_value(params, 'stopLossPrice')
         # only take profit buy orders are allowed when price crossed from below
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trigger_offset')
+        isTrailingAmountOrder = trailingAmount is not None
         isStopLimit = type == 'stop_limit'
         isStopMarket = type == 'stop_market'
         isTakeLimit = type == 'take_limit'
@@ -1716,10 +1716,14 @@ class deribit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         else:
             request['type'] = 'market'
-        if isStopOrder:
+        if isTrailingAmountOrder:
+            request['trigger'] = trigger
+            request['type'] = 'trailing_stop'
+            request['trigger_offset'] = self.parse_to_numeric(trailingAmount)
+        elif isStopOrder:
             triggerPrice = stopLossPrice if (stopLossPrice is not None) else takeProfitPrice
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
-            request['trigger'] = 'last_price'  # required
+            request['trigger'] = trigger
             if isStopLossOrder:
                 if isMarketOrder:
                     # stop_market(sell only)
@@ -1746,9 +1750,12 @@ class deribit(Exchange, ImplicitAPI):
                 request['time_in_force'] = 'immediate_or_cancel'
             if timeInForce == 'FOK':
                 request['time_in_force'] = 'fill_or_kill'
-        method = 'privateGet' + self.capitalize(side)
-        params = self.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly'])
-        response = await getattr(self, method)(self.extend(request, params))
+        params = self.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'trailingAmount'])
+        response = None
+        if self.capitalize(side) == 'Buy':
+            response = await self.privateGetBuy(self.extend(request, params))
+        else:
+            response = await self.privateGetSell(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -1808,23 +1815,38 @@ class deribit(Exchange, ImplicitAPI):
         return self.parse_order(order, market)
 
     async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        """
+        edit a trade order
+        :see: https://docs.deribit.com/#private-edit
+        :param str id: edit order id
+        :param str [symbol]: unified symbol of the market to edit an order in
+        :param str [type]: 'market' or 'limit'
+        :param str [side]: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency, inverse swap and future use the quote currency
+        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.trailingAmount]: the quote amount to trail away from the current market price
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')
-        if price is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires a price argument')
         await self.load_markets()
         request = {
             'order_id': id,
-            # for perpetual and futures the amount is in USD
-            # for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
             'amount': self.amount_to_precision(symbol, amount),
-            'price': self.price_to_precision(symbol, price),  # required
             # 'post_only': False,  # if the new price would cause the order to be filled immediately(as taker), the price will be changed to be just below the spread.
             # 'reject_post_only': False,  # if True the order is put to order book unmodified or request is rejected
             # 'reduce_only': False,  # if True, the order is intended to only reduce a current position
             # 'stop_price': False,  # stop price, required for stop_limit orders
             # 'advanced': 'usd',  # 'implv', advanced option order type, options only
         }
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
+        trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trigger_offset')
+        isTrailingAmountOrder = trailingAmount is not None
+        if isTrailingAmountOrder:
+            request['trigger_offset'] = self.parse_to_numeric(trailingAmount)
+            params = self.omit(params, 'trigger_offset')
         response = await self.privateGetEdit(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         order = self.safe_value(result, 'order')
@@ -1857,14 +1879,13 @@ class deribit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {}
-        method = None
+        response = None
         if symbol is None:
-            method = 'privateGetCancelAll'
+            response = await self.privateGetCancelAll(self.extend(request, params))
         else:
-            method = 'privateGetCancelAllByInstrument'
             market = self.market(symbol)
             request['instrument_name'] = market['id']
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateGetCancelAllByInstrument(self.extend(request, params))
         return response
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1879,17 +1900,16 @@ class deribit(Exchange, ImplicitAPI):
         await self.load_markets()
         request = {}
         market = None
-        method = None
+        response = None
         if symbol is None:
             code = self.code_from_options('fetchOpenOrders', params)
             currency = self.currency(code)
             request['currency'] = currency['id']
-            method = 'privateGetGetOpenOrdersByCurrency'
+            response = await self.privateGetGetOpenOrdersByCurrency(self.extend(request, params))
         else:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
-            method = 'privateGetGetOpenOrdersByInstrument'
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateGetGetOpenOrdersByInstrument(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
@@ -1898,24 +1918,23 @@ class deribit(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
         market = None
-        method = None
+        response = None
         if symbol is None:
             code = self.code_from_options('fetchClosedOrders', params)
             currency = self.currency(code)
             request['currency'] = currency['id']
-            method = 'privateGetGetOrderHistoryByCurrency'
+            response = await self.privateGetGetOrderHistoryByCurrency(self.extend(request, params))
         else:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
-            method = 'privateGetGetOrderHistoryByInstrument'
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateGetGetOrderHistoryByInstrument(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
@@ -1984,27 +2003,26 @@ class deribit(Exchange, ImplicitAPI):
             'include_old': True,
         }
         market = None
-        method = None
+        if limit is not None:
+            request['count'] = limit  # default 10
+        response = None
         if symbol is None:
             code = self.code_from_options('fetchMyTrades', params)
             currency = self.currency(code)
             request['currency'] = currency['id']
             if since is None:
-                method = 'privateGetGetUserTradesByCurrency'
+                response = await self.privateGetGetUserTradesByCurrency(self.extend(request, params))
             else:
-                method = 'privateGetGetUserTradesByCurrencyAndTime'
                 request['start_timestamp'] = since
+                response = await self.privateGetGetUserTradesByCurrencyAndTime(self.extend(request, params))
         else:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
             if since is None:
-                method = 'privateGetGetUserTradesByInstrument'
+                response = await self.privateGetGetUserTradesByInstrument(self.extend(request, params))
             else:
-                method = 'privateGetGetUserTradesByInstrumentAndTime'
                 request['start_timestamp'] = since
-        if limit is not None:
-            request['count'] = limit  # default 10
-        response = await getattr(self, method)(self.extend(request, params))
+                response = await self.privateGetGetUserTradesByInstrumentAndTime(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -2510,7 +2528,11 @@ class deribit(Exchange, ImplicitAPI):
         if method is None:
             transferOptions = self.safe_value(self.options, 'transfer', {})
             method = self.safe_string(transferOptions, 'method', 'privateGetSubmitTransferToSubaccount')
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetSubmitTransferToUser':
+            response = await self.privateGetSubmitTransferToUser(self.extend(request, params))
+        else:
+            response = await self.privateGetSubmitTransferToSubaccount(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",

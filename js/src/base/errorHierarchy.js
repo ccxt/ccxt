@@ -37,6 +37,7 @@ const errorHierarchy = {
                 'ContractUnavailable': {},
             },
             'NotSupported': {},
+            'ProxyError': {},
         },
         'OperationFailed': {
             'NetworkError': {
@@ -50,6 +51,7 @@ const errorHierarchy = {
                 'RequestTimeout': {},
             },
         },
+        'ExchangeClosedByUser': {},
     },
 };
 export default errorHierarchy;
