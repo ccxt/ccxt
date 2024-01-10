@@ -5,7 +5,7 @@ import okxRest from '../okx.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dictionary } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -370,7 +370,7 @@ export default class okx extends okxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchOHLCVForSymbols
@@ -413,18 +413,6 @@ export default class okx extends okxRest {
         }
         const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
-    }
-
-    filterByMultiSymbolAndTimeframe (candles: Dictionary<Dictionary<OHLCV[]>>, symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined) {
-        const result = {};
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
-            const symbol = symbolAndTimeframe[0];
-            const timeframe = symbolAndTimeframe[1];
-            const key = symbol + ':' + timeframe;
-            result[key] = this.createOHLCVObject (symbol, timeframe, candles[key]);
-        }
-        return result;
     }
 
     handleOHLCV (client: Client, message) {
