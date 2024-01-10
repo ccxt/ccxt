@@ -26,7 +26,17 @@ public partial class Exchange
 
 }
 
-public class OrderBookSide : SlimConcurrentList<object>
+public interface IOrderBookSide
+{
+    void store(object price, object size);
+    void storeArray(object delta);
+    void limit();
+    void store(object price, object size, object order_id);
+    IOrderBookSide GetCopy();
+}
+
+
+public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 {
     protected readonly object _syncRoot = new object();
 
@@ -160,7 +170,16 @@ public class OrderBookSide : SlimConcurrentList<object>
         }
     }
 
-    public OrderBookSide GetCopy()
+    public void store(object price, object size, object order_id)
+    {
+        lock (_syncRoot)
+        {
+            // default implementation, not used on this mode
+            this.storeArray(new SlimConcurrentList<object> { price, size });
+        }
+    }
+
+    public IOrderBookSide GetCopy()
     {
         lock (_syncRoot)
         {
@@ -172,7 +191,7 @@ public class OrderBookSide : SlimConcurrentList<object>
 }
 
 
-public class NormalOrderBookSide : OrderBookSide
+public class NormalOrderBookSide : OrderBookSide, IOrderBookSide
 {
     public NormalOrderBookSide(object deltas2, object depth = null, bool side = false) : base(deltas2, depth, side)
     {
@@ -190,7 +209,7 @@ public class NormalOrderBookSide : OrderBookSide
     }
 }
 
-public class CountedOrderBookSide : OrderBookSide
+public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
 {
 
     public CountedOrderBookSide(object deltas2, object depth = null, bool side = false) : base(deltas2, depth, side)
@@ -250,7 +269,7 @@ public class CountedOrderBookSide : OrderBookSide
     }
 }
 
-public class IndexedOrderBookSide : OrderBookSide
+public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
 {
     public IDictionary<string, object> hasmap = new CustomConcurrentDictionary<string, object>();
     public IndexedOrderBookSide(object deltas2, object depth = null, bool side = false) : base(deltas2, depth, side)
@@ -381,7 +400,17 @@ public class IndexedOrderBookSide : OrderBookSide
 }
 
 
-public class Asks : NormalOrderBookSide
+public interface IAsks : IOrderBookSide
+{
+
+}
+
+public interface IBids : IOrderBookSide
+{
+
+}
+
+public class Asks : NormalOrderBookSide, IAsks
 {
     public Asks(object deltas2, object depth = null) : base(deltas2, depth)
     {
@@ -389,7 +418,7 @@ public class Asks : NormalOrderBookSide
     }
 }
 
-public class Bids : NormalOrderBookSide
+public class Bids : NormalOrderBookSide, IBids
 {
     public Bids(object deltas2, object depth = null) : base(deltas2, depth, true)
     {
@@ -397,7 +426,7 @@ public class Bids : NormalOrderBookSide
     }
 }
 
-public class CountedAsks : CountedOrderBookSide
+public class CountedAsks : CountedOrderBookSide, IAsks
 {
     public CountedAsks(object deltas2, object depth = null) : base(deltas2, depth)
     {
@@ -406,7 +435,7 @@ public class CountedAsks : CountedOrderBookSide
     }
 }
 
-public class CountedBids : CountedOrderBookSide
+public class CountedBids : CountedOrderBookSide, IBids
 {
     public CountedBids(object deltas2, object depth = null) : base(deltas2, depth, true)
     {
@@ -415,7 +444,7 @@ public class CountedBids : CountedOrderBookSide
 }
 
 
-public class IndexedAsks : IndexedOrderBookSide
+public class IndexedAsks : IndexedOrderBookSide, IAsks
 {
     public IndexedAsks(object deltas2, object depth = null) : base(deltas2, depth)
     {
@@ -423,7 +452,7 @@ public class IndexedAsks : IndexedOrderBookSide
     }
 }
 
-public class IndexedBids : IndexedOrderBookSide
+public class IndexedBids : IndexedOrderBookSide, IBids
 {
     public IndexedBids(object deltas2, object depth = null) : base(deltas2, depth, true)
     {

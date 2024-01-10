@@ -234,12 +234,10 @@ public partial class Exchange
 
     public string json(object obj)
     {
-        // var currentThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
-        // Console.WriteLine("[" + currentThreadId.ToString() + "] Will json serialize: " + obj.GetType().ToString());
-        if (obj is ccxt.OrderBook)
+        if (obj is IOrderBook)
         {
             // tmp fix
-            var ob = (ccxt.OrderBook)obj;
+            var ob = (IOrderBook)obj;
             var copy = ob.GetCopy();
             return Json(copy);
         }

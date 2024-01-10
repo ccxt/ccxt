@@ -6,7 +6,17 @@ using Newtonsoft.Json;
 
 using dict = IDictionary<string, object>;
 
-public class OrderBook : CustomConcurrentDictionary<string, object>
+public interface IOrderBook
+{
+    IOrderBook limit();
+    void reset(object snapshot = null);
+    IOrderBook GetCopy();
+    public IOrderBook update(object snapshot);
+    IAsks asks { get; set; }
+    IBids bids { get; set; }
+}
+
+public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 {
     // protected readonly object _syncRoot = new object();
     private IList<object> _cache = new SlimConcurrentList<object>();
@@ -31,7 +41,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>
 
     private Asks _asks;
 
-    public Asks asks
+    public IAsks asks
     {
         get
         {
@@ -44,13 +54,13 @@ public class OrderBook : CustomConcurrentDictionary<string, object>
         {
             lock (_syncRoot)
             {
-                _asks = value;
+                _asks = value as Asks;
             }
         }
     }
     private Bids _bids;
 
-    public Bids bids
+    public IBids bids
     {
         get
         {
@@ -63,7 +73,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>
         {
             lock (_syncRoot)
             {
-                _bids = value;
+                _bids = value as Bids;
             }
         }
     }
@@ -114,7 +124,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>
         }
     }
 
-    public OrderBook limit()
+    public IOrderBook limit()
     {
 
         lock (_syncRoot)
@@ -125,7 +135,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>
         }
     }
 
-    public OrderBook update(object snapshot)
+    public IOrderBook update(object snapshot)
     {
         lock (_syncRoot)
         {
@@ -147,8 +157,8 @@ public class OrderBook : CustomConcurrentDictionary<string, object>
     {
         lock (_syncRoot)
         {
-            this.asks._index.Clear();
-            this.asks.Clear();
+            this._asks._index.Clear();
+            this._asks.Clear();
 
             var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks") as List<object>;
             for (var i = 0; i < snapshotAsks.Count; i++)
@@ -156,8 +166,8 @@ public class OrderBook : CustomConcurrentDictionary<string, object>
                 this.asks.storeArray(snapshotAsks[i] as List<object>);
             }
 
-            this.bids._index.Clear();
-            this.bids.Clear();
+            this._bids._index.Clear();
+            this._bids.Clear();
             var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids") as List<object>;
             for (var i = 0; i < snapshotBids.Count; i++)
             {
@@ -170,11 +180,11 @@ public class OrderBook : CustomConcurrentDictionary<string, object>
         }
     }
 
-    public OrderBook GetCopy()
+    public IOrderBook GetCopy()
     {
         lock (_syncRoot)
         {
-            var copy = new OrderBook();
+            var copy = new OrderBook(new Dictionary<string, object>());
             copy["asks"] = this.asks.GetCopy();
             copy["bids"] = this.bids.GetCopy();
             copy["nonce"] = this["nonce"];
@@ -220,7 +230,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>
     }
 }
 
-public class CountedOrderBook : OrderBook
+public class CountedOrderBook : OrderBook, IOrderBook
 {
     public CountedAsks asks;
     public CountedBids bids;
@@ -234,16 +244,32 @@ public class CountedOrderBook : OrderBook
         this.bids = this["bids"] as CountedBids;
     }
 
-    public CountedOrderBook limit()
+    public IOrderBook limit()
     {
         this.asks.limit();
         this.bids.limit();
         return this;
     }
+
+
+    public IOrderBook GetCopy()
+    {
+        lock (_syncRoot)
+        {
+            var copy = new CountedOrderBook(new Dictionary<string, object>());
+            copy["asks"] = this.asks.GetCopy();
+            copy["bids"] = this.bids.GetCopy();
+            copy["nonce"] = this["nonce"];
+            copy["timestamp"] = this["timestamp"];
+            copy["datetime"] = this["datetime"];
+            copy["symbol"] = this["symbol"];
+            return copy;
+        }
+    }
 }
 
 
-public class IndexedOrderBook : OrderBook
+public class IndexedOrderBook : OrderBook, IOrderBook
 {
     public IndexedAsks asks;
     public IndexedBids bids;
@@ -257,10 +283,25 @@ public class IndexedOrderBook : OrderBook
         this.bids = this["bids"] as IndexedBids;
     }
 
-    public IndexedOrderBook limit()
+    public IOrderBook limit()
     {
         this.asks.limit();
         this.bids.limit();
         return this;
+    }
+
+    public IOrderBook GetCopy()
+    {
+        lock (_syncRoot)
+        {
+            var copy = new IndexedOrderBook(new Dictionary<string, object>());
+            copy["asks"] = this.asks.GetCopy();
+            copy["bids"] = this.bids.GetCopy();
+            copy["nonce"] = this["nonce"];
+            copy["timestamp"] = this["timestamp"];
+            copy["datetime"] = this["datetime"];
+            copy["symbol"] = this["symbol"];
+            return copy;
+        }
     }
 }
