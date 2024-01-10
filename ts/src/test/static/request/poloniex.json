@@ -1,0 +1,160 @@
+{
+    "exchange": "poloniex",
+    "skipKeys": [
+        "start",
+        "end"
+    ],
+    "outputType": "json",
+    "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "Spot private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.poloniex.com/trades?startTime=1699457638000&limit=5",
+                "input": [
+                    "LTC/USDT",
+                    1699457638000,
+                    5
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.poloniex.com/orders?symbol=LTC_USDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel spot order",
+                "method": "cancelOrder",
+                "url": "https://api.poloniex.com/orders/258660009938837504",
+                "input": [
+                  "258660009938837504",
+                  "LTC/USDT"
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel spot orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.poloniex.com/orders",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "output": "{\"symbols\":[\"LTC_USDT\"]}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api.poloniex.com/accounts/balances?accountType=SPOT&type=spot",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://api.poloniex.com/accounts/balances?accountType=SPOT&type=swap",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.poloniex.com/wallets/activity?start=1388418295&end=1699458295",
+                "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.poloniex.com/wallets/activity?start=1388420472&end=1699460472",
+                "input": []
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.poloniex.com/orders",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
+                ],
+                "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"buy\",\"type\":\"LIMIT\",\"quantity\":\"0.1\",\"price\":\"50\"}"
+            },
+            {
+                "description": "spot market sell",
+                "method": "createOrder",
+                "url": "https://api.poloniex.com/orders",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0.1
+                ],
+                "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"sell\",\"type\":\"MARKET\",\"quantity\":\"0.1\"}"
+            },
+            {
+                "description": "market buy with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://api.poloniex.com/orders",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  10,
+                  null,
+                  {
+                    "createMarketBuyOrderRequiresPrice": false
+                  }
+                ],
+                "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"buy\",\"type\":\"MARKET\",\"amount\":\"10\"}"
+            },
+            {
+                "description": "Spot limit sell",
+                "method": "createOrder",
+                "url": "https://api.poloniex.com/orders",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "sell",
+                  0.1,
+                  100
+                ],
+                "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"sell\",\"type\":\"LIMIT\",\"quantity\":\"0.1\",\"price\":\"100\"}"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "spot market buy with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.poloniex.com/orders",
+                "input": [
+                  "LTC/USDT",
+                  10
+                ],
+                "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"buy\",\"type\":\"MARKET\",\"amount\":\"10\"}"
+            }
+        ]
+    }
+}

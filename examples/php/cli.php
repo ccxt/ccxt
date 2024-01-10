@@ -23,19 +23,22 @@ $main = function() use ($argv) {
         $args = array_values(array_filter($argv, function ($option) { return strstr($option, '--verbose') === false; }));
 
         $test = count(array_filter($args, function ($option) { return strstr($option, '--test') !== false || strstr($option, '--testnet') !== false || strstr($option, '--sandbox') !== false; })) > 0;
-        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--test') === false || strstr($option, '--testnet') !== false || strstr($option, '--sandbox') !== false; }));
+        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--test') === false && strstr($option, '--testnet') === false && strstr($option, '--sandbox') === false; }));
 
         $debug = count(array_filter($args, function ($option) { return strstr($option, '--debug') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--debug') === false; }));
 
         $spot = count(array_filter($args, function ($option) { return strstr($option, '--spot') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--spot') === false; }));
-    
+
         $swap = count(array_filter($args, function ($option) { return strstr($option, '--swap') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--swap') === false; }));
-    
+
         $future = count(array_filter($args, function ($option) { return strstr($option, '--future') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--future') === false; }));
+
+        $option = count(array_filter($args, function ($option) { return strstr($option, '--option') !== false; })) > 0;
+        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--option') === false; }));
 
         $new_updates = count(array_filter($args, function ($option) { return strstr($option, '--newUpdates') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--newUpdates') === false; }));
@@ -63,7 +66,7 @@ $main = function() use ($argv) {
                 $exchange = '\\ccxt\\pro\\' . $id;
             } else {
                 $exchange = '\\ccxt\\async\\' . $id;
-            }        
+            }
             $exchange = new $exchange($config);
 
             if ($spot) {
@@ -72,6 +75,8 @@ $main = function() use ($argv) {
                 $exchange->options['defaultType'] = 'swap';
             } else if ($future) {
                 $exchange->options['defaultType'] = 'future';
+            } else if ($option) {
+                $exchange->options['defaultType'] = 'option';
             }
 
             if ($new_updates) {
@@ -118,7 +123,7 @@ $main = function() use ($argv) {
             }
 
             $exchange->verbose = $verbose;
-            
+
             echo $exchange->id . '->' . $member . '(' . @implode(', ', $args) . ")\n";
 
             $is_ws_method = false;
@@ -136,7 +141,8 @@ $main = function() use ($argv) {
                     echo print_r($result, true) . "\n";
 
                     if (!$is_ws_method) {
-                        exit(1);
+                        # make sure to exit with exit code zero here
+                        exit(0);
                     }
 
                 } catch (\ccxt\NetworkError $e) {

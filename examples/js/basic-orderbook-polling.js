@@ -1,11 +1,6 @@
-"use strict";
+import ccxt from '../../js/ccxt.js';
 
-const ccxt = require ('../../ccxt.js')
-    , id = 'huobipro'
-    , exchange = new ccxt[id] ()
-    , symbol = 'ETH/BTC'
-
-;(async function main () {
+const id = 'huobipro', exchange = new ccxt[id] ({ enableRateLimit: true }), symbol = 'ETH/BTC';(async function main () {
 
     await exchange.loadMarkets ()
 

@@ -21,6 +21,7 @@ class binanceus(binance):
                         'spot': 'wss://stream.binance.us:9443/ws',
                     },
                     'web': 'https://www.binance.us',
+                    'sapi': 'https://api.binance.us/sapi/v1',
                     'wapi': 'https://api.binance.us/wapi/v3',
                     'public': 'https://api.binance.us/api/v1',
                     'private': 'https://api.binance.us/api/v3',
@@ -35,6 +36,8 @@ class binanceus(binance):
             'options': {
                 'fetchCurrencies': False,
                 'quoteOrderQty': False,
+                'defaultType': 'spot',
+                'fetchMarkets': ['spot'],
             },
             'fees': {
                 'trading': {

@@ -1,27 +1,30 @@
-'use strict';
+// ----------------------------------------------------------------------------
+// setup
+
+import ccxt from '../../js/ccxt.js';
 
 // ----------------------------------------------------------------------------
 // setup
 
-const ccxt = require ('../../ccxt.js')
+const // change me
+      defaultCurrencyCode = 'BTC',
+      // change me
+      //                                  currency code specified in commandline args ↓
+      // you can call this script like node examples/js/fetch-create-deposit-address ETH
+      exchangeId = 'poloniex',
+      currencyCode = process.argv[3] || defaultCurrencyCode,
+      exchange = new ccxt[exchangeId] ({
 
-    , defaultCurrencyCode = 'BTC' // change me
-    , exchangeId = 'poloniex' // change me
+              'apiKey': 'YOUR_API_KEY',
+              'secret': 'YOUR_SECRET',
 
-    //                                  currency code specified in commandline args ↓
-    // you can call this script like node examples/js/fetch-create-deposit-address ETH
-    , currencyCode = process.argv[3] || defaultCurrencyCode
+              'enableRateLimit': true, // ←- required! https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
 
-    , exchange = new ccxt[exchangeId] ({
+              // 'verbose': true, // ←- uncomment this for verbose output
 
-        'apiKey': 'YOUR_API_KEY',
-        'secret': 'YOUR_SECRET',
-
-        // 'verbose': true, // ←- uncomment this for verbose output
-
-        // additional credentials might be required in exchange-specific cases:
-        // uid or password for Coinbase Pro, etc...
-    })
+              // additional credentials might be required in exchange-specific cases:
+              // uid or password for Coinbase Pro, etc...
+          });
 
 // ----------------------------------------------------------------------------
 

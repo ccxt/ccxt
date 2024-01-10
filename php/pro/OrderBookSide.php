@@ -31,12 +31,6 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         }
     }
 
-    #[\ReturnTypeWillChange]
-    public function getIterator() {
-        // look at the python for equivalence
-        return new \LimitIterator(parent::getIterator(), 0, $this->n);
-    }
-
     public function storeArray($delta) {
         $price = $delta[0];
         $size = $delta[1];
@@ -66,8 +60,7 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         $this->storeArray(array($price, $size));
     }
 
-    public function limit($n = null) {
-        $this->n = $n ? $n : PHP_INT_MAX;
+    public function limit() {
         $difference = count($this) - $this->depth;
         if ($difference > 0) {
             array_splice($this->index, -$difference);
@@ -184,11 +177,17 @@ class IndexedOrderBookSide extends OrderBookSide {
                 $delta[0] = abs($index_price);
                 if ($index_price === $old_price) {
                     $index = bisectLeft($this->index, $index_price);
+                    while ($this[$index][2] != $id) {
+                        $index++;
+                    }
                     $this[$index] = $delta;
                     return;
                 } else {
                     // remove old price from index
                     $old_index = bisectLeft($this->index, $old_price);
+                    while ($this[$old_index][2] != $id) {
+                        $old_index++;
+                    }
                     array_splice($this->index, $old_index, 1);
                     $tmp = $this->exchangeArray(tmp);
                     array_splice($tmp, $old_index, 1);
@@ -198,6 +197,9 @@ class IndexedOrderBookSide extends OrderBookSide {
             // insert new price level into the orderbook
             $this->hashmap[$id] = $index_price;
             $index = bisectLeft($this->index, $index_price);
+            while (array_key_exists($index, $this->index) && $this->index[$index] == $index_price && $this[$index][2] < $id) {
+                $index++;
+            }
             array_splice($this->index, $index, 0, $index_price);
             $tmp = $this->exchangeArray(tmp);
             array_splice($tmp, $index, 0, array($delta));
@@ -205,6 +207,9 @@ class IndexedOrderBookSide extends OrderBookSide {
         } else if (array_key_exists($id, $this->hashmap)) {
             $old_price = $this->hashmap[$id];
             $index = bisectLeft($this->index, $old_price);
+            while ($this[$index][2] != $id) {
+                $index++;
+            }
             array_splice($this->index, $index, 1);
             $tmp = $this->exchangeArray(tmp);
             array_splice($tmp, $index, 1);

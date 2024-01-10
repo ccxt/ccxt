@@ -1,10 +1,12 @@
-"use strict";
 
-const ccxt      = require ('../../ccxt.js')
-const asTable   = require ('as-table')
-const log       = require ('ololog')
 
-require ('ansicolor').nice
+import ccxt from '../../js/ccxt.js';
+import asTable from 'as-table';
+import log from 'ololog';
+import ansicolor from 'ansicolor';
+
+
+ansicolor.nice
 
 let printUsage = function () {
     log ('Usage: node', process.argv[1], 'symbol'.green)
@@ -21,7 +23,7 @@ let printUsage = function () {
             let id = ccxt.exchanges[i]
 
             const exchange = new ccxt[id] ()
-            if (exchange.has.publicAPI) {
+            if (exchange.has.fetchTicker) {
 
                 try {
 

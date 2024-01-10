@@ -18,7 +18,7 @@ async def test():
         #
         # ↓ The "proxy" property setting below is for CORS-proxying only!
         # Do not use it if you don't know what a CORS proxy is.
-        # https://github.com/ccxt/ccxt/wiki/Install#cors-access-control-allow-origin
+        # https://github.com/ccxt/ccxt/wiki/Manual#cors-access-control-allow-origin
         # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
         # In Python you rarely need to use it, if ever at all.
         #

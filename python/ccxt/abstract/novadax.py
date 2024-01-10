@@ -1,0 +1,25 @@
+from ccxt.base.types import Entry
+
+
+class ImplicitAPI:
+    public_get_common_symbol = publicGetCommonSymbol = Entry('common/symbol', 'public', 'GET', {'cost': 1.2})
+    public_get_common_symbols = publicGetCommonSymbols = Entry('common/symbols', 'public', 'GET', {'cost': 1.2})
+    public_get_common_timestamp = publicGetCommonTimestamp = Entry('common/timestamp', 'public', 'GET', {'cost': 1.2})
+    public_get_market_tickers = publicGetMarketTickers = Entry('market/tickers', 'public', 'GET', {'cost': 1.2})
+    public_get_market_ticker = publicGetMarketTicker = Entry('market/ticker', 'public', 'GET', {'cost': 1.2})
+    public_get_market_depth = publicGetMarketDepth = Entry('market/depth', 'public', 'GET', {'cost': 1.2})
+    public_get_market_trades = publicGetMarketTrades = Entry('market/trades', 'public', 'GET', {'cost': 1.2})
+    public_get_market_kline_history = publicGetMarketKlineHistory = Entry('market/kline/history', 'public', 'GET', {'cost': 1.2})
+    private_get_orders_get = privateGetOrdersGet = Entry('orders/get', 'private', 'GET', {'cost': 3})
+    private_get_orders_list = privateGetOrdersList = Entry('orders/list', 'private', 'GET', {'cost': 3})
+    private_get_orders_fill = privateGetOrdersFill = Entry('orders/fill', 'private', 'GET', {'cost': 3})
+    private_get_orders_fills = privateGetOrdersFills = Entry('orders/fills', 'private', 'GET', {'cost': 3})
+    private_get_account_getbalance = privateGetAccountGetBalance = Entry('account/getBalance', 'private', 'GET', {'cost': 3})
+    private_get_account_subs = privateGetAccountSubs = Entry('account/subs', 'private', 'GET', {'cost': 3})
+    private_get_account_subs_balance = privateGetAccountSubsBalance = Entry('account/subs/balance', 'private', 'GET', {'cost': 3})
+    private_get_account_subs_transfer_record = privateGetAccountSubsTransferRecord = Entry('account/subs/transfer/record', 'private', 'GET', {'cost': 3})
+    private_get_wallet_query_deposit_withdraw = privateGetWalletQueryDepositWithdraw = Entry('wallet/query/deposit-withdraw', 'private', 'GET', {'cost': 3})
+    private_post_orders_create = privatePostOrdersCreate = Entry('orders/create', 'private', 'POST', {'cost': 3})
+    private_post_orders_cancel = privatePostOrdersCancel = Entry('orders/cancel', 'private', 'POST', {'cost': 3})
+    private_post_account_withdraw_coin = privatePostAccountWithdrawCoin = Entry('account/withdraw/coin', 'private', 'POST', {'cost': 3})
+    private_post_account_subs_transfer = privatePostAccountSubsTransfer = Entry('account/subs/transfer', 'private', 'POST', {'cost': 3})

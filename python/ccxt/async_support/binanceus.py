@@ -4,9 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.binance import binance
+from ccxt.abstract.binanceus import ImplicitAPI
 
 
-class binanceus(binance):
+class binanceus(binance, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(binanceus, self).describe(), {
@@ -33,11 +34,51 @@ class binanceus(binance):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': self.parse_number('0.001'),  # 0.1% trading fee, zero fees for all trading pairs before November 1
-                    'maker': self.parse_number('0.001'),  # 0.1% trading fee, zero fees for all trading pairs before November 1
+                    'taker': self.parse_number('0.001'),  # 0.1% trading fee, zero fees for all trading pairs before November 1.
+                    'maker': self.parse_number('0.001'),  # 0.1% trading fee, zero fees for all trading pairs before November 1.
                 },
             },
             'options': {
+                'fetchMarkets': ['spot'],
+                'defaultType': 'spot',
                 'quoteOrderQty': False,
+            },
+            'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': None,
+                'option': False,
+                'addMargin': False,
+                'closeAllPositions': False,
+                'closePosition': False,
+                'createReduceOnlyOrder': False,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
+                'fetchMarketLeverageTiers': False,
+                'fetchMarkOHLCV': False,
+                'fetchOpenInterestHistory': False,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMargin': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
         })

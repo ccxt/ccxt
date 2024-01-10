@@ -1,4 +1,4 @@
-const ccxt = require ('../../ccxt');
+import ccxt from '../../js/ccxt.js';
 
 const idex = ccxt.idex ({
     'apiKey': 'YOUR_IDEX_API_KEY',
