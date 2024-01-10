@@ -5090,15 +5090,11 @@ export default class htx extends Exchange {
             }
         }
         if (!isStopLossTriggerOrder && !isTakeProfitTriggerOrder) {
-            const leverRate = this.safeIntegerN (params, [ 'leverRate', 'lever_rate', 'leverage' ], 1);
             const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only', false);
-            const openOrClose = (reduceOnly) ? 'close' : 'open';
-            const offset = this.safeString (params, 'offset', openOrClose);
-            request['offset'] = offset;
             if (reduceOnly) {
                 request['reduce_only'] = 1;
             }
-            request['lever_rate'] = leverRate;
+            request['lever_rate'] = this.safeIntegerN (params, [ 'leverRate', 'lever_rate', 'leverage' ], 1);
             if (!isTrailingPercentOrder) {
                 request['order_price_type'] = type;
             }
@@ -5162,10 +5158,10 @@ export default class htx extends Exchange {
             const spotRequest = await this.createSpotOrderRequest (symbol, type, side, amount, price, params);
             response = await this.spotPrivatePostV1OrderOrdersPlace (spotRequest);
         } else {
-            const contractRequest = this.createContractOrderRequest (symbol, type, side, amount, price, params);
+            let contractRequest = this.createContractOrderRequest (symbol, type, side, amount, price, params);
             if (market['linear']) {
                 let marginMode = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+                [ marginMode, contractRequest ] = this.handleMarginModeAndParams ('createOrder', contractRequest);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
                     if (isStop) {
