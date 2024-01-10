@@ -797,6 +797,8 @@ export default class probit extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
+        } else {
+            request['limit'] = 1000; // required to set any value
         }
         const response = await this.publicGetTrade (this.extend (request, params));
         //
