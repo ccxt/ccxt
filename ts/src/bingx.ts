@@ -38,6 +38,8 @@ export default class bingx extends Exchange {
                 'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
+                'createTrailingAmountOrder': true,
+                'createTrailingPercentOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
