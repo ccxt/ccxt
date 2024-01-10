@@ -5,7 +5,7 @@ import okxRest from '../okx.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dictionary } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -370,7 +370,7 @@ export default class okx extends okxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
         /**
          * @method
          * @name okx#watchOHLCVForSymbols
@@ -382,16 +382,17 @@ export default class okx extends okxRest {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const symbolsLength = symbolsAndTimeframes.length;
-        if (symbolsLength === 0) {
-            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a non-empty array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
+        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
         await this.loadMarkets ();
         const topics = [];
-        const joinedHashes = [];
+        const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const sym = symbolAndTimeframe[0];
             const tf = symbolAndTimeframe[1];
-            const marketId = this.marketId (symbolAndTimeframe[0]);
+            const marketId = this.marketId (sym);
             const interval = this.safeString (this.timeframes, tf, tf);
             const channel = 'candle' + interval;
             const topic = {
@@ -399,20 +400,31 @@ export default class okx extends okxRest {
                 'instId': marketId,
             };
             topics.push (topic);
-            joinedHashes.push (marketId + '#' + interval);
+            messageHashes.push ('multi:' + channel + ':' + sym);
         }
         const request = {
             'op': 'subscribe',
             'args': topics,
         };
-        const messageHash = 'multipleOHLCV::' + joinedHashes;
         const url = this.getUrl ('candle', 'public');
-        const [ symbol, timeframe, stored ] = await this.watch (url, messageHash, request, messageHash);
+        const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
-            limit = stored.getLimit (symbol, limit);
+            limit = candles.getLimit (symbol, limit);
         }
-        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
+    }
+
+    filterByMultiSymbolAndTimeframe (candles: Dictionary<Dictionary<OHLCV[]>>, symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined) {
+        const result = {};
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const symbol = symbolAndTimeframe[0];
+            const timeframe = symbolAndTimeframe[1];
+            const key = symbol + ':' + timeframe;
+            result[key] = this.createOHLCVObject (symbol, timeframe, candles[key]);
+        }
+        return result;
     }
 
     handleOHLCV (client: Client, message) {
@@ -437,23 +449,28 @@ export default class okx extends okxRest {
         const data = this.safeValue (message, 'data', []);
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
-        const symbol = market['id'];
+        const safeMarketId = market['id'];
+        const symbol = market['symbol'];
         const interval = channel.replace ('candle', '');
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseOHLCV (data[i], market);
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            this.ohlcvs[safeMarketId] = this.safeValue (this.ohlcvs, safeMarketId, {});
+            let stored = this.safeValue (this.ohlcvs[safeMarketId], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                this.ohlcvs[safeMarketId][timeframe] = stored;
             }
             stored.append (parsed);
-            const messageHash = channel + ':' + marketId;
+            const messageHash = channel + ':' + symbol;
             client.resolve (stored, messageHash);
-            this.resolveMultipleOHLCV (client, 'multipleOHLCV::', symbol, timeframe, stored);
+            // for multiOHLCV we need special object, as opposed to other "multi"
+            // methods, because OHLCV response item does not contain symbol
+            // or timeframe, thus otherwise it would be unrecognizable
+            const messageHashForMulti = 'multi:' + channel + ':' + symbol;
+            client.resolve ([ symbol, timeframe, stored ], messageHashForMulti);
         }
     }
 
