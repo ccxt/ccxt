@@ -175,12 +175,18 @@ public class OrderBook : CustomConcurrentDictionary<string, object>
         lock (_syncRoot)
         {
             var copy = new OrderBook();
+            copy["asks"] = this.asks.GetCopy();
+            copy["bids"] = this.bids.GetCopy();
             copy["nonce"] = this["nonce"];
             copy["timestamp"] = this["timestamp"];
             copy["datetime"] = this["datetime"];
             copy["symbol"] = this["symbol"];
-            copy["asks"] = new Asks(this._asks.ToList());
-            copy["bids"] = new Bids(this._bids.ToList());
+            // copy["nonce"] = this["nonce"];
+            // copy["timestamp"] = this["timestamp"];
+            // copy["datetime"] = this["datetime"];
+            // copy["symbol"] = this["symbol"];
+            // copy["asks"] = new Asks(this._asks.ToList());
+            // copy["bids"] = new Bids(this._bids.ToList());
             return copy;
         }
     }

@@ -159,6 +159,16 @@ public class OrderBookSide : SlimConcurrentList<object>
             }
         }
     }
+
+    public OrderBookSide GetCopy()
+    {
+        lock (_syncRoot)
+        {
+
+            var copy = new OrderBookSide(this);
+            return copy;
+        }
+    }
 }
 
 

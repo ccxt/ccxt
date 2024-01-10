@@ -57,7 +57,7 @@ public partial class Exchange
 
         public bool error = false;
 
-        public WebSocketClient(string url, handleMessageDelegate handleMessage, pingDelegate ping = null, bool isVerbose = false)
+        public WebSocketClient(string url, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false)
         {
             this.url = url;
             var tcs = new TaskCompletionSource<bool>();
@@ -77,7 +77,8 @@ public partial class Exchange
             {
                 // var tcs = new TaskCompletionSource<object>();
                 var future = new Future();
-                lock (this.futures) {
+                lock (this.futures)
+                {
                     // Console.WriteLine("Adding future, inside lock");
                     this.futures[messageHash] = future;
                 }

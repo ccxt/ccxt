@@ -108,7 +108,7 @@ public partial class Exchange
         var url = url2.ToString();
         if (!this.clients.ContainsKey(url))
         {
-            this.clients[url] = new WebSocketClient(url, handleMessage, ping, this.verbose);
+            this.clients[url] = new WebSocketClient(url, handleMessage, ping, onClose, onError, this.verbose);
         }
         return this.clients[url];
     }
