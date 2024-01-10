@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bingx.js';
-import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired } from './base/errors.js';
+import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -120,6 +120,7 @@ export default class bingx extends Exchange {
                                 'trade/query': 3,
                                 'trade/openOrders': 3,
                                 'trade/historyOrders': 3,
+                                'user/commissionRate': 3,
                                 'account/balance': 3,
                             },
                             'post': {
@@ -127,6 +128,7 @@ export default class bingx extends Exchange {
                                 'trade/cancel': 3,
                                 'trade/batchOrders': 3,
                                 'trade/cancelOrders': 3,
+                                'trade/cancelOpenOrders': 3,
                             },
                         },
                     },
@@ -278,6 +280,9 @@ export default class bingx extends Exchange {
                             'post': {
                                 'userDataStream': 1,
                             },
+                            'put': {
+                                'userDataStream': 1,
+                            },
                         },
                     },
                 },
@@ -350,6 +355,7 @@ export default class bingx extends Exchange {
                     '80014': BadRequest,
                     '80016': OrderNotFound,
                     '80017': OrderNotFound,
+                    '100414': AccountSuspended,
                     '100437': BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                 },
                 'broad': {},
@@ -1317,22 +1323,23 @@ export default class bingx extends Exchange {
         //    }
         //
         const marketId = this.safeString(ticker, 'symbol');
-        // const change = this.safeString (ticker, 'priceChange'); // this is not ccxt's change because it does high-low instead of last-open
         const lastQty = this.safeString(ticker, 'lastQty');
         // in spot markets, lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
         const type = (lastQty === undefined) ? 'spot' : 'swap';
-        const symbol = this.safeSymbol(marketId, market, undefined, type);
+        market = this.safeMarket(marketId, market, undefined, type);
+        const symbol = market['symbol'];
         const open = this.safeString(ticker, 'openPrice');
         const high = this.safeString(ticker, 'highPrice');
         const low = this.safeString(ticker, 'lowPrice');
         const close = this.safeString(ticker, 'lastPrice');
         const quoteVolume = this.safeString(ticker, 'quoteVolume');
         const baseVolume = this.safeString(ticker, 'volume');
-        // let percentage = this.safeString (ticker, 'priceChangePercent');
-        // if (percentage !== undefined) {
-        //     percentage = percentage.replace ('%', '');
-        // } similarly to change, it's not ccxt's percentage because it does priceChange/open, and priceChange is high-low
+        let percentage = this.safeString(ticker, 'priceChangePercent');
+        if (percentage !== undefined) {
+            percentage = percentage.replace('%', '');
+        }
+        const change = this.safeString(ticker, 'priceChange');
         const ts = this.safeInteger(ticker, 'closeTime');
         const datetime = this.iso8601(ts);
         const bid = this.safeString(ticker, 'bidPrice');
@@ -1354,8 +1361,8 @@ export default class bingx extends Exchange {
             'close': close,
             'last': undefined,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -1661,6 +1668,11 @@ export default class bingx extends Exchange {
         };
         const isMarketOrder = type === 'MARKET';
         const isSpot = marketType === 'spot';
+        const exchangeClientOrderId = isSpot ? 'newClientOrderId' : 'clientOrderID';
+        const clientOrderId = this.safeString2(params, exchangeClientOrderId, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request[exchangeClientOrderId] = clientOrderId;
+        }
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         if (timeInForce === 'IOC') {
             request['timeInForce'] = 'IOC';
@@ -1711,6 +1723,10 @@ export default class bingx extends Exchange {
             const isTrailingAmountOrder = trailingAmount !== undefined;
             const isTrailingPercentOrder = trailingPercent !== undefined;
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
+            const stopLoss = this.safeValue(params, 'stopLoss');
+            const takeProfit = this.safeValue(params, 'takeProfit');
+            const isStopLoss = stopLoss !== undefined;
+            const isTakeProfit = takeProfit !== undefined;
             if (((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) && !isTrailing) {
                 request['price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
             }
@@ -1756,6 +1772,42 @@ export default class bingx extends Exchange {
                     request['priceRate'] = this.parseToNumeric(requestTrailingPercent);
                 }
             }
+            if (isStopLoss || isTakeProfit) {
+                if (isStopLoss) {
+                    const slTriggerPrice = this.safeString2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                    const slWorkingType = this.safeString(stopLoss, 'workingType', 'MARK_PRICE');
+                    const slType = this.safeString(stopLoss, 'type', 'STOP_MARKET');
+                    const slRequest = {
+                        'stopPrice': this.parseToNumeric(this.priceToPrecision(symbol, slTriggerPrice)),
+                        'workingType': slWorkingType,
+                        'type': slType,
+                    };
+                    const slPrice = this.safeString(stopLoss, 'price');
+                    if (slPrice !== undefined) {
+                        slRequest['price'] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
+                    }
+                    const slQuantity = this.safeString(stopLoss, 'quantity', amount);
+                    slRequest['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, slQuantity));
+                    request['stopLoss'] = this.json(slRequest);
+                }
+                if (isTakeProfit) {
+                    const tkTriggerPrice = this.safeString2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                    const tkWorkingType = this.safeString(takeProfit, 'workingType', 'MARK_PRICE');
+                    const tpType = this.safeString(takeProfit, 'type', 'TAKE_PROFIT_MARKET');
+                    const tpRequest = {
+                        'stopPrice': this.parseToNumeric(this.priceToPrecision(symbol, tkTriggerPrice)),
+                        'workingType': tkWorkingType,
+                        'type': tpType,
+                    };
+                    const slPrice = this.safeString(takeProfit, 'price');
+                    if (slPrice !== undefined) {
+                        tpRequest['price'] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
+                    }
+                    const tkQuantity = this.safeString(takeProfit, 'quantity', amount);
+                    tpRequest['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, tkQuantity));
+                    request['takeProfit'] = this.json(tpRequest);
+                }
+            }
             let positionSide = undefined;
             if (reduceOnly) {
                 positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
@@ -1765,7 +1817,7 @@ export default class bingx extends Exchange {
             }
             request['positionSide'] = positionSide;
             request['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
-            params = this.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent']);
+            params = this.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'takeProfit', 'stopLoss', 'clientOrderId']);
         }
         return this.extend(request, params);
     }
@@ -1775,12 +1827,14 @@ export default class bingx extends Exchange {
          * @name bingx#createOrder
          * @description create a trade order
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] a unique id for the order
          * @param {bool} [params.postOnly] true to place a post only order
          * @param {string} [params.timeInForce] spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
          * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
@@ -1790,6 +1844,10 @@ export default class bingx extends Exchange {
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
          * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
          * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1840,6 +1898,13 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
+        if (typeof response === 'string') {
+            // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
+            // and JSON.parse can not handle them in JS, so we have to use .parseJson
+            // however, when order has an attached SL/TP, their value types need extra parsing
+            response = this.fixStringifiedJsonMembers(response);
+            response = this.parseJson(response);
+        }
         const data = this.safeValue(response, 'data', {});
         const order = this.safeValue(data, 'order', data);
         return this.parseOrder(order, market);
@@ -2044,6 +2109,24 @@ export default class bingx extends Exchange {
         //         "orderType": "",
         //         "workingType": "MARK_PRICE"
         //     }
+        // with tp and sl
+        //    {
+        //        orderId: 1741440894764281900,
+        //        symbol: 'LTC-USDT',
+        //        positionSide: 'LONG',
+        //        side: 'BUY',
+        //        type: 'MARKET',
+        //        price: 0,
+        //        quantity: 1,
+        //        stopPrice: 0,
+        //        workingType: 'MARK_PRICE',
+        //        clientOrderID: '',
+        //        timeInForce: 'GTC',
+        //        priceRate: 0,
+        //        stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
+        //        takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
+        //        reduceOnly: false
+        //    }
         //
         const positionSide = this.safeString2(order, 'positionSide', 'ps');
         const marketType = (positionSide === undefined) ? 'spot' : 'swap';
@@ -2081,7 +2164,31 @@ export default class bingx extends Exchange {
             'currency': feeCurrencyCode,
             'cost': Precise.stringAbs(feeCost),
         };
-        const clientOrderId = this.safeString2(order, 'clientOrderId', 'c');
+        const clientOrderId = this.safeStringN(order, ['clientOrderID', 'origClientOrderId', 'c']);
+        let stopLoss = this.safeValue(order, 'stopLoss');
+        let stopLossPrice = undefined;
+        if (stopLoss !== undefined) {
+            stopLossPrice = this.safeNumber(stopLoss, 'stopLoss');
+        }
+        if ((stopLoss !== undefined) && (typeof stopLoss !== 'number')) {
+            //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
+            if (typeof stopLoss === 'string') {
+                stopLoss = this.parseJson(stopLoss);
+            }
+            stopLossPrice = this.safeNumber(stopLoss, 'stopPrice');
+        }
+        let takeProfit = this.safeValue(order, 'takeProfit');
+        let takeProfitPrice = undefined;
+        if (takeProfit !== undefined) {
+            takeProfitPrice = this.safeNumber(takeProfit, 'takeProfit');
+        }
+        if ((takeProfit !== undefined) && (typeof takeProfit !== 'number')) {
+            //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
+            if (typeof takeProfit === 'string') {
+                takeProfit = this.parseJson(takeProfit);
+            }
+            takeProfitPrice = this.safeNumber(takeProfit, 'stopPrice');
+        }
         return this.safeOrder({
             'info': order,
             'id': orderId,
@@ -2098,8 +2205,8 @@ export default class bingx extends Exchange {
             'price': price,
             'stopPrice': this.safeNumber(order, 'stopPrice'),
             'triggerPrice': this.safeNumber(order, 'stopPrice'),
-            'stopLossPrice': this.safeNumber(order, 'stopLoss'),
-            'takeProfitPrice': this.safeNumber(order, 'takeProfit'),
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'average': average,
             'cost': undefined,
             'amount': amount,
@@ -2132,6 +2239,7 @@ export default class bingx extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2141,8 +2249,15 @@ export default class bingx extends Exchange {
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
-            'orderId': id,
         };
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientOrderID');
+        params = this.omit(params, ['clientOrderId']);
+        if (clientOrderId !== undefined) {
+            request['clientOrderID'] = clientOrderId;
+        }
+        else {
+            request['orderId'] = id;
+        }
         let response = undefined;
         const [marketType, query] = this.handleMarketTypeAndParams('cancelOrder', market, params);
         if (marketType === 'spot') {
@@ -2206,6 +2321,7 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#cancelAllOrders
          * @description cancel all open orders
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
          * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2216,42 +2332,70 @@ export default class bingx extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['type'] !== 'swap') {
-            throw new BadRequest(this.id + ' cancelAllOrders is only supported for swap markets.');
-        }
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.swapV2PrivateDeleteTradeAllOpenOrders(this.extend(request, params));
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //          "success": [
-        //            {
-        //              "symbol": "LINK-USDT",
-        //              "orderId": 1597783835095859200,
-        //              "side": "BUY",
-        //              "positionSide": "LONG",
-        //              "type": "TRIGGER_LIMIT",
-        //              "origQty": "5.0",
-        //              "price": "9.0000",
-        //              "executedQty": "0.0",
-        //              "avgPrice": "0.0000",
-        //              "cumQuote": "0",
-        //              "stopPrice": "9.5000",
-        //              "profit": "",
-        //              "commission": "",
-        //              "status": "NEW",
-        //              "time": 1669776326000,
-        //              "updateTime": 1669776326000
-        //            }
-        //          ],
-        //          "failed": null
-        //        }
-        //    }
-        //
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.spotV1PrivatePostTradeCancelOpenOrders(this.extend(request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "debugMsg": "",
+            //         "data": {
+            //             "orders": [{
+            //                 "symbol": "ADA-USDT",
+            //                 "orderId": 1740659971369992192,
+            //                 "transactTime": 1703840651730,
+            //                 "price": 5,
+            //                 "stopPrice": 0,
+            //                 "origQty": 10,
+            //                 "executedQty": 0,
+            //                 "cummulativeQuoteQty": 0,
+            //                 "status": "CANCELED",
+            //                 "type": "LIMIT",
+            //                 "side": "SELL"
+            //             }]
+            //         }
+            //     }
+            //
+        }
+        else if (market['swap']) {
+            response = await this.swapV2PrivateDeleteTradeAllOpenOrders(this.extend(request, params));
+            //
+            //    {
+            //        "code": 0,
+            //        "msg": "",
+            //        "data": {
+            //          "success": [
+            //            {
+            //              "symbol": "LINK-USDT",
+            //              "orderId": 1597783835095859200,
+            //              "side": "BUY",
+            //              "positionSide": "LONG",
+            //              "type": "TRIGGER_LIMIT",
+            //              "origQty": "5.0",
+            //              "price": "9.0000",
+            //              "executedQty": "0.0",
+            //              "avgPrice": "0.0000",
+            //              "cumQuote": "0",
+            //              "stopPrice": "9.5000",
+            //              "profit": "",
+            //              "commission": "",
+            //              "status": "NEW",
+            //              "time": 1669776326000,
+            //              "updateTime": 1669776326000
+            //            }
+            //          ],
+            //          "failed": null
+            //        }
+            //    }
+            //
+        }
+        else {
+            throw new BadRequest(this.id + ' cancelAllOrders is only supported for spot and swap markets.');
+        }
         return response;
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {
@@ -2264,6 +2408,7 @@ export default class bingx extends Exchange {
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [params.clientOrderIds] client order ids
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2274,19 +2419,27 @@ export default class bingx extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        const clientOrderIds = this.safeValue(params, 'clientOrderIds');
+        let idsToParse = ids;
+        const areClientOrderIds = (clientOrderIds !== undefined);
+        if (areClientOrderIds) {
+            idsToParse = clientOrderIds;
+        }
         const parsedIds = [];
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+        for (let i = 0; i < idsToParse.length; i++) {
+            const id = idsToParse[i];
             const stringId = id.toString();
             parsedIds.push(stringId);
         }
         let response = undefined;
         if (market['spot']) {
-            request['orderIds'] = parsedIds.join(',');
+            const spotReqKey = areClientOrderIds ? 'clientOrderIDs' : 'orderIds';
+            request[spotReqKey] = parsedIds.join(',');
             response = await this.spotV1PrivatePostTradeCancelOrders(this.extend(request, params));
         }
         else {
-            request['orderIdList'] = parsedIds;
+            const swapReqKey = areClientOrderIds ? 'ClientOrderIDList' : 'orderIdList';
+            request[swapReqKey] = parsedIds;
             response = await this.swapV2PrivateDeleteTradeBatchOrders(this.extend(request, params));
         }
         //

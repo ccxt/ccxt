@@ -384,6 +384,20 @@
                 ]
             }
         ],
+        "fetchTickers": [
+            {
+                "description": "inverse tickers without symbols",
+                "method": "fetchTickers",
+                "url": "https://api.phemex.com/v1/md/ticker/24hr/all",
+                "input": [
+                  null,
+                  {
+                    "type": "swap",
+                    "subType": "inverse"
+                  }
+                ]
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "fetch spot trades",

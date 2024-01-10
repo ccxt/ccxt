@@ -1594,6 +1594,7 @@ export default class binance extends Exchange {
                     '-4046': AuthenticationError, // {"code":-4046,"msg":"Agreement not confirmed."}
                     '-4047': BadRequest, // {"code":-4047,"msg":"Time interval must be within 0-90 days"}
                     '-4054': BadRequest, // {"code":-4054,"msg":"Cannot add position margin: position is 0."}
+                    '-4164': InvalidOrder, // {"code":-4164,"msg":"Order's notional must be no smaller than 5 (unless you choose reduce only)."}
                     '-5001': BadRequest, // {"code":-5001,"msg":"Don't allow transfer to micro assets."}
                     '-5002': InsufficientFunds, // {"code":-5002,"msg":"You have insufficient balance."}
                     '-5003': InsufficientFunds, // {"code":-5003,"msg":"You don't have this asset."}
@@ -3124,7 +3125,12 @@ export default class binance extends Exchange {
         } else if (this.isInverse (type, subType)) {
             response = await this.dapiPublicGetTickerBookTicker (params);
         } else {
-            response = await this.publicGetTickerBookTicker (params);
+            const request = {};
+            if (symbols !== undefined) {
+                const marketIds = this.marketIds (symbols);
+                request['symbols'] = this.json (marketIds);
+            }
+            response = await this.publicGetTickerBookTicker (this.extend (request, params));
         }
         return this.parseTickers (response, symbols);
     }
@@ -4374,6 +4380,8 @@ export default class binance extends Exchange {
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {boolean} [params.sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
          * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
+         * @param {float} [params.trailingPercent] the percent to trail away from the current market price
+         * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -4420,6 +4428,8 @@ export default class binance extends Exchange {
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the exchange API endpoint
          * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
+         * @param {float} [params.trailingPercent] the percent to trail away from the current market price
+         * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
@@ -4433,9 +4443,12 @@ export default class binance extends Exchange {
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);  // fallback to stopLoss
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const trailingDelta = this.safeValue (params, 'trailingDelta');
+        const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activationPrice', price);
+        const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRate');
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
-        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice' ]);
+        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent' ]);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         const request = {
             'symbol': market['id'],
@@ -4456,7 +4469,13 @@ export default class binance extends Exchange {
         }
         let uppercaseType = type.toUpperCase ();
         let stopPrice = undefined;
-        if (isStopLoss) {
+        if (isTrailingPercentOrder) {
+            uppercaseType = 'TRAILING_STOP_MARKET';
+            request['callbackRate'] = trailingPercent;
+            if (trailingTriggerPrice !== undefined) {
+                request['activationPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
+            }
+        } else if (isStopLoss) {
             stopPrice = stopLossPrice;
             if (isMarketOrder) {
                 // spot STOP_LOSS market orders are not a valid order type
@@ -4582,9 +4601,8 @@ export default class binance extends Exchange {
             stopPriceIsRequired = true;
         } else if (uppercaseType === 'TRAILING_STOP_MARKET') {
             quantityIsRequired = true;
-            const callbackRate = this.safeNumber (query, 'callbackRate');
-            if (callbackRate === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a callbackRate extra param for a ' + type + ' order');
+            if (trailingPercent === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order');
             }
         }
         if (quantityIsRequired) {
@@ -5107,7 +5125,7 @@ export default class binance extends Exchange {
         }
     }
 
-    async cancelOrders (ids: Int[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name binance#cancelOrders

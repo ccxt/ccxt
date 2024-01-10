@@ -118,6 +118,7 @@ class bingx extends Exchange {
                                 'trade/query' => 3,
                                 'trade/openOrders' => 3,
                                 'trade/historyOrders' => 3,
+                                'user/commissionRate' => 3,
                                 'account/balance' => 3,
                             ),
                             'post' => array(
@@ -125,6 +126,7 @@ class bingx extends Exchange {
                                 'trade/cancel' => 3,
                                 'trade/batchOrders' => 3,
                                 'trade/cancelOrders' => 3,
+                                'trade/cancelOpenOrders' => 3,
                             ),
                         ),
                     ),
@@ -276,6 +278,9 @@ class bingx extends Exchange {
                             'post' => array(
                                 'userDataStream' => 1,
                             ),
+                            'put' => array(
+                                'userDataStream' => 1,
+                            ),
                         ),
                     ),
                 ),
@@ -348,6 +353,7 @@ class bingx extends Exchange {
                     '80014' => '\\ccxt\\BadRequest',
                     '80016' => '\\ccxt\\OrderNotFound',
                     '80017' => '\\ccxt\\OrderNotFound',
+                    '100414' => '\\ccxt\\AccountSuspended', // array("code":100414,"msg":"Code => 100414, Msg => risk control check fail,code(1)","debugMsg":"")
                     '100437' => '\\ccxt\\BadRequest', // array("code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845)
                 ),
                 'broad' => array(),
@@ -1308,22 +1314,23 @@ class bingx extends Exchange {
         //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        // $change = $this->safe_string($ticker, 'priceChange'); // this is not ccxt's $change because it does $high-$low instead of last-$open
         $lastQty = $this->safe_string($ticker, 'lastQty');
         // in spot markets, $lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
         $type = ($lastQty === null) ? 'spot' : 'swap';
-        $symbol = $this->safe_symbol($marketId, $market, null, $type);
+        $market = $this->safe_market($marketId, $market, null, $type);
+        $symbol = $market['symbol'];
         $open = $this->safe_string($ticker, 'openPrice');
         $high = $this->safe_string($ticker, 'highPrice');
         $low = $this->safe_string($ticker, 'lowPrice');
         $close = $this->safe_string($ticker, 'lastPrice');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         $baseVolume = $this->safe_string($ticker, 'volume');
-        // $percentage = $this->safe_string($ticker, 'priceChangePercent');
-        // if ($percentage !== null) {
-        //     $percentage = str_replace('%', '', $percentage);
-        // } similarly to $change, it's not ccxt's $percentage because it does priceChange/open, and priceChange is $high-$low
+        $percentage = $this->safe_string($ticker, 'priceChangePercent');
+        if ($percentage !== null) {
+            $percentage = str_replace('%', '', $percentage);
+        }
+        $change = $this->safe_string($ticker, 'priceChange');
         $ts = $this->safe_integer($ticker, 'closeTime');
         $datetime = $this->iso8601($ts);
         $bid = $this->safe_string($ticker, 'bidPrice');
@@ -1345,8 +1352,8 @@ class bingx extends Exchange {
             'close' => $close,
             'last' => null,
             'previousClose' => null,
-            'change' => null,
-            'percentage' => null,
+            'change' => $change,
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
@@ -1644,6 +1651,11 @@ class bingx extends Exchange {
         );
         $isMarketOrder = $type === 'MARKET';
         $isSpot = $marketType === 'spot';
+        $exchangeClientOrderId = $isSpot ? 'newClientOrderId' : 'clientOrderID';
+        $clientOrderId = $this->safe_string_2($params, $exchangeClientOrderId, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request[$exchangeClientOrderId] = $clientOrderId;
+        }
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         if ($timeInForce === 'IOC') {
             $request['timeInForce'] = 'IOC';
@@ -1689,6 +1701,10 @@ class bingx extends Exchange {
             $isTrailingAmountOrder = $trailingAmount !== null;
             $isTrailingPercentOrder = $trailingPercent !== null;
             $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
+            $stopLoss = $this->safe_value($params, 'stopLoss');
+            $takeProfit = $this->safe_value($params, 'takeProfit');
+            $isStopLoss = $stopLoss !== null;
+            $isTakeProfit = $takeProfit !== null;
             if ((($type === 'LIMIT') || ($type === 'TRIGGER_LIMIT') || ($type === 'STOP') || ($type === 'TAKE_PROFIT')) && !$isTrailing) {
                 $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
             }
@@ -1727,6 +1743,42 @@ class bingx extends Exchange {
                     $request['priceRate'] = $this->parse_to_numeric($requestTrailingPercent);
                 }
             }
+            if ($isStopLoss || $isTakeProfit) {
+                if ($isStopLoss) {
+                    $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                    $slWorkingType = $this->safe_string($stopLoss, 'workingType', 'MARK_PRICE');
+                    $slType = $this->safe_string($stopLoss, 'type', 'STOP_MARKET');
+                    $slRequest = array(
+                        'stopPrice' => $this->parse_to_numeric($this->price_to_precision($symbol, $slTriggerPrice)),
+                        'workingType' => $slWorkingType,
+                        'type' => $slType,
+                    );
+                    $slPrice = $this->safe_string($stopLoss, 'price');
+                    if ($slPrice !== null) {
+                        $slRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
+                    }
+                    $slQuantity = $this->safe_string($stopLoss, 'quantity', $amount);
+                    $slRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $slQuantity));
+                    $request['stopLoss'] = $this->json($slRequest);
+                }
+                if ($isTakeProfit) {
+                    $tkTriggerPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                    $tkWorkingType = $this->safe_string($takeProfit, 'workingType', 'MARK_PRICE');
+                    $tpType = $this->safe_string($takeProfit, 'type', 'TAKE_PROFIT_MARKET');
+                    $tpRequest = array(
+                        'stopPrice' => $this->parse_to_numeric($this->price_to_precision($symbol, $tkTriggerPrice)),
+                        'workingType' => $tkWorkingType,
+                        'type' => $tpType,
+                    );
+                    $slPrice = $this->safe_string($takeProfit, 'price');
+                    if ($slPrice !== null) {
+                        $tpRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
+                    }
+                    $tkQuantity = $this->safe_string($takeProfit, 'quantity', $amount);
+                    $tpRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $tkQuantity));
+                    $request['takeProfit'] = $this->json($tpRequest);
+                }
+            }
             $positionSide = null;
             if ($reduceOnly) {
                 $positionSide = ($side === 'buy') ? 'SHORT' : 'LONG';
@@ -1735,7 +1787,7 @@ class bingx extends Exchange {
             }
             $request['positionSide'] = $positionSide;
             $request['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
-            $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent' ));
+            $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         }
         return array_merge($request, $params);
     }
@@ -1744,12 +1796,14 @@ class bingx extends Exchange {
         /**
          * create a trade $order
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
          * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] a unique id for the $order
          * @param {bool} [$params->postOnly] true to place a post only $order
          * @param {string} [$params->timeInForce] spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
          * @param {bool} [$params->reduceOnly] *swap only* true or false whether the $order is reduce only
@@ -1759,6 +1813,10 @@ class bingx extends Exchange {
          * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount
          * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
          * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price
+         * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered
+         * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
+         * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered
+         * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -1808,6 +1866,12 @@ class bingx extends Exchange {
         //         }
         //     }
         //
+        if (gettype($response) === 'string') {
+            // broken api engine : $order-ids are too long numbers (i.e. 1742930526912864656)
+            // and JSON.parse can not handle them in JS, so we have to use .parse_json            // however, when $order has an attached SL/TP, their value types need extra parsing
+            $response = $this->fix_stringified_json_members($response);
+            $response = $this->parse_json($response);
+        }
         $data = $this->safe_value($response, 'data', array());
         $order = $this->safe_value($data, 'order', $data);
         return $this->parse_order($order, $market);
@@ -2011,6 +2075,24 @@ class bingx extends Exchange {
         //         "orderType" => "",
         //         "workingType" => "MARK_PRICE"
         //     }
+        // with tp and sl
+        //    {
+        //        $orderId => 1741440894764281900,
+        //        $symbol => 'LTC-USDT',
+        //        $positionSide => 'LONG',
+        //        $side => 'BUY',
+        //        $type => 'MARKET',
+        //        $price => 0,
+        //        quantity => 1,
+        //        stopPrice => 0,
+        //        workingType => 'MARK_PRICE',
+        //        clientOrderID => '',
+        //        timeInForce => 'GTC',
+        //        priceRate => 0,
+        //        $stopLoss => 'array("stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1)',
+        //        $takeProfit => 'array("stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1)',
+        //        reduceOnly => false
+        //    }
         //
         $positionSide = $this->safe_string_2($order, 'positionSide', 'ps');
         $marketType = ($positionSide === null) ? 'spot' : 'swap';
@@ -2046,7 +2128,31 @@ class bingx extends Exchange {
             'currency' => $feeCurrencyCode,
             'cost' => Precise::string_abs($feeCost),
         );
-        $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'c');
+        $clientOrderId = $this->safe_string_n($order, array( 'clientOrderID', 'origClientOrderId', 'c' ));
+        $stopLoss = $this->safe_value($order, 'stopLoss');
+        $stopLossPrice = null;
+        if ($stopLoss !== null) {
+            $stopLossPrice = $this->safe_number($stopLoss, 'stopLoss');
+        }
+        if (($stopLoss !== null) && (!(is_float($stopLoss) || is_int($stopLoss)))) {
+            //  $stopLoss => 'array("stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1)',
+            if (gettype($stopLoss) === 'string') {
+                $stopLoss = $this->parse_json($stopLoss);
+            }
+            $stopLossPrice = $this->safe_number($stopLoss, 'stopPrice');
+        }
+        $takeProfit = $this->safe_value($order, 'takeProfit');
+        $takeProfitPrice = null;
+        if ($takeProfit !== null) {
+            $takeProfitPrice = $this->safe_number($takeProfit, 'takeProfit');
+        }
+        if (($takeProfit !== null) && (!(is_float($takeProfit) || is_int($takeProfit)))) {
+            //  $takeProfit => 'array("stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1)',
+            if (gettype($takeProfit) === 'string') {
+                $takeProfit = $this->parse_json($takeProfit);
+            }
+            $takeProfitPrice = $this->safe_number($takeProfit, 'stopPrice');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $orderId,
@@ -2063,8 +2169,8 @@ class bingx extends Exchange {
             'price' => $price,
             'stopPrice' => $this->safe_number($order, 'stopPrice'),
             'triggerPrice' => $this->safe_number($order, 'stopPrice'),
-            'stopLossPrice' => $this->safe_number($order, 'stopLoss'),
-            'takeProfitPrice' => $this->safe_number($order, 'takeProfit'),
+            'stopLossPrice' => $stopLossPrice,
+            'takeProfitPrice' => $takeProfitPrice,
             'average' => $average,
             'cost' => null,
             'amount' => $amount,
@@ -2097,6 +2203,7 @@ class bingx extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] a unique $id for the order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
@@ -2106,8 +2213,14 @@ class bingx extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'orderId' => $id,
         );
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientOrderID');
+        $params = $this->omit($params, array( 'clientOrderId' ));
+        if ($clientOrderId !== null) {
+            $request['clientOrderID'] = $clientOrderId;
+        } else {
+            $request['orderId'] = $id;
+        }
         $response = null;
         list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
         if ($marketType === 'spot') {
@@ -2169,6 +2282,7 @@ class bingx extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
          * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2179,42 +2293,68 @@ class bingx extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['type'] !== 'swap') {
-            throw new BadRequest($this->id . ' cancelAllOrders is only supported for swap markets.');
-        }
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->swapV2PrivateDeleteTradeAllOpenOrders (array_merge($request, $params));
-        //
-        //    {
-        //        "code" => 0,
-        //        "msg" => "",
-        //        "data" => {
-        //          "success" => array(
-        //            {
-        //              "symbol" => "LINK-USDT",
-        //              "orderId" => 1597783835095859200,
-        //              "side" => "BUY",
-        //              "positionSide" => "LONG",
-        //              "type" => "TRIGGER_LIMIT",
-        //              "origQty" => "5.0",
-        //              "price" => "9.0000",
-        //              "executedQty" => "0.0",
-        //              "avgPrice" => "0.0000",
-        //              "cumQuote" => "0",
-        //              "stopPrice" => "9.5000",
-        //              "profit" => "",
-        //              "commission" => "",
-        //              "status" => "NEW",
-        //              "time" => 1669776326000,
-        //              "updateTime" => 1669776326000
-        //            }
-        //          ),
-        //          "failed" => null
-        //        }
-        //    }
-        //
+        $response = null;
+        if ($market['spot']) {
+            $response = $this->spotV1PrivatePostTradeCancelOpenOrders (array_merge($request, $params));
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "debugMsg" => "",
+            //         "data" => {
+            //             "orders" => [array(
+            //                 "symbol" => "ADA-USDT",
+            //                 "orderId" => 1740659971369992192,
+            //                 "transactTime" => 1703840651730,
+            //                 "price" => 5,
+            //                 "stopPrice" => 0,
+            //                 "origQty" => 10,
+            //                 "executedQty" => 0,
+            //                 "cummulativeQuoteQty" => 0,
+            //                 "status" => "CANCELED",
+            //                 "type" => "LIMIT",
+            //                 "side" => "SELL"
+            //             )]
+            //         }
+            //     }
+            //
+        } elseif ($market['swap']) {
+            $response = $this->swapV2PrivateDeleteTradeAllOpenOrders (array_merge($request, $params));
+            //
+            //    {
+            //        "code" => 0,
+            //        "msg" => "",
+            //        "data" => {
+            //          "success" => array(
+            //            {
+            //              "symbol" => "LINK-USDT",
+            //              "orderId" => 1597783835095859200,
+            //              "side" => "BUY",
+            //              "positionSide" => "LONG",
+            //              "type" => "TRIGGER_LIMIT",
+            //              "origQty" => "5.0",
+            //              "price" => "9.0000",
+            //              "executedQty" => "0.0",
+            //              "avgPrice" => "0.0000",
+            //              "cumQuote" => "0",
+            //              "stopPrice" => "9.5000",
+            //              "profit" => "",
+            //              "commission" => "",
+            //              "status" => "NEW",
+            //              "time" => 1669776326000,
+            //              "updateTime" => 1669776326000
+            //            }
+            //          ),
+            //          "failed" => null
+            //        }
+            //    }
+            //
+        } else {
+            throw new BadRequest($this->id . ' cancelAllOrders is only supported for spot and swap markets.');
+        }
         return $response;
     }
 
@@ -2226,6 +2366,7 @@ class bingx extends Exchange {
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [$params->clientOrderIds] client order $ids
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=order-structure order structures~
          */
         if ($symbol === null) {
@@ -2236,18 +2377,26 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
+        $clientOrderIds = $this->safe_value($params, 'clientOrderIds');
+        $idsToParse = $ids;
+        $areClientOrderIds = ($clientOrderIds !== null);
+        if ($areClientOrderIds) {
+            $idsToParse = $clientOrderIds;
+        }
         $parsedIds = array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
+        for ($i = 0; $i < count($idsToParse); $i++) {
+            $id = $idsToParse[$i];
             $stringId = (string) $id;
             $parsedIds[] = $stringId;
         }
         $response = null;
         if ($market['spot']) {
-            $request['orderIds'] = implode(',', $parsedIds);
+            $spotReqKey = $areClientOrderIds ? 'clientOrderIDs' : 'orderIds';
+            $request[$spotReqKey] = implode(',', $parsedIds);
             $response = $this->spotV1PrivatePostTradeCancelOrders (array_merge($request, $params));
         } else {
-            $request['orderIdList'] = $parsedIds;
+            $swapReqKey = $areClientOrderIds ? 'ClientOrderIDList' : 'orderIdList';
+            $request[$swapReqKey] = $parsedIds;
             $response = $this->swapV2PrivateDeleteTradeBatchOrders (array_merge($request, $params));
         }
         //

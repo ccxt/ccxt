@@ -173,6 +173,56 @@
           }
         ],
         "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"LimitIfTouched\",\"text\":\"CCXT\",\"stopPx\":36944,\"price\":36000}"
+      },
+      {
+        "description": "Swap market sell order with reduceOnly",
+        "method": "createOrder",
+        "url": "https://testnet.bitmex.com/api/v1/order",
+        "input": [
+          "BTC/USDT:USDT",
+          "market",
+          "sell",
+          1000,
+          null,
+          {
+            "reduceOnly": true
+          }
+        ],
+        "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"Market\",\"text\":\"CCXT\",\"reduceOnly\":true}"
+      },
+      {
+        "description": "Swap market trailing order",
+        "method": "createOrder",
+        "url": "https://testnet.bitmex.com/api/v1/order",
+        "input": [
+          "BTC/USDT:USDT",
+          "market",
+          "sell",
+          1000,
+          null,
+          {
+            "trailingAmount": 100,
+            "triggerDirection": "above"
+          }
+        ],
+        "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"MarketIfTouched\",\"text\":\"CCXT\",\"pegOffsetValue\":100,\"pegPriceType\":\"TrailingStopPeg\"}"
+      },
+      {
+        "description": "Swap limit trailing order",
+        "method": "createOrder",
+        "url": "https://testnet.bitmex.com/api/v1/order",
+        "input": [
+          "BTC/USDT:USDT",
+          "limit",
+          "sell",
+          1000,
+          45000,
+          {
+            "trailingAmount": 100,
+            "triggerDirection": "above"
+          }
+        ],
+        "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"LimitIfTouched\",\"text\":\"CCXT\",\"pegOffsetValue\":100,\"pegPriceType\":\"TrailingStopPeg\",\"price\":45000}"
       }
     ],
     "fetchTrades": [
@@ -183,6 +233,26 @@
         "input": [
           "BTC/USDT"
         ]
+      }
+    ],
+    "editOrder": [
+      {
+        "description": "Swap edit trailing order",
+        "method": "editOrder",
+        "url": "https://testnet.bitmex.com/api/v1/order",
+        "input": [
+          "f21aa11e-3857-4e39-9230-53cb15a04c3f",
+          "BTC/USDT:USDT",
+          "market",
+          "sell",
+          1000,
+          null,
+          {
+            "trailingAmount": 11000,
+            "triggerDirection": "above"
+          }
+        ],
+        "output": "{\"pegOffsetValue\":11000,\"orderID\":\"f21aa11e-3857-4e39-9230-53cb15a04c3f\",\"orderQty\":1000,\"text\":\"CCXT\"}"
       }
     ]
   }
