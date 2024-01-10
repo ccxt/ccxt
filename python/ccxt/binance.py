@@ -3045,7 +3045,11 @@ class binance(Exchange, ImplicitAPI):
         elif self.is_inverse(type, subType):
             response = self.dapiPublicGetTickerBookTicker(params)
         else:
-            response = self.publicGetTickerBookTicker(params)
+            request = {}
+            if symbols is not None:
+                marketIds = self.market_ids(symbols)
+                request['symbols'] = self.json(marketIds)
+            response = self.publicGetTickerBookTicker(self.extend(request, params))
         return self.parse_tickers(response, symbols)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:

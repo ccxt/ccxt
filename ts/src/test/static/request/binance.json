@@ -1303,6 +1303,69 @@
                 ],
                 "output": "timestamp=1699441011001&dualSidePosition=true&recvWindow=10000&signature=f932a4e8dd21ce1dcea84d8ab2fd9451c31b77c710d1adb9c51f54adc520cd90"
             }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "Fetch Bids Asks spot with array of symbols",
+                "method": "fetchBidsAsks",
+                "url": "https://testnet.binance.vision/api/v3/ticker/bookTicker?symbols=%5B%22BTCUSDT%22%2C%22LTCUSDT%22%5D",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "LTC/USDT"
+                  ]
+                ]
+            }
+        ],
+        "borrowIsolatedMargin":[
+            {
+                "description": "Borrow isolated margin",
+                "method": "borrowIsolatedMargin",
+                "url": "https://api.binance.com/sapi/v1/margin/borrow-repay",
+                "input": [
+                  "LTC/USDT",
+                  "USDT",
+                  1
+                ],
+                "output": "timestamp=1704884479247&asset=USDT&amount=1&symbol=LTCUSDT&isIsolated=TRUE&type=BORROW&recvWindow=10000&signature=f173dc9490b5b255ac77fbf3bd0a53586cc768d2364cd0c439d51084ea1c4f98"
+            }
+        ],
+        "repayIsolatedMargin": [
+            {
+                "description": "Repay isolated margin",
+                "method": "repayIsolatedMargin",
+                "url": "https://api.binance.com/sapi/v1/margin/borrow-repay",
+                "input": [
+                  "LTC/USDT",
+                  "USDT",
+                  1
+                ],
+                "output": "timestamp=1704884544319&asset=USDT&amount=1&symbol=LTCUSDT&isIsolated=TRUE&type=REPAY&recvWindow=10000&signature=aa81a97855a7512780aebf078a1a149360dcbee2111ab8e416881ff0e8c933a8"
+            }
+        ],
+        "borrowCrossMargin": [
+            {
+                "description": "borrow cross margin",
+                "method": "borrowCrossMargin",
+                "url": "https://api.binance.com/sapi/v1/margin/borrow-repay",
+                "input": [
+                  "USDT",
+                  1
+                ],
+                "output": "timestamp=1704884619619&asset=USDT&amount=1&isIsolated=FALSE&type=BORROW&recvWindow=10000&signature=7decbb81d0e7d0b0d553496893c7a36438ddcba418c9437eaa384a541325843b"
+            }
+        ],
+        "repayCrossMargin": [
+            {
+                "description": "repay cross margin",
+                "method": "repayCrossMargin",
+                "url": "https://api.binance.com/sapi/v1/margin/borrow-repay",
+                "input": [
+                  "USDT",
+                  1
+                ],
+                "output": "timestamp=1704884654418&asset=USDT&amount=1&isIsolated=FALSE&type=REPAY&recvWindow=10000&signature=22d5b8db751dc8cc40771a7e6999e863c5630b9108c15dca22c7bebd6b07ca17"
+            }
         ]
     }
 }

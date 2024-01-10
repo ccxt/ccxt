@@ -323,7 +323,7 @@ class bybit extends Exchange {
                         'v5/asset/deposit/query-internal-record' => 5,
                         'v5/asset/deposit/query-address' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-sub-member-address' => 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/asset/coin/query-info' => 25, // 2/s => cost = 50 / 2 = 25
+                        'v5/asset/coin/query-info' => 28, // should be 25 but exceeds ratelimit unless the weight is 28 or higher
                         'v5/asset/withdraw/query-record' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount' => 5,
                         // user
