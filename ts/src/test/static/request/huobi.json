@@ -195,6 +195,22 @@
                   }
                 ],
                 "output": "{\"contract_code\":\"BTC-USDT\",\"volume\":\"1\",\"direction\":\"sell\",\"callback_rate\":0.05,\"active_price\":50000,\"order_price_type\":\"formula_price\",\"offset\":\"close\",\"reduce_only\":1,\"lever_rate\":1,\"channel_code\":\"AA03022abc\"}"
+            },
+            {
+                "description": "Create an isolated margin order",
+                "method": "createOrder",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_order?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-01-10T15%3A37%3A38&Signature=sqvjPFOiyMqQ5czEOMQp7o8eGuoaZSZgN8ADxX9uT3w%3D",
+                "input": [
+                  "ADA/USDT:USDT",
+                  "market",
+                  "buy",
+                  3,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ],
+                "output": "{\"contract_code\":\"ADA-USDT\",\"volume\":\"3\",\"direction\":\"buy\",\"lever_rate\":1,\"order_price_type\":\"market\",\"channel_code\":\"AA03022abc\"}"
             }
         ],
         "createOrders": [
