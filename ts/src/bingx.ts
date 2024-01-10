@@ -2424,8 +2424,11 @@ export default class bingx extends Exchange {
             response = await this.spotV1PrivatePostTradeCancelOrders (this.extend (request, params));
         } else {
             params = this.omit (params, 'clientOrderIds');
-            const swapReqKey = areClientOrderIds ? 'clientOrderIDList' : 'orderIdList';
-            request[swapReqKey] = parsedIds;
+            if (areClientOrderIds) {
+                request['clientOrderIDList'] = JSON.stringify (parsedIds);
+            } else {
+                request['orderIdList'] = parsedIds;
+            }
             response = await this.swapV2PrivateDeleteTradeBatchOrders (this.extend (request, params));
         }
         //
