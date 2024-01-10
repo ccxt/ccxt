@@ -1,14 +1,12 @@
-'use strict';
+
+import lbankRest from '../lbank.js';
+import { ExchangeError } from '../base/errors.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import type { Int, Str, Trade, OrderBook, Order, OHLCV } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
-const { ExchangeError } = require ('../base/errors');
-const lbankRest = require ('../lbank.js');
-const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
-
-//  ---------------------------------------------------------------------------
-
-module.exports = class lbank extends lbankRest {
+export default class lbank extends lbankRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -50,7 +48,18 @@ module.exports = class lbank extends lbankRest {
         });
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name lbank#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const watchOHLCVOptions = this.safeValue (this.options, 'watchOHLCV', {});
@@ -223,16 +232,16 @@ module.exports = class lbank extends lbankRest {
         }, market);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name lbank#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the lbank api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -310,15 +319,15 @@ module.exports = class lbank extends lbankRest {
         }, market);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name lbank#watchTrades
          * @url https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe
          * @description get the list of trades associated with the user
-         * @param {string|undefined} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {string} [symbol] unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the lbank api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -441,7 +450,7 @@ module.exports = class lbank extends lbankRest {
         return this.safeString (statuses, status, status);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name lbank#watchOrderBook
@@ -544,7 +553,7 @@ module.exports = class lbank extends lbankRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials ();
-            const response = await this.privatePostSubscribeGetKey (params);
+            const response = await this.spotPrivatePostSubscribeGetKey (params);
             //
             //     {
             //         "result":"true",
@@ -565,7 +574,7 @@ module.exports = class lbank extends lbankRest {
                 const request = {
                     'subscribeKey': authenticated['key'],
                 };
-                const response = await this.privatePostSubscribeRefreshKey (this.extend (request, params));
+                const response = await this.spotPrivatePostSubscribeRefreshKey (this.extend (request, params));
                 //
                 //    {"result": "true"}
                 //
@@ -578,4 +587,4 @@ module.exports = class lbank extends lbankRest {
         }
         return client['authenticated']['key'];
     }
-};
+}
