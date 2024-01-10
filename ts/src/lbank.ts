@@ -936,13 +936,16 @@ export default class lbank extends Exchange {
         } else {
             request['size'] = 600; // max
         }
-        let method = this.safeString (params, 'method');
+        const options = this.safeValue (this.options, 'fetchTrades', {});
+        const defaultMethod = this.safeString (options, 'method', 'spotPublicGetTrades');
+        const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
-        if (method === undefined) {
-            const options = this.safeValue (this.options, 'fetchTrades', {});
-            method = this.safeString (options, 'method', 'spotPublicGetTrades');
+        let response = undefined;
+        if (method === 'spotPublicGetSupplementTrades') {
+            response = await this.spotPublicGetSupplementTrades (this.extend (request, params));
+        } else {
+            response = await this.spotPublicGetTrades (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //      {
         //          "result":"true",
