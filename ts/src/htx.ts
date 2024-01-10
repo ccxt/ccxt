@@ -43,6 +43,7 @@ export default class htx extends Exchange {
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
+                'createTrailingPercentOrder': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': false,

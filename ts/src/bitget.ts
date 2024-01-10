@@ -42,6 +42,7 @@ export default class bitget extends Exchange {
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
+                'createTrailingPercentOrder': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': false,

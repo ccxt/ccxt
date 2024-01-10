@@ -41,6 +41,7 @@ export default class bitmart extends Exchange {
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
+                'createTrailingPercentOrder': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
                 'createStopLimitOrder': false,

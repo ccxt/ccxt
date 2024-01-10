@@ -41,6 +41,7 @@ export default class bybit extends Exchange {
                 'closePosition': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
+                'createTrailingAmountOrder': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': true,
