@@ -1,5 +1,5 @@
 import blockchaincomRest from '../blockchaincom.js';
-import type { IndexType, Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class blockchaincom extends blockchaincomRest {
     describe(): any;
@@ -19,16 +19,6 @@ export default class blockchaincom extends blockchaincomRest {
     parseWsOrderStatus(status: any): string;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): any;
-    parseCountedBidAsk(bidAsk: any, priceKey?: IndexType, amountKey?: IndexType, countKey?: IndexType): number[];
-    parseCountedBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countKey?: IndexType): any[];
-    parseCountedOrderBook(orderbook: any, symbol: string, timestamp?: Int, bidsKey?: IndexType, asksKey?: IndexType, priceKey?: IndexType, amountKey?: IndexType, countKey?: IndexType): {
-        symbol: string;
-        bids: any;
-        asks: any;
-        timestamp: number;
-        datetime: string;
-        nonce: any;
-    };
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     checkSequenceNumber(client: Client, message: any): void;

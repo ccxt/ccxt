@@ -798,12 +798,11 @@ export default class bitfinex extends Exchange {
         //         "message": "0.0001 Bitcoin transfered from Margin to Exchange"
         //     }
         //
-        const timestamp = this.milliseconds ();
         return {
             'info': transfer,
             'id': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'currency': this.safeCurrencyCode (undefined, currency),
             'amount': undefined,
             'fromAccount': undefined,

@@ -802,6 +802,8 @@ class binance(ccxt.async_support.binance):
         params = self.omit(params, 'name')
         wsParams = []
         messageHash = 'tickers'
+        if symbols is not None:
+            messageHash = 'tickers::' + ','.join(symbols)
         if name == 'bookTicker':
             if marketIds is None:
                 raise ArgumentsRequired(self.id + ' watchTickers() requires symbols for bookTicker')
@@ -978,6 +980,17 @@ class binance(ccxt.async_support.binance):
             symbol = result['symbol']
             self.tickers[symbol] = result
             newTickers.append(result)
+        messageHashes = self.find_message_hashes(client, 'tickers::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            tickers = self.filter_by_array(newTickers, 'symbol', symbols)
+            tickersSymbols = list(tickers.keys())
+            numTickers = len(tickersSymbols)
+            if numTickers > 0:
+                client.resolve(tickers, messageHash)
         client.resolve(newTickers, 'tickers')
 
     def sign_params(self, params={}):

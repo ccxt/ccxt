@@ -879,6 +879,9 @@ class binance extends \ccxt\async\binance {
             $params = $this->omit($params, 'name');
             $wsParams = array();
             $messageHash = 'tickers';
+            if ($symbols !== null) {
+                $messageHash = 'tickers::' . implode(',', $symbols);
+            }
             if ($name === 'bookTicker') {
                 if ($marketIds === null) {
                     throw new ArgumentsRequired($this->id . ' watchTickers() requires $symbols for bookTicker');
@@ -1070,6 +1073,19 @@ class binance extends \ccxt\async\binance {
             $symbol = $result['symbol'];
             $this->tickers[$symbol] = $result;
             $newTickers[] = $result;
+        }
+        $messageHashes = $this->find_message_hashes($client, 'tickers::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $tickers = $this->filter_by_array($newTickers, 'symbol', $symbols);
+            $tickersSymbols = is_array($tickers) ? array_keys($tickers) : array();
+            $numTickers = count($tickersSymbols);
+            if ($numTickers > 0) {
+                $client->resolve ($tickers, $messageHash);
+            }
         }
         $client->resolve ($newTickers, 'tickers');
     }

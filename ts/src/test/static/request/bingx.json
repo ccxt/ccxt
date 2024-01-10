@@ -433,6 +433,20 @@
                 ]
             },
             {
+                "description": "spot cancel orders by client order ids",
+                "method": "cancelOrders",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/cancelOrders?clientOrderIDs=1741063422788763648&symbol=LTC-USDT&timestamp=1704106632880&signature=bcb17f764ececd8ae8d64603b65b0f359b6983a79ac9b5dd36b25a1ad0452ad6",
+                "input": [
+                  [],
+                  "LTC/USDT",
+                  {
+                    "clientOrderIds": [
+                        "1741063422788763648"
+                    ]
+                  }
+                ]
+            },
+            {
                 "description": "cancel swap orders",
                 "method": "cancelOrders",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/batchOrders?orderIdList=%5B1741775869694930944%5D&symbol=LTC-USDT&timestamp=1704106731589&signature=63170e2bdcc7341f0565a93e2e5e70398aeedcc668bccd301ecccd5bf5c5fc99",
@@ -441,6 +455,20 @@
                     "1741775869694930944"
                   ],
                   "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "swap cancel orders by client order ids",
+                "method": "cancelOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/batchOrders?clientOrderIDList=%5B%221741775869694930944%22%5D&symbol=LTC-USDT&timestamp=1704106731589&signature=63170e2bdcc7341f0565a93e2e5e70398aeedcc668bccd301ecccd5bf5c5fc99",
+                "input": [
+                  [],
+                  "LTC/USDT:USDT",
+                  {
+                    "clientOrderIds": [
+                        "1741775869694930944"
+                    ]
+                  }
                 ]
             }
         ],

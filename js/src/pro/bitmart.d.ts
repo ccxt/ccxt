@@ -22,6 +22,7 @@ export default class bitmart extends bitmartRest {
     handleTrade(client: Client, message: any): any;
     parseWsTrade(trade: any, market?: Market): Trade;
     handleTicker(client: Client, message: any): any;
+    resolveMessageHashesForSymbol(client: any, symbol: any, result: any, prexif: any): void;
     parseWsSwapTicker(ticker: any, market?: Market): Ticker;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): void;
