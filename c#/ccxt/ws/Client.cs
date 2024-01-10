@@ -277,11 +277,21 @@ public partial class Exchange
             {
                 while (webSocket.State == WebSocketState.Open)
                 {
-                    var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    // var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    var memory = new MemoryStream();
+
+                    WebSocketReceiveResult result;
+                    do
+                    {
+                        result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                        memory.Write(buffer, 0, result.Count);
+                    } while (!result.EndOfMessage);
+
 
                     if (result.MessageType == WebSocketMessageType.Text)
                     {
-                        var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        // var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        var message = Encoding.UTF8.GetString(memory.ToArray(), 0, (int)memory.Length);
                         var deserializedMessages = JsonHelper.Deserialize(message);
 
                         if (this.verbose) // remove || true
