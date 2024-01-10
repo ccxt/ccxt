@@ -2470,18 +2470,21 @@ export default class lbank extends Exchange {
          */
         await this.loadMarkets ();
         const isAuthorized = this.checkRequiredCredentials (false);
-        let method = undefined;
+        const response = undefined;
         if (isAuthorized === true) {
-            method = this.safeString (params, 'method');
+            const options = this.safeValue (this.options, 'fetchDepositWithdrawFees', {});
+            const defaultMethod = this.safeString (options, 'method', 'fetchPrivateDepositWithdrawFees');
+            const method = this.safeString (params, 'method', defaultMethod);
             params = this.omit (params, 'method');
-            if (method === undefined) {
-                const options = this.safeValue (this.options, 'fetchDepositWithdrawFees', {});
-                method = this.safeString (options, 'method', 'fetchPrivateDepositWithdrawFees');
+            if (method === 'fetchPublicDepositWithdrawFees') {
+                await this.fetchPublicDepositWithdrawFees (codes, params);
+            } else {
+                await this.fetchPrivateDepositWithdrawFees (codes, params);
             }
         } else {
-            method = 'fetchPublicDepositWithdrawFees';
+            await this.fetchPublicDepositWithdrawFees (codes, params);
         }
-        return await this[method] (codes, params);
+        return response;
     }
 
     async fetchPrivateDepositWithdrawFees (codes = undefined, params = {}) {
