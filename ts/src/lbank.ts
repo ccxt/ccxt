@@ -1186,12 +1186,17 @@ export default class lbank extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        let method = this.safeString (params, 'method');
-        if (method === undefined) {
-            const options = this.safeValue (this.options, 'fetchBalance', {});
-            method = this.safeString (options, 'method', 'spotPrivatePostSupplementUserInfo');
+        const options = this.safeValue (this.options, 'fetchBalance', {});
+        const defaultMethod = this.safeString (options, 'method', 'spotPrivatePostSupplementUserInfo');
+        const method = this.safeString (params, 'method', defaultMethod);
+        let response = undefined;
+        if (method === 'spotPrivatePostSupplementUserInfoAccount') {
+            response = await this.spotPrivatePostSupplementUserInfoAccount ();
+        } else if (method === 'spotPrivatePostUserInfo') {
+            response = await this.spotPrivatePostUserInfo ();
+        } else {
+            response = await this.spotPrivatePostSupplementUserInfo ();
         }
-        const response = await this[method] ();
         //
         //    {
         //        "result": "true",
