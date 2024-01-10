@@ -207,7 +207,15 @@ export default class binance extends binanceRest {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         const name = 'depth';
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'multipleOrderbook');
+        let streamHash = 'multipleOrderbook';
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 200) {
+                throw new BadRequest (this.id + ' watchOrderBookForSymbols() accepts 200 symbols at most. To watch more symbols call watchOrderBookForSymbols() multiple times');
+            }
+            streamHash += '::' + symbols.join (',');
+        }
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash);
         const requestId = this.requestId (url);
         const watchOrderBookRate = this.safeString (this.options, 'watchOrderBookRate', '100');
         const subParams = [];
@@ -463,6 +471,14 @@ export default class binance extends binanceRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        let streamHash = 'multipleTrades';
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 200) {
+                throw new BadRequest (this.id + ' watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times');
+            }
+            streamHash += '::' + symbols.join (',');
+        }
         const options = this.safeValue (this.options, 'watchTradesForSymbols', {});
         const name = this.safeString (options, 'name', 'trade');
         const firstMarket = this.market (symbols[0]);
@@ -478,7 +494,7 @@ export default class binance extends binanceRest {
             subParams.push (currentMessageHash);
         }
         const query = this.omit (params, 'type');
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'multipleTrades');
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
