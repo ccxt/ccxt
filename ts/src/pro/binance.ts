@@ -73,6 +73,12 @@ export default class binance extends binanceRest {
                     'future': 50, // max 200
                     'delivery': 50, // max 200
                 },
+                'subscriptionLimitByStream': {
+                    'spot': 200,
+                    'margin': 200,
+                    'future': 200,
+                    'delivery': 200,
+                },
                 'streamBySubscriptionsHash': {},
                 'streamIndex': -1,
                 // get updates every 1000ms or 100ms
@@ -123,7 +129,7 @@ export default class binance extends binanceRest {
         return newValue;
     }
 
-    stream (type, subscriptionHash) {
+    stream (type, subscriptionHash, numSubscriptions = 1) {
         const streamBySubscriptionsHash = this.safeValue (this.options, 'streamBySubscriptionsHash', {});
         let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
@@ -135,6 +141,17 @@ export default class binance extends binanceRest {
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString (normalizedIndex);
             this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
+            const subscriptionsByStreams = this.safeValue (this.options, 'numSubscriptionsByStream');
+            if (subscriptionsByStreams === undefined) {
+                this.options['numSubscriptionsByStream'] = {};
+            }
+            const subscriptionsByStream = this.safeInteger (this.options['numSubscriptionsByStream'], stream, 0);
+            const newNumSubscriptions = subscriptionsByStream + numSubscriptions;
+            const subscriptionLimitByStream = this.safeInteger (this.options, 'subscriptionLimitByStream', 200);
+            if (newNumSubscriptions > subscriptionLimitByStream) {
+                throw new BadRequest (this.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
+            }
+            this.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions;
         }
         return stream;
     }
@@ -215,8 +232,6 @@ export default class binance extends binanceRest {
             }
             streamHash += '::' + symbols.join (',');
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash);
-        const requestId = this.requestId (url);
         const watchOrderBookRate = this.safeString (this.options, 'watchOrderBookRate', '100');
         const subParams = [];
         const messageHashes = [];
@@ -228,6 +243,9 @@ export default class binance extends binanceRest {
             const symbolHash = messageHash + '@' + watchOrderBookRate + 'ms';
             subParams.push (symbolHash);
         }
+        const messageHashesLength = messageHashes.length;
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, messageHashesLength);
+        const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
             'params': subParams,
@@ -494,7 +512,8 @@ export default class binance extends binanceRest {
             subParams.push (currentMessageHash);
         }
         const query = this.omit (params, 'type');
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash);
+        const subParamsLength = subParams.length;
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, subParamsLength);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
