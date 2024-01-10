@@ -95,7 +95,7 @@ public partial class Exchange
         return omit(a, keys);
     }
 
-    public List<object> toArray(object a)
+    public IList<object> toArray(object a)
     {
         if (a == null)
             return null;
@@ -111,7 +111,8 @@ public partial class Exchange
 
         if (a is IList<object>)
         {
-            return ((IList<object>)a).ToList();
+            // return ((IList<object>)a).ToList();
+            return ((IList<object>)a);
         }
         // if (a.GetType() == typeof(List<string>))
         // {
