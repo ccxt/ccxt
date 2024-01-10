@@ -40,6 +40,7 @@ export default class kraken extends Exchange {
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
+                'createTrailingAmountOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
