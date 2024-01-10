@@ -2412,6 +2412,7 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
         };
         const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        params = this.omit (params, 'clientOrderIds');
         let idsToParse = ids;
         const areClientOrderIds = (clientOrderIds !== undefined);
         if (areClientOrderIds) {
@@ -2429,9 +2430,8 @@ export default class bingx extends Exchange {
             request[spotReqKey] = parsedIds.join (',');
             response = await this.spotV1PrivatePostTradeCancelOrders (this.extend (request, params));
         } else {
-            params = this.omit (params, 'clientOrderIds');
             if (areClientOrderIds) {
-                request['clientOrderIDList'] = JSON.stringify (parsedIds);
+                request['clientOrderIDList'] = this.json (parsedIds);
             } else {
                 request['orderIdList'] = parsedIds;
             }
