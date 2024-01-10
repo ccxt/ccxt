@@ -4373,7 +4373,7 @@ export default class Exchange {
     }
 
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
-        throw new NotSupported (this.id + ' closePositions() is not supported yet');
+        throw new NotSupported (this.id + ' closePosition() is not supported yet');
     }
 
     async closeAllPositions (params = {}): Promise<Position[]> {
