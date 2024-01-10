@@ -65,6 +65,8 @@ public partial class Exchange
             this.ping = ping;
             this.handleMessage = handleMessage;
             this.verbose = isVerbose;
+            this.onClose = onClose;
+            this.onError = onError;
         }
 
         public Future future(object messageHash2)
