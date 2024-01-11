@@ -1,0 +1,27 @@
+{
+    "BTC/USD": {
+        "id": "Xbt/Usd",
+        "symbol": "BTC/USD",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "Xbt",
+        "quoteId": "Usd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {},
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": "Xbt/Usd"
+    }
+}
