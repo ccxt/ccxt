@@ -256,7 +256,8 @@ export default class testMainClass extends baseMainTestClass {
                 for (let i = 0; i < testFileNames.length; i++) {
                     const testFileName = testFileNames[i];
                     for (let j = 0; j < possibleMethodNames.length; j++) {
-                        const methodName = possibleMethodNames[j];
+                        let methodName = possibleMethodNames[j];
+                        methodName = methodName.replace ('()', '');
                         if (testFileName === methodName) {
                             this.onlySpecificTests.push (testFileName);
                         }
