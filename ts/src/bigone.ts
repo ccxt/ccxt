@@ -901,7 +901,7 @@ export default class bigone extends Exchange {
             //        from: '0'
             //    }
             //
-            return this.parseContractOrderBook (response, market['symbol']);
+            return this.parseContractOrderBook (response, market['symbol'], limit);
         } else {
             const request = {
                 'asset_pair_name': market['id'],
@@ -940,15 +940,15 @@ export default class bigone extends Exchange {
         return result;
     }
 
-    parseContractOrderBook (orderbook: object, symbol: string): OrderBook {
+    parseContractOrderBook (orderbook: object, symbol: string, limit: Int = undefined): OrderBook {
         const responseBids = this.safeValue (orderbook, 'bids');
         const responseAsks = this.safeValue (orderbook, 'asks');
         const bids = this.parseContractBidsAsks (responseBids);
         const asks = this.parseContractBidsAsks (responseAsks);
         return {
             'symbol': symbol,
-            'bids': this.sortBy (bids, 0, true),
-            'asks': this.sortBy (asks, 0),
+            'bids': this.filterByLimit (this.sortBy (bids, 0, true), limit),
+            'asks': this.filterByLimit (this.sortBy (asks, 0), limit),
             'timestamp': undefined,
             'datetime': undefined,
             'nonce': undefined,
