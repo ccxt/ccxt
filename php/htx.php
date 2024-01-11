@@ -44,6 +44,7 @@ class htx extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'createTrailingPercentOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -5044,15 +5045,11 @@ class htx extends Exchange {
             }
         }
         if (!$isStopLossTriggerOrder && !$isTakeProfitTriggerOrder) {
-            $leverRate = $this->safe_integer_n($params, array( 'leverRate', 'lever_rate', 'leverage' ), 1);
             $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only', false);
-            $openOrClose = ($reduceOnly) ? 'close' : 'open';
-            $offset = $this->safe_string($params, 'offset', $openOrClose);
-            $request['offset'] = $offset;
             if ($reduceOnly) {
                 $request['reduce_only'] = 1;
             }
-            $request['lever_rate'] = $leverRate;
+            $request['lever_rate'] = $this->safe_integer_n($params, array( 'leverRate', 'lever_rate', 'leverage' ), 1);
             if (!$isTrailingPercentOrder) {
                 $request['order_price_type'] = $type;
             }
@@ -5117,7 +5114,7 @@ class htx extends Exchange {
             $contractRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
             if ($market['linear']) {
                 $marginMode = null;
-                list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+                list($marginMode, $contractRequest) = $this->handle_margin_mode_and_params('createOrder', $contractRequest);
                 $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                 if ($marginMode === 'isolated') {
                     if ($isStop) {

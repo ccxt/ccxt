@@ -20,10 +20,10 @@ class bigone extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => false,
                 'swap' => null, // has but unimplemented
                 'future' => null, // has but unimplemented
-                'option' => null,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketBuyOrderWithCost' => true,
@@ -77,6 +77,8 @@ class bigone extends Exchange {
                 'api' => array(
                     'public' => 'https://{hostname}/api/v3',
                     'private' => 'https://{hostname}/api/v3/viewer',
+                    'contractPublic' => 'https://{hostname}/api/contract/v2',
+                    'contractPrivate' => 'https://{hostname}/api/contract/v2',
                     'webExchange' => 'https://{hostname}/api/',
                 ),
                 'www' => 'https://big.one',
@@ -114,6 +116,38 @@ class bigone extends Exchange {
                         'orders/cancel',
                         'withdrawals',
                         'transfer',
+                    ),
+                ),
+                'contractPublic' => array(
+                    'get' => array(
+                        'instruments',
+                        'depth@{symbol}/snapshot',
+                        'instruments/difference',
+                        'instruments/prices',
+                    ),
+                ),
+                'contractPrivate' => array(
+                    'get' => array(
+                        'accounts',
+                        'orders/{id}',
+                        'orders',
+                        'orders/opening',
+                        'orders/count',
+                        'orders/opening/count',
+                        'trades',
+                        'trades/count',
+                    ),
+                    'post' => array(
+                        'orders',
+                        'orders/batch',
+                    ),
+                    'put' => array(
+                        'positions/{symbol}/margin',
+                        'positions/{symbol}/risk-limit',
+                    ),
+                    'delete' => array(
+                        'orders/{id}',
+                        'orders/batch',
                     ),
                 ),
                 'webExchange' => array(
@@ -478,7 +512,7 @@ class bigone extends Exchange {
         /**
          * retrieves data on all $markets for bigone
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} an array of objects representing market data
+         * @return {array[]} an array of objects representing $market data
          */
         $response = $this->publicGetAssetPairs ($params);
         //
@@ -506,95 +540,215 @@ class bigone extends Exchange {
         //         )
         //     }
         //
+        $contractResponse = $this->contractPublicGetInstruments ($params);
+        //
+        //    array(
+        //        {
+        //            "usdtPrice" => 1.00031998,
+        //            "symbol" => "BTCUSD",
+        //            "btcPrice" => 34700.4,
+        //            "ethPrice" => 1787.83,
+        //            "nextFundingRate" => 0.00010,
+        //            "fundingRate" => 0.00010,
+        //            "latestPrice" => 34708.5,
+        //            "last24hPriceChange" => 0.0321,
+        //            "indexPrice" => 34700.4,
+        //            "volume24h" => 261319063,
+        //            "turnover24h" => 8204.129380685496,
+        //            "nextFundingTime" => 1698285600000,
+        //            "markPrice" => 34702.4646738,
+        //            "last24hMaxPrice" => 35127.5,
+        //            "volume24hInUsd" => 0.0,
+        //            "openValue" => 32.88054722085945,
+        //            "last24hMinPrice" => 33552.0,
+        //            "openInterest" => 1141372.0
+        //        }
+        //        ...
+        //    )
+        //
         $markets = $this->safe_value($response, 'data', array());
-        return $this->parse_markets($markets);
-    }
-
-    public function parse_market($market): array {
-        $id = $this->safe_string($market, 'name');
-        $baseAsset = $this->safe_value($market, 'base_asset', array());
-        $quoteAsset = $this->safe_value($market, 'quote_asset', array());
-        $baseId = $this->safe_string($baseAsset, 'symbol');
-        $quoteId = $this->safe_string($quoteAsset, 'symbol');
-        $base = $this->safe_currency_code($baseId);
-        $quote = $this->safe_currency_code($quoteId);
-        return array(
-            'id' => $id,
-            'symbol' => $base . '/' . $quote,
-            'base' => $base,
-            'quote' => $quote,
-            'settle' => null,
-            'baseId' => $baseId,
-            'quoteId' => $quoteId,
-            'settleId' => null,
-            'type' => 'spot',
-            'spot' => true,
-            'margin' => false,
-            'swap' => false,
-            'future' => false,
-            'option' => false,
-            'active' => true,
-            'contract' => false,
-            'linear' => null,
-            'inverse' => null,
-            'contractSize' => null,
-            'expiry' => null,
-            'expiryDatetime' => null,
-            'strike' => null,
-            'optionType' => null,
-            'precision' => array(
-                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_scale'))),
-                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quote_scale'))),
-            ),
-            'limits' => array(
-                'leverage' => array(
-                    'min' => null,
-                    'max' => null,
+        $result = array();
+        for ($i = 0; $i < count($markets); $i++) {
+            $market = $markets[$i];
+            $baseAsset = $this->safe_value($market, 'base_asset', array());
+            $quoteAsset = $this->safe_value($market, 'quote_asset', array());
+            $baseId = $this->safe_string($baseAsset, 'symbol');
+            $quoteId = $this->safe_string($quoteAsset, 'symbol');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $result[] = $this->safe_market_structure(array(
+                'id' => $this->safe_string($market, 'name'),
+                'uuid' => $this->safe_string($market, 'id'),
+                'symbol' => $base . '/' . $quote,
+                'base' => $base,
+                'quote' => $quote,
+                'settle' => null,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => null,
+                'type' => 'spot',
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => true,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_scale'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quote_scale'))),
                 ),
-                'amount' => array(
-                    'min' => null,
-                    'max' => null,
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'min_quote_value'),
+                        'max' => $this->safe_number($market, 'max_quote_value'),
+                    ),
                 ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
+                'created' => null,
+                'info' => $market,
+            ));
+        }
+        for ($i = 0; $i < count($contractResponse); $i++) {
+            $market = $contractResponse[$i];
+            $marketId = $this->safe_string($market, 'symbol');
+            $index = mb_strpos($marketId, 'USD');
+            $baseId = mb_substr($marketId, 0, $index - 0);
+            $quoteId = mb_substr($marketId, $index);
+            $inverse = ($quoteId === 'USD');
+            $settleId = $inverse ? $baseId : $quoteId;
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $settle = $this->safe_currency_code($settleId);
+            $result[] = $this->safe_market_structure(array(
+                'id' => $marketId,
+                'symbol' => $base . '/' . $quote . ':' . $settle,
+                'base' => $base,
+                'quote' => $quote,
+                'settle' => $settle,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => $settleId,
+                'type' => 'swap',
+                'spot' => false,
+                'margin' => false,
+                'swap' => true,
+                'future' => false,
+                'option' => false,
+                'active' => true,
+                'contract' => true,
+                'linear' => !$inverse,
+                'inverse' => $inverse,
+                'contractSize' => 1,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => null,
+                    'price' => null,
                 ),
-                'cost' => array(
-                    'min' => $this->safe_number($market, 'min_quote_value'),
-                    'max' => $this->safe_number($market, 'max_quote_value'),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                 ),
-            ),
-            'created' => null,
-            'info' => $market,
-        );
+                'info' => $market,
+            ));
+        }
+        return $result;
     }
 
     public function parse_ticker($ticker, ?array $market = null): array {
         //
-        //     {
-        //         "asset_pair_name":"ETH-BTC",
-        //         "bid":array("price":"0.021593","order_count":1,"quantity":"0.20936"),
-        //         "ask":array("price":"0.021613","order_count":1,"quantity":"2.87064"),
-        //         "open":"0.021795",
-        //         "high":"0.021795",
-        //         "low":"0.021471",
-        //         "close":"0.021613",
-        //         "volume":"117078.90431",
-        //         "daily_change":"-0.000182"
-        //     }
+        // spot
         //
-        $marketId = $this->safe_string($ticker, 'asset_pair_name');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
-        $timestamp = null;
-        $close = $this->safe_string($ticker, 'close');
+        //    {
+        //        "asset_pair_name" => "ETH-BTC",
+        //        "bid" => array(
+        //            "price" => "0.021593",
+        //            "order_count" => 1,
+        //            "quantity" => "0.20936"
+        //        ),
+        //        "ask" => array(
+        //            "price" => "0.021613",
+        //            "order_count" => 1,
+        //            "quantity" => "2.87064"
+        //        ),
+        //        "open" => "0.021795",
+        //        "high" => "0.021795",
+        //        "low" => "0.021471",
+        //        "close" => "0.021613",
+        //        "volume" => "117078.90431",
+        //        "daily_change" => "-0.000182"
+        //    }
+        //
+        // contract
+        //
+        //    {
+        //        "usdtPrice" => 1.00031998,
+        //        "symbol" => "BTCUSD",
+        //        "btcPrice" => 34700.4,
+        //        "ethPrice" => 1787.83,
+        //        "nextFundingRate" => 0.00010,
+        //        "fundingRate" => 0.00010,
+        //        "latestPrice" => 34708.5,
+        //        "last24hPriceChange" => 0.0321,
+        //        "indexPrice" => 34700.4,
+        //        "volume24h" => 261319063,
+        //        "turnover24h" => 8204.129380685496,
+        //        "nextFundingTime" => 1698285600000,
+        //        "markPrice" => 34702.4646738,
+        //        "last24hMaxPrice" => 35127.5,
+        //        "volume24hInUsd" => 0.0,
+        //        "openValue" => 32.88054722085945,
+        //        "last24hMinPrice" => 33552.0,
+        //        "openInterest" => 1141372.0
+        //    }
+        //
+        $marketType = (is_array($ticker) && array_key_exists('asset_pair_name', $ticker)) ? 'spot' : 'swap';
+        $marketId = $this->safe_string_2($ticker, 'asset_pair_name', 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market, '-', $marketType);
+        $close = $this->safe_string_2($ticker, 'close', 'latestPrice');
         $bid = $this->safe_value($ticker, 'bid', array());
         $ask = $this->safe_value($ticker, 'ask', array());
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_string($ticker, 'high'),
-            'low' => $this->safe_string($ticker, 'low'),
+            'timestamp' => null,
+            'datetime' => null,
+            'high' => $this->safe_string_2($ticker, 'high', 'last24hMaxPrice'),
+            'low' => $this->safe_string_2($ticker, 'low', 'last24hMinPrice'),
             'bid' => $this->safe_string($bid, 'price'),
             'bidVolume' => $this->safe_string($bid, 'quantity'),
             'ask' => $this->safe_string($ask, 'price'),
@@ -604,11 +758,11 @@ class bigone extends Exchange {
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => $this->safe_string($ticker, 'daily_change'),
+            'change' => $this->safe_string_2($ticker, 'daily_change', 'last24hPriceChange'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'volume'),
-            'quoteVolume' => null,
+            'baseVolume' => $this->safe_string_2($ticker, 'volume', 'volume24h'),
+            'quoteVolume' => $this->safe_string($ticker, 'volume24hInUsd'),
             'info' => $ticker,
         ), $market);
     }
@@ -622,82 +776,120 @@ class bigone extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $request = array(
-            'asset_pair_name' => $market['id'],
-        );
-        $response = $this->publicGetAssetPairsAssetPairNameTicker (array_merge($request, $params));
-        //
-        //     {
-        //         "code":0,
-        //         "data":{
-        //             "asset_pair_name":"ETH-BTC",
-        //             "bid":array("price":"0.021593","order_count":1,"quantity":"0.20936"),
-        //             "ask":array("price":"0.021613","order_count":1,"quantity":"2.87064"),
-        //             "open":"0.021795",
-        //             "high":"0.021795",
-        //             "low":"0.021471",
-        //             "close":"0.021613",
-        //             "volume":"117078.90431",
-        //             "daily_change":"-0.000182"
-        //         }
-        //     }
-        //
-        $ticker = $this->safe_value($response, 'data', array());
-        return $this->parse_ticker($ticker, $market);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchTicker', $market, $params);
+        if ($type === 'spot') {
+            $request = array(
+                'asset_pair_name' => $market['id'],
+            );
+            $response = $this->publicGetAssetPairsAssetPairNameTicker (array_merge($request, $params));
+            //
+            //     {
+            //         "code":0,
+            //         "data":{
+            //             "asset_pair_name":"ETH-BTC",
+            //             "bid":array("price":"0.021593","order_count":1,"quantity":"0.20936"),
+            //             "ask":array("price":"0.021613","order_count":1,"quantity":"2.87064"),
+            //             "open":"0.021795",
+            //             "high":"0.021795",
+            //             "low":"0.021471",
+            //             "close":"0.021613",
+            //             "volume":"117078.90431",
+            //             "daily_change":"-0.000182"
+            //         }
+            //     }
+            //
+            $ticker = $this->safe_value($response, 'data', array());
+            return $this->parse_ticker($ticker, $market);
+        } else {
+            $tickers = $this->fetch_tickers(array( $symbol ), $params);
+            return $this->safe_value($tickers, $symbol);
+        }
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
+        $market = null;
+        $symbol = $this->safe_string($symbols, 0);
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        $isSpot = $type === 'spot';
         $request = array();
         $symbols = $this->market_symbols($symbols);
-        if ($symbols !== null) {
-            $ids = $this->market_ids($symbols);
-            $request['pair_names'] = implode(',', $ids);
+        $data = null;
+        if ($isSpot) {
+            if ($symbols !== null) {
+                $ids = $this->market_ids($symbols);
+                $request['pair_names'] = implode(',', $ids);
+            }
+            $response = $this->publicGetAssetPairsTickers (array_merge($request, $params));
+            //
+            //    {
+            //        "code" => 0,
+            //        "data" => array(
+            //            array(
+            //                "asset_pair_name" => "PCX-BTC",
+            //                "bid" => array(
+            //                    "price" => "0.000234",
+            //                    "order_count" => 1,
+            //                    "quantity" => "0.518"
+            //                ),
+            //                "ask" => array(
+            //                    "price" => "0.0002348",
+            //                    "order_count" => 1,
+            //                    "quantity" => "2.348"
+            //                ),
+            //                "open" => "0.0002343",
+            //                "high" => "0.0002348",
+            //                "low" => "0.0002162",
+            //                "close" => "0.0002348",
+            //                "volume" => "12887.016",
+            //                "daily_change" => "0.0000005"
+            //            ),
+            //            ...
+            //        )
+            //    }
+            //
+            $data = $this->safe_value($response, 'data', array());
+        } else {
+            $data = $this->contractPublicGetInstruments ($params);
+            //
+            //    array(
+            //        {
+            //            "usdtPrice" => 1.00031998,
+            //            "symbol" => "BTCUSD",
+            //            "btcPrice" => 34700.4,
+            //            "ethPrice" => 1787.83,
+            //            "nextFundingRate" => 0.00010,
+            //            "fundingRate" => 0.00010,
+            //            "latestPrice" => 34708.5,
+            //            "last24hPriceChange" => 0.0321,
+            //            "indexPrice" => 34700.4,
+            //            "volume24h" => 261319063,
+            //            "turnover24h" => 8204.129380685496,
+            //            "nextFundingTime" => 1698285600000,
+            //            "markPrice" => 34702.4646738,
+            //            "last24hMaxPrice" => 35127.5,
+            //            "volume24hInUsd" => 0.0,
+            //            "openValue" => 32.88054722085945,
+            //            "last24hMinPrice" => 33552.0,
+            //            "openInterest" => 1141372.0
+            //        }
+            //        ...
+            //    )
+            //
         }
-        $response = $this->publicGetAssetPairsTickers (array_merge($request, $params));
-        //
-        //     {
-        //         "code":0,
-        //         "data":array(
-        //             array(
-        //                 "asset_pair_name":"PCX-BTC",
-        //                 "bid":array("price":"0.000234","order_count":1,"quantity":"0.518"),
-        //                 "ask":array("price":"0.0002348","order_count":1,"quantity":"2.348"),
-        //                 "open":"0.0002343",
-        //                 "high":"0.0002348",
-        //                 "low":"0.0002162",
-        //                 "close":"0.0002348",
-        //                 "volume":"12887.016",
-        //                 "daily_change":"0.0000005"
-        //             ),
-        //             {
-        //                 "asset_pair_name":"GXC-USDT",
-        //                 "bid":array("price":"0.5054","order_count":1,"quantity":"40.53"),
-        //                 "ask":array("price":"0.5055","order_count":1,"quantity":"38.53"),
-        //                 "open":"0.5262",
-        //                 "high":"0.5323",
-        //                 "low":"0.5055",
-        //                 "close":"0.5055",
-        //                 "volume":"603963.05",
-        //                 "daily_change":"-0.0207"
-        //             }
-        //         )
-        //     }
-        //
-        $tickers = $this->safe_value($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($tickers); $i++) {
-            $ticker = $this->parse_ticker($tickers[$i]);
-            $symbol = $ticker['symbol'];
-            $result[$symbol] = $ticker;
-        }
-        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        $tickers = $this->parse_tickers($data, $symbols);
+        return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
     public function fetch_time($params = array ()) {
@@ -1486,7 +1678,7 @@ class bigone extends Exchange {
         $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $headers = array();
-        if ($api === 'public' || $api === 'webExchange') {
+        if ($api === 'public' || $api === 'webExchange' || $api === 'contractPublic') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
@@ -1507,7 +1699,7 @@ class bigone extends Exchange {
                 }
             } elseif ($method === 'POST') {
                 $headers['Content-Type'] = 'application/json';
-                $body = $this->json($query);
+                $body = $query;
             }
         }
         $headers['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
@@ -1901,7 +2093,7 @@ class bigone extends Exchange {
         //
         $code = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'message');
-        if ($code !== '0') {
+        if (($code !== '0') && ($code !== null)) {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);

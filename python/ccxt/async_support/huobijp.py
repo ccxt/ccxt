@@ -1377,13 +1377,12 @@ class huobijp(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         method = self.options['createOrderMethod']
         response = await getattr(self, method)(self.extend(request, params))
-        timestamp = self.milliseconds()
         id = self.safe_string(response, 'data')
         return self.safe_order({
             'info': response,
             'id': id,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'lastTradeTimestamp': None,
             'status': None,
             'symbol': symbol,

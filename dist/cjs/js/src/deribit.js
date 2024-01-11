@@ -36,6 +36,7 @@ class deribit extends deribit$1 {
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createDepositAddress': true,
+                'createTrailingAmountOrder': true,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,

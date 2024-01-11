@@ -36,7 +36,7 @@ class alpaca extends alpaca$1 {
                     'market': 'https://data.sandbox.{hostname}',
                 },
                 'doc': 'https://alpaca.markets/docs/',
-                'fees': 'https://alpaca.markets/support/what-are-the-fees-associated-with-crypto-trading/',
+                'fees': 'https://docs.alpaca.markets/docs/crypto-fees',
             },
             'has': {
                 'CORS': false,
