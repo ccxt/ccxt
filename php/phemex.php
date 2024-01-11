@@ -437,6 +437,7 @@ class phemex extends Exchange {
                     '35104' => '\\ccxt\\InsufficientFunds', // array("code":35104,"msg":"phemex.spot.wallet.balance.notenough","data":null)
                     '39995' => '\\ccxt\\RateLimitExceeded', // array("code" => "39995","msg" => "Too many requests.")
                     '39996' => '\\ccxt\\PermissionDenied', // array("code" => "39996","msg" => "Access denied.")
+                    '39997' => '\\ccxt\\BadSymbol', // array("code":39997,"msg":"Symbol not listed sMOVRUSDT","data":null)
                 ),
                 'broad' => array(
                     '401 Insufficient privilege' => '\\ccxt\\PermissionDenied', // array("code" => "401","msg" => "401 Insufficient privilege.")
@@ -448,7 +449,7 @@ class phemex extends Exchange {
                 ),
             ),
             'options' => array(
-                'brokerId' => 'ccxt2022',
+                'brokerId' => 'CCXT',
                 'x-phemex-request-expiry' => 60, // in seconds
                 'createOrderByQuoteRequiresPrice' => true,
                 'networks' => array(
@@ -1476,7 +1477,7 @@ class phemex extends Exchange {
         $response = null;
         if ($type === 'spot') {
             $response = $this->v1GetMdSpotTicker24hrAll ($query);
-        } elseif ($subType === 'inverse' || $market['settle'] === 'USD') {
+        } elseif ($subType === 'inverse' || $this->safe_string($market, 'settle') === 'USD') {
             $response = $this->v1GetMdTicker24hrAll ($query);
         } else {
             $response = $this->v2GetMdV2Ticker24hrAll ($query);
@@ -4207,7 +4208,7 @@ class phemex extends Exchange {
         /**
          * set the level of $leverage for a $market
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#set-$leverage
-         * @param {float} $leverage the rate of $leverage
+         * @param {float} $leverage the rate of $leverage, 100 > $leverage > -100 excluding numbers between -1 to 1
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->hedged] set to true if hedged position mode is enabled (by default $long and $short $leverage are set to the same value)
@@ -4220,8 +4221,8 @@ class phemex extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
-        if (($leverage < 1) || ($leverage > 100)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
+        if (($leverage < -100) || ($leverage > 100)) {
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between -100 and 100');
         }
         $this->load_markets();
         $isHedged = $this->safe_value($params, 'hedged', false);

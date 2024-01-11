@@ -414,7 +414,7 @@ export default class blockchaincom extends blockchaincomRest {
          * @see https://exchange.blockchain.com/api/#mass-order-status-request-ordermassstatusrequest
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -698,7 +698,7 @@ export default class blockchaincom extends blockchaincomRest {
             return message;
         }
         else if (event === 'snapshot') {
-            const snapshot = this.parseCountedOrderBook(message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num');
+            const snapshot = this.parseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num');
             storedOrderBook.reset(snapshot);
         }
         else if (event === 'updated') {
@@ -714,34 +714,8 @@ export default class blockchaincom extends blockchaincomRest {
         }
         client.resolve(storedOrderBook, messageHash);
     }
-    parseCountedBidAsk(bidAsk, priceKey = 0, amountKey = 1, countKey = 2) {
-        const price = this.safeNumber(bidAsk, priceKey);
-        const amount = this.safeNumber(bidAsk, amountKey);
-        const count = this.safeNumber(bidAsk, countKey);
-        return [price, amount, count];
-    }
-    parseCountedBidsAsks(bidasks, priceKey = 0, amountKey = 1, countKey = 2) {
-        bidasks = this.toArray(bidasks);
-        const result = [];
-        for (let i = 0; i < bidasks.length; i++) {
-            result.push(this.parseCountedBidAsk(bidasks[i], priceKey, amountKey, countKey));
-        }
-        return result;
-    }
-    parseCountedOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countKey = 2) {
-        const bids = this.parseCountedBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countKey);
-        const asks = this.parseCountedBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countKey);
-        return {
-            'symbol': symbol,
-            'bids': this.sortBy(bids, 0, true),
-            'asks': this.sortBy(asks, 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'nonce': undefined,
-        };
-    }
     handleDelta(bookside, delta) {
-        const bookArray = this.parseCountedBidAsk(delta, 'px', 'qty', 'num');
+        const bookArray = this.parseBidAsk(delta, 'px', 'qty', 'num');
         bookside.storeArray(bookArray);
     }
     handleDeltas(bookside, deltas) {

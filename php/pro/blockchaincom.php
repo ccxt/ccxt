@@ -425,7 +425,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
              * @see https://exchange.blockchain.com/api/#mass-order-status-$request-ordermassstatusrequest
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -711,7 +711,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         if ($event === 'subscribed') {
             return $message;
         } elseif ($event === 'snapshot') {
-            $snapshot = $this->parse_counted_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'px', 'qty', 'num');
+            $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'px', 'qty', 'num');
             $storedOrderBook->reset ($snapshot);
         } elseif ($event === 'updated') {
             $asks = $this->safe_value($message, 'asks', array());
@@ -726,37 +726,8 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $client->resolve ($storedOrderBook, $messageHash);
     }
 
-    public function parse_counted_bid_ask($bidAsk, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
-        $price = $this->safe_number($bidAsk, $priceKey);
-        $amount = $this->safe_number($bidAsk, $amountKey);
-        $count = $this->safe_number($bidAsk, $countKey);
-        return array( $price, $amount, $count );
-    }
-
-    public function parse_counted_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
-        $bidasks = $this->to_array($bidasks);
-        $result = array();
-        for ($i = 0; $i < count($bidasks); $i++) {
-            $result[] = $this->parse_counted_bid_ask($bidasks[$i], $priceKey, $amountKey, $countKey);
-        }
-        return $result;
-    }
-
-    public function parse_counted_order_book($orderbook, string $symbol, ?int $timestamp = null, int|string $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
-        $bids = $this->parse_counted_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countKey);
-        $asks = $this->parse_counted_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countKey);
-        return array(
-            'symbol' => $symbol,
-            'bids' => $this->sort_by($bids, 0, true),
-            'asks' => $this->sort_by($asks, 0),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'nonce' => null,
-        );
-    }
-
     public function handle_delta($bookside, $delta) {
-        $bookArray = $this->parse_counted_bid_ask($delta, 'px', 'qty', 'num');
+        $bookArray = $this->parse_bid_ask($delta, 'px', 'qty', 'num');
         $bookside->storeArray ($bookArray);
     }
 

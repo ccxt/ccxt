@@ -123,7 +123,7 @@ export default class htx extends Exchange {
                 'repayIsolatedMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
-                'setPositionMode': false,
+                'setPositionMode': true,
                 'signIn': undefined,
                 'transfer': true,
                 'withdraw': true,
@@ -3855,8 +3855,9 @@ export default class htx extends Exchange {
         let response = undefined;
         const stop = this.safeValue(params, 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-        params = this.omit(params, ['stop', 'stopLossTakeProfit']);
-        if (stop || stopLossTakeProfit) {
+        const trailing = this.safeValue(params, 'trailing', false);
+        params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing']);
+        if (stop || stopLossTakeProfit || trailing) {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
@@ -3883,6 +3884,9 @@ export default class htx extends Exchange {
                 else if (stopLossTakeProfit) {
                     response = await this.contractPrivatePostLinearSwapApiV1SwapTpslHisorders(this.extend(request, params));
                 }
+                else if (trailing) {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapTrackHisorders(this.extend(request, params));
+                }
                 else {
                     response = await this.contractPrivatePostLinearSwapApiV3SwapHisorders(this.extend(request, params));
                 }
@@ -3893,6 +3897,9 @@ export default class htx extends Exchange {
                 }
                 else if (stopLossTakeProfit) {
                     response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders(this.extend(request, params));
+                }
+                else if (trailing) {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders(this.extend(request, params));
                 }
                 else {
                     response = await this.contractPrivatePostLinearSwapApiV3SwapCrossHisorders(this.extend(request, params));
@@ -3907,6 +3914,9 @@ export default class htx extends Exchange {
                 else if (stopLossTakeProfit) {
                     response = await this.contractPrivatePostSwapApiV1SwapTpslHisorders(this.extend(request, params));
                 }
+                else if (trailing) {
+                    response = await this.contractPrivatePostSwapApiV1SwapTrackHisorders(this.extend(request, params));
+                }
                 else {
                     response = await this.contractPrivatePostSwapApiV3SwapHisorders(this.extend(request, params));
                 }
@@ -3918,6 +3928,9 @@ export default class htx extends Exchange {
                 }
                 else if (stopLossTakeProfit) {
                     response = await this.contractPrivatePostApiV1ContractTpslHisorders(this.extend(request, params));
+                }
+                else if (trailing) {
+                    response = await this.contractPrivatePostApiV1ContractTrackHisorders(this.extend(request, params));
                 }
                 else {
                     response = await this.contractPrivatePostApiV3ContractHisorders(this.extend(request, params));
@@ -4096,6 +4109,7 @@ export default class htx extends Exchange {
          * @param {bool} [params.stop] *contract only* if the orders are stop trigger orders or not
          * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
          * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -4129,7 +4143,7 @@ export default class htx extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -4168,6 +4182,7 @@ export default class htx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.stop] *contract only* if the orders are stop trigger orders or not
          * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
+         * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -4215,7 +4230,8 @@ export default class htx extends Exchange {
             request['contract_code'] = market['id'];
             const stop = this.safeValue(params, 'stop');
             const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-            params = this.omit(params, ['stop', 'stopLossTakeProfit']);
+            const trailing = this.safeValue(params, 'trailing', false);
+            params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing']);
             if (market['linear']) {
                 let marginMode = undefined;
                 [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrders', params);
@@ -4227,6 +4243,9 @@ export default class htx extends Exchange {
                     else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTpslOpenorders(this.extend(request, params));
                     }
+                    else if (trailing) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTrackOpenorders(this.extend(request, params));
+                    }
                     else {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapOpenorders(this.extend(request, params));
                     }
@@ -4237,6 +4256,9 @@ export default class htx extends Exchange {
                     }
                     else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders(this.extend(request, params));
+                    }
+                    else if (trailing) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders(this.extend(request, params));
                     }
                     else {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOpenorders(this.extend(request, params));
@@ -4251,6 +4273,9 @@ export default class htx extends Exchange {
                     else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslOpenorders(this.extend(request, params));
                     }
+                    else if (trailing) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTrackOpenorders(this.extend(request, params));
+                    }
                     else {
                         response = await this.contractPrivatePostSwapApiV1SwapOpenorders(this.extend(request, params));
                     }
@@ -4262,6 +4287,9 @@ export default class htx extends Exchange {
                     }
                     else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostApiV1ContractTpslOpenorders(this.extend(request, params));
+                    }
+                    else if (trailing) {
+                        response = await this.contractPrivatePostApiV1ContractTrackOpenorders(this.extend(request, params));
                     }
                     else {
                         response = await this.contractPrivatePostApiV1ContractOpenorders(this.extend(request, params));
@@ -4412,6 +4440,45 @@ export default class htx extends Exchange {
         //             "total_size": 1
         //         },
         //         "ts": 1683179527011
+        //     }
+        //
+        // trailing
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "contract_type": "swap",
+        //                     "business_type": "swap",
+        //                     "pair": "BTC-USDT",
+        //                     "symbol": "BTC",
+        //                     "contract_code": "BTC-USDT",
+        //                     "volume": 1.000000000000000000,
+        //                     "order_type": 1,
+        //                     "direction": "sell",
+        //                     "offset": "close",
+        //                     "lever_rate": 1,
+        //                     "order_id": 1192021437253877761,
+        //                     "order_id_str": "1192021437253877761",
+        //                     "order_source": "api",
+        //                     "created_at": 1704241657328,
+        //                     "order_price_type": "formula_price",
+        //                     "status": 2,
+        //                     "callback_rate": 0.050000000000000000,
+        //                     "active_price": 50000.000000000000000000,
+        //                     "is_active": 0,
+        //                     "margin_mode": "cross",
+        //                     "margin_account": "USDT",
+        //                     "trade_partition": "USDT",
+        //                     "reduce_only": 1
+        //                 },
+        //             ],
+        //             "total_page": 1,
+        //             "current_page": 1,
+        //             "total_size": 2
+        //         },
+        //         "ts": 1704242440106
         //     }
         //
         let orders = this.safeValue(response, 'data');
@@ -4673,6 +4740,33 @@ export default class htx extends Exchange {
         //         "trade_partition": "USDT"
         //     }
         //
+        // trailing: fetchOpenOrders
+        //
+        //     {
+        //         "contract_type": "swap",
+        //         "business_type": "swap",
+        //         "pair": "BTC-USDT",
+        //         "symbol": "BTC",
+        //         "contract_code": "BTC-USDT",
+        //         "volume": 1.000000000000000000,
+        //         "order_type": 1,
+        //         "direction": "sell",
+        //         "offset": "close",
+        //         "lever_rate": 1,
+        //         "order_id": 1192021437253877761,
+        //         "order_id_str": "1192021437253877761",
+        //         "order_source": "api",
+        //         "created_at": 1704241657328,
+        //         "order_price_type": "formula_price",
+        //         "status": 2,
+        //         "callback_rate": 0.050000000000000000,
+        //         "active_price": 50000.000000000000000000,
+        //         "is_active": 0,
+        //         "margin_mode": "cross",
+        //         "margin_account": "USDT",
+        //         "trade_partition": "USDT",
+        //         "reduce_only": 1
+        //     }
         //
         // trigger: fetchOrders
         //
@@ -5017,6 +5111,8 @@ export default class htx extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
+         * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
+         * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market(symbol);
@@ -5040,6 +5136,9 @@ export default class htx extends Exchange {
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'trigger_price');
         const stopLossTriggerPrice = this.safeNumber2(params, 'stopLossPrice', 'sl_trigger_price');
         const takeProfitTriggerPrice = this.safeNumber2(params, 'takeProfitPrice', 'tp_trigger_price');
+        const trailingPercent = this.safeString2(params, 'trailingPercent', 'callback_rate');
+        const trailingTriggerPrice = this.safeNumber(params, 'trailingTriggerPrice', price);
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStop = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
@@ -5067,6 +5166,12 @@ export default class htx extends Exchange {
                 }
             }
         }
+        else if (isTrailingPercentOrder) {
+            const trailingPercentString = Precise.stringDiv(trailingPercent, '100');
+            request['callback_rate'] = this.parseToNumeric(trailingPercentString);
+            request['active_price'] = trailingTriggerPrice;
+            request['order_price_type'] = this.safeString(params, 'order_price_type', 'formula_price');
+        }
         else {
             const clientOrderId = this.safeInteger2(params, 'client_order_id', 'clientOrderId');
             if (clientOrderId !== undefined) {
@@ -5078,7 +5183,7 @@ export default class htx extends Exchange {
             }
         }
         if (!isStopLossTriggerOrder && !isTakeProfitTriggerOrder) {
-            const leverRate = this.safeInteger2(params, 'leverRate', 'lever_rate', 1);
+            const leverRate = this.safeIntegerN(params, ['leverRate', 'lever_rate', 'leverage'], 1);
             const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only', false);
             const openOrClose = (reduceOnly) ? 'close' : 'open';
             const offset = this.safeString(params, 'offset', openOrClose);
@@ -5087,12 +5192,14 @@ export default class htx extends Exchange {
                 request['reduce_only'] = 1;
             }
             request['lever_rate'] = leverRate;
-            request['order_price_type'] = type;
+            if (!isTrailingPercentOrder) {
+                request['order_price_type'] = type;
+            }
         }
         const broker = this.safeValue(this.options, 'broker', {});
         const brokerId = this.safeString(broker, 'id');
         request['channel_code'] = brokerId;
-        params = this.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce']);
+        params = this.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice']);
         return this.extend(request, params);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -5125,6 +5232,8 @@ export default class htx extends Exchange {
          * @param {int} [params.leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
          * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+         * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
+         * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -5132,11 +5241,16 @@ export default class htx extends Exchange {
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'trigger_price');
         const stopLossTriggerPrice = this.safeNumber2(params, 'stopLossPrice', 'sl_trigger_price');
         const takeProfitTriggerPrice = this.safeNumber2(params, 'takeProfitPrice', 'tp_trigger_price');
+        const trailingPercent = this.safeNumber(params, 'trailingPercent');
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStop = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         let response = undefined;
         if (market['spot']) {
+            if (isTrailingPercentOrder) {
+                throw new NotSupported(this.id + ' createOrder() does not support trailing orders for spot markets');
+            }
             const spotRequest = await this.createSpotOrderRequest(symbol, type, side, amount, price, params);
             response = await this.spotPrivatePostV1OrderOrdersPlace(spotRequest);
         }
@@ -5153,6 +5267,9 @@ export default class htx extends Exchange {
                     else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTpslOrder(contractRequest);
                     }
+                    else if (isTrailingPercentOrder) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTrackOrder(contractRequest);
+                    }
                     else {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapOrder(contractRequest);
                     }
@@ -5163,6 +5280,9 @@ export default class htx extends Exchange {
                     }
                     else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder(contractRequest);
+                    }
+                    else if (isTrailingPercentOrder) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTrackOrder(contractRequest);
                     }
                     else {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOrder(contractRequest);
@@ -5177,6 +5297,9 @@ export default class htx extends Exchange {
                     else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslOrder(contractRequest);
                     }
+                    else if (isTrailingPercentOrder) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTrackOrder(contractRequest);
+                    }
                     else {
                         response = await this.contractPrivatePostSwapApiV1SwapOrder(contractRequest);
                     }
@@ -5187,6 +5310,9 @@ export default class htx extends Exchange {
                     }
                     else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostApiV1ContractTpslOrder(contractRequest);
+                    }
+                    else if (isTrailingPercentOrder) {
+                        response = await this.contractPrivatePostApiV1ContractTrackOrder(contractRequest);
                     }
                     else {
                         response = await this.contractPrivatePostApiV1ContractOrder(contractRequest);
@@ -5405,8 +5531,9 @@ export default class htx extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.stop] *contract only* if the order is a stop trigger order or not
-         * @param {bool} [params.stopLossTakeProfit] *contract only* if the order is a stop-loss or take-profit order
+         * @param {boolean} [params.stop] *contract only* if the order is a stop trigger order or not
+         * @param {boolean} [params.stopLossTakeProfit] *contract only* if the order is a stop-loss or take-profit order
+         * @param {boolean} [params.trailing] *contract only* set to true if you want to cancel a trailing order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -5461,7 +5588,8 @@ export default class htx extends Exchange {
             }
             const stop = this.safeValue(params, 'stop');
             const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-            params = this.omit(params, ['stop', 'stopLossTakeProfit']);
+            const trailing = this.safeValue(params, 'trailing', false);
+            params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing']);
             if (market['linear']) {
                 let marginMode = undefined;
                 [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
@@ -5473,6 +5601,9 @@ export default class htx extends Exchange {
                     else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTpslCancel(this.extend(request, params));
                     }
+                    else if (trailing) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTrackCancel(this.extend(request, params));
+                    }
                     else {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCancel(this.extend(request, params));
                     }
@@ -5483,6 +5614,9 @@ export default class htx extends Exchange {
                     }
                     else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(this.extend(request, params));
+                    }
+                    else if (trailing) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTrackCancel(this.extend(request, params));
                     }
                     else {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossCancel(this.extend(request, params));
@@ -5497,6 +5631,9 @@ export default class htx extends Exchange {
                     else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslCancel(this.extend(request, params));
                     }
+                    else if (trailing) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTrackCancel(this.extend(request, params));
+                    }
                     else {
                         response = await this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, params));
                     }
@@ -5507,6 +5644,9 @@ export default class htx extends Exchange {
                     }
                     else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostApiV1ContractTpslCancel(this.extend(request, params));
+                    }
+                    else if (trailing) {
+                        response = await this.contractPrivatePostApiV1ContractTrackCancel(this.extend(request, params));
                     }
                     else {
                         response = await this.contractPrivatePostApiV1ContractCancel(this.extend(request, params));
@@ -5730,8 +5870,9 @@ export default class htx extends Exchange {
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.stop] *contract only* if the orders are stop trigger orders or not
-         * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
+         * @param {boolean} [params.stop] *contract only* if the orders are stop trigger orders or not
+         * @param {boolean} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
+         * @param {boolean} [params.trailing] *contract only* set to true if you want to cancel all trailing orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -5772,7 +5913,8 @@ export default class htx extends Exchange {
             request['contract_code'] = market['id'];
             const stop = this.safeValue(params, 'stop');
             const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-            params = this.omit(params, ['stop', 'stopLossTakeProfit']);
+            const trailing = this.safeValue(params, 'trailing', false);
+            params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing']);
             if (market['linear']) {
                 let marginMode = undefined;
                 [marginMode, params] = this.handleMarginModeAndParams('cancelAllOrders', params);
@@ -5784,6 +5926,9 @@ export default class htx extends Exchange {
                     else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTpslCancelall(this.extend(request, params));
                     }
+                    else if (trailing) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTrackCancelall(this.extend(request, params));
+                    }
                     else {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCancelall(this.extend(request, params));
                     }
@@ -5794,6 +5939,9 @@ export default class htx extends Exchange {
                     }
                     else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall(this.extend(request, params));
+                    }
+                    else if (trailing) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall(this.extend(request, params));
                     }
                     else {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossCancelall(this.extend(request, params));
@@ -5808,6 +5956,9 @@ export default class htx extends Exchange {
                     else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslCancelall(this.extend(request, params));
                     }
+                    else if (trailing) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTrackCancelall(this.extend(request, params));
+                    }
                     else {
                         response = await this.contractPrivatePostSwapApiV1SwapCancelall(this.extend(request, params));
                     }
@@ -5818,6 +5969,9 @@ export default class htx extends Exchange {
                     }
                     else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostApiV1ContractTpslCancelall(this.extend(request, params));
+                    }
+                    else if (trailing) {
+                        response = await this.contractPrivatePostApiV1ContractTrackCancelall(this.extend(request, params));
                     }
                     else {
                         response = await this.contractPrivatePostApiV1ContractCancelall(this.extend(request, params));
@@ -8805,5 +8959,70 @@ export default class htx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         });
+    }
+    async setPositionMode(hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name htx#setPositionMode
+         * @description set hedged to true or false
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-position-mode
+         * @param {bool} hedged set to true to for hedged mode, must be set separately for each market in isolated margin mode, only valid for linear markets
+         * @param {string} [symbol] unified market symbol, required for isolated margin mode
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] "cross" (default) or "isolated"
+         * @returns {object} response from the exchange
+         */
+        await this.loadMarkets();
+        const posMode = hedged ? 'dual_side' : 'single_side';
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('setPositionMode', params, 'cross');
+        const request = {
+            'position_mode': posMode,
+        };
+        let response = undefined;
+        if ((market !== undefined) && (market['inverse'])) {
+            throw new BadRequest(this.id + ' setPositionMode can only be used for linear markets');
+        }
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired(this.id + ' setPositionMode requires a symbol argument for isolated margin mode');
+            }
+            request['margin_account'] = market['id'];
+            response = await this.contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode(this.extend(request, params));
+            //
+            //    {
+            //        "status": "ok",
+            //        "data": [
+            //            {
+            //                "margin_account": "BTC-USDT",
+            //                "position_mode": "single_side"
+            //            }
+            //        ],
+            //        "ts": 1566899973811
+            //    }
+            //
+        }
+        else {
+            request['margin_account'] = 'USDT';
+            response = await this.contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode(this.extend(request, params));
+            //
+            //    {
+            //        "status": "ok",
+            //        "data": [
+            //            {
+            //                "margin_account": "USDT",
+            //                "position_mode": "single_side"
+            //            }
+            //        ],
+            //        "ts": 1566899973811
+            //    }
+            //
+        }
+        return response;
     }
 }

@@ -384,6 +384,20 @@
                 ]
             }
         ],
+        "fetchTickers": [
+            {
+                "description": "inverse tickers without symbols",
+                "method": "fetchTickers",
+                "url": "https://api.phemex.com/v1/md/ticker/24hr/all",
+                "input": [
+                  null,
+                  {
+                    "type": "swap",
+                    "subType": "inverse"
+                  }
+                ]
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "fetch spot trades",
@@ -457,6 +471,44 @@
                   "6CV4jDnwyiJDEmR5paeiCdia1386c15vvuwLQSScQTCK"
                 ],
                 "output": "{\"currency\":\"SOL\",\"address\":\"6CV4jDnwyiJDEmR5paeiCdia1386c15vvuwLQSScQTCK\",\"amount\":0.03,\"chainName\":\"SOL\"}"
+              }
+        ],
+        "setLeverage": [
+            {
+                "description": "Set leverage to maximum on isolated margin",
+                "method": "setLeverage",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=100",
+                "input": [
+                  100,
+                  "BTC/USDT:USDT"
+                ]
+              },
+              {
+                "description": "Set leverage to minimum on isolated margin",
+                "method": "setLeverage",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=1",
+                "input": [
+                  1,
+                  "BTC/USDT:USDT"
+                ]
+              },
+              {
+                "description": "Set leverage to minimum on cross margin",
+                "method": "setLeverage",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=-1",
+                "input": [
+                  -1,
+                  "BTC/USDT:USDT"
+                ]
+              },
+              {
+                "description": "Set leverage to maximum on cross margin",
+                "method": "setLeverage",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=-100",
+                "input": [
+                  -100,
+                  "BTC/USDT:USDT"
+                ]
               }
         ]
     }

@@ -266,4 +266,5 @@ export default class htx extends Exchange {
     };
     fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): import("./base/types.js").Liquidation;
+    setPositionMode(hedged: any, symbol?: Str, params?: {}): Promise<any>;
 }

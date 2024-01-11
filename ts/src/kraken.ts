@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -40,6 +40,7 @@ export default class kraken extends Exchange {
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
+                'createTrailingAmountOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
@@ -760,7 +761,7 @@ export default class kraken extends Exchange {
         };
     }
 
-    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const timestamp = this.safeInteger (bidask, 2);
@@ -835,7 +836,6 @@ export default class kraken extends Exchange {
         //         "o":"2571.56000"
         //     }
         //
-        const timestamp = this.milliseconds ();
         const symbol = this.safeSymbol (undefined, market);
         const v = this.safeValue (ticker, 'v', []);
         const baseVolume = this.safeString (v, 1);
@@ -850,8 +850,8 @@ export default class kraken extends Exchange {
         const ask = this.safeValue (ticker, 'a', []);
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString (high, 1),
             'low': this.safeString (low, 1),
             'bid': this.safeString (bid, 0),
@@ -1374,8 +1374,14 @@ export default class kraken extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} params.postOnly
-         * @param {bool} params.reduceOnly
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {bool} [params.reduceOnly] *margin only* indicates if this order is to reduce the size of a position
+         * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
+         * @param {string} [params.trailingAmount] *margin only* the quote amount to trail away from the current market price
+         * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
+         * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
+         * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1629,43 +1635,45 @@ export default class kraken extends Exchange {
         if (clientOrderId !== undefined) {
             request['userref'] = clientOrderId;
         }
-        //
-        //     market
-        //     limit (price = limit price)
-        //     stop-loss (price = stop loss trigger price)
-        //     take-profit (price = take profit trigger price)
-        //     stop-loss-limit (price = stop loss trigger price, price2 = triggered limit price)
-        //     take-profit-limit (price = take profit trigger price, price2 = triggered limit price)
-        //     settle-position
-        //
-        if (type === 'limit') {
+        const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeString (params, 'takeProfitPrice');
+        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
+        const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
+        const trailingAmount = this.safeString (params, 'trailingAmount');
+        const trailingLimitAmount = this.safeString (params, 'trailingLimitAmount');
+        const isTrailingAmountOrder = trailingAmount !== undefined;
+        if ((type === 'limit') && !isTrailingAmountOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
-        } else if ((type === 'stop-loss') || (type === 'take-profit')) {
-            const stopPrice = this.safeNumber2 (params, 'price', 'stopPrice', price);
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + method + ' requires a price argument or a price/stopPrice parameter for a ' + type + ' order');
-            } else {
-                request['price'] = this.priceToPrecision (symbol, stopPrice);
+        }
+        let reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
+        if (isStopLossOrTakeProfitTrigger) {
+            if (isStopLossTriggerOrder) {
+                request['price'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                request['ordertype'] = 'stop-loss-limit';
+            } else if (isTakeProfitTriggerOrder) {
+                request['price'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                request['ordertype'] = 'take-profit-limit';
             }
-        } else if ((type === 'stop-loss-limit') || (type === 'take-profit-limit')) {
-            const stopPrice = this.safeNumber2 (params, 'price', 'stopPrice');
-            const limitPrice = this.safeNumber (params, 'price2');
-            const stopPriceDefined = (stopPrice !== undefined);
-            const limitPriceDefined = (limitPrice !== undefined);
-            if (stopPriceDefined && limitPriceDefined) {
-                request['price'] = this.priceToPrecision (symbol, stopPrice);
-                request['price2'] = this.priceToPrecision (symbol, limitPrice);
-            } else if ((price === undefined) || (!(stopPriceDefined || limitPriceDefined))) {
-                throw new ArgumentsRequired (this.id + method + ' requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order');
+            request['price2'] = this.priceToPrecision (symbol, price);
+            reduceOnly = true;
+        } else if (isTrailingAmountOrder) {
+            const trailingActivationPriceType = this.safeString (params, 'trigger', 'last');
+            const trailingAmountString = '+' + trailingAmount;
+            request['trigger'] = trailingActivationPriceType;
+            if ((type === 'limit') || (trailingLimitAmount !== undefined)) {
+                const offset = this.safeString (params, 'offset', '-');
+                const trailingLimitAmountString = offset + this.numberToString (trailingLimitAmount);
+                request['price'] = trailingAmountString;
+                request['price2'] = trailingLimitAmountString;
+                request['ordertype'] = 'trailing-stop-limit';
             } else {
-                if (stopPriceDefined) {
-                    request['price'] = this.priceToPrecision (symbol, stopPrice);
-                    request['price2'] = this.priceToPrecision (symbol, price);
-                } else if (limitPriceDefined) {
-                    request['price'] = this.priceToPrecision (symbol, price);
-                    request['price2'] = this.priceToPrecision (symbol, limitPrice);
-                }
+                request['price'] = trailingAmountString;
+                request['ordertype'] = 'trailing-stop';
             }
+        }
+        if (reduceOnly) {
+            request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
         let close = this.safeValue (params, 'close');
         if (close !== undefined) {
@@ -1690,11 +1698,7 @@ export default class kraken extends Exchange {
         if (postOnly) {
             request['oflags'] = 'post';
         }
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        if (reduceOnly) {
-            request['reduce_only'] = true;
-        }
-        params = this.omit (params, [ 'price', 'stopPrice', 'price2', 'close', 'timeInForce', 'reduceOnly' ]);
+        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ]);
         return [ request, params ];
     }
 
@@ -1711,6 +1715,12 @@ export default class kraken extends Exchange {
          * @param {float} amount how much of the currency you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
+         * @param {string} [params.trailingAmount] *margin only* the quote price away from the current market price
+         * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
+         * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
+         * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2098,7 +2108,7 @@ export default class kraken extends Exchange {
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest entry
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

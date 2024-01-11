@@ -35,6 +35,8 @@ class delta extends Exchange {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => true,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'editOrder' => true,
@@ -330,7 +332,7 @@ class delta extends Exchange {
             } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
                 $markets = $this->markets_by_id[$symbol];
                 return $markets[0];
-            } elseif ((mb_strpos($symbol, '-C') > -1) || (mb_strpos($symbol, '-P') > -1) || (mb_strpos($symbol, 'C')) || (mb_strpos($symbol, 'P'))) {
+            } elseif ((str_ends_with($symbol, '-C')) || (str_ends_with($symbol, '-P')) || (str_starts_with($symbol, 'C-')) || (str_starts_with($symbol, 'P-'))) {
                 return $this->create_expired_option_market($symbol);
             }
         }
@@ -338,7 +340,7 @@ class delta extends Exchange {
     }
 
     public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
-        $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1) || (mb_strpos($marketId, 'C')) || (mb_strpos($marketId, 'P')));
+        $isOption = ($marketId !== null) && ((str_ends_with($marketId, '-C')) || (str_ends_with($marketId, '-P')) || (str_starts_with($marketId, 'C-')) || (str_starts_with($marketId, 'P-')));
         if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
@@ -3225,6 +3227,30 @@ class delta extends Exchange {
             'underlyingPrice' => $this->safe_number($greeks, 'spot_price'),
             'info' => $greeks,
         );
+    }
+
+    public function close_all_positions($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * closes all open positions for a market type
+             * @see https://docs.delta.exchange/#close-all-positions
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->user_id] the users id
+             * @return {array[]} A list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structures~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'close_all_portfolio' => true,
+                'close_all_isolated' => true,
+                // 'user_id' => 12345,
+            );
+            $response = Async\await($this->privatePostPositionsCloseAll (array_merge($request, $params)));
+            //
+            // array("result":array(),"success":true)
+            //
+            $position = $this->parse_position($this->safe_value($response, 'result', array()));
+            return array( $position );
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

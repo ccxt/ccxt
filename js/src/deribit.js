@@ -1320,14 +1320,19 @@ export default class deribit extends Exchange {
             'instrument_name': market['id'],
             'include_old': true,
         };
-        const method = (since === undefined) ? 'publicGetGetLastTradesByInstrument' : 'publicGetGetLastTradesByInstrumentAndTime';
         if (since !== undefined) {
             request['start_timestamp'] = since;
         }
         if (limit !== undefined) {
             request['count'] = Math.min(limit, 1000); // default 10
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (since === undefined) {
+            response = await this.publicGetGetLastTradesByInstrument(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetGetLastTradesByInstrumentAndTime(this.extend(request, params));
+        }
         //
         //      {
         //          "jsonrpc":"2.0",
@@ -1721,27 +1726,18 @@ export default class deribit extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade. For perpetual and futures the amount is in USD. For options it is in corresponding cryptocurrency contracts currency.
+         * @param {float} amount how much you want to trade in units of the base currency. For inverse perpetual and futures the amount is in the quote currency USD. For options it is in the underlying assets base currency.
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.trigger] the trigger type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
+         * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['inverse']) {
-            amount = this.amountToPrecision(symbol, amount);
-        }
-        else if (market['settle'] === 'USDC') {
-            amount = this.amountToPrecision(symbol, amount);
-        }
-        else {
-            amount = this.currencyToPrecision(symbol, amount);
-        }
         const request = {
             'instrument_name': market['id'],
-            // for perpetual and futures the amount is in USD
-            // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
-            'amount': amount,
+            'amount': this.amountToPrecision(symbol, amount),
             'type': type, // limit, stop_limit, market, stop_market, default is limit
             // 'label': 'string', // user-defined label for the order (maximum 64 characters)
             // 'price': this.priceToPrecision (symbol, 123.45), // only for limit and stop_limit orders
@@ -1754,12 +1750,15 @@ export default class deribit extends Exchange {
             // 'trigger': 'index_price', // mark_price, last_price, required for stop_limit orders
             // 'advanced': 'usd', // 'implv', advanced option order type, options only
         };
+        const trigger = this.safeString(params, 'trigger', 'last_price');
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only');
         // only stop loss sell orders are allowed when price crossed from above
         const stopLossPrice = this.safeValue(params, 'stopLossPrice');
         // only take profit buy orders are allowed when price crossed from below
         const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
+        const trailingAmount = this.safeString2(params, 'trailingAmount', 'trigger_offset');
+        const isTrailingAmountOrder = trailingAmount !== undefined;
         const isStopLimit = type === 'stop_limit';
         const isStopMarket = type === 'stop_market';
         const isTakeLimit = type === 'take_limit';
@@ -1781,10 +1780,15 @@ export default class deribit extends Exchange {
         else {
             request['type'] = 'market';
         }
-        if (isStopOrder) {
+        if (isTrailingAmountOrder) {
+            request['trigger'] = trigger;
+            request['type'] = 'trailing_stop';
+            request['trigger_offset'] = this.parseToNumeric(trailingAmount);
+        }
+        else if (isStopOrder) {
             const triggerPrice = (stopLossPrice !== undefined) ? stopLossPrice : takeProfitPrice;
             request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
-            request['trigger'] = 'last_price'; // required
+            request['trigger'] = trigger;
             if (isStopLossOrder) {
                 if (isMarketOrder) {
                     // stop_market (sell only)
@@ -1824,9 +1828,14 @@ export default class deribit extends Exchange {
                 request['time_in_force'] = 'fill_or_kill';
             }
         }
-        const method = 'privateGet' + this.capitalize(side);
-        params = this.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly']);
-        const response = await this[method](this.extend(request, params));
+        params = this.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'trailingAmount']);
+        let response = undefined;
+        if (this.capitalize(side) === 'Buy') {
+            response = await this.privateGetBuy(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetSell(this.extend(request, params));
+        }
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1886,25 +1895,43 @@ export default class deribit extends Exchange {
         return this.parseOrder(order, market);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name deribit#editOrder
+         * @description edit a trade order
+         * @see https://docs.deribit.com/#private-edit
+         * @param {string} id edit order id
+         * @param {string} [symbol] unified symbol of the market to edit an order in
+         * @param {string} [type] 'market' or 'limit'
+         * @param {string} [side] 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, inverse swap and future use the quote currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         if (amount === undefined) {
             throw new ArgumentsRequired(this.id + ' editOrder() requires an amount argument');
-        }
-        if (price === undefined) {
-            throw new ArgumentsRequired(this.id + ' editOrder() requires a price argument');
         }
         await this.loadMarkets();
         const request = {
             'order_id': id,
-            // for perpetual and futures the amount is in USD
-            // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
             'amount': this.amountToPrecision(symbol, amount),
-            'price': this.priceToPrecision(symbol, price), // required
             // 'post_only': false, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
             // 'reject_post_only': false, // if true the order is put to order book unmodified or request is rejected
             // 'reduce_only': false, // if true, the order is intended to only reduce a current position
             // 'stop_price': false, // stop price, required for stop_limit orders
             // 'advanced': 'usd', // 'implv', advanced option order type, options only
         };
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision(symbol, price);
+        }
+        const trailingAmount = this.safeString2(params, 'trailingAmount', 'trigger_offset');
+        const isTrailingAmountOrder = trailingAmount !== undefined;
+        if (isTrailingAmountOrder) {
+            request['trigger_offset'] = this.parseToNumeric(trailingAmount);
+            params = this.omit(params, 'trigger_offset');
+        }
         const response = await this.privateGetEdit(this.extend(request, params));
         const result = this.safeValue(response, 'result', {});
         const order = this.safeValue(result, 'order');
@@ -1941,16 +1968,15 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets();
         const request = {};
-        let method = undefined;
+        let response = undefined;
         if (symbol === undefined) {
-            method = 'privateGetCancelAll';
+            response = await this.privateGetCancelAll(this.extend(request, params));
         }
         else {
-            method = 'privateGetCancelAllByInstrument';
             const market = this.market(symbol);
             request['instrument_name'] = market['id'];
+            response = await this.privateGetCancelAllByInstrument(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         return response;
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1967,19 +1993,18 @@ export default class deribit extends Exchange {
         await this.loadMarkets();
         const request = {};
         let market = undefined;
-        let method = undefined;
+        let response = undefined;
         if (symbol === undefined) {
             const code = this.codeFromOptions('fetchOpenOrders', params);
             const currency = this.currency(code);
             request['currency'] = currency['id'];
-            method = 'privateGetGetOpenOrdersByCurrency';
+            response = await this.privateGetGetOpenOrdersByCurrency(this.extend(request, params));
         }
         else {
             market = this.market(symbol);
             request['instrument_name'] = market['id'];
-            method = 'privateGetGetOpenOrdersByInstrument';
+            response = await this.privateGetGetOpenOrdersByInstrument(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         const result = this.safeValue(response, 'result', []);
         return this.parseOrders(result, market, since, limit);
     }
@@ -1990,26 +2015,25 @@ export default class deribit extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
-        let method = undefined;
+        let response = undefined;
         if (symbol === undefined) {
             const code = this.codeFromOptions('fetchClosedOrders', params);
             const currency = this.currency(code);
             request['currency'] = currency['id'];
-            method = 'privateGetGetOrderHistoryByCurrency';
+            response = await this.privateGetGetOrderHistoryByCurrency(this.extend(request, params));
         }
         else {
             market = this.market(symbol);
             request['instrument_name'] = market['id'];
-            method = 'privateGetGetOrderHistoryByInstrument';
+            response = await this.privateGetGetOrderHistoryByInstrument(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         const result = this.safeValue(response, 'result', []);
         return this.parseOrders(result, market, since, limit);
     }
@@ -2082,34 +2106,33 @@ export default class deribit extends Exchange {
             'include_old': true,
         };
         let market = undefined;
-        let method = undefined;
+        if (limit !== undefined) {
+            request['count'] = limit; // default 10
+        }
+        let response = undefined;
         if (symbol === undefined) {
             const code = this.codeFromOptions('fetchMyTrades', params);
             const currency = this.currency(code);
             request['currency'] = currency['id'];
             if (since === undefined) {
-                method = 'privateGetGetUserTradesByCurrency';
+                response = await this.privateGetGetUserTradesByCurrency(this.extend(request, params));
             }
             else {
-                method = 'privateGetGetUserTradesByCurrencyAndTime';
                 request['start_timestamp'] = since;
+                response = await this.privateGetGetUserTradesByCurrencyAndTime(this.extend(request, params));
             }
         }
         else {
             market = this.market(symbol);
             request['instrument_name'] = market['id'];
             if (since === undefined) {
-                method = 'privateGetGetUserTradesByInstrument';
+                response = await this.privateGetGetUserTradesByInstrument(this.extend(request, params));
             }
             else {
-                method = 'privateGetGetUserTradesByInstrumentAndTime';
                 request['start_timestamp'] = since;
+                response = await this.privateGetGetUserTradesByInstrumentAndTime(this.extend(request, params));
             }
         }
-        if (limit !== undefined) {
-            request['count'] = limit; // default 10
-        }
-        const response = await this[method](this.extend(request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2643,7 +2666,13 @@ export default class deribit extends Exchange {
             const transferOptions = this.safeValue(this.options, 'transfer', {});
             method = this.safeString(transferOptions, 'method', 'privateGetSubmitTransferToSubaccount');
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateGetSubmitTransferToUser') {
+            response = await this.privateGetSubmitTransferToUser(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetSubmitTransferToSubaccount(this.extend(request, params));
+        }
         //
         //     {
         //         "jsonrpc": "2.0",

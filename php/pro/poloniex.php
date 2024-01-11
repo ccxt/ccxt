@@ -562,7 +562,8 @@ class poloniex extends \ccxt\async\poloniex {
         $marketId = $this->safe_string($data, 'symbol');
         $symbol = $this->safe_symbol($marketId);
         $market = $this->safe_market($symbol);
-        $timeframe = $this->find_timeframe($channel);
+        $timeframes = $this->safe_value($this->options, 'timeframes', array());
+        $timeframe = $this->find_timeframe($channel, $timeframes);
         $messageHash = $channel . '::' . $symbol;
         $parsed = $this->parse_ws_ohlcv($data, $market);
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());

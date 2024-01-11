@@ -773,6 +773,7 @@ export default class cryptocom extends Exchange {
         //                     "p": "26386.00",
         //                     "q": "0.00453",
         //                     "t": 1686944282062,
+        //                     "tn" : 1704476468851524373,
         //                     "d": "4611686018455979970",
         //                     "i": "BTC_USD"
         //                 },
@@ -1910,6 +1911,7 @@ export default class cryptocom extends Exchange {
         const timestamp = this.safeInteger(ticker, 't');
         const marketId = this.safeString(ticker, 'i');
         market = this.safeMarket(marketId, market, '_');
+        const quote = this.safeString(market, 'quote');
         const last = this.safeString(ticker, 'a');
         return this.safeTicker({
             'symbol': market['symbol'],
@@ -1930,7 +1932,7 @@ export default class cryptocom extends Exchange {
             'percentage': this.safeString(ticker, 'c'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'v'),
-            'quoteVolume': this.safeString(ticker, 'vv'),
+            'quoteVolume': (quote === 'USD') ? this.safeString(ticker, 'vv') : undefined,
             'info': ticker,
         }, market);
     }
@@ -1942,7 +1944,8 @@ export default class cryptocom extends Exchange {
         //         "s": "sell",
         //         "p": "26386.00",
         //         "q": "0.00453",
-        //         "t": 1686944282062,
+        //         "tn": 1686944282062,
+        //         "tn": 1704476468851524373,
         //         "d": "4611686018455979970",
         //         "i": "BTC_USD"
         //     }

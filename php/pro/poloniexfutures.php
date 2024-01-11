@@ -320,7 +320,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
              * @see https://futures-docs.poloniex.com/#private-messages
              * @param {string} $symbol filter by unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop $orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~

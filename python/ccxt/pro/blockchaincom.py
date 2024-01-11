@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Order, OrderBook, IndexType, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -398,7 +398,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         :see: https://exchange.blockchain.com/api/#mass-order-status-request-ordermassstatusrequest
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -669,7 +669,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         if event == 'subscribed':
             return message
         elif event == 'snapshot':
-            snapshot = self.parse_counted_order_book(message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num')
+            snapshot = self.parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num')
             storedOrderBook.reset(snapshot)
         elif event == 'updated':
             asks = self.safe_value(message, 'asks', [])
@@ -682,33 +682,8 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             raise NotSupported(self.id + ' watchOrderBook() does not support ' + event + ' yet')
         client.resolve(storedOrderBook, messageHash)
 
-    def parse_counted_bid_ask(self, bidAsk, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2):
-        price = self.safe_number(bidAsk, priceKey)
-        amount = self.safe_number(bidAsk, amountKey)
-        count = self.safe_number(bidAsk, countKey)
-        return [price, amount, count]
-
-    def parse_counted_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2):
-        bidasks = self.to_array(bidasks)
-        result = []
-        for i in range(0, len(bidasks)):
-            result.append(self.parse_counted_bid_ask(bidasks[i], priceKey, amountKey, countKey))
-        return result
-
-    def parse_counted_order_book(self, orderbook, symbol: str, timestamp: Int = None, bidsKey: IndexType = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2):
-        bids = self.parse_counted_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countKey)
-        asks = self.parse_counted_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, countKey)
-        return {
-            'symbol': symbol,
-            'bids': self.sort_by(bids, 0, True),
-            'asks': self.sort_by(asks, 0),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'nonce': None,
-        }
-
     def handle_delta(self, bookside, delta):
-        bookArray = self.parse_counted_bid_ask(delta, 'px', 'qty', 'num')
+        bookArray = self.parse_bid_ask(delta, 'px', 'qty', 'num')
         bookside.storeArray(bookArray)
 
     def handle_deltas(self, bookside, deltas):

@@ -34,6 +34,8 @@ export default class delta extends Exchange {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': true,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
@@ -328,14 +330,14 @@ export default class delta extends Exchange {
                 const markets = this.markets_by_id[symbol];
                 return markets[0];
             }
-            else if ((symbol.indexOf('-C') > -1) || (symbol.indexOf('-P') > -1) || (symbol.indexOf('C')) || (symbol.indexOf('P'))) {
+            else if ((symbol.endsWith('-C')) || (symbol.endsWith('-P')) || (symbol.startsWith('C-')) || (symbol.startsWith('P-'))) {
                 return this.createExpiredOptionMarket(symbol);
             }
         }
         throw new BadSymbol(this.id + ' does not have market symbol ' + symbol);
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        const isOption = (marketId !== undefined) && ((marketId.indexOf('-C') > -1) || (marketId.indexOf('-P') > -1) || (marketId.indexOf('C')) || (marketId.indexOf('P')));
+        const isOption = (marketId !== undefined) && ((marketId.endsWith('-C')) || (marketId.endsWith('-P')) || (marketId.startsWith('C-')) || (marketId.startsWith('P-')));
         if (isOption && !(marketId in this.markets_by_id)) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -3177,6 +3179,29 @@ export default class delta extends Exchange {
             'underlyingPrice': this.safeNumber(greeks, 'spot_price'),
             'info': greeks,
         };
+    }
+    async closeAllPositions(params = {}) {
+        /**
+         * @method
+         * @name delta#closeAllPositions
+         * @description closes all open positions for a market type
+         * @see https://docs.delta.exchange/#close-all-positions
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.user_id] the users id
+         * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'close_all_portfolio': true,
+            'close_all_isolated': true,
+            // 'user_id': 12345,
+        };
+        const response = await this.privatePostPositionsCloseAll(this.extend(request, params));
+        //
+        // {"result":{},"success":true}
+        //
+        const position = this.parsePosition(this.safeValue(response, 'result', {}));
+        return [position];
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const requestPath = '/' + this.version + '/' + this.implodeParams(path, params);

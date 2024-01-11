@@ -759,6 +759,7 @@ class cryptocom extends Exchange {
         //                     "p" => "26386.00",
         //                     "q" => "0.00453",
         //                     "t" => 1686944282062,
+        //                     "tn" : 1704476468851524373,
         //                     "d" => "4611686018455979970",
         //                     "i" => "BTC_USD"
         //                 ),
@@ -1849,6 +1850,7 @@ class cryptocom extends Exchange {
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 'i');
         $market = $this->safe_market($marketId, $market, '_');
+        $quote = $this->safe_string($market, 'quote');
         $last = $this->safe_string($ticker, 'a');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
@@ -1869,7 +1871,7 @@ class cryptocom extends Exchange {
             'percentage' => $this->safe_string($ticker, 'c'),
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'v'),
-            'quoteVolume' => $this->safe_string($ticker, 'vv'),
+            'quoteVolume' => ($quote === 'USD') ? $this->safe_string($ticker, 'vv') : null,
             'info' => $ticker,
         ), $market);
     }
@@ -1882,7 +1884,8 @@ class cryptocom extends Exchange {
         //         "s" => "sell",
         //         "p" => "26386.00",
         //         "q" => "0.00453",
-        //         "t" => 1686944282062,
+        //         "tn" => 1686944282062,
+        //         "tn" => 1704476468851524373,
         //         "d" => "4611686018455979970",
         //         "i" => "BTC_USD"
         //     }

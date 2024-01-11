@@ -36,6 +36,7 @@ class bingx extends \ccxt\async\bingx {
                 ),
             ),
             'options' => array(
+                'listenKeyRefreshRate' => 3540000, // 1 hour (59 mins so we have 1min to renew the token)
                 'ws' => array(
                     'gunzip' => true,
                 ),
@@ -86,7 +87,7 @@ class bingx extends \ccxt\async\bingx {
              * @see https://bingx-api.github.io/docs/#/swapV2/socket/market->html#Subscribe%20the%20Latest%20Trade%20Detail
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
@@ -177,7 +178,8 @@ class bingx extends \ccxt\async\bingx {
         $data = $this->safe_value($message, 'data', array());
         $messageHash = $this->safe_string($message, 'dataType');
         $marketId = explode('@', $messageHash)[0];
-        $marketType = mb_strpos($client->url, 'swap') !== false ? 'swap' : 'spot';
+        $isSwap = mb_strpos($client->url, 'swap') !== false;
+        $marketType = $isSwap ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $trades = null;
@@ -292,7 +294,8 @@ class bingx extends \ccxt\async\bingx {
         $data = $this->safe_value($message, 'data', array());
         $messageHash = $this->safe_string($message, 'dataType');
         $marketId = explode('@', $messageHash)[0];
-        $marketType = mb_strpos($client->url, 'swap') !== false ? 'swap' : 'spot';
+        $isSwap = mb_strpos($client->url, 'swap') !== false;
+        $marketType = $isSwap ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
@@ -317,8 +320,11 @@ class bingx extends \ccxt\async\bingx {
         //        "t" => 1696687440000
         //    }
         //
+        // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
+        // for swap, (T) is the opening time
+        $timestamp = ($market['spot']) ? 't' : 'T';
         return array(
-            $this->safe_integer($ohlcv, 't'), // needs to be opening-time (t) instead of closing-time (T), to be compatible with fetchOHLCV
+            $this->safe_integer($ohlcv, $timestamp),
             $this->safe_number($ohlcv, 'o'),
             $this->safe_number($ohlcv, 'h'),
             $this->safe_number($ohlcv, 'l'),
@@ -382,7 +388,8 @@ class bingx extends \ccxt\async\bingx {
         $messageHash = $this->safe_string($message, 'dataType');
         $timeframeId = explode('_', $messageHash)[1];
         $marketId = explode('@', $messageHash)[0];
-        $marketType = mb_strpos($client->url, 'swap') !== false ? 'swap' : 'spot';
+        $isSwap = mb_strpos($client->url, 'swap') !== false;
+        $marketType = $isSwap ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
@@ -447,7 +454,7 @@ class bingx extends \ccxt\async\bingx {
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -639,7 +646,7 @@ class bingx extends \ccxt\async\bingx {
             $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000); // 1 hour
             if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
-                $response = Async\await($this->userAuthPrivatePostUserDataStream (array( 'listenKey' => $listenKey ))); // extend the expiry
+                $response = Async\await($this->userAuthPrivatePutUserDataStream (array( 'listenKey' => $listenKey ))); // extend the expiry
                 $this->options['listenKey'] = $this->safe_string($response, 'listenKey');
                 $this->options['lastAuthenticatedTime'] = $time;
             }

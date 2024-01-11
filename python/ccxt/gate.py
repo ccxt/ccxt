@@ -4333,7 +4333,7 @@ class gate(Exchange, ImplicitAPI):
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-options-orders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.stop]: True for fetching stop orders
         :param str [params.type]: spot, swap or future, if not provided self.options['defaultType'] is used
@@ -6502,7 +6502,7 @@ class gate(Exchange, ImplicitAPI):
         :param str symbol: Unified CCXT market symbol
         :param str side: 'buy' or 'sell'
         :param dict [params]: extra parameters specific to the okx api endpoint
-        :returns [dict]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         request = {
             'close': True,

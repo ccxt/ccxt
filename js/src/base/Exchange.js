@@ -11,7 +11,7 @@ const { isNode, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sor
 import { keys as keysFunc, values as valuesFunc, vwap as vwapFunc } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
-ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest } from "./errors.js";
+ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, ProxyError, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, ExchangeClosedByUser } from "./errors.js";
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
@@ -367,7 +367,9 @@ export default class Exchange {
                 'createOrderWs': undefined,
                 'editOrderWs': undefined,
                 'fetchOpenOrdersWs': undefined,
+                'fetchClosedOrdersWs': undefined,
                 'fetchOrderWs': undefined,
+                'fetchOrdersWs': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrdersWs': undefined,
                 'cancelAllOrdersWs': undefined,
@@ -654,10 +656,28 @@ export default class Exchange {
         console.log(...args);
     }
     async loadProxyModules() {
+        if (this.proxyModulesLoaded) {
+            return;
+        }
         this.proxyModulesLoaded = true;
-        // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-        this.httpProxyAgentModule = await import(/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
-        this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+        // we have to handle it with below nested way, because of dynamic
+        // import issues (https://github.com/ccxt/ccxt/pull/20687)
+        try {
+            // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
+            this.httpProxyAgentModule = await import(/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
+            this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+        }
+        catch (e) {
+            // if several users are using those frameworks which cause exceptions,
+            // let them to be able to load modules still, by installing them
+            try {
+                // @ts-ignore
+                this.httpProxyAgentModule = await import(/* webpackIgnore: true */ 'http-proxy-agent');
+                // @ts-ignore
+                this.httpProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent');
+            }
+            catch { }
+        }
         if (this.socksProxyAgentModuleChecked === false) {
             this.socksProxyAgentModuleChecked = true;
             try {
@@ -749,8 +769,10 @@ export default class Exchange {
         // proxy agents
         const [httpProxy, httpsProxy, socksProxy] = this.checkProxySettings(url, method, headers, body);
         this.checkConflictingProxies(httpProxy || httpsProxy || socksProxy, proxyUrl);
-        if (!this.proxyModulesLoaded) {
-            await this.loadProxyModules(); // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
+        // skip proxies on the browser
+        if (isNode) {
+            // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
+            await this.loadProxyModules();
         }
         const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
         // user-agent
@@ -772,13 +794,29 @@ export default class Exchange {
         // end of proxies & headers
         if (this.fetchImplementation === undefined) {
             if (isNode) {
-                const module = await import(/* webpackIgnore: true */ '../static_dependencies/node-fetch/index.js');
                 if (this.agent === undefined) {
                     this.agent = this.httpsAgent;
                 }
-                this.AbortError = module.AbortError;
-                this.fetchImplementation = module.default;
-                this.FetchError = module.FetchError;
+                try {
+                    const module = await import(/* webpackIgnore: true */ '../static_dependencies/node-fetch/index.js');
+                    this.AbortError = module.AbortError;
+                    this.fetchImplementation = module.default;
+                    this.FetchError = module.FetchError;
+                }
+                catch (e) {
+                    // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
+                    // so let them to fallback to node's native fetch
+                    if (typeof fetch === 'function') {
+                        this.fetchImplementation = fetch;
+                        // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
+                        // it throws same error types
+                        this.AbortError = DOMException;
+                        this.FetchError = TypeError;
+                    }
+                    else {
+                        throw new Error('Seems, "fetch" function is not available in your node-js version, please use latest node-js version');
+                    }
+                }
             }
             else {
                 this.fetchImplementation = self.fetch;
@@ -1222,10 +1260,15 @@ export default class Exchange {
         const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
-            delete this.clients[client.url];
+            client.error = new ExchangeClosedByUser(this.id + ' closedByUser');
             closedClients.push(client.close());
         }
-        return Promise.all(closedClients);
+        await Promise.all(closedClients);
+        for (let i = 0; i < clients.length; i++) {
+            const client = clients[i];
+            delete this.clients[client.url];
+        }
+        return;
     }
     async loadOrderBook(client, messageHash, symbol, limit = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
@@ -1280,6 +1323,17 @@ export default class Exchange {
     }
     axolotl(payload, hexKey, ed25519) {
         return axolotl(payload, hexKey, ed25519);
+    }
+    fixStringifiedJsonMembers(content) {
+        // used for instance in bingx
+        // when stringified json has members with their values also stringified, like:
+        // '{"code":0, "data":{"order":{"orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"{\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1}","reduceOnly":false}}}'
+        // we can fix with below manipulations
+        // @ts-ignore
+        let modifiedContent = content.replaceAll('\\', '');
+        modifiedContent = modifiedContent.replaceAll('"{', '{');
+        modifiedContent = modifiedContent.replaceAll('}"', '}');
+        return modifiedContent;
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------
@@ -1378,7 +1432,7 @@ export default class Exchange {
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join(',');
-            throw new ExchangeError(this.id + ' you have multiple conflicting proxy_url settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
+            throw new ProxyError(this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return proxyUrl;
     }
@@ -1442,7 +1496,7 @@ export default class Exchange {
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join(',');
-            throw new ExchangeError(this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback');
+            throw new ProxyError(this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback');
         }
         return [httpProxy, httpsProxy, socksProxy];
     }
@@ -1482,13 +1536,13 @@ export default class Exchange {
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join(',');
-            throw new ExchangeError(this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy');
+            throw new ProxyError(this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy');
         }
         return [wsProxy, wssProxy, wsSocksProxy];
     }
     checkConflictingProxies(proxyAgentSet, proxyUrlSet) {
         if (proxyAgentSet && proxyUrlSet) {
-            throw new ExchangeError(this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+            throw new ProxyError(this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
     }
     findMessageHashes(client, element) {
@@ -1805,6 +1859,7 @@ export default class Exchange {
             fee['cost'] = this.safeNumber(fee, 'cost');
         }
         const timestamp = this.safeInteger(entry, 'timestamp');
+        const info = this.safeValue(entry, 'info', {});
         return {
             'id': this.safeString(entry, 'id'),
             'timestamp': timestamp,
@@ -1820,7 +1875,7 @@ export default class Exchange {
             'after': this.parseNumber(after),
             'status': this.safeString(entry, 'status'),
             'fee': fee,
-            'info': entry,
+            'info': info,
         };
     }
     safeCurrencyStructure(currency) {
@@ -2282,6 +2337,11 @@ export default class Exchange {
             if ('rate' in tradeFee) {
                 tradeFee['rate'] = this.safeNumber(tradeFee, 'rate');
             }
+            const entryFees = this.safeValue(entry, 'fees', []);
+            for (let j = 0; j < entryFees.length; j++) {
+                entryFees[j]['cost'] = this.safeNumber(entryFees[j], 'cost');
+            }
+            entry['fees'] = entryFees;
             entry['fee'] = tradeFee;
         }
         let timeInForce = this.safeString(order, 'timeInForce');
@@ -2842,11 +2902,11 @@ export default class Exchange {
         }
         return result;
     }
-    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1) {
+    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         bidasks = this.toArray(bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
-            result.push(this.parseBidAsk(bidasks[i], priceKey, amountKey));
+            result.push(this.parseBidAsk(bidasks[i], priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -3015,9 +3075,9 @@ export default class Exchange {
         const value = this.safeString2(dictionary, key1, key2);
         return this.parseNumber(value, d);
     }
-    parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
-        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey);
-        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey);
+    parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),
@@ -3332,10 +3392,15 @@ export default class Exchange {
     async fetchBidsAsks(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchBidsAsks() is not supported yet');
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
-        return [price, amount];
+        const countOrId = this.safeInteger(bidask, countOrIdKey);
+        const bidAsk = [price, amount];
+        if (countOrId !== undefined) {
+            bidAsk.push(countOrId);
+        }
+        return bidAsk;
     }
     safeCurrency(currencyId, currency = undefined) {
         if ((currencyId === undefined) && (currency !== undefined)) {
@@ -3383,7 +3448,7 @@ export default class Exchange {
                     }
                 }
             }
-            else if (delimiter !== undefined) {
+            else if (delimiter !== undefined && delimiter !== '') {
                 const parts = marketId.split(delimiter);
                 const partsLength = parts.length;
                 if (partsLength === 2) {
@@ -3531,6 +3596,30 @@ export default class Exchange {
         else {
             // check if exchange has properties for this method
             const exchangeWideMethodOptions = this.safeValue(this.options, methodName);
+            if (exchangeWideMethodOptions !== undefined) {
+                // check if the option is defined inside this method's props
+                value = this.safeValue2(exchangeWideMethodOptions, optionName, defaultOptionName);
+            }
+            if (value === undefined) {
+                // if it's still undefined, check if global exchange-wide option exists
+                value = this.safeValue2(this.options, optionName, defaultOptionName);
+            }
+            // if it's still undefined, use the default value
+            value = (value !== undefined) ? value : defaultValue;
+        }
+        return [value, params];
+    }
+    handleOptionAndParams2(params, methodName, methodName2, optionName, defaultValue = undefined) {
+        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
+        const defaultOptionName = 'default' + this.capitalize(optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if params contain the key
+        let value = this.safeValue2(params, optionName, defaultOptionName);
+        if (value !== undefined) {
+            params = this.omit(params, [optionName, defaultOptionName]);
+        }
+        else {
+            // check if exchange has properties for this method
+            const exchangeWideMethodOptions = this.safeValue2(this.options, methodName, methodName2);
             if (exchangeWideMethodOptions !== undefined) {
                 // check if the option is defined inside this method's props
                 value = this.safeValue2(exchangeWideMethodOptions, optionName, defaultOptionName);
@@ -3755,6 +3844,9 @@ export default class Exchange {
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrders() is not supported yet');
     }
+    async fetchOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOrdersWs() is not supported yet');
+    }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrderTrades() is not supported yet');
     }
@@ -3762,13 +3854,32 @@ export default class Exchange {
         throw new NotSupported(this.id + ' watchOrders() is not supported yet');
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrders']) {
+            const orders = await this.fetchOrders(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'open');
+        }
         throw new NotSupported(this.id + ' fetchOpenOrders() is not supported yet');
     }
     async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrdersWs']) {
+            const orders = await this.fetchOrdersWs(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'open');
+        }
         throw new NotSupported(this.id + ' fetchOpenOrdersWs() is not supported yet');
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrders']) {
+            const orders = await this.fetchOrders(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'closed');
+        }
         throw new NotSupported(this.id + ' fetchClosedOrders() is not supported yet');
+    }
+    async fetchClosedOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrdersWs']) {
+            const orders = await this.fetchOrdersWs(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'closed');
+        }
+        throw new NotSupported(this.id + ' fetchClosedOrdersWs() is not supported yet');
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchMyTrades() is not supported yet');

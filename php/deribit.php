@@ -1301,14 +1301,18 @@ class deribit extends Exchange {
             'instrument_name' => $market['id'],
             'include_old' => true,
         );
-        $method = ($since === null) ? 'publicGetGetLastTradesByInstrument' : 'publicGetGetLastTradesByInstrumentAndTime';
         if ($since !== null) {
             $request['start_timestamp'] = $since;
         }
         if ($limit !== null) {
             $request['count'] = min ($limit, 1000); // default 10
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($since === null) {
+            $response = $this->publicGetGetLastTradesByInstrument (array_merge($request, $params));
+        } else {
+            $response = $this->publicGetGetLastTradesByInstrumentAndTime (array_merge($request, $params));
+        }
         //
         //      {
         //          "jsonrpc":"2.0",
@@ -1698,25 +1702,18 @@ class deribit extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade. For perpetual and futures the $amount is in USD. For options it is in corresponding cryptocurrency contracts currency.
+         * @param {float} $amount how much you want to trade in units of the base currency. For inverse perpetual and futures the $amount is in the quote currency USD. For options it is in the underlying assets base currency.
          * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->trigger] the $trigger $type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
+         * @param {float} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['inverse']) {
-            $amount = $this->amount_to_precision($symbol, $amount);
-        } elseif ($market['settle'] === 'USDC') {
-            $amount = $this->amount_to_precision($symbol, $amount);
-        } else {
-            $amount = $this->currency_to_precision($symbol, $amount);
-        }
         $request = array(
             'instrument_name' => $market['id'],
-            // for perpetual and futures the $amount is in USD
-            // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
-            'amount' => $amount,
+            'amount' => $this->amount_to_precision($symbol, $amount),
             'type' => $type, // limit, stop_limit, $market, stop_market, default is limit
             // 'label' => 'string', // user-defined label for the $order (maximum 64 characters)
             // 'price' => $this->price_to_precision($symbol, 123.45), // only for limit and stop_limit orders
@@ -1729,12 +1726,15 @@ class deribit extends Exchange {
             // 'trigger' => 'index_price', // mark_price, last_price, required for stop_limit orders
             // 'advanced' => 'usd', // 'implv', advanced option $order $type, options only
         );
+        $trigger = $this->safe_string($params, 'trigger', 'last_price');
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
         // only stop loss sell orders are allowed when $price crossed from above
         $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
         // only take profit buy orders are allowed when $price crossed from below
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'trigger_offset');
+        $isTrailingAmountOrder = $trailingAmount !== null;
         $isStopLimit = $type === 'stop_limit';
         $isStopMarket = $type === 'stop_market';
         $isTakeLimit = $type === 'take_limit';
@@ -1755,10 +1755,14 @@ class deribit extends Exchange {
         } else {
             $request['type'] = 'market';
         }
-        if ($isStopOrder) {
+        if ($isTrailingAmountOrder) {
+            $request['trigger'] = $trigger;
+            $request['type'] = 'trailing_stop';
+            $request['trigger_offset'] = $this->parse_to_numeric($trailingAmount);
+        } elseif ($isStopOrder) {
             $triggerPrice = ($stopLossPrice !== null) ? $stopLossPrice : $takeProfitPrice;
             $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
-            $request['trigger'] = 'last_price'; // required
+            $request['trigger'] = $trigger;
             if ($isStopLossOrder) {
                 if ($isMarketOrder) {
                     // stop_market (sell only)
@@ -1795,9 +1799,13 @@ class deribit extends Exchange {
                 $request['time_in_force'] = 'fill_or_kill';
             }
         }
-        $method = 'privateGet' . $this->capitalize($side);
-        $params = $this->omit($params, array( 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly' ));
-        $response = $this->$method (array_merge($request, $params));
+        $params = $this->omit($params, array( 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'trailingAmount' ));
+        $response = null;
+        if ($this->capitalize($side) === 'Buy') {
+            $response = $this->privateGetBuy (array_merge($request, $params));
+        } else {
+            $response = $this->privateGetSell (array_merge($request, $params));
+        }
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -1858,25 +1866,41 @@ class deribit extends Exchange {
     }
 
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        /**
+         * edit a trade $order
+         * @see https://docs.deribit.com/#private-edit
+         * @param {string} $id edit $order $id
+         * @param {string} [$symbol] unified $symbol of the market to edit an $order in
+         * @param {string} [$type] 'market' or 'limit'
+         * @param {string} [$side] 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of the base currency, inverse swap and future use the quote currency
+         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->trailingAmount] the quote $amount to trail away from the current market $price
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         */
         if ($amount === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');
-        }
-        if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument');
         }
         $this->load_markets();
         $request = array(
             'order_id' => $id,
-            // for perpetual and futures the $amount is in USD
-            // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
             'amount' => $this->amount_to_precision($symbol, $amount),
-            'price' => $this->price_to_precision($symbol, $price), // required
             // 'post_only' => false, // if the new $price would cause the $order to be filled immediately (as taker), the $price will be changed to be just below the spread.
             // 'reject_post_only' => false, // if true the $order is put to $order book unmodified or $request is rejected
             // 'reduce_only' => false, // if true, the $order is intended to only reduce a current position
             // 'stop_price' => false, // stop $price, required for stop_limit orders
             // 'advanced' => 'usd', // 'implv', advanced option $order $type, options only
         );
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'trigger_offset');
+        $isTrailingAmountOrder = $trailingAmount !== null;
+        if ($isTrailingAmountOrder) {
+            $request['trigger_offset'] = $this->parse_to_numeric($trailingAmount);
+            $params = $this->omit($params, 'trigger_offset');
+        }
         $response = $this->privateGetEdit (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
         $order = $this->safe_value($result, 'order');
@@ -1911,15 +1935,14 @@ class deribit extends Exchange {
          */
         $this->load_markets();
         $request = array();
-        $method = null;
+        $response = null;
         if ($symbol === null) {
-            $method = 'privateGetCancelAll';
+            $response = $this->privateGetCancelAll (array_merge($request, $params));
         } else {
-            $method = 'privateGetCancelAllByInstrument';
             $market = $this->market($symbol);
             $request['instrument_name'] = $market['id'];
+            $response = $this->privateGetCancelAllByInstrument (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         return $response;
     }
 
@@ -1935,18 +1958,17 @@ class deribit extends Exchange {
         $this->load_markets();
         $request = array();
         $market = null;
-        $method = null;
+        $response = null;
         if ($symbol === null) {
             $code = $this->code_from_options('fetchOpenOrders', $params);
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
-            $method = 'privateGetGetOpenOrdersByCurrency';
+            $response = $this->privateGetGetOpenOrdersByCurrency (array_merge($request, $params));
         } else {
             $market = $this->market($symbol);
             $request['instrument_name'] = $market['id'];
-            $method = 'privateGetGetOpenOrdersByInstrument';
+            $response = $this->privateGetGetOpenOrdersByInstrument (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_orders($result, $market, $since, $limit);
     }
@@ -1956,25 +1978,24 @@ class deribit extends Exchange {
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array();
         $market = null;
-        $method = null;
+        $response = null;
         if ($symbol === null) {
             $code = $this->code_from_options('fetchClosedOrders', $params);
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
-            $method = 'privateGetGetOrderHistoryByCurrency';
+            $response = $this->privateGetGetOrderHistoryByCurrency (array_merge($request, $params));
         } else {
             $market = $this->market($symbol);
             $request['instrument_name'] = $market['id'];
-            $method = 'privateGetGetOrderHistoryByInstrument';
+            $response = $this->privateGetGetOrderHistoryByInstrument (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_orders($result, $market, $since, $limit);
     }
@@ -2045,31 +2066,30 @@ class deribit extends Exchange {
             'include_old' => true,
         );
         $market = null;
-        $method = null;
+        if ($limit !== null) {
+            $request['count'] = $limit; // default 10
+        }
+        $response = null;
         if ($symbol === null) {
             $code = $this->code_from_options('fetchMyTrades', $params);
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
             if ($since === null) {
-                $method = 'privateGetGetUserTradesByCurrency';
+                $response = $this->privateGetGetUserTradesByCurrency (array_merge($request, $params));
             } else {
-                $method = 'privateGetGetUserTradesByCurrencyAndTime';
                 $request['start_timestamp'] = $since;
+                $response = $this->privateGetGetUserTradesByCurrencyAndTime (array_merge($request, $params));
             }
         } else {
             $market = $this->market($symbol);
             $request['instrument_name'] = $market['id'];
             if ($since === null) {
-                $method = 'privateGetGetUserTradesByInstrument';
+                $response = $this->privateGetGetUserTradesByInstrument (array_merge($request, $params));
             } else {
-                $method = 'privateGetGetUserTradesByInstrumentAndTime';
                 $request['start_timestamp'] = $since;
+                $response = $this->privateGetGetUserTradesByInstrumentAndTime (array_merge($request, $params));
             }
         }
-        if ($limit !== null) {
-            $request['count'] = $limit; // default 10
-        }
-        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -2598,7 +2618,12 @@ class deribit extends Exchange {
             $transferOptions = $this->safe_value($this->options, 'transfer', array());
             $method = $this->safe_string($transferOptions, 'method', 'privateGetSubmitTransferToSubaccount');
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($method === 'privateGetSubmitTransferToUser') {
+            $response = $this->privateGetSubmitTransferToUser (array_merge($request, $params));
+        } else {
+            $response = $this->privateGetSubmitTransferToSubaccount (array_merge($request, $params));
+        }
         //
         //     {
         //         "jsonrpc" => "2.0",

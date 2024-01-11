@@ -22,7 +22,7 @@ class binance extends \ccxt\async\binance {
                 'watchBalance' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
-                'watchOHLCVForSymbols' => true,
+                'watchOHLCVForSymbols' => false,
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
@@ -879,6 +879,9 @@ class binance extends \ccxt\async\binance {
             $params = $this->omit($params, 'name');
             $wsParams = array();
             $messageHash = 'tickers';
+            if ($symbols !== null) {
+                $messageHash = 'tickers::' . implode(',', $symbols);
+            }
             if ($name === 'bookTicker') {
                 if ($marketIds === null) {
                     throw new ArgumentsRequired($this->id . ' watchTickers() requires $symbols for bookTicker');
@@ -957,13 +960,12 @@ class binance extends \ccxt\async\binance {
             $event = 'ticker';
         }
         $timestamp = null;
-        $now = $this->milliseconds();
         if ($event === 'bookTicker') {
             // take the $event $timestamp, if available, for spot tickers it is not
-            $timestamp = $this->safe_integer($message, 'E', $now);
+            $timestamp = $this->safe_integer($message, 'E');
         } else {
             // take the $timestamp of the closing price for candlestick streams
-            $timestamp = $this->safe_integer($message, 'C', $now);
+            $timestamp = $this->safe_integer($message, 'C');
         }
         $marketId = $this->safe_string($message, 's');
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
@@ -1072,6 +1074,19 @@ class binance extends \ccxt\async\binance {
             $this->tickers[$symbol] = $result;
             $newTickers[] = $result;
         }
+        $messageHashes = $this->find_message_hashes($client, 'tickers::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $tickers = $this->filter_by_array($newTickers, 'symbol', $symbols);
+            $tickersSymbols = is_array($tickers) ? array_keys($tickers) : array();
+            $numTickers = count($tickersSymbols);
+            if ($numTickers > 0) {
+                $client->resolve ($tickers, $messageHash);
+            }
+        }
         $client->resolve ($newTickers, 'tickers');
     }
 
@@ -1129,22 +1144,23 @@ class binance extends \ccxt\async\binance {
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
             $delay = $this->sum($listenKeyRefreshRate, 10000);
             if ($time - $lastAuthenticatedTime > $delay) {
-                $method = 'publicPostUserDataStream';
+                $response = null;
                 if ($type === 'future') {
-                    $method = 'fapiPrivatePostListenKey';
+                    $response = Async\await($this->fapiPrivatePostListenKey ($query));
                 } elseif ($type === 'delivery') {
-                    $method = 'dapiPrivatePostListenKey';
+                    $response = Async\await($this->dapiPrivatePostListenKey ($query));
                 } elseif ($type === 'margin' && $isCrossMargin) {
-                    $method = 'sapiPostUserDataStream';
+                    $response = Async\await($this->sapiPostUserDataStream ($query));
                 } elseif ($isIsolatedMargin) {
-                    $method = 'sapiPostUserDataStreamIsolated';
                     if ($symbol === null) {
                         throw new ArgumentsRequired($this->id . ' authenticate() requires a $symbol argument for isolated margin mode');
                     }
                     $marketId = $this->market_id($symbol);
                     $query = array_merge($query, array( 'symbol' => $marketId ));
+                    $response = Async\await($this->sapiPostUserDataStreamIsolated ($query));
+                } else {
+                    $response = Async\await($this->publicPostUserDataStream ($query));
                 }
-                $response = Async\await($this->$method ($query));
                 $this->options[$type] = array_merge($options, array(
                     'listenKey' => $this->safe_string($response, 'listenKey'),
                     'lastAuthenticatedTime' => $time,
@@ -1172,24 +1188,24 @@ class binance extends \ccxt\async\binance {
                 // A network $error happened => we can't renew a listen key that does not exist.
                 return;
             }
-            $method = 'publicPutUserDataStream';
             $request = array();
             $symbol = $this->safe_string($params, 'symbol');
             $sendParams = $this->omit($params, array( 'type', 'symbol' ));
-            if ($type === 'future') {
-                $method = 'fapiPrivatePutListenKey';
-            } elseif ($type === 'delivery') {
-                $method = 'dapiPrivatePutListenKey';
-            } else {
-                $request['listenKey'] = $listenKey;
-                if ($type === 'margin') {
-                    $request['symbol'] = $symbol;
-                    $method = 'sapiPutUserDataStream';
-                }
-            }
             $time = $this->milliseconds();
             try {
-                Async\await($this->$method (array_merge($request, $sendParams)));
+                if ($type === 'future') {
+                    Async\await($this->fapiPrivatePutListenKey (array_merge($request, $sendParams)));
+                } elseif ($type === 'delivery') {
+                    Async\await($this->dapiPrivatePutListenKey (array_merge($request, $sendParams)));
+                } else {
+                    $request['listenKey'] = $listenKey;
+                    if ($type === 'margin') {
+                        $request['symbol'] = $symbol;
+                        Async\await($this->sapiPutUserDataStream (array_merge($request, $sendParams)));
+                    } else {
+                        Async\await($this->publicPutUserDataStream (array_merge($request, $sendParams)));
+                    }
+                }
             } catch (Exception $error) {
                 $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
                 $client = $this->client($url);
@@ -1516,7 +1532,7 @@ class binance extends \ccxt\async\binance {
             $messageHash = (string) $requestId;
             $sor = $this->safe_value_2($params, 'sor', 'SOR', false);
             $params = $this->omit($params, 'sor', 'SOR');
-            $payload = $this->createOrderRequest ($symbol, $type, $side, $amount, $price, $params);
+            $payload = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $returnRateLimits = false;
             list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'returnRateLimits', false);
             $payload['returnRateLimits'] = $returnRateLimits;
@@ -1950,7 +1966,7 @@ class binance extends \ccxt\async\binance {
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -2514,7 +2530,7 @@ class binance extends \ccxt\async\binance {
              * watches information on multiple $trades made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */

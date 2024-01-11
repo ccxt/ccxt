@@ -135,6 +135,7 @@ class bitmex(Exchange, ImplicitAPI):
                         'chat/connected': 5,
                         'chat/pinned': 5,
                         'funding': 5,
+                        'guild': 5,
                         'instrument': 5,
                         'instrument/active': 5,
                         'instrument/activeAndIndices': 5,
@@ -163,6 +164,7 @@ class bitmex(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'get': {
+                        'address': 5,
                         'apiKey': 5,
                         'execution': 5,
                         'execution/tradeHistory': 5,
@@ -175,21 +177,33 @@ class bitmex(Exchange, ImplicitAPI):
                         'user/affiliateStatus': 5,
                         'user/checkReferralCode': 5,
                         'user/commission': 5,
+                        'user/csa': 5,
                         'user/depositAddress': 5,
                         'user/executionHistory': 5,
+                        'user/getWalletTransferAccounts': 5,
                         'user/margin': 5,
                         'user/quoteFillRatio': 5,
                         'user/quoteValueRatio': 5,
+                        'user/staking': 5,
+                        'user/staking/instruments': 5,
+                        'user/staking/tiers': 5,
                         'user/tradingVolume': 5,
+                        'user/unstakingRequests': 5,
                         'user/wallet': 5,
                         'user/walletHistory': 5,
                         'user/walletSummary': 5,
+                        'userAffiliates': 5,
                         'userEvent': 5,
                     },
                     'post': {
+                        'address': 5,
                         'chat': 5,
+                        'guild': 5,
+                        'guild/archive': 5,
                         'guild/join': 5,
+                        'guild/kick': 5,
                         'guild/leave': 5,
+                        'guild/sharesTrades': 5,
                         'order': 1,
                         'order/cancelAllAfter': 5,
                         'order/closePosition': 5,
@@ -197,6 +211,7 @@ class bitmex(Exchange, ImplicitAPI):
                         'position/leverage': 1,
                         'position/riskLimit': 5,
                         'position/transferMargin': 1,
+                        'user/addSubaccount': 5,
                         'user/cancelWithdrawal': 5,
                         'user/communicationToken': 5,
                         'user/confirmEmail': 5,
@@ -204,13 +219,18 @@ class bitmex(Exchange, ImplicitAPI):
                         'user/logout': 5,
                         'user/preferences': 5,
                         'user/requestWithdrawal': 5,
+                        'user/unstakingRequests': 5,
+                        'user/updateSubaccount': 5,
+                        'user/walletTransfer': 5,
                     },
                     'put': {
+                        'guild': 5,
                         'order': 1,
                     },
                     'delete': {
                         'order': 1,
                         'order/all': 1,
+                        'user/unstakingRequests': 5,
                     },
                 },
             },
@@ -847,7 +867,7 @@ class bitmex(Exchange, ImplicitAPI):
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the earliest time in ms to fetch orders for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -901,7 +921,7 @@ class bitmex(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1510,13 +1530,11 @@ class bitmex(Exchange, ImplicitAPI):
         fee = None
         feeCostString = self.number_to_string(self.convert_from_raw_cost(symbol, self.safe_string(trade, 'execComm')))
         if feeCostString is not None:
-            currencyId = self.safe_string(trade, 'settlCurrency')
-            feeCurrencyCode = self.safe_currency_code(currencyId)
-            feeRateString = self.safe_string(trade, 'commission')
+            currencyId = self.safe_string_2(trade, 'settlCurrency', 'currency')
             fee = {
-                'cost': Precise.string_abs(feeCostString),
-                'currency': feeCurrencyCode,
-                'rate': Precise.string_abs(feeRateString),
+                'cost': feeCostString,
+                'currency': self.safe_currency_code(currencyId),
+                'rate': self.safe_string(trade, 'commission'),
             }
         # Trade or Funding
         execType = self.safe_string(trade, 'execType')
@@ -1733,6 +1751,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.triggerPrice]: the price at which a trigger order is triggered at
         :param dict [params.triggerDirection]: the direction whenever the trigger happens with relation to price - 'above' or 'below'
+        :param float [params.trailingAmount]: the quote amount to trail away from the current market price
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
@@ -1740,7 +1759,7 @@ class bitmex(Exchange, ImplicitAPI):
         orderType = self.capitalize(type)
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is not None:
-            if (market['type'] != 'swap') and (market['type'] != 'future'):
+            if (not market['swap']) and (not market['future']):
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only')
         brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
         qty = self.parse_to_int(self.amount_to_precision(symbol, amount))
@@ -1751,35 +1770,42 @@ class bitmex(Exchange, ImplicitAPI):
             'ordType': orderType,
             'text': brokerId,
         }
-        customTriggerType = (orderType == 'Stop') or (orderType == 'StopLimit') or (orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched')
         # support for unified trigger format
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPx', 'stopPrice'])
-        if (triggerPrice is not None) and not customTriggerType:
-            request['stopPx'] = float(self.price_to_precision(symbol, triggerPrice))
+        trailingAmount = self.safe_string_2(params, 'trailingAmount', 'pegOffsetValue')
+        isTriggerOrder = triggerPrice is not None
+        isTrailingAmountOrder = trailingAmount is not None
+        if isTriggerOrder or isTrailingAmountOrder:
             triggerDirection = self.safe_string(params, 'triggerDirection')
-            params = self.omit(params, ['triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection'])
             triggerAbove = (triggerDirection == 'above')
-            self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
-            self.check_required_argument('createOrder', side, 'side', ['buy', 'sell'])
+            if (type == 'limit') or (type == 'market'):
+                self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
             if type == 'limit':
-                request['price'] = float(self.price_to_precision(symbol, price))
                 if side == 'buy':
-                    request['ordType'] = 'StopLimit' if triggerAbove else 'LimitIfTouched'
+                    orderType = 'StopLimit' if triggerAbove else 'LimitIfTouched'
                 else:
-                    request['ordType'] = 'LimitIfTouched' if triggerAbove else 'StopLimit'
+                    orderType = 'LimitIfTouched' if triggerAbove else 'StopLimit'
             elif type == 'market':
                 if side == 'buy':
-                    request['ordType'] = 'Stop' if triggerAbove else 'MarketIfTouched'
+                    orderType = 'Stop' if triggerAbove else 'MarketIfTouched'
                 else:
-                    request['ordType'] = 'MarketIfTouched' if triggerAbove else 'Stop'
-        elif customTriggerType:
-            if triggerPrice is None:
-                # if exchange specific trigger types were provided
-                raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice(stopPx|stopPrice) parameter for the ' + orderType + ' order type')
-            params = self.omit(params, ['triggerPrice', 'stopPrice', 'stopPx'])
-            request['stopPx'] = float(self.price_to_precision(symbol, triggerPrice))
+                    orderType = 'MarketIfTouched' if triggerAbove else 'Stop'
+            if isTrailingAmountOrder:
+                isStopSellOrder = (side == 'sell') and ((orderType == 'Stop') or (orderType == 'StopLimit'))
+                isBuyIfTouchedOrder = (side == 'buy') and ((orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched'))
+                if isStopSellOrder or isBuyIfTouchedOrder:
+                    trailingAmount = '-' + trailingAmount
+                request['pegOffsetValue'] = self.parse_to_numeric(trailingAmount)
+                request['pegPriceType'] = 'TrailingStopPeg'
+            else:
+                if triggerPrice is None:
+                    # if exchange specific trigger types were provided
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice(stopPx|stopPrice) parameter for the ' + orderType + ' order type')
+                request['stopPx'] = self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice))
+            request['ordType'] = orderType
+            params = self.omit(params, ['triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection', 'trailingAmount'])
         if (orderType == 'Limit') or (orderType == 'StopLimit') or (orderType == 'LimitIfTouched'):
-            request['price'] = float(self.price_to_precision(symbol, price))
+            request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
             request['clOrdID'] = clientOrderId
@@ -1790,6 +1816,30 @@ class bitmex(Exchange, ImplicitAPI):
     async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
         request = {}
+        trailingAmount = self.safe_string_2(params, 'trailingAmount', 'pegOffsetValue')
+        isTrailingAmountOrder = trailingAmount is not None
+        if isTrailingAmountOrder:
+            triggerDirection = self.safe_string(params, 'triggerDirection')
+            triggerAbove = (triggerDirection == 'above')
+            if (type == 'limit') or (type == 'market'):
+                self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
+            orderType = None
+            if type == 'limit':
+                if side == 'buy':
+                    orderType = 'StopLimit' if triggerAbove else 'LimitIfTouched'
+                else:
+                    orderType = 'LimitIfTouched' if triggerAbove else 'StopLimit'
+            elif type == 'market':
+                if side == 'buy':
+                    orderType = 'Stop' if triggerAbove else 'MarketIfTouched'
+                else:
+                    orderType = 'MarketIfTouched' if triggerAbove else 'Stop'
+            isStopSellOrder = (side == 'sell') and ((orderType == 'Stop') or (orderType == 'StopLimit'))
+            isBuyIfTouchedOrder = (side == 'buy') and ((orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched'))
+            if isStopSellOrder or isBuyIfTouchedOrder:
+                trailingAmount = '-' + trailingAmount
+            request['pegOffsetValue'] = self.parse_to_numeric(trailingAmount)
+            params = self.omit(params, ['triggerDirection', 'trailingAmount'])
         origClOrdID = self.safe_string_2(params, 'origClOrdID', 'clientOrderId')
         if origClOrdID is not None:
             request['origClOrdID'] = origClOrdID

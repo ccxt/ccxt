@@ -750,9 +750,9 @@ class woo(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
+        create a trade order
         :see: https://docs.woo.org/#send-order
         :see: https://docs.woo.org/#send-algo-order
-        create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -766,6 +766,9 @@ class woo(Exchange, ImplicitAPI):
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param float [params.algoType]: 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param str [params.trailingAmount]: the quote amount to trail away from the current market price
+        :param str [params.trailingPercent]: the percent to trail away from the current market price
+        :param str [params.trailingTriggerPrice]: the price to trigger a trailing order, default uses the price argument
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
@@ -782,7 +785,13 @@ class woo(Exchange, ImplicitAPI):
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
         algoType = self.safe_string(params, 'algoType')
-        isStop = stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activatedPrice', price)
+        trailingAmount = self.safe_string_2(params, 'trailingAmount', 'callbackValue')
+        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
+        isTrailingAmountOrder = trailingAmount is not None
+        isTrailingPercentOrder = trailingPercent is not None
+        isTrailing = isTrailingAmountOrder or isTrailingPercentOrder
+        isStop = isTrailing or stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
@@ -831,7 +840,17 @@ class woo(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         if clientOrderId is not None:
             request[clientOrderIdKey] = clientOrderId
-        if stopPrice is not None:
+        if isTrailing:
+            if trailingTriggerPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a trailingTriggerPrice parameter for trailing orders')
+            request['activatedPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
+            request['algoType'] = 'TRAILING_STOP'
+            if isTrailingAmountOrder:
+                request['callbackValue'] = trailingAmount
+            elif isTrailingPercentOrder:
+                convertedTrailingPercent = Precise.string_div(trailingPercent, '100')
+                request['callbackRate'] = convertedTrailingPercent
+        elif stopPrice is not None:
             if algoType != 'TRAILING_STOP':
                 request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
                 request['algoType'] = 'STOP'
@@ -865,7 +884,7 @@ class woo(Exchange, ImplicitAPI):
                 }
                 outterOrder['childOrders'].append(takeProfitOrder)
             request['childOrders'] = [outterOrder]
-        params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit'])
+        params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice'])
         response = None
         if isStop:
             response = self.v3PrivatePostAlgoOrder(self.extend(request, params))
@@ -906,11 +925,11 @@ class woo(Exchange, ImplicitAPI):
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
+        edit a trade order
         :see: https://docs.woo.org/#edit-order
         :see: https://docs.woo.org/#edit-order-by-client_order_id
         :see: https://docs.woo.org/#edit-algo-order
         :see: https://docs.woo.org/#edit-algo-order-by-client_order_id
-        edit a trade order
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -921,6 +940,9 @@ class woo(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param float [params.stopLossPrice]: price to trigger stop-loss orders
         :param float [params.takeProfitPrice]: price to trigger take-profit orders
+        :param str [params.trailingAmount]: the quote amount to trail away from the current market price
+        :param str [params.trailingPercent]: the percent to trail away from the current market price
+        :param str [params.trailingTriggerPrice]: the price to trigger a trailing order, default uses the price argument
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -939,8 +961,22 @@ class woo(Exchange, ImplicitAPI):
         stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
         if stopPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
-        params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice'])
-        isStop = (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activatedPrice', price)
+        trailingAmount = self.safe_string_2(params, 'trailingAmount', 'callbackValue')
+        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
+        isTrailingAmountOrder = trailingAmount is not None
+        isTrailingPercentOrder = trailingPercent is not None
+        isTrailing = isTrailingAmountOrder or isTrailingPercentOrder
+        if isTrailing:
+            if trailingTriggerPrice is not None:
+                request['activatedPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
+            if isTrailingAmountOrder:
+                request['callbackValue'] = trailingAmount
+            elif isTrailingPercentOrder:
+                convertedTrailingPercent = Precise.string_div(trailingPercent, '100')
+                request['callbackRate'] = convertedTrailingPercent
+        params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent'])
+        isStop = isTrailing or (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
         response = None
         if isByClientOrder:
             request['client_order_id'] = clientOrderIdExchangeSpecific
@@ -1113,35 +1149,39 @@ class woo(Exchange, ImplicitAPI):
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        fetches information on multiple orders made by the user
         :see: https://docs.woo.org/#get-orders
         :see: https://docs.woo.org/#get-algo-orders
-        fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.stop]: whether the order is a stop/algo order
         :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
         :param str [params.side]: 'buy' or 'sell'
+        :param boolean [params.trailing]: set to True if you want to fetch trailing orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
         market: Market = None
         stop = self.safe_value(params, 'stop')
-        params = self.omit(params, 'stop')
+        trailing = self.safe_value(params, 'trailing', False)
+        params = self.omit(params, ['stop', 'trailing'])
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
-            if stop:
+            if stop or trailing:
                 request['createdTimeStart'] = since
             else:
                 request['start_t'] = since
         if stop:
             request['algoType'] = 'stop'
+        elif trailing:
+            request['algoType'] = 'TRAILING_STOP'
         response = None
-        if stop:
+        if stop or trailing:
             response = self.v3PrivateGetAlgoOrders(self.extend(request, params))
         else:
             response = self.v1PrivateGetOrders(self.extend(request, params))

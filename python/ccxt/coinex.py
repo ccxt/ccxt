@@ -220,6 +220,8 @@ class coinex(Exchange, ImplicitAPI):
                     },
                     'put': {
                         'balance/deposit/address/{coin_type}': 40,
+                        'sub_account/unfrozen': 40,
+                        'sub_account/frozen': 40,
                         'sub_account/auth/api/{user_auth_id}': 40,
                         'v1/account/settings': 40,
                     },
@@ -229,7 +231,10 @@ class coinex(Exchange, ImplicitAPI):
                         'order/pending': 13.334,
                         'order/stop/pending': 40,
                         'order/stop/pending/{id}': 13.334,
+                        'order/pending/by_client_id': 40,
+                        'order/stop/pending/by_client_id': 40,
                         'sub_account/auth/api/{user_auth_id}': 40,
+                        'sub_account/authorize/{id}': 40,
                     },
                 },
                 'perpetualPublic': {
@@ -243,12 +248,12 @@ class coinex(Exchange, ImplicitAPI):
                         'market/depth': 1,
                         'market/deals': 1,
                         'market/funding_history': 1,
-                        'market/user_deals': 1,
                         'market/kline': 1,
                     },
                 },
                 'perpetualPrivate': {
                     'get': {
+                        'market/user_deals': 1,
                         'asset/query': 40,
                         'order/pending': 8,
                         'order/finished': 40,
@@ -256,8 +261,13 @@ class coinex(Exchange, ImplicitAPI):
                         'order/stop_pending': 8,
                         'order/status': 8,
                         'order/stop_status': 8,
+                        'position/finished': 40,
                         'position/pending': 40,
                         'position/funding': 40,
+                        'position/adl_history': 40,
+                        'market/preference': 40,
+                        'position/margin_history': 40,
+                        'position/settle_history': 40,
                     },
                     'post': {
                         'market/adjust_leverage': 1,
@@ -279,6 +289,9 @@ class coinex(Exchange, ImplicitAPI):
                         'position/stop_loss': 20,
                         'position/take_profit': 20,
                         'position/market_close': 20,
+                        'order/cancel/by_client_id': 20,
+                        'order/cancel_stop/by_client_id': 20,
+                        'market/preference': 20,
                     },
                 },
             },
@@ -1070,9 +1083,10 @@ class coinex(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         marketId = self.safe_string(trade, 'market')
-        defaultType = self.safe_string(self.options, 'defaultType')
+        marketType = self.safe_string(trade, 'market_type')
+        defaultType = 'spot' if (marketType is None) else 'swap'
         market = self.safe_market(marketId, market, None, defaultType)
-        symbol = self.safe_symbol(marketId, market, None, defaultType)
+        symbol = market['symbol']
         costString = self.safe_string(trade, 'deal_money')
         fee = None
         feeCostString = self.safe_string_2(trade, 'fee', 'deal_fee')
@@ -2433,11 +2447,17 @@ class coinex(Exchange, ImplicitAPI):
         cancels an open order
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade024_cancel_order_by_client_id
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade025_cancel_stop_order_by_client_id
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http023_cancel_stop_order
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021_cancel_order
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http042_cancel_order_by_client_id
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http043_cancel_stop_order_by_client_id
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: client order id, defaults to id if not passed
+        :param boolean [params.stop]: if stop order = True, default = False
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -2449,26 +2469,40 @@ class coinex(Exchange, ImplicitAPI):
         request = {
             'market': market['id'],
         }
-        idRequest = 'order_id' if swap else 'id'
-        request[idRequest] = id
         accountId = self.safe_integer(params, 'account_id')
         defaultType = self.safe_string(self.options, 'defaultType')
+        clientOrderId = self.safe_string_2(params, 'client_id', 'clientOrderId')
         if defaultType == 'margin':
             if accountId is None:
                 raise BadRequest(self.id + ' cancelOrder() requires an account_id parameter for margin orders')
             request['account_id'] = accountId
-        query = self.omit(params, ['stop', 'account_id'])
+        query = self.omit(params, ['stop', 'account_id', 'clientOrderId'])
         response = None
-        if stop:
-            if swap:
-                response = self.perpetualPrivatePostOrderCancelStop(self.extend(request, query))
+        if clientOrderId is not None:
+            request['client_id'] = clientOrderId
+            if stop:
+                if swap:
+                    response = self.perpetualPrivatePostOrderCancelStopByClientId(self.extend(request, query))
+                else:
+                    response = self.privateDeleteOrderStopPendingByClientId(self.extend(request, query))
             else:
-                response = self.privateDeleteOrderStopPendingId(self.extend(request, query))
+                if swap:
+                    response = self.perpetualPrivatePostOrderCancelByClientId(self.extend(request, query))
+                else:
+                    response = self.privateDeleteOrderPendingByClientId(self.extend(request, query))
         else:
-            if swap:
-                response = self.perpetualPrivatePostOrderCancel(self.extend(request, query))
+            idRequest = 'order_id' if swap else 'id'
+            request[idRequest] = id
+            if stop:
+                if swap:
+                    response = self.perpetualPrivatePostOrderCancelStop(self.extend(request, query))
+                else:
+                    response = self.privateDeleteOrderStopPendingId(self.extend(request, query))
             else:
-                response = self.privateDeleteOrderPending(self.extend(request, query))
+                if swap:
+                    response = self.perpetualPrivatePostOrderCancel(self.extend(request, query))
+                else:
+                    response = self.privateDeleteOrderPending(self.extend(request, query))
         #
         # Spot and Margin
         #
@@ -2989,7 +3023,7 @@ class coinex(Exchange, ImplicitAPI):
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade012_finished_order
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -3150,14 +3184,10 @@ class coinex(Exchange, ImplicitAPI):
             params = self.omit(params, 'account_id')
         response = None
         if swap:
-            side = self.safe_integer(params, 'side')
-            if side is None:
-                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a side parameter for swap markets')
             if since is not None:
                 request['start_time'] = since
-            request['side'] = side
-            params = self.omit(params, 'side')
-            response = self.perpetualPublicGetMarketUserDeals(self.extend(request, params))
+            request['side'] = 0
+            response = self.perpetualPrivateGetMarketUserDeals(self.extend(request, params))
         else:
             request['page'] = 1
             response = self.privateGetOrderUserDeals(self.extend(request, params))
@@ -4965,7 +4995,7 @@ class coinex(Exchange, ImplicitAPI):
                     defaultId = 'x-167673045'
                     brokerId = self.safe_value(self.options, 'brokerId', defaultId)
                     query['client_id'] = brokerId + '_' + self.uuid16()
-        if api == 'perpetualPrivate' or url == 'https://api.coinex.com/perpetual/v1/market/user_deals':
+        if api == 'perpetualPrivate':
             self.check_required_credentials()
             query = self.extend({
                 'access_id': self.apiKey,
