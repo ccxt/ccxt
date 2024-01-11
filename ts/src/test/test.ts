@@ -41,9 +41,9 @@ const filetered_args = findArgv (argv, '--', false);
 const symbol_args   = findArgv (filetered_args, '/', true);
 const method_args   = findArgv (filetered_args, '()', true);
 const exchange_args = findArgv (findArgv (filetered_args, '/', false), '()', false);
-const argvSymbol   = symbol_args.length ? symbol_args[0] : null;
-const argvMethod   = method_args.length ? method_args[0] : null;
-const argvExchange = exchange_args.length ? exchange_args[0] : null;
+const argvSymbol   = symbol_args.length ? symbol_args[0] : undefined;
+const argvMethod   = method_args.length ? method_args[0] : undefined;
+const argvExchange = exchange_args.length ? exchange_args[0] : undefined;
 
 // non-transpiled part, but shared names among langs
 function getCliArgValue (arg) {
