@@ -444,12 +444,12 @@ export default class okx extends okxRest {
         const timeframe = this.findTimeframe (interval);
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseOHLCV (data[i], market);
-            this.ohlcvs[safeMarketId] = this.safeValue (this.ohlcvs, safeMarketId, {});
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, safeMarketId, {});
             let stored = this.safeValue (this.ohlcvs[safeMarketId], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[safeMarketId][timeframe] = stored;
+                this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
             const messageHash = channel + ':' + symbol;
