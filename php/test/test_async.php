@@ -56,7 +56,6 @@ $argvMethod   = !empty($method_args) ? $method_args[0] : null;
 $argvExchange = !empty($exchange_args) ? $exchange_args[0] : null; // this should be different than JS
 
 // non-transpiled part, but shared names among langs
-var_dump($argv);
 function get_cli_arg_value ($arg) {
     return in_array($arg, $GLOBALS['argv']);
 }
