@@ -1101,11 +1101,10 @@ class coinlist extends Exchange {
         //         "net_liquidation_value_usd" => "string"
         //     }
         //
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         $totalBalances = $this->safe_value($response, 'asset_balances', array());
         $usedBalances = $this->safe_value($response, 'asset_holds', array());

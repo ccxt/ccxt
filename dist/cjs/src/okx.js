@@ -2587,6 +2587,8 @@ class okx extends okx$1 {
         const stopLossDefined = (stopLoss !== undefined);
         const takeProfit = this.safeValue(params, 'takeProfit');
         const takeProfitDefined = (takeProfit !== undefined);
+        const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRatio');
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         const defaultMarginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2(params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the request
         let margin = false;
@@ -2619,7 +2621,7 @@ class okx extends okx$1 {
         const isMarketOrder = type === 'market';
         let postOnly = false;
         [postOnly, params] = this.handlePostOnly(isMarketOrder, type === 'post_only', params);
-        params = this.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit']);
+        params = this.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent']);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
@@ -2678,7 +2680,12 @@ class okx extends okx$1 {
         else if (fok) {
             request['ordType'] = 'fok';
         }
-        if (stopLossDefined || takeProfitDefined) {
+        if (isTrailingPercentOrder) {
+            const convertedTrailingPercent = Precise["default"].stringDiv(trailingPercent, '100');
+            request['callbackRatio'] = convertedTrailingPercent;
+            request['ordType'] = 'move_order_stop';
+        }
+        else if (stopLossDefined || takeProfitDefined) {
             if (stopLossDefined) {
                 const stopLossTriggerPrice = this.safeValueN(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx']);
                 if (stopLossTriggerPrice === undefined) {
@@ -2822,6 +2829,7 @@ class okx extends okx$1 {
          * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
          * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
          * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
+         * @param {string} [params.trailingPercent] the percent to trail away from the current market price
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2829,7 +2837,7 @@ class okx extends okx$1 {
         let request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let method = this.safeString(this.options, 'createOrder', 'privatePostTradeBatchOrders');
         const requestOrdType = this.safeString(request, 'ordType');
-        if ((requestOrdType === 'trigger') || (requestOrdType === 'conditional') || (type === 'oco') || (type === 'move_order_stop') || (type === 'iceberg') || (type === 'twap')) {
+        if ((requestOrdType === 'trigger') || (requestOrdType === 'conditional') || (requestOrdType === 'move_order_stop') || (type === 'move_order_stop') || (type === 'oco') || (type === 'iceberg') || (type === 'twap')) {
             method = 'privatePostTradeOrderAlgo';
         }
         if ((method !== 'privatePostTradeOrder') && (method !== 'privatePostTradeOrderAlgo') && (method !== 'privatePostTradeBatchOrders')) {
@@ -3026,17 +3034,20 @@ class okx extends okx$1 {
          * @name okx#cancelOrder
          * @description cancels an open order
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-order
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] true if trigger orders
+         * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        if (stop) {
+        const trailing = this.safeValue(params, 'trailing', false);
+        if (stop || trailing) {
             const orderInner = await this.cancelOrders([id], symbol, params);
             return this.safeValue(orderInner, 0);
         }
@@ -3087,6 +3098,7 @@ class okx extends okx$1 {
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] whether the order is a stop/trigger order
+         * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
@@ -3102,7 +3114,8 @@ class okx extends okx$1 {
         const clientOrderIds = this.parseIds(this.safeValue2(params, 'clOrdId', 'clientOrderId'));
         const algoIds = this.parseIds(this.safeValue(params, 'algoId'));
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        if (stop) {
+        const trailing = this.safeValue(params, 'trailing', false);
+        if (stop || trailing) {
             method = 'privatePostTradeCancelAlgos';
         }
         if (clientOrderIds === undefined) {
@@ -3116,7 +3129,7 @@ class okx extends okx$1 {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (stop) {
+                if (trailing || stop) {
                     request.push({
                         'algoId': ids[i],
                         'instId': market['id'],
@@ -3555,7 +3568,6 @@ class okx extends okx$1 {
         /**
          * @method
          * @name okx#fetchOpenOrders
-         * @description Fetch orders that are still open
          * @description fetch all unfilled currently open orders
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-list
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-list
@@ -3568,6 +3580,7 @@ class okx extends okx$1 {
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -3600,15 +3613,21 @@ class okx extends okx$1 {
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        if (stop || (ordType in algoOrderTypes)) {
+        const trailing = this.safeValue(params, 'trailing', false);
+        if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoPending';
+        }
+        if (trailing) {
+            request['ordType'] = 'move_order_stop';
+        }
+        else if (stop || (ordType in algoOrderTypes)) {
             if (stop) {
                 if (ordType === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
             }
         }
-        const query = this.omit(params, ['method', 'stop', 'trigger']);
+        const query = this.omit(params, ['method', 'stop', 'trigger', 'trailing']);
         let response = undefined;
         if (method === 'privateGetTradeOrdersAlgoPending') {
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, query));
@@ -3729,6 +3748,7 @@ class okx extends okx$1 {
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {int} [params.until] timestamp in ms to fetch orders for
+         * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -3762,7 +3782,12 @@ class okx extends okx$1 {
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        if (stop || (ordType in algoOrderTypes)) {
+        const trailing = this.safeValue(params, 'trailing', false);
+        if (trailing) {
+            method = 'privateGetTradeOrdersAlgoHistory';
+            request['ordType'] = 'move_order_stop';
+        }
+        else if (stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoHistory';
             const algoId = this.safeString(params, 'algoId');
             if (algoId !== undefined) {
@@ -3773,7 +3798,6 @@ class okx extends okx$1 {
                 if (ordType === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
-                request['ordType'] = ordType;
             }
         }
         else {
@@ -3786,7 +3810,7 @@ class okx extends okx$1 {
                 query = this.omit(query, ['until', 'till']);
             }
         }
-        const send = this.omit(query, ['method', 'stop', 'ordType', 'trigger']);
+        const send = this.omit(query, ['method', 'stop', 'trigger', 'trailing']);
         let response = undefined;
         if (method === 'privateGetTradeOrdersAlgoHistory') {
             response = await this.privateGetTradeOrdersAlgoHistory(this.extend(request, send));
@@ -3903,6 +3927,7 @@ class okx extends okx$1 {
          * @description fetches information on multiple closed orders made by the user
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-3-months
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3912,6 +3937,8 @@ class okx extends okx$1 {
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {int} [params.until] timestamp in ms to fetch orders for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {string} [params.method] method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
+         * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -3949,14 +3976,20 @@ class okx extends okx$1 {
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        if (stop || (ordType in algoOrderTypes)) {
+        const trailing = this.safeValue(params, 'trailing', false);
+        if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoHistory';
+            request['state'] = 'effective';
+        }
+        if (trailing) {
+            request['ordType'] = 'move_order_stop';
+        }
+        else if (stop || (ordType in algoOrderTypes)) {
             if (stop) {
                 if (ordType === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
             }
-            request['state'] = 'effective';
         }
         else {
             if (since !== undefined) {
@@ -3969,10 +4002,13 @@ class okx extends okx$1 {
             }
             request['state'] = 'filled';
         }
-        const send = this.omit(query, ['method', 'stop', 'trigger']);
+        const send = this.omit(query, ['method', 'stop', 'trigger', 'trailing']);
         let response = undefined;
         if (method === 'privateGetTradeOrdersAlgoHistory') {
             response = await this.privateGetTradeOrdersAlgoHistory(this.extend(request, send));
+        }
+        else if (method === 'privateGetTradeOrdersHistoryArchive') {
+            response = await this.privateGetTradeOrdersHistoryArchive(this.extend(request, send));
         }
         else {
             response = await this.privateGetTradeOrdersHistory(this.extend(request, send));

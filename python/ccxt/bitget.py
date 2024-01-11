@@ -64,6 +64,7 @@ class bitget(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createOrders': True,
                 'createReduceOnlyOrder': False,
+                'createTrailingPercentOrder': True,
                 'editOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
@@ -3159,23 +3160,31 @@ class bitget(Exchange, ImplicitAPI):
             'granularity': selectedTimeframe,
         }
         request, params = self.handle_until_option('endTime', request, params)
-        if since is not None:
-            request['startTime'] = limit
         if limit is not None:
             request['limit'] = limit
         options = self.safe_value(self.options, 'fetchOHLCV', {})
+        spotOptions = self.safe_value(options, 'spot', {})
+        defaultSpotMethod = self.safe_string(spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles')
+        method = self.safe_string(params, 'method', defaultSpotMethod)
+        params = self.omit(params, 'method')
+        if method != 'publicSpotGetV2SpotMarketHistoryCandles':
+            if since is not None:
+                request['startTime'] = since
         response = None
         if market['spot']:
-            spotOptions = self.safe_value(options, 'spot', {})
-            defaultSpotMethod = self.safe_string(spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles')
-            method = self.safe_string(params, 'method', defaultSpotMethod)
-            params = self.omit(params, 'method')
             if method == 'publicSpotGetV2SpotMarketCandles':
                 response = self.publicSpotGetV2SpotMarketCandles(self.extend(request, params))
             elif method == 'publicSpotGetV2SpotMarketHistoryCandles':
                 until = self.safe_integer_2(params, 'until', 'till')
                 params = self.omit(params, ['until', 'till'])
-                if until is None:
+                if since is not None:
+                    if limit is None:
+                        limit = 100  # exchange default
+                    duration = self.parse_timeframe(timeframe) * 1000
+                    request['endTime'] = self.sum(since, duration * limit)
+                elif until is not None:
+                    request['endTime'] = until
+                else:
                     request['endTime'] = self.milliseconds()
                 response = self.publicSpotGetV2SpotMarketHistoryCandles(self.extend(request, params))
         else:
@@ -3853,6 +3862,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.trailingPercent]: *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
         :param str [params.trailingTriggerPrice]: *swap and future only* the price to trigger a trailing stop order, default uses the price argument
         :param str [params.triggerType]: *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+        :param boolean [params.oneWayMode]: *swap and future only* required to set self to True in one_way_mode and you can leave self in hedge_mode, can adjust the mode using the setPositionMode() method
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -4012,14 +4022,19 @@ class bitget(Exchange, ImplicitAPI):
                     marginMode = 'cross'
                 marginModeRequest = 'crossed' if (marginMode == 'cross') else 'isolated'
                 request['marginMode'] = marginModeRequest
+                oneWayMode = self.safe_value(params, 'oneWayMode', False)
+                params = self.omit(params, 'oneWayMode')
                 requestSide = side
                 if reduceOnly:
-                    request['reduceOnly'] = 'YES'
-                    request['tradeSide'] = 'Close'
-                    # on bitget if the position is long the side is always buy, and if the position is short the side is always sell
-                    requestSide = 'sell' if (side == 'buy') else 'buy'
+                    if oneWayMode:
+                        request['reduceOnly'] = 'YES'
+                    else:
+                        # on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
+                        requestSide = 'sell' if (side == 'buy') else 'buy'
+                        request['tradeSide'] = 'Close'
                 else:
-                    request['tradeSide'] = 'Open'
+                    if not oneWayMode:
+                        request['tradeSide'] = 'Open'
                 request['side'] = requestSide
         elif marketType == 'spot':
             if isStopLossOrTakeProfitTrigger or isStopLossOrTakeProfit:

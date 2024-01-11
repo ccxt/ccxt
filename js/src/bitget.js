@@ -43,6 +43,7 @@ export default class bitget extends Exchange {
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
+                'createTrailingPercentOrder': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': false,
@@ -3276,26 +3277,38 @@ export default class bitget extends Exchange {
             'granularity': selectedTimeframe,
         };
         [request, params] = this.handleUntilOption('endTime', request, params);
-        if (since !== undefined) {
-            request['startTime'] = limit;
-        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const options = this.safeValue(this.options, 'fetchOHLCV', {});
+        const spotOptions = this.safeValue(options, 'spot', {});
+        const defaultSpotMethod = this.safeString(spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
+        const method = this.safeString(params, 'method', defaultSpotMethod);
+        params = this.omit(params, 'method');
+        if (method !== 'publicSpotGetV2SpotMarketHistoryCandles') {
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+        }
         let response = undefined;
         if (market['spot']) {
-            const spotOptions = this.safeValue(options, 'spot', {});
-            const defaultSpotMethod = this.safeString(spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
-            const method = this.safeString(params, 'method', defaultSpotMethod);
-            params = this.omit(params, 'method');
             if (method === 'publicSpotGetV2SpotMarketCandles') {
                 response = await this.publicSpotGetV2SpotMarketCandles(this.extend(request, params));
             }
             else if (method === 'publicSpotGetV2SpotMarketHistoryCandles') {
                 const until = this.safeInteger2(params, 'until', 'till');
                 params = this.omit(params, ['until', 'till']);
-                if (until === undefined) {
+                if (since !== undefined) {
+                    if (limit === undefined) {
+                        limit = 100; // exchange default
+                    }
+                    const duration = this.parseTimeframe(timeframe) * 1000;
+                    request['endTime'] = this.sum(since, duration * limit);
+                }
+                else if (until !== undefined) {
+                    request['endTime'] = until;
+                }
+                else {
                     request['endTime'] = this.milliseconds();
                 }
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, params));
@@ -4011,6 +4024,7 @@ export default class bitget extends Exchange {
          * @param {string} [params.trailingPercent] *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
          * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
          * @param {string} [params.triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+         * @param {boolean} [params.oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -4204,15 +4218,23 @@ export default class bitget extends Exchange {
                 }
                 const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
+                const oneWayMode = this.safeValue(params, 'oneWayMode', false);
+                params = this.omit(params, 'oneWayMode');
                 let requestSide = side;
                 if (reduceOnly) {
-                    request['reduceOnly'] = 'YES';
-                    request['tradeSide'] = 'Close';
-                    // on bitget if the position is long the side is always buy, and if the position is short the side is always sell
-                    requestSide = (side === 'buy') ? 'sell' : 'buy';
+                    if (oneWayMode) {
+                        request['reduceOnly'] = 'YES';
+                    }
+                    else {
+                        // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
+                        requestSide = (side === 'buy') ? 'sell' : 'buy';
+                        request['tradeSide'] = 'Close';
+                    }
                 }
                 else {
-                    request['tradeSide'] = 'Open';
+                    if (!oneWayMode) {
+                        request['tradeSide'] = 'Open';
+                    }
                 }
                 request['side'] = requestSide;
             }

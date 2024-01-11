@@ -445,6 +445,7 @@ class gate(Exchange, ImplicitAPI):
                             '{settle}/orders': 0.4,
                             '{settle}/batch_orders': 0.4,
                             '{settle}/countdown_cancel_all': 0.4,
+                            '{settle}/batch_cancel_orders': 0.4,
                             '{settle}/price_orders': 0.4,
                         },
                         'put': {
@@ -535,11 +536,21 @@ class gate(Exchange, ImplicitAPI):
                             'collateral/total_amount': 20 / 15,
                             'collateral/ltv': 20 / 15,
                             'collateral/currencies': 20 / 15,
+                            'multi_collateral/orders': 20 / 15,
+                            'multi_collateral/orders/{order_id}': 20 / 15,
+                            'multi_collateral/repay': 20 / 15,
+                            'multi_collateral/mortgage': 20 / 15,
+                            'multi_collateral/currency_quota': 20 / 15,
+                            'multi_collateral/currencies': 20 / 15,
+                            'multi_collateral/ltv': 20 / 15,
                         },
                         'post': {
                             'collateral/orders': 20 / 15,
                             'collateral/repay': 20 / 15,
                             'collateral/collaterals': 20 / 15,
+                            'multi_collateral/orders': 20 / 15,
+                            'multi_collateral/repay': 20 / 15,
+                            'multi_collateral/mortgage': 20 / 15,
                         },
                     },
                     'account': {
@@ -4783,11 +4794,19 @@ class gate(Exchange, ImplicitAPI):
         return self.parse_transfer(response, currency)
 
     def parse_transfer(self, transfer, currency: Currency = None):
-        timestamp = self.milliseconds()
+        #
+        #    {
+        #        "currency": "BTC",
+        #        "from": "spot",
+        #        "to": "margin",
+        #        "amount": "1",
+        #        "currency_pair": "BTC_USDT"
+        #    }
+        #
         return {
             'id': self.safe_string(transfer, 'tx_id'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'currency': self.safe_currency_code(None, currency),
             'amount': None,
             'fromAccount': None,

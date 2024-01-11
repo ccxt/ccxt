@@ -50,6 +50,7 @@ class bitget extends Exchange {
                 'createOrder' => true,
                 'createOrders' => true,
                 'createReduceOnlyOrder' => false,
+                'createTrailingPercentOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
@@ -3271,25 +3272,35 @@ class bitget extends Exchange {
                 'granularity' => $selectedTimeframe,
             );
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            if ($since !== null) {
-                $request['startTime'] = $limit;
-            }
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
             $options = $this->safe_value($this->options, 'fetchOHLCV', array());
+            $spotOptions = $this->safe_value($options, 'spot', array());
+            $defaultSpotMethod = $this->safe_string($spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
+            $method = $this->safe_string($params, 'method', $defaultSpotMethod);
+            $params = $this->omit($params, 'method');
+            if ($method !== 'publicSpotGetV2SpotMarketHistoryCandles') {
+                if ($since !== null) {
+                    $request['startTime'] = $since;
+                }
+            }
             $response = null;
             if ($market['spot']) {
-                $spotOptions = $this->safe_value($options, 'spot', array());
-                $defaultSpotMethod = $this->safe_string($spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
-                $method = $this->safe_string($params, 'method', $defaultSpotMethod);
-                $params = $this->omit($params, 'method');
                 if ($method === 'publicSpotGetV2SpotMarketCandles') {
                     $response = Async\await($this->publicSpotGetV2SpotMarketCandles (array_merge($request, $params)));
                 } elseif ($method === 'publicSpotGetV2SpotMarketHistoryCandles') {
                     $until = $this->safe_integer_2($params, 'until', 'till');
                     $params = $this->omit($params, array( 'until', 'till' ));
-                    if ($until === null) {
+                    if ($since !== null) {
+                        if ($limit === null) {
+                            $limit = 100; // exchange default
+                        }
+                        $duration = $this->parse_timeframe($timeframe) * 1000;
+                        $request['endTime'] = $this->sum($since, $duration * $limit);
+                    } elseif ($until !== null) {
+                        $request['endTime'] = $until;
+                    } else {
                         $request['endTime'] = $this->milliseconds();
                     }
                     $response = Async\await($this->publicSpotGetV2SpotMarketHistoryCandles (array_merge($request, $params)));
@@ -3999,6 +4010,7 @@ class bitget extends Exchange {
              * @param {string} [$params->trailingPercent] *swap and future only* the percent to trail away from the current $market $price, rate can not be greater than 10
              * @param {string} [$params->trailingTriggerPrice] *swap and future only* the $price to trigger a trailing stop order, default uses the $price argument
              * @param {string} [$params->triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+             * @param {boolean} [$params->oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this in hedge_mode, can adjust the mode using the setPositionMode() method
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -4180,14 +4192,21 @@ class bitget extends Exchange {
                 }
                 $marginModeRequest = ($marginMode === 'cross') ? 'crossed' : 'isolated';
                 $request['marginMode'] = $marginModeRequest;
+                $oneWayMode = $this->safe_value($params, 'oneWayMode', false);
+                $params = $this->omit($params, 'oneWayMode');
                 $requestSide = $side;
                 if ($reduceOnly) {
-                    $request['reduceOnly'] = 'YES';
-                    $request['tradeSide'] = 'Close';
-                    // on bitget if the position is long the $side is always buy, and if the position is short the $side is always sell
-                    $requestSide = ($side === 'buy') ? 'sell' : 'buy';
+                    if ($oneWayMode) {
+                        $request['reduceOnly'] = 'YES';
+                    } else {
+                        // on bitget hedge mode if the position is long the $side is always buy, and if the position is short the $side is always sell
+                        $requestSide = ($side === 'buy') ? 'sell' : 'buy';
+                        $request['tradeSide'] = 'Close';
+                    }
                 } else {
-                    $request['tradeSide'] = 'Open';
+                    if (!$oneWayMode) {
+                        $request['tradeSide'] = 'Open';
+                    }
                 }
                 $request['side'] = $requestSide;
             }

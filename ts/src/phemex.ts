@@ -442,6 +442,7 @@ export default class phemex extends Exchange {
                     '35104': InsufficientFunds, // {"code":35104,"msg":"phemex.spot.wallet.balance.notenough","data":null}
                     '39995': RateLimitExceeded, // {"code": "39995","msg": "Too many requests."}
                     '39996': PermissionDenied, // {"code": "39996","msg": "Access denied."}
+                    '39997': BadSymbol, // {"code":39997,"msg":"Symbol not listed sMOVRUSDT","data":null}
                 },
                 'broad': {
                     '401 Insufficient privilege': PermissionDenied, // {"code": "401","msg": "401 Insufficient privilege."}
@@ -453,7 +454,7 @@ export default class phemex extends Exchange {
                 },
             },
             'options': {
-                'brokerId': 'ccxt2022',
+                'brokerId': 'CCXT123456', // updated from CCXT to CCXT123456
                 'x-phemex-request-expiry': 60, // in seconds
                 'createOrderByQuoteRequiresPrice': true,
                 'networks': {
@@ -1494,7 +1495,7 @@ export default class phemex extends Exchange {
         let response = undefined;
         if (type === 'spot') {
             response = await this.v1GetMdSpotTicker24hrAll (query);
-        } else if (subType === 'inverse' || market['settle'] === 'USD') {
+        } else if (subType === 'inverse' || this.safeString (market, 'settle') === 'USD') {
             response = await this.v1GetMdTicker24hrAll (query);
         } else {
             response = await this.v2GetMdV2Ticker24hrAll (query);
@@ -2487,7 +2488,7 @@ export default class phemex extends Exchange {
         const takeProfit = this.safeValue (params, 'takeProfit');
         const takeProfitDefined = (takeProfit !== undefined);
         if (clientOrderId === undefined) {
-            const brokerId = this.safeString (this.options, 'brokerId');
+            const brokerId = this.safeString (this.options, 'brokerId', 'CCXT123456');
             if (brokerId !== undefined) {
                 request['clOrdID'] = brokerId + this.uuid16 ();
             }
@@ -4255,6 +4256,13 @@ export default class phemex extends Exchange {
             };
             let payload = '';
             if (method === 'POST') {
+                const isOrderPlacement = (path === 'g-orders') || (path === 'spot/orders') || (path === 'orders');
+                if (isOrderPlacement) {
+                    if (this.safeString (params, 'clOrdID') === undefined) {
+                        const id = this.safeString (this.options, 'brokerId', 'CCXT123456');
+                        params['clOrdID'] = id + this.uuid16 ();
+                    }
+                }
                 payload = this.json (params);
                 body = payload;
                 headers['Content-Type'] = 'application/json';

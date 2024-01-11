@@ -41,6 +41,7 @@ export default class kraken extends Exchange {
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
+                'createTrailingAmountOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
@@ -754,7 +755,7 @@ export default class kraken extends Exchange {
             'tierBased': true,
         };
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
         const timestamp = this.safeInteger(bidask, 2);

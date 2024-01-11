@@ -33,10 +33,10 @@ class bigone(Exchange, ImplicitAPI):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': False,
                 'swap': None,  # has but unimplemented
                 'future': None,  # has but unimplemented
-                'option': None,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketBuyOrderWithCost': True,
@@ -90,6 +90,8 @@ class bigone(Exchange, ImplicitAPI):
                 'api': {
                     'public': 'https://{hostname}/api/v3',
                     'private': 'https://{hostname}/api/v3/viewer',
+                    'contractPublic': 'https://{hostname}/api/contract/v2',
+                    'contractPrivate': 'https://{hostname}/api/contract/v2',
                     'webExchange': 'https://{hostname}/api/',
                 },
                 'www': 'https://big.one',
@@ -127,6 +129,38 @@ class bigone(Exchange, ImplicitAPI):
                         'orders/cancel',
                         'withdrawals',
                         'transfer',
+                    ],
+                },
+                'contractPublic': {
+                    'get': [
+                        'instruments',
+                        'depth@{symbol}/snapshot',
+                        'instruments/difference',
+                        'instruments/prices',
+                    ],
+                },
+                'contractPrivate': {
+                    'get': [
+                        'accounts',
+                        'orders/{id}',
+                        'orders',
+                        'orders/opening',
+                        'orders/count',
+                        'orders/opening/count',
+                        'trades',
+                        'trades/count',
+                    ],
+                    'post': [
+                        'orders',
+                        'orders/batch',
+                    ],
+                    'put': [
+                        'positions/{symbol}/margin',
+                        'positions/{symbol}/risk-limit',
+                    ],
+                    'delete': [
+                        'orders/{id}',
+                        'orders/batch',
                     ],
                 },
                 'webExchange': {
@@ -514,93 +548,212 @@ class bigone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
+        contractResponse = self.contractPublicGetInstruments(params)
+        #
+        #    [
+        #        {
+        #            "usdtPrice": 1.00031998,
+        #            "symbol": "BTCUSD",
+        #            "btcPrice": 34700.4,
+        #            "ethPrice": 1787.83,
+        #            "nextFundingRate": 0.00010,
+        #            "fundingRate": 0.00010,
+        #            "latestPrice": 34708.5,
+        #            "last24hPriceChange": 0.0321,
+        #            "indexPrice": 34700.4,
+        #            "volume24h": 261319063,
+        #            "turnover24h": 8204.129380685496,
+        #            "nextFundingTime": 1698285600000,
+        #            "markPrice": 34702.4646738,
+        #            "last24hMaxPrice": 35127.5,
+        #            "volume24hInUsd": 0.0,
+        #            "openValue": 32.88054722085945,
+        #            "last24hMinPrice": 33552.0,
+        #            "openInterest": 1141372.0
+        #        }
+        #        ...
+        #    ]
+        #
         markets = self.safe_value(response, 'data', [])
-        return self.parse_markets(markets)
-
-    def parse_market(self, market) -> Market:
-        id = self.safe_string(market, 'name')
-        baseAsset = self.safe_value(market, 'base_asset', {})
-        quoteAsset = self.safe_value(market, 'quote_asset', {})
-        baseId = self.safe_string(baseAsset, 'symbol')
-        quoteId = self.safe_string(quoteAsset, 'symbol')
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        return {
-            'id': id,
-            'symbol': base + '/' + quote,
-            'base': base,
-            'quote': quote,
-            'settle': None,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'settleId': None,
-            'type': 'spot',
-            'spot': True,
-            'margin': False,
-            'swap': False,
-            'future': False,
-            'option': False,
-            'active': True,
-            'contract': False,
-            'linear': None,
-            'inverse': None,
-            'contractSize': None,
-            'expiry': None,
-            'expiryDatetime': None,
-            'strike': None,
-            'optionType': None,
-            'precision': {
-                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'base_scale'))),
-                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quote_scale'))),
-            },
-            'limits': {
-                'leverage': {
-                    'min': None,
-                    'max': None,
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            baseAsset = self.safe_value(market, 'base_asset', {})
+            quoteAsset = self.safe_value(market, 'quote_asset', {})
+            baseId = self.safe_string(baseAsset, 'symbol')
+            quoteId = self.safe_string(quoteAsset, 'symbol')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            result.append(self.safe_market_structure({
+                'id': self.safe_string(market, 'name'),
+                'uuid': self.safe_string(market, 'id'),
+                'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
+                'type': 'spot',
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': True,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'base_scale'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quote_scale'))),
                 },
-                'amount': {
-                    'min': None,
-                    'max': None,
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'min_quote_value'),
+                        'max': self.safe_number(market, 'max_quote_value'),
+                    },
                 },
-                'price': {
-                    'min': None,
-                    'max': None,
+                'created': None,
+                'info': market,
+            }))
+        for i in range(0, len(contractResponse)):
+            market = contractResponse[i]
+            marketId = self.safe_string(market, 'symbol')
+            index = marketId.find('USD')
+            baseId = marketId[0:index]
+            quoteId = marketId[index:]
+            inverse = (quoteId == 'USD')
+            settleId = baseId if inverse else quoteId
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            settle = self.safe_currency_code(settleId)
+            result.append(self.safe_market_structure({
+                'id': marketId,
+                'symbol': base + '/' + quote + ':' + settle,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': False,
+                'margin': False,
+                'swap': True,
+                'future': False,
+                'option': False,
+                'active': True,
+                'contract': True,
+                'linear': not inverse,
+                'inverse': inverse,
+                'contractSize': 1,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': None,
+                    'price': None,
                 },
-                'cost': {
-                    'min': self.safe_number(market, 'min_quote_value'),
-                    'max': self.safe_number(market, 'max_quote_value'),
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
                 },
-            },
-            'created': None,
-            'info': market,
-        }
+                'info': market,
+            }))
+        return result
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
-        #     {
-        #         "asset_pair_name":"ETH-BTC",
-        #         "bid":{"price":"0.021593","order_count":1,"quantity":"0.20936"},
-        #         "ask":{"price":"0.021613","order_count":1,"quantity":"2.87064"},
-        #         "open":"0.021795",
-        #         "high":"0.021795",
-        #         "low":"0.021471",
-        #         "close":"0.021613",
-        #         "volume":"117078.90431",
-        #         "daily_change":"-0.000182"
-        #     }
+        # spot
         #
-        marketId = self.safe_string(ticker, 'asset_pair_name')
-        symbol = self.safe_symbol(marketId, market, '-')
-        timestamp = None
-        close = self.safe_string(ticker, 'close')
+        #    {
+        #        "asset_pair_name": "ETH-BTC",
+        #        "bid": {
+        #            "price": "0.021593",
+        #            "order_count": 1,
+        #            "quantity": "0.20936"
+        #        },
+        #        "ask": {
+        #            "price": "0.021613",
+        #            "order_count": 1,
+        #            "quantity": "2.87064"
+        #        },
+        #        "open": "0.021795",
+        #        "high": "0.021795",
+        #        "low": "0.021471",
+        #        "close": "0.021613",
+        #        "volume": "117078.90431",
+        #        "daily_change": "-0.000182"
+        #    }
+        #
+        # contract
+        #
+        #    {
+        #        "usdtPrice": 1.00031998,
+        #        "symbol": "BTCUSD",
+        #        "btcPrice": 34700.4,
+        #        "ethPrice": 1787.83,
+        #        "nextFundingRate": 0.00010,
+        #        "fundingRate": 0.00010,
+        #        "latestPrice": 34708.5,
+        #        "last24hPriceChange": 0.0321,
+        #        "indexPrice": 34700.4,
+        #        "volume24h": 261319063,
+        #        "turnover24h": 8204.129380685496,
+        #        "nextFundingTime": 1698285600000,
+        #        "markPrice": 34702.4646738,
+        #        "last24hMaxPrice": 35127.5,
+        #        "volume24hInUsd": 0.0,
+        #        "openValue": 32.88054722085945,
+        #        "last24hMinPrice": 33552.0,
+        #        "openInterest": 1141372.0
+        #    }
+        #
+        marketType = 'spot' if ('asset_pair_name' in ticker) else 'swap'
+        marketId = self.safe_string_2(ticker, 'asset_pair_name', 'symbol')
+        symbol = self.safe_symbol(marketId, market, '-', marketType)
+        close = self.safe_string_2(ticker, 'close', 'latestPrice')
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'high'),
-            'low': self.safe_string(ticker, 'low'),
+            'timestamp': None,
+            'datetime': None,
+            'high': self.safe_string_2(ticker, 'high', 'last24hMaxPrice'),
+            'low': self.safe_string_2(ticker, 'low', 'last24hMinPrice'),
             'bid': self.safe_string(bid, 'price'),
             'bidVolume': self.safe_string(bid, 'quantity'),
             'ask': self.safe_string(ask, 'price'),
@@ -610,11 +763,11 @@ class bigone(Exchange, ImplicitAPI):
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': self.safe_string(ticker, 'daily_change'),
+            'change': self.safe_string_2(ticker, 'daily_change', 'last24hPriceChange'),
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'volume'),
-            'quoteVolume': None,
+            'baseVolume': self.safe_string_2(ticker, 'volume', 'volume24h'),
+            'quoteVolume': self.safe_string(ticker, 'volume24hInUsd'),
             'info': ticker,
         }, market)
 
@@ -627,79 +780,115 @@ class bigone(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
-            'asset_pair_name': market['id'],
-        }
-        response = self.publicGetAssetPairsAssetPairNameTicker(self.extend(request, params))
-        #
-        #     {
-        #         "code":0,
-        #         "data":{
-        #             "asset_pair_name":"ETH-BTC",
-        #             "bid":{"price":"0.021593","order_count":1,"quantity":"0.20936"},
-        #             "ask":{"price":"0.021613","order_count":1,"quantity":"2.87064"},
-        #             "open":"0.021795",
-        #             "high":"0.021795",
-        #             "low":"0.021471",
-        #             "close":"0.021613",
-        #             "volume":"117078.90431",
-        #             "daily_change":"-0.000182"
-        #         }
-        #     }
-        #
-        ticker = self.safe_value(response, 'data', {})
-        return self.parse_ticker(ticker, market)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTicker', market, params)
+        if type == 'spot':
+            request = {
+                'asset_pair_name': market['id'],
+            }
+            response = self.publicGetAssetPairsAssetPairNameTicker(self.extend(request, params))
+            #
+            #     {
+            #         "code":0,
+            #         "data":{
+            #             "asset_pair_name":"ETH-BTC",
+            #             "bid":{"price":"0.021593","order_count":1,"quantity":"0.20936"},
+            #             "ask":{"price":"0.021613","order_count":1,"quantity":"2.87064"},
+            #             "open":"0.021795",
+            #             "high":"0.021795",
+            #             "low":"0.021471",
+            #             "close":"0.021613",
+            #             "volume":"117078.90431",
+            #             "daily_change":"-0.000182"
+            #         }
+            #     }
+            #
+            ticker = self.safe_value(response, 'data', {})
+            return self.parse_ticker(ticker, market)
+        else:
+            tickers = self.fetch_tickers([symbol], params)
+            return self.safe_value(tickers, symbol)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
+        market = None
+        symbol = self.safe_string(symbols, 0)
+        if symbol is not None:
+            market = self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        isSpot = type == 'spot'
         request = {}
         symbols = self.market_symbols(symbols)
-        if symbols is not None:
-            ids = self.market_ids(symbols)
-            request['pair_names'] = ','.join(ids)
-        response = self.publicGetAssetPairsTickers(self.extend(request, params))
-        #
-        #     {
-        #         "code":0,
-        #         "data":[
-        #             {
-        #                 "asset_pair_name":"PCX-BTC",
-        #                 "bid":{"price":"0.000234","order_count":1,"quantity":"0.518"},
-        #                 "ask":{"price":"0.0002348","order_count":1,"quantity":"2.348"},
-        #                 "open":"0.0002343",
-        #                 "high":"0.0002348",
-        #                 "low":"0.0002162",
-        #                 "close":"0.0002348",
-        #                 "volume":"12887.016",
-        #                 "daily_change":"0.0000005"
-        #             },
-        #             {
-        #                 "asset_pair_name":"GXC-USDT",
-        #                 "bid":{"price":"0.5054","order_count":1,"quantity":"40.53"},
-        #                 "ask":{"price":"0.5055","order_count":1,"quantity":"38.53"},
-        #                 "open":"0.5262",
-        #                 "high":"0.5323",
-        #                 "low":"0.5055",
-        #                 "close":"0.5055",
-        #                 "volume":"603963.05",
-        #                 "daily_change":"-0.0207"
-        #             }
-        #         ]
-        #     }
-        #
-        tickers = self.safe_value(response, 'data', [])
-        result = {}
-        for i in range(0, len(tickers)):
-            ticker = self.parse_ticker(tickers[i])
-            symbol = ticker['symbol']
-            result[symbol] = ticker
-        return self.filter_by_array_tickers(result, 'symbol', symbols)
+        data = None
+        if isSpot:
+            if symbols is not None:
+                ids = self.market_ids(symbols)
+                request['pair_names'] = ','.join(ids)
+            response = self.publicGetAssetPairsTickers(self.extend(request, params))
+            #
+            #    {
+            #        "code": 0,
+            #        "data": [
+            #            {
+            #                "asset_pair_name": "PCX-BTC",
+            #                "bid": {
+            #                    "price": "0.000234",
+            #                    "order_count": 1,
+            #                    "quantity": "0.518"
+            #                },
+            #                "ask": {
+            #                    "price": "0.0002348",
+            #                    "order_count": 1,
+            #                    "quantity": "2.348"
+            #                },
+            #                "open": "0.0002343",
+            #                "high": "0.0002348",
+            #                "low": "0.0002162",
+            #                "close": "0.0002348",
+            #                "volume": "12887.016",
+            #                "daily_change": "0.0000005"
+            #            },
+            #            ...
+            #        ]
+            #    }
+            #
+            data = self.safe_value(response, 'data', [])
+        else:
+            data = self.contractPublicGetInstruments(params)
+            #
+            #    [
+            #        {
+            #            "usdtPrice": 1.00031998,
+            #            "symbol": "BTCUSD",
+            #            "btcPrice": 34700.4,
+            #            "ethPrice": 1787.83,
+            #            "nextFundingRate": 0.00010,
+            #            "fundingRate": 0.00010,
+            #            "latestPrice": 34708.5,
+            #            "last24hPriceChange": 0.0321,
+            #            "indexPrice": 34700.4,
+            #            "volume24h": 261319063,
+            #            "turnover24h": 8204.129380685496,
+            #            "nextFundingTime": 1698285600000,
+            #            "markPrice": 34702.4646738,
+            #            "last24hMaxPrice": 35127.5,
+            #            "volume24hInUsd": 0.0,
+            #            "openValue": 32.88054722085945,
+            #            "last24hMinPrice": 33552.0,
+            #            "openInterest": 1141372.0
+            #        }
+            #        ...
+            #    ]
+            #
+        tickers = self.parse_tickers(data, symbols)
+        return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
     def fetch_time(self, params={}):
         """
@@ -1432,7 +1621,7 @@ class bigone(Exchange, ImplicitAPI):
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.implode_params(path, params)
         headers = {}
-        if api == 'public' or api == 'webExchange':
+        if api == 'public' or api == 'webExchange' or api == 'contractPublic':
             if query:
                 url += '?' + self.urlencode(query)
         else:
@@ -1451,7 +1640,7 @@ class bigone(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(query)
             elif method == 'POST':
                 headers['Content-Type'] = 'application/json'
-                body = self.json(query)
+                body = query
         headers['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -1824,7 +2013,7 @@ class bigone(Exchange, ImplicitAPI):
         #
         code = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message')
-        if code != '0':
+        if (code != '0') and (code is not None):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)

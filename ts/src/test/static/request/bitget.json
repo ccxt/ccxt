@@ -127,7 +127,7 @@
                     "marginMode": "cross"
                   }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"price\":\"38000\",\"force\":\"post_only\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"side\":\"buy\",\"reduceOnly\":\"YES\",\"tradeSide\":\"Close\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"price\":\"38000\",\"force\":\"post_only\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"side\":\"buy\",\"tradeSide\":\"Close\"}"
             },
             {
                 "description": "Cross margin limit buy order",
@@ -193,7 +193,42 @@
                   "reduceOnly": true
                 }
               ],
-              "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.002\",\"productType\":\"USDT-FUTURES\",\"triggerType\":\"mark_price\",\"planType\":\"track_plan\",\"triggerPrice\":\"45000\",\"callbackRatio\":\"10\",\"marginMode\":\"crossed\",\"reduceOnly\":\"YES\",\"tradeSide\":\"Close\",\"side\":\"buy\"}"
+              "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.002\",\"productType\":\"USDT-FUTURES\",\"triggerType\":\"mark_price\",\"planType\":\"track_plan\",\"triggerPrice\":\"45000\",\"callbackRatio\":\"10\",\"marginMode\":\"crossed\",\"tradeSide\":\"Close\",\"side\":\"buy\"}"
+            },
+            {
+              "description": "Swap oneWayMode market sell order with reduceOnly",
+              "method": "createOrder",
+              "url": "https://api.bitget.com/api/v2/mix/order/place-order",
+              "input": [
+                "BTC/USDT:USDT",
+                "market",
+                "sell",
+                0.001,
+                null,
+                {
+                  "marginMode": "isolated",
+                  "reduceOnly": true,
+                  "oneWayMode": true
+                }
+              ],
+              "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"isolated\",\"reduceOnly\":\"YES\",\"side\":\"sell\"}"    
+            },
+            {
+              "description": "Swap oneWayMode limit buy order",
+              "method": "createOrder",
+              "url": "https://api.bitget.com/api/v2/mix/order/place-order",
+              "input": [
+                "BTC/USDT:USDT",
+                "limit",
+                "buy",
+                0.001,
+                40000,
+                {
+                  "marginMode": "isolated",
+                  "oneWayMode": true
+                }
+              ],
+              "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"price\":\"40000\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"isolated\",\"side\":\"buy\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
