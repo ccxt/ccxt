@@ -1,18 +1,10 @@
-using System.Net.Http.Headers;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Globalization;
-using System.Net;
 
 namespace ccxt;
 
-using dict = Dictionary<string, object>;
 using System.Net.WebSockets;
-using System.Data;
-using System.Runtime.InteropServices;
-using Newtonsoft.Json;
-using System.Runtime.CompilerServices;
 using System.Collections.Concurrent;
+using System.IO.Compression;
 
 
 public partial class Exchange
@@ -296,13 +288,40 @@ public partial class Exchange
                         var message = Encoding.UTF8.GetString(memory.ToArray(), 0, (int)memory.Length);
                         var deserializedMessages = JsonHelper.Deserialize(message);
 
-                        if (this.verbose) // remove || true
+                        if (this.verbose)
                         {
                             Console.WriteLine($"On message: {message}");
                         }
 
                         this.handleMessage(this, deserializedMessages);
 
+                    }
+                    else if (result.MessageType == WebSocketMessageType.Binary)
+                    {
+
+                        // Handle binary message
+                        // assume gunzip for now
+
+                        using (MemoryStream compressedStream = new MemoryStream(buffer, 0, result.Count))
+                        using (GZipStream decompressionStream = new GZipStream(compressedStream, CompressionMode.Decompress))
+                        using (MemoryStream decompressedStream = new MemoryStream())
+                        {
+                            decompressionStream.CopyTo(decompressedStream);
+                            byte[] decompressedData = decompressedStream.ToArray();
+
+                            string decompressedString = System.Text.Encoding.UTF8.GetString(decompressedData);
+
+                            var deserializedJson = JsonHelper.Deserialize(decompressedString);
+
+                            if (this.verbose)
+                            {
+                                Console.WriteLine($"On binary message {decompressedString}");
+                            }
+
+                            this.handleMessage(this, deserializedJson);
+
+                        }
+                        // string json = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
                     }
                     else if (result.MessageType == WebSocketMessageType.Close)
                     {
