@@ -31,8 +31,7 @@ const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
-const argv = process.argv;
-argv.shift (); argv.shift (); // remove first two arguments (which is process and script path "js/src/test/test.js")
+const argv = process.argv.slice (2); // remove first two arguments (which is process and script path "js/src/test/test.js")
 const findArgv = function (args_array, needle = '', match = true) {
     return args_array.filter ((x) => (x.includes (needle) ? match : !match));
 };
