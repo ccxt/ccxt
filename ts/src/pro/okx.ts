@@ -437,22 +437,21 @@ export default class okx extends okxRest {
         const data = this.safeValue (message, 'data', []);
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
-        const safeMarketId = market['id'];
         const symbol = market['symbol'];
         const interval = channel.replace ('candle', '');
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseOHLCV (data[i], market);
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, safeMarketId, {});
-            let stored = this.safeValue (this.ohlcvs[safeMarketId], timeframe);
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
-            const messageHash = channel + ':' + symbol;
+            const messageHash = channel + ':' + market['id'];
             client.resolve (stored, messageHash);
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol
