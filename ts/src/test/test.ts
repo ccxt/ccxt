@@ -242,8 +242,8 @@ export default class testMainClass extends baseMainTestClass {
         await this.importFiles (exchange);
         assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         this.expandSettings (exchange);
-        const symbol = this.checkIfSpecificTestIsChosen (methodArgv);
-        await this.startTest (exchange, symbol);
+        this.checkIfSpecificTestIsChosen (methodArgv);
+        await this.startTest (exchange, symbolArgv);
         exitScript (0); // needed to be explicitly finished for WS tests
     }
 
