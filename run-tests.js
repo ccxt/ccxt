@@ -61,7 +61,7 @@ for (const arg of args) {
         }
     }
     else if (arg.includes ('/'))             { symbol = arg }
-    else if (arg.includes ('())'))           { method = arg }
+    else if (arg.includes ('()'))           { method = arg }
     else if (Number.isFinite (Number (arg))) { maxConcurrency = Number (arg) }
     else                                     { exchanges.push (arg) }
 }
