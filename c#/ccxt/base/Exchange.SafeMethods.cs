@@ -14,25 +14,25 @@ public partial class Exchange
 {
 
     // aux method
-    public static Dictionary<string, object> ConvertToDictionaryOfStringObject(object potentialDictionary)
+    public static IDictionary<string, object> ConvertToDictionaryOfStringObject(object potentialDictionary)
     {
         // First, check if the object is a dictionary
         if (potentialDictionary is IDictionary && potentialDictionary.GetType().IsGenericType)
         {
             var dictionaryType = potentialDictionary.GetType().GetGenericTypeDefinition();
-            if (dictionaryType == typeof(Dictionary<,>))
+            // if (dictionaryType == typeof(Dictionary<,>))
+            // {
+            var result = new Dictionary<string, object>();
+            var dict = (IDictionary)potentialDictionary;
+
+            foreach (DictionaryEntry entry in dict)
             {
-                var result = new Dictionary<string, object>();
-                var dict = (IDictionary)potentialDictionary;
-
-                foreach (DictionaryEntry entry in dict)
-                {
-                    // Convert the key to a string and add the entry to the new dictionary
-                    result[entry.Key.ToString()] = entry.Value;
-                }
-
-                return result;
+                // Convert the key to a string and add the entry to the new dictionary
+                result[entry.Key.ToString()] = entry.Value;
             }
+
+            return result;
+            // }
         }
 
         throw new InvalidOperationException("The provided object is not a dictionary.");
@@ -336,12 +336,13 @@ public partial class Exchange
                     return returnValue;
                 }
             }
+            return defaultValue;
         }
 
-        if (obj.GetType().IsGenericType && obj.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))
+        if (obj is IDictionary || (obj.GetType().IsGenericType && obj.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) // is the second cond needed?
         {
             // check if this is a dictionary regardless of the value type
-            Dictionary<string, object> dict = ConvertToDictionaryOfStringObject(obj);
+            IDictionary<string, object> dict = ConvertToDictionaryOfStringObject(obj);
             foreach (var key2 in keys)
             {
                 if (key2 == null)
@@ -356,6 +357,7 @@ public partial class Exchange
                     return returnValue;
                 }
             }
+            return defaultValue;
         }
         // duplicated code for now, check this later
         if (obj is IList<object>)
