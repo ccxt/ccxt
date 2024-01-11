@@ -40,10 +40,10 @@ class bitget extends bitget$1 {
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
-                'createTrailingPercentOrder': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': false,
+                'createTrailingPercentOrder': true,
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -2957,7 +2957,12 @@ class bitget extends bitget$1 {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            if (market['contract']) {
+                request['limit'] = Math.min(limit, 1000);
+            }
+            else {
+                request['limit'] = limit;
+            }
         }
         const options = this.safeValue(this.options, 'fetchTrades', {});
         let response = undefined;

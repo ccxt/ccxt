@@ -5672,12 +5672,13 @@ class binance(Exchange, ImplicitAPI):
         """
         transfer currency internally between wallets on the same account
         :see: https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
-        :see: https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-transfer-margin
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: exchange specific transfer type
+        :param str [params.symbol]: the unified symbol, required for isolated margin transfers
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
@@ -5688,59 +5689,63 @@ class binance(Exchange, ImplicitAPI):
         }
         request['type'] = self.safe_string(params, 'type')
         params = self.omit(params, 'type')
-        response = None
         if request['type'] is None:
             symbol = self.safe_string(params, 'symbol')
+            market = None
             if symbol is not None:
+                market = self.market(symbol)
                 params = self.omit(params, 'symbol')
             fromId = self.convert_type_to_account(fromAccount).upper()
             toId = self.convert_type_to_account(toAccount).upper()
+            isolatedSymbol = None
+            if market is not None:
+                isolatedSymbol = market['id']
             if fromId == 'ISOLATED':
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when fromAccount is ' + fromAccount)
-                else:
-                    fromId = self.market_id(symbol)
             if toId == 'ISOLATED':
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when toAccount is ' + toAccount)
-                else:
-                    toId = self.market_id(symbol)
             accountsById = self.safe_value(self.options, 'accountsById', {})
             fromIsolated = not (fromId in accountsById)
             toIsolated = not (toId in accountsById)
+            if fromIsolated and (market is None):
+                isolatedSymbol = fromId  # allow user provide symbol from/to account
+            if toIsolated and (market is None):
+                isolatedSymbol = toId
             if fromIsolated or toIsolated:  # Isolated margin transfer
                 fromFuture = fromId == 'UMFUTURE' or fromId == 'CMFUTURE'
                 toFuture = toId == 'UMFUTURE' or toId == 'CMFUTURE'
                 fromSpot = fromId == 'MAIN'
                 toSpot = toId == 'MAIN'
                 funding = fromId == 'FUNDING' or toId == 'FUNDING'
-                mining = fromId == 'MINING' or toId == 'MINING'
                 option = fromId == 'OPTION' or toId == 'OPTION'
-                prohibitedWithIsolated = fromFuture or toFuture or mining or funding or option
+                prohibitedWithIsolated = fromFuture or toFuture or funding or option
                 if (fromIsolated or toIsolated) and prohibitedWithIsolated:
                     raise BadRequest(self.id + ' transfer() does not allow transfers between ' + fromAccount + ' and ' + toAccount)
                 elif toSpot and fromIsolated:
-                    request['transFrom'] = 'ISOLATED_MARGIN'
-                    request['transTo'] = 'SPOT'
-                    request['symbol'] = fromId
-                    response = self.sapiPostMarginIsolatedTransfer(self.extend(request, params))
+                    fromId = 'ISOLATED_MARGIN'
+                    request['fromSymbol'] = isolatedSymbol
                 elif fromSpot and toIsolated:
-                    request['transFrom'] = 'SPOT'
-                    request['transTo'] = 'ISOLATED_MARGIN'
-                    request['symbol'] = toId
-                    response = self.sapiPostMarginIsolatedTransfer(self.extend(request, params))
+                    toId = 'ISOLATED_MARGIN'
+                    request['toSymbol'] = isolatedSymbol
                 else:
-                    if fromIsolated:
+                    if fromIsolated and toIsolated:
                         request['fromSymbol'] = fromId
-                        fromId = 'ISOLATEDMARGIN'
-                    if toIsolated:
                         request['toSymbol'] = toId
+                        fromId = 'ISOLATEDMARGIN'
                         toId = 'ISOLATEDMARGIN'
-                    request['type'] = fromId + '_' + toId
+                    else:
+                        if fromIsolated:
+                            request['fromSymbol'] = isolatedSymbol
+                            fromId = 'ISOLATEDMARGIN'
+                        if toIsolated:
+                            request['toSymbol'] = isolatedSymbol
+                            toId = 'ISOLATEDMARGIN'
+                request['type'] = fromId + '_' + toId
             else:
                 request['type'] = fromId + '_' + toId
-        if response is None:
-            response = self.sapiPostAssetTransfer(self.extend(request, params))
+        response = self.sapiPostAssetTransfer(self.extend(request, params))
         #
         #     {
         #         "tranId":13526853623

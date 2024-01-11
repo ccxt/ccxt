@@ -765,7 +765,7 @@ class coinlist extends Exchange {
                 $request['start_time'] = $this->iso8601($since);
             }
             if ($limit !== null) {
-                $request['count'] = $limit;
+                $request['count'] = min ($limit, 500);
             }
             $until = $this->safe_integer_2($params, 'till', 'until');
             if ($until !== null) {

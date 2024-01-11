@@ -2924,7 +2924,11 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            if ($market['contract']) {
+                $request['limit'] = min ($limit, 1000);
+            } else {
+                $request['limit'] = $limit;
+            }
         }
         $options = $this->safe_value($this->options, 'fetchTrades', array());
         $response = null;

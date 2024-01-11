@@ -2871,7 +2871,10 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit
+            if market['contract']:
+                request['limit'] = min(limit, 1000)
+            else:
+                request['limit'] = limit
         options = self.safe_value(self.options, 'fetchTrades', {})
         response = None
         if market['spot']:

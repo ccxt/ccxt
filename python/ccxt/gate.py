@@ -2966,7 +2966,7 @@ class gate(Exchange, ImplicitAPI):
             params = self.omit(params, ['until'])
             request['to'] = self.parse_to_int(until / 1000)
         if limit is not None:
-            request['limit'] = limit  # default 100, max 1000
+            request['limit'] = min(limit, 1000)  # default 100, max 1000
         if since is not None and (market['contract']):
             request['from'] = self.parse_to_int(since / 1000)
         response = None

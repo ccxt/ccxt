@@ -3136,7 +3136,7 @@ class gate extends Exchange {
                 $request['to'] = $this->parse_to_int($until / 1000);
             }
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 100, max 1000
+                $request['limit'] = min ($limit, 1000); // default 100, max 1000
             }
             if ($since !== null && ($market['contract'])) {
                 $request['from'] = $this->parse_to_int($since / 1000);

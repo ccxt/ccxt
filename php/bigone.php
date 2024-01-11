@@ -921,29 +921,91 @@ class bigone extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $request = array(
-            'asset_pair_name' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default 50, max 200
+        $response = null;
+        if ($market['contract']) {
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = $this->contractPublicGetDepthSymbolSnapshot (array_merge($request, $params));
+            //
+            //    {
+            //        bids => array(
+            //            '20000' => '20',
+            //            ...
+            //            '34552' => '64851',
+            //            '34526.5' => '59594',
+            //            ...
+            //            '34551.5' => '29711'
+            //        ),
+            //        asks => array(
+            //            '34557' => '34395',
+            //            ...
+            //            '40000' => '20',
+            //            '34611.5' => '56024',
+            //            ...
+            //            '34578.5' => '66367'
+            //        ),
+            //        to => '59737174',
+            //        lastPrice => '34554.5',
+            //        bestPrices => array(
+            //            ask => '34557.0',
+            //            bid => '34552.0'
+            //        ),
+            //        from => '0'
+            //    }
+            //
+            return $this->parse_contract_order_book($response, $market['symbol'], $limit);
+        } else {
+            $request = array(
+                'asset_pair_name' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default 50, max 200
+            }
+            $response = $this->publicGetAssetPairsAssetPairNameDepth (array_merge($request, $params));
+            //
+            //     {
+            //         "code":0,
+            //         "data" => {
+            //             "asset_pair_name" => "EOS-BTC",
+            //             "bids" => array(
+            //                 array( "price" => "42", "order_count" => 4, "quantity" => "23.33363711" )
+            //             ),
+            //             "asks" => array(
+            //                 array( "price" => "45", "order_count" => 2, "quantity" => "4193.3283464" )
+            //             )
+            //         }
+            //     }
+            //
+            $orderbook = $this->safe_value($response, 'data', array());
+            return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'quantity');
         }
-        $response = $this->publicGetAssetPairsAssetPairNameDepth (array_merge($request, $params));
-        //
-        //     {
-        //         "code":0,
-        //         "data" => {
-        //             "asset_pair_name" => "EOS-BTC",
-        //             "bids" => array(
-        //                 array( "price" => "42", "order_count" => 4, "quantity" => "23.33363711" )
-        //             ),
-        //             "asks" => array(
-        //                 array( "price" => "45", "order_count" => 2, "quantity" => "4193.3283464" )
-        //             )
-        //         }
-        //     }
-        //
-        $orderbook = $this->safe_value($response, 'data', array());
-        return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'quantity');
+    }
+
+    public function parse_contract_bids_asks($bidsAsks) {
+        $bidsAsksKeys = is_array($bidsAsks) ? array_keys($bidsAsks) : array();
+        $result = array();
+        for ($i = 0; $i < count($bidsAsksKeys); $i++) {
+            $price = $bidsAsksKeys[$i];
+            $amount = $bidsAsks[$price];
+            $result[] = array( $this->parse_number($price), $this->parse_number($amount) );
+        }
+        return $result;
+    }
+
+    public function parse_contract_order_book(array $orderbook, string $symbol, ?int $limit = null): array {
+        $responseBids = $this->safe_value($orderbook, 'bids');
+        $responseAsks = $this->safe_value($orderbook, 'asks');
+        $bids = $this->parse_contract_bids_asks($responseBids);
+        $asks = $this->parse_contract_bids_asks($responseAsks);
+        return array(
+            'symbol' => $symbol,
+            'bids' => $this->filter_by_limit($this->sort_by($bids, 0, true), $limit),
+            'asks' => $this->filter_by_limit($this->sort_by($asks, 0), $limit),
+            'timestamp' => null,
+            'datetime' => null,
+            'nonce' => null,
+        );
     }
 
     public function parse_trade($trade, ?array $market = null): array {

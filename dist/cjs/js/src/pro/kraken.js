@@ -542,7 +542,7 @@ class kraken extends kraken$1 {
             ],
             'subscription': {
                 'name': name,
-                'interval': this.safeString(this.timeframes, timeframe, timeframe),
+                'interval': this.safeValue(this.timeframes, timeframe, timeframe),
             },
         };
         const request = this.deepExtend(subscribe, params);

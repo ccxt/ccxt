@@ -918,28 +918,86 @@ class bigone(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
-            'asset_pair_name': market['id'],
+        response = None
+        if market['contract']:
+            request = {
+                'symbol': market['id'],
+            }
+            response = self.contractPublicGetDepthSymbolSnapshot(self.extend(request, params))
+            #
+            #    {
+            #        bids: {
+            #            '20000': '20',
+            #            ...
+            #            '34552': '64851',
+            #            '34526.5': '59594',
+            #            ...
+            #            '34551.5': '29711'
+            #        },
+            #        asks: {
+            #            '34557': '34395',
+            #            ...
+            #            '40000': '20',
+            #            '34611.5': '56024',
+            #            ...
+            #            '34578.5': '66367'
+            #        },
+            #        to: '59737174',
+            #        lastPrice: '34554.5',
+            #        bestPrices: {
+            #            ask: '34557.0',
+            #            bid: '34552.0'
+            #        },
+            #        from: '0'
+            #    }
+            #
+            return self.parse_contract_order_book(response, market['symbol'], limit)
+        else:
+            request = {
+                'asset_pair_name': market['id'],
+            }
+            if limit is not None:
+                request['limit'] = limit  # default 50, max 200
+            response = self.publicGetAssetPairsAssetPairNameDepth(self.extend(request, params))
+            #
+            #     {
+            #         "code":0,
+            #         "data": {
+            #             "asset_pair_name": "EOS-BTC",
+            #             "bids": [
+            #                 {"price": "42", "order_count": 4, "quantity": "23.33363711"}
+            #             ],
+            #             "asks": [
+            #                 {"price": "45", "order_count": 2, "quantity": "4193.3283464"}
+            #             ]
+            #         }
+            #     }
+            #
+            orderbook = self.safe_value(response, 'data', {})
+            return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'quantity')
+
+    def parse_contract_bids_asks(self, bidsAsks):
+        bidsAsksKeys = list(bidsAsks.keys())
+        result = []
+        for i in range(0, len(bidsAsksKeys)):
+            price = bidsAsksKeys[i]
+            amount = bidsAsks[price]
+            result.append([self.parse_number(price), self.parse_number(amount)])
+        return result
+
+    def parse_contract_order_book(self, orderbook: object, symbol: str, limit: Int = None) -> OrderBook:
+        responseBids = self.safe_value(orderbook, 'bids')
+        responseAsks = self.safe_value(orderbook, 'asks')
+        bids = self.parse_contract_bids_asks(responseBids)
+        asks = self.parse_contract_bids_asks(responseAsks)
+        return {
+            'symbol': symbol,
+            'bids': self.filter_by_limit(self.sort_by(bids, 0, True), limit),
+            'asks': self.filter_by_limit(self.sort_by(asks, 0), limit),
+            'timestamp': None,
+            'datetime': None,
+            'nonce': None,
         }
-        if limit is not None:
-            request['limit'] = limit  # default 50, max 200
-        response = self.publicGetAssetPairsAssetPairNameDepth(self.extend(request, params))
-        #
-        #     {
-        #         "code":0,
-        #         "data": {
-        #             "asset_pair_name": "EOS-BTC",
-        #             "bids": [
-        #                 {"price": "42", "order_count": 4, "quantity": "23.33363711"}
-        #             ],
-        #             "asks": [
-        #                 {"price": "45", "order_count": 2, "quantity": "4193.3283464"}
-        #             ]
-        #         }
-        #     }
-        #
-        orderbook = self.safe_value(response, 'data', {})
-        return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'quantity')
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
         #
