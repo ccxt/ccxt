@@ -372,6 +372,8 @@ class Exchange {
                 'createStopOrder': undefined,
                 'createStopLimitOrder': undefined,
                 'createStopMarketOrder': undefined,
+                'createTrailingAmountOrder': undefined,
+                'createTrailingPercentOrder': undefined,
                 'createOrderWs': undefined,
                 'editOrderWs': undefined,
                 'fetchOpenOrdersWs': undefined,
@@ -3777,6 +3779,60 @@ class Exchange {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrder() is not supported yet');
     }
+    async createTrailingAmountOrder(symbol, type, side, amount, price = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTrailingAmountOrder
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingAmount the quote amount to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (trailingAmount === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTrailingAmountOrder() requires a trailingAmount argument');
+        }
+        params['trailingAmount'] = trailingAmount;
+        if (trailingTriggerPrice !== undefined) {
+            params['trailingTriggerPrice'] = trailingTriggerPrice;
+        }
+        if (this.has['createTrailingAmountOrder']) {
+            return await this.createOrder(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTrailingAmountOrder() is not supported yet');
+    }
+    async createTrailingPercentOrder(symbol, type, side, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTrailingPercentOrder
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingPercent the percent to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (trailingPercent === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTrailingPercentOrder() requires a trailingPercent argument');
+        }
+        params['trailingPercent'] = trailingPercent;
+        if (trailingTriggerPrice !== undefined) {
+            params['trailingTriggerPrice'] = trailingTriggerPrice;
+        }
+        if (this.has['createTrailingPercentOrder']) {
+            return await this.createOrder(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTrailingPercentOrder() is not supported yet');
+    }
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
         /**
          * @method
@@ -3937,7 +3993,7 @@ class Exchange {
         throw new errors.NotSupported(this.id + ' fetchFundingHistory() is not supported yet');
     }
     async closePosition(symbol, side = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' closePositions() is not supported yet');
+        throw new errors.NotSupported(this.id + ' closePosition() is not supported yet');
     }
     async closeAllPositions(params = {}) {
         throw new errors.NotSupported(this.id + ' closeAllPositions() is not supported yet');

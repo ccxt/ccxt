@@ -694,7 +694,7 @@ class coinone(Exchange, ImplicitAPI):
             'target_currency': market['base'],
         }
         if limit is not None:
-            request['size'] = limit  # only support 10, 50, 100, 150, 200
+            request['size'] = min(limit, 200)
         response = await self.v2PublicGetTradesQuoteCurrencyTargetCurrency(self.extend(request, params))
         #
         #     {

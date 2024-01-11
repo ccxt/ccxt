@@ -54,6 +54,8 @@ class bingx(Exchange, ImplicitAPI):
                 'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createOrders': True,
+                'createTrailingAmountOrder': True,
+                'createTrailingPercentOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -2279,6 +2281,7 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         clientOrderIds = self.safe_value(params, 'clientOrderIds')
+        params = self.omit(params, 'clientOrderIds')
         idsToParse = ids
         areClientOrderIds = (clientOrderIds is not None)
         if areClientOrderIds:
@@ -2294,8 +2297,10 @@ class bingx(Exchange, ImplicitAPI):
             request[spotReqKey] = ','.join(parsedIds)
             response = await self.spotV1PrivatePostTradeCancelOrders(self.extend(request, params))
         else:
-            swapReqKey = 'ClientOrderIDList' if areClientOrderIds else 'orderIdList'
-            request[swapReqKey] = parsedIds
+            if areClientOrderIds:
+                request['clientOrderIDList'] = self.json(parsedIds)
+            else:
+                request['orderIdList'] = parsedIds
             response = await self.swapV2PrivateDeleteTradeBatchOrders(self.extend(request, params))
         #
         #    {

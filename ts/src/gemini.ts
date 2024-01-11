@@ -968,7 +968,7 @@ export default class gemini extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit_trades'] = limit;
+            request['limit_trades'] = Math.min (limit, 500);
         }
         if (since !== undefined) {
             request['timestamp'] = since;

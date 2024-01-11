@@ -114,7 +114,10 @@ class coinbase extends coinbase$1 {
         }
         const name = 'ticker_batch';
         const tickers = await this.subscribe(name, symbols, params);
-        return tickers;
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.tickers;
     }
     handleTickers(client, message) {
         //

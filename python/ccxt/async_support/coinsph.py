@@ -1024,11 +1024,10 @@ class coinsph(Exchange, ImplicitAPI):
 
     def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'balances', [])
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         for i in range(0, len(balances)):
             balance = balances[i]

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.11';
+$version = '4.2.12';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.11';
+    const VERSION = '4.2.12';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4681,6 +4681,58 @@ class Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
+    public function create_trailing_amount_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()) {
+        /**
+         * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [$price] the $price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} $trailingAmount the quote $amount to trail away from the current market $price
+         * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        if ($trailingAmount === null) {
+            throw new ArgumentsRequired($this->id . ' createTrailingAmountOrder() requires a $trailingAmount argument');
+        }
+        $params['trailingAmount'] = $trailingAmount;
+        if ($trailingTriggerPrice !== null) {
+            $params['trailingTriggerPrice'] = $trailingTriggerPrice;
+        }
+        if ($this->has['createTrailingAmountOrder']) {
+            return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+        }
+        throw new NotSupported($this->id . ' createTrailingAmountOrder() is not supported yet');
+    }
+
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()) {
+        /**
+         * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [$price] the $price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} $trailingPercent the percent to trail away from the current market $price
+         * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        if ($trailingPercent === null) {
+            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a $trailingPercent argument');
+        }
+        $params['trailingPercent'] = $trailingPercent;
+        if ($trailingTriggerPrice !== null) {
+            $params['trailingTriggerPrice'] = $trailingTriggerPrice;
+        }
+        if ($this->has['createTrailingPercentOrder']) {
+            return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+        }
+        throw new NotSupported($this->id . ' createTrailingPercentOrder() is not supported yet');
+    }
+
     public function create_market_order_with_cost(string $symbol, string $side, $cost, $params = array ()) {
         /**
          * create a market order by providing the $symbol, $side and $cost
@@ -4865,7 +4917,7 @@ class Exchange {
     }
 
     public function close_position(string $symbol, ?string $side = null, $params = array ()) {
-        throw new NotSupported($this->id . ' closePositions() is not supported yet');
+        throw new NotSupported($this->id . ' closePosition() is not supported yet');
     }
 
     public function close_all_positions($params = array ()) {

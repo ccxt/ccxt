@@ -1974,7 +1974,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'priceAsset': market['quoteId'],
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 100)
         if since is not None:
             request['timeStart'] = since
         response = await self.publicGetTransactionsExchange(request)
