@@ -1,0 +1,27 @@
+{
+    "exchange": "delta",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch Open Orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.delta.exchange/v2/orders?product_ids=8320",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Fetch Closed Orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.delta.exchange/v2/orders/history?product_ids=8320",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ]
+    }
+}
