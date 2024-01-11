@@ -788,28 +788,70 @@
                 "output": "timestamp=1699384759972&asset=USDT&amount=1&type=FUNDING_MAIN&recvWindow=10000&signature=4e43d89ac545361e50c2b7df44b91f6c168c99dab114acc6bad382a4c51aa34b"
             },
             {
-                "description": "Transfer from main to isolated",
+                "description": "Main to isolated using symbol as toAccount",
                 "method": "transfer",
-                "url": "https://api.binance.com/sapi/v1/margin/isolated/transfer",
+                "url": "https://api.binance.com/sapi/v1/asset/transfer",
                 "input": [
                   "USDT",
                   1,
                   "main",
                   "LTC/USDT"
                 ],
-                "output": "timestamp=1704965867614&asset=USDT&amount=1&transFrom=SPOT&transTo=ISOLATED_MARGIN&symbol=LTCUSDT&recvWindow=10000&signature=e644018a6da8ea5671058d17fc378a5007266fb768eb9ae2f99cdbb2bcc9e751"
+                "output": "timestamp=1704968135307&asset=USDT&amount=1&type=MAIN_ISOLATED_MARGIN&toSymbol=LTCUSDT&recvWindow=10000&signature=6fca390794311a2b8595b1b434d01f4533cef142980b5d4fdbb2f7ef7353f0b4"
             },
             {
-                "description": "Transfer from isolated to main",
+                "description": "from main to isolated",
                 "method": "transfer",
-                "url": "https://api.binance.com/sapi/v1/margin/isolated/transfer",
+                "url": "https://api.binance.com/sapi/v1/asset/transfer",
+                "input": [
+                  "USDT",
+                  1,
+                  "main",
+                  "isolated",
+                  {
+                    "symbol": "LTC/USDT"
+                  }
+                ],
+                "output": "timestamp=1704968267133&asset=USDT&amount=1&type=MAIN_ISOLATED_MARGIN&toSymbol=LTCUSDT&recvWindow=10000&signature=b4343c34b6664e6a95f519ef6828defa6b4b86cc14a135dbca00b723cba4787b"
+            },
+            {
+                "description": "From isolated to main using symbol as fromAccount",
+                "method": "transfer",
+                "url": "https://api.binance.com/sapi/v1/asset/transfer",
                 "input": [
                   "USDT",
                   1,
                   "LTC/USDT",
                   "main"
                 ],
-                "output": "timestamp=1704965914540&asset=USDT&amount=1&transFrom=ISOLATED_MARGIN&transTo=SPOT&symbol=LTCUSDT&recvWindow=10000&signature=9ad83c331b267c014eb705ca3629a334edbe8df4d68bc0f8755aa1ca07b21c4c"
+                "output": "timestamp=1704968308751&asset=USDT&amount=1&type=ISOLATED_MARGIN_MAIN&fromSymbol=LTCUSDT&recvWindow=10000&signature=40eabe9bb3f2265d8d15656278c5b92f37b690d4bc3161efa9803739e54d6dbf"
+            },
+            {
+                "description": "From isolated to main",
+                "method": "transfer",
+                "url": "https://api.binance.com/sapi/v1/asset/transfer",
+                "input": [
+                  "USDT",
+                  1,
+                  "isolated",
+                  "main",
+                  {
+                    "symbol": "LTC/USDT"
+                  }
+                ],
+                "output": "timestamp=1704968353605&asset=USDT&amount=1&type=ISOLATED_MARGIN_MAIN&fromSymbol=LTCUSDT&recvWindow=10000&signature=9dd361ee76b7d1ea34d282c538bb9cfe44b32a470f1076a00cc1592b1eb51ef0"
+            },
+            {
+                "description": "From isolated to isolated",
+                "method": "transfer",
+                "url": "https://api.binance.com/sapi/v1/asset/transfer",
+                "input": [
+                  "USDT",
+                  1,
+                  "LTC/USDT",
+                  "ADA/USDT"
+                ],
+                "output": "timestamp=1704968820014&asset=USDT&amount=1&type=ISOLATEDMARGIN_ISOLATEDMARGIN&fromSymbol=LTCUSDT&toSymbol=ADAUSDT&recvWindow=10000&signature=190b3acf1286fe5ab2e41d2024d8fe1cc81eb9a30bccf77386275d37d8cc81c5"
             }
         ],
         "fetchDeposits": [

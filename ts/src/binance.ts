@@ -6058,6 +6058,10 @@ export default class binance extends Exchange {
             }
             let fromId = this.convertTypeToAccount (fromAccount).toUpperCase ();
             let toId = this.convertTypeToAccount (toAccount).toUpperCase ();
+            let isolatedSymbol = undefined;
+            if (market !== undefined) {
+                isolatedSymbol = market['id'];
+            }
             if (fromId === 'ISOLATED') {
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' transfer () requires params["symbol"] when fromAccount is ' + fromAccount);
@@ -6071,6 +6075,12 @@ export default class binance extends Exchange {
             const accountsById = this.safeValue (this.options, 'accountsById', {});
             const fromIsolated = !(fromId in accountsById);
             const toIsolated = !(toId in accountsById);
+            if (fromIsolated && (market === undefined)) {
+                isolatedSymbol = fromId; // allow user provide symbol as the from/to account
+            }
+            if (toIsolated && (market === undefined)) {
+                isolatedSymbol = toId;
+            }
             if (fromIsolated || toIsolated) { // Isolated margin transfer
                 const fromFuture = fromId === 'UMFUTURE' || fromId === 'CMFUTURE';
                 const toFuture = toId === 'UMFUTURE' || toId === 'CMFUTURE';
@@ -6083,21 +6093,28 @@ export default class binance extends Exchange {
                     throw new BadRequest (this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
                 } else if (toSpot && fromIsolated) {
                     fromId = 'ISOLATED_MARGIN';
-                    request['fromSymbol'] = market['id'];
+                    request['fromSymbol'] = isolatedSymbol;
                 } else if (fromSpot && toIsolated) {
                     toId = 'ISOLATED_MARGIN';
-                    request['toSymbol'] = market['id'];
+                    request['toSymbol'] = isolatedSymbol;
                 } else {
-                    if (fromIsolated) {
-                        request['fromSymbol'] = market['id'];
+                    if (fromIsolated && toIsolated) {
+                        request['fromSymbol'] = fromId;
+                        request['toSymbol'] = toId;
                         fromId = 'ISOLATEDMARGIN';
-                    }
-                    if (toIsolated) {
-                        request['toSymbol'] = market['id'];
                         toId = 'ISOLATEDMARGIN';
+                    } else {
+                        if (fromIsolated) {
+                            request['fromSymbol'] = isolatedSymbol;
+                            fromId = 'ISOLATEDMARGIN';
+                        }
+                        if (toIsolated) {
+                            request['toSymbol'] = isolatedSymbol;
+                            toId = 'ISOLATEDMARGIN';
+                        }
                     }
-                    request['type'] = fromId + '_' + toId;
                 }
+                request['type'] = fromId + '_' + toId;
             } else {
                 request['type'] = fromId + '_' + toId;
             }
