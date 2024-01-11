@@ -41,12 +41,24 @@ use React\Promise;
 //     throw $e;
 // } );
 
-$filetered_args = array_filter(array_map (function ($x) { return stripos($x,'--')===false? $x : null;} , $argv));
-$exchangeId = array_key_exists(1, $filetered_args) ? $filetered_args[1] : null; // this should be different than JS
-$exchangeSymbol = null; // todo: this should be different than JS
+
+array_shift($argv); // remove first argument (which is script path "ccxt/php/test/test_async.php")
+$findArgv = function ($args_array, $findBy = '', $match = true) {
+    return array_filter(array_map (function ($x) use ($findBy, $match) { return stripos($x, $findBy)===$match? $x : null;}, $args_array));
+};
+$filetered_args = $findArgv($argv, '--', false);
+
+$symbol_args = $findArgv($filetered_args, '/', true);
+$argvSymbol = !empty($symbol_args) ? $symbol_args[0] : null;
+$method_args = $findArgv($filetered_args, '()', true);
+$argvMethod = !empty($method_args) ? $method_args[0] : null;
+// now find exchange arg, exclude symbol and method args
+$symbols_excluded_args = $findArgv($filetered_args, '/', false);
+$methods_excluded_args = $findArgv($symbols_excluded_args, '/', false);
+$exchangeId = !empty($methods_excluded_args) ? $methods_excluded_args[0] : null; // this should be different than JS
 
 // non-transpiled part, but shared names among langs
-
+var_dump($argv);
 function get_cli_arg_value ($arg) {
     return in_array($arg, $GLOBALS['argv']);
 }
@@ -1703,7 +1715,7 @@ class testMainClass extends baseMainTestClass {
 
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-$promise = (new testMainClass())->init($exchangeId, $exchangeSymbol);
+$promise = (new testMainClass())->init($exchangeId, $argvSymbol);
 if (!is_synchronous) {
     Async\await($promise);
 }
