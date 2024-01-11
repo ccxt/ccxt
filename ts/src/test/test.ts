@@ -1341,7 +1341,7 @@ export default class testMainClass extends baseMainTestClass {
             this.testKucoinfutures (),
             this.testBitget (),
             this.testMexc (),
-            this.testHuobi (),
+            this.testHtx (),
             this.testWoo (),
             this.testBitmart (),
             this.testCoinex (),
@@ -1498,8 +1498,8 @@ export default class testMainClass extends baseMainTestClass {
         await close (exchange);
     }
 
-    async testHuobi () {
-        const exchange = this.initOfflineExchange ('huobi');
+    async testHtx () {
+        const exchange = this.initOfflineExchange ('htx');
         // spot test
         const id = 'AA03022abc';
         let spotOrderRequest = undefined;
