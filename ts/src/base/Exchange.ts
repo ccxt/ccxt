@@ -4145,7 +4145,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createMarketSellOrderWithCost() is not supported yet');
     }
 
-    async createTriggerOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, triggerPrice, params = {}): Promise<Order> {
+    async createTriggerOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, triggerPrice = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createTriggerOrder
@@ -4159,6 +4159,9 @@ export default class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if (triggerPrice === undefined) {
+            throw new ArgumentsRequired (this.id + ' createTriggerOrder() requires a triggerPrice argument');
+        }
         params['triggerPrice'] = triggerPrice;
         if (this.has['createTriggerOrder']) {
             return await this.createOrder (symbol, type, side, amount, price, params);
@@ -4166,7 +4169,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createTriggerOrder() is not supported yet');
     }
 
-    async createStopLossOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, stopLossPrice, params = {}): Promise<Order> {
+    async createStopLossOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, stopLossPrice = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createStopLossOrder
@@ -4180,6 +4183,9 @@ export default class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if (stopLossPrice === undefined) {
+            throw new ArgumentsRequired (this.id + ' createStopLossOrder() requires a stopLossPrice argument');
+        }
         params['stopLossPrice'] = stopLossPrice;
         if (this.has['createStopLossOrder']) {
             return await this.createOrder (symbol, type, side, amount, price, params);
@@ -4187,7 +4193,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createStopLossOrder() is not supported yet');
     }
 
-    async createTakeProfitOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, takeProfitPrice, params = {}): Promise<Order> {
+    async createTakeProfitOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, takeProfitPrice = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createTakeProfitOrder
@@ -4201,6 +4207,9 @@ export default class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if (takeProfitPrice === undefined) {
+            throw new ArgumentsRequired (this.id + ' createTakeProfitOrder() requires a takeProfitPrice argument');
+        }
         params['takeProfitPrice'] = takeProfitPrice;
         if (this.has['createTakeProfitOrder']) {
             return await this.createOrder (symbol, type, side, amount, price, params);
@@ -4231,6 +4240,9 @@ export default class Exchange {
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if ((takeProfit === undefined) && (stopLoss === undefined)) {
+            throw new ArgumentsRequired (this.id + ' createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument');
+        }
         if (takeProfit !== undefined) {
             params['takeProfit'] = {
                 'triggerPrice': takeProfit,
