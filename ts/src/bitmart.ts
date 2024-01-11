@@ -265,8 +265,8 @@ export default class bitmart extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': this.parseNumber ('0.0025'),
-                    'maker': this.parseNumber ('0.0025'),
+                    'taker': this.parseNumber ('0.0040'),
+                    'maker': this.parseNumber ('0.0035'),
                     'tiers': {
                         'taker': [
                             [ this.parseNumber ('0'), this.parseNumber ('0.0020') ],
