@@ -62,6 +62,10 @@ public class ArrayCache : BaseCache
         {
             var symbol = symbol2.ToString();
             var tempNewUpdates = this.newUpdatesBySymbol[symbol];
+            if (tempNewUpdates != null && !this.nestedNewUpdatesBySymbol)
+            {
+                newUpdatesValue = Convert.ToInt32(tempNewUpdates);
+            }
             if ((tempNewUpdates != null) && this.nestedNewUpdatesBySymbol)
             {
                 newUpdatesValue = ((HashSet<object>)tempNewUpdates).Count;
