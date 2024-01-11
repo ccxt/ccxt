@@ -45,6 +45,8 @@ class bingx extends Exchange {
                 'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createTrailingAmountOrder' => true,
+                'createTrailingPercentOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -2431,6 +2433,7 @@ class bingx extends Exchange {
                 'symbol' => $market['id'],
             );
             $clientOrderIds = $this->safe_value($params, 'clientOrderIds');
+            $params = $this->omit($params, 'clientOrderIds');
             $idsToParse = $ids;
             $areClientOrderIds = ($clientOrderIds !== null);
             if ($areClientOrderIds) {
@@ -2448,8 +2451,11 @@ class bingx extends Exchange {
                 $request[$spotReqKey] = implode(',', $parsedIds);
                 $response = Async\await($this->spotV1PrivatePostTradeCancelOrders (array_merge($request, $params)));
             } else {
-                $swapReqKey = $areClientOrderIds ? 'ClientOrderIDList' : 'orderIdList';
-                $request[$swapReqKey] = $parsedIds;
+                if ($areClientOrderIds) {
+                    $request['clientOrderIDList'] = $this->json($parsedIds);
+                } else {
+                    $request['orderIdList'] = $parsedIds;
+                }
                 $response = Async\await($this->swapV2PrivateDeleteTradeBatchOrders (array_merge($request, $params)));
             }
             //

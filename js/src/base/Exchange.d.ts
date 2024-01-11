@@ -308,6 +308,8 @@ export default class Exchange {
             createStopOrder: any;
             createStopLimitOrder: any;
             createStopMarketOrder: any;
+            createTrailingAmountOrder: any;
+            createTrailingPercentOrder: any;
             createOrderWs: any;
             editOrderWs: any;
             fetchOpenOrdersWs: any;
@@ -765,12 +767,14 @@ export default class Exchange {
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
-    watchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
+    watchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOrderWs(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<string>;
     fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createTrailingAmountOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, trailingAmount?: any, trailingTriggerPrice?: any, params?: {}): Promise<Order>;
+    createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, trailingPercent?: any, trailingTriggerPrice?: any, params?: {}): Promise<Order>;
     createMarketOrderWithCost(symbol: string, side: OrderSide, cost: any, params?: {}): Promise<Order>;
     createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createMarketSellOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;

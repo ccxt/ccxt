@@ -41,6 +41,7 @@ export default class okx extends Exchange {
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketSellOrderWithCost': true,
+                'createTrailingPercentOrder': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': true,
@@ -1217,9 +1218,19 @@ export default class okx extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const event = data[i];
             const state = this.safeString(event, 'state');
+            update['eta'] = this.safeInteger(event, 'end');
+            update['url'] = this.safeString(event, 'href');
             if (state === 'ongoing') {
-                update['eta'] = this.safeInteger(event, 'end');
                 update['status'] = 'maintenance';
+            }
+            else if (state === 'scheduled') {
+                update['status'] = 'ok';
+            }
+            else if (state === 'completed') {
+                update['status'] = 'ok';
+            }
+            else if (state === 'canceled') {
+                update['status'] = 'ok';
             }
         }
         return update;

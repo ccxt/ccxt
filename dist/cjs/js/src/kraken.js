@@ -38,6 +38,7 @@ class kraken extends kraken$1 {
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
+                'createTrailingAmountOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,

@@ -195,8 +195,8 @@ export default class gate extends Exchange {
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         id: string;
-        timestamp: number;
-        datetime: string;
+        timestamp: any;
+        datetime: any;
         currency: string;
         amount: any;
         fromAccount: any;
@@ -206,8 +206,8 @@ export default class gate extends Exchange {
     }>;
     parseTransfer(transfer: any, currency?: Currency): {
         id: string;
-        timestamp: number;
-        datetime: string;
+        timestamp: any;
+        datetime: any;
         currency: string;
         amount: any;
         fromAccount: any;

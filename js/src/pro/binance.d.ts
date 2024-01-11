@@ -4,7 +4,7 @@ import Client from '../base/ws/Client.js';
 export default class binance extends binanceRest {
     describe(): any;
     requestId(url: any): any;
-    stream(type: any, subscriptionHash: any): string;
+    stream(type: any, subscriptionHash: any, numSubscriptions?: number): string;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<void>;
@@ -22,28 +22,7 @@ export default class binance extends binanceRest {
     handleOHLCV(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseWsTicker(message: any, marketType: any): {
-        symbol: string;
-        timestamp: any;
-        datetime: string;
-        high: number;
-        low: number;
-        bid: number;
-        bidVolume: number;
-        ask: number;
-        askVolume: number;
-        vwap: number;
-        open: number;
-        close: number;
-        last: number;
-        previousClose: number;
-        change: number;
-        percentage: number;
-        average: any;
-        baseVolume: number;
-        quoteVolume: number;
-        info: any;
-    };
+    parseWsTicker(message: any, marketType: any): Ticker;
     handleTicker(client: Client, message: any): void;
     handleTickers(client: Client, message: any): void;
     signParams(params?: {}): any;

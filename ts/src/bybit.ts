@@ -41,7 +41,6 @@ export default class bybit extends Exchange {
                 'closePosition': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
-                'createTrailingAmountOrder': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': true,
@@ -49,6 +48,7 @@ export default class bybit extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createTrailingAmountOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false, // temporarily disabled, as it doesn't work

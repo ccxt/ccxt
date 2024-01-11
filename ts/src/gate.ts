@@ -3122,7 +3122,7 @@ export default class gate extends Exchange {
             request['to'] = this.parseToInt (until / 1000);
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 1000
+            request['limit'] = Math.min (limit, 1000); // default 100, max 1000
         }
         if (since !== undefined && (market['contract'])) {
             request['from'] = this.parseToInt (since / 1000);

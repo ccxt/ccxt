@@ -109,8 +109,8 @@ export default class bitmart extends Exchange {
         currency: string;
         amount: any;
         symbol: any;
-        timestamp: number;
-        datetime: string;
+        timestamp: any;
+        datetime: any;
         info: any;
     };
     fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<{

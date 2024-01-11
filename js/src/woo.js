@@ -44,6 +44,8 @@ export default class woo extends Exchange {
                 'createMarketOrder': false,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
+                'createTrailingAmountOrder': true,
+                'createTrailingPercentOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': false,

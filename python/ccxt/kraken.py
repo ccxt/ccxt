@@ -58,6 +58,7 @@ class kraken(Exchange, ImplicitAPI):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'createTrailingAmountOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
