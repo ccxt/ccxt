@@ -786,6 +786,30 @@
                     "spot"
                 ],
                 "output": "timestamp=1699384759972&asset=USDT&amount=1&type=FUNDING_MAIN&recvWindow=10000&signature=4e43d89ac545361e50c2b7df44b91f6c168c99dab114acc6bad382a4c51aa34b"
+            },
+            {
+                "description": "Transfer from main to isolated",
+                "method": "transfer",
+                "url": "https://api.binance.com/sapi/v1/margin/isolated/transfer",
+                "input": [
+                  "USDT",
+                  1,
+                  "main",
+                  "LTC/USDT"
+                ],
+                "output": "timestamp=1704965867614&asset=USDT&amount=1&transFrom=SPOT&transTo=ISOLATED_MARGIN&symbol=LTCUSDT&recvWindow=10000&signature=e644018a6da8ea5671058d17fc378a5007266fb768eb9ae2f99cdbb2bcc9e751"
+            },
+            {
+                "description": "Transfer from isolated to main",
+                "method": "transfer",
+                "url": "https://api.binance.com/sapi/v1/margin/isolated/transfer",
+                "input": [
+                  "USDT",
+                  1,
+                  "LTC/USDT",
+                  "main"
+                ],
+                "output": "timestamp=1704965914540&asset=USDT&amount=1&transFrom=ISOLATED_MARGIN&transTo=SPOT&symbol=LTCUSDT&recvWindow=10000&signature=9ad83c331b267c014eb705ca3629a334edbe8df4d68bc0f8755aa1ca07b21c4c"
             }
         ],
         "fetchDeposits": [
