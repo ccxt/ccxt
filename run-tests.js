@@ -315,7 +315,7 @@ const testExchange = async (exchange) => {
 
     // independenly of the success result, show infos
     // ( these infos will be shown as soon as each exchange test is finished, and will not wait 100% of all tests to be finished )
-    const displayInfos = false; // temporarily disable from run-tests, because they are still outputed in console from individual langs
+    const displayInfos = true; // temporarily disable from run-tests, because they are still outputed in console from individual langs
     if (displayInfos) {
         if (debugKeys['--info'] && infos.length) {
             // show info if enabled
@@ -323,7 +323,7 @@ const testExchange = async (exchange) => {
                 '\n|-------------- INFO --------------|\n' +
                 infos.join('\n') +
                 '\n|--------------------------------------------|\n'
-            ).blue);
+            ).white);
         }
     }
 /*  Return collected data to main loop     */
