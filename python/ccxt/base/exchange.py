@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.7'
+__version__ = '4.2.12'
 
 # -----------------------------------------------------------------------------
 
@@ -1684,6 +1684,16 @@ class Exchange(object):
     def un_camel_case(self, str):
         return re.sub('(?!^)([A-Z]+)', r'_\1', str).lower()
 
+    def fix_stringified_json_members(self, content):
+        # when stringified json has members with their values also stringified, like:
+        # '{"code":0, "data":{"order":{"orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"{\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1}","reduceOnly":false}}}'
+        # we can fix with below manipulations
+        # @ts-ignore
+        modifiedContent = content.replace('\\', '')
+        modifiedContent = modifiedContent.replace('"{', '{')
+        modifiedContent = modifiedContent.replace('}"', '}')
+        return modifiedContent
+
     # ########################################################################
     # ########################################################################
     # ########################################################################
@@ -3018,11 +3028,11 @@ class Exchange(object):
             result.append(self.common_currency_code(codes[i]))
         return result
 
-    def parse_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1):
+    def parse_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         bidasks = self.to_array(bidasks)
         result = []
         for i in range(0, len(bidasks)):
-            result.append(self.parse_bid_ask(bidasks[i], priceKey, amountKey))
+            result.append(self.parse_bid_ask(bidasks[i], priceKey, amountKey, countOrIdKey))
         return result
 
     def fetch_l2_order_book(self, symbol: str, limit: Int = None, params={}):
@@ -3161,9 +3171,9 @@ class Exchange(object):
         value = self.safe_string_2(dictionary, key1, key2)
         return self.parse_number(value, d)
 
-    def parse_order_book(self, orderbook: object, symbol: str, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 0, amountKey: IndexType = 1):
-        bids = self.parse_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey)
-        asks = self.parse_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey)
+    def parse_order_book(self, orderbook: object, symbol: str, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+        bids = self.parse_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
+        asks = self.parse_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey)
         return {
             'asks': self.sort_by(asks, 0),
             'bids': self.sort_by(bids, 0, True),
@@ -3444,10 +3454,14 @@ class Exchange(object):
     def fetch_bids_asks(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')
 
-    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1):
+    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
-        return [price, amount]
+        countOrId = self.safe_integer(bidask, countOrIdKey)
+        bidAsk = [price, amount]
+        if countOrId is not None:
+            bidAsk.append(countOrId)
+        return bidAsk
 
     def safe_currency(self, currencyId: Str, currency: Currency = None):
         if (currencyId is None) and (currency is not None):
@@ -3484,7 +3498,7 @@ class Exchange(object):
                         currentMarket = markets[i]
                         if currentMarket[marketType]:
                             return currentMarket
-            elif delimiter is not None:
+            elif delimiter is not None and delimiter != '':
                 parts = marketId.split(delimiter)
                 partsLength = len(parts)
                 if partsLength == 2:
@@ -3620,6 +3634,26 @@ class Exchange(object):
             value = value if (value is not None) else defaultValue
         return [value, params]
 
+    def handle_option_and_params_2(self, params, methodName, methodName2, optionName, defaultValue=None):
+        # This method can be used to obtain method specific properties, i.e: self.handle_option_and_params(params, 'fetchPosition', 'marginMode', 'isolated')
+        defaultOptionName = 'default' + self.capitalize(optionName)  # we also need to check the 'defaultXyzWhatever'
+        # check if params contain the key
+        value = self.safe_value_2(params, optionName, defaultOptionName)
+        if value is not None:
+            params = self.omit(params, [optionName, defaultOptionName])
+        else:
+            # check if exchange has properties for self method
+            exchangeWideMethodOptions = self.safe_value_2(self.options, methodName, methodName2)
+            if exchangeWideMethodOptions is not None:
+                # check if the option is defined inside self method's props
+                value = self.safe_value_2(exchangeWideMethodOptions, optionName, defaultOptionName)
+            if value is None:
+                # if it's still None, check if global exchange-wide option exists
+                value = self.safe_value_2(self.options, optionName, defaultOptionName)
+            # if it's still None, use the default value
+            value = value if (value is not None) else defaultValue
+        return [value, params]
+
     def handle_option(self, methodName, optionName, defaultValue=None):
         # eslint-disable-next-line no-unused-vars
         result, empty = self.handle_option_and_params({}, methodName, optionName, defaultValue)
@@ -3738,6 +3772,50 @@ class Exchange(object):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
+
+    def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, trailingAmount=None, trailingTriggerPrice=None, params={}):
+        """
+        create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency, or number of contracts
+        :param float [price]: the price for the order to be filled at, in units of the quote currency, ignored in market orders
+        :param float trailingAmount: the quote amount to trail away from the current market price
+        :param float [trailingTriggerPrice]: the price to activate a trailing order, default uses the price argument
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if trailingAmount is None:
+            raise ArgumentsRequired(self.id + ' createTrailingAmountOrder() requires a trailingAmount argument')
+        params['trailingAmount'] = trailingAmount
+        if trailingTriggerPrice is not None:
+            params['trailingTriggerPrice'] = trailingTriggerPrice
+        if self.has['createTrailingAmountOrder']:
+            return self.create_order(symbol, type, side, amount, price, params)
+        raise NotSupported(self.id + ' createTrailingAmountOrder() is not supported yet')
+
+    def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, trailingPercent=None, trailingTriggerPrice=None, params={}):
+        """
+        create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency, or number of contracts
+        :param float [price]: the price for the order to be filled at, in units of the quote currency, ignored in market orders
+        :param float trailingPercent: the percent to trail away from the current market price
+        :param float [trailingTriggerPrice]: the price to activate a trailing order, default uses the price argument
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if trailingPercent is None:
+            raise ArgumentsRequired(self.id + ' createTrailingPercentOrder() requires a trailingPercent argument')
+        params['trailingPercent'] = trailingPercent
+        if trailingTriggerPrice is not None:
+            params['trailingTriggerPrice'] = trailingTriggerPrice
+        if self.has['createTrailingPercentOrder']:
+            return self.create_order(symbol, type, side, amount, price, params)
+        raise NotSupported(self.id + ' createTrailingPercentOrder() is not supported yet')
 
     def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost, params={}):
         """
@@ -3884,7 +3962,7 @@ class Exchange(object):
         raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
 
     def close_position(self, symbol: str, side: OrderSide = None, params={}):
-        raise NotSupported(self.id + ' closePositions() is not supported yet')
+        raise NotSupported(self.id + ' closePosition() is not supported yet')
 
     def close_all_positions(self, params={}):
         raise NotSupported(self.id + ' closeAllPositions() is not supported yet')

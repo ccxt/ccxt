@@ -54,6 +54,7 @@ export default class binance extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
                 'createStopOrder': true,
+                'createTrailingPercentOrder': true,
                 'editOrder': true,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -229,6 +230,7 @@ export default class binance extends Exchange {
                         'asset/convert-transfer/queryByPage': 0.033335,
                         'asset/wallet/balance': 6,
                         'asset/custody/transfer-history': 6,
+                        'margin/borrow-repay': 1,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -480,6 +482,7 @@ export default class binance extends Exchange {
                         'capital/withdraw/apply': 4.0002,
                         'capital/contract/convertible-coins': 4.0002,
                         'capital/deposit/credit-apply': 0.1,
+                        'margin/borrow-repay': 20.001,
                         'margin/transfer': 4.0002,
                         'margin/loan': 20.001,
                         'margin/repay': 20.001,
@@ -3148,7 +3151,12 @@ export default class binance extends Exchange {
             response = await this.dapiPublicGetTickerBookTicker(params);
         }
         else {
-            response = await this.publicGetTickerBookTicker(params);
+            const request = {};
+            if (symbols !== undefined) {
+                const marketIds = this.marketIds(symbols);
+                request['symbols'] = this.json(marketIds);
+            }
+            response = await this.publicGetTickerBookTicker(this.extend(request, params));
         }
         return this.parseTickers(response, symbols);
     }
@@ -4417,6 +4425,8 @@ export default class binance extends Exchange {
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {boolean} [params.sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
          * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
+         * @param {float} [params.trailingPercent] the percent to trail away from the current market price
+         * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -4465,6 +4475,8 @@ export default class binance extends Exchange {
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the exchange API endpoint
          * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
+         * @param {float} [params.trailingPercent] the percent to trail away from the current market price
+         * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market(symbol);
@@ -4478,9 +4490,12 @@ export default class binance extends Exchange {
         const stopLossPrice = this.safeValue(params, 'stopLossPrice', triggerPrice); // fallback to stopLoss
         const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
         const trailingDelta = this.safeValue(params, 'trailingDelta');
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activationPrice', price);
+        const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
-        params = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice']);
+        params = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent']);
         const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
         const request = {
             'symbol': market['id'],
@@ -4501,7 +4516,14 @@ export default class binance extends Exchange {
         }
         let uppercaseType = type.toUpperCase();
         let stopPrice = undefined;
-        if (isStopLoss) {
+        if (isTrailingPercentOrder) {
+            uppercaseType = 'TRAILING_STOP_MARKET';
+            request['callbackRate'] = trailingPercent;
+            if (trailingTriggerPrice !== undefined) {
+                request['activationPrice'] = this.priceToPrecision(symbol, trailingTriggerPrice);
+            }
+        }
+        else if (isStopLoss) {
             stopPrice = stopLossPrice;
             if (isMarketOrder) {
                 // spot STOP_LOSS market orders are not a valid order type
@@ -4645,9 +4667,8 @@ export default class binance extends Exchange {
         }
         else if (uppercaseType === 'TRAILING_STOP_MARKET') {
             quantityIsRequired = true;
-            const callbackRate = this.safeNumber(query, 'callbackRate');
-            if (callbackRate === undefined) {
-                throw new InvalidOrder(this.id + ' createOrder() requires a callbackRate extra param for a ' + type + ' order');
+            if (trailingPercent === undefined) {
+                throw new InvalidOrder(this.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order');
             }
         }
         if (quantityIsRequired) {
@@ -6087,12 +6108,13 @@ export default class binance extends Exchange {
          * @name binance#transfer
          * @description transfer currency internally between wallets on the same account
          * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
-         * @see https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-transfer-margin
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] exchange specific transfer type
+         * @param {string} [params.symbol] the unified symbol, required for isolated margin transfers
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
@@ -6103,76 +6125,82 @@ export default class binance extends Exchange {
         };
         request['type'] = this.safeString(params, 'type');
         params = this.omit(params, 'type');
-        let response = undefined;
         if (request['type'] === undefined) {
             const symbol = this.safeString(params, 'symbol');
+            let market = undefined;
             if (symbol !== undefined) {
+                market = this.market(symbol);
                 params = this.omit(params, 'symbol');
             }
             let fromId = this.convertTypeToAccount(fromAccount).toUpperCase();
             let toId = this.convertTypeToAccount(toAccount).toUpperCase();
+            let isolatedSymbol = undefined;
+            if (market !== undefined) {
+                isolatedSymbol = market['id'];
+            }
             if (fromId === 'ISOLATED') {
                 if (symbol === undefined) {
                     throw new ArgumentsRequired(this.id + ' transfer () requires params["symbol"] when fromAccount is ' + fromAccount);
-                }
-                else {
-                    fromId = this.marketId(symbol);
                 }
             }
             if (toId === 'ISOLATED') {
                 if (symbol === undefined) {
                     throw new ArgumentsRequired(this.id + ' transfer () requires params["symbol"] when toAccount is ' + toAccount);
                 }
-                else {
-                    toId = this.marketId(symbol);
-                }
             }
             const accountsById = this.safeValue(this.options, 'accountsById', {});
             const fromIsolated = !(fromId in accountsById);
             const toIsolated = !(toId in accountsById);
+            if (fromIsolated && (market === undefined)) {
+                isolatedSymbol = fromId; // allow user provide symbol as the from/to account
+            }
+            if (toIsolated && (market === undefined)) {
+                isolatedSymbol = toId;
+            }
             if (fromIsolated || toIsolated) { // Isolated margin transfer
                 const fromFuture = fromId === 'UMFUTURE' || fromId === 'CMFUTURE';
                 const toFuture = toId === 'UMFUTURE' || toId === 'CMFUTURE';
                 const fromSpot = fromId === 'MAIN';
                 const toSpot = toId === 'MAIN';
                 const funding = fromId === 'FUNDING' || toId === 'FUNDING';
-                const mining = fromId === 'MINING' || toId === 'MINING';
                 const option = fromId === 'OPTION' || toId === 'OPTION';
-                const prohibitedWithIsolated = fromFuture || toFuture || mining || funding || option;
+                const prohibitedWithIsolated = fromFuture || toFuture || funding || option;
                 if ((fromIsolated || toIsolated) && prohibitedWithIsolated) {
                     throw new BadRequest(this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
                 }
                 else if (toSpot && fromIsolated) {
-                    request['transFrom'] = 'ISOLATED_MARGIN';
-                    request['transTo'] = 'SPOT';
-                    request['symbol'] = fromId;
-                    response = await this.sapiPostMarginIsolatedTransfer(this.extend(request, params));
+                    fromId = 'ISOLATED_MARGIN';
+                    request['fromSymbol'] = isolatedSymbol;
                 }
                 else if (fromSpot && toIsolated) {
-                    request['transFrom'] = 'SPOT';
-                    request['transTo'] = 'ISOLATED_MARGIN';
-                    request['symbol'] = toId;
-                    response = await this.sapiPostMarginIsolatedTransfer(this.extend(request, params));
+                    toId = 'ISOLATED_MARGIN';
+                    request['toSymbol'] = isolatedSymbol;
                 }
                 else {
-                    if (fromIsolated) {
+                    if (fromIsolated && toIsolated) {
                         request['fromSymbol'] = fromId;
-                        fromId = 'ISOLATEDMARGIN';
-                    }
-                    if (toIsolated) {
                         request['toSymbol'] = toId;
+                        fromId = 'ISOLATEDMARGIN';
                         toId = 'ISOLATEDMARGIN';
                     }
-                    request['type'] = fromId + '_' + toId;
+                    else {
+                        if (fromIsolated) {
+                            request['fromSymbol'] = isolatedSymbol;
+                            fromId = 'ISOLATEDMARGIN';
+                        }
+                        if (toIsolated) {
+                            request['toSymbol'] = isolatedSymbol;
+                            toId = 'ISOLATEDMARGIN';
+                        }
+                    }
                 }
+                request['type'] = fromId + '_' + toId;
             }
             else {
                 request['type'] = fromId + '_' + toId;
             }
         }
-        if (response === undefined) {
-            response = await this.sapiPostAssetTransfer(this.extend(request, params));
-        }
+        const response = await this.sapiPostAssetTransfer(this.extend(request, params));
         //
         //     {
         //         "tranId":13526853623
@@ -9110,7 +9138,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#repayCrossMargin
          * @description repay borrowed margin and interest
-         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -9122,8 +9150,9 @@ export default class binance extends Exchange {
             'asset': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
             'isIsolated': 'FALSE',
+            'type': 'REPAY',
         };
-        const response = await this.sapiPostMarginRepay(this.extend(request, params));
+        const response = await this.sapiPostMarginBorrowRepay(this.extend(request, params));
         //
         //     {
         //         "tranId": 108988250265,
@@ -9137,7 +9166,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#repayIsolatedMargin
          * @description repay borrowed margin and interest
-         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
          * @param {string} symbol unified market symbol, required for isolated margin
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
@@ -9152,8 +9181,9 @@ export default class binance extends Exchange {
             'amount': this.currencyToPrecision(code, amount),
             'symbol': market['id'],
             'isIsolated': 'TRUE',
+            'type': 'REPAY',
         };
-        const response = await this.sapiPostMarginRepay(this.extend(request, params));
+        const response = await this.sapiPostMarginBorrowRepay(this.extend(request, params));
         //
         //     {
         //         "tranId": 108988250265,
@@ -9167,7 +9197,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#borrowCrossMargin
          * @description create a loan to borrow margin
-         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -9179,8 +9209,9 @@ export default class binance extends Exchange {
             'asset': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
             'isIsolated': 'FALSE',
+            'type': 'BORROW',
         };
-        const response = await this.sapiPostMarginLoan(this.extend(request, params));
+        const response = await this.sapiPostMarginBorrowRepay(this.extend(request, params));
         //
         //     {
         //         "tranId": 108988250265,
@@ -9194,7 +9225,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#borrowIsolatedMargin
          * @description create a loan to borrow margin
-         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
          * @param {string} symbol unified market symbol, required for isolated margin
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
@@ -9209,8 +9240,9 @@ export default class binance extends Exchange {
             'amount': this.currencyToPrecision(code, amount),
             'symbol': market['id'],
             'isIsolated': 'TRUE',
+            'type': 'BORROW',
         };
-        const response = await this.sapiPostMarginLoan(this.extend(request, params));
+        const response = await this.sapiPostMarginBorrowRepay(this.extend(request, params));
         //
         //     {
         //         "tranId": 108988250265,

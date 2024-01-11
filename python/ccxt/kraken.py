@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.kraken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -58,6 +58,7 @@ class kraken(Exchange, ImplicitAPI):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'createTrailingAmountOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
@@ -754,7 +755,7 @@ class kraken(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
+    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
         timestamp = self.safe_integer(bidask, 2)
@@ -1226,11 +1227,8 @@ class kraken(Exchange, ImplicitAPI):
             # therefore we use string concatenation here
             request['since'] = since * 1e6
             request['since'] = str(since) + '000000'  # expected to be in nanoseconds
-        # https://github.com/ccxt/ccxt/issues/5698
-        if limit is not None and limit != 1000:
-            fetchTradesWarning = self.safe_value(self.options, 'fetchTradesWarning', True)
-            if fetchTradesWarning:
-                raise ExchangeError(self.id + ' fetchTrades() cannot serve ' + str(limit) + " trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge self warning and silence it.")
+        if limit is not None:
+            request['count'] = limit
         response = self.publicGetTrades(self.extend(request, params))
         #
         #     {

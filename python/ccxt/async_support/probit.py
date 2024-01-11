@@ -761,14 +761,15 @@ class probit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'market_id': market['id'],
-            'limit': 100,
             'start_time': '1970-01-01T00:00:00.000Z',
             'end_time': self.iso8601(self.milliseconds()),
         }
         if since is not None:
             request['start_time'] = self.iso8601(since)
         if limit is not None:
-            request['limit'] = min(limit, 10000)
+            request['limit'] = min(limit, 1000)
+        else:
+            request['limit'] = 1000  # required to set any value
         response = await self.publicGetTrade(self.extend(request, params))
         #
         #     {

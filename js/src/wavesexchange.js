@@ -2095,7 +2095,7 @@ export default class wavesexchange extends Exchange {
             'priceAsset': market['quoteId'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 100);
         }
         if (since !== undefined) {
             request['timeStart'] = since;

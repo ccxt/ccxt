@@ -42,6 +42,7 @@ export default class kraken extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createTrailingAmountOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -754,7 +755,7 @@ export default class kraken extends Exchange {
             'tierBased': true,
         };
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
         const timestamp = this.safeInteger(bidask, 2);
@@ -1266,12 +1267,8 @@ export default class kraken extends Exchange {
             request['since'] = since * 1e6;
             request['since'] = since.toString() + '000000'; // expected to be in nanoseconds
         }
-        // https://github.com/ccxt/ccxt/issues/5698
-        if (limit !== undefined && limit !== 1000) {
-            const fetchTradesWarning = this.safeValue(this.options, 'fetchTradesWarning', true);
-            if (fetchTradesWarning) {
-                throw new ExchangeError(this.id + ' fetchTrades() cannot serve ' + limit.toString() + " trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge this warning and silence it.");
-            }
+        if (limit !== undefined) {
+            request['count'] = limit;
         }
         const response = await this.publicGetTrades(this.extend(request, params));
         //

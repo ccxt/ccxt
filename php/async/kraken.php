@@ -50,6 +50,7 @@ class kraken extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'createTrailingAmountOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
@@ -769,7 +770,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
+    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
         $timestamp = $this->safe_integer($bidask, 2);
@@ -1292,12 +1293,8 @@ class kraken extends Exchange {
                 $request['since'] = $since * 1e6;
                 $request['since'] = (string) $since . '000000'; // expected to be in nanoseconds
             }
-            // https://github.com/ccxt/ccxt/issues/5698
-            if ($limit !== null && $limit !== 1000) {
-                $fetchTradesWarning = $this->safe_value($this->options, 'fetchTradesWarning', true);
-                if ($fetchTradesWarning) {
-                    throw new ExchangeError($this->id . ' fetchTrades() cannot serve ' . (string) $limit . " $trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge this warning and silence it.");
-                }
+            if ($limit !== null) {
+                $request['count'] = $limit;
             }
             $response = Async\await($this->publicGetTrades (array_merge($request, $params)));
             //

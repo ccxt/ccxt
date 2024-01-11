@@ -49,6 +49,7 @@ export default class htx extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createTrailingPercentOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -4891,6 +4892,32 @@ export default class htx extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
+    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name createTrailingPercentOrder
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingPercent the percent to trail away from the current market price
+         * @param {float} trailingTriggerPrice the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (trailingPercent === undefined) {
+            throw new ArgumentsRequired (this.id + ' createTrailingPercentOrder() requires a trailingPercent argument');
+        }
+        if (trailingTriggerPrice === undefined) {
+            throw new ArgumentsRequired (this.id + ' createTrailingPercentOrder() requires a trailingTriggerPrice argument');
+        }
+        params['trailingPercent'] = trailingPercent;
+        params['trailingTriggerPrice'] = trailingTriggerPrice;
+        return await this.createOrder (symbol, type, side, amount, price, params);
+    }
+
     async createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -5089,15 +5116,11 @@ export default class htx extends Exchange {
             }
         }
         if (!isStopLossTriggerOrder && !isTakeProfitTriggerOrder) {
-            const leverRate = this.safeIntegerN (params, [ 'leverRate', 'lever_rate', 'leverage' ], 1);
             const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only', false);
-            const openOrClose = (reduceOnly) ? 'close' : 'open';
-            const offset = this.safeString (params, 'offset', openOrClose);
-            request['offset'] = offset;
             if (reduceOnly) {
                 request['reduce_only'] = 1;
             }
-            request['lever_rate'] = leverRate;
+            request['lever_rate'] = this.safeIntegerN (params, [ 'leverRate', 'lever_rate', 'leverage' ], 1);
             if (!isTrailingPercentOrder) {
                 request['order_price_type'] = type;
             }
@@ -5161,10 +5184,10 @@ export default class htx extends Exchange {
             const spotRequest = await this.createSpotOrderRequest (symbol, type, side, amount, price, params);
             response = await this.spotPrivatePostV1OrderOrdersPlace (spotRequest);
         } else {
-            const contractRequest = this.createContractOrderRequest (symbol, type, side, amount, price, params);
+            let contractRequest = this.createContractOrderRequest (symbol, type, side, amount, price, params);
             if (market['linear']) {
                 let marginMode = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+                [ marginMode, contractRequest ] = this.handleMarginModeAndParams ('createOrder', contractRequest);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
                     if (isStop) {
