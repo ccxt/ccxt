@@ -261,6 +261,7 @@ export default class okx extends Exchange {
                         'sprd/order': 1 / 3,
                         'sprd/orders-pending': 1 / 3,
                         'sprd/orders-history': 1 / 2,
+                        'sprd/orders-history-archive': 1 / 2,
                         'sprd/trades': 1 / 3,
                         // trade
                         'trade/order': 1 / 3,
