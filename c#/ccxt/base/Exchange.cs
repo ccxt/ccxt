@@ -582,20 +582,51 @@ public partial class Exchange
 
     public object arraySlice(object array, object first, object second = null)
     {
+        // to do; improve this implementation to handle ArrayCache (thread-safe) better
         var firstInt = Convert.ToInt32(first);
         var parsedArray = ((IList<object>)array);
+        var isArrayCache = array is ArrayCache;
+        // var typedArray = (array is ArrayCache) ? (ArrayCache)array : (IList<object>array);
         if (second == null)
         {
             if (firstInt < 0)
             {
                 var index = parsedArray.Count + firstInt;
                 index = index < 0 ? 0 : index;
-                return (parsedArray.ToArray()[index..]).ToList();
+
+                if (isArrayCache)
+                {
+                    // we need to make sure our implementation of ToArray is called, otherwise
+                    // it will call the default one that is not thread-safe
+                    return (((array as ArrayCache).ToArray()[index..])).ToList();
+
+                }
+                else
+                {
+                    return (parsedArray.ToArray()[index..]).ToList();
+                }
             }
-            return (parsedArray.ToArray()[firstInt..]).ToList();
+            if (isArrayCache)
+            {
+                return ((array as ArrayCache).ToArray()[firstInt..]).ToList();
+            }
+            else
+            {
+                return (parsedArray.ToArray()[firstInt..]).ToList();
+
+            }
         }
         var secondInt = Convert.ToInt32(second);
-        return (parsedArray.ToArray()[firstInt..secondInt]).ToList();
+        if (isArrayCache)
+        {
+            return ((array as ArrayCache).ToArray()[firstInt..secondInt]).ToList();
+
+        }
+        else
+        {
+            return (parsedArray.ToArray()[firstInt..secondInt]).ToList();
+
+        }
     }
 
     public object stringToCharsArray(object str)

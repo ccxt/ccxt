@@ -162,6 +162,21 @@ namespace ccxt
             }
         }
 
+        public T[] ToArray()
+        {
+            try
+            {
+                _lock.EnterReadLock();
+                T[] array = new T[_list.Count];
+                _list.CopyTo(array, 0);
+                return array;
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
+        }
+
         /// <summary>
         /// Removes the first occurrence of a specific object from the <see cref="ConcurrentList{T}"/>.
         /// </summary>

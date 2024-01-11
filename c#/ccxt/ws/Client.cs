@@ -12,6 +12,8 @@ using System.Data;
 using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
+using System.Collections.Concurrent;
+
 
 public partial class Exchange
 {
@@ -20,9 +22,9 @@ public partial class Exchange
         public string url; // Replace with your WebSocket server URL
         public ClientWebSocket webSocket = new ClientWebSocket();
 
-        public Dictionary<string, Future> futures = new Dictionary<string, Future>();
-        public Dictionary<string, object> subscriptions = new Dictionary<string, object>();
-        public Dictionary<string, object> rejections = new Dictionary<string, object>();
+        public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
+        public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
+        public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
 
         public bool verbose = false;
         public bool isConnected = false;
