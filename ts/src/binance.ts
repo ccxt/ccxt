@@ -6032,12 +6032,13 @@ export default class binance extends Exchange {
          * @name binance#transfer
          * @description transfer currency internally between wallets on the same account
          * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
-         * @see https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-transfer-margin
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] exchange specific transfer type
+         * @param {string} [params.symbol] the unified symbol, required for isolated margin transfers
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
@@ -6048,10 +6049,11 @@ export default class binance extends Exchange {
         };
         request['type'] = this.safeString (params, 'type');
         params = this.omit (params, 'type');
-        let response = undefined;
         if (request['type'] === undefined) {
             const symbol = this.safeString (params, 'symbol');
+            let market = undefined;
             if (symbol !== undefined) {
+                market = this.market (symbol);
                 params = this.omit (params, 'symbol');
             }
             let fromId = this.convertTypeToAccount (fromAccount).toUpperCase ();
@@ -6059,15 +6061,11 @@ export default class binance extends Exchange {
             if (fromId === 'ISOLATED') {
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' transfer () requires params["symbol"] when fromAccount is ' + fromAccount);
-                } else {
-                    fromId = this.marketId (symbol);
                 }
             }
             if (toId === 'ISOLATED') {
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' transfer () requires params["symbol"] when toAccount is ' + toAccount);
-                } else {
-                    toId = this.marketId (symbol);
                 }
             }
             const accountsById = this.safeValue (this.options, 'accountsById', {});
@@ -6079,28 +6077,23 @@ export default class binance extends Exchange {
                 const fromSpot = fromId === 'MAIN';
                 const toSpot = toId === 'MAIN';
                 const funding = fromId === 'FUNDING' || toId === 'FUNDING';
-                const mining = fromId === 'MINING' || toId === 'MINING';
                 const option = fromId === 'OPTION' || toId === 'OPTION';
-                const prohibitedWithIsolated = fromFuture || toFuture || mining || funding || option;
+                const prohibitedWithIsolated = fromFuture || toFuture || funding || option;
                 if ((fromIsolated || toIsolated) && prohibitedWithIsolated) {
                     throw new BadRequest (this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
                 } else if (toSpot && fromIsolated) {
-                    request['transFrom'] = 'ISOLATED_MARGIN';
-                    request['transTo'] = 'SPOT';
-                    request['symbol'] = fromId;
-                    response = await this.sapiPostMarginIsolatedTransfer (this.extend (request, params));
+                    fromId = 'ISOLATED_MARGIN';
+                    request['fromSymbol'] = market['id'];
                 } else if (fromSpot && toIsolated) {
-                    request['transFrom'] = 'SPOT';
-                    request['transTo'] = 'ISOLATED_MARGIN';
-                    request['symbol'] = toId;
-                    response = await this.sapiPostMarginIsolatedTransfer (this.extend (request, params));
+                    toId = 'ISOLATED_MARGIN';
+                    request['toSymbol'] = market['id'];
                 } else {
                     if (fromIsolated) {
-                        request['fromSymbol'] = fromId;
+                        request['fromSymbol'] = market['id'];
                         fromId = 'ISOLATEDMARGIN';
                     }
                     if (toIsolated) {
-                        request['toSymbol'] = toId;
+                        request['toSymbol'] = market['id'];
                         toId = 'ISOLATEDMARGIN';
                     }
                     request['type'] = fromId + '_' + toId;
@@ -6109,9 +6102,7 @@ export default class binance extends Exchange {
                 request['type'] = fromId + '_' + toId;
             }
         }
-        if (response === undefined) {
-            response = await this.sapiPostAssetTransfer (this.extend (request, params));
-        }
+        const response = await this.sapiPostAssetTransfer (this.extend (request, params));
         //
         //     {
         //         "tranId":13526853623
