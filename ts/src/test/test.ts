@@ -243,15 +243,15 @@ export default class testMainClass extends baseMainTestClass {
         await this.importFiles (exchange);
         assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         this.expandSettings (exchange);
-        const symbol = this.checkIfSpecificTestIsChosen (symbolArgv);
+        const symbol = this.checkIfSpecificTestIsChosen (methodArgv);
         await this.startTest (exchange, symbol);
         exitScript (0); // needed to be explicitly finished for WS tests
     }
 
-    checkIfSpecificTestIsChosen (symbolArgv) {
-        if (symbolArgv !== undefined) {
+    checkIfSpecificTestIsChosen (methodArgv) {
+        if (methodArgv !== undefined) {
             const testFileNames = Object.keys (this.testFiles);
-            const possibleMethodNames = symbolArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            const possibleMethodNames = methodArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if (possibleMethodNames.length >= 1) {
                 for (let i = 0; i < testFileNames.length; i++) {
                     const testFileName = testFileNames[i];
@@ -269,7 +269,7 @@ export default class testMainClass extends baseMainTestClass {
                 return undefined;
             }
         }
-        return symbolArgv;
+        return methodArgv;
     }
 
     async importFiles (exchange: Exchange) {
