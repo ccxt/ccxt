@@ -1082,11 +1082,10 @@ class coinlist(Exchange, ImplicitAPI):
         #         "net_liquidation_value_usd": "string"
         #     }
         #
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         totalBalances = self.safe_value(response, 'asset_balances', {})
         usedBalances = self.safe_value(response, 'asset_holds', {})

@@ -37,6 +37,8 @@ class bingx extends Exchange {
                 'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createTrailingAmountOrder' => true,
+                'createTrailingPercentOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -353,6 +355,7 @@ class bingx extends Exchange {
                     '80014' => '\\ccxt\\BadRequest',
                     '80016' => '\\ccxt\\OrderNotFound',
                     '80017' => '\\ccxt\\OrderNotFound',
+                    '100414' => '\\ccxt\\AccountSuspended', // array("code":100414,"msg":"Code => 100414, Msg => risk control check fail,code(1)","debugMsg":"")
                     '100437' => '\\ccxt\\BadRequest', // array("code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845)
                 ),
                 'broad' => array(),
@@ -1866,6 +1869,9 @@ class bingx extends Exchange {
         //     }
         //
         if (gettype($response) === 'string') {
+            // broken api engine : $order-ids are too long numbers (i.e. 1742930526912864656)
+            // and JSON.parse can not handle them in JS, so we have to use .parse_json            // however, when $order has an attached SL/TP, their value types need extra parsing
+            $response = $this->fix_stringified_json_members($response);
             $response = $this->parse_json($response);
         }
         $data = $this->safe_value($response, 'data', array());
@@ -2374,6 +2380,7 @@ class bingx extends Exchange {
             'symbol' => $market['id'],
         );
         $clientOrderIds = $this->safe_value($params, 'clientOrderIds');
+        $params = $this->omit($params, 'clientOrderIds');
         $idsToParse = $ids;
         $areClientOrderIds = ($clientOrderIds !== null);
         if ($areClientOrderIds) {
@@ -2391,8 +2398,11 @@ class bingx extends Exchange {
             $request[$spotReqKey] = implode(',', $parsedIds);
             $response = $this->spotV1PrivatePostTradeCancelOrders (array_merge($request, $params));
         } else {
-            $swapReqKey = $areClientOrderIds ? 'ClientOrderIDList' : 'orderIdList';
-            $request[$swapReqKey] = $parsedIds;
+            if ($areClientOrderIds) {
+                $request['clientOrderIDList'] = $this->json($parsedIds);
+            } else {
+                $request['orderIdList'] = $parsedIds;
+            }
             $response = $this->swapV2PrivateDeleteTradeBatchOrders (array_merge($request, $params));
         }
         //

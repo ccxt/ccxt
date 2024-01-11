@@ -72,6 +72,7 @@ class binance(Exchange, ImplicitAPI):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': False,
                 'createStopOrder': True,
+                'createTrailingPercentOrder': True,
                 'editOrder': True,
                 'fetchAccounts': None,
                 'fetchBalance': True,
@@ -247,6 +248,7 @@ class binance(Exchange, ImplicitAPI):
                         'asset/convert-transfer/queryByPage': 0.033335,
                         'asset/wallet/balance': 6,  # Weight(IP): 60 => cost = 0.1 * 60 = 6
                         'asset/custody/transfer-history': 6,  # Weight(IP): 60 => cost = 0.1 * 60 = 6
+                        'margin/borrow-repay': 1,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -498,6 +500,7 @@ class binance(Exchange, ImplicitAPI):
                         'capital/withdraw/apply': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'capital/contract/convertible-coins': 4.0002,
                         'capital/deposit/credit-apply': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'margin/borrow-repay': 20.001,
                         'margin/transfer': 4.0002,
                         'margin/loan': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay': 20.001,
@@ -3045,7 +3048,11 @@ class binance(Exchange, ImplicitAPI):
         elif self.is_inverse(type, subType):
             response = self.dapiPublicGetTickerBookTicker(params)
         else:
-            response = self.publicGetTickerBookTicker(params)
+            request = {}
+            if symbols is not None:
+                marketIds = self.market_ids(symbols)
+                request['symbols'] = self.json(marketIds)
+            response = self.publicGetTickerBookTicker(self.extend(request, params))
         return self.parse_tickers(response, symbols)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -4198,6 +4205,8 @@ class binance(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :param boolean [params.sor]: *spot only* whether to use SOR(Smart Order Routing) or not, default is False
         :param boolean [params.test]: *spot only* whether to use the test endpoint or not, default is False
+        :param float [params.trailingPercent]: the percent to trail away from the current market price
+        :param float [params.trailingTriggerPrice]: the price to trigger a trailing order, default uses the price argument
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -4237,6 +4246,8 @@ class binance(Exchange, ImplicitAPI):
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the exchange API endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
+        :param float [params.trailingPercent]: the percent to trail away from the current market price
+        :param float [params.trailingTriggerPrice]: the price to trigger a trailing order, default uses the price argument
         :returns dict: request to be sent to the exchange
         """
         market = self.market(symbol)
@@ -4250,9 +4261,12 @@ class binance(Exchange, ImplicitAPI):
         stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)  # fallback to stopLoss
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         trailingDelta = self.safe_value(params, 'trailingDelta')
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activationPrice', price)
+        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
+        isTrailingPercentOrder = trailingPercent is not None
         isStopLoss = stopLossPrice is not None or trailingDelta is not None
         isTakeProfit = takeProfitPrice is not None
-        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice'])
+        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent'])
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         request = {
             'symbol': market['id'],
@@ -4269,7 +4283,12 @@ class binance(Exchange, ImplicitAPI):
                 params = self.omit(params, 'reduceOnly')
         uppercaseType = type.upper()
         stopPrice = None
-        if isStopLoss:
+        if isTrailingPercentOrder:
+            uppercaseType = 'TRAILING_STOP_MARKET'
+            request['callbackRate'] = trailingPercent
+            if trailingTriggerPrice is not None:
+                request['activationPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
+        elif isStopLoss:
             stopPrice = stopLossPrice
             if isMarketOrder:
                 # spot STOP_LOSS market orders are not a valid order type
@@ -4380,9 +4399,8 @@ class binance(Exchange, ImplicitAPI):
             stopPriceIsRequired = True
         elif uppercaseType == 'TRAILING_STOP_MARKET':
             quantityIsRequired = True
-            callbackRate = self.safe_number(query, 'callbackRate')
-            if callbackRate is None:
-                raise InvalidOrder(self.id + ' createOrder() requires a callbackRate extra param for a ' + type + ' order')
+            if trailingPercent is None:
+                raise InvalidOrder(self.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order')
         if quantityIsRequired:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         if priceIsRequired:
@@ -8356,7 +8374,7 @@ class binance(Exchange, ImplicitAPI):
     def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -8368,8 +8386,9 @@ class binance(Exchange, ImplicitAPI):
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'isIsolated': 'FALSE',
+            'type': 'REPAY',
         }
-        response = self.sapiPostMarginRepay(self.extend(request, params))
+        response = self.sapiPostMarginBorrowRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,
@@ -8381,7 +8400,7 @@ class binance(Exchange, ImplicitAPI):
     def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
         :param str symbol: unified market symbol, required for isolated margin
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
@@ -8396,8 +8415,9 @@ class binance(Exchange, ImplicitAPI):
             'amount': self.currency_to_precision(code, amount),
             'symbol': market['id'],
             'isIsolated': 'TRUE',
+            'type': 'REPAY',
         }
-        response = self.sapiPostMarginRepay(self.extend(request, params))
+        response = self.sapiPostMarginBorrowRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,
@@ -8409,7 +8429,7 @@ class binance(Exchange, ImplicitAPI):
     def borrow_cross_margin(self, code: str, amount, params={}):
         """
         create a loan to borrow margin
-        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -8421,8 +8441,9 @@ class binance(Exchange, ImplicitAPI):
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'isIsolated': 'FALSE',
+            'type': 'BORROW',
         }
-        response = self.sapiPostMarginLoan(self.extend(request, params))
+        response = self.sapiPostMarginBorrowRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,
@@ -8434,7 +8455,7 @@ class binance(Exchange, ImplicitAPI):
     def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         create a loan to borrow margin
-        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
         :param str symbol: unified market symbol, required for isolated margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
@@ -8449,8 +8470,9 @@ class binance(Exchange, ImplicitAPI):
             'amount': self.currency_to_precision(code, amount),
             'symbol': market['id'],
             'isIsolated': 'TRUE',
+            'type': 'BORROW',
         }
-        response = self.sapiPostMarginLoan(self.extend(request, params))
+        response = self.sapiPostMarginBorrowRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,

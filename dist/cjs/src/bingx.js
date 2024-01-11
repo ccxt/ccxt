@@ -352,6 +352,7 @@ class bingx extends bingx$1 {
                     '80014': errors.BadRequest,
                     '80016': errors.OrderNotFound,
                     '80017': errors.OrderNotFound,
+                    '100414': errors.AccountSuspended,
                     '100437': errors.BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                 },
                 'broad': {},
@@ -1895,6 +1896,10 @@ class bingx extends bingx$1 {
         //     }
         //
         if (typeof response === 'string') {
+            // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
+            // and JSON.parse can not handle them in JS, so we have to use .parseJson
+            // however, when order has an attached SL/TP, their value types need extra parsing
+            response = this.fixStringifiedJsonMembers(response);
             response = this.parseJson(response);
         }
         const data = this.safeValue(response, 'data', {});
