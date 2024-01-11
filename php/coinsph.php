@@ -1043,11 +1043,10 @@ class coinsph extends Exchange {
 
     public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'balances', array());
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];

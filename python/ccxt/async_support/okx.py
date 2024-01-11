@@ -68,6 +68,7 @@ class okx(Exchange, ImplicitAPI):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'createTrailingPercentOrder': True,
                 'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
@@ -281,6 +282,7 @@ class okx(Exchange, ImplicitAPI):
                         'sprd/order': 1 / 3,
                         'sprd/orders-pending': 1 / 3,
                         'sprd/orders-history': 1 / 2,
+                        'sprd/orders-history-archive': 1 / 2,
                         'sprd/trades': 1 / 3,
                         # trade
                         'trade/order': 1 / 3,
@@ -1226,9 +1228,16 @@ class okx(Exchange, ImplicitAPI):
         for i in range(0, len(data)):
             event = data[i]
             state = self.safe_string(event, 'state')
+            update['eta'] = self.safe_integer(event, 'end')
+            update['url'] = self.safe_string(event, 'href')
             if state == 'ongoing':
-                update['eta'] = self.safe_integer(event, 'end')
                 update['status'] = 'maintenance'
+            elif state == 'scheduled':
+                update['status'] = 'ok'
+            elif state == 'completed':
+                update['status'] = 'ok'
+            elif state == 'canceled':
+                update['status'] = 'ok'
         return update
 
     async def fetch_time(self, params={}):

@@ -64,6 +64,7 @@ class bitget(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createOrders': True,
                 'createReduceOnlyOrder': False,
+                'createTrailingPercentOrder': True,
                 'editOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
@@ -2870,7 +2871,10 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit
+            if market['contract']:
+                request['limit'] = min(limit, 1000)
+            else:
+                request['limit'] = limit
         options = self.safe_value(self.options, 'fetchTrades', {})
         response = None
         if market['spot']:
@@ -3159,23 +3163,31 @@ class bitget(Exchange, ImplicitAPI):
             'granularity': selectedTimeframe,
         }
         request, params = self.handle_until_option('endTime', request, params)
-        if since is not None:
-            request['startTime'] = limit
         if limit is not None:
             request['limit'] = limit
         options = self.safe_value(self.options, 'fetchOHLCV', {})
+        spotOptions = self.safe_value(options, 'spot', {})
+        defaultSpotMethod = self.safe_string(spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles')
+        method = self.safe_string(params, 'method', defaultSpotMethod)
+        params = self.omit(params, 'method')
+        if method != 'publicSpotGetV2SpotMarketHistoryCandles':
+            if since is not None:
+                request['startTime'] = since
         response = None
         if market['spot']:
-            spotOptions = self.safe_value(options, 'spot', {})
-            defaultSpotMethod = self.safe_string(spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles')
-            method = self.safe_string(params, 'method', defaultSpotMethod)
-            params = self.omit(params, 'method')
             if method == 'publicSpotGetV2SpotMarketCandles':
                 response = self.publicSpotGetV2SpotMarketCandles(self.extend(request, params))
             elif method == 'publicSpotGetV2SpotMarketHistoryCandles':
                 until = self.safe_integer_2(params, 'until', 'till')
                 params = self.omit(params, ['until', 'till'])
-                if until is None:
+                if since is not None:
+                    if limit is None:
+                        limit = 100  # exchange default
+                    duration = self.parse_timeframe(timeframe) * 1000
+                    request['endTime'] = self.sum(since, duration * limit)
+                elif until is not None:
+                    request['endTime'] = until
+                else:
                     request['endTime'] = self.milliseconds()
                 response = self.publicSpotGetV2SpotMarketHistoryCandles(self.extend(request, params))
         else:

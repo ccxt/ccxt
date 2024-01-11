@@ -73,6 +73,7 @@ class binance(Exchange, ImplicitAPI):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': False,
                 'createStopOrder': True,
+                'createTrailingPercentOrder': True,
                 'editOrder': True,
                 'fetchAccounts': None,
                 'fetchBalance': True,
@@ -248,6 +249,7 @@ class binance(Exchange, ImplicitAPI):
                         'asset/convert-transfer/queryByPage': 0.033335,
                         'asset/wallet/balance': 6,  # Weight(IP): 60 => cost = 0.1 * 60 = 6
                         'asset/custody/transfer-history': 6,  # Weight(IP): 60 => cost = 0.1 * 60 = 6
+                        'margin/borrow-repay': 1,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -499,6 +501,7 @@ class binance(Exchange, ImplicitAPI):
                         'capital/withdraw/apply': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'capital/contract/convertible-coins': 4.0002,
                         'capital/deposit/credit-apply': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'margin/borrow-repay': 20.001,
                         'margin/transfer': 4.0002,
                         'margin/loan': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay': 20.001,
@@ -5670,12 +5673,13 @@ class binance(Exchange, ImplicitAPI):
         """
         transfer currency internally between wallets on the same account
         :see: https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
-        :see: https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-transfer-margin
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: exchange specific transfer type
+        :param str [params.symbol]: the unified symbol, required for isolated margin transfers
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
@@ -5686,59 +5690,63 @@ class binance(Exchange, ImplicitAPI):
         }
         request['type'] = self.safe_string(params, 'type')
         params = self.omit(params, 'type')
-        response = None
         if request['type'] is None:
             symbol = self.safe_string(params, 'symbol')
+            market = None
             if symbol is not None:
+                market = self.market(symbol)
                 params = self.omit(params, 'symbol')
             fromId = self.convert_type_to_account(fromAccount).upper()
             toId = self.convert_type_to_account(toAccount).upper()
+            isolatedSymbol = None
+            if market is not None:
+                isolatedSymbol = market['id']
             if fromId == 'ISOLATED':
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when fromAccount is ' + fromAccount)
-                else:
-                    fromId = self.market_id(symbol)
             if toId == 'ISOLATED':
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when toAccount is ' + toAccount)
-                else:
-                    toId = self.market_id(symbol)
             accountsById = self.safe_value(self.options, 'accountsById', {})
             fromIsolated = not (fromId in accountsById)
             toIsolated = not (toId in accountsById)
+            if fromIsolated and (market is None):
+                isolatedSymbol = fromId  # allow user provide symbol from/to account
+            if toIsolated and (market is None):
+                isolatedSymbol = toId
             if fromIsolated or toIsolated:  # Isolated margin transfer
                 fromFuture = fromId == 'UMFUTURE' or fromId == 'CMFUTURE'
                 toFuture = toId == 'UMFUTURE' or toId == 'CMFUTURE'
                 fromSpot = fromId == 'MAIN'
                 toSpot = toId == 'MAIN'
                 funding = fromId == 'FUNDING' or toId == 'FUNDING'
-                mining = fromId == 'MINING' or toId == 'MINING'
                 option = fromId == 'OPTION' or toId == 'OPTION'
-                prohibitedWithIsolated = fromFuture or toFuture or mining or funding or option
+                prohibitedWithIsolated = fromFuture or toFuture or funding or option
                 if (fromIsolated or toIsolated) and prohibitedWithIsolated:
                     raise BadRequest(self.id + ' transfer() does not allow transfers between ' + fromAccount + ' and ' + toAccount)
                 elif toSpot and fromIsolated:
-                    request['transFrom'] = 'ISOLATED_MARGIN'
-                    request['transTo'] = 'SPOT'
-                    request['symbol'] = fromId
-                    response = await self.sapiPostMarginIsolatedTransfer(self.extend(request, params))
+                    fromId = 'ISOLATED_MARGIN'
+                    request['fromSymbol'] = isolatedSymbol
                 elif fromSpot and toIsolated:
-                    request['transFrom'] = 'SPOT'
-                    request['transTo'] = 'ISOLATED_MARGIN'
-                    request['symbol'] = toId
-                    response = await self.sapiPostMarginIsolatedTransfer(self.extend(request, params))
+                    toId = 'ISOLATED_MARGIN'
+                    request['toSymbol'] = isolatedSymbol
                 else:
-                    if fromIsolated:
+                    if fromIsolated and toIsolated:
                         request['fromSymbol'] = fromId
-                        fromId = 'ISOLATEDMARGIN'
-                    if toIsolated:
                         request['toSymbol'] = toId
+                        fromId = 'ISOLATEDMARGIN'
                         toId = 'ISOLATEDMARGIN'
-                    request['type'] = fromId + '_' + toId
+                    else:
+                        if fromIsolated:
+                            request['fromSymbol'] = isolatedSymbol
+                            fromId = 'ISOLATEDMARGIN'
+                        if toIsolated:
+                            request['toSymbol'] = isolatedSymbol
+                            toId = 'ISOLATEDMARGIN'
+                request['type'] = fromId + '_' + toId
             else:
                 request['type'] = fromId + '_' + toId
-        if response is None:
-            response = await self.sapiPostAssetTransfer(self.extend(request, params))
+        response = await self.sapiPostAssetTransfer(self.extend(request, params))
         #
         #     {
         #         "tranId":13526853623
@@ -8372,7 +8380,7 @@ class binance(Exchange, ImplicitAPI):
     async def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -8384,8 +8392,9 @@ class binance(Exchange, ImplicitAPI):
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'isIsolated': 'FALSE',
+            'type': 'REPAY',
         }
-        response = await self.sapiPostMarginRepay(self.extend(request, params))
+        response = await self.sapiPostMarginBorrowRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,
@@ -8397,7 +8406,7 @@ class binance(Exchange, ImplicitAPI):
     async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
         :param str symbol: unified market symbol, required for isolated margin
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
@@ -8412,8 +8421,9 @@ class binance(Exchange, ImplicitAPI):
             'amount': self.currency_to_precision(code, amount),
             'symbol': market['id'],
             'isIsolated': 'TRUE',
+            'type': 'REPAY',
         }
-        response = await self.sapiPostMarginRepay(self.extend(request, params))
+        response = await self.sapiPostMarginBorrowRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,
@@ -8425,7 +8435,7 @@ class binance(Exchange, ImplicitAPI):
     async def borrow_cross_margin(self, code: str, amount, params={}):
         """
         create a loan to borrow margin
-        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -8437,8 +8447,9 @@ class binance(Exchange, ImplicitAPI):
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'isIsolated': 'FALSE',
+            'type': 'BORROW',
         }
-        response = await self.sapiPostMarginLoan(self.extend(request, params))
+        response = await self.sapiPostMarginBorrowRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,
@@ -8450,7 +8461,7 @@ class binance(Exchange, ImplicitAPI):
     async def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         create a loan to borrow margin
-        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
         :param str symbol: unified market symbol, required for isolated margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
@@ -8465,8 +8476,9 @@ class binance(Exchange, ImplicitAPI):
             'amount': self.currency_to_precision(code, amount),
             'symbol': market['id'],
             'isIsolated': 'TRUE',
+            'type': 'BORROW',
         }
-        response = await self.sapiPostMarginLoan(self.extend(request, params))
+        response = await self.sapiPostMarginBorrowRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,

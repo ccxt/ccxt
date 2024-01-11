@@ -6,7 +6,6 @@ import log from 'ololog'
 const skipMethods = [
     'fetchMarkets',
     'createDepositAddress', // will be updated later
-    'watchTickers', // will be updated later
 ]
 
 const skipExchanges = [

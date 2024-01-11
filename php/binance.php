@@ -45,6 +45,7 @@ class binance extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => true,
+                'createTrailingPercentOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
@@ -220,6 +221,7 @@ class binance extends Exchange {
                         'asset/convert-transfer/queryByPage' => 0.033335,
                         'asset/wallet/balance' => 6, // Weight(IP) => 60 => cost = 0.1 * 60 = 6
                         'asset/custody/transfer-history' => 6, // Weight(IP) => 60 => cost = 0.1 * 60 = 6
+                        'margin/borrow-repay' => 1,
                         'margin/loan' => 1,
                         'margin/repay' => 1,
                         'margin/account' => 1,
@@ -471,6 +473,7 @@ class binance extends Exchange {
                         'capital/withdraw/apply' => 4.0002, // Weight(UID) => 600 => cost = 0.006667 * 600 = 4.0002
                         'capital/contract/convertible-coins' => 4.0002,
                         'capital/deposit/credit-apply' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'margin/borrow-repay' => 20.001,
                         'margin/transfer' => 4.0002,
                         'margin/loan' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay' => 20.001,
@@ -5951,12 +5954,13 @@ class binance extends Exchange {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
-         * @see https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-transfer-margin
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] exchange specific transfer type
+         * @param {string} [$params->symbol] the unified $symbol, required for isolated margin transfers
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
          */
         $this->load_markets();
@@ -5967,70 +5971,77 @@ class binance extends Exchange {
         );
         $request['type'] = $this->safe_string($params, 'type');
         $params = $this->omit($params, 'type');
-        $response = null;
         if ($request['type'] === null) {
             $symbol = $this->safe_string($params, 'symbol');
+            $market = null;
             if ($symbol !== null) {
+                $market = $this->market($symbol);
                 $params = $this->omit($params, 'symbol');
             }
             $fromId = strtoupper($this->convert_type_to_account($fromAccount));
             $toId = strtoupper($this->convert_type_to_account($toAccount));
+            $isolatedSymbol = null;
+            if ($market !== null) {
+                $isolatedSymbol = $market['id'];
+            }
             if ($fromId === 'ISOLATED') {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' transfer () requires $params["symbol"] when $fromAccount is ' . $fromAccount);
-                } else {
-                    $fromId = $this->market_id($symbol);
                 }
             }
             if ($toId === 'ISOLATED') {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' transfer () requires $params["symbol"] when $toAccount is ' . $toAccount);
-                } else {
-                    $toId = $this->market_id($symbol);
                 }
             }
             $accountsById = $this->safe_value($this->options, 'accountsById', array());
             $fromIsolated = !(is_array($accountsById) && array_key_exists($fromId, $accountsById));
             $toIsolated = !(is_array($accountsById) && array_key_exists($toId, $accountsById));
+            if ($fromIsolated && ($market === null)) {
+                $isolatedSymbol = $fromId; // allow user provide $symbol from/to account
+            }
+            if ($toIsolated && ($market === null)) {
+                $isolatedSymbol = $toId;
+            }
             if ($fromIsolated || $toIsolated) { // Isolated margin transfer
                 $fromFuture = $fromId === 'UMFUTURE' || $fromId === 'CMFUTURE';
                 $toFuture = $toId === 'UMFUTURE' || $toId === 'CMFUTURE';
                 $fromSpot = $fromId === 'MAIN';
                 $toSpot = $toId === 'MAIN';
                 $funding = $fromId === 'FUNDING' || $toId === 'FUNDING';
-                $mining = $fromId === 'MINING' || $toId === 'MINING';
                 $option = $fromId === 'OPTION' || $toId === 'OPTION';
-                $prohibitedWithIsolated = $fromFuture || $toFuture || $mining || $funding || $option;
+                $prohibitedWithIsolated = $fromFuture || $toFuture || $funding || $option;
                 if (($fromIsolated || $toIsolated) && $prohibitedWithIsolated) {
                     throw new BadRequest($this->id . ' transfer () does not allow transfers between ' . $fromAccount . ' and ' . $toAccount);
                 } elseif ($toSpot && $fromIsolated) {
-                    $request['transFrom'] = 'ISOLATED_MARGIN';
-                    $request['transTo'] = 'SPOT';
-                    $request['symbol'] = $fromId;
-                    $response = $this->sapiPostMarginIsolatedTransfer (array_merge($request, $params));
+                    $fromId = 'ISOLATED_MARGIN';
+                    $request['fromSymbol'] = $isolatedSymbol;
                 } elseif ($fromSpot && $toIsolated) {
-                    $request['transFrom'] = 'SPOT';
-                    $request['transTo'] = 'ISOLATED_MARGIN';
-                    $request['symbol'] = $toId;
-                    $response = $this->sapiPostMarginIsolatedTransfer (array_merge($request, $params));
+                    $toId = 'ISOLATED_MARGIN';
+                    $request['toSymbol'] = $isolatedSymbol;
                 } else {
-                    if ($fromIsolated) {
+                    if ($fromIsolated && $toIsolated) {
                         $request['fromSymbol'] = $fromId;
-                        $fromId = 'ISOLATEDMARGIN';
-                    }
-                    if ($toIsolated) {
                         $request['toSymbol'] = $toId;
+                        $fromId = 'ISOLATEDMARGIN';
                         $toId = 'ISOLATEDMARGIN';
+                    } else {
+                        if ($fromIsolated) {
+                            $request['fromSymbol'] = $isolatedSymbol;
+                            $fromId = 'ISOLATEDMARGIN';
+                        }
+                        if ($toIsolated) {
+                            $request['toSymbol'] = $isolatedSymbol;
+                            $toId = 'ISOLATEDMARGIN';
+                        }
                     }
-                    $request['type'] = $fromId . '_' . $toId;
                 }
+                $request['type'] = $fromId . '_' . $toId;
             } else {
                 $request['type'] = $fromId . '_' . $toId;
             }
         }
-        if ($response === null) {
-            $response = $this->sapiPostAssetTransfer (array_merge($request, $params));
-        }
+        $response = $this->sapiPostAssetTransfer (array_merge($request, $params));
         //
         //     {
         //         "tranId":13526853623
@@ -8891,7 +8902,7 @@ class binance extends Exchange {
     public function repay_cross_margin(string $code, $amount, $params = array ()) {
         /**
          * repay borrowed margin and interest
-         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -8903,8 +8914,9 @@ class binance extends Exchange {
             'asset' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
             'isIsolated' => 'FALSE',
+            'type' => 'REPAY',
         );
-        $response = $this->sapiPostMarginRepay (array_merge($request, $params));
+        $response = $this->sapiPostMarginBorrowRepay (array_merge($request, $params));
         //
         //     {
         //         "tranId" => 108988250265,
@@ -8917,7 +8929,7 @@ class binance extends Exchange {
     public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
         /**
          * repay borrowed margin and interest
-         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
          * @param {string} $symbol unified $market $symbol, required for isolated margin
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
@@ -8932,8 +8944,9 @@ class binance extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
             'symbol' => $market['id'],
             'isIsolated' => 'TRUE',
+            'type' => 'REPAY',
         );
-        $response = $this->sapiPostMarginRepay (array_merge($request, $params));
+        $response = $this->sapiPostMarginBorrowRepay (array_merge($request, $params));
         //
         //     {
         //         "tranId" => 108988250265,
@@ -8946,7 +8959,7 @@ class binance extends Exchange {
     public function borrow_cross_margin(string $code, $amount, $params = array ()) {
         /**
          * create a loan to borrow margin
-         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -8958,8 +8971,9 @@ class binance extends Exchange {
             'asset' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
             'isIsolated' => 'FALSE',
+            'type' => 'BORROW',
         );
-        $response = $this->sapiPostMarginLoan (array_merge($request, $params));
+        $response = $this->sapiPostMarginBorrowRepay (array_merge($request, $params));
         //
         //     {
         //         "tranId" => 108988250265,
@@ -8972,7 +8986,7 @@ class binance extends Exchange {
     public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
         /**
          * create a loan to borrow margin
-         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
          * @param {string} $symbol unified $market $symbol, required for isolated margin
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
@@ -8987,8 +9001,9 @@ class binance extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
             'symbol' => $market['id'],
             'isIsolated' => 'TRUE',
+            'type' => 'BORROW',
         );
-        $response = $this->sapiPostMarginLoan (array_merge($request, $params));
+        $response = $this->sapiPostMarginBorrowRepay (array_merge($request, $params));
         //
         //     {
         //         "tranId" => 108988250265,

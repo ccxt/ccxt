@@ -44,6 +44,7 @@ class htx extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'createTrailingPercentOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -4850,6 +4851,30 @@ class htx extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): array {
+        /**
+         * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [$price] the $price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} $trailingPercent the percent to trail away from the current market $price
+         * @param {float} $trailingTriggerPrice the $price to activate a trailing order, default uses the $price argument
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        if ($trailingPercent === null) {
+            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a $trailingPercent argument');
+        }
+        if ($trailingTriggerPrice === null) {
+            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a $trailingTriggerPrice argument');
+        }
+        $params['trailingPercent'] = $trailingPercent;
+        $params['trailingTriggerPrice'] = $trailingTriggerPrice;
+        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+    }
+
     public function create_spot_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * @ignore
@@ -5044,15 +5069,11 @@ class htx extends Exchange {
             }
         }
         if (!$isStopLossTriggerOrder && !$isTakeProfitTriggerOrder) {
-            $leverRate = $this->safe_integer_n($params, array( 'leverRate', 'lever_rate', 'leverage' ), 1);
             $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only', false);
-            $openOrClose = ($reduceOnly) ? 'close' : 'open';
-            $offset = $this->safe_string($params, 'offset', $openOrClose);
-            $request['offset'] = $offset;
             if ($reduceOnly) {
                 $request['reduce_only'] = 1;
             }
-            $request['lever_rate'] = $leverRate;
+            $request['lever_rate'] = $this->safe_integer_n($params, array( 'leverRate', 'lever_rate', 'leverage' ), 1);
             if (!$isTrailingPercentOrder) {
                 $request['order_price_type'] = $type;
             }
@@ -5117,7 +5138,7 @@ class htx extends Exchange {
             $contractRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
             if ($market['linear']) {
                 $marginMode = null;
-                list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+                list($marginMode, $contractRequest) = $this->handle_margin_mode_and_params('createOrder', $contractRequest);
                 $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                 if ($marginMode === 'isolated') {
                     if ($isStop) {

@@ -124,6 +124,7 @@ class ImplicitAPI:
     private_get_v5_account_wallet_balance = privateGetV5AccountWalletBalance = Entry('v5/account/wallet-balance', 'private', 'GET', {'cost': 1})
     private_get_v5_account_borrow_history = privateGetV5AccountBorrowHistory = Entry('v5/account/borrow-history', 'private', 'GET', {'cost': 1})
     private_get_v5_account_set_collateral_switch = privateGetV5AccountSetCollateralSwitch = Entry('v5/account/set-collateral-switch', 'private', 'GET', {'cost': 5})
+    private_get_v5_account_set_collateral_switch_batch = privateGetV5AccountSetCollateralSwitchBatch = Entry('v5/account/set-collateral-switch-batch', 'private', 'GET', {'cost': 5})
     private_get_v5_account_collateral_info = privateGetV5AccountCollateralInfo = Entry('v5/account/collateral-info', 'private', 'GET', {'cost': 1})
     private_get_v5_asset_coin_greeks = privateGetV5AssetCoinGreeks = Entry('v5/asset/coin-greeks', 'private', 'GET', {'cost': 1})
     private_get_v5_account_fee_rate = privateGetV5AccountFeeRate = Entry('v5/account/fee-rate', 'private', 'GET', {'cost': 10})

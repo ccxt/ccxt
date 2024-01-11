@@ -2630,11 +2630,10 @@ class hitbtc extends hitbtc$1 {
         //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
         //     ]
         //
-        const timestamp = this.milliseconds();
         return {
             'id': this.safeString(transfer, 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'currency': this.safeCurrencyCode(undefined, currency),
             'amount': undefined,
             'fromAccount': undefined,
