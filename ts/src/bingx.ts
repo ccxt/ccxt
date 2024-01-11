@@ -38,6 +38,8 @@ export default class bingx extends Exchange {
                 'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
+                'createTrailingAmountOrder': true,
+                'createTrailingPercentOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -2424,6 +2426,7 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
         };
         const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        params = this.omit (params, 'clientOrderIds');
         let idsToParse = ids;
         const areClientOrderIds = (clientOrderIds !== undefined);
         if (areClientOrderIds) {
@@ -2441,8 +2444,11 @@ export default class bingx extends Exchange {
             request[spotReqKey] = parsedIds.join (',');
             response = await this.spotV1PrivatePostTradeCancelOrders (this.extend (request, params));
         } else {
-            const swapReqKey = areClientOrderIds ? 'ClientOrderIDList' : 'orderIdList';
-            request[swapReqKey] = parsedIds;
+            if (areClientOrderIds) {
+                request['clientOrderIDList'] = this.json (parsedIds);
+            } else {
+                request['orderIdList'] = parsedIds;
+            }
             response = await this.swapV2PrivateDeleteTradeBatchOrders (this.extend (request, params));
         }
         //

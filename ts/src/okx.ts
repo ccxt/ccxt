@@ -47,6 +47,7 @@ export default class okx extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createTrailingPercentOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -159,8 +160,7 @@ export default class okx extends Exchange {
                 'referral': {
                     // old reflink 0% discount https://www.okx.com/join/1888677
                     // new reflink 20% discount https://www.okx.com/join/CCXT2023
-                    // okx + ccxt campaign reflink with 20% discount https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023
-                    'url': 'https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023',
+                    'url': 'https://www.okx.com/join/CCXT2023',
                     'discount': 0.2,
                 },
                 'test': {
@@ -261,6 +261,7 @@ export default class okx extends Exchange {
                         'sprd/order': 1 / 3,
                         'sprd/orders-pending': 1 / 3,
                         'sprd/orders-history': 1 / 2,
+                        'sprd/orders-history-archive': 1 / 2,
                         'sprd/trades': 1 / 3,
                         // trade
                         'trade/order': 1 / 3,
@@ -1221,9 +1222,16 @@ export default class okx extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const event = data[i];
             const state = this.safeString (event, 'state');
+            update['eta'] = this.safeInteger (event, 'end');
+            update['url'] = this.safeString (event, 'href');
             if (state === 'ongoing') {
-                update['eta'] = this.safeInteger (event, 'end');
                 update['status'] = 'maintenance';
+            } else if (state === 'scheduled') {
+                update['status'] = 'ok';
+            } else if (state === 'completed') {
+                update['status'] = 'ok';
+            } else if (state === 'canceled') {
+                update['status'] = 'ok';
             }
         }
         return update;

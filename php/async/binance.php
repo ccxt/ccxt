@@ -58,6 +58,7 @@ class binance extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => true,
+                'createTrailingPercentOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
@@ -233,6 +234,7 @@ class binance extends Exchange {
                         'asset/convert-transfer/queryByPage' => 0.033335,
                         'asset/wallet/balance' => 6, // Weight(IP) => 60 => cost = 0.1 * 60 = 6
                         'asset/custody/transfer-history' => 6, // Weight(IP) => 60 => cost = 0.1 * 60 = 6
+                        'margin/borrow-repay' => 1,
                         'margin/loan' => 1,
                         'margin/repay' => 1,
                         'margin/account' => 1,
@@ -484,6 +486,7 @@ class binance extends Exchange {
                         'capital/withdraw/apply' => 4.0002, // Weight(UID) => 600 => cost = 0.006667 * 600 = 4.0002
                         'capital/contract/convertible-coins' => 4.0002,
                         'capital/deposit/credit-apply' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'margin/borrow-repay' => 20.001,
                         'margin/transfer' => 4.0002,
                         'margin/loan' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay' => 20.001,
@@ -9041,7 +9044,7 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * repay borrowed margin and interest
-             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -9053,8 +9056,9 @@ class binance extends Exchange {
                 'asset' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
                 'isIsolated' => 'FALSE',
+                'type' => 'REPAY',
             );
-            $response = Async\await($this->sapiPostMarginRepay (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostMarginBorrowRepay (array_merge($request, $params)));
             //
             //     {
             //         "tranId" => 108988250265,
@@ -9069,7 +9073,7 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * repay borrowed margin and interest
-             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
              * @param {string} $symbol unified $market $symbol, required for isolated margin
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
@@ -9084,8 +9088,9 @@ class binance extends Exchange {
                 'amount' => $this->currency_to_precision($code, $amount),
                 'symbol' => $market['id'],
                 'isIsolated' => 'TRUE',
+                'type' => 'REPAY',
             );
-            $response = Async\await($this->sapiPostMarginRepay (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostMarginBorrowRepay (array_merge($request, $params)));
             //
             //     {
             //         "tranId" => 108988250265,
@@ -9100,7 +9105,7 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin
-             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -9112,8 +9117,9 @@ class binance extends Exchange {
                 'asset' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
                 'isIsolated' => 'FALSE',
+                'type' => 'BORROW',
             );
-            $response = Async\await($this->sapiPostMarginLoan (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostMarginBorrowRepay (array_merge($request, $params)));
             //
             //     {
             //         "tranId" => 108988250265,
@@ -9128,7 +9134,7 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
-             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
              * @param {string} $symbol unified $market $symbol, required for isolated margin
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
@@ -9143,8 +9149,9 @@ class binance extends Exchange {
                 'amount' => $this->currency_to_precision($code, $amount),
                 'symbol' => $market['id'],
                 'isIsolated' => 'TRUE',
+                'type' => 'BORROW',
             );
-            $response = Async\await($this->sapiPostMarginLoan (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostMarginBorrowRepay (array_merge($request, $params)));
             //
             //     {
             //         "tranId" => 108988250265,

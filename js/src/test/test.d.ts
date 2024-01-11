@@ -50,13 +50,13 @@ export default class testMainClass extends baseMainTestClass {
     runPrivateTests(exchange: any, symbol: any): Promise<void>;
     testProxies(exchange: any): Promise<void>;
     startTest(exchange: any, symbol: any): Promise<void>;
-    assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any): void;
+    assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any, key?: any): void;
     loadMarketsFromFile(id: string): any;
     loadCurrenciesFromFile(id: string): any;
     loadStaticData(folder: string, targetExchange?: string): {};
     removeHostnamefromUrl(url: string): string;
     urlencodedToDict(url: string): {};
-    assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean): void;
+    assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: any): void;
     assertStaticRequestOutput(exchange: any, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): void;
     assertStaticResponseOutput(exchange: Exchange, skipKeys: string[], computedResult: any, storedResult: any): void;
     sanitizeDataInput(input: any): any[];

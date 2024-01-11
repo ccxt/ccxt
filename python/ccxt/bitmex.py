@@ -54,6 +54,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'closePosition': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
+                'createTrailingAmountOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,

@@ -72,8 +72,8 @@ export default class hitbtc extends Exchange {
     fetchMarginMode(symbol?: Str, params?: {}): Promise<MarginMode>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         id: string;
-        timestamp: number;
-        datetime: string;
+        timestamp: any;
+        datetime: any;
         currency: string;
         amount: any;
         fromAccount: any;
@@ -83,8 +83,8 @@ export default class hitbtc extends Exchange {
     }>;
     parseTransfer(transfer: any, currency?: Currency): {
         id: string;
-        timestamp: number;
-        datetime: string;
+        timestamp: any;
+        datetime: any;
         currency: string;
         amount: any;
         fromAccount: any;
