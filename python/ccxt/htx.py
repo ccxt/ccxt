@@ -65,6 +65,7 @@ class htx(Exchange, ImplicitAPI):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'createTrailingPercentOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -4818,14 +4819,10 @@ class htx(Exchange, ImplicitAPI):
             if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
                 request['price'] = self.price_to_precision(symbol, price)
         if not isStopLossTriggerOrder and not isTakeProfitTriggerOrder:
-            leverRate = self.safe_integer_n(params, ['leverRate', 'lever_rate', 'leverage'], 1)
             reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only', False)
-            openOrClose = 'close' if (reduceOnly) else 'open'
-            offset = self.safe_string(params, 'offset', openOrClose)
-            request['offset'] = offset
             if reduceOnly:
                 request['reduce_only'] = 1
-            request['lever_rate'] = leverRate
+            request['lever_rate'] = self.safe_integer_n(params, ['leverRate', 'lever_rate', 'leverage'], 1)
             if not isTrailingPercentOrder:
                 request['order_price_type'] = type
         broker = self.safe_value(self.options, 'broker', {})
@@ -4886,7 +4883,7 @@ class htx(Exchange, ImplicitAPI):
             contractRequest = self.create_contract_order_request(symbol, type, side, amount, price, params)
             if market['linear']:
                 marginMode = None
-                marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+                marginMode, contractRequest = self.handle_margin_mode_and_params('createOrder', contractRequest)
                 marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
                     if isStop:

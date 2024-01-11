@@ -39,6 +39,7 @@ export default class deribit extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createDepositAddress': true,
+                'createTrailingAmountOrder': true,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,

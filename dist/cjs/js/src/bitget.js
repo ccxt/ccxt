@@ -40,6 +40,7 @@ class bitget extends bitget$1 {
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
+                'createTrailingPercentOrder': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': false,
@@ -3273,26 +3274,38 @@ class bitget extends bitget$1 {
             'granularity': selectedTimeframe,
         };
         [request, params] = this.handleUntilOption('endTime', request, params);
-        if (since !== undefined) {
-            request['startTime'] = limit;
-        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const options = this.safeValue(this.options, 'fetchOHLCV', {});
+        const spotOptions = this.safeValue(options, 'spot', {});
+        const defaultSpotMethod = this.safeString(spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
+        const method = this.safeString(params, 'method', defaultSpotMethod);
+        params = this.omit(params, 'method');
+        if (method !== 'publicSpotGetV2SpotMarketHistoryCandles') {
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+        }
         let response = undefined;
         if (market['spot']) {
-            const spotOptions = this.safeValue(options, 'spot', {});
-            const defaultSpotMethod = this.safeString(spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
-            const method = this.safeString(params, 'method', defaultSpotMethod);
-            params = this.omit(params, 'method');
             if (method === 'publicSpotGetV2SpotMarketCandles') {
                 response = await this.publicSpotGetV2SpotMarketCandles(this.extend(request, params));
             }
             else if (method === 'publicSpotGetV2SpotMarketHistoryCandles') {
                 const until = this.safeInteger2(params, 'until', 'till');
                 params = this.omit(params, ['until', 'till']);
-                if (until === undefined) {
+                if (since !== undefined) {
+                    if (limit === undefined) {
+                        limit = 100; // exchange default
+                    }
+                    const duration = this.parseTimeframe(timeframe) * 1000;
+                    request['endTime'] = this.sum(since, duration * limit);
+                }
+                else if (until !== undefined) {
+                    request['endTime'] = until;
+                }
+                else {
                     request['endTime'] = this.milliseconds();
                 }
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, params));

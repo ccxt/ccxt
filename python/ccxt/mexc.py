@@ -1311,7 +1311,8 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            orderbook = self.parse_order_book(response, symbol)
+            spotTimestamp = self.safe_integer(response, 'timestamp')
+            orderbook = self.parse_order_book(response, symbol, spotTimestamp)
             orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         elif market['swap']:
             response = self.contractPublicGetDepthSymbol(self.extend(request, params))

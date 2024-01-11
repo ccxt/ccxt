@@ -73,6 +73,12 @@ export default class binance extends binanceRest {
                     'future': 50,
                     'delivery': 50, // max 200
                 },
+                'subscriptionLimitByStream': {
+                    'spot': 200,
+                    'margin': 200,
+                    'future': 200,
+                    'delivery': 200,
+                },
                 'streamBySubscriptionsHash': {},
                 'streamIndex': -1,
                 // get updates every 1000ms or 100ms
@@ -121,7 +127,7 @@ export default class binance extends binanceRest {
         this.options['requestId'][url] = newValue;
         return newValue;
     }
-    stream(type, subscriptionHash) {
+    stream(type, subscriptionHash, numSubscriptions = 1) {
         const streamBySubscriptionsHash = this.safeValue(this.options, 'streamBySubscriptionsHash', {});
         let stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
@@ -133,6 +139,17 @@ export default class binance extends binanceRest {
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString(normalizedIndex);
             this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
+            const subscriptionsByStreams = this.safeValue(this.options, 'numSubscriptionsByStream');
+            if (subscriptionsByStreams === undefined) {
+                this.options['numSubscriptionsByStream'] = {};
+            }
+            const subscriptionsByStream = this.safeInteger(this.options['numSubscriptionsByStream'], stream, 0);
+            const newNumSubscriptions = subscriptionsByStream + numSubscriptions;
+            const subscriptionLimitByStream = this.safeInteger(this.options, 'subscriptionLimitByStream', 200);
+            if (newNumSubscriptions > subscriptionLimitByStream) {
+                throw new BadRequest(this.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
+            }
+            this.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions;
         }
         return stream;
     }
@@ -203,8 +220,14 @@ export default class binance extends binanceRest {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         const name = 'depth';
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, 'multipleOrderbook');
-        const requestId = this.requestId(url);
+        let streamHash = 'multipleOrderbook';
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 200) {
+                throw new BadRequest(this.id + ' watchOrderBookForSymbols() accepts 200 symbols at most. To watch more symbols call watchOrderBookForSymbols() multiple times');
+            }
+            streamHash += '::' + symbols.join(',');
+        }
         const watchOrderBookRate = this.safeString(this.options, 'watchOrderBookRate', '100');
         const subParams = [];
         const messageHashes = [];
@@ -216,6 +239,9 @@ export default class binance extends binanceRest {
             const symbolHash = messageHash + '@' + watchOrderBookRate + 'ms';
             subParams.push(symbolHash);
         }
+        const messageHashesLength = messageHashes.length;
+        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, streamHash, messageHashesLength);
+        const requestId = this.requestId(url);
         const request = {
             'method': 'SUBSCRIBE',
             'params': subParams,
@@ -459,6 +485,14 @@ export default class binance extends binanceRest {
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false, true, true);
+        let streamHash = 'multipleTrades';
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 200) {
+                throw new BadRequest(this.id + ' watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times');
+            }
+            streamHash += '::' + symbols.join(',');
+        }
         const options = this.safeValue(this.options, 'watchTradesForSymbols', {});
         const name = this.safeString(options, 'name', 'trade');
         const firstMarket = this.market(symbols[0]);
@@ -474,7 +508,8 @@ export default class binance extends binanceRest {
             subParams.push(currentMessageHash);
         }
         const query = this.omit(params, 'type');
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, 'multipleTrades');
+        const subParamsLength = subParams.length;
+        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, streamHash, subParamsLength);
         const requestId = this.requestId(url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -958,30 +993,30 @@ export default class binance extends binanceRest {
         }
         const marketId = this.safeString(message, 's');
         const symbol = this.safeSymbol(marketId, undefined, undefined, marketType);
-        const last = this.safeFloat(message, 'c');
-        const ticker = {
+        const market = this.safeMarket(marketId, undefined, undefined, marketType);
+        const last = this.safeString(message, 'c');
+        return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'high': this.safeFloat(message, 'h'),
-            'low': this.safeFloat(message, 'l'),
-            'bid': this.safeFloat(message, 'b'),
-            'bidVolume': this.safeFloat(message, 'B'),
-            'ask': this.safeFloat(message, 'a'),
-            'askVolume': this.safeFloat(message, 'A'),
-            'vwap': this.safeFloat(message, 'w'),
-            'open': this.safeFloat(message, 'o'),
+            'high': this.safeString(message, 'h'),
+            'low': this.safeString(message, 'l'),
+            'bid': this.safeString(message, 'b'),
+            'bidVolume': this.safeString(message, 'B'),
+            'ask': this.safeString(message, 'a'),
+            'askVolume': this.safeString(message, 'A'),
+            'vwap': this.safeString(message, 'w'),
+            'open': this.safeString(message, 'o'),
             'close': last,
             'last': last,
-            'previousClose': this.safeFloat(message, 'x'),
-            'change': this.safeFloat(message, 'p'),
-            'percentage': this.safeFloat(message, 'P'),
+            'previousClose': this.safeString(message, 'x'),
+            'change': this.safeString(message, 'p'),
+            'percentage': this.safeString(message, 'P'),
             'average': undefined,
-            'baseVolume': this.safeFloat(message, 'v'),
-            'quoteVolume': this.safeFloat(message, 'q'),
+            'baseVolume': this.safeString(message, 'v'),
+            'quoteVolume': this.safeString(message, 'q'),
             'info': message,
-        };
-        return ticker;
+        }, market);
     }
     handleTicker(client, message) {
         //
@@ -2246,7 +2281,8 @@ export default class binance extends binanceRest {
             market = this.getMarketFromSymbols(symbols);
             messageHash = '::' + symbols.join(',');
         }
-        let type = this.handleMarketTypeAndParams('watchPositions', market, params);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchPositions', market, params);
         if (type === 'spot' || type === 'margin') {
             type = 'future';
         }
