@@ -454,7 +454,7 @@ export default class phemex extends Exchange {
                 },
             },
             'options': {
-                'brokerId': 'CCXT',
+                'brokerId': 'CCXT123456', // updated from CCXT to CCXT123456
                 'x-phemex-request-expiry': 60, // in seconds
                 'createOrderByQuoteRequiresPrice': true,
                 'networks': {

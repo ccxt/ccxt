@@ -1601,7 +1601,7 @@ export default class testMainClass extends baseMainTestClass {
 
     async testPhemex () {
         const exchange = this.initOfflineExchange ('phemex');
-        const id = 'CCXT';
+        const id = 'CCXT123456';
         let request = undefined;
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
