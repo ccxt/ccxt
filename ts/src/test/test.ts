@@ -31,8 +31,21 @@ const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
-const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
-const sanitizedSymnol = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
+const argv = process.argv;
+argv.shift (); // remove first argument (which is script path "js/src/test/test.js")
+const findArgv = function (args_array, needle = '', match = true) {
+    return args_array.filter ((x) => (x.includes (needle) ? match : !match));
+};
+const filetered_args = findArgv (argv, '--', false);
+
+
+const symbol_args   = findArgv (filetered_args, '/', true);
+const method_args   = findArgv (filetered_args, '()', true);
+const exchange_args = findArgv (findArgv (filetered_args, '/', false), '()', false);
+const argvSymbol   = symbol_args.length ? symbol_args[0] : null;
+const argvMethod   = method_args.length ? method_args[0] : null;
+const argvExchange = exchange_args.length ? exchange_args[0] : null;
+
 // non-transpiled part, but shared names among langs
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
@@ -204,7 +217,7 @@ export default class testMainClass extends baseMainTestClass {
         this.wsTests = getCliArgValue ('--ws');
     }
 
-    async init (exchangeId, symbolArgv) {
+    async init (exchangeId, symbolArgv, methodArgv) {
         this.parseCliArgs ();
 
         if (this.responseTests) {
@@ -219,8 +232,7 @@ export default class testMainClass extends baseMainTestClass {
             await this.runBrokerIdTests ();
             return;
         }
-        const symbolStr = symbolArgv !== undefined ? symbolArgv : 'all';
-        dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.wsTests }, this.newLine);
+        dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolArgv, 'method': methodArgv, 'isWs': this.wsTests }, this.newLine);
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
@@ -1615,4 +1627,4 @@ export default class testMainClass extends baseMainTestClass {
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass ()).init (exchangeIdFromArgv, sanitizedSymnol);
+(new testMainClass ()).init (argvExchange, argvSymbol, argvMethod);
