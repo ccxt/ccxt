@@ -247,6 +247,9 @@ const testExchange = async (exchange) => {
     if (symbol !== undefined) {
         args.push(symbol);
     }
+    if (method !== undefined) {
+        args.push(method);
+    }
     args = args.concat(exchangeOptions)
     // pass it to the test(ts/py/php) script too
     if (debugKeys['--info']) {
