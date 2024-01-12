@@ -4895,7 +4895,7 @@ export default class htx extends Exchange {
     async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
         /**
          * @method
-         * @name createTrailingPercentOrder
+         * @name htx#createTrailingPercentOrder
          * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
