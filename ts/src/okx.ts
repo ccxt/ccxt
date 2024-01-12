@@ -2146,17 +2146,14 @@ export default class okx extends Exchange {
         let defaultType = 'Candles';
         if (since !== undefined) {
             const now = this.milliseconds ();
-            const difference = now - since;
             const durationInMilliseconds = duration * 1000;
-            // if the since timestamp is more than limit candles back in the past
-            // additional one bar for max offset to round the current day to UTC
-            const calc = (1440 - limit - 1) * durationInMilliseconds;
-            if (difference > calc) {
+            // switch to history candles if since is past the cutoff for current candles
+            const historyBorder = now - (1440 * durationInMilliseconds);
+            if (since <= historyBorder) {
                 defaultType = 'HistoryCandles';
             }
-            const startTime = Math.max (since - 1, 0);
-            request['before'] = startTime;
-            request['after'] = this.sum (startTime, durationInMilliseconds * limit);
+            request['before'] = since;
+            request['after'] = this.sum (since, durationInMilliseconds * limit);
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
