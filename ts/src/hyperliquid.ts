@@ -6,13 +6,10 @@ import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Market, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, Trade, Strings, Position } from './base/types.js';
+import type { Market, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position } from './base/types.js';
+
 //  ---------------------------------------------------------------------------
 
-/**
- * @class hyperliquid
- * @augments Exchange
- */
 export default class hyperliquid extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -41,7 +38,7 @@ export default class hyperliquid extends Exchange {
                 'createMarketBuyOrderWithCost': false,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createOrders': false,
                 'createReduceOnlyOrder': false,
                 'editOrder': false,
@@ -173,6 +170,7 @@ export default class hyperliquid extends Exchange {
             'commonCurrencies': {
             },
             'options': {
+                'defaultSlippage': 0.05,
             },
         });
     }
@@ -501,6 +499,79 @@ export default class hyperliquid extends Exchange {
             this.safeNumber (ohlcv, 'c'),
             this.safeNumber (ohlcv, 'v'),
         ];
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const orderType = type.toUpperCase ();
+        const orderSide = side.toUpperCase ();
+        const defaultSlippage = this.safeValue (this.options, 'defaultSlippage');
+        const slippage = this.safeValue (params, 'slippage', defaultSlippage);
+        // TODO: round px to 5 significant figures and 6 decimals
+        // TODO: cloid
+        const px = (orderType === 'BUY') ? price * (1 + slippage) : price * (1 - slippage);
+        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+        const request = {
+            'coin': market['baseId'],
+            'is_buy': (orderSide === 'BUY'),
+            // 'sz': this.amountToPrecision (symbol, amount),
+            // 'limit_px': this.priceToPrecision (symbol, px),
+            'sz': amount,
+            'limit_px': px,
+            'reduce_only': reduceOnly,
+        };
+        const orderSpec = {
+            'order': {
+                'asset': market['baseId'],
+                'isBuy': (orderSide === 'BUY'),
+                'sz': amount,
+                'limitPx': px,
+                'reduceOnly': reduceOnly,
+            },
+        };
+        if (orderType === 'MARKET') {
+            request['order_type'] = {
+                'limit': {
+                    'tif': 'Ioc',
+                },
+            };
+            orderSpec['orderType'] = request['order_type'];
+        }
+        const signing = [
+            [
+                orderSpec['asset'],
+                orderSpec["isBuy"],
+                orderSpec["limitPx"],
+                orderSpec["sz"],
+                orderSpec["reduceOnly"],
+                3, // limit, ioc
+                0,
+            ],
+            0, // na grouping
+        ];
+        // withcloid
+        // ["(uint32,bool,uint64,uint64,bool,uint8,uint64,bytes16)[]", "uint8"]
+        // without cloid
+        // ["(uint32,bool,uint64,uint64,bool,uint8,uint64)[]", "uint8"]
+        // const response = await this.privatePostV2OrderOrder (this.extend (request, params));
+        //
+        //
+        // const data = this.safeValue (response, 'attachment');
+        // return this.parseOrder (data, market);
+        return {} as Order;
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
