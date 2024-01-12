@@ -7,13 +7,14 @@ import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSid
 export default class bigone extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
-    parseMarket(market: any): Market;
+    fetchMarkets(params?: {}): Promise<any[]>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTime(params?: {}): Promise<number>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    parseContractBidsAsks(bidsAsks: any): any[];
+    parseContractOrderBook(orderbook: object, symbol: string, limit?: Int): OrderBook;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;

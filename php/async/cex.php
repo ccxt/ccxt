@@ -1181,14 +1181,15 @@ class cex extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $method = 'privatePostOpenOrders';
             $market = null;
+            $orders = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['pair'] = $market['id'];
-                $method .= 'Pair';
+                $orders = Async\await($this->privatePostOpenOrdersPair (array_merge($request, $params)));
+            } else {
+                $orders = Async\await($this->privatePostOpenOrders (array_merge($request, $params)));
             }
-            $orders = Async\await($this->$method (array_merge($request, $params)));
             for ($i = 0; $i < count($orders); $i++) {
                 $orders[$i] = array_merge($orders[$i], array( 'status' => 'open' ));
             }
@@ -1211,10 +1212,9 @@ class cex extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            $method = 'privatePostArchivedOrdersPair';
             $market = $this->market($symbol);
             $request = array( 'pair' => $market['id'] );
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = Async\await($this->privatePostArchivedOrdersPair (array_merge($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }

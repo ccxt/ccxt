@@ -35,6 +35,7 @@ class kraken extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'createTrailingAmountOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
@@ -748,7 +749,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
+    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
         $timestamp = $this->safe_integer($bidask, 2);
@@ -1256,12 +1257,8 @@ class kraken extends Exchange {
             $request['since'] = $since * 1e6;
             $request['since'] = (string) $since . '000000'; // expected to be in nanoseconds
         }
-        // https://github.com/ccxt/ccxt/issues/5698
-        if ($limit !== null && $limit !== 1000) {
-            $fetchTradesWarning = $this->safe_value($this->options, 'fetchTradesWarning', true);
-            if ($fetchTradesWarning) {
-                throw new ExchangeError($this->id . ' fetchTrades() cannot serve ' . (string) $limit . " $trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge this warning and silence it.");
-            }
+        if ($limit !== null) {
+            $request['count'] = $limit;
         }
         $response = $this->publicGetTrades (array_merge($request, $params));
         //
@@ -1349,7 +1346,9 @@ class kraken extends Exchange {
          * @param {bool} [$params->reduceOnly] *margin only* indicates if this order is to reduce the size of a position
          * @param {float} [$params->stopLossPrice] *margin only* the $price that a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] *margin only* the $price that a take profit order is triggered at
-         * @param {string} [$params->trailingStopPrice] *margin only* the quote $amount to trail away from the current $market $price
+         * @param {string} [$params->trailingAmount] *margin only* the quote $amount to trail away from the current $market $price
+         * @param {string} [$params->trailingLimitAmount] *margin only* the quote $amount away from the trailingAmount
+         * @param {string} [$params->offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
          * @param {string} [$params->trigger] *margin only* the activation $price $type, 'last' or 'index', default is 'last'
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -1609,9 +1608,10 @@ class kraken extends Exchange {
         $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
         $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
         $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
-        $trailingStopPrice = $this->safe_string($params, 'trailingStopPrice');
-        $isTrailingStopPriceOrder = $trailingStopPrice !== null;
-        if ($type === 'limit') {
+        $trailingAmount = $this->safe_string($params, 'trailingAmount');
+        $trailingLimitAmount = $this->safe_string($params, 'trailingLimitAmount');
+        $isTrailingAmountOrder = $trailingAmount !== null;
+        if (($type === 'limit') && !$isTrailingAmountOrder) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
@@ -1625,18 +1625,18 @@ class kraken extends Exchange {
             }
             $request['price2'] = $this->price_to_precision($symbol, $price);
             $reduceOnly = true;
-        } elseif ($isTrailingStopPriceOrder) {
-            $trailingStopActivationPriceType = $this->safe_string($params, 'trigger', 'last');
-            $trailingStopPriceString = '+' . $trailingStopPrice;
-            $request['trigger'] = $trailingStopActivationPriceType;
-            $reduceOnly = true;
-            if ($type === 'limit') {
-                $trailingStopLimitPriceString = '+' . $this->number_to_string($price);
-                $request['price'] = $trailingStopPriceString;
-                $request['price2'] = $trailingStopLimitPriceString;
+        } elseif ($isTrailingAmountOrder) {
+            $trailingActivationPriceType = $this->safe_string($params, 'trigger', 'last');
+            $trailingAmountString = '+' . $trailingAmount;
+            $request['trigger'] = $trailingActivationPriceType;
+            if (($type === 'limit') || ($trailingLimitAmount !== null)) {
+                $offset = $this->safe_string($params, 'offset', '-');
+                $trailingLimitAmountString = $offset . $this->number_to_string($trailingLimitAmount);
+                $request['price'] = $trailingAmountString;
+                $request['price2'] = $trailingLimitAmountString;
                 $request['ordertype'] = 'trailing-stop-limit';
             } else {
-                $request['price'] = $trailingStopPriceString;
+                $request['price'] = $trailingAmountString;
                 $request['ordertype'] = 'trailing-stop';
             }
         }
@@ -1666,7 +1666,7 @@ class kraken extends Exchange {
         if ($postOnly) {
             $request['oflags'] = 'post';
         }
-        $params = $this->omit($params, array( 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingStopPrice' ));
+        $params = $this->omit($params, array( 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ));
         return array( $request, $params );
     }
 
@@ -1683,7 +1683,9 @@ class kraken extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->stopLossPrice] *margin only* the $price that a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] *margin only* the $price that a take profit order is triggered at
-         * @param {string} [$params->trailingStopPrice] *margin only* the quote $price away from the current $market $price
+         * @param {string} [$params->trailingAmount] *margin only* the quote $price away from the current $market $price
+         * @param {string} [$params->trailingLimitAmount] *margin only* the quote $amount away from the trailingAmount
+         * @param {string} [$params->offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
          * @param {string} [$params->trigger] *margin only* the activation $price $type, 'last' or 'index', default is 'last'
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */

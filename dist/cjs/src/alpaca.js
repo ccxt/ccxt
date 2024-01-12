@@ -50,7 +50,7 @@ class alpaca extends alpaca$1 {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
-                'fetchBalance': true,
+                'fetchBalance': false,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
@@ -349,10 +349,16 @@ class alpaca extends alpaca$1 {
         //
         const marketId = this.safeString(asset, 'symbol');
         const parts = marketId.split('/');
+        const assetClass = this.safeString(asset, 'class');
         const baseId = this.safeString(parts, 0);
         const quoteId = this.safeString(parts, 1);
         const base = this.safeCurrencyCode(baseId);
-        const quote = this.safeCurrencyCode(quoteId);
+        let quote = this.safeCurrencyCode(quoteId);
+        // Us equity markets do not include quote in symbol.
+        // We can safely coerce us_equity quote to USD
+        if (quote === undefined && assetClass === 'us_equity') {
+            quote = 'USD';
+        }
         const symbol = base + '/' + quote;
         const status = this.safeString(asset, 'status');
         const active = (status === 'active');

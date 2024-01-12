@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.kraken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -58,6 +58,7 @@ class kraken(Exchange, ImplicitAPI):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'createTrailingAmountOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
@@ -754,7 +755,7 @@ class kraken(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
+    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
         timestamp = self.safe_integer(bidask, 2)
@@ -1226,11 +1227,8 @@ class kraken(Exchange, ImplicitAPI):
             # therefore we use string concatenation here
             request['since'] = since * 1e6
             request['since'] = str(since) + '000000'  # expected to be in nanoseconds
-        # https://github.com/ccxt/ccxt/issues/5698
-        if limit is not None and limit != 1000:
-            fetchTradesWarning = self.safe_value(self.options, 'fetchTradesWarning', True)
-            if fetchTradesWarning:
-                raise ExchangeError(self.id + ' fetchTrades() cannot serve ' + str(limit) + " trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge self warning and silence it.")
+        if limit is not None:
+            request['count'] = limit
         response = self.publicGetTrades(self.extend(request, params))
         #
         #     {
@@ -1312,7 +1310,9 @@ class kraken(Exchange, ImplicitAPI):
         :param bool [params.reduceOnly]: *margin only* indicates if self order is to reduce the size of a position
         :param float [params.stopLossPrice]: *margin only* the price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: *margin only* the price that a take profit order is triggered at
-        :param str [params.trailingStopPrice]: *margin only* the quote amount to trail away from the current market price
+        :param str [params.trailingAmount]: *margin only* the quote amount to trail away from the current market price
+        :param str [params.trailingLimitAmount]: *margin only* the quote amount away from the trailingAmount
+        :param str [params.offset]: *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
         :param str [params.trigger]: *margin only* the activation price type, 'last' or 'index', default is 'last'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1551,9 +1551,10 @@ class kraken(Exchange, ImplicitAPI):
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
-        trailingStopPrice = self.safe_string(params, 'trailingStopPrice')
-        isTrailingStopPriceOrder = trailingStopPrice is not None
-        if type == 'limit':
+        trailingAmount = self.safe_string(params, 'trailingAmount')
+        trailingLimitAmount = self.safe_string(params, 'trailingLimitAmount')
+        isTrailingAmountOrder = trailingAmount is not None
+        if (type == 'limit') and not isTrailingAmountOrder:
             request['price'] = self.price_to_precision(symbol, price)
         reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
         if isStopLossOrTakeProfitTrigger:
@@ -1565,18 +1566,18 @@ class kraken(Exchange, ImplicitAPI):
                 request['ordertype'] = 'take-profit-limit'
             request['price2'] = self.price_to_precision(symbol, price)
             reduceOnly = True
-        elif isTrailingStopPriceOrder:
-            trailingStopActivationPriceType = self.safe_string(params, 'trigger', 'last')
-            trailingStopPriceString = '+' + trailingStopPrice
-            request['trigger'] = trailingStopActivationPriceType
-            reduceOnly = True
-            if type == 'limit':
-                trailingStopLimitPriceString = '+' + self.number_to_string(price)
-                request['price'] = trailingStopPriceString
-                request['price2'] = trailingStopLimitPriceString
+        elif isTrailingAmountOrder:
+            trailingActivationPriceType = self.safe_string(params, 'trigger', 'last')
+            trailingAmountString = '+' + trailingAmount
+            request['trigger'] = trailingActivationPriceType
+            if (type == 'limit') or (trailingLimitAmount is not None):
+                offset = self.safe_string(params, 'offset', '-')
+                trailingLimitAmountString = offset + self.number_to_string(trailingLimitAmount)
+                request['price'] = trailingAmountString
+                request['price2'] = trailingLimitAmountString
                 request['ordertype'] = 'trailing-stop-limit'
             else:
-                request['price'] = trailingStopPriceString
+                request['price'] = trailingAmountString
                 request['ordertype'] = 'trailing-stop'
         if reduceOnly:
             request['reduce_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
@@ -1598,7 +1599,7 @@ class kraken(Exchange, ImplicitAPI):
         postOnly, params = self.handle_post_only(isMarket, False, params)
         if postOnly:
             request['oflags'] = 'post'
-        params = self.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingStopPrice'])
+        params = self.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset'])
         return [request, params]
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
@@ -1614,7 +1615,9 @@ class kraken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.stopLossPrice]: *margin only* the price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: *margin only* the price that a take profit order is triggered at
-        :param str [params.trailingStopPrice]: *margin only* the quote price away from the current market price
+        :param str [params.trailingAmount]: *margin only* the quote price away from the current market price
+        :param str [params.trailingLimitAmount]: *margin only* the quote amount away from the trailingAmount
+        :param str [params.offset]: *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
         :param str [params.trigger]: *margin only* the activation price type, 'last' or 'index', default is 'last'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """

@@ -437,6 +437,7 @@ class phemex extends Exchange {
                     '35104' => '\\ccxt\\InsufficientFunds', // array("code":35104,"msg":"phemex.spot.wallet.balance.notenough","data":null)
                     '39995' => '\\ccxt\\RateLimitExceeded', // array("code" => "39995","msg" => "Too many requests.")
                     '39996' => '\\ccxt\\PermissionDenied', // array("code" => "39996","msg" => "Access denied.")
+                    '39997' => '\\ccxt\\BadSymbol', // array("code":39997,"msg":"Symbol not listed sMOVRUSDT","data":null)
                 ),
                 'broad' => array(
                     '401 Insufficient privilege' => '\\ccxt\\PermissionDenied', // array("code" => "401","msg" => "401 Insufficient privilege.")
@@ -448,7 +449,7 @@ class phemex extends Exchange {
                 ),
             ),
             'options' => array(
-                'brokerId' => 'ccxt2022',
+                'brokerId' => 'CCXT123456', // updated from CCXT to CCXT123456
                 'x-phemex-request-expiry' => 60, // in seconds
                 'createOrderByQuoteRequiresPrice' => true,
                 'networks' => array(
@@ -1476,7 +1477,7 @@ class phemex extends Exchange {
         $response = null;
         if ($type === 'spot') {
             $response = $this->v1GetMdSpotTicker24hrAll ($query);
-        } elseif ($subType === 'inverse' || $market['settle'] === 'USD') {
+        } elseif ($subType === 'inverse' || $this->safe_string($market, 'settle') === 'USD') {
             $response = $this->v1GetMdTicker24hrAll ($query);
         } else {
             $response = $this->v2GetMdV2Ticker24hrAll ($query);
@@ -2460,7 +2461,7 @@ class phemex extends Exchange {
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $takeProfitDefined = ($takeProfit !== null);
         if ($clientOrderId === null) {
-            $brokerId = $this->safe_string($this->options, 'brokerId');
+            $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT123456');
             if ($brokerId !== null) {
                 $request['clOrdID'] = $brokerId . $this->uuid16();
             }
@@ -4192,6 +4193,13 @@ class phemex extends Exchange {
             );
             $payload = '';
             if ($method === 'POST') {
+                $isOrderPlacement = ($path === 'g-orders') || ($path === 'spot/orders') || ($path === 'orders');
+                if ($isOrderPlacement) {
+                    if ($this->safe_string($params, 'clOrdID') === null) {
+                        $id = $this->safe_string($this->options, 'brokerId', 'CCXT123456');
+                        $params['clOrdID'] = $id . $this->uuid16();
+                    }
+                }
                 $payload = $this->json($params);
                 $body = $payload;
                 $headers['Content-Type'] = 'application/json';

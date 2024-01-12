@@ -67,8 +67,9 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     def negotiate(self, privateChannel, params={}):
         connectId = 'private' if privateChannel else 'public'
         urls = self.safe_value(self.options, 'urls', {})
-        if connectId in urls:
-            return urls[connectId]
+        spawaned = self.safe_value(urls, connectId)
+        if spawaned is not None:
+            return spawaned
         # we store an awaitable to the url
         # so that multiple calls don't asynchronously
         # fetch different urls and overwrite each other
@@ -894,6 +895,11 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         #    }
         #
         data = self.safe_string(message, 'data', '')
+        if data == 'token is expired':
+            type = 'public'
+            if client.url.find('connectId=private') >= 0:
+                type = 'private'
+            self.options['urls'][type] = None
         self.handle_errors(None, None, client.url, None, None, data, message, None, None)
 
     def handle_message(self, client: Client, message):

@@ -34,7 +34,7 @@ class bybit(ccxt.async_support.bybit):
                 'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
-                'watchOHLCVForSymbols': True,
+                'watchOHLCVForSymbols': False,
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
@@ -206,7 +206,7 @@ class bybit(ccxt.async_support.bybit):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHash = 'tickers::' + ','.join(symbols)
+        messageHashes = []
         url = self.get_url_by_market_type(symbols[0], False, params)
         params = self.clean_params(params)
         options = self.safe_value(self.options, 'watchTickers', {})
@@ -216,9 +216,12 @@ class bybit(ccxt.async_support.bybit):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             topics.append(topic + '.' + marketId)
-        ticker = await self.watch_topics(url, messageHash, topics, params)
+            messageHashes.append('ticker:' + symbols[i])
+        ticker = await self.watch_topics(url, messageHashes, topics, params)
         if self.newUpdates:
-            return ticker
+            result = {}
+            result[ticker['symbol']] = ticker
+            return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):
@@ -349,15 +352,6 @@ class bybit(ccxt.async_support.bybit):
         self.tickers[symbol] = parsed
         messageHash = 'ticker:' + symbol
         client.resolve(self.tickers[symbol], messageHash)
-        # watchTickers part
-        messageHashes = self.find_message_hashes(client, 'tickers::')
-        for i in range(0, len(messageHashes)):
-            messageHashTicker = messageHashes[i]
-            parts = messageHashTicker.split('::')
-            symbolsString = parts[1]
-            symbols = symbolsString.split(',')
-            if self.in_array(parsed['symbol'], symbols):
-                client.resolve(parsed, messageHashTicker)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
@@ -837,10 +831,13 @@ class bybit(ccxt.async_support.bybit):
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
         symbols = {}
-        method = 'parseWsTrade' if spot else 'parseTrade'
         for i in range(0, len(data)):
             rawTrade = data[i]
-            parsed = getattr(self, method)(rawTrade)
+            parsed = None
+            if spot:
+                parsed = self.parse_ws_trade(rawTrade)
+            else:
+                parsed = self.parse_trade(rawTrade)
             symbol = parsed['symbol']
             symbols[symbol] = True
             trades.append(parsed)

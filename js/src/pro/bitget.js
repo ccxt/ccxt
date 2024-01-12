@@ -31,7 +31,7 @@ export default class bitget extends bitgetRest {
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
-                'watchOHLCVForSymbols': true,
+                'watchOHLCVForSymbols': false,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
@@ -156,7 +156,9 @@ export default class bitget extends bitgetRest {
         }
         const tickers = await this.watchPublicMultiple(messageHashes, topics, params);
         if (this.newUpdates) {
-            return tickers;
+            const result = {};
+            result[tickers['symbol']] = tickers;
+            return result;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
     }

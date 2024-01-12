@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.98'
+__version__ = '4.2.13'
 
 # -----------------------------------------------------------------------------
 
@@ -55,6 +55,7 @@ from ccxt.base.errors import ExchangeNotAvailable                     # noqa: F4
 from ccxt.base.errors import OnMaintenance                            # noqa: F401
 from ccxt.base.errors import InvalidNonce                             # noqa: F401
 from ccxt.base.errors import RequestTimeout                           # noqa: F401
+from ccxt.base.errors import ExchangeClosedByUser                     # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 
@@ -86,6 +87,7 @@ from ccxt.async_support.bitpanda import bitpanda                                
 from ccxt.async_support.bitrue import bitrue                                    # noqa: F401
 from ccxt.async_support.bitso import bitso                                      # noqa: F401
 from ccxt.async_support.bitstamp import bitstamp                                # noqa: F401
+from ccxt.async_support.bitteam import bitteam                                  # noqa: F401
 from ccxt.async_support.bitvavo import bitvavo                                  # noqa: F401
 from ccxt.async_support.bl3p import bl3p                                        # noqa: F401
 from ccxt.async_support.blockchaincom import blockchaincom                      # noqa: F401
@@ -185,6 +187,7 @@ exchanges = [
     'bitrue',
     'bitso',
     'bitstamp',
+    'bitteam',
     'bitvavo',
     'bl3p',
     'blockchaincom',

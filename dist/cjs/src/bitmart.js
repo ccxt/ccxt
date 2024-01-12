@@ -196,6 +196,7 @@ class bitmart extends bitmart$1 {
                         'contract/private/order-history': 10,
                         'contract/private/position': 10,
                         'contract/private/get-open-orders': 1.2,
+                        'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
                     },
                     'post': {
@@ -305,7 +306,11 @@ class bitmart extends bitmart$1 {
                     '30012': errors.AuthenticationError,
                     '30013': errors.RateLimitExceeded,
                     '30014': errors.ExchangeNotAvailable,
-                    // funding account errors
+                    '30016': errors.OnMaintenance,
+                    '30017': errors.RateLimitExceeded,
+                    '30018': errors.BadRequest,
+                    '30019': errors.PermissionDenied,
+                    // funding account & sub account errors
                     '60000': errors.BadRequest,
                     '60001': errors.BadRequest,
                     '60002': errors.BadRequest,
@@ -322,13 +327,31 @@ class bitmart extends bitmart$1 {
                     '60020': errors.PermissionDenied,
                     '60021': errors.PermissionDenied,
                     '60022': errors.PermissionDenied,
+                    '60026': errors.PermissionDenied,
+                    '60027': errors.PermissionDenied,
+                    '60028': errors.AccountSuspended,
+                    '60029': errors.AccountSuspended,
                     '60030': errors.BadRequest,
                     '60031': errors.BadRequest,
                     '60050': errors.ExchangeError,
                     '60051': errors.ExchangeError,
                     '61001': errors.InsufficientFunds,
                     '61003': errors.BadRequest,
-                    // spot errors
+                    '61004': errors.BadRequest,
+                    '61005': errors.BadRequest,
+                    '61006': errors.NotSupported,
+                    '61007': errors.ExchangeError,
+                    '61008': errors.ExchangeError,
+                    // spot public errors
+                    '70000': errors.ExchangeError,
+                    '70001': errors.BadRequest,
+                    '70002': errors.BadSymbol,
+                    '71001': errors.BadRequest,
+                    '71002': errors.BadRequest,
+                    '71003': errors.BadRequest,
+                    '71004': errors.BadRequest,
+                    '71005': errors.BadRequest,
+                    // spot & margin errors
                     '50000': errors.BadRequest,
                     '50001': errors.BadSymbol,
                     '50002': errors.BadRequest,
@@ -348,26 +371,75 @@ class bitmart extends bitmart$1 {
                     '50016': errors.BadRequest,
                     '50017': errors.BadRequest,
                     '50018': errors.BadRequest,
-                    '50019': errors.BadRequest,
-                    '51004': errors.InsufficientFunds,
-                    // '50019': ExchangeError, // 400, Invalid status. validate status is [1=Failed, 2=Success, 3=Frozen Failed, 4=Frozen Success, 5=Partially Filled, 6=Fully Fulled, 7=Canceling, 8=Canceled
+                    '50019': errors.ExchangeError,
                     '50020': errors.InsufficientFunds,
                     '50021': errors.BadRequest,
                     '50022': errors.ExchangeNotAvailable,
                     '50023': errors.BadSymbol,
+                    '50024': errors.BadRequest,
+                    '50025': errors.BadRequest,
+                    '50026': errors.BadRequest,
+                    '50027': errors.BadRequest,
+                    '50028': errors.BadRequest,
                     '50029': errors.InvalidOrder,
-                    '50030': errors.InvalidOrder,
+                    '50030': errors.OrderNotFound,
+                    '50031': errors.OrderNotFound,
                     '50032': errors.OrderNotFound,
+                    '50033': errors.InvalidOrder,
                     // below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
-                    '50035': errors.InvalidOrder,
                     '50034': errors.InvalidOrder,
+                    '50035': errors.InvalidOrder,
+                    '50036': errors.ExchangeError,
+                    '50037': errors.BadRequest,
+                    '50038': errors.BadRequest,
+                    '50039': errors.BadRequest,
+                    '50040': errors.BadSymbol,
+                    '50041': errors.ExchangeError,
+                    '50042': errors.BadRequest,
+                    '51000': errors.BadSymbol,
+                    '51001': errors.ExchangeError,
+                    '51002': errors.ExchangeError,
+                    '51003': errors.ExchangeError,
+                    '51004': errors.InsufficientFunds,
+                    '51005': errors.InvalidOrder,
+                    '51006': errors.InvalidOrder,
+                    '51007': errors.BadRequest,
+                    '51008': errors.ExchangeError,
+                    '51009': errors.InvalidOrder,
+                    '51010': errors.InvalidOrder,
                     '51011': errors.InvalidOrder,
+                    '51012': errors.InvalidOrder,
+                    '51013': errors.InvalidOrder,
+                    '51014': errors.InvalidOrder,
+                    '51015': errors.InvalidOrder,
+                    '52000': errors.BadRequest,
+                    '52001': errors.BadRequest,
+                    '52002': errors.BadRequest,
+                    '52003': errors.BadRequest,
+                    '52004': errors.BadRequest,
                     '53000': errors.AccountSuspended,
                     '53001': errors.AccountSuspended,
+                    '53002': errors.PermissionDenied,
+                    '53003': errors.PermissionDenied,
+                    '53005': errors.PermissionDenied,
+                    '53006': errors.PermissionDenied,
+                    '53007': errors.PermissionDenied,
+                    '53008': errors.PermissionDenied,
+                    '53009': errors.PermissionDenied,
+                    '53010': errors.PermissionDenied,
                     '57001': errors.BadRequest,
                     '58001': errors.BadRequest,
                     '59001': errors.ExchangeError,
                     '59002': errors.ExchangeError,
+                    '59003': errors.ExchangeError,
+                    '59004': errors.ExchangeError,
+                    '59005': errors.PermissionDenied,
+                    '59006': errors.ExchangeError,
+                    '59007': errors.ExchangeError,
+                    '59008': errors.ExchangeError,
+                    '59009': errors.ExchangeError,
+                    '59010': errors.InsufficientFunds,
+                    '59011': errors.ExchangeError,
                     // contract errors
                     '40001': errors.ExchangeError,
                     '40002': errors.ExchangeError,
@@ -403,14 +475,22 @@ class bitmart extends bitmart$1 {
                     '40032': errors.InvalidOrder,
                     '40033': errors.InvalidOrder,
                     '40034': errors.BadSymbol,
-                    '53002': errors.PermissionDenied,
-                    '53003': errors.PermissionDenied,
-                    '53005': errors.PermissionDenied,
-                    '53006': errors.PermissionDenied,
-                    '53007': errors.PermissionDenied,
-                    '53008': errors.PermissionDenied,
-                    '53009': errors.PermissionDenied,
-                    '53010': errors.PermissionDenied, // 403 This account is restricted from borrowing
+                    '40035': errors.OrderNotFound,
+                    '40036': errors.InvalidOrder,
+                    '40037': errors.OrderNotFound,
+                    '40038': errors.BadRequest,
+                    '40039': errors.BadRequest,
+                    '40040': errors.InvalidOrder,
+                    '40041': errors.InvalidOrder,
+                    '40042': errors.InvalidOrder,
+                    '40043': errors.InvalidOrder,
+                    '40044': errors.InvalidOrder,
+                    '40045': errors.InvalidOrder,
+                    '40046': errors.PermissionDenied,
+                    '40047': errors.PermissionDenied,
+                    '40048': errors.BadRequest,
+                    '40049': errors.BadRequest,
+                    '40050': errors.InvalidOrder, // 403, Client OrderId duplicated with existing orders
                 },
                 'broad': {},
             },
@@ -2125,7 +2205,7 @@ class bitmart extends bitmart$1 {
         if (priceString === 'market price') {
             priceString = undefined;
         }
-        const trailingStopActivationPrice = this.safeNumber(order, 'activation_price');
+        const trailingActivationPrice = this.safeNumber(order, 'activation_price');
         return this.safeOrder({
             'id': id,
             'clientOrderId': this.safeString(order, 'client_order_id'),
@@ -2139,8 +2219,8 @@ class bitmart extends bitmart$1 {
             'postOnly': postOnly,
             'side': this.parseOrderSide(this.safeString(order, 'side')),
             'price': this.omitZero(priceString),
-            'stopPrice': trailingStopActivationPrice,
-            'triggerPrice': trailingStopActivationPrice,
+            'stopPrice': trailingActivationPrice,
+            'triggerPrice': trailingActivationPrice,
             'amount': this.omitZero(this.safeString(order, 'size')),
             'cost': this.safeString2(order, 'filled_notional', 'filledNotional'),
             'average': this.safeStringN(order, ['price_avg', 'priceAvg', 'deal_avg_price']),
@@ -2212,6 +2292,7 @@ class bitmart extends bitmart$1 {
          * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
          * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
          * @param {string} side 'buy' or 'sell'
@@ -2223,12 +2304,20 @@ class bitmart extends bitmart$1 {
          * @param {string} [params.clientOrderId] client order id of the order
          * @param {boolean} [params.reduceOnly] *swap only* reduce only
          * @param {boolean} [params.postOnly] make sure the order is posted to the order book and not matched immediately
+         * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
+         * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
+         * @param {int} [params.price_way] *swap only* 1: price way long, 2: price way short
+         * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
+         * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
+         * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const result = this.handleMarginModeAndParams('createOrder', params);
         const marginMode = this.safeString(result, 0);
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'trigger_price']);
+        const isTriggerOrder = triggerPrice !== undefined;
         let response = undefined;
         if (market['spot']) {
             const spotRequest = this.createSpotOrderRequest(symbol, type, side, amount, price, params);
@@ -2241,7 +2330,12 @@ class bitmart extends bitmart$1 {
         }
         else {
             const swapRequest = this.createSwapOrderRequest(symbol, type, side, amount, price, params);
-            response = await this.privatePostContractPrivateSubmitOrder(swapRequest);
+            if (isTriggerOrder) {
+                response = await this.privatePostContractPrivateSubmitPlanOrder(swapRequest);
+            }
+            else {
+                response = await this.privatePostContractPrivateSubmitOrder(swapRequest);
+            }
         }
         //
         // spot and margin
@@ -2273,6 +2367,7 @@ class bitmart extends bitmart$1 {
          * @ignore
          * @description create a trade order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit' or 'trailing'
          * @param {string} side 'buy' or 'sell'
@@ -2283,8 +2378,12 @@ class bitmart extends bitmart$1 {
          * @param {boolean} [params.reduceOnly] *swap only* reduce only
          * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
          * @param {string} [params.clientOrderId] client order id of the order
+         * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
+         * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
+         * @param {int} [params.price_way] *swap only* 1: price way long, 2: price way short
          * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
-         * @param {string} [params.callback_rate] *swap trailing order only* min 0.1, max 5 where 1 is 1%, default is "1"
+         * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
+         * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const market = this.market(symbol);
@@ -2297,10 +2396,9 @@ class bitmart extends bitmart$1 {
         const mode = this.safeInteger(params, 'mode'); // only for swap
         const isMarketOrder = type === 'market';
         let postOnly = undefined;
-        let reduceOnly = this.safeValue(params, 'reduceOnly');
+        const reduceOnly = this.safeValue(params, 'reduceOnly');
         const isExchangeSpecificPo = (mode === 4);
         [postOnly, params] = this.handlePostOnly(isMarketOrder, isExchangeSpecificPo, params);
-        params = this.omit(params, ['timeInForce', 'postOnly', 'reduceOnly']);
         const ioc = ((timeInForce === 'IOC') || (mode === 3));
         const isLimitOrder = (type === 'limit') || postOnly || ioc;
         if (timeInForce === 'GTC') {
@@ -2315,14 +2413,39 @@ class bitmart extends bitmart$1 {
         if (postOnly) {
             request['mode'] = 4;
         }
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'trigger_price']);
+        const isTriggerOrder = triggerPrice !== undefined;
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activation_price', price);
+        const trailingPercent = this.safeString2(params, 'trailingPercent', 'callback_rate');
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         if (isLimitOrder) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        else if (type === 'trailing') {
-            reduceOnly = true;
-            request['activation_price'] = this.priceToPrecision(symbol, price);
+        else if (type === 'trailing' || isTrailingPercentOrder) {
+            request['callback_rate'] = trailingPercent;
+            request['activation_price'] = this.priceToPrecision(symbol, trailingTriggerPrice);
             request['activation_price_type'] = this.safeInteger(params, 'activation_price_type', 1);
-            request['callback_rate'] = this.safeString(params, 'callback_rate', '1');
+        }
+        if (isTriggerOrder) {
+            request['executive_price'] = this.priceToPrecision(symbol, price);
+            request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
+            request['price_type'] = this.safeInteger(params, 'price_type', 1);
+            if (side === 'buy') {
+                if (reduceOnly) {
+                    request['price_way'] = 2;
+                }
+                else {
+                    request['price_way'] = 1;
+                }
+            }
+            else if (side === 'sell') {
+                if (reduceOnly) {
+                    request['price_way'] = 1;
+                }
+                else {
+                    request['price_way'] = 2;
+                }
+            }
         }
         if (side === 'buy') {
             if (reduceOnly) {
@@ -2349,7 +2472,7 @@ class bitmart extends bitmart$1 {
             request['client_order_id'] = clientOrderId;
         }
         const leverage = this.safeInteger(params, 'leverage', 1);
-        params = this.omit(params, 'leverage');
+        params = this.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice']);
         request['leverage'] = this.numberToString(leverage);
         return this.extend(request, params);
     }
@@ -2431,10 +2554,11 @@ class bitmart extends bitmart$1 {
         /**
          * @method
          * @name bitmart#cancelOrder
+         * @description cancels an open order
          * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
          * @see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
          * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-         * @description cancels an open order
+         * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2463,8 +2587,8 @@ class bitmart extends bitmart$1 {
             response = await this.privatePostSpotV3CancelOrder(this.extend(request, params));
         }
         else {
-            const stop = this.safeValue(params, 'stop');
-            params = this.omit(params, ['stop']);
+            const stop = this.safeValue2(params, 'stop', 'trigger');
+            params = this.omit(params, ['stop', 'trigger']);
             if (!stop) {
                 response = await this.privatePostContractPrivateCancelOrder(this.extend(request, params));
             }
@@ -2634,6 +2758,7 @@ class bitmart extends bitmart$1 {
          * @name bitmart#fetchOpenOrders
          * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
          * @see https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
+         * @see https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -2644,6 +2769,8 @@ class bitmart extends bitmart$1 {
          * @param {string} [params.type] *swap* order type, 'limit' or 'market'
          * @param {string} [params.order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
          * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
+         * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
+         * @param {boolean} [params.trigger] *swap only* set to true if you want to fetch trigger orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2676,12 +2803,23 @@ class bitmart extends bitmart$1 {
             response = await this.privatePostSpotV4QueryOpenOrders(this.extend(request, params));
         }
         else if (type === 'swap') {
-            const orderType = this.safeString(params, 'orderType');
-            params = this.omit(params, 'orderType');
-            if (orderType !== undefined) {
-                request['type'] = orderType;
+            const isStop = this.safeValue2(params, 'stop', 'trigger');
+            params = this.omit(params, ['stop', 'trigger']);
+            if (isStop) {
+                response = await this.privateGetContractPrivateCurrentPlanOrder(this.extend(request, params));
             }
-            response = await this.privateGetContractPrivateGetOpenOrders(this.extend(request, params));
+            else {
+                const trailing = this.safeValue(params, 'trailing', false);
+                let orderType = this.safeString(params, 'orderType');
+                params = this.omit(params, ['orderType', 'trailing']);
+                if (trailing) {
+                    orderType = 'trailing';
+                }
+                if (orderType !== undefined) {
+                    request['type'] = orderType;
+                }
+                response = await this.privateGetContractPrivateGetOpenOrders(this.extend(request, params));
+            }
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchOpenOrders() does not support ' + type + ' orders, only spot and swap orders are accepted');
@@ -2823,6 +2961,7 @@ class bitmart extends bitmart$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] *spot* fetch the order by client order id instead of order id
          * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
+         * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch a trailing order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2850,8 +2989,12 @@ class bitmart extends bitmart$1 {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
             }
-            const orderType = this.safeString(params, 'orderType');
-            params = this.omit(params, 'orderType');
+            const trailing = this.safeValue(params, 'trailing', false);
+            let orderType = this.safeString(params, 'orderType');
+            params = this.omit(params, ['orderType', 'trailing']);
+            if (trailing) {
+                orderType = 'trailing';
+            }
             if (orderType !== undefined) {
                 request['type'] = orderType;
             }

@@ -373,7 +373,9 @@ class Exchange {
                 'createOrderWs': undefined,
                 'editOrderWs': undefined,
                 'fetchOpenOrdersWs': undefined,
+                'fetchClosedOrdersWs': undefined,
                 'fetchOrderWs': undefined,
+                'fetchOrdersWs': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrdersWs': undefined,
                 'cancelAllOrdersWs': undefined,
@@ -755,8 +757,11 @@ class Exchange {
         // proxy agents
         const [httpProxy, httpsProxy, socksProxy] = this.checkProxySettings(url, method, headers, body);
         this.checkConflictingProxies(httpProxy || httpsProxy || socksProxy, proxyUrl);
-        if (!this.proxyModulesLoaded) {
-            await this.loadProxyModules(); // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
+        if (isNode) {
+            // skip this on the browser
+            if (!this.proxyModulesLoaded) {
+                await this.loadProxyModules(); // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
+            }
         }
         const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
         // user-agent
@@ -1226,10 +1231,15 @@ class Exchange {
         const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
-            delete this.clients[client.url];
+            client.error = new errors.ExchangeClosedByUser(this.id + ' closedByUser');
             closedClients.push(client.close());
         }
-        return Promise.all(closedClients);
+        await Promise.all(closedClients);
+        for (let i = 0; i < clients.length; i++) {
+            const client = clients[i];
+            delete this.clients[client.url];
+        }
+        return;
     }
     async loadOrderBook(client, messageHash, symbol, limit = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
@@ -1284,6 +1294,17 @@ class Exchange {
     }
     axolotl(payload, hexKey, ed25519) {
         return crypto.axolotl(payload, hexKey, ed25519);
+    }
+    fixStringifiedJsonMembers(content) {
+        // used for instance in bingx
+        // when stringified json has members with their values also stringified, like:
+        // '{"code":0, "data":{"order":{"orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"{\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1}","reduceOnly":false}}}'
+        // we can fix with below manipulations
+        // @ts-ignore
+        let modifiedContent = content.replaceAll('\\', '');
+        modifiedContent = modifiedContent.replaceAll('"{', '{');
+        modifiedContent = modifiedContent.replaceAll('}"', '}');
+        return modifiedContent;
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------
@@ -2287,6 +2308,11 @@ class Exchange {
             if ('rate' in tradeFee) {
                 tradeFee['rate'] = this.safeNumber(tradeFee, 'rate');
             }
+            const entryFees = this.safeValue(entry, 'fees', []);
+            for (let j = 0; j < entryFees.length; j++) {
+                entryFees[j]['cost'] = this.safeNumber(entryFees[j], 'cost');
+            }
+            entry['fees'] = entryFees;
             entry['fee'] = tradeFee;
         }
         let timeInForce = this.safeString(order, 'timeInForce');
@@ -2847,11 +2873,11 @@ class Exchange {
         }
         return result;
     }
-    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1) {
+    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         bidasks = this.toArray(bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
-            result.push(this.parseBidAsk(bidasks[i], priceKey, amountKey));
+            result.push(this.parseBidAsk(bidasks[i], priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -3020,9 +3046,9 @@ class Exchange {
         const value = this.safeString2(dictionary, key1, key2);
         return this.parseNumber(value, d);
     }
-    parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
-        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey);
-        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey);
+    parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),
@@ -3337,10 +3363,15 @@ class Exchange {
     async fetchBidsAsks(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchBidsAsks() is not supported yet');
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
-        return [price, amount];
+        const countOrId = this.safeInteger(bidask, countOrIdKey);
+        const bidAsk = [price, amount];
+        if (countOrId !== undefined) {
+            bidAsk.push(countOrId);
+        }
+        return bidAsk;
     }
     safeCurrency(currencyId, currency = undefined) {
         if ((currencyId === undefined) && (currency !== undefined)) {
@@ -3388,7 +3419,7 @@ class Exchange {
                     }
                 }
             }
-            else if (delimiter !== undefined) {
+            else if (delimiter !== undefined && delimiter !== '') {
                 const parts = marketId.split(delimiter);
                 const partsLength = parts.length;
                 if (partsLength === 2) {
@@ -3536,6 +3567,30 @@ class Exchange {
         else {
             // check if exchange has properties for this method
             const exchangeWideMethodOptions = this.safeValue(this.options, methodName);
+            if (exchangeWideMethodOptions !== undefined) {
+                // check if the option is defined inside this method's props
+                value = this.safeValue2(exchangeWideMethodOptions, optionName, defaultOptionName);
+            }
+            if (value === undefined) {
+                // if it's still undefined, check if global exchange-wide option exists
+                value = this.safeValue2(this.options, optionName, defaultOptionName);
+            }
+            // if it's still undefined, use the default value
+            value = (value !== undefined) ? value : defaultValue;
+        }
+        return [value, params];
+    }
+    handleOptionAndParams2(params, methodName, methodName2, optionName, defaultValue = undefined) {
+        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
+        const defaultOptionName = 'default' + this.capitalize(optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if params contain the key
+        let value = this.safeValue2(params, optionName, defaultOptionName);
+        if (value !== undefined) {
+            params = this.omit(params, [optionName, defaultOptionName]);
+        }
+        else {
+            // check if exchange has properties for this method
+            const exchangeWideMethodOptions = this.safeValue2(this.options, methodName, methodName2);
             if (exchangeWideMethodOptions !== undefined) {
                 // check if the option is defined inside this method's props
                 value = this.safeValue2(exchangeWideMethodOptions, optionName, defaultOptionName);
@@ -3760,6 +3815,9 @@ class Exchange {
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrders() is not supported yet');
     }
+    async fetchOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOrdersWs() is not supported yet');
+    }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrderTrades() is not supported yet');
     }
@@ -3767,13 +3825,32 @@ class Exchange {
         throw new errors.NotSupported(this.id + ' watchOrders() is not supported yet');
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrders']) {
+            const orders = await this.fetchOrders(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'open');
+        }
         throw new errors.NotSupported(this.id + ' fetchOpenOrders() is not supported yet');
     }
     async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrdersWs']) {
+            const orders = await this.fetchOrdersWs(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'open');
+        }
         throw new errors.NotSupported(this.id + ' fetchOpenOrdersWs() is not supported yet');
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrders']) {
+            const orders = await this.fetchOrders(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'closed');
+        }
         throw new errors.NotSupported(this.id + ' fetchClosedOrders() is not supported yet');
+    }
+    async fetchClosedOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrdersWs']) {
+            const orders = await this.fetchOrdersWs(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'closed');
+        }
+        throw new errors.NotSupported(this.id + ' fetchClosedOrdersWs() is not supported yet');
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchMyTrades() is not supported yet');

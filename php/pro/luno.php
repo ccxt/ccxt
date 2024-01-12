@@ -222,9 +222,9 @@ class luno extends \ccxt\async\luno {
         $client->resolve ($storedOrderBook, $messageHash);
     }
 
-    public function custom_parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 'price', $amountKey = 'volume', $thirdKey = null) {
-        $bids = $this->parse_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $thirdKey);
-        $asks = $this->parse_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $thirdKey);
+    public function custom_parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $countOrIdKey = 2) {
+        $bids = $this->parse_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
+        $asks = $this->parse_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
         return array(
             'symbol' => $symbol,
             'bids' => $this->sort_by($bids, 0, true),
@@ -235,7 +235,7 @@ class luno extends \ccxt\async\luno {
         );
     }
 
-    public function parse_bids_asks($bidasks, $priceKey = 'price', $amountKey = 'volume', $thirdKey = null) {
+    public function parse_bids_asks($bidasks, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2) {
         $bidasks = $this->to_array($bidasks);
         $result = array();
         for ($i = 0; $i < count($bidasks); $i++) {
@@ -244,7 +244,7 @@ class luno extends \ccxt\async\luno {
         return $result;
     }
 
-    public function custom_parse_bid_ask($bidask, $priceKey = 'price', $amountKey = 'volume', $thirdKey = null) {
+    public function custom_parse_bid_ask($bidask, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2) {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
         $result = array( $price, $amount );

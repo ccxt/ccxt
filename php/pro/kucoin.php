@@ -57,8 +57,9 @@ class kucoin extends \ccxt\async\kucoin {
     public function negotiate($privateChannel, $params = array ()) {
         $connectId = $privateChannel ? 'private' : 'public';
         $urls = $this->safe_value($this->options, 'urls', array());
-        if (is_array($urls) && array_key_exists($connectId, $urls)) {
-            return $urls[$connectId];
+        $spawaned = $this->safe_value($urls, $connectId);
+        if ($spawaned !== null) {
+            return $spawaned;
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
@@ -1064,6 +1065,13 @@ class kucoin extends \ccxt\async\kucoin {
         //    }
         //
         $data = $this->safe_string($message, 'data', '');
+        if ($data === 'token is expired') {
+            $type = 'public';
+            if (mb_strpos($client->url, 'connectId=private') !== false) {
+                $type = 'private';
+            }
+            $this->options['urls'][$type] = null;
+        }
         $this->handle_errors(null, null, $client->url, null, null, $data, $message, null, null);
     }
 

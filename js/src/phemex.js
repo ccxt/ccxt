@@ -442,7 +442,8 @@ export default class phemex extends Exchange {
                     '34003': PermissionDenied,
                     '35104': InsufficientFunds,
                     '39995': RateLimitExceeded,
-                    '39996': PermissionDenied, // {"code": "39996","msg": "Access denied."}
+                    '39996': PermissionDenied,
+                    '39997': BadSymbol, // {"code":39997,"msg":"Symbol not listed sMOVRUSDT","data":null}
                 },
                 'broad': {
                     '401 Insufficient privilege': PermissionDenied,
@@ -454,7 +455,7 @@ export default class phemex extends Exchange {
                 },
             },
             'options': {
-                'brokerId': 'ccxt2022',
+                'brokerId': 'CCXT123456',
                 'x-phemex-request-expiry': 60,
                 'createOrderByQuoteRequiresPrice': true,
                 'networks': {
@@ -1488,7 +1489,7 @@ export default class phemex extends Exchange {
         if (type === 'spot') {
             response = await this.v1GetMdSpotTicker24hrAll(query);
         }
-        else if (subType === 'inverse' || market['settle'] === 'USD') {
+        else if (subType === 'inverse' || this.safeString(market, 'settle') === 'USD') {
             response = await this.v1GetMdTicker24hrAll(query);
         }
         else {
@@ -2479,7 +2480,7 @@ export default class phemex extends Exchange {
         const takeProfit = this.safeValue(params, 'takeProfit');
         const takeProfitDefined = (takeProfit !== undefined);
         if (clientOrderId === undefined) {
-            const brokerId = this.safeString(this.options, 'brokerId');
+            const brokerId = this.safeString(this.options, 'brokerId', 'CCXT123456');
             if (brokerId !== undefined) {
                 request['clOrdID'] = brokerId + this.uuid16();
             }
@@ -4275,6 +4276,13 @@ export default class phemex extends Exchange {
             };
             let payload = '';
             if (method === 'POST') {
+                const isOrderPlacement = (path === 'g-orders') || (path === 'spot/orders') || (path === 'orders');
+                if (isOrderPlacement) {
+                    if (this.safeString(params, 'clOrdID') === undefined) {
+                        const id = this.safeString(this.options, 'brokerId', 'CCXT123456');
+                        params['clOrdID'] = id + this.uuid16();
+                    }
+                }
                 payload = this.json(params);
                 body = payload;
                 headers['Content-Type'] = 'application/json';

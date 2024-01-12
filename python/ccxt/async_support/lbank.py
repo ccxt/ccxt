@@ -904,12 +904,15 @@ class lbank(Exchange, ImplicitAPI):
             request['size'] = min(limit, 600)
         else:
             request['size'] = 600  # max
-        method = self.safe_string(params, 'method')
+        options = self.safe_value(self.options, 'fetchTrades', {})
+        defaultMethod = self.safe_string(options, 'method', 'spotPublicGetTrades')
+        method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        if method is None:
-            options = self.safe_value(self.options, 'fetchTrades', {})
-            method = self.safe_string(options, 'method', 'spotPublicGetTrades')
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'spotPublicGetSupplementTrades':
+            response = await self.spotPublicGetSupplementTrades(self.extend(request, params))
+        else:
+            response = await self.spotPublicGetTrades(self.extend(request, params))
         #
         #      {
         #          "result":"true",
@@ -1134,11 +1137,16 @@ class lbank(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
-        method = self.safe_string(params, 'method')
-        if method is None:
-            options = self.safe_value(self.options, 'fetchBalance', {})
-            method = self.safe_string(options, 'method', 'spotPrivatePostSupplementUserInfo')
-        response = await getattr(self, method)()
+        options = self.safe_value(self.options, 'fetchBalance', {})
+        defaultMethod = self.safe_string(options, 'method', 'spotPrivatePostSupplementUserInfo')
+        method = self.safe_string(params, 'method', defaultMethod)
+        response = None
+        if method == 'spotPrivatePostSupplementUserInfoAccount':
+            response = await self.spotPrivatePostSupplementUserInfoAccount()
+        elif method == 'spotPrivatePostUserInfo':
+            response = await self.spotPrivatePostUserInfo()
+        else:
+            response = await self.spotPrivatePostSupplementUserInfo()
         #
         #    {
         #        "result": "true",
@@ -1299,13 +1307,15 @@ class lbank(Exchange, ImplicitAPI):
                 request['price'] = quoteAmount
         if clientOrderId is not None:
             request['custom_id'] = clientOrderId
-        method = None
-        method = self.safe_string(params, 'method')
+        options = self.safe_value(self.options, 'createOrder', {})
+        defaultMethod = self.safe_string(options, 'method', 'spotPrivatePostSupplementCreateOrder')
+        method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        if method is None:
-            options = self.safe_value(self.options, 'createOrder', {})
-            method = self.safe_string(options, 'method', 'spotPrivatePostSupplementCreateOrder')
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'spotPrivatePostCreateOrder':
+            response = await self.spotPrivatePostCreateOrder(self.extend(request, params))
+        else:
+            response = await self.spotPrivatePostSupplementCreateOrder(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -1805,12 +1815,16 @@ class lbank(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
-        method = self.safe_string(params, 'method')
+        options = self.safe_value(self.options, 'fetchDepositAddress', {})
+        defaultMethod = self.safe_string(options, 'method', 'fetchDepositAddressDefault')
+        method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        if method is None:
-            options = self.safe_value(self.options, 'fetchDepositAddress', {})
-            method = self.safe_string(options, 'method', 'fetchDepositAddressDefault')
-        return await getattr(self, method)(code, params)
+        response = None
+        if method == 'fetchDepositAddressSupplement':
+            response = await self.fetch_deposit_address_supplement(code, params)
+        else:
+            response = await self.fetch_deposit_address_default(code, params)
+        return response
 
     async def fetch_deposit_address_default(self, code: str, params={}):
         await self.load_markets()
@@ -2161,12 +2175,14 @@ class lbank(Exchange, ImplicitAPI):
         isAuthorized = self.check_required_credentials(False)
         result = None
         if isAuthorized is True:
-            method = self.safe_string(params, 'method')
+            options = self.safe_value(self.options, 'fetchTransactionFees', {})
+            defaultMethod = self.safe_string(options, 'method', 'fetchPrivateTransactionFees')
+            method = self.safe_string(params, 'method', defaultMethod)
             params = self.omit(params, 'method')
-            if method is None:
-                options = self.safe_value(self.options, 'fetchTransactionFees', {})
-                method = self.safe_string(options, 'method', 'fetchPrivateTransactionFees')
-            result = await getattr(self, method)(params)
+            if method == 'fetchPublicTransactionFees':
+                result = await self.fetch_public_transaction_fees(params)
+            else:
+                result = await self.fetch_private_transaction_fees(params)
         else:
             result = await self.fetch_public_transaction_fees(params)
         return result
@@ -2292,16 +2308,19 @@ class lbank(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         isAuthorized = self.check_required_credentials(False)
-        method = None
+        response = None
         if isAuthorized is True:
-            method = self.safe_string(params, 'method')
+            options = self.safe_value(self.options, 'fetchDepositWithdrawFees', {})
+            defaultMethod = self.safe_string(options, 'method', 'fetchPrivateDepositWithdrawFees')
+            method = self.safe_string(params, 'method', defaultMethod)
             params = self.omit(params, 'method')
-            if method is None:
-                options = self.safe_value(self.options, 'fetchDepositWithdrawFees', {})
-                method = self.safe_string(options, 'method', 'fetchPrivateDepositWithdrawFees')
+            if method == 'fetchPublicDepositWithdrawFees':
+                await self.fetch_public_deposit_withdraw_fees(codes, params)
+            else:
+                await self.fetch_private_deposit_withdraw_fees(codes, params)
         else:
-            method = 'fetchPublicDepositWithdrawFees'
-        return await getattr(self, method)(codes, params)
+            await self.fetch_public_deposit_withdraw_fees(codes, params)
+        return response
 
     async def fetch_private_deposit_withdraw_fees(self, codes=None, params={}):
         # complete response

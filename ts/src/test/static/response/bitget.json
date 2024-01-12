@@ -593,6 +593,117 @@
             }
           ]
         }
+      ],
+      "fetchOHLCV": [
+        {
+          "description": "Inverse market ohlcv",
+          "method": "fetchOHLCV",
+          "input": [
+            "BTC/USD:BTC",
+            "1m",
+            null,
+            1
+          ],
+          "httpResponse": {
+            "code": "00000",
+            "msg": "success",
+            "requestTime": "1703762122517",
+            "data": [
+              [
+                "1703762100000",
+                "43113.6",
+                "43113.6",
+                "43104.1",
+                "43104.1",
+                "0.199",
+                "8578.3319"
+              ]
+            ]
+          },
+          "parsedResponse": [
+            [
+              1703762100000,
+              43113.6,
+              43113.6,
+              43104.1,
+              43104.1,
+              0.199
+            ]
+          ]
+        },
+        {
+          "description": "linear ohlcv",
+          "method": "fetchOHLCV",
+          "input": [
+            "BTC/USDT:USDT",
+            "1m",
+            null,
+            1
+          ],
+          "httpResponse": {
+            "code": "00000",
+            "msg": "success",
+            "requestTime": "1703762149028",
+            "data": [
+              [
+                "1703762100000",
+                "43094.7",
+                "43095.8",
+                "43080.4",
+                "43084.2",
+                "90.097",
+                "3882338.2038"
+              ]
+            ]
+          },
+          "parsedResponse": [
+            [
+              1703762100000,
+              43094.7,
+              43095.8,
+              43080.4,
+              43084.2,
+              90.097
+            ]
+          ]
+        },
+        {
+          "description": "Spot ohlcv",
+          "method": "fetchOHLCV",
+          "input": [
+            "BTC/USDT",
+            "1m",
+            null,
+            1
+          ],
+          "httpResponse": {
+            "code": "00000",
+            "msg": "success",
+            "requestTime": "1703762176184",
+            "data": [
+              [
+                "1703762160000",
+                "43050.41",
+                "43050.46",
+                "43042.66",
+                "43044",
+                "0.6049",
+                "26039.632367",
+                "26039.632367"
+              ]
+            ]
+          },
+          "parsedResponse": [
+            [
+              1703762160000,
+              43050.41,
+              43050.46,
+              43042.66,
+              43044,
+              0.6049
+            ]
+          ]
+        }
       ]
     }
 }

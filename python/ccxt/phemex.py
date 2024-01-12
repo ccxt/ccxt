@@ -457,6 +457,7 @@ class phemex(Exchange, ImplicitAPI):
                     '35104': InsufficientFunds,  # {"code":35104,"msg":"phemex.spot.wallet.balance.notenough","data":null}
                     '39995': RateLimitExceeded,  # {"code": "39995","msg": "Too many requests."}
                     '39996': PermissionDenied,  # {"code": "39996","msg": "Access denied."}
+                    '39997': BadSymbol,  # {"code":39997,"msg":"Symbol not listed sMOVRUSDT","data":null}
                 },
                 'broad': {
                     '401 Insufficient privilege': PermissionDenied,  # {"code": "401","msg": "401 Insufficient privilege."}
@@ -468,7 +469,7 @@ class phemex(Exchange, ImplicitAPI):
                 },
             },
             'options': {
-                'brokerId': 'ccxt2022',
+                'brokerId': 'CCXT123456',  # updated from CCXT to CCXT123456
                 'x-phemex-request-expiry': 60,  # in seconds
                 'createOrderByQuoteRequiresPrice': True,
                 'networks': {
@@ -1445,7 +1446,7 @@ class phemex(Exchange, ImplicitAPI):
         response = None
         if type == 'spot':
             response = self.v1GetMdSpotTicker24hrAll(query)
-        elif subType == 'inverse' or market['settle'] == 'USD':
+        elif subType == 'inverse' or self.safe_string(market, 'settle') == 'USD':
             response = self.v1GetMdTicker24hrAll(query)
         else:
             response = self.v2GetMdV2Ticker24hrAll(query)
@@ -2391,7 +2392,7 @@ class phemex(Exchange, ImplicitAPI):
         takeProfit = self.safe_value(params, 'takeProfit')
         takeProfitDefined = (takeProfit is not None)
         if clientOrderId is None:
-            brokerId = self.safe_string(self.options, 'brokerId')
+            brokerId = self.safe_string(self.options, 'brokerId', 'CCXT123456')
             if brokerId is not None:
                 request['clOrdID'] = brokerId + self.uuid16()
         else:
@@ -3983,6 +3984,11 @@ class phemex(Exchange, ImplicitAPI):
             }
             payload = ''
             if method == 'POST':
+                isOrderPlacement = (path == 'g-orders') or (path == 'spot/orders') or (path == 'orders')
+                if isOrderPlacement:
+                    if self.safe_string(params, 'clOrdID') is None:
+                        id = self.safe_string(self.options, 'brokerId', 'CCXT123456')
+                        params['clOrdID'] = id + self.uuid16()
                 payload = self.json(params)
                 body = payload
                 headers['Content-Type'] = 'application/json'

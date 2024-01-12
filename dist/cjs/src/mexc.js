@@ -442,7 +442,7 @@ class mexc extends mexc$1 {
                     'BCH': 'BCH',
                     'TRC20': 'Tron(TRC20)',
                     'ERC20': 'Ethereum(ERC20)',
-                    'BEP20': 'BNBSmartChain(BEP20)',
+                    'BEP20': 'BNB Smart Chain(BEP20)',
                     'OPTIMISM': 'Optimism(OP)',
                     'SOL': 'Solana(SOL)',
                     'CRC20': 'CRONOS',
@@ -1040,7 +1040,7 @@ class mexc extends mexc$1 {
             'Algorand(ALGO)': 'ALGO',
             'ArbitrumOne(ARB)': 'ARBONE',
             'AvalancheCChain(AVAXCCHAIN)': 'AVAXC',
-            'BNBSmartChain(BEP20)': 'BEP20',
+            'BNB Smart Chain(BEP20)': 'BEP20',
             'Polygon(MATIC)': 'MATIC',
             'Optimism(OP)': 'OPTIMISM',
             'Solana(SOL)': 'SOL',
@@ -4353,8 +4353,8 @@ class mexc extends mexc$1 {
         /**
          * @method
          * @name mexc3#createDepositAddress
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
          * @description create a currency deposit address
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.network] the blockchain network name

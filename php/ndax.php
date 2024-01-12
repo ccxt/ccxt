@@ -513,7 +513,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 6, $amountKey = 8) {
+    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 6, int|string $amountKey = 8, int|string $countOrIdKey = 2) {
         $nonce = null;
         $result = array(
             'symbol' => $symbol,

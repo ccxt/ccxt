@@ -19,7 +19,7 @@ class binance extends binance$1 {
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
-                'watchOHLCVForSymbols': true,
+                'watchOHLCVForSymbols': false,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
@@ -864,7 +864,10 @@ class binance extends binance$1 {
         name = this.safeString(params, 'name', name);
         params = this.omit(params, 'name');
         let wsParams = [];
-        const messageHash = 'tickers';
+        let messageHash = 'tickers';
+        if (symbols !== undefined) {
+            messageHash = 'tickers::' + symbols.join(',');
+        }
         if (name === 'bookTicker') {
             if (marketIds === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' watchTickers() requires symbols for bookTicker');
@@ -1057,6 +1060,19 @@ class binance extends binance$1 {
             this.tickers[symbol] = result;
             newTickers.push(result);
         }
+        const messageHashes = this.findMessageHashes(client, 'tickers::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const tickers = this.filterByArray(newTickers, 'symbol', symbols);
+            const tickersSymbols = Object.keys(tickers);
+            const numTickers = tickersSymbols.length;
+            if (numTickers > 0) {
+                client.resolve(tickers, messageHash);
+            }
+        }
         client.resolve(newTickers, 'tickers');
     }
     signParams(params = {}) {
@@ -1114,25 +1130,27 @@ class binance extends binance$1 {
         const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum(listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
-            let method = 'publicPostUserDataStream';
+            let response = undefined;
             if (type === 'future') {
-                method = 'fapiPrivatePostListenKey';
+                response = await this.fapiPrivatePostListenKey(query);
             }
             else if (type === 'delivery') {
-                method = 'dapiPrivatePostListenKey';
+                response = await this.dapiPrivatePostListenKey(query);
             }
             else if (type === 'margin' && isCrossMargin) {
-                method = 'sapiPostUserDataStream';
+                response = await this.sapiPostUserDataStream(query);
             }
             else if (isIsolatedMargin) {
-                method = 'sapiPostUserDataStreamIsolated';
                 if (symbol === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' authenticate() requires a symbol argument for isolated margin mode');
                 }
                 const marketId = this.marketId(symbol);
                 query = this.extend(query, { 'symbol': marketId });
+                response = await this.sapiPostUserDataStreamIsolated(query);
             }
-            const response = await this[method](query);
+            else {
+                response = await this.publicPostUserDataStream(query);
+            }
             this.options[type] = this.extend(options, {
                 'listenKey': this.safeString(response, 'listenKey'),
                 'lastAuthenticatedTime': time,
@@ -1158,26 +1176,27 @@ class binance extends binance$1 {
             // A network error happened: we can't renew a listen key that does not exist.
             return;
         }
-        let method = 'publicPutUserDataStream';
         const request = {};
         const symbol = this.safeString(params, 'symbol');
         const sendParams = this.omit(params, ['type', 'symbol']);
-        if (type === 'future') {
-            method = 'fapiPrivatePutListenKey';
-        }
-        else if (type === 'delivery') {
-            method = 'dapiPrivatePutListenKey';
-        }
-        else {
-            request['listenKey'] = listenKey;
-            if (type === 'margin') {
-                request['symbol'] = symbol;
-                method = 'sapiPutUserDataStream';
-            }
-        }
         const time = this.milliseconds();
         try {
-            await this[method](this.extend(request, sendParams));
+            if (type === 'future') {
+                await this.fapiPrivatePutListenKey(this.extend(request, sendParams));
+            }
+            else if (type === 'delivery') {
+                await this.dapiPrivatePutListenKey(this.extend(request, sendParams));
+            }
+            else {
+                request['listenKey'] = listenKey;
+                if (type === 'margin') {
+                    request['symbol'] = symbol;
+                    await this.sapiPutUserDataStream(this.extend(request, sendParams));
+                }
+                else {
+                    await this.publicPutUserDataStream(this.extend(request, sendParams));
+                }
+            }
         }
         catch (error) {
             const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];

@@ -982,7 +982,7 @@ class gemini extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit_trades'] = $limit;
+                $request['limit_trades'] = min ($limit, 500);
             }
             if ($since !== null) {
                 $request['timestamp'] = $since;
