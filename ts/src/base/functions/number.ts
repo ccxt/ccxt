@@ -105,7 +105,7 @@ const assert = (condition, message = undefined) => {
 };
 
 const decimalToPrecision = ( x, roundingMode, numPrecisionDigits, countingMode = DECIMAL_PLACES, paddingMode = NO_PADDING ) => {
-    assert (numPrecisionDigits !== undefined && numPrecisionDigits !== null, 'numPrecisionDigits should not be null');
+    assert (numPrecisionDigits !== undefined, 'numPrecisionDigits should not be undefined');
 
     if (typeof numPrecisionDigits === 'string') {
         numPrecisionDigits = parseFloat (numPrecisionDigits)
