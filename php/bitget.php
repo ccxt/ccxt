@@ -3234,7 +3234,8 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
             'granularity' => $selectedTimeframe,
         );
-        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
@@ -3247,14 +3248,15 @@ class bitget extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
+            if ($until !== null) {
+                $request['endTime'] = $until;
+            }
         }
         $response = null;
         if ($market['spot']) {
             if ($method === 'publicSpotGetV2SpotMarketCandles') {
                 $response = $this->publicSpotGetV2SpotMarketCandles (array_merge($request, $params));
             } elseif ($method === 'publicSpotGetV2SpotMarketHistoryCandles') {
-                $until = $this->safe_integer_2($params, 'until', 'till');
-                $params = $this->omit($params, array( 'until', 'till' ));
                 if ($since !== null) {
                     if ($limit === null) {
                         $limit = 100; // exchange default

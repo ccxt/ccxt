@@ -1133,6 +1133,8 @@ class bigone(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
+        if market['contract']:
+            raise BadRequest(self.id + ' fetchTrades() can only fetch trades for spot markets')
         request = {
             'asset_pair_name': market['id'],
         }
@@ -1193,6 +1195,8 @@ class bigone(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
+        if market['contract']:
+            raise BadRequest(self.id + ' fetchOHLCV() can only fetch ohlcvs for spot markets')
         if limit is None:
             limit = 100  # default 100, max 500
         request = {

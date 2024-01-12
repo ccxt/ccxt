@@ -33,10 +33,10 @@ export default class coinbase extends Exchange {
         id: string;
         txid: string;
         timestamp: number;
-        datetime: string;
+        datetime: any;
         network: any;
-        address: any;
-        addressTo: any;
+        address: string;
+        addressTo: string;
         addressFrom: any;
         tag: any;
         tagTo: any;
@@ -114,6 +114,29 @@ export default class coinbase extends Exchange {
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
+        info: any;
+        id: string;
+        txid: string;
+        timestamp: number;
+        datetime: any;
+        network: any;
+        address: string;
+        addressTo: string;
+        addressFrom: any;
+        tag: any;
+        tagTo: any;
+        tagFrom: any;
+        type: string;
+        amount: number;
+        currency: string;
+        status: string;
+        updated: number;
+        fee: {
+            cost: number;
+            currency: string;
+        };
+    }>;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
