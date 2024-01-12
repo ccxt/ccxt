@@ -76,7 +76,7 @@ for (const key of Object.keys (exchangeSpecificFlags)) {
 }
 /*  --------------------------------------------------------------------------- */
 
-const content = fs.readFileSync ('./skip-tests.json', 'utf8');
+const content = fs.readFileSync ('./tests-config.json', 'utf8');
 const skipSettings = JSON.parse (content);
 
 if (!exchanges.length) {
