@@ -99,6 +99,14 @@
                     "LTC/USDT"
                 ]
             }
+        ],
+        "fetchLastPrices": [
+            {
+                "description": "fetch last prices",
+                "method": "fetchLastPrices",
+                "url": "https://api.binance.us/api/v1/ticker/price",
+                "input": []
+            }
         ]
     }
 }
