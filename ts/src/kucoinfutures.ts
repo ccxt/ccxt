@@ -2449,6 +2449,7 @@ export default class kucoinfutures extends kucoin {
         /**
          * @method
          * @name kucoinfutures#fetchFundingRateHistory
+         * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-public-funding-history#request-url
          * @description fetches historical funding rate prices
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] not used by kucuoinfutures
@@ -2465,7 +2466,7 @@ export default class kucoinfutures extends kucoin {
         const request = {
             'symbol': market['id'],
             'from': 0,
-            'to': this.nonce (),
+            'to': this.milliseconds (),
         };
         const until = this.safeInteger2 (params, 'until', 'till');
         params = this.omit (params, [ 'until', 'till' ]);
