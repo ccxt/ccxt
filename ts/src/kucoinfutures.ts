@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import type { Int, OrderSide, OrderType, OHLCV, Order, Trade, FundingHistory, Balances, Str, Ticker, OrderBook, Transaction, Strings, Market, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Order, Trade, FundingHistory, Balances, Str, Ticker, OrderBook, Transaction, Strings, Market, Currency, OrderRequest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -35,6 +35,7 @@ export default class kucoinfutures extends kucoin {
                 'closePositions': false,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -1124,6 +1125,75 @@ export default class kucoinfutures extends kucoin {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const testOrder = this.safeValue (params, 'test', false);
+        params = this.omit (params, 'test');
+        const orderRequest = this.createContractOrderRequest (symbol, type, side, amount, price, params);
+        let response = undefined;
+        if (testOrder) {
+            response = await this.futuresPrivatePostOrdersTest (orderRequest);
+        } else {
+            response = await this.futuresPrivatePostOrders (orderRequest);
+        }
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "orderId": "619717484f1d010001510cde",
+        //        },
+        //    }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
+    async createOrders (orders: OrderRequest[], params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#createOrders
+         * @description create a list of trade orders
+         * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-multiple-orders
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params]  extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const symbol = this.safeString (rawOrder, 'symbol');
+            const market = this.market (symbol);
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderRequest = this.createContractOrderRequest (market['id'], type, side, amount, price, orderParams);
+            ordersRequests.push (orderRequest);
+        }
+        const response = await this.futuresPrivatePostOrdersMulti (ordersRequests);
+        //
+        //     [
+        //         {
+        //             "orderId":"80465574458560512",
+        //             "clientOid":"5c52e11203aa677f33e491",
+        //             "symbol":"ETHUSDTM",
+        //             "code":"200000",
+        //             "msg":"success"
+        //         },
+        //         {
+        //             "orderId":"80465575289094144",
+        //             "clientOid":"5c52e11203aa677f33e492",
+        //             "symbol":"ETHUSDTM",
+        //             "code":"200000",
+        //             "msg":"success"
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response);
+    }
+
+    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        const market = this.market (symbol);
         // required param, cannot be used twice
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
@@ -1192,47 +1262,7 @@ export default class kucoinfutures extends kucoin {
             }
         }
         params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
-        let response = undefined;
-        const testOrder = this.safeValue (params, 'test', false);
-        params = this.omit (params, 'test');
-        if (testOrder) {
-            response = await this.futuresPrivatePostOrdersTest (this.extend (request, params));
-        } else {
-            response = await this.futuresPrivatePostOrders (this.extend (request, params));
-        }
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "orderId": "619717484f1d010001510cde",
-        //        },
-        //    }
-        //
-        const data = this.safeValue (response, 'data', {});
-        return this.safeOrder ({
-            'id': this.safeString (data, 'orderId'),
-            'clientOrderId': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': undefined,
-            'symbol': undefined,
-            'type': undefined,
-            'side': undefined,
-            'price': undefined,
-            'amount': undefined,
-            'cost': undefined,
-            'average': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'status': undefined,
-            'fee': undefined,
-            'trades': undefined,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'info': response,
-        }, market);
+        return this.extend (request, params);
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1707,10 +1737,26 @@ export default class kucoinfutures extends kucoin {
         //         "reduceOnly": false
         //     }
         //
+        // createOrder
+        //
+        //     {
+        //         "orderId": "619717484f1d010001510cde"
+        //     }
+        //
+        // createOrders
+        //
+        //     {
+        //         "orderId": "80465574458560512",
+        //         "clientOid": "5c52e11203aa677f33e491",
+        //         "symbol": "ETHUSDTM",
+        //         "code": "200000",
+        //         "msg": "success"
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const orderId = this.safeString (order, 'id');
+        const orderId = this.safeString2 (order, 'id', 'orderId');
         const type = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'createdAt');
         const datetime = this.iso8601 (timestamp);
@@ -1736,9 +1782,12 @@ export default class kucoinfutures extends kucoin {
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        const isActive = this.safeValue (order, 'isActive', false);
+        const isActive = this.safeValue (order, 'isActive');
         const cancelExist = this.safeValue (order, 'cancelExist', false);
-        let status = isActive ? 'open' : 'closed';
+        let status = undefined;
+        if (isActive !== undefined) {
+            status = isActive ? 'open' : 'closed';
+        }
         status = cancelExist ? 'canceled' : status;
         let fee = undefined;
         if (feeCost !== undefined) {
