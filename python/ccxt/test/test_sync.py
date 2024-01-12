@@ -1129,7 +1129,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1260,8 +1260,8 @@ class testMainClass(baseMainTestClass):
         assert req_headers['source'] == id, 'id not in headers'
         close(exchange)
 
-    def test_huobi(self):
-        exchange = self.init_offline_exchange('huobi')
+    def test_htx(self):
+        exchange = self.init_offline_exchange('htx')
         # spot test
         id = 'AA03022abc'
         spot_order_request = None
@@ -1352,7 +1352,7 @@ class testMainClass(baseMainTestClass):
 
     def test_phemex(self):
         exchange = self.init_offline_exchange('phemex')
-        id = 'CCXT'
+        id = 'CCXT123456'
         request = None
         try:
             exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)

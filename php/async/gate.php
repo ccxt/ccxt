@@ -436,6 +436,7 @@ class gate extends Exchange {
                             '{settle}/orders' => 0.4,
                             '{settle}/batch_orders' => 0.4,
                             '{settle}/countdown_cancel_all' => 0.4,
+                            '{settle}/batch_cancel_orders' => 0.4,
                             '{settle}/price_orders' => 0.4,
                         ),
                         'put' => array(
@@ -526,11 +527,21 @@ class gate extends Exchange {
                             'collateral/total_amount' => 20 / 15,
                             'collateral/ltv' => 20 / 15,
                             'collateral/currencies' => 20 / 15,
+                            'multi_collateral/orders' => 20 / 15,
+                            'multi_collateral/orders/{order_id}' => 20 / 15,
+                            'multi_collateral/repay' => 20 / 15,
+                            'multi_collateral/mortgage' => 20 / 15,
+                            'multi_collateral/currency_quota' => 20 / 15,
+                            'multi_collateral/currencies' => 20 / 15,
+                            'multi_collateral/ltv' => 20 / 15,
                         ),
                         'post' => array(
                             'collateral/orders' => 20 / 15,
                             'collateral/repay' => 20 / 15,
                             'collateral/collaterals' => 20 / 15,
+                            'multi_collateral/orders' => 20 / 15,
+                            'multi_collateral/repay' => 20 / 15,
+                            'multi_collateral/mortgage' => 20 / 15,
                         ),
                     ),
                     'account' => array(
@@ -3125,7 +3136,7 @@ class gate extends Exchange {
                 $request['to'] = $this->parse_to_int($until / 1000);
             }
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 100, max 1000
+                $request['limit'] = min ($limit, 1000); // default 100, max 1000
             }
             if ($since !== null && ($market['contract'])) {
                 $request['from'] = $this->parse_to_int($since / 1000);
@@ -5127,11 +5138,19 @@ class gate extends Exchange {
     }
 
     public function parse_transfer($transfer, ?array $currency = null) {
-        $timestamp = $this->milliseconds();
+        //
+        //    {
+        //        "currency" => "BTC",
+        //        "from" => "spot",
+        //        "to" => "margin",
+        //        "amount" => "1",
+        //        "currency_pair" => "BTC_USDT"
+        //    }
+        //
         return array(
             'id' => $this->safe_string($transfer, 'tx_id'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'fromAccount' => null,

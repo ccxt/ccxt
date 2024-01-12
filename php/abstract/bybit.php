@@ -373,6 +373,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_get_v5_account_set_collateral_switch($params = array()) {
         return $this->request('v5/account/set-collateral-switch', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_v5_account_set_collateral_switch_batch($params = array()) {
+        return $this->request('v5/account/set-collateral-switch-batch', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_v5_account_collateral_info($params = array()) {
         return $this->request('v5/account/collateral-info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1236,6 +1239,9 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privateGetV5AccountSetCollateralSwitch($params = array()) {
         return $this->request('v5/account/set-collateral-switch', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5AccountSetCollateralSwitchBatch($params = array()) {
+        return $this->request('v5/account/set-collateral-switch-batch', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetV5AccountCollateralInfo($params = array()) {
         return $this->request('v5/account/collateral-info', 'private', 'GET', $params, null, null, array("cost" => 1));

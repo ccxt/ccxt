@@ -40,6 +40,7 @@ class bitget extends Exchange {
                 'createOrder' => true,
                 'createOrders' => true,
                 'createReduceOnlyOrder' => false,
+                'createTrailingPercentOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
@@ -2923,7 +2924,11 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            if ($market['contract']) {
+                $request['limit'] = min ($limit, 1000);
+            } else {
+                $request['limit'] = $limit;
+            }
         }
         $options = $this->safe_value($this->options, 'fetchTrades', array());
         $response = null;
@@ -3230,25 +3235,35 @@ class bitget extends Exchange {
             'granularity' => $selectedTimeframe,
         );
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        if ($since !== null) {
-            $request['startTime'] = $limit;
-        }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
         $options = $this->safe_value($this->options, 'fetchOHLCV', array());
+        $spotOptions = $this->safe_value($options, 'spot', array());
+        $defaultSpotMethod = $this->safe_string($spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
+        $method = $this->safe_string($params, 'method', $defaultSpotMethod);
+        $params = $this->omit($params, 'method');
+        if ($method !== 'publicSpotGetV2SpotMarketHistoryCandles') {
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+        }
         $response = null;
         if ($market['spot']) {
-            $spotOptions = $this->safe_value($options, 'spot', array());
-            $defaultSpotMethod = $this->safe_string($spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
-            $method = $this->safe_string($params, 'method', $defaultSpotMethod);
-            $params = $this->omit($params, 'method');
             if ($method === 'publicSpotGetV2SpotMarketCandles') {
                 $response = $this->publicSpotGetV2SpotMarketCandles (array_merge($request, $params));
             } elseif ($method === 'publicSpotGetV2SpotMarketHistoryCandles') {
                 $until = $this->safe_integer_2($params, 'until', 'till');
                 $params = $this->omit($params, array( 'until', 'till' ));
-                if ($until === null) {
+                if ($since !== null) {
+                    if ($limit === null) {
+                        $limit = 100; // exchange default
+                    }
+                    $duration = $this->parse_timeframe($timeframe) * 1000;
+                    $request['endTime'] = $this->sum($since, $duration * $limit);
+                } elseif ($until !== null) {
+                    $request['endTime'] = $until;
+                } else {
                     $request['endTime'] = $this->milliseconds();
                 }
                 $response = $this->publicSpotGetV2SpotMarketHistoryCandles (array_merge($request, $params));

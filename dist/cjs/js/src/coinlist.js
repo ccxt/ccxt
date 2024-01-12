@@ -750,7 +750,7 @@ class coinlist extends coinlist$1 {
             request['start_time'] = this.iso8601(since);
         }
         if (limit !== undefined) {
-            request['count'] = limit;
+            request['count'] = Math.min(limit, 500);
         }
         const until = this.safeInteger2(params, 'till', 'until');
         if (until !== undefined) {
@@ -1109,11 +1109,10 @@ class coinlist extends coinlist$1 {
         //         "net_liquidation_value_usd": "string"
         //     }
         //
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const totalBalances = this.safeValue(response, 'asset_balances', {});
         const usedBalances = this.safeValue(response, 'asset_holds', {});

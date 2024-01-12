@@ -1306,7 +1306,7 @@ export default class testMainClass extends baseMainTestClass {
             this.testKucoinfutures(),
             this.testBitget(),
             this.testMexc(),
-            this.testHuobi(),
+            this.testHtx(),
             this.testWoo(),
             this.testBitmart(),
             this.testCoinex(),
@@ -1465,8 +1465,8 @@ export default class testMainClass extends baseMainTestClass {
         assert(reqHeaders['source'] === id, 'id not in headers');
         await close(exchange);
     }
-    async testHuobi() {
-        const exchange = this.initOfflineExchange('huobi');
+    async testHtx() {
+        const exchange = this.initOfflineExchange('htx');
         // spot test
         const id = 'AA03022abc';
         let spotOrderRequest = undefined;
@@ -1571,7 +1571,7 @@ export default class testMainClass extends baseMainTestClass {
     }
     async testPhemex() {
         const exchange = this.initOfflineExchange('phemex');
-        const id = 'CCXT';
+        const id = 'CCXT123456';
         let request = undefined;
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
