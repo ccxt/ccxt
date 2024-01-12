@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import type { Int, OrderSide, OrderType, OHLCV, Order, Trade, FundingRateHistory, FundingHistory, Balances, Str, Ticker, OrderBook, Transaction, Strings, Market, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Order, Trade, FundingHistory, Balances, Str, Ticker, OrderBook, Transaction, Strings, Market, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ export default class kucoinfutures extends kucoin {
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -2401,58 +2401,57 @@ export default class kucoinfutures extends kucoin {
          * @param {int} [since] not used by kucuoinfutures
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] end time in ms
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
-        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            'from': 0,
+            'to': this.nonce (),
         };
-        if (limit !== undefined) {
-            request['maxCount'] = limit;
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
+        if (since !== undefined) {
+            request['from'] = since;
+            if (until === undefined) {
+                request['to'] = since + 1000 * 8 * 60 * 60 * 100;
+            }
         }
-        const response = await this.webExchangeGetContractSymbolFundingRates (this.extend (request, params));
+        if (until !== undefined) {
+            request['to'] = until;
+            if (since === undefined) {
+                request['to'] = until - 1000 * 8 * 60 * 60 * 100;
+            }
+        }
+        const response = await this.futuresPublicGetContractFundingRates (this.extend (request, params));
         //
-        //    {
-        //        "success": true,
-        //        "code": "200",
-        //        "msg": "success",
-        //        "retry": false,
-        //        "data": {
-        //            "dataList": [
-        //                {
-        //                    "symbol": "XBTUSDTM",
-        //                    "granularity": 28800000,
-        //                    "timePoint": 1675108800000,
-        //                    "value": 0.0001
-        //                },
-        //                ...
-        //            ],
-        //            "hasMore": true
-        //        }
-        //    }
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "symbol": "IDUSDTM",
+        //                 "fundingRate": 2.26E-4,
+        //                 "timepoint": 1702296000000
+        //             }
+        //         ]
+        //     }
         //
         const data = this.safeValue (response, 'data');
-        const dataList = this.safeValue (data, 'dataList');
-        return this.parseFundingRateHistories (dataList, market, since, limit);
+        return this.parseFundingRateHistories (data, market, since, limit);
     }
 
     parseFundingRateHistory (info, market: Market = undefined) {
-        const timestamp = this.safeInteger (info, 'timePoint');
+        const timestamp = this.safeInteger (info, 'timepoint');
         const marketId = this.safeString (info, 'symbol');
         return {
             'info': info,
             'symbol': this.safeSymbol (marketId, market),
-            'fundingRate': this.safeNumber (info, 'value'),
+            'fundingRate': this.safeNumber (info, 'fundingRate'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
