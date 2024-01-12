@@ -1303,18 +1303,23 @@ export default class bigone extends Exchange {
         /**
          * @method
          * @name bigone#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description fetches locked and available funds for spot and funding accounts, unavailable for margin and contract accounts
+         * @see https://open.big.one/docs/spot_accounts.html
+         * @see https://open.big.one/docs/fund_accounts.html
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'funding'
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const type = this.safeString (params, 'type', '');
-        params = this.omit (params, 'type');
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let response = undefined;
-        if (type === 'funding' || type === 'fund') {
+        if (marketType === 'funding' || marketType === 'fund') {
             response = await this.privateGetFundAccounts (params);
-        } else {
+        } else if (marketType === 'spot' || marketType === undefined) {
             response = await this.privateGetAccounts (params);
+        } else {
+            throw new BadRequest (this.id + ' fetchBalance () is not available for ' + marketType);
         }
         //
         //     {
