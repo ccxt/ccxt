@@ -1172,24 +1172,28 @@ export default class kucoinfutures extends kucoin {
         }
         const response = await this.futuresPrivatePostOrdersMulti (ordersRequests);
         //
-        //     [
-        //         {
-        //             "orderId":"80465574458560512",
-        //             "clientOid":"5c52e11203aa677f33e491",
-        //             "symbol":"ETHUSDTM",
-        //             "code":"200000",
-        //             "msg":"success"
-        //         },
-        //         {
-        //             "orderId":"80465575289094144",
-        //             "clientOid":"5c52e11203aa677f33e492",
-        //             "symbol":"ETHUSDTM",
-        //             "code":"200000",
-        //             "msg":"success"
-        //         }
-        //     ]
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "orderId": "135241412609331200",
+        //                 "clientOid": "3d8fcc13-0b13-447f-ad30-4b3441e05213",
+        //                 "symbol": "LTCUSDTM",
+        //                 "code": "200000",
+        //                 "msg": "success"
+        //             },
+        //             {
+        //                 "orderId": "135241412747743234",
+        //                 "clientOid": "b878c7ee-ae3e-4d63-a20b-038acbb7306f",
+        //                 "symbol": "LTCUSDTM",
+        //                 "code": "200000",
+        //                 "msg": "success"
+        //             }
+        //         ]
+        //     }
         //
-        return this.parseOrders (response);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data);
     }
 
     createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
