@@ -670,7 +670,7 @@ export default class bingx extends Exchange {
          */
         const requests = [ this.fetchSwapMarkets (params) ];
         const isSandbox = this.safeValue (this.options, 'sandboxMode', false);
-        if (isSandbox) {
+        if (!isSandbox) {
             requests.push (this.fetchSpotMarkets (params)); // sandbox is swap only
         }
         const promises = await Promise.all (requests);
