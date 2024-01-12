@@ -3318,6 +3318,7 @@ export default class bingx extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const now = this.milliseconds ();
         let response = undefined;
         const request = {
             'symbol': market['id'],
@@ -3326,7 +3327,7 @@ export default class bingx extends Exchange {
             const startTimeReq = market['spot'] ? 'startTime' : 'startTs';
             request[startTimeReq] = since;
         } else if (market['swap']) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a since argument in swap market type');
+            request['startTs'] = now - 7776000000; // 90 days
         }
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
@@ -3334,7 +3335,7 @@ export default class bingx extends Exchange {
             const endTimeReq = market['spot'] ? 'endTime' : 'endTs';
             request[endTimeReq] = until;
         } else if (market['swap']) {
-            request['endTs'] = this.nonce ();
+            request['endTs'] = now;
         }
         let fills = undefined;
         if (market['spot']) {
