@@ -258,7 +258,7 @@
             {
                 "description": "withdraw USDC to another blockchain address",
                 "method": "withdraw",
-                "url": "https://api.coinbase.com/v2/accounts/a34bafad-ed57-539b-bffc-730c98c10da0/transactions",
+                "url": "https://api.coinbase.com/v2/accounts/myAccount/transactions",
                 "input": [
                   "USDC",
                   10,
