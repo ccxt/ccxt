@@ -1067,7 +1067,21 @@
                 "until": 1705055863000
               }
             ]
-          }
+          },
+          {
+            "description": "Spot historical with emulated endTime",
+            "method": "fetchOHLCV",
+            "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1h&limit=10&endTime=1705006006000",
+            "input": [
+              "BTC/USDT",
+              "1h",
+              1704970006000,
+              10,
+              {
+                "method": "publicSpotGetV2SpotMarketHistoryCandles"
+              }
+            ]
+        }
         ]
     }
 }
