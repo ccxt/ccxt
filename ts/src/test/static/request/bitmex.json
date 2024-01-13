@@ -521,6 +521,18 @@
         ],
         "output": "{\"symbol\":\"XBT_USDT\"}"
       }
+    ],
+    "fetchFundingRates": [
+      {
+        "description": "Fetch funding rates",
+        "method": "fetchFundingRates",
+        "url": "https://testnet.bitmex.com/api/v1/instrument/activeAndIndices",
+        "input": [
+          [
+            "BTC/USDT:USDT"
+          ]
+        ]
+      }
     ]
   }
 }
