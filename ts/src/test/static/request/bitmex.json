@@ -348,6 +348,24 @@
           "BTC/USDT:USDT"
         ]
       }
+    ],
+    "fetchMyTrades": [
+      {
+        "description": "Spot fetch my trades",
+        "method": "fetchMyTrades",
+        "url": "https://testnet.bitmex.com/api/v1/execution/tradeHistory?symbol=XBT_USDT",
+        "input": [
+          "BTC/USDT"
+        ]
+      },
+      {
+        "description": "Swap fetch my trades",
+        "method": "fetchMyTrades",
+        "url": "https://testnet.bitmex.com/api/v1/execution/tradeHistory?symbol=XBTUSDT",
+        "input": [
+          "BTC/USDT:USDT"
+        ]
+      }
     ]
   }
 }
