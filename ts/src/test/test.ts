@@ -1234,6 +1234,10 @@ export default class testMainClass extends baseMainTestClass {
                 if ((testName !== undefined) && (testName !== description)) {
                     continue;
                 }
+                const isDisabled = exchange.safeValue (result, 'disabled', false);
+                if (isDisabled) {
+                    continue;
+                }
                 const type = exchange.safeString (exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testMethodStatically (exchange, method, result, type, skipKeys);
