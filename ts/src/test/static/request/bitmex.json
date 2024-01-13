@@ -376,6 +376,16 @@
           "USDT"
         ]
       }
+    ],
+    "fetchDepositsWithdrawals": [
+      {
+        "description": "Fetch USDT deposits and withdrawals",
+        "method": "fetchDepositsWithdrawals",
+        "url": "https://testnet.bitmex.com/api/v1/user/walletHistory?currency=USDt",
+        "input": [
+          "USDT"
+        ]
+      }
     ]
   }
 }
