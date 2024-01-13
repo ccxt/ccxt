@@ -1798,8 +1798,16 @@ export default class bigone extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             'PENDING': 'open',
+            'NEW': 'open',
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
+            'CANCELED': 'canceled',
+            'PARTIALLY_FILLED': 'open',
+            'PARTIALLY_CANCELED': 'open',
+            'REJECTED': 'canceled',
+            'UNTRIGGERED': 'open',
+            'PENDING_CANCEL': 'open',
+            'TRIGGERED': 'closed',
         };
         return this.safeString (statuses, status);
     }
@@ -1815,10 +1823,70 @@ export default class bigone extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
-            'state': 'PENDING',
-        };
-        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        if ((type === 'swap') || (type === 'future')) {
+            const request = {};
+            if (market !== undefined) {
+                request['symbol'] = market['id'];
+            }
+            const until = this.safeInteger (params, 'until');
+            if (market !== undefined) {
+                request['symbol'] = market['id'];
+            }
+            if (since !== undefined) {
+                request['start-time'] = since;
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            if (until !== undefined) {
+                request['end-time'] = until;
+            }
+            params = this.omit (params, [ 'until' ]);
+            const response = await this.contractPrivateGetOrdersOpening (this.extend (request, params));
+            //
+            //    [
+            //        {
+            //            "liquidateUserId": null,
+            //            "ts": 1562125342068,
+            //            "size": 1,
+            //            "notional": 0,
+            //            "side": "BUY",
+            //            "userId": "5aec525e-335d-4724-0005-20153b361f89",
+            //            "filledNotional": 0,
+            //            "isLiquidate": false,
+            //            "reduceOnly": false,
+            //            "type": "LIMIT",
+            //            "symbol": "BTCUSD",
+            //            "seqNo": null,
+            //            "filled": 0,
+            //            "meta": null,
+            //            "status": "UNTRIGGERED",
+            //            "avgPrice": 0,
+            //            "price": 8000,
+            //            "conditional": {
+            //                "type": "REACH",
+            //                "price": 8000,
+            //                "priceType": "MARKET_PRICE",
+            //            },
+            //            "id": "5aed7b45-5d19-40f2-0005-ca49d01f33e3"
+            //        }
+            //        ...
+            //    ]
+            //
+            return this.parseOrders (response, market, since, limit, params);
+        } else {
+            const request = {
+                'state': 'PENDING',
+            };
+            return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        }
     }
 
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
