@@ -486,6 +486,41 @@
           1705124160000
         ]
       }
+    ],
+    "cancelOrder": [
+      {
+        "description": "Cancel an order",
+        "method": "cancelOrder",
+        "url": "https://testnet.bitmex.com/api/v1/order",
+        "input": [
+          "9a647c5c-59c7-43dc-94ca-d16f6628a7ad"
+        ],
+        "output": "{\"orderID\":\"9a647c5c-59c7-43dc-94ca-d16f6628a7ad\"}"
+      }
+    ],
+    "cancelOrders": [
+      {
+        "description": "Cancel multiple orders at once",
+        "method": "cancelOrders",
+        "url": "https://testnet.bitmex.com/api/v1/order",
+        "input": [
+          [
+            "e9c8109c-1b6c-4526-b6b9-9619d95cba47"
+          ]
+        ],
+        "output": "{\"orderID\":[\"e9c8109c-1b6c-4526-b6b9-9619d95cba47\"]}"
+      }
+    ],
+    "cancelAllOrders": [
+      {
+        "description": "Cancel all open orders",
+        "method": "cancelAllOrders",
+        "url": "https://testnet.bitmex.com/api/v1/order/all",
+        "input": [
+          "BTC/USDT"
+        ],
+        "output": "{\"symbol\":\"XBT_USDT\"}"
+      }
     ]
   }
 }
