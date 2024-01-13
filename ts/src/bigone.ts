@@ -1397,7 +1397,8 @@ export default class bigone extends Exchange {
         //        "price": 9755
         //    }
         //
-        const isContract = 'isLiquidate' in order;
+        const isLiquidate = this.safeValue (order, 'isLiquidate');
+        const isContract = isLiquidate !== undefined;
         const id = this.safeString (order, 'id');
         const marketId = this.safeString2 (order, 'asset_pair_name', 'symbol');
         const symbol = this.safeSymbol (marketId, market, '-');
@@ -1519,11 +1520,8 @@ export default class bigone extends Exchange {
         [ postOnly, params ] = this.handlePostOnly ((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const timeInForce = this.safeString (params, 'timeInForce');
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        const isContract = (marketType === 'swap') || (marketType === 'future');
         const request = {};
-        if (isContract) {
+        if (market['contract']) {
             const priceType = this.safeString (params, 'priceType', 'MARKET_PRICE');
             if (postOnly) {
                 uppercaseType = 'POST_ONLY';
@@ -1591,7 +1589,12 @@ export default class bigone extends Exchange {
             request['type'] = uppercaseType;
         }
         params = this.omit (params, [ 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce' ]);
-        const response = await this.privatePostOrders (this.extend (request, params));
+        let response = undefined;
+        if (market['contract']) {
+            response = await this.contractPrivatePostOrders (this.extend (request, params));
+        } else {
+            response = await this.privatePostOrders (this.extend (request, params));
+        }
         //
         //    {
         //        "id": 10,
