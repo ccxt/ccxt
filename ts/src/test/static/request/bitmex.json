@@ -245,6 +245,34 @@
     ],
     "editOrder": [
       {
+        "description": "Spot edit order",
+        "method": "editOrder",
+        "url": "https://testnet.bitmex.com/api/v1/order",
+        "input": [
+          "9a647c5c-59c7-43dc-94ca-d16f6628a7ad",
+          "BTC/USDT",
+          "limit",
+          "buy",
+          0.0001,
+          34000
+        ],
+        "output": "{\"orderID\":\"9a647c5c-59c7-43dc-94ca-d16f6628a7ad\",\"orderQty\":10000,\"price\":34000,\"text\":\"CCXT\"}"
+      },
+      {
+        "description": "Swap edit order",
+        "method": "editOrder",
+        "url": "https://testnet.bitmex.com/api/v1/order",
+        "input": [
+          "e9c8109c-1b6c-4526-b6b9-9619d95cba47",
+          "BTC/USDT:USDT",
+          "limit",
+          "buy",
+          1000,
+          35000
+        ],
+        "output": "{\"orderID\":\"e9c8109c-1b6c-4526-b6b9-9619d95cba47\",\"orderQty\":1000,\"price\":35000,\"text\":\"CCXT\"}"
+      },
+      {
         "description": "Swap edit trailing order",
         "method": "editOrder",
         "url": "https://testnet.bitmex.com/api/v1/order",
