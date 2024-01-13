@@ -280,6 +280,7 @@ class Exchange {
         'fetchFundingRates' => null,
         'fetchIndexOHLCV' => null,
         'fetchL2OrderBook' => true,
+        'fetchLastPrices' => null,
         'fetchLedger' => null,
         'fetchLedgerEntry' => null,
         'fetchLeverageTiers' => null,

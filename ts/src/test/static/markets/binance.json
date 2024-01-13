@@ -2174,5 +2174,132 @@
         "contractSize": 1.0,
         "settle": "USDT",
         "settleId": "USDT"
+    },
+    "ETH/USD:ETH": {
+        "id": "ETHUSD_PERP",
+        "lowercaseId": "ethusd_perp",
+        "symbol": "ETH/USD:ETH",
+        "base": "ETH",
+        "quote": "USD",
+        "settle": "ETH",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "settleId": "ETH",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": false,
+        "inverse": true,
+        "subType": "inverse",
+        "taker": 0.0005,
+        "maker": 0.0001,
+        "contractSize": 10,
+        "precision": {
+            "amount": 0,
+            "price": 2,
+            "base": 8,
+            "quote": 8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 50,
+                "max": 306159
+            },
+            "cost": {},
+            "market": {
+                "min": 1,
+                "max": 500000
+            }
+        },
+        "created": 1597734000000,
+        "info": {
+            "symbol": "ETHUSD_PERP",
+            "pair": "ETHUSD",
+            "contractType": "PERPETUAL",
+            "deliveryDate": "4133404800000",
+            "onboardDate": "1597734000000",
+            "contractStatus": "TRADING",
+            "contractSize": "10",
+            "marginAsset": "ETH",
+            "maintMarginPercent": "2.5000",
+            "requiredMarginPercent": "5.0000",
+            "baseAsset": "ETH",
+            "quoteAsset": "USD",
+            "pricePrecision": "2",
+            "quantityPrecision": "0",
+            "baseAssetPrecision": "8",
+            "quotePrecision": "8",
+            "equalQtyPrecision": "4",
+            "maxMoveOrderLimit": "10000",
+            "triggerProtect": "0.0500",
+            "underlyingType": "COIN",
+            "underlyingSubType": [
+                "Layer-1"
+            ],
+            "filters": [
+                {
+                    "minPrice": "50",
+                    "maxPrice": "306159",
+                    "filterType": "PRICE_FILTER",
+                    "tickSize": "0.01"
+                },
+                {
+                    "stepSize": "1",
+                    "filterType": "LOT_SIZE",
+                    "maxQty": "1000000",
+                    "minQty": "1"
+                },
+                {
+                    "stepSize": "1",
+                    "filterType": "MARKET_LOT_SIZE",
+                    "maxQty": "500000",
+                    "minQty": "1"
+                },
+                {
+                    "limit": "200",
+                    "filterType": "MAX_NUM_ORDERS"
+                },
+                {
+                    "limit": "20",
+                    "filterType": "MAX_NUM_ALGO_ORDERS"
+                },
+                {
+                    "multiplierDown": "0.9500",
+                    "multiplierUp": "1.0500",
+                    "multiplierDecimal": "4",
+                    "filterType": "PERCENT_PRICE"
+                }
+            ],
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "STOP",
+                "STOP_MARKET",
+                "TAKE_PROFIT",
+                "TAKE_PROFIT_MARKET",
+                "TRAILING_STOP_MARKET"
+            ],
+            "timeInForce": [
+                "GTC",
+                "IOC",
+                "FOK",
+                "GTX"
+            ],
+            "liquidationFee": "0.015000",
+            "marketTakeBound": "0.05"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get"
     }
 }
