@@ -4,9 +4,10 @@
 import Exchange from './abstract/hyperliquid.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { TICK_SIZE, ROUND, DECIMAL_PLACES } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Market, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position } from './base/types.js';
+import ethabi from './static_dependencies/ethabi/ethabi.js'
 
 //  ---------------------------------------------------------------------------
 
@@ -171,8 +172,13 @@ export default class hyperliquid extends Exchange {
             },
             'options': {
                 'defaultSlippage': 0.05,
+                'zeroAddress': '0x0000000000000000000000000000000000000000',
             },
         });
+    }
+
+    test (params = {}) {
+        return ethabi.encode (['uint256','uint256'], [1,2]);
     }
 
     setSandboxMode (enabled) {
@@ -228,7 +234,13 @@ export default class hyperliquid extends Exchange {
         const assetCtxs = this.safeValue (response, 1, {});
         const result = [];
         for (let i = 0; i < meta.length; i++) {
-            const data = Object.assign (this.safeValue (meta, i, {}), this.safeValue (assetCtxs, i, {}));
+            const data = this.extend (
+                this.safeValue (meta, i, {}),
+                this.safeValue (assetCtxs, i, {}),
+                {
+                    'baseId': i,
+                },
+            );
             result.push (data);
         }
         return this.parseMarkets (result);
@@ -256,9 +268,9 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         const quoteId = 'USD';
-        const baseId = this.safeString (market, 'name');
+        const base = this.safeString (market, 'name');
         const quote = this.safeCurrencyCode (quoteId);
-        const base = this.safeCurrencyCode (baseId);
+        const baseId = this.safeInteger (market, 'baseId');
         const settleId = 'USDC';
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
@@ -296,8 +308,8 @@ export default class hyperliquid extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': undefined,
-                'price': undefined,
+                'amount': 8,
+                'price': 8,
             },
             'limits': {
                 'leverage': {
@@ -501,6 +513,10 @@ export default class hyperliquid extends Exchange {
         ];
     }
 
+    amountToPrecision (symbol, amount) {
+        return this.decimalToPrecision (amount, ROUND, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -512,6 +528,9 @@ export default class hyperliquid extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] "Gtc", "Ioc", "Alo"
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -520,9 +539,18 @@ export default class hyperliquid extends Exchange {
         const orderSide = side.toUpperCase ();
         const defaultSlippage = this.safeValue (this.options, 'defaultSlippage');
         const slippage = this.safeValue (params, 'slippage', defaultSlippage);
+        const vaultAddress = this.safeString (params, 'vaultAddress');
+        let timeInForce = this.safeStringLower (params, 'timeInForce', 'gtc');
+        timeInForce = this.capitalize (timeInForce);
+        const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
+        const zeroAddress = this.safeString (this.options, 'zeroAddress');
+        params = this.omit (params, ['slippage', 'vaultAddress', 'timeInForce', 'triggerPrice']);
         // TODO: round px to 5 significant figures and 6 decimals
         // TODO: cloid
-        const px = (orderType === 'BUY') ? price * (1 + slippage) : price * (1 - slippage);
+        let px = price;
+        if (orderType === 'MARKET') {
+            px = (orderSide === 'BUY') ? price * (1 + slippage) : price * (1 - slippage);
+        }
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         const request = {
             'coin': market['baseId'],
@@ -542,36 +570,107 @@ export default class hyperliquid extends Exchange {
                 'reduceOnly': reduceOnly,
             },
         };
+        // TODO: trigger order type
+        let hOrderType = {};
         if (orderType === 'MARKET') {
-            request['order_type'] = {
-                'limit': {
-                    'tif': 'Ioc',
-                },
-            };
-            orderSpec['orderType'] = request['order_type'];
+            timeInForce = 'Ioc';
         }
+        hOrderType['limit'] = {
+            'tif': timeInForce,
+        };
+        request['order_type'] = hOrderType;
+        orderSpec['orderType'] = hOrderType;
+        let signingOrderType = 0;
+        if (timeInForce === 'Ioc') {
+            signingOrderType = 3;
+        } else if (timeInForce === 'Alo') {
+            signingOrderType = 1;
+        } else if (timeInForce === 'Gtc') {
+            signingOrderType = 2;
+        }
+        const base = Math.pow(10, 8);
+        // const nonce = this.milliseconds ();
+        const nonce = 1705053278636;
         const signing = [
             [
-                orderSpec['asset'],
-                orderSpec["isBuy"],
-                orderSpec["limitPx"],
-                orderSpec["sz"],
-                orderSpec["reduceOnly"],
-                3, // limit, ioc
-                0,
+                [
+                    orderSpec['order']['asset'],
+                    orderSpec['order']["isBuy"],
+                    this.parseToInt (orderSpec['order']["limitPx"] * base),
+                    this.parseToInt (orderSpec['order']["sz"] * base),
+                    orderSpec['order']["reduceOnly"],
+                    signingOrderType,
+                    0,
+                ],
             ],
             0, // na grouping
+            (vaultAddress) ? vaultAddress : zeroAddress,
+            nonce,
         ];
         // withcloid
         // ["(uint32,bool,uint64,uint64,bool,uint8,uint64,bytes16)[]", "uint8"]
         // without cloid
         // ["(uint32,bool,uint64,uint64,bool,uint8,uint64)[]", "uint8"]
-        // const response = await this.privatePostV2OrderOrder (this.extend (request, params));
+        const connectionId = this.eth_abi_encode(["(uint32,bool,uint64,uint64,bool,uint8,uint64)[]", "uint8", "address", "uint256"], signing);
+        const connectionIdHash = this.hash (connectionId, 'keccak', 'binary');
+        const message = {
+            "source": (isSandboxMode) ? "b" : "a",
+            "connectionId": connectionIdHash,
+        };
+        const structuredData = {
+            "domain": {
+                "chainId": 1337,
+                "name": "Exchange",
+                "verifyingContract": zeroAddress,
+                "version": "1",
+            },
+            "types": {
+                "Agent": [
+                    {"name": "source", "type": "string"},
+                    {"name": "connectionId", "type": "bytes32"},
+                ],
+                "EIP712Domain": [
+                    {"name": "name", "type": "string"},
+                    {"name": "version", "type": "string"},
+                    {"name": "chainId", "type": "uint256"},
+                    {"name": "verifyingContract", "type": "address"},
+                ],
+            },
+            "primaryType": "Agent",
+            "message": message
+        };
+        const account = this.eth_recover_account (this.secret);
+        const msg = this.eth_encode_structured_data (structuredData);
+        const signedMsg = account.sign_message(msg);
+        const tmpRequest = {
+            "action": {
+                "type": "order",
+                "grouping": "na",
+                "orders": [{
+                    'asset': market['baseId'],
+                    'isBuy': (orderSide === 'BUY'),
+                    'sz': this.amountToPrecision (symbol, amount),
+                    'limitPx': this.amountToPrecision (symbol, px),
+                    'reduceOnly': reduceOnly,
+                    'orderType': request['order_type'],
+                    'cloid': undefined
+                }],
+            },
+            "nonce": nonce,
+            "signature": {
+                "r": this.eth_to_hex (signedMsg["r"]),
+                "s": this.eth_to_hex (signedMsg["s"]),
+                "v": signedMsg["v"]
+            },
+            "vaultAddress": vaultAddress,
+        };
+        console.log (tmpRequest);
+        const response = await this.privatePostExchange (this.extend (tmpRequest, params));
         //
         //
         // const data = this.safeValue (response, 'attachment');
         // return this.parseOrder (data, market);
-        return {} as Order;
+        return response as Order;
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -762,9 +861,9 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         let entry = this.safeValue (order, 'order');
-        if (entry === undefined) {
-            entry = { ...order };
-        }
+        // if (entry === undefined) {
+        //     entry = { ...order };
+        // }
         const coin = this.safeString (entry, 'coin');
         const marketId = coin + '/USD:USDC';
         const symbol = this.safeSymbol (marketId, undefined);

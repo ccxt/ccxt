@@ -53,6 +53,11 @@ try:
 except ImportError:
     eddsa = None
 
+# eth signing
+from ccxt.static_dependencies import ethabi
+from ccxt.static_dependencies import ethaccount
+from ccxt.static_dependencies import ethutils
+
 # -----------------------------------------------------------------------------
 
 __all__ = [
@@ -1329,6 +1334,22 @@ class Exchange(object):
         algorithm = algorithms[alg]
         priv_key = load_pem_private_key(Exchange.encode(secret), None, backends.default_backend())
         return Exchange.binary_to_base64(priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm))
+
+    @staticmethod
+    def eth_abi_encode(types, args):
+        return ethabi.encode(types, args)
+
+    @staticmethod
+    def eth_encode_structured_data(data):
+        return ethaccount.messages.encode_structured_data(data)
+
+    @staticmethod
+    def eth_recover_account(priv):
+        return ethaccount.Account.from_key(priv)
+
+    @staticmethod
+    def eth_to_hex(data):
+        return ethutils.to_hex(data)
 
     @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
@@ -4019,6 +4040,7 @@ class Exchange(object):
     def amount_to_precision(self, symbol: str, amount):
         market = self.market(symbol)
         result = self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
+        print(self.decimal_to_precision(amount, ROUND, market['precision']['amount'], DECIMAL_PLACES, self.paddingMode))
         if result == '0':
             raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
         return result
