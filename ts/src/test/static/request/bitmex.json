@@ -312,6 +312,24 @@
           "BTC/USDT:USDT"
         ]
       }
+    ],
+    "fetchOpenOrders": [
+      {
+        "description": "Spot fetch all open orders",
+        "method": "fetchOpenOrders",
+        "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBT_USDT&filter=%7B%22open%22%3Atrue%7D",
+        "input": [
+          "BTC/USDT"
+        ]
+      },
+      {
+        "description": "Swap fetch all open orders",
+        "method": "fetchOpenOrders",
+        "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBTUSDT&filter=%7B%22open%22%3Atrue%7D",
+        "input": [
+          "BTC/USDT:USDT"
+        ]
+      }
     ]
   }
 }
