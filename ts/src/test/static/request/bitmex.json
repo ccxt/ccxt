@@ -366,6 +366,16 @@
           "BTC/USDT:USDT"
         ]
       }
+    ],
+    "fetchLedger": [
+      {
+        "description": "fetch the ledger of USDT transactions",
+        "method": "fetchLedger",
+        "url": "https://testnet.bitmex.com/api/v1/user/walletHistory?currency=USDt",
+        "input": [
+          "USDT"
+        ]
+      }
     ]
   }
 }
