@@ -568,6 +568,16 @@
         ],
         "output": "{\"symbol\":\"XBTUSDT\",\"enabled\":false}"
       }
+    ],
+    "fetchLiquidations": [
+      {
+        "description": "Fetch liquidations for a swap trading pair",
+        "method": "fetchLiquidations",
+        "url": "https://testnet.bitmex.com/api/v1/liquidation?symbol=XBTUSDT",
+        "input": [
+          "BTC/USDT:USDT"
+        ]
+      }
     ]
   }
 }
