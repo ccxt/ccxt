@@ -544,6 +544,18 @@
           1705060800000
         ]
       }
+    ],
+    "setLeverage": [
+      {
+        "description": "Set the leverage amount for a swap trading pair",
+        "method": "setLeverage",
+        "url": "https://testnet.bitmex.com/api/v1/position/leverage",
+        "input": [
+          25,
+          "BTC/USDT:USDT"
+        ],
+        "output": "{\"symbol\":\"XBTUSDT\",\"leverage\":25}"
+      }
     ]
   }
 }
