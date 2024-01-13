@@ -556,6 +556,18 @@
         ],
         "output": "{\"symbol\":\"XBTUSDT\",\"leverage\":25}"
       }
+    ],
+    "setMarginMode": [
+      {
+        "description": "Set the margin mode to cross for a swap trading pair",
+        "method": "setMarginMode",
+        "url": "https://testnet.bitmex.com/api/v1/position/isolate",
+        "input": [
+          "cross",
+          "BTC/USDT:USDT"
+        ],
+        "output": "{\"symbol\":\"XBTUSDT\",\"enabled\":false}"
+      }
     ]
   }
 }
