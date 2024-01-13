@@ -578,6 +578,32 @@
           "BTC/USDT:USDT"
         ]
       }
+    ],
+    "fetchDepositAddress": [
+      {
+        "description": "Fetch a BTC deposit address",
+        "method": "fetchDepositAddress",
+        "url": "https://testnet.bitmex.com/api/v1/user/depositAddress?currency=XBt&network=btc",
+        "input": [
+          "BTC",
+          {
+            "network": "BTC"
+          }
+        ]
+      }
+    ],
+    "fetchDepositWithdrawFees": [
+      {
+        "description": "Fetch deposit and withdraw fees for multiple crypto currencies",
+        "method": "fetchDepositWithdrawFees",
+        "url": "https://testnet.bitmex.com/api/v1/wallet/assets",
+        "input": [
+          [
+            "ETH",
+            "USDT"
+          ]
+        ]
+      }
     ]
   }
 }
