@@ -1365,10 +1365,50 @@ export default class bigone extends Exchange {
         //        "client_order_id": ''
         //    }
         //
+        // contract
+        //
+        //    {
+        //        "liquidateUserId": null,
+        //        "side": "BUY",
+        //        "meta": {
+        //            "bestPrice": null,
+        //            "markPrice": 10051.43,
+        //            "bestPrices": {
+        //                "ask": null,
+        //                "bid": null
+        //            }
+        //        },
+        //        "userId": "5aec525e-335d-4724-0005-20153b361f89",
+        //        "filledNotional": 0,
+        //        "ts": 1562063567960,
+        //        "notional": 0.102512,
+        //        "status": "NEW",
+        //        "isLiquidate": false,
+        //        "reduceOnly": false,
+        //        "type": "LIMIT",
+        //        "symbol": "BTCUSD",
+        //        "seqNo": null
+        //        "filled": 0
+        //        "conditional": {
+        //            "type": "REACH",
+        //            "priceType": "MARKET_PRICE",
+        //            "price": 8000
+        //        }
+        //       "id": "5aec8f9f-1609-4e54-0005-86e30e0cb1c6",
+        //        "size": 1000,                                     // Contract amount
+        //        "avgPrice": 0,
+        //        "price": 9755
+        //    }
+        //
+        const isLiquidate = this.safeValue (market, 'isLiquidate');
+        const isContract = isLiquidate !== undefined;
         const id = this.safeString (order, 'id');
-        const marketId = this.safeString (order, 'asset_pair_name');
+        const marketId = this.safeString2 (order, 'asset_pair_name', 'symbol');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        let timestamp = this.safeInteger (order, 'ts');
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        }
         let side = this.safeString (order, 'side');
         if (side === 'BID') {
             side = 'buy';
@@ -1376,6 +1416,10 @@ export default class bigone extends Exchange {
             side = 'sell';
         }
         let triggerPrice = this.safeString (order, 'stop_price');
+        const conditional = this.safeValue (order, 'conditional');
+        if (triggerPrice === undefined) {
+            triggerPrice = this.safeString (conditional, 'price');
+        }
         if (Precise.stringEq (triggerPrice, '0')) {
             triggerPrice = undefined;
         }
@@ -1385,15 +1429,19 @@ export default class bigone extends Exchange {
             timeInForce = 'IOC';
         }
         const type = this.parseType (this.safeString (order, 'type'));
-        const price = this.safeString (order, 'price');
         let amount = undefined;
         let filled = undefined;
         let cost = undefined;
-        if (type === 'market' && side === 'buy') {
-            cost = this.safeString (order, 'filled_amount');
+        if (isContract) {
+            amount = this.safeString (order, 'size');
+            filled = this.safeString (order, 'filled');
         } else {
-            amount = this.safeString (order, 'amount');
-            filled = this.safeString (order, 'filled_amount');
+            if (type === 'market' && side === 'buy') {
+                cost = this.safeString (order, 'filled_amount');
+            } else {
+                amount = this.safeString (order, 'amount');
+                filled = this.safeString (order, 'filled_amount');
+            }
         }
         return this.safeOrder ({
             'info': order,
@@ -1407,12 +1455,12 @@ export default class bigone extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': this.safeValue (order, 'post_only'),
             'side': side,
-            'price': price,
+            'price': this.safeString (order, 'price'),
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
-            'average': this.safeString (order, 'avg_deal_price'),
+            'average': this.safeString2 (order, 'avg_deal_price', 'avgPrice'),
             'filled': filled,
             'remaining': undefined,
             'status': this.parseOrderStatus (this.safeString (order, 'state')),
