@@ -1617,7 +1617,19 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const request = { 'id': id };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const isContract = (type === 'swap') || (type === 'future');
+        let response = undefined;
+        if (isContract) {
+            response = await this.contractPrivateGetOrdersId (this.extend (request, params));
+        } else {
+            response = await this.privateGetOrdersId (this.extend (request, params));
+        }
         const order = this.safeValue (response, 'data', {});
         return this.parseOrder (order);
     }
