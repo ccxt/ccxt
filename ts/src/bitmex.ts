@@ -2634,8 +2634,7 @@ export default class bitmex extends Exchange {
         }
         const currency = this.currency (code);
         let currencyId = currency['id'];
-        const idLength = currencyId.length;
-        currencyId = currencyId.slice (0, idLength - 1) + currencyId.slice (idLength - 1, idLength).toLowerCase ();  // make the last letter lowercase
+        currencyId = currencyId.slice (0, currencyId.length - 1) + currencyId.slice (currencyId.length - 1, currencyId.length).toLowerCase (); // make the last letter lowercase
         params = this.omit (params, 'network');
         const request = {
             'currency': currencyId,
