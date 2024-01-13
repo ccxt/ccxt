@@ -428,6 +428,28 @@
           ]
         ]
       }
+    ],
+    "fetchOHLCV": [
+      {
+        "description": "Spot fetch candles with a since timestamp argument",
+        "method": "fetchOHLCV",
+        "url": "https://testnet.bitmex.com/api/v1/trade/bucketed?symbol=XBT_USDT&binSize=1m&partial=true&startTime=2024-01-13%2005%3A37%3A00",
+        "input": [
+          "BTC/USDT",
+          "1m",
+          1705124160000
+        ]
+      },
+      {
+        "description": "Swap fetch candles with a since timestamp argument",
+        "method": "fetchOHLCV",
+        "url": "https://testnet.bitmex.com/api/v1/trade/bucketed?symbol=XBTUSDT&binSize=1m&partial=true&startTime=2024-01-13%2005%3A37%3A00",
+        "input": [
+          "BTC/USDT:USDT",
+          "1m",
+          1705124160000
+        ]
+      }
     ]
   }
 }
