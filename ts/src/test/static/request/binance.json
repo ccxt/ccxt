@@ -978,7 +978,7 @@
                 ]
             }
         ],
-        "fetchLastPrice": [
+        "fetchLastPrices": [
             {
                 "description": "fetch last prices - no arguments",
                 "method": "fetchLastPrices",
