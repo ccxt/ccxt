@@ -254,6 +254,26 @@
         ],
         "output": "{\"pegOffsetValue\":11000,\"orderID\":\"f21aa11e-3857-4e39-9230-53cb15a04c3f\",\"orderQty\":1000,\"text\":\"CCXT\"}"
       }
+    ],
+    "fetchOrderBook": [
+      {
+        "description": "Spot fetch order book with a limit argument",
+        "method": "fetchOrderBook",
+        "url": "https://testnet.bitmex.com/api/v1/orderBook/L2?symbol=XBT_USDT&depth=3",
+        "input": [
+          "BTC/USDT",
+          3
+        ]
+      },
+      {
+        "description": "Swap fetch order book with a limit argument",
+        "method": "fetchOrderBook",
+        "url": "https://testnet.bitmex.com/api/v1/orderBook/L2?symbol=XBTUSDT&depth=3",
+        "input": [
+          "BTC/USDT:USDT",
+          3
+        ]
+      }
     ]
   }
 }
