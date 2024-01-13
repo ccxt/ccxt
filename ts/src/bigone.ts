@@ -126,6 +126,7 @@ export default class bigone extends Exchange {
                 },
                 'contractPublic': {
                     'get': [
+                        'symbols',
                         'instruments',
                         'depth@{symbol}/snapshot',
                         'instruments/difference',
@@ -550,29 +551,31 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const contractResponse = await this.contractPublicGetInstruments (params);
+        const contractResponse = await this.contractPublicGetSymbols (params);
         //
         //    [
         //        {
-        //            "usdtPrice": 1.00031998,
+        //            "baseCurrency": "BTC",
+        //            "multiplier": 1,
+        //            "enable": true,
+        //            "priceStep": 0.5,
+        //            "maxRiskLimit": 1000,
+        //            "pricePrecision": 1,
+        //            "maintenanceMargin": 0.00500,
         //            "symbol": "BTCUSD",
-        //            "btcPrice": 34700.4,
-        //            "ethPrice": 1787.83,
-        //            "nextFundingRate": 0.00010,
-        //            "fundingRate": 0.00010,
-        //            "latestPrice": 34708.5,
-        //            "last24hPriceChange": 0.0321,
-        //            "indexPrice": 34700.4,
-        //            "volume24h": 261319063,
-        //            "turnover24h": 8204.129380685496,
-        //            "nextFundingTime": 1698285600000,
-        //            "markPrice": 34702.4646738,
-        //            "last24hMaxPrice": 35127.5,
-        //            "volume24hInUsd": 0.0,
-        //            "openValue": 32.88054722085945,
-        //            "last24hMinPrice": 33552.0,
-        //            "openInterest": 1141372.0
-        //        }
+        //            "valuePrecision": 4,
+        //            "minRiskLimit": 100,
+        //            "riskLimit": 100,
+        //            "isInverse": true,
+        //            "riskStep": 1,
+        //            "settleCurrency": "BTC",
+        //            "baseName": "Bitcoin",
+        //            "feePrecision": 8,
+        //            "priceMin": 0.5,
+        //            "priceMax": 1E+6,
+        //            "initialMargin": 0.01000,
+        //            "quoteCurrency": "USD"
+        //        },
         //        ...
         //    ]
         //
@@ -639,17 +642,17 @@ export default class bigone extends Exchange {
         }
         for (let i = 0; i < contractResponse.length; i++) {
             const market = contractResponse[i];
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString (market, 'quoteCurrency');
+            const settleId = this.safeString (market, 'settleCurrency');
             const marketId = this.safeString (market, 'symbol');
-            const index = marketId.indexOf ('USD');
-            const baseId = marketId.slice (0, index);
-            const quoteId = marketId.slice (index);
-            const inverse = (quoteId === 'USD');
-            const settleId = inverse ? baseId : quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
+            const inverse = this.safeValue (market, 'isInverse');
             result.push (this.safeMarketStructure ({
                 'id': marketId,
+                'uuid': undefined,
                 'symbol': base + '/' + quote + ':' + settle,
                 'base': base,
                 'quote': quote,
@@ -663,18 +666,18 @@ export default class bigone extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'active': true,
+                'active': this.safeValue (market, 'enable'),
                 'contract': true,
                 'linear': !inverse,
                 'inverse': inverse,
-                'contractSize': 1,
+                'contractSize': this.safeNumber (market, 'multiplier'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': undefined,
-                    'price': undefined,
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'valuePrecision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -686,11 +689,11 @@ export default class bigone extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (market, 'priceMin'),
+                        'max': this.safeNumber (market, 'priceMax'),
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'initialMargin'),
                         'max': undefined,
                     },
                 },
@@ -1365,10 +1368,50 @@ export default class bigone extends Exchange {
         //        "client_order_id": ''
         //    }
         //
+        // contract
+        //
+        //    {
+        //        "liquidateUserId": null,
+        //        "side": "BUY",
+        //        "meta": {
+        //            "bestPrice": null,
+        //            "markPrice": 10051.43,
+        //            "bestPrices": {
+        //                "ask": null,
+        //                "bid": null
+        //            }
+        //        },
+        //        "userId": "5aec525e-335d-4724-0005-20153b361f89",
+        //        "filledNotional": 0,
+        //        "ts": 1562063567960,
+        //        "notional": 0.102512,
+        //        "status": "NEW",
+        //        "isLiquidate": false,
+        //        "reduceOnly": false,
+        //        "type": "LIMIT",
+        //        "symbol": "BTCUSD",
+        //        "seqNo": null
+        //        "filled": 0
+        //        "conditional": {
+        //            "type": "REACH",
+        //            "priceType": "MARKET_PRICE",
+        //            "price": 8000
+        //        }
+        //       "id": "5aec8f9f-1609-4e54-0005-86e30e0cb1c6",
+        //        "size": 1000,                                     // Contract amount
+        //        "avgPrice": 0,
+        //        "price": 9755
+        //    }
+        //
+        const isLiquidate = this.safeValue (order, 'isLiquidate');
+        const isContract = isLiquidate !== undefined;
         const id = this.safeString (order, 'id');
-        const marketId = this.safeString (order, 'asset_pair_name');
+        const marketId = this.safeString2 (order, 'asset_pair_name', 'symbol');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        let timestamp = this.safeInteger (order, 'ts');
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        }
         let side = this.safeString (order, 'side');
         if (side === 'BID') {
             side = 'buy';
@@ -1376,6 +1419,10 @@ export default class bigone extends Exchange {
             side = 'sell';
         }
         let triggerPrice = this.safeString (order, 'stop_price');
+        const conditional = this.safeValue (order, 'conditional');
+        if (triggerPrice === undefined) {
+            triggerPrice = this.safeString (conditional, 'price');
+        }
         if (Precise.stringEq (triggerPrice, '0')) {
             triggerPrice = undefined;
         }
@@ -1385,15 +1432,19 @@ export default class bigone extends Exchange {
             timeInForce = 'IOC';
         }
         const type = this.parseType (this.safeString (order, 'type'));
-        const price = this.safeString (order, 'price');
         let amount = undefined;
         let filled = undefined;
         let cost = undefined;
-        if (type === 'market' && side === 'buy') {
-            cost = this.safeString (order, 'filled_amount');
+        if (isContract) {
+            amount = this.safeString (order, 'size');
+            filled = this.safeString (order, 'filled');
         } else {
-            amount = this.safeString (order, 'amount');
-            filled = this.safeString (order, 'filled_amount');
+            if (type === 'market' && side === 'buy') {
+                cost = this.safeString (order, 'filled_amount');
+            } else {
+                amount = this.safeString (order, 'amount');
+                filled = this.safeString (order, 'filled_amount');
+            }
         }
         return this.safeOrder ({
             'info': order,
@@ -1407,12 +1458,12 @@ export default class bigone extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': this.safeValue (order, 'post_only'),
             'side': side,
-            'price': price,
+            'price': this.safeString (order, 'price'),
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
-            'average': this.safeString (order, 'avg_deal_price'),
+            'average': this.safeString2 (order, 'avg_deal_price', 'avgPrice'),
             'filled': filled,
             'remaining': undefined,
             'status': this.parseOrderStatus (this.safeString (order, 'state')),
@@ -1447,6 +1498,7 @@ export default class bigone extends Exchange {
          * @name bigone#createOrder
          * @description create a trade order
          * @see https://open.big.one/docs/spot_orders.html#create-order
+         * @see https://open.big.one/docs/contract_orders.html#place-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1459,50 +1511,67 @@ export default class bigone extends Exchange {
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {string} operator *stop order only* GTE or LTE (default)
-         * @param {string} client_order_id must match ^[a-zA-Z0-9-_]{1,36}$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} [params.operator] *spot stop order only* GTE or LTE (default)
+         * @param {string} [params.client_order_id] *spot only* must match ^[a-zA-Z0-9-_]{1,36}$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
+         * @param {object} [params.priceType] *contract only* MARK_PRICE, INDEX_PRICE, MARKET_PRICE (default)
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const isBuy = (side === 'buy');
-        const requestSide = isBuy ? 'BID' : 'ASK';
         let uppercaseType = type.toUpperCase ();
         const isLimit = uppercaseType === 'LIMIT';
         const exchangeSpecificParam = this.safeValue (params, 'post_only', false);
         let postOnly = undefined;
         [ postOnly, params ] = this.handlePostOnly ((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
-        const request = {
-            'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
-            'side': requestSide, // order side one of "ASK"/"BID", required
-            'amount': this.amountToPrecision (symbol, amount), // order amount, string, required
-            // "price": this.priceToPrecision (symbol, price), // order price, string, required
-            // "operator": "GTE", // stop orders only, GTE greater than and equal, LTE less than and equal
-            // "immediate_or_cancel": false, // limit orders only, must be false when post_only is true
-            // "post_only": false, // limit orders only, must be false when immediate_or_cancel is true
-        };
-        if (isLimit || (uppercaseType === 'STOP_LIMIT')) {
-            request['price'] = this.priceToPrecision (symbol, price);
-            if (isLimit) {
-                const timeInForce = this.safeString (params, 'timeInForce');
-                if (timeInForce === 'IOC') {
-                    request['immediate_or_cancel'] = true;
-                }
-                if (postOnly) {
-                    request['post_only'] = true;
-                }
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const request = {};
+        if (market['contract']) {
+            const priceType = this.safeString (params, 'priceType', 'MARKET_PRICE');
+            if (postOnly) {
+                uppercaseType = 'POST_ONLY';
+            } else if (timeInForce === 'IOC') {
+                uppercaseType = 'IOC';
+            } else if (timeInForce === 'FOK') {
+                uppercaseType = 'FOK';
+            }
+            request['symbol'] = market['id'];
+            request['size'] = this.amountToPrecision (symbol, amount);
+            request['side'] = side;
+            request['type'] = uppercaseType;
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            if (triggerPrice !== undefined) {
+                request['conditional'] = {
+                    'type': 'REACH',
+                    'price': this.priceToPrecision (symbol, triggerPrice),
+                    'priceType': priceType,
+                };
             }
             request['amount'] = this.amountToPrecision (symbol, amount);
         } else {
-            if (isBuy) {
-                let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            request['asset_pair_name'] = market['id'];
+            request['side'] = isBuy ? 'BID' : 'ASK';
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            if (isLimit || (uppercaseType === 'STOP_LIMIT')) {
+                request['price'] = this.priceToPrecision (symbol, price);
+                if (isLimit) {
+                    if (timeInForce === 'IOC') {
+                        request['immediate_or_cancel'] = true;
+                    }
+                    if (postOnly) {
+                        request['post_only'] = true;
+                    }
+                }
+            } else {
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice');
                 const cost = this.safeNumber (params, 'cost');
-                params = this.omit (params, 'cost');
-                if (createMarketBuyOrderRequiresPrice) {
-                    if ((price === undefined) && (cost === undefined)) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                params = this.omit (params, [ 'cost', 'createMarketBuyOrderRequiresPrice' ]);
+                if (createMarketBuyOrderRequiresPrice && (side === 'buy')) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
                     } else {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
@@ -1513,8 +1582,6 @@ export default class bigone extends Exchange {
                 } else {
                     request['amount'] = this.costToPrecision (symbol, amount);
                 }
-            } else {
-                request['amount'] = this.amountToPrecision (symbol, amount);
             }
         }
         if (triggerPrice !== undefined) {
@@ -1525,10 +1592,15 @@ export default class bigone extends Exchange {
             } else if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_MARKET';
             }
+            request['type'] = uppercaseType;
         }
-        request['type'] = uppercaseType;
         params = this.omit (params, [ 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce' ]);
-        const response = await this.privatePostOrders (this.extend (request, params));
+        let response = undefined;
+        if (market['contract']) {
+            response = await this.contractPrivatePostOrders (this.extend (request, params));
+        } else {
+            response = await this.privatePostOrders (this.extend (request, params));
+        }
         //
         //    {
         //        "id": 10,
