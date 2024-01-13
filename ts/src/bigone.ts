@@ -525,7 +525,10 @@ export default class bigone extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetAssetPairs (params);
+        const promises = [ this.publicGetAssetPairs (params), this.contractPublicGetSymbols (params) ];
+        const promisesResult = await Promise.all (promises);
+        const response = promisesResult[0];
+        const contractResponse = promisesResult[1];
         //
         //     {
         //         "code":0,
@@ -551,7 +554,6 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const contractResponse = await this.contractPublicGetSymbols (params);
         //
         //    [
         //        {
