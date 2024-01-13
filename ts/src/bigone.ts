@@ -647,7 +647,7 @@ export default class bigone extends Exchange {
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quoteCurrency');
             const settleId = this.safeString (market, 'settleCurrency');
-            const marketId = this.safeString (market, 'BTCUSD');
+            const marketId = this.safeString (market, 'symbol');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
