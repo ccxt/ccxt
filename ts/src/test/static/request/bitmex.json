@@ -604,6 +604,18 @@
           ]
         ]
       }
+    ],
+    "fetchPositions": [
+      {
+        "description": "Fetch positions",
+        "method": "fetchPositions",
+        "url": "https://testnet.bitmex.com/api/v1/position",
+        "input": [
+          [
+            "BTC/USDT:USDT"
+          ]
+        ]
+      }
     ]
   }
 }
