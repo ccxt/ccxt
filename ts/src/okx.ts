@@ -2148,8 +2148,8 @@ export default class okx extends Exchange {
             const now = this.milliseconds ();
             const durationInMilliseconds = duration * 1000;
             // switch to history candles if since is past the cutoff for current candles
-            const historyBorder = now - (1440 * durationInMilliseconds);
-            if (since <= historyBorder) {
+            const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
+            if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
             }
             request['before'] = since;
