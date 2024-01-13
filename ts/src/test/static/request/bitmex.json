@@ -468,6 +468,7 @@
     "fetchOHLCV": [
       {
         "description": "Spot fetch candles with a since timestamp argument",
+        "disabled": true,
         "method": "fetchOHLCV",
         "url": "https://testnet.bitmex.com/api/v1/trade/bucketed?symbol=XBT_USDT&binSize=1m&partial=true&startTime=2024-01-13%2005%3A37%3A00",
         "input": [
@@ -478,6 +479,7 @@
       },
       {
         "description": "Swap fetch candles with a since timestamp argument",
+        "disabled": true,
         "method": "fetchOHLCV",
         "url": "https://testnet.bitmex.com/api/v1/trade/bucketed?symbol=XBTUSDT&binSize=1m&partial=true&startTime=2024-01-13%2005%3A37%3A00",
         "input": [
@@ -582,6 +584,7 @@
     "fetchDepositAddress": [
       {
         "description": "Fetch a BTC deposit address",
+        "disabled": true,
         "method": "fetchDepositAddress",
         "url": "https://testnet.bitmex.com/api/v1/user/depositAddress?currency=XBt&network=btc",
         "input": [
