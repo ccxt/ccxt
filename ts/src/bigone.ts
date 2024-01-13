@@ -671,7 +671,7 @@ export default class bigone extends Exchange {
                 'contract': true,
                 'linear': !inverse,
                 'inverse': inverse,
-                'contractSize': this.safeString (market, 'multiplier'),
+                'contractSize': this.safeNumber (market, 'multiplier'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -694,7 +694,7 @@ export default class bigone extends Exchange {
                         'max': this.safeNumber (market, 'priceMax'),
                     },
                     'cost': {
-                        'min': this.safeString (market, 'initialMargin'),
+                        'min': this.safeNumber (market, 'initialMargin'),
                         'max': undefined,
                     },
                 },
