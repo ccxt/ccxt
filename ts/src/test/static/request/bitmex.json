@@ -274,6 +274,26 @@
           3
         ]
       }
+    ],
+    "fetchOrder": [
+      {
+        "description": "Spot fetch an order",
+        "method": "fetchOrder",
+        "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBT_USDT&filter=%7B%22orderID%22%3A%229a647c5c-59c7-43dc-94ca-d16f6628a7ad%22%7D",
+        "input": [
+          "9a647c5c-59c7-43dc-94ca-d16f6628a7ad",
+          "BTC/USDT"
+        ]
+      },
+      {
+        "description": "Swap fetch an order",
+        "method": "fetchOrder",
+        "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBTUSDT&filter=%7B%22orderID%22%3A%22e9c8109c-1b6c-4526-b6b9-9619d95cba47%22%7D",
+        "input": [
+          "e9c8109c-1b6c-4526-b6b9-9619d95cba47",
+          "BTC/USDT:USDT"
+        ]
+      }
     ]
   }
 }
