@@ -1024,6 +1024,10 @@ class testMainClass(baseMainTestClass):
             'uid': 'uid',
             'accounts': [{
     'id': 'myAccount',
+    'code': 'USDT',
+}, {
+    'id': 'myAccount',
+    'code': 'USDC',
 }],
             'options': {
                 'enableUnifiedAccount': True,

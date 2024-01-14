@@ -1238,6 +1238,10 @@ class testMainClass extends baseMainTestClass {
             'uid' => 'uid',
             'accounts' => [array(
     'id' => 'myAccount',
+    'code' => 'USDT',
+), array(
+    'id' => 'myAccount',
+    'code' => 'USDC',
 )],
             'options' => array(
                 'enableUnifiedAccount' => true,

@@ -3271,11 +3271,12 @@ export default class bitget extends Exchange {
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
         const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
-        let request = {
+        const request = {
             'symbol': market['id'],
             'granularity': selectedTimeframe,
         };
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -3288,14 +3289,15 @@ export default class bitget extends Exchange {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
+            if (until !== undefined) {
+                request['endTime'] = until;
+            }
         }
         let response = undefined;
         if (market['spot']) {
             if (method === 'publicSpotGetV2SpotMarketCandles') {
                 response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
             } else if (method === 'publicSpotGetV2SpotMarketHistoryCandles') {
-                const until = this.safeInteger2 (params, 'until', 'till');
-                params = this.omit (params, [ 'until', 'till' ]);
                 if (since !== undefined) {
                     if (limit === undefined) {
                         limit = 100; // exchange default

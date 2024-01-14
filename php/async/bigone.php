@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\bigone as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
@@ -1174,6 +1175,9 @@ class bigone extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            if ($market['contract']) {
+                throw new BadRequest($this->id . ' fetchTrades () can only fetch $trades for spot markets');
+            }
             $request = array(
                 'asset_pair_name' => $market['id'],
             );
@@ -1238,6 +1242,9 @@ class bigone extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            if ($market['contract']) {
+                throw new BadRequest($this->id . ' fetchOHLCV () can only fetch ohlcvs for spot markets');
+            }
             if ($limit === null) {
                 $limit = 100; // default 100, max 500
             }

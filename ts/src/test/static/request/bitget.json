@@ -998,6 +998,90 @@
             ],
             "output": "{\"productType\":\"USDT-FUTURES\"}"
           }
+        ],
+        "fetchOHLCV": [
+          {
+            "description": "Spot ohlcv with historical endpoint and until parameter",
+            "method": "fetchOHLCV",
+            "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1h&limit=1&endTime=1704969352000",
+            "input": [
+              "BTC/USDT",
+              "1h",
+              null,
+              1,
+              {
+                "method": "publicSpotGetV2SpotMarketHistoryCandles",
+                "until": 1704969352000
+              }
+            ]
+          },
+          {
+            "description": "Spot ohlcv with since and until",
+            "method": "fetchOHLCV",
+            "url": "https://api.bitget.com/api/v2/spot/market/candles?symbol=BTCUSDT&granularity=1h&limit=1&startTime=1705055863000&endTime=1704969352000",
+            "input": [
+              "BTC/USDT",
+              "1h",
+              1705055863000,
+              1,
+              {
+                "until": 1704969352000
+              }
+            ]
+          },
+          {
+            "description": "Swap ohlcv with until",
+            "method": "fetchOHLCV",
+            "url": "https://api.bitget.com/api/v2/mix/market/candles?symbol=BTCUSDT&granularity=1H&limit=1&endTime=1704969352000&productType=USDT-FUTURES",
+            "input": [
+              "BTC/USDT:USDT",
+              "1h",
+              null,
+              1,
+              {
+                "until": 1704969352000
+              }
+            ]
+          },
+          {
+            "description": "Swap ohlcv with since",
+            "method": "fetchOHLCV",
+            "url": "https://api.bitget.com/api/v2/mix/market/candles?symbol=BTCUSDT&granularity=1H&limit=1&startTime=1705055863000&productType=USDT-FUTURES",
+            "input": [
+              "BTC/USDT:USDT",
+              "1h",
+              1705055863000,
+              1
+            ]
+          },
+          {
+            "description": "Swap ohlcv with since and until",
+            "method": "fetchOHLCV",
+            "url": "https://api.bitget.com/api/v2/mix/market/candles?symbol=BTCUSDT&granularity=1H&limit=1&startTime=1704969463000&endTime=1705055863000&productType=USDT-FUTURES",
+            "input": [
+              "BTC/USDT:USDT",
+              "1h",
+              1704969463000,
+              1,
+              {
+                "until": 1705055863000
+              }
+            ]
+          },
+          {
+            "description": "Spot historical with emulated endTime",
+            "method": "fetchOHLCV",
+            "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1h&limit=10&endTime=1705006006000",
+            "input": [
+              "BTC/USDT",
+              "1h",
+              1704970006000,
+              10,
+              {
+                "method": "publicSpotGetV2SpotMarketHistoryCandles"
+              }
+            ]
+        }
         ]
     }
 }
