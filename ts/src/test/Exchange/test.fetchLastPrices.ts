@@ -8,9 +8,9 @@ async function testFetchLastPrices (exchange, skippedProperties, symbol) {
     let response = undefined;
     let checkedSymbol = undefined;
     try {
-        response = await exchange.fetchTickers ();
+        response = await exchange.fetchLastPrices ();
     } catch (e) {
-        response = await exchange.fetchTickers ([ symbol ]);
+        response = await exchange.fetchLastPrices ([ symbol ]);
         checkedSymbol = symbol;
     }
     assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + checkedSymbol + ' must return an object. ' + exchange.json (response));
