@@ -7268,17 +7268,21 @@ export default class okx extends Exchange {
         //
         const code = this.safeString (response, 'code');
         if ((code !== '0') && (code !== '2')) { // 2 means that bulk operation partially succeeded
-            const feedback = this.id + ' ' + body;
             const data = this.safeValue (response, 'data', []);
+            let message: string;
+            let userMessage: string;
             for (let i = 0; i < data.length; i++) {
                 const error = data[i];
                 const errorCode = this.safeString (error, 'sCode');
-                const message = this.safeString (error, 'sMsg');
-                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                message = this.safeString (error, 'sMsg');
+                userMessage = errorCode + ': ' + message;
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, userMessage);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, userMessage);
             }
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-            throw new ExchangeError (feedback); // unknown message
+            message = this.safeString (response, 'msg');
+            userMessage = code + ': ' + message;
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, userMessage);
+            throw new ExchangeError (message); // unknown message
         }
         return undefined;
     }

@@ -2182,15 +2182,15 @@ export default class bitstamp extends Exchange {
             }
             const code = this.safeString (response, 'code');
             if (code === 'API0005') {
-                throw new AuthenticationError (this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
+                throw new AuthenticationError (code + ': invalid signature, use the uid for the main account if you have subaccounts');
             }
-            const feedback = this.id + ' ' + body;
             for (let i = 0; i < errors.length; i++) {
-                const value = errors[i];
-                this.throwExactlyMatchedException (this.exceptions['exact'], value, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], value, feedback);
+                const message = errors[i];
+                const userMessage = message;
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, userMessage);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, userMessage);
             }
-            throw new ExchangeError (feedback);
+            throw new ExchangeError (error);
         }
         return undefined;
     }

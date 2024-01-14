@@ -6874,19 +6874,20 @@ export default class htx extends Exchange {
             const status = this.safeString (response, 'status');
             if (status === 'error') {
                 const code = this.safeString2 (response, 'err-code', 'err_code');
-                const feedback = this.id + ' ' + body;
-                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
-                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
                 const message = this.safeString2 (response, 'err-msg', 'err_msg');
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                throw new ExchangeError (feedback);
+                const userMessage = code + ': ' + message;
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, userMessage);
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, userMessage);
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, userMessage);
+                throw new ExchangeError (userMessage);
             }
         }
         if ('code' in response) {
             // {code: '1003', message: 'invalid signature'}
-            const feedback = this.id + ' ' + body;
             const code = this.safeString (response, 'code');
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            const message = this.safeString (response, 'message');
+            const userMessage = code + ': ' + message;
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, userMessage);
         }
         return undefined;
     }

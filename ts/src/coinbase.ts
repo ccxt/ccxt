@@ -3200,7 +3200,6 @@ export default class coinbase extends Exchange {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        const feedback = this.id + ' ' + body;
         //
         //    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
         //
@@ -3215,12 +3214,19 @@ export default class coinbase extends Exchange {
         //      ]
         //    }
         //
+        // or
+        // {
+        //      "error": "PERMISSION_DENIED",
+        //      "error_details": "Orderbook is in limit only mode",
+        //      "message": "Orderbook is in limit only mode"
+        // }
         let errorCode = this.safeString (response, 'error');
         if (errorCode !== undefined) {
-            const errorMessage = this.safeString (response, 'error_description');
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
-            throw new ExchangeError (feedback);
+            const userMessage = this.safeString2 (response, 'error_description', 'message');
+            const message = errorCode + ': ' + userMessage;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, message);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], userMessage, message);
+            throw new ExchangeError (message);
         }
         const errors = this.safeValue (response, 'errors');
         if (errors !== undefined) {
@@ -3228,11 +3234,12 @@ export default class coinbase extends Exchange {
                 const numErrors = errors.length;
                 if (numErrors > 0) {
                     errorCode = this.safeString (errors[0], 'id');
-                    const errorMessage = this.safeString (errors[0], 'message');
                     if (errorCode !== undefined) {
-                        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-                        this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
-                        throw new ExchangeError (feedback);
+                        const userMessage = this.safeString (errors[0], 'message');
+                        const message = errorCode + ': ' + userMessage;
+                        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, message);
+                        this.throwBroadlyMatchedException (this.exceptions['broad'], userMessage, message);
+                        throw new ExchangeError (message);
                     }
                 }
             }

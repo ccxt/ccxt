@@ -4508,12 +4508,12 @@ export default class bitmart extends Exchange {
         const errorCode = this.safeString (response, 'code');
         const isErrorCode = (errorCode !== undefined) && (errorCode !== '1000');
         if (isErrorCode || isErrorMessage) {
-            const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-            throw new ExchangeError (feedback); // unknown message
+            const userMessage = errorCode + ': ' + message;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, userMessage);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, userMessage);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, userMessage);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, userMessage);
+            throw new ExchangeError (userMessage); // unknown message
         }
         return undefined;
     }

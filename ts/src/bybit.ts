@@ -7560,15 +7560,16 @@ export default class bybit extends Exchange {
                 // {"ret_code":30084,"ret_msg":"Isolated not modified","ext_code":"","ext_info":"","result":null,"time_now":"1642005219.937988","rate_limit_status":73,"rate_limit_reset_ms":1642005219894,"rate_limit":75}
                 return undefined;
             }
-            let feedback = undefined;
+            const message = this.safeString2 (response, 'ret_msg', 'retMsg');
+            let userMessage:string;
             if (errorCode === '10005' && url.indexOf ('order') < 0) {
-                feedback = this.id + ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ' + body;
+                userMessage = errorCode + ': Private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ';
             } else {
-                feedback = this.id + ' ' + body;
+                userMessage = errorCode + ': ' + message;
             }
-            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            throw new ExchangeError (feedback); // unknown message
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, userMessage);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, userMessage);
+            throw new ExchangeError (userMessage); // unknown message
         }
         return undefined;
     }

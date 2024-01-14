@@ -4185,12 +4185,12 @@ export default class kucoin extends Exchange {
         //
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString2 (response, 'msg', 'data', '');
-        const feedback = this.id + ' ' + message;
-        this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-        this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+        const userMessage = errorCode + ': ' + message;
+        this.throwExactlyMatchedException (this.exceptions['exact'], message, userMessage);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, userMessage);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], body, userMessage);
         if (errorCode !== '200000' && errorCode !== '200') {
-            throw new ExchangeError (feedback);
+            throw new ExchangeError (userMessage);
         }
         return undefined;
     }
