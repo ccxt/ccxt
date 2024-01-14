@@ -616,6 +616,7 @@ class testMainClass extends baseMainTestClass {
                 'fetchCurrencies' => [],
                 'fetchTicker' => [$symbol],
                 'fetchTickers' => [$symbol],
+                'fetchLastPrices' => [$symbol],
                 'fetchOHLCV' => [$symbol],
                 'fetchTrades' => [$symbol],
                 'fetchOrderBook' => [$symbol],
@@ -1264,6 +1265,10 @@ class testMainClass extends baseMainTestClass {
             'uid' => 'uid',
             'accounts' => [array(
     'id' => 'myAccount',
+    'code' => 'USDT',
+), array(
+    'id' => 'myAccount',
+    'code' => 'USDC',
 )],
             'options' => array(
                 'enableUnifiedAccount' => true,
@@ -1290,6 +1295,10 @@ class testMainClass extends baseMainTestClass {
                     $result = $results[$j];
                     $description = $exchange->safe_value($result, 'description');
                     if (($test_name !== null) && ($test_name !== $description)) {
+                        continue;
+                    }
+                    $is_disabled = $exchange->safe_value($result, 'disabled', false);
+                    if ($is_disabled) {
                         continue;
                     }
                     $type = $exchange->safe_string($exchange_data, 'outputType');

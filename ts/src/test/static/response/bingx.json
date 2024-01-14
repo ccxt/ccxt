@@ -742,6 +742,153 @@
           }
         }
       }
+    ],
+    "fetchMyTrades": [
+      {
+        "description": "Swap trade",
+        "method": "fetchMyTrades",
+        "input": [
+          "LTC/USDT:USDT",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "",
+          "data": {
+            "fill_orders": [
+              {
+                "filledTm": "2024-01-06T21:19:45Z",
+                "volume": "10",
+                "price": "65.2965",
+                "amount": "65.2965",
+                "commission": "-0.0326",
+                "currency": "USDT",
+                "orderId": "1743623387810590720",
+                "liquidatedPrice": "",
+                "liquidatedMarginRatio": "",
+                "filledTime": "2024-01-06T21:19:45.000+0800",
+                "clientOrderID": "",
+                "symbol": "LTC-USDT",
+                "onlyOnePosition": false
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "id": null,
+            "info": {
+              "filledTm": "2024-01-06T21:19:45Z",
+              "volume": "10",
+              "price": "65.2965",
+              "amount": "65.2965",
+              "commission": "-0.0326",
+              "currency": "USDT",
+              "orderId": "1743623387810590720",
+              "liquidatedPrice": "",
+              "liquidatedMarginRatio": "",
+              "filledTime": "2024-01-06T21:19:45.000+0800",
+              "clientOrderID": "",
+              "symbol": "LTC-USDT",
+              "onlyOnePosition": false
+            },
+            "timestamp": 1704575985000,
+            "datetime": "2024-01-06T21:19:45.000Z",
+            "symbol": "LTC/USDT:USDT",
+            "order": "1743623387810590720",
+            "type": null,
+            "side": null,
+            "takerOrMaker": null,
+            "price": 65.2965,
+            "amount": 10,
+            "cost": 65.2965,
+            "fee": {
+              "cost": 0.0326,
+              "currency": "USDT",
+              "rate": null
+            },
+            "fees": [
+              {
+                "cost": 0.0326,
+                "currency": "USDT",
+                "rate": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "description": "Spot trade",
+        "method": "fetchMyTrades",
+        "input": [
+          "LTC/USDT",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "",
+          "debugMsg": "",
+          "data": {
+            "fills": [
+              {
+                "symbol": "LTC-USDT",
+                "id": "49884117",
+                "orderId": "1740029773184237568",
+                "price": "75.562",
+                "qty": "0.1",
+                "quoteQty": "7.5562000000000005",
+                "commission": "-0.0001",
+                "commissionAsset": "LTC",
+                "time": "1703690401000",
+                "isBuyer": true,
+                "isMaker": false
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "id": "49884117",
+            "info": {
+              "symbol": "LTC-USDT",
+              "id": "49884117",
+              "orderId": "1740029773184237568",
+              "price": "75.562",
+              "qty": "0.1",
+              "quoteQty": "7.5562000000000005",
+              "commission": "-0.0001",
+              "commissionAsset": "LTC",
+              "time": "1703690401000",
+              "isBuyer": true,
+              "isMaker": false
+            },
+            "timestamp": 1703690401000,
+            "datetime": "2023-12-27T15:20:01.000Z",
+            "symbol": "LTC/USDT",
+            "order": "1740029773184237568",
+            "type": null,
+            "side": "buy",
+            "takerOrMaker": "taker",
+            "price": 75.562,
+            "amount": 0.1,
+            "cost": 7.5562000000000005,
+            "fee": {
+              "cost": 0.0001,
+              "currency": "LTC",
+              "rate": null
+            },
+            "fees": [
+              {
+                "cost": 0.0001,
+                "currency": "LTC",
+                "rate": null
+              }
+            ]
+          }
+        ]
+      }
     ]
   }
 }

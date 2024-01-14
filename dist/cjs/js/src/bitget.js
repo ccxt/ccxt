@@ -44,6 +44,10 @@ class bitget extends bitget$1 {
                 'createOrders': true,
                 'createReduceOnlyOrder': false,
                 'createTrailingPercentOrder': true,
+                'createTriggerOrder': true,
+                'createTakeProfitOrder': true,
+                'createStopLossOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -3274,11 +3278,12 @@ class bitget extends bitget$1 {
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
         const selectedTimeframe = this.safeString(timeframes, timeframe, timeframe);
-        let request = {
+        const request = {
             'symbol': market['id'],
             'granularity': selectedTimeframe,
         };
-        [request, params] = this.handleUntilOption('endTime', request, params);
+        const until = this.safeInteger2(params, 'until', 'till');
+        params = this.omit(params, ['until', 'till']);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -3291,6 +3296,9 @@ class bitget extends bitget$1 {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
+            if (until !== undefined) {
+                request['endTime'] = until;
+            }
         }
         let response = undefined;
         if (market['spot']) {
@@ -3298,8 +3306,6 @@ class bitget extends bitget$1 {
                 response = await this.publicSpotGetV2SpotMarketCandles(this.extend(request, params));
             }
             else if (method === 'publicSpotGetV2SpotMarketHistoryCandles') {
-                const until = this.safeInteger2(params, 'until', 'till');
-                params = this.omit(params, ['until', 'till']);
                 if (since !== undefined) {
                     if (limit === undefined) {
                         limit = 100; // exchange default

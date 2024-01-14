@@ -112,7 +112,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
-                'withdraw': None,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
@@ -760,45 +760,99 @@ class coinbase(Exchange, ImplicitAPI):
         #         "next_step": null
         #     }
         #
-        subtotalObject = self.safe_value(transaction, 'subtotal', {})
-        feeObject = self.safe_value(transaction, 'fee', {})
-        id = self.safe_string(transaction, 'id')
-        timestamp = self.parse8601(self.safe_value(transaction, 'created_at'))
-        updated = self.parse8601(self.safe_value(transaction, 'updated_at'))
-        type = self.safe_string(transaction, 'resource')
-        amount = self.safe_number(subtotalObject, 'amount')
-        currencyId = self.safe_string(subtotalObject, 'currency')
-        code = self.safe_currency_code(currencyId, currency)
-        feeCost = self.safe_number(feeObject, 'amount')
-        feeCurrencyId = self.safe_string(feeObject, 'currency')
-        feeCurrency = self.safe_currency_code(feeCurrencyId)
-        fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        }
+        # withdraw
+        #
+        #     {
+        #         "id": "a1794ecf-5693-55fa-70cf-ef731748ed82",
+        #         "type": "send",
+        #         "status": "pending",
+        #         "amount": {
+        #             "amount": "-14.008308",
+        #             "currency": "USDC"
+        #         },
+        #         "native_amount": {
+        #             "amount": "-18.74",
+        #             "currency": "CAD"
+        #         },
+        #         "description": null,
+        #         "created_at": "2024-01-12T01:27:31Z",
+        #         "updated_at": "2024-01-12T01:27:31Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
+        #         "instant_exchange": False,
+        #         "network": {
+        #             "status": "pending",
+        #             "status_description": "Pending(est. less than 10 minutes)",
+        #             "transaction_fee": {
+        #                 "amount": "4.008308",
+        #                 "currency": "USDC"
+        #             },
+        #             "transaction_amount": {
+        #                 "amount": "10.000000",
+        #                 "currency": "USDC"
+        #             },
+        #             "confirmations": 0
+        #         },
+        #         "to": {
+        #             "resource": "ethereum_address",
+        #             "address": "0x9...",
+        #             "currency": "USDC",
+        #             "address_info": {
+        #                 "address": "0x9..."
+        #             }
+        #         },
+        #         "idem": "748d8591-dg9a-7831-a45b-crd61dg78762",
+        #         "details": {
+        #             "title": "Sent USDC",
+        #             "subtitle": "To USDC address on Ethereum network",
+        #             "header": "Sent 14.008308 USDC($18.74)",
+        #             "health": "warning"
+        #         },
+        #         "hide_native_amount": False
+        #     }
+        #
+        transactionType = self.safe_string(transaction, 'type')
+        amountAndCurrencyObject = None
+        feeObject = None
+        if transactionType == 'send':
+            network = self.safe_value(transaction, 'network', {})
+            amountAndCurrencyObject = self.safe_value(network, 'transaction_amount', {})
+            feeObject = self.safe_value(network, 'transaction_fee', {})
+        else:
+            amountAndCurrencyObject = self.safe_value(transaction, 'subtotal', {})
+            feeObject = self.safe_value(transaction, 'fee', {})
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         if status is None:
             committed = self.safe_value(transaction, 'committed')
             status = 'ok' if committed else 'pending'
+        id = self.safe_string(transaction, 'id')
+        currencyId = self.safe_string(amountAndCurrencyObject, 'currency')
+        feeCurrencyId = self.safe_string(feeObject, 'currency')
+        datetime = self.safe_value(transaction, 'created_at')
+        toObject = self.safe_value(transaction, 'to', {})
+        toAddress = self.safe_string(toObject, 'address')
         return {
             'info': transaction,
             'id': id,
             'txid': id,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
             'network': None,
-            'address': None,
-            'addressTo': None,
+            'address': toAddress,
+            'addressTo': toAddress,
             'addressFrom': None,
             'tag': None,
             'tagTo': None,
             'tagFrom': None,
-            'type': type,
-            'amount': amount,
-            'currency': code,
+            'type': self.safe_string(transaction, 'resource'),
+            'amount': self.safe_number(amountAndCurrencyObject, 'amount'),
+            'currency': self.safe_currency_code(currencyId, currency),
             'status': status,
-            'updated': updated,
-            'fee': fee,
+            'updated': self.parse8601(self.safe_value(transaction, 'updated_at')),
+            'fee': {
+                'cost': self.safe_number(feeObject, 'amount'),
+                'currency': self.safe_currency_code(feeCurrencyId),
+            },
         }
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -2995,6 +3049,94 @@ class coinbase(Exchange, ImplicitAPI):
         #
         tickers = self.safe_value(response, 'pricebooks', [])
         return self.parse_tickers(tickers, symbols)
+
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str [tag]: an optional tag for the withdrawal
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
+        accountId = self.safe_string_2(params, 'account_id', 'accountId')
+        params = self.omit(params, ['account_id', 'accountId'])
+        if accountId is None:
+            if code is None:
+                raise ArgumentsRequired(self.id + ' withdraw() requires an account_id(or accountId) parameter OR a currency code argument')
+            accountId = self.find_account_id(code)
+            if accountId is None:
+                raise ExchangeError(self.id + ' withdraw() could not find account id for ' + code)
+        request = {
+            'account_id': accountId,
+            'type': 'send',
+            'to': address,
+            'amount': amount,
+            'currency': currency['id'],
+        }
+        if tag is not None:
+            request['destination_tag'] = tag
+        response = self.v2PrivatePostAccountsAccountIdTransactions(self.extend(request, params))
+        #
+        #     {
+        #         "data": {
+        #             "id": "a1794ecf-5693-55fa-70cf-ef731748ed82",
+        #             "type": "send",
+        #             "status": "pending",
+        #             "amount": {
+        #                 "amount": "-14.008308",
+        #                 "currency": "USDC"
+        #             },
+        #             "native_amount": {
+        #                 "amount": "-18.74",
+        #                 "currency": "CAD"
+        #             },
+        #             "description": null,
+        #             "created_at": "2024-01-12T01:27:31Z",
+        #             "updated_at": "2024-01-12T01:27:31Z",
+        #             "resource": "transaction",
+        #             "resource_path": "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
+        #             "instant_exchange": False,
+        #             "network": {
+        #                 "status": "pending",
+        #                 "status_description": "Pending(est. less than 10 minutes)",
+        #                 "transaction_fee": {
+        #                     "amount": "4.008308",
+        #                     "currency": "USDC"
+        #                 },
+        #                 "transaction_amount": {
+        #                     "amount": "10.000000",
+        #                     "currency": "USDC"
+        #                 },
+        #                 "confirmations": 0
+        #             },
+        #             "to": {
+        #                 "resource": "ethereum_address",
+        #                 "address": "0x9...",
+        #                 "currency": "USDC",
+        #                 "address_info": {
+        #                     "address": "0x9..."
+        #                 }
+        #             },
+        #             "idem": "748d8591-dg9a-7831-a45b-crd61dg78762",
+        #             "details": {
+        #                 "title": "Sent USDC",
+        #                 "subtitle": "To USDC address on Ethereum network",
+        #                 "header": "Sent 14.008308 USDC($18.74)",
+        #                 "health": "warning"
+        #             },
+        #             "hide_native_amount": False
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_transaction(data, currency)
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]

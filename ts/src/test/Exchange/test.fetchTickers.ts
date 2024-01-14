@@ -16,6 +16,7 @@ async function testFetchTickers (exchange, skippedProperties, symbol) {
     assert (typeof tickers === 'object', exchange.id + ' ' + method + ' ' + checkedSymbol + ' must return an object. ' + exchange.json (tickers));
     const values = Object.values (tickers);
     for (let i = 0; i < values.length; i++) {
+        // todo: symbol check here
         const ticker = values[i];
         testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
     }

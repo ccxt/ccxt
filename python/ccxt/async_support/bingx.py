@@ -54,8 +54,12 @@ class bingx(Exchange, ImplicitAPI):
                 'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createOrders': True,
+                'createOrderWithTakeProfitAndStopLoss': True,
+                'createStopLossOrder': True,
+                'createTakeProfitOrder': True,
                 'createTrailingAmountOrder': True,
                 'createTrailingPercentOrder': True,
+                'createTriggerOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -137,6 +141,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/query': 3,
                                 'trade/openOrders': 3,
                                 'trade/historyOrders': 3,
+                                'trade/myTrades': 3,
                                 'user/commissionRate': 3,
                                 'account/balance': 3,
                             },
@@ -196,6 +201,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'user/positions': 3,
                                 'user/income': 3,
                                 'trade/openOrders': 3,
+                                'trade/openOrder': 3,
                                 'trade/order': 3,
                                 'trade/marginType': 3,
                                 'trade/leverage': 3,
@@ -836,6 +842,22 @@ class bingx(Exchange, ImplicitAPI):
         #        "buyerMaker": False
         #    }
         #
+        # spot
+        # fetchMyTrades
+        #     {
+        #         "symbol": "LTC-USDT",
+        #         "id": 36237072,
+        #         "orderId": 1674069326895775744,
+        #         "price": "85.891",
+        #         "qty": "0.0582",
+        #         "quoteQty": "4.9988562000000005",
+        #         "commission": -0.00005820000000000001,
+        #         "commissionAsset": "LTC",
+        #         "time": 1687964205000,
+        #         "isBuyer": True,
+        #         "isMaker": False
+        #     }
+        #
         # swap
         # fetchTrades
         #
@@ -896,7 +918,7 @@ class bingx(Exchange, ImplicitAPI):
             time = None
         cost = self.safe_string(trade, 'quoteQty')
         type = 'spot' if (cost is None) else 'swap'
-        currencyId = self.safe_string_2(trade, 'currency', 'N')
+        currencyId = self.safe_string_n(trade, ['currency', 'N', 'commissionAsset'])
         currencyCode = self.safe_currency_code(currencyId)
         m = self.safe_value(trade, 'm')
         marketId = self.safe_string(trade, 's')
@@ -909,6 +931,12 @@ class bingx(Exchange, ImplicitAPI):
             if (isBuyerMaker is not None) or (m is not None):
                 side = 'sell' if (isBuyerMaker or m) else 'buy'
                 takeOrMaker = 'taker'
+        isBuyer = self.safe_value(trade, 'isBuyer')
+        if isBuyer is not None:
+            side = 'buy' if isBuyer else 'sell'
+        isMaker = self.safe_value(trade, 'isMaker')
+        if isMaker is not None:
+            takeOrMaker = 'maker' if isMaker else 'taker'
         return self.safe_trade({
             'id': self.safe_string_n(trade, ['id', 't']),
             'info': trade,
@@ -3059,54 +3087,94 @@ class bingx(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
+        :see: https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20History
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20historical%20transaction%20orders
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms for the ending date filter, default is None
         :param str params['trandingUnit']: COIN(directly represent assets such and ETH) or CONT(represents the number of contract sheets)
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        if since is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a since argument')
-        tradingUnit = self.safe_string_upper(params, 'tradingUnit', 'CONT')
         await self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
-            raise BadSymbol(self.id + ' fetchMyTrades() supports swap contracts only')
+        now = self.milliseconds()
+        response = None
         request = {
             'symbol': market['id'],
-            'tradingUnit': tradingUnit,
-            'startTs': since,
-            'endTs': self.nonce(),
         }
-        query = self.omit(params, 'tradingUnit')
-        response = await self.swapV2PrivateGetTradeAllFillOrders(self.extend(request, query))
-        #
-        #    {
-        #       "code": "0",
-        #       "msg": '',
-        #       "data": {fill_orders: [
-        #          {
-        #              "volume": "0.1",
-        #              "price": "106.75",
-        #              "amount": "10.6750",
-        #              "commission": "-0.0053",
-        #              "currency": "USDT",
-        #              "orderId": "1676213270274379776",
-        #              "liquidatedPrice": "0.00",
-        #              "liquidatedMarginRatio": "0.00",
-        #              "filledTime": "2023-07-04T20:56:01.000+0800"
-        #          }
-        #        ]
-        #      }
-        #    }
-        #
-        data = self.safe_value(response, 'data', [])
-        fillOrders = self.safe_value(data, 'fill_orders', [])
-        return self.parse_trades(fillOrders, market, since, limit, query)
+        if since is not None:
+            startTimeReq = 'startTime' if market['spot'] else 'startTs'
+            request[startTimeReq] = since
+        elif market['swap']:
+            request['startTs'] = now - 7776000000  # 90 days
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, 'until')
+        if until is not None:
+            endTimeReq = 'endTime' if market['spot'] else 'endTs'
+            request[endTimeReq] = until
+        elif market['swap']:
+            request['endTs'] = now
+        fills = None
+        if market['spot']:
+            response = await self.spotV1PrivateGetTradeMyTrades(self.extend(request, params))
+            data = self.safe_value(response, 'data', [])
+            fills = self.safe_value(data, 'fills', [])
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "debugMsg": "",
+            #         "data": {
+            #             "fills": [
+            #                 {
+            #                     "symbol": "LTC-USDT",
+            #                     "id": 36237072,
+            #                     "orderId": 1674069326895775744,
+            #                     "price": "85.891",
+            #                     "qty": "0.0582",
+            #                     "quoteQty": "4.9988562000000005",
+            #                     "commission": -0.00005820000000000001,
+            #                     "commissionAsset": "LTC",
+            #                     "time": 1687964205000,
+            #                     "isBuyer": True,
+            #                     "isMaker": False
+            #                 }
+            #             ]
+            #         }
+            #     }
+            #
+        else:
+            tradingUnit = self.safe_string_upper(params, 'tradingUnit', 'CONT')
+            params = self.omit(params, 'tradingUnit')
+            request['tradingUnit'] = tradingUnit
+            response = await self.swapV2PrivateGetTradeAllFillOrders(self.extend(request, params))
+            data = self.safe_value(response, 'data', [])
+            fills = self.safe_value(data, 'fill_orders', [])
+            #
+            #    {
+            #       "code": "0",
+            #       "msg": '',
+            #       "data": {fill_orders: [
+            #          {
+            #              "volume": "0.1",
+            #              "price": "106.75",
+            #              "amount": "10.6750",
+            #              "commission": "-0.0053",
+            #              "currency": "USDT",
+            #              "orderId": "1676213270274379776",
+            #              "liquidatedPrice": "0.00",
+            #              "liquidatedMarginRatio": "0.00",
+            #              "filledTime": "2023-07-04T20:56:01.000+0800"
+            #          }
+            #        ]
+            #      }
+            #    }
+            #
+        return self.parse_trades(fills, market, since, limit, params)
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #

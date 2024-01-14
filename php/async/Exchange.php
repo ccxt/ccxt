@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.12';
+$version = '4.2.14';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.12';
+    const VERSION = '4.2.14';
 
     public $browser;
     public $marketsLoading = null;
@@ -3000,10 +3000,157 @@ class Exchange extends \ccxt\Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
-            if ($this->options['createMarketSellOrderRequiresPrice'] || $this->options['createMarketSellOrderWithCost']) {
+            if ($this->options['createMarketSellOrderRequiresPrice'] || $this->has['createMarketSellOrderWithCost']) {
                 return Async\await($this->create_order($symbol, 'market', 'sell', $cost, 1, $params));
             }
             throw new NotSupported($this->id . ' createMarketSellOrderWithCost() is not supported yet');
+        }) ();
+    }
+
+    public function create_trigger_order(string $symbol, string $type, string $side, $amount, $price = null, $triggerPrice = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $triggerPrice, $params) {
+            /**
+             * create a trigger stop order ($type 1)
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
+             * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
+             * @param {float} $triggerPrice the $price to trigger the stop order, in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            if ($triggerPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createTriggerOrder() requires a $triggerPrice argument');
+            }
+            $params['triggerPrice'] = $triggerPrice;
+            if ($this->has['createTriggerOrder']) {
+                return Async\await($this->create_order($symbol, $type, $side, $amount, $price, $params));
+            }
+            throw new NotSupported($this->id . ' createTriggerOrder() is not supported yet');
+        }) ();
+    }
+
+    public function create_stop_loss_order(string $symbol, string $type, string $side, $amount, $price = null, $stopLossPrice = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $stopLossPrice, $params) {
+            /**
+             * create a trigger stop loss order ($type 2)
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
+             * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
+             * @param {float} $stopLossPrice the $price to trigger the stop loss order, in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            if ($stopLossPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createStopLossOrder() requires a $stopLossPrice argument');
+            }
+            $params['stopLossPrice'] = $stopLossPrice;
+            if ($this->has['createStopLossOrder']) {
+                return Async\await($this->create_order($symbol, $type, $side, $amount, $price, $params));
+            }
+            throw new NotSupported($this->id . ' createStopLossOrder() is not supported yet');
+        }) ();
+    }
+
+    public function create_take_profit_order(string $symbol, string $type, string $side, $amount, $price = null, $takeProfitPrice = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $takeProfitPrice, $params) {
+            /**
+             * create a trigger take profit order ($type 2)
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
+             * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
+             * @param {float} $takeProfitPrice the $price to trigger the take profit order, in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            if ($takeProfitPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createTakeProfitOrder() requires a $takeProfitPrice argument');
+            }
+            $params['takeProfitPrice'] = $takeProfitPrice;
+            if ($this->has['createTakeProfitOrder']) {
+                return Async\await($this->create_order($symbol, $type, $side, $amount, $price, $params));
+            }
+            throw new NotSupported($this->id . ' createTakeProfitOrder() is not supported yet');
+        }) ();
+    }
+
+    public function create_order_with_take_profit_and_stop_loss(string $symbol, string $type, string $side, $amount, $price = null, $takeProfit = null, $stopLoss = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $takeProfit, $stopLoss, $params) {
+            /**
+             * create an order with a stop loss or take profit attached ($type 3)
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
+             * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
+             * @param {float} [$takeProfit] the take profit $price, in units of the quote currency
+             * @param {float} [$stopLoss] the stop loss $price, in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->takeProfitType] *not available on all exchanges* 'limit' or 'market'
+             * @param {string} [$params->stopLossType] *not available on all exchanges* 'limit' or 'market'
+             * @param {string} [$params->takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+             * @param {string} [$params->stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+             * @param {float} [$params->takeProfitLimitPrice] *not available on all exchanges* limit $price for a limit take profit order
+             * @param {float} [$params->stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+             * @param {float} [$params->takeProfitAmount] *not available on all exchanges* the $amount for a take profit
+             * @param {float} [$params->stopLossAmount] *not available on all exchanges* the $amount for a stop loss
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            if (($takeProfit === null) && ($stopLoss === null)) {
+                throw new ArgumentsRequired($this->id . ' createOrderWithTakeProfitAndStopLoss() requires either a $takeProfit or $stopLoss argument');
+            }
+            if ($takeProfit !== null) {
+                $params['takeProfit'] = array(
+                    'triggerPrice' => $takeProfit,
+                );
+            }
+            if ($stopLoss !== null) {
+                $params['stopLoss'] = array(
+                    'triggerPrice' => $stopLoss,
+                );
+            }
+            $takeProfitType = $this->safe_string($params, 'takeProfitType');
+            $takeProfitPriceType = $this->safe_string($params, 'takeProfitPriceType');
+            $takeProfitLimitPrice = $this->safe_string($params, 'takeProfitLimitPrice');
+            $takeProfitAmount = $this->safe_string($params, 'takeProfitAmount');
+            $stopLossType = $this->safe_string($params, 'stopLossType');
+            $stopLossPriceType = $this->safe_string($params, 'stopLossPriceType');
+            $stopLossLimitPrice = $this->safe_string($params, 'stopLossLimitPrice');
+            $stopLossAmount = $this->safe_string($params, 'stopLossAmount');
+            if ($takeProfitType !== null) {
+                $params['takeProfit']['type'] = $takeProfitType;
+            }
+            if ($takeProfitPriceType !== null) {
+                $params['takeProfit']['priceType'] = $takeProfitPriceType;
+            }
+            if ($takeProfitLimitPrice !== null) {
+                $params['takeProfit']['price'] = $this->parse_to_numeric($takeProfitLimitPrice);
+            }
+            if ($takeProfitAmount !== null) {
+                $params['takeProfit']['amount'] = $this->parse_to_numeric($takeProfitAmount);
+            }
+            if ($stopLossType !== null) {
+                $params['stopLoss']['type'] = $stopLossType;
+            }
+            if ($stopLossPriceType !== null) {
+                $params['stopLoss']['priceType'] = $stopLossPriceType;
+            }
+            if ($stopLossLimitPrice !== null) {
+                $params['stopLoss']['price'] = $this->parse_to_numeric($stopLossLimitPrice);
+            }
+            if ($stopLossAmount !== null) {
+                $params['stopLoss']['amount'] = $this->parse_to_numeric($stopLossAmount);
+            }
+            $params = $this->omit ($params, array( 'takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount' ));
+            if ($this->has['createOrderWithTakeProfitAndStopLoss']) {
+                return Async\await($this->create_order($symbol, $type, $side, $amount, $price, $params));
+            }
+            throw new NotSupported($this->id . ' createOrderWithTakeProfitAndStopLoss() is not supported yet');
         }) ();
     }
 

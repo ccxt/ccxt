@@ -37,8 +37,12 @@ class bingx extends Exchange {
                 'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createOrderWithTakeProfitAndStopLoss' => true,
+                'createStopLossOrder' => true,
+                'createTakeProfitOrder' => true,
                 'createTrailingAmountOrder' => true,
                 'createTrailingPercentOrder' => true,
+                'createTriggerOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -120,6 +124,7 @@ class bingx extends Exchange {
                                 'trade/query' => 3,
                                 'trade/openOrders' => 3,
                                 'trade/historyOrders' => 3,
+                                'trade/myTrades' => 3,
                                 'user/commissionRate' => 3,
                                 'account/balance' => 3,
                             ),
@@ -179,6 +184,7 @@ class bingx extends Exchange {
                                 'user/positions' => 3,
                                 'user/income' => 3,
                                 'trade/openOrders' => 3,
+                                'trade/openOrder' => 3,
                                 'trade/order' => 3,
                                 'trade/marginType' => 3,
                                 'trade/leverage' => 3,
@@ -845,6 +851,22 @@ class bingx extends Exchange {
         //        "buyerMaker" => false
         //    }
         //
+        // spot
+        // fetchMyTrades
+        //     {
+        //         "symbol" => "LTC-USDT",
+        //         "id" => 36237072,
+        //         "orderId" => 1674069326895775744,
+        //         "price" => "85.891",
+        //         "qty" => "0.0582",
+        //         "quoteQty" => "4.9988562000000005",
+        //         "commission" => -0.00005820000000000001,
+        //         "commissionAsset" => "LTC",
+        //         "time" => 1687964205000,
+        //         "isBuyer" => true,
+        //         "isMaker" => false
+        //     }
+        //
         // swap
         // fetchTrades
         //
@@ -907,7 +929,7 @@ class bingx extends Exchange {
         }
         $cost = $this->safe_string($trade, 'quoteQty');
         $type = ($cost === null) ? 'spot' : 'swap';
-        $currencyId = $this->safe_string_2($trade, 'currency', 'N');
+        $currencyId = $this->safe_string_n($trade, array( 'currency', 'N', 'commissionAsset' ));
         $currencyCode = $this->safe_currency_code($currencyId);
         $m = $this->safe_value($trade, 'm');
         $marketId = $this->safe_string($trade, 's');
@@ -922,6 +944,14 @@ class bingx extends Exchange {
                 $side = ($isBuyerMaker || $m) ? 'sell' : 'buy';
                 $takeOrMaker = 'taker';
             }
+        }
+        $isBuyer = $this->safe_value($trade, 'isBuyer');
+        if ($isBuyer !== null) {
+            $side = $isBuyer ? 'buy' : 'sell';
+        }
+        $isMaker = $this->safe_value($trade, 'isMaker');
+        if ($isMaker !== null) {
+            $takeOrMaker = $isMaker ? 'maker' : 'taker';
         }
         return $this->safe_trade(array(
             'id' => $this->safe_string_n($trade, array( 'id', 't' )),
@@ -3205,57 +3235,98 @@ class bingx extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20History
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20historical%20transaction%20orders
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms for the ending date filter, default is null
          * @param {string} $params->trandingUnit COIN (directly represent assets such and ETH) or CONT (represents the number of contract sheets)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
-        if ($since === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $since argument');
-        }
-        $tradingUnit = $this->safe_string_upper($params, 'tradingUnit', 'CONT');
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['spot']) {
-            throw new BadSymbol($this->id . ' fetchMyTrades() supports swap contracts only');
-        }
+        $now = $this->milliseconds();
+        $response = null;
         $request = array(
             'symbol' => $market['id'],
-            'tradingUnit' => $tradingUnit,
-            'startTs' => $since,
-            'endTs' => $this->nonce(),
         );
-        $query = $this->omit($params, 'tradingUnit');
-        $response = $this->swapV2PrivateGetTradeAllFillOrders (array_merge($request, $query));
-        //
-        //    {
-        //       "code" => "0",
-        //       "msg" => '',
-        //       "data" => { fill_orders => array(
-        //          {
-        //              "volume" => "0.1",
-        //              "price" => "106.75",
-        //              "amount" => "10.6750",
-        //              "commission" => "-0.0053",
-        //              "currency" => "USDT",
-        //              "orderId" => "1676213270274379776",
-        //              "liquidatedPrice" => "0.00",
-        //              "liquidatedMarginRatio" => "0.00",
-        //              "filledTime" => "2023-07-04T20:56:01.000+0800"
-        //          }
-        //        )
-        //      }
-        //    }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $fillOrders = $this->safe_value($data, 'fill_orders', array());
-        return $this->parse_trades($fillOrders, $market, $since, $limit, $query);
+        if ($since !== null) {
+            $startTimeReq = $market['spot'] ? 'startTime' : 'startTs';
+            $request[$startTimeReq] = $since;
+        } elseif ($market['swap']) {
+            $request['startTs'] = $now - 7776000000; // 90 days
+        }
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, 'until');
+        if ($until !== null) {
+            $endTimeReq = $market['spot'] ? 'endTime' : 'endTs';
+            $request[$endTimeReq] = $until;
+        } elseif ($market['swap']) {
+            $request['endTs'] = $now;
+        }
+        $fills = null;
+        if ($market['spot']) {
+            $response = $this->spotV1PrivateGetTradeMyTrades (array_merge($request, $params));
+            $data = $this->safe_value($response, 'data', array());
+            $fills = $this->safe_value($data, 'fills', array());
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "debugMsg" => "",
+            //         "data" => {
+            //             "fills" => array(
+            //                 {
+            //                     "symbol" => "LTC-USDT",
+            //                     "id" => 36237072,
+            //                     "orderId" => 1674069326895775744,
+            //                     "price" => "85.891",
+            //                     "qty" => "0.0582",
+            //                     "quoteQty" => "4.9988562000000005",
+            //                     "commission" => -0.00005820000000000001,
+            //                     "commissionAsset" => "LTC",
+            //                     "time" => 1687964205000,
+            //                     "isBuyer" => true,
+            //                     "isMaker" => false
+            //                 }
+            //             )
+            //         }
+            //     }
+            //
+        } else {
+            $tradingUnit = $this->safe_string_upper($params, 'tradingUnit', 'CONT');
+            $params = $this->omit($params, 'tradingUnit');
+            $request['tradingUnit'] = $tradingUnit;
+            $response = $this->swapV2PrivateGetTradeAllFillOrders (array_merge($request, $params));
+            $data = $this->safe_value($response, 'data', array());
+            $fills = $this->safe_value($data, 'fill_orders', array());
+            //
+            //    {
+            //       "code" => "0",
+            //       "msg" => '',
+            //       "data" => { fill_orders => array(
+            //          {
+            //              "volume" => "0.1",
+            //              "price" => "106.75",
+            //              "amount" => "10.6750",
+            //              "commission" => "-0.0053",
+            //              "currency" => "USDT",
+            //              "orderId" => "1676213270274379776",
+            //              "liquidatedPrice" => "0.00",
+            //              "liquidatedMarginRatio" => "0.00",
+            //              "filledTime" => "2023-07-04T20:56:01.000+0800"
+            //          }
+            //        )
+            //      }
+            //    }
+            //
+        }
+        return $this->parse_trades($fills, $market, $since, $limit, $params);
     }
 
     public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {

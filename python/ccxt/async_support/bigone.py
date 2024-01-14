@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
+import asyncio
 from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Bool, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -133,6 +134,7 @@ class bigone(Exchange, ImplicitAPI):
                 },
                 'contractPublic': {
                     'get': [
+                        'symbols',
                         'instruments',
                         'depth@{symbol}/snapshot',
                         'instruments/difference',
@@ -522,7 +524,10 @@ class bigone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = await self.publicGetAssetPairs(params)
+        promises = [self.publicGetAssetPairs(params), self.contractPublicGetSymbols(params)]
+        promisesResult = await asyncio.gather(*promises)
+        response = promisesResult[0]
+        contractResponse = promisesResult[1]
         #
         #     {
         #         "code":0,
@@ -548,29 +553,30 @@ class bigone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        contractResponse = await self.contractPublicGetInstruments(params)
         #
         #    [
         #        {
-        #            "usdtPrice": 1.00031998,
+        #            "baseCurrency": "BTC",
+        #            "multiplier": 1,
+        #            "enable": True,
+        #            "priceStep": 0.5,
+        #            "maxRiskLimit": 1000,
+        #            "pricePrecision": 1,
+        #            "maintenanceMargin": 0.00500,
         #            "symbol": "BTCUSD",
-        #            "btcPrice": 34700.4,
-        #            "ethPrice": 1787.83,
-        #            "nextFundingRate": 0.00010,
-        #            "fundingRate": 0.00010,
-        #            "latestPrice": 34708.5,
-        #            "last24hPriceChange": 0.0321,
-        #            "indexPrice": 34700.4,
-        #            "volume24h": 261319063,
-        #            "turnover24h": 8204.129380685496,
-        #            "nextFundingTime": 1698285600000,
-        #            "markPrice": 34702.4646738,
-        #            "last24hMaxPrice": 35127.5,
-        #            "volume24hInUsd": 0.0,
-        #            "openValue": 32.88054722085945,
-        #            "last24hMinPrice": 33552.0,
-        #            "openInterest": 1141372.0
-        #        }
+        #            "valuePrecision": 4,
+        #            "minRiskLimit": 100,
+        #            "riskLimit": 100,
+        #            "isInverse": True,
+        #            "riskStep": 1,
+        #            "settleCurrency": "BTC",
+        #            "baseName": "Bitcoin",
+        #            "feePrecision": 8,
+        #            "priceMin": 0.5,
+        #            "priceMax": 1E+6,
+        #            "initialMargin": 0.01000,
+        #            "quoteCurrency": "USD"
+        #        },
         #        ...
         #    ]
         #
@@ -636,15 +642,14 @@ class bigone(Exchange, ImplicitAPI):
             }))
         for i in range(0, len(contractResponse)):
             market = contractResponse[i]
+            baseId = self.safe_string(market, 'baseCurrency')
+            quoteId = self.safe_string(market, 'quoteCurrency')
+            settleId = self.safe_string(market, 'settleCurrency')
             marketId = self.safe_string(market, 'symbol')
-            index = marketId.find('USD')
-            baseId = marketId[0:index]
-            quoteId = marketId[index:]
-            inverse = (quoteId == 'USD')
-            settleId = baseId if inverse else quoteId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
+            inverse = self.safe_value(market, 'isInverse')
             result.append(self.safe_market_structure({
                 'id': marketId,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -660,18 +665,18 @@ class bigone(Exchange, ImplicitAPI):
                 'swap': True,
                 'future': False,
                 'option': False,
-                'active': True,
+                'active': self.safe_value(market, 'enable'),
                 'contract': True,
                 'linear': not inverse,
                 'inverse': inverse,
-                'contractSize': 1,
+                'contractSize': self.safe_number(market, 'multiplier'),
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': None,
-                    'price': None,
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'valuePrecision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -683,11 +688,11 @@ class bigone(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'price': {
-                        'min': None,
-                        'max': None,
+                        'min': self.safe_number(market, 'priceMin'),
+                        'max': self.safe_number(market, 'priceMax'),
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(market, 'initialMargin'),
                         'max': None,
                     },
                 },
@@ -1133,6 +1138,8 @@ class bigone(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
+        if market['contract']:
+            raise BadRequest(self.id + ' fetchTrades() can only fetch trades for spot markets')
         request = {
             'asset_pair_name': market['id'],
         }
@@ -1193,6 +1200,8 @@ class bigone(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
+        if market['contract']:
+            raise BadRequest(self.id + ' fetchOHLCV() can only fetch ohlcvs for spot markets')
         if limit is None:
             limit = 100  # default 100, max 500
         request = {

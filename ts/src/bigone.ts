@@ -126,6 +126,7 @@ export default class bigone extends Exchange {
                 },
                 'contractPublic': {
                     'get': [
+                        'symbols',
                         'instruments',
                         'depth@{symbol}/snapshot',
                         'instruments/difference',
@@ -524,7 +525,10 @@ export default class bigone extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetAssetPairs (params);
+        const promises = [ this.publicGetAssetPairs (params), this.contractPublicGetSymbols (params) ];
+        const promisesResult = await Promise.all (promises);
+        const response = promisesResult[0];
+        const contractResponse = promisesResult[1];
         //
         //     {
         //         "code":0,
@@ -550,29 +554,30 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const contractResponse = await this.contractPublicGetInstruments (params);
         //
         //    [
         //        {
-        //            "usdtPrice": 1.00031998,
+        //            "baseCurrency": "BTC",
+        //            "multiplier": 1,
+        //            "enable": true,
+        //            "priceStep": 0.5,
+        //            "maxRiskLimit": 1000,
+        //            "pricePrecision": 1,
+        //            "maintenanceMargin": 0.00500,
         //            "symbol": "BTCUSD",
-        //            "btcPrice": 34700.4,
-        //            "ethPrice": 1787.83,
-        //            "nextFundingRate": 0.00010,
-        //            "fundingRate": 0.00010,
-        //            "latestPrice": 34708.5,
-        //            "last24hPriceChange": 0.0321,
-        //            "indexPrice": 34700.4,
-        //            "volume24h": 261319063,
-        //            "turnover24h": 8204.129380685496,
-        //            "nextFundingTime": 1698285600000,
-        //            "markPrice": 34702.4646738,
-        //            "last24hMaxPrice": 35127.5,
-        //            "volume24hInUsd": 0.0,
-        //            "openValue": 32.88054722085945,
-        //            "last24hMinPrice": 33552.0,
-        //            "openInterest": 1141372.0
-        //        }
+        //            "valuePrecision": 4,
+        //            "minRiskLimit": 100,
+        //            "riskLimit": 100,
+        //            "isInverse": true,
+        //            "riskStep": 1,
+        //            "settleCurrency": "BTC",
+        //            "baseName": "Bitcoin",
+        //            "feePrecision": 8,
+        //            "priceMin": 0.5,
+        //            "priceMax": 1E+6,
+        //            "initialMargin": 0.01000,
+        //            "quoteCurrency": "USD"
+        //        },
         //        ...
         //    ]
         //
@@ -639,15 +644,14 @@ export default class bigone extends Exchange {
         }
         for (let i = 0; i < contractResponse.length; i++) {
             const market = contractResponse[i];
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString (market, 'quoteCurrency');
+            const settleId = this.safeString (market, 'settleCurrency');
             const marketId = this.safeString (market, 'symbol');
-            const index = marketId.indexOf ('USD');
-            const baseId = marketId.slice (0, index);
-            const quoteId = marketId.slice (index);
-            const inverse = (quoteId === 'USD');
-            const settleId = inverse ? baseId : quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
+            const inverse = this.safeValue (market, 'isInverse');
             result.push (this.safeMarketStructure ({
                 'id': marketId,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -663,18 +667,18 @@ export default class bigone extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'active': true,
+                'active': this.safeValue (market, 'enable'),
                 'contract': true,
                 'linear': !inverse,
                 'inverse': inverse,
-                'contractSize': 1,
+                'contractSize': this.safeNumber (market, 'multiplier'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': undefined,
-                    'price': undefined,
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'valuePrecision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -686,11 +690,11 @@ export default class bigone extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (market, 'priceMin'),
+                        'max': this.safeNumber (market, 'priceMax'),
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'initialMargin'),
                         'max': undefined,
                     },
                 },
@@ -1174,6 +1178,9 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['contract']) {
+            throw new BadRequest (this.id + ' fetchTrades () can only fetch trades for spot markets');
+        }
         const request = {
             'asset_pair_name': market['id'],
         };
@@ -1238,6 +1245,9 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['contract']) {
+            throw new BadRequest (this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
+        }
         if (limit === undefined) {
             limit = 100; // default 100, max 500
         }
