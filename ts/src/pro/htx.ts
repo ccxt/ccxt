@@ -938,11 +938,15 @@ export default class htx extends htxRest {
                 const orderId = this.safeString (parsedTrade, 'order');
                 const trades = [ parsedTrade ];
                 const status = this.parseOrderStatus (this.safeString2 (data, 'orderStatus', 'status'));
+                const filled = this.safeString (data, 'execAmt');
+                const remaining = this.safeString (data, 'remainAmt');
                 const order = {
                     'id': orderId,
                     'trades': trades,
                     'status': status,
                     'symbol': market['symbol'],
+                    'filled': filled,
+                    'remaining': remaining,
                 };
                 parsedOrder = order;
             } else {
