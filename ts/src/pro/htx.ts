@@ -945,8 +945,8 @@ export default class htx extends htxRest {
                     'trades': trades,
                     'status': status,
                     'symbol': market['symbol'],
-                    'filled': filled,
-                    'remaining': remaining,
+                    'filled': this.parseNumber (filled),
+                    'remaining': this.parseNumber (remaining),
                 };
                 parsedOrder = order;
             } else {
