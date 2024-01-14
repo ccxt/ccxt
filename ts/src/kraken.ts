@@ -1642,7 +1642,7 @@ export default class kraken extends Exchange {
         if ((type === 'limit') && !isTrailingAmountOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        let reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
+        const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
         if (isStopLossOrTakeProfitTrigger) {
             if (isStopLossTriggerOrder) {
                 request['price'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
@@ -1652,7 +1652,6 @@ export default class kraken extends Exchange {
                 request['ordertype'] = 'take-profit-limit';
             }
             request['price2'] = this.priceToPrecision (symbol, price);
-            reduceOnly = true;
         } else if (isTrailingAmountOrder) {
             const trailingActivationPriceType = this.safeString (params, 'trigger', 'last');
             const trailingAmountString = '+' + trailingAmount;
