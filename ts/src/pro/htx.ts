@@ -937,10 +937,11 @@ export default class htx extends htxRest {
                 // inject trade in existing order by faking an order object
                 const orderId = this.safeString (parsedTrade, 'order');
                 const trades = [ parsedTrade ];
+                const status = this.parseOrderStatus (this.safeString2 (data, 'orderStatus', 'status'));
                 const order = {
                     'id': orderId,
                     'trades': trades,
-                    'status': 'closed',
+                    'status': status,
                     'symbol': market['symbol'],
                 };
                 parsedOrder = order;
