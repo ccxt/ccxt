@@ -47,13 +47,15 @@
 //     return namespace
 // }
 class BaseError extends Error {
+    public isCCXTError: boolean;
     constructor (message) {
         super (message);
         this.name = 'BaseError';
+        this.isCCXTError = true;
     }
 }
 // Exchange Error errors
-class ExchangeError extends Error {
+class ExchangeError extends BaseError {
     constructor (message) {
         super (message);
         this.name = 'ExchangeError';
