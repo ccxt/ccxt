@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import testLastprice from './base/test.lastPrice.js';
+import testLastPrice from './base/test.lastPrice.js';
 
 async function testFetchLastPrices (exchange, skippedProperties, symbol) {
     const method = 'fetchLastprices';
@@ -17,7 +17,7 @@ async function testFetchLastPrices (exchange, skippedProperties, symbol) {
     const values = Object.values (response);
     for (let i = 0; i < values.length; i++) {
         // todo: symbol check here
-        testLastprice (exchange, skippedProperties, method, values[i], checkedSymbol);
+        testLastPrice (exchange, skippedProperties, method, values[i], checkedSymbol);
     }
 }
 
