@@ -49,6 +49,10 @@ export default class bybit extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'createTrailingAmountOrder': true,
+                'createTriggerOrder': true,
+                'createTakeProfitOrder': true,
+                'createStopLossOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false, // temporarily disabled, as it doesn't work
