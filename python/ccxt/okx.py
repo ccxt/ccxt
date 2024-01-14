@@ -29,7 +29,8 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 TO_FLOAT_PARAMS = {'sz', 'slOrdPx', 'slTriggerPx', 'tpOrdPx', 'tpTriggerPx', 'orderPx', 'triggerPx', 'px'}
-
+PERMISSION_TO_VALUE = {"spot": ["read_only", "trade"], "futures": ["read_only", "trade"]}
+MARGIN_FREE_ACCOUNT_TYPE = 1
 
 class okx(Exchange):
 
@@ -857,12 +858,26 @@ class okx(Exchange):
         for i in range(0, len(data)):
             account = data[i]
             accountId = self.safe_string(account, 'uid')
-            type = self.safe_string(account, 'acctLv')
+            mainUid = self.safe_string(account, 'mainUid')
+            margin_free = self.safe_integer(account, 'acctLv') == MARGIN_FREE_ACCOUNT_TYPE
+            position_mode = self.safe_string(account, 'posMode')
+            role_type = self.safe_integer(account, 'roleType')
+            spot_role_type = self.safe_integer(account, 'spotRoleType')
+            ips = self.safe_string(account, 'ip')
+            exchange_permissions = self.safe_string(account, 'perm').split(',')
+            read_only = 'trade' not in exchange_permissions
+            permissions = self.extract_trading_permissions(PERMISSION_TO_VALUE, permissions_list=exchange_permissions)
             result.append({
-                'id': accountId,
-                'type': type,
-                'currency': None,
-                'info': account,
+                'uid': accountId,
+                'main_uid': mainUid,
+                'margin_free': margin_free,
+                'position_mode': position_mode,
+                'role_type': role_type,
+                'spot_role_type': spot_role_type,
+                'ips': ips,
+                'permissions': permissions,
+                'read_only': read_only,
+                'ip_restrict': bool(ips),
             })
         return result
 
