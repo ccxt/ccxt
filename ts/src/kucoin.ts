@@ -48,6 +48,7 @@ export default class kucoin extends Exchange {
                 'createPostOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
+                'createTriggerOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
