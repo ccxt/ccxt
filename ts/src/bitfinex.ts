@@ -1590,10 +1590,10 @@ export default class bitfinex extends Exchange {
         const response = this.safeValue (responses, 0, {});
         const id = this.safeNumber (response, 'withdrawal_id');
         const message = this.safeString (response, 'message');
-        const errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
+        const userMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
         if (id === 0) {
-            if (errorMessage !== undefined) {
-                const ExceptionClass = this.exceptions['broad'][errorMessage];
+            if (userMessage !== undefined) {
+                const ExceptionClass = this.exceptions['broad'][userMessage];
                 throw new ExceptionClass (this.id + ' ' + message);
             }
             throw new ExchangeError (this.id + ' withdraw returned an id of zero: ' + this.json (response));
@@ -1690,11 +1690,10 @@ export default class bitfinex extends Exchange {
             }
         }
         if (throwError) {
-            const feedback = this.id + ' ' + body;
             const message = this.safeString2 (response, 'message', 'error');
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-            throw new ExchangeError (feedback); // unknown message
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, message);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, message);
+            throw new ExchangeError (message); // unknown message
         }
         return undefined;
     }

@@ -7106,18 +7106,18 @@ export default class bitget extends Exchange {
         //
         const message = this.safeString (response, 'err_msg');
         const errorCode = this.safeString2 (response, 'code', 'err_code');
-        const feedback = this.id + ' ' + body;
+        const userMessage = errorCode + ': ' + message;
         const nonEmptyMessage = ((message !== undefined) && (message !== ''));
         if (nonEmptyMessage) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, userMessage);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, userMessage);
         }
         const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '00000');
         if (nonZeroErrorCode) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, userMessage);
         }
         if (nonZeroErrorCode || nonEmptyMessage) {
-            throw new ExchangeError (feedback); // unknown message
+            throw new ExchangeError (userMessage); // unknown message
         }
         return undefined;
     }

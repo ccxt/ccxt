@@ -8545,26 +8545,28 @@ export default class binance extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {
-            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
+            throw new DDoSProtection (code.toString () + ':' + reason);
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block cointains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
+        const error = this.safeString (response, 'code');
         if (code >= 400) {
             if (body.indexOf ('Price * QTY is zero or less') >= 0) {
-                throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
+                throw new InvalidOrder (code.toString () + ': Order cost = amount * price is zero or less');
             }
             if (body.indexOf ('LOT_SIZE') >= 0) {
-                throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size ' + body);
+                throw new InvalidOrder (code.toString () + ': Order amount should be evenly divisible by lot size');
             }
             if (body.indexOf ('PRICE_FILTER') >= 0) {
-                throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ' + body);
+                throw new InvalidOrder (code.toString () + ': Order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ');
             }
         }
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
+        const message = this.safeString (response, 'msg');
         const success = this.safeValue (response, 'success', true);
         if (!success) {
             const messageNew = this.safeString (response, 'msg');
@@ -8581,14 +8583,14 @@ export default class binance extends Exchange {
                 }
             }
         }
-        const message = this.safeString (response, 'msg');
         if (message !== undefined) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, this.id + ' ' + message);
+            const userMessage = (error ? error + ': ' : '') + message;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, userMessage);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, userMessage);
         }
         // checks against error codes
-        const error = this.safeString (response, 'code');
         if (error !== undefined) {
+            const userMessage = error + ': ' + message;
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
             if ((error === '200') || Precise.stringEquals (error, '0')) {
@@ -8598,22 +8600,22 @@ export default class binance extends Exchange {
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
             if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
-                throw new DDoSProtection (this.id + ' ' + body);
+                throw new DDoSProtection (userMessage);
             }
-            const feedback = this.id + ' ' + body;
             if (message === 'No need to change margin type.') {
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
-                throw new MarginModeAlreadySet (feedback);
+                throw new MarginModeAlreadySet (userMessage);
             }
-            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
-            throw new ExchangeError (feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, userMessage);
+            throw new ExchangeError (userMessage);
         }
+        // If we are here, error and eventually code are undefined
         if (!success) {
-            throw new ExchangeError (this.id + ' ' + body);
+            throw new ExchangeError (message);
         }
         if (Array.isArray (response)) {
             // cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
@@ -8621,8 +8623,9 @@ export default class binance extends Exchange {
             if (arrayLength === 1) { // when there's a single error we can throw, otherwise we have a partial success
                 const element = response[0];
                 const errorCode = this.safeString (element, 'code');
+                const userMessage = this.safeString (element, 'msg');
                 if (errorCode !== undefined) {
-                    this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + body);
+                    this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, errorCode + ': ' + userMessage);
                 }
             }
         }

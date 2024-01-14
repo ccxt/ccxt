@@ -6935,9 +6935,10 @@ export default class gate extends Exchange {
         //
         const label = this.safeString (response, 'label');
         if (label !== undefined) {
-            const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], label, feedback);
-            throw new ExchangeError (feedback);
+            const message = this.safeString (response, 'message');
+            const userMessage = label + ': ' + message;
+            this.throwExactlyMatchedException (this.exceptions['exact'], label, userMessage);
+            throw new ExchangeError (userMessage);
         }
         return undefined;
     }

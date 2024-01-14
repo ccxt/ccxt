@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/kraken.js';
-import { AccountSuspended, BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, NotSupported } from './base/errors.js';
+import { AccountSuspended, BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -415,29 +415,39 @@ export default class kraken extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
-                'EAPI:Invalid key': AuthenticationError,
-                'EFunding:Unknown withdraw key': InvalidAddress, // {"error":["EFunding:Unknown withdraw key"]}
-                'EFunding:Invalid amount': InsufficientFunds,
-                'EService:Unavailable': ExchangeNotAvailable,
-                'EDatabase:Internal error': ExchangeNotAvailable,
-                'EService:Busy': ExchangeNotAvailable,
-                'EQuery:Unknown asset': BadSymbol, // {"error":["EQuery:Unknown asset"]}
-                'EAPI:Rate limit exceeded': DDoSProtection,
-                'EOrder:Rate limit exceeded': DDoSProtection,
-                'EGeneral:Internal error': ExchangeNotAvailable,
-                'EGeneral:Temporary lockout': DDoSProtection,
-                'EGeneral:Permission denied': PermissionDenied,
-                'EOrder:Unknown order': InvalidOrder,
-                'EOrder:Order minimum not met': InvalidOrder,
-                'EGeneral:Invalid arguments': BadRequest,
-                'ESession:Invalid session': AuthenticationError,
-                'EAPI:Invalid nonce': InvalidNonce,
-                'EFunding:No funding method': BadRequest, // {"error":"EFunding:No funding method"}
-                'EFunding:Unknown asset': BadSymbol, // {"error":["EFunding:Unknown asset"]}
-                'EService:Market in post_only mode': OnMaintenance, // {"error":["EService:Market in post_only mode"]}
-                'EGeneral:Too many requests': DDoSProtection, // {"error":["EGeneral:Too many requests"]}
-                'ETrade:User Locked': AccountSuspended, // {"error":["ETrade:User Locked"]}
+                'exact': {
+                    'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
+                    'EAPI:Invalid key': AuthenticationError,
+                    'EFunding:Unknown withdraw key': InvalidAddress, // {"error":["EFunding:Unknown withdraw key"]}
+                    'EFunding:Invalid amount': InsufficientFunds,
+                    'EService:Unavailable': ExchangeNotAvailable,
+                    'EDatabase:Internal error': ExchangeNotAvailable,
+                    'EService:Busy': ExchangeNotAvailable,
+                    'EQuery:Unknown asset': BadSymbol, // {"error":["EQuery:Unknown asset"]}
+                    'EAPI:Rate limit exceeded': DDoSProtection,
+                    'EOrder:Rate limit exceeded': DDoSProtection,
+                    'EGeneral:Internal error': ExchangeNotAvailable,
+                    'EGeneral:Temporary lockout': DDoSProtection,
+                    'EGeneral:Permission denied': PermissionDenied,
+                    'EOrder:Unknown order': InvalidOrder,
+                    'EOrder:Order minimum not met': InvalidOrder,
+                    'EGeneral:Invalid arguments': BadRequest,
+                    'ESession:Invalid session': AuthenticationError,
+                    'EAPI:Invalid nonce': InvalidNonce,
+                    'EFunding:No funding method': BadRequest, // {"error":"EFunding:No funding method"}
+                    'EFunding:Unknown asset': BadSymbol, // {"error":["EFunding:Unknown asset"]}
+                    'EService:Market in post_only mode': OnMaintenance, // {"error":["EService:Market in post_only mode"]}
+                    'EGeneral:Too many requests': DDoSProtection, // {"error":["EGeneral:Too many requests"]}
+                    'ETrade:User Locked': AccountSuspended, // {"error":["ETrade:User Locked"]}
+                },
+                'broad': {
+                    'Invalid order': InvalidOrder,
+                    'Invalid nonce': InvalidNonce,
+                    'Insufficient funds': InsufficientFunds,
+                    'Cancel pending': CancelPending,
+                    'Invalid arguments:volume': InvalidOrder,
+                    'Rate limit exceeded': DDoSProtection,
+                },
             },
         });
     }
@@ -2881,44 +2891,24 @@ export default class kraken extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (code === 520) {
-            throw new ExchangeNotAvailable (this.id + ' ' + code.toString () + ' ' + reason);
-        }
-        // todo: rewrite this for "broad" exceptions matching
-        if (body.indexOf ('Invalid order') >= 0) {
-            throw new InvalidOrder (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Invalid nonce') >= 0) {
-            throw new InvalidNonce (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Insufficient funds') >= 0) {
-            throw new InsufficientFunds (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Cancel pending') >= 0) {
-            throw new CancelPending (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Invalid arguments:volume') >= 0) {
-            throw new InvalidOrder (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Rate limit exceeded') >= 0) {
-            throw new RateLimitExceeded (this.id + ' ' + body);
-        }
-        if (response === undefined) {
-            return undefined;
-        }
-        if (body[0] === '{') {
-            if (typeof response !== 'string') {
-                if ('error' in response) {
-                    const numErrors = response['error'].length;
-                    if (numErrors) {
-                        const message = this.id + ' ' + body;
-                        for (let i = 0; i < response['error'].length; i++) {
-                            const error = response['error'][i];
-                            this.throwExactlyMatchedException (this.exceptions, error, message);
-                        }
-                        throw new ExchangeError (message);
-                    }
+        // {
+        //   "error": [
+        //       "EGeneral:Invalid arguments:ordertype"
+        //   ]
+        // }
+        if (body) {
+            if (code === 520) {
+                throw new ExchangeNotAvailable (code.toString () + ': ' + reason);
+            }
+            const errors = this.safeValue (response, 'error', []);
+            if (errors.length > 0) {
+                for (let i = 0; i < errors.length; i++) {
+                    const error = errors[i];
+                    const errorMessage = error;
+                    this.throwExactlyMatchedException (this.exceptions['exact'], error, errorMessage);
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], error, errorMessage);
                 }
+                throw new ExchangeError (errors.join (', '));
             }
         }
         return undefined;
