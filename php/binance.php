@@ -43,9 +43,12 @@ class binance extends Exchange {
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
+                'createStopLossOrder' => true,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => true,
+                'createTakeProfitOrder' => true,
                 'createTrailingPercentOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
@@ -76,6 +79,7 @@ class binance extends Exchange {
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchL3OrderBook' => false,
+                'fetchLastPrices' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
@@ -3112,6 +3116,107 @@ class binance extends Exchange {
             $response = $this->publicGetTickerBookTicker (array_merge($request, $params));
         }
         return $this->parse_tickers($response, $symbols);
+    }
+
+    public function fetch_last_prices(?array $symbols = null, $params = array ()) {
+        /**
+         * fetches the last price for multiple markets
+         * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         // spot
+         * @see https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the last prices
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of lastprices structures
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $market = $this->get_market_from_symbols($symbols);
+        $type = null;
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchLastPrices', $market, $params);
+        list($type, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
+        $response = null;
+        if ($this->is_linear($type, $subType)) {
+            $response = $this->fapiPublicV2GetTickerPrice ($params);
+            //
+            //     array(
+            //         array(
+            //             "symbol" => "LTCBTC",
+            //             "price" => "4.00000200"
+            //             "time" => 1589437530011
+            //         ),
+            //         ...
+            //     )
+            //
+        } elseif ($this->is_inverse($type, $subType)) {
+            $response = $this->dapiPublicGetTickerPrice ($params);
+            //
+            //     array(
+            //         {
+            //             "symbol" => "BTCUSD_200626",
+            //             "ps" => "9647.8",
+            //             "price" => "9647.8",
+            //             "time" => 1591257246176
+            //         }
+            //     )
+            //
+        } elseif ($type === 'spot') {
+            $response = $this->publicGetTickerPrice ($params);
+            //
+            //     array(
+            //         array(
+            //             "symbol" => "LTCBTC",
+            //             "price" => "4.00000200"
+            //         ),
+            //         ...
+            //     )
+            //
+        } else {
+            throw new NotSupported($this->id . ' fetchLastPrices() does not support ' . $type . ' markets yet');
+        }
+        return $this->parse_last_prices($response, $symbols);
+    }
+
+    public function parse_last_price($entry, ?array $market = null) {
+        //
+        // spot
+        //
+        //     {
+        //         "symbol" => "LTCBTC",
+        //         "price" => "4.00000200"
+        //     }
+        //
+        // usdm (swap/future)
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "price" => "6000.01",
+        //         "time" => 1589437530011   // Transaction time
+        //     }
+        //
+        //
+        // coinm (swap/future)
+        //
+        //     {
+        //         "symbol" => "BTCUSD_200626", // symbol ("BTCUSD_200626", "BTCUSD_PERP", etc..)
+        //         "ps" => "BTCUSD", // pair
+        //         "price" => "9647.8",
+        //         "time" => 1591257246176
+        //     }
+        //
+        $timestamp = $this->safe_integer($entry, 'time');
+        $type = ($timestamp === null) ? 'spot' : 'swap';
+        $marketId = $this->safe_string($entry, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, $type);
+        $price = $this->safe_number($entry, 'price');
+        return array(
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'price' => $price,
+            'side' => null,
+            'info' => $entry,
+        );
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {

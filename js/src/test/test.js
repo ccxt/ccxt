@@ -473,6 +473,7 @@ export default class testMainClass extends baseMainTestClass {
             'fetchCurrencies': [],
             'fetchTicker': [symbol],
             'fetchTickers': [symbol],
+            'fetchLastPrices': [symbol],
             'fetchOHLCV': [symbol],
             'fetchTrades': [symbol],
             'fetchOrderBook': [symbol],
@@ -1200,6 +1201,10 @@ export default class testMainClass extends baseMainTestClass {
                 const result = results[j];
                 const description = exchange.safeValue(result, 'description');
                 if ((testName !== undefined) && (testName !== description)) {
+                    continue;
+                }
+                const isDisabled = exchange.safeValue(result, 'disabled', false);
+                if (isDisabled) {
                     continue;
                 }
                 const type = exchange.safeString(exchangeData, 'outputType');

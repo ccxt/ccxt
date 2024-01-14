@@ -51,6 +51,15 @@ export default class htx extends Exchange {
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchLastPrices(symbols?: Strings, params?: {}): Promise<any>;
+    parseLastPrice(entry: any, market?: Market): {
+        symbol: string;
+        timestamp: any;
+        datetime: any;
+        price: number;
+        side: string;
+        info: any;
+    };
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

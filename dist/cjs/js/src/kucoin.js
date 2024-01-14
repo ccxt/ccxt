@@ -46,6 +46,7 @@ class kucoin extends kucoin$1 {
                 'createPostOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
+                'createTriggerOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
@@ -313,6 +314,7 @@ class kucoin extends kucoin$1 {
                         'premium/query': 4.5,
                         'trade-statistics': 4.5,
                         'funding-rate/{symbol}/current': 3,
+                        'contract/funding-rates': 7.5,
                         'timestamp': 3,
                         'status': 6,
                         // ?
@@ -342,6 +344,7 @@ class kucoin extends kucoin$1 {
                         'openOrderStatistics': 15,
                         'position': 3,
                         'positions': 3,
+                        'margin/maxWithdrawMargin': 15,
                         'contracts/risk-limit/{symbol}': 7.5,
                         'funding-history': 7.5, // 5FW
                     },
@@ -352,7 +355,9 @@ class kucoin extends kucoin$1 {
                         // futures
                         'orders': 3,
                         'orders/test': 3,
+                        'orders/multi': 4.5,
                         'position/margin/auto-deposit-status': 6,
+                        'margin/withdrawMargin': 15,
                         'position/margin/deposit-margin': 6,
                         'position/risk-limit-level/change': 6,
                         // ws

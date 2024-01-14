@@ -1554,23 +1554,30 @@ class kraken(Exchange, ImplicitAPI):
         trailingAmount = self.safe_string(params, 'trailingAmount')
         trailingLimitAmount = self.safe_string(params, 'trailingLimitAmount')
         isTrailingAmountOrder = trailingAmount is not None
-        if (type == 'limit') and not isTrailingAmountOrder:
+        isLimitOrder = type.endswith('limit')  # supporting limit, stop-loss-limit, take-profit-limit, etc
+        if isLimitOrder and not isTrailingAmountOrder:
             request['price'] = self.price_to_precision(symbol, price)
         reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
         if isStopLossOrTakeProfitTrigger:
             if isStopLossTriggerOrder:
                 request['price'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-                request['ordertype'] = 'stop-loss-limit'
+                if isLimitOrder:
+                    request['ordertype'] = 'stop-loss-limit'
+                else:
+                    request['ordertype'] = 'stop-loss'
             elif isTakeProfitTriggerOrder:
                 request['price'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-                request['ordertype'] = 'take-profit-limit'
-            request['price2'] = self.price_to_precision(symbol, price)
-            reduceOnly = True
+                if isLimitOrder:
+                    request['ordertype'] = 'take-profit-limit'
+                else:
+                    request['ordertype'] = 'take-profit'
+            if isLimitOrder:
+                request['price2'] = self.price_to_precision(symbol, price)
         elif isTrailingAmountOrder:
             trailingActivationPriceType = self.safe_string(params, 'trigger', 'last')
             trailingAmountString = '+' + trailingAmount
             request['trigger'] = trailingActivationPriceType
-            if (type == 'limit') or (trailingLimitAmount is not None):
+            if isLimitOrder or (trailingLimitAmount is not None):
                 offset = self.safe_string(params, 'offset', '-')
                 trailingLimitAmountString = offset + self.number_to_string(trailingLimitAmount)
                 request['price'] = trailingAmountString

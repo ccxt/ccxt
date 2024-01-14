@@ -506,6 +506,7 @@ class testMainClass(baseMainTestClass):
             'fetchCurrencies': [],
             'fetchTicker': [symbol],
             'fetchTickers': [symbol],
+            'fetchLastPrices': [symbol],
             'fetchOHLCV': [symbol],
             'fetchTrades': [symbol],
             'fetchOrderBook': [symbol],
@@ -1052,6 +1053,9 @@ class testMainClass(baseMainTestClass):
                 result = results[j]
                 description = exchange.safe_value(result, 'description')
                 if (test_name is not None) and (test_name != description):
+                    continue
+                is_disabled = exchange.safe_value(result, 'disabled', False)
+                if is_disabled:
                     continue
                 type = exchange.safe_string(exchange_data, 'outputType')
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])

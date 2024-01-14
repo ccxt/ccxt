@@ -51,6 +51,10 @@ export default class woo extends Exchange {
                 'createStopOrder': false,
                 'createTrailingAmountOrder': true,
                 'createTrailingPercentOrder': true,
+                'createTriggerOrder': true,
+                'createTakeProfitOrder': true,
+                'createStopLossOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': false,
@@ -769,7 +773,7 @@ export default class woo extends Exchange {
     async createTrailingAmountOrder(symbol, type, side, amount, price = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}) {
         /**
          * @method
-         * @name createTrailingAmountOrder
+         * @name woo#createTrailingAmountOrder
          * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -794,7 +798,7 @@ export default class woo extends Exchange {
     async createTrailingPercentOrder(symbol, type, side, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}) {
         /**
          * @method
-         * @name createTrailingPercentOrder
+         * @name woo#createTrailingPercentOrder
          * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'

@@ -14,6 +14,7 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 use React\Promise\PromiseInterface;
 
 class bigone extends Exchange {
@@ -128,6 +129,7 @@ class bigone extends Exchange {
                 ),
                 'contractPublic' => array(
                     'get' => array(
+                        'symbols',
                         'instruments',
                         'depth@{symbol}/snapshot',
                         'instruments/difference',
@@ -525,7 +527,10 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $response = Async\await($this->publicGetAssetPairs ($params));
+            $promises = array( $this->publicGetAssetPairs ($params), $this->contractPublicGetSymbols ($params) );
+            $promisesResult = Async\await(Promise\all($promises));
+            $response = $promisesResult[0];
+            $contractResponse = $promisesResult[1];
             //
             //     {
             //         "code":0,
@@ -551,29 +556,30 @@ class bigone extends Exchange {
             //         )
             //     }
             //
-            $contractResponse = Async\await($this->contractPublicGetInstruments ($params));
             //
             //    array(
-            //        {
-            //            "usdtPrice" => 1.00031998,
+            //        array(
+            //            "baseCurrency" => "BTC",
+            //            "multiplier" => 1,
+            //            "enable" => true,
+            //            "priceStep" => 0.5,
+            //            "maxRiskLimit" => 1000,
+            //            "pricePrecision" => 1,
+            //            "maintenanceMargin" => 0.00500,
             //            "symbol" => "BTCUSD",
-            //            "btcPrice" => 34700.4,
-            //            "ethPrice" => 1787.83,
-            //            "nextFundingRate" => 0.00010,
-            //            "fundingRate" => 0.00010,
-            //            "latestPrice" => 34708.5,
-            //            "last24hPriceChange" => 0.0321,
-            //            "indexPrice" => 34700.4,
-            //            "volume24h" => 261319063,
-            //            "turnover24h" => 8204.129380685496,
-            //            "nextFundingTime" => 1698285600000,
-            //            "markPrice" => 34702.4646738,
-            //            "last24hMaxPrice" => 35127.5,
-            //            "volume24hInUsd" => 0.0,
-            //            "openValue" => 32.88054722085945,
-            //            "last24hMinPrice" => 33552.0,
-            //            "openInterest" => 1141372.0
-            //        }
+            //            "valuePrecision" => 4,
+            //            "minRiskLimit" => 100,
+            //            "riskLimit" => 100,
+            //            "isInverse" => true,
+            //            "riskStep" => 1,
+            //            "settleCurrency" => "BTC",
+            //            "baseName" => "Bitcoin",
+            //            "feePrecision" => 8,
+            //            "priceMin" => 0.5,
+            //            "priceMax" => 1E+6,
+            //            "initialMargin" => 0.01000,
+            //            "quoteCurrency" => "USD"
+            //        ),
             //        ...
             //    )
             //
@@ -640,15 +646,14 @@ class bigone extends Exchange {
             }
             for ($i = 0; $i < count($contractResponse); $i++) {
                 $market = $contractResponse[$i];
+                $baseId = $this->safe_string($market, 'baseCurrency');
+                $quoteId = $this->safe_string($market, 'quoteCurrency');
+                $settleId = $this->safe_string($market, 'settleCurrency');
                 $marketId = $this->safe_string($market, 'symbol');
-                $index = mb_strpos($marketId, 'USD');
-                $baseId = mb_substr($marketId, 0, $index - 0);
-                $quoteId = mb_substr($marketId, $index);
-                $inverse = ($quoteId === 'USD');
-                $settleId = $inverse ? $baseId : $quoteId;
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 $settle = $this->safe_currency_code($settleId);
+                $inverse = $this->safe_value($market, 'isInverse');
                 $result[] = $this->safe_market_structure(array(
                     'id' => $marketId,
                     'symbol' => $base . '/' . $quote . ':' . $settle,
@@ -664,18 +669,18 @@ class bigone extends Exchange {
                     'swap' => true,
                     'future' => false,
                     'option' => false,
-                    'active' => true,
+                    'active' => $this->safe_value($market, 'enable'),
                     'contract' => true,
                     'linear' => !$inverse,
                     'inverse' => $inverse,
-                    'contractSize' => 1,
+                    'contractSize' => $this->safe_number($market, 'multiplier'),
                     'expiry' => null,
                     'expiryDatetime' => null,
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => null,
-                        'price' => null,
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'valuePrecision'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
                     ),
                     'limits' => array(
                         'leverage' => array(
@@ -687,11 +692,11 @@ class bigone extends Exchange {
                             'max' => null,
                         ),
                         'price' => array(
-                            'min' => null,
-                            'max' => null,
+                            'min' => $this->safe_number($market, 'priceMin'),
+                            'max' => $this->safe_number($market, 'priceMax'),
                         ),
                         'cost' => array(
-                            'min' => null,
+                            'min' => $this->safe_number($market, 'initialMargin'),
                             'max' => null,
                         ),
                     ),

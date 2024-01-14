@@ -49,6 +49,7 @@ export default class kucoin extends Exchange {
                 'createPostOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
+                'createTriggerOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
@@ -316,6 +317,7 @@ export default class kucoin extends Exchange {
                         'premium/query': 4.5,
                         'trade-statistics': 4.5,
                         'funding-rate/{symbol}/current': 3,
+                        'contract/funding-rates': 7.5,
                         'timestamp': 3,
                         'status': 6,
                         // ?
@@ -345,6 +347,7 @@ export default class kucoin extends Exchange {
                         'openOrderStatistics': 15,
                         'position': 3,
                         'positions': 3,
+                        'margin/maxWithdrawMargin': 15,
                         'contracts/risk-limit/{symbol}': 7.5,
                         'funding-history': 7.5, // 5FW
                     },
@@ -355,7 +358,9 @@ export default class kucoin extends Exchange {
                         // futures
                         'orders': 3,
                         'orders/test': 3,
+                        'orders/multi': 4.5,
                         'position/margin/auto-deposit-status': 6,
+                        'margin/withdrawMargin': 15,
                         'position/margin/deposit-margin': 6,
                         'position/risk-limit-level/change': 6,
                         // ws
