@@ -248,7 +248,6 @@ public partial class Exchange
             {
                 while (webSocket.State == WebSocketState.Open)
                 {
-                    Console.Write("Enter message to send: ");
                     string message = Console.ReadLine();
 
                     if (!string.IsNullOrEmpty(message))

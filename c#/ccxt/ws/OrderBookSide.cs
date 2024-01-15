@@ -114,6 +114,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
             // for (var i = 0; i < deltas.Count; i++)
             // {
             //     this.storeArray(deltas[i]); // do we need to copy here??
+            // }
         }
         // }
     }
@@ -185,6 +186,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
         {
 
             var copy = new OrderBookSide(this);
+            // return copy.ToList() as IOrderBookSide;
             return copy;
         }
     }
@@ -200,12 +202,23 @@ public class NormalOrderBookSide : OrderBookSide, IOrderBookSide
         {
 
             var deltas = (IList<object>)deltas2;
-            for (var i = 0; i < deltas.Count; i++)
+            var copiedDeltas = new List<object>(deltas);
+            for (var i = 0; i < copiedDeltas.Count; i++)
             {
-                this.storeArray(deltas[i]); // do we need to copy here??
+                var delta = copiedDeltas[i] as IList<object>;
+                this.storeArray(new List<object>(delta)); // do we need to copy here??
             }
         }
+    }
 
+    public IOrderBookSide GetCopy()
+    {
+        lock (_syncRoot)
+        {
+
+            var copy = new NormalOrderBookSide(this);
+            return copy;
+        }
     }
 }
 
@@ -223,6 +236,16 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
             {
                 this.storeArray(deltas[i]); // do we need to copy here??
             }
+        }
+    }
+
+    public IOrderBookSide GetCopy()
+    {
+        lock (_syncRoot)
+        {
+
+            var copy = new CountedOrderBookSide(this);
+            return copy;
         }
     }
 
@@ -286,6 +309,16 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
             }
         }
 
+    }
+
+    public IOrderBookSide GetCopy()
+    {
+        lock (_syncRoot)
+        {
+
+            var copy = new IndexedOrderBookSide(this);
+            return copy;
+        }
     }
 
     public void storeArray(object delta2)
@@ -416,6 +449,16 @@ public class Asks : NormalOrderBookSide, IAsks
     {
         this.side = false;
     }
+
+    public IAsks GetCopy()
+    {
+        lock (_syncRoot)
+        {
+
+            var copy = new Asks(this.ToList());
+            return copy;
+        }
+    }
 }
 
 public class Bids : NormalOrderBookSide, IBids
@@ -423,6 +466,16 @@ public class Bids : NormalOrderBookSide, IBids
     public Bids(object deltas2, object depth = null) : base(deltas2, depth, true)
     {
         this.side = true;
+    }
+
+    public IBids GetCopy()
+    {
+        lock (_syncRoot)
+        {
+
+            var copy = new Bids(this.ToList());
+            return copy;
+        }
     }
 }
 

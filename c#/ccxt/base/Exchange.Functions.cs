@@ -237,10 +237,17 @@ public partial class Exchange
     {
         if (obj is IOrderBook)
         {
-            // tmp fix
+            // tmp fix, not this prevents the Collection was modified; enumeration operation may not execute error wtf
             var ob = (IOrderBook)obj;
             var copy = ob.GetCopy();
-            return Json(copy);
+            try
+            {
+                return Json(copy);
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
         }
         return Json(obj);
     }
