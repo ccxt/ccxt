@@ -11,10 +11,6 @@ function isTemporaryFailure (e) {
     return (e instanceof OperationFailed) && (!(e instanceof OnMaintenance));
 }
 
-function isArgumentsRequiredException (e) {
-    return (e instanceof ArgumentsRequired);
-}
-
 function stringValue (value) {
     let stringVal = undefined;
     if (typeof value === 'string') {

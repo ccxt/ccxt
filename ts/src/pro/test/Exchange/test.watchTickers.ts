@@ -2,6 +2,7 @@
 import assert from 'assert';
 import testTicker from '../../../test/Exchange/base/test.ticker.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { ArgumentsRequired } from '../../../base/errors.js';
 
 async function testWatchTickers (exchange, skippedProperties, symbol) {
     const withoutSymbol = testWatchTickersHelper (exchange, skippedProperties, undefined);
@@ -22,7 +23,7 @@ async function testWatchTickersHelper (exchange, skippedProperties, argSymbols, 
             // to "all tickers" itself, and it requires symbols to be set
             // so, in such case, if it's arguments-required exception, we don't
             // mark tests as failed, but just skip them
-            if (testSharedMethods.isArgumentsRequiredException (e) && (argSymbols === undefined || argSymbols.length === 0)) {
+            if ((e instanceof ArgumentsRequired) && (argSymbols === undefined || argSymbols.length === 0)) {
                 // todo: provide random symbols to try
                 return;
             }
