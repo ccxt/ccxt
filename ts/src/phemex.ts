@@ -2969,19 +2969,17 @@ export default class phemex extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
+            'symbol': market['id'],
         };
-        if (market !== undefined) {
-            request['symbol'] = market['id'];
-        }
         let response = undefined;
-        const isUSDTSettled = (symbol === undefined) || (this.safeString (market, 'settle') === 'USDT');
         try {
-            if (isUSDTSettled) {
+            if (market['settle'] === 'USDT') {
                 response = await this.privateGetGOrdersActiveList (this.extend (request, params));
             } else if (market['swap']) {
                 response = await this.privateGetOrdersActiveList (this.extend (request, params));
