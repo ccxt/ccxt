@@ -3,7 +3,7 @@
 
 import coinoneRest from '../coinone.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Int, OrderBook, Ticker } from '../base/types.js';
+import type { Int, OrderBook, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -15,7 +15,7 @@ export default class coinone extends coinoneRest {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchOrders': false,
-                'watchTrades': false,
+                'watchTrades': true,
                 'watchOHLCV': false,
                 'watchTicker': true,
                 'watchTickers': false,
@@ -132,7 +132,7 @@ export default class coinone extends coinoneRest {
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
-         * @name bybit#watchTicker
+         * @name coinone#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.coinone.co.kr/reference/public-websocket-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -193,6 +193,58 @@ export default class coinone extends coinoneRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name coinone#watchTrades
+         * @description watches information on multiple trades made in a market
+         * @see https://docs.coinone.co.kr/reference/public-websocket-trade
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'trade:' + symbol;
+        const url = this.urls['api']['ws'];
+        const request = {
+            'request_type': 'SUBSCRIBE',
+            'channel': 'TRADE',
+            'topic': {
+                'quote_currency': market['quote'],
+                'target_currency': market['base'],
+            },
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    handleTrades (client: Client, message) {
+        //
+        //     {
+        //         "response_type": "DATA",
+        //         "channel": "TRADE",
+        //         "data": {
+        //             "quote_currency": "KRW",
+        //             "target_currency": "BTC",
+        //             "id": "1705303667916001",
+        //             "timestamp": 1705303667916,
+        //             "price": "58490000",
+        //             "qty": "0.0008",
+        //             "is_seller_maker": false
+        //         }
+        //     }
+        //
+        const data = this.safeValue (message, 'data', {});
+        const trade = this.parseTrade (data);
+        const symbol = trade['symbol'];
+        this.trades[symbol] = trade;
+        const messageHash = 'trade:' + symbol;
+        client.resolve (this.trades[symbol], messageHash);
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         //     {
@@ -222,6 +274,7 @@ export default class coinone extends coinoneRest {
             const methods = {
                 'ORDERBOOK': this.handleOrderBook,
                 'TICKER': this.handleTicker,
+                'TRADE': this.handleTrades,
             };
             const exacMethod = this.safeValue (methods, topic);
             if (exacMethod !== undefined) {
@@ -252,7 +305,7 @@ export default class coinone extends coinoneRest {
         //         "response_type":"PONG"
         //     }
         //
-        client.lastPong = this.nonce ();
+        client.lastPong = this.milliseconds ();
         return message;
     }
 }

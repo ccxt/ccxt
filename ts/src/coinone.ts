@@ -701,8 +701,25 @@ export default class coinone extends Exchange {
         //         "orderId": "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
         //     }
         //
+        // watchTrades
+        //
+        //     {
+        //         "quote_currency": "KRW",
+        //         "target_currency": "BTC",
+        //         "id": "1705303667916001",
+        //         "timestamp": 1705303667916,
+        //         "price": "58490000",
+        //         "qty": "0.0008",
+        //         "is_seller_maker": false
+        //     }
+        //
+        const baseId = this.safeStringUpper (trade, 'target_currency');
+        const quoteId = this.safeStringUpper (trade, 'quote_currency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
         const timestamp = this.safeInteger (trade, 'timestamp');
-        market = this.safeMarket (undefined, market);
+        market = this.safeMarket (symbol, market);
         const isSellerMaker = this.safeValue (trade, 'is_seller_maker');
         let side = undefined;
         if (isSellerMaker !== undefined) {
