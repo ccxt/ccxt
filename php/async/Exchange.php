@@ -407,11 +407,11 @@ class Exchange extends \ccxt\Exchange {
         $httpsProxy = null;
         $socksProxy = null;
         // $httpProxy
-        if ($this->httpProxy !== null) {
+        if ($this->valueIsDefined ($this->httpProxy)) {
             $usedProxies[] = 'httpProxy';
             $httpProxy = $this->httpProxy;
         }
-        if ($this->http_proxy !== null) {
+        if ($this->valueIsDefined ($this->http_proxy)) {
             $usedProxies[] = 'http_proxy';
             $httpProxy = $this->http_proxy;
         }
@@ -424,11 +424,11 @@ class Exchange extends \ccxt\Exchange {
             $httpProxy = $this->http_proxy_callback ($url, $method, $headers, $body);
         }
         // $httpsProxy
-        if ($this->httpsProxy !== null) {
+        if ($this->valueIsDefined ($this->httpsProxy)) {
             $usedProxies[] = 'httpsProxy';
             $httpsProxy = $this->httpsProxy;
         }
-        if ($this->https_proxy !== null) {
+        if ($this->valueIsDefined ($this->https_proxy)) {
             $usedProxies[] = 'https_proxy';
             $httpsProxy = $this->https_proxy;
         }
@@ -441,11 +441,11 @@ class Exchange extends \ccxt\Exchange {
             $httpsProxy = $this->https_proxy_callback ($url, $method, $headers, $body);
         }
         // $socksProxy
-        if ($this->socksProxy !== null) {
+        if ($this->valueIsDefined ($this->socksProxy)) {
             $usedProxies[] = 'socksProxy';
             $socksProxy = $this->socksProxy;
         }
-        if ($this->socks_proxy !== null) {
+        if ($this->valueIsDefined ($this->socks_proxy)) {
             $usedProxies[] = 'socks_proxy';
             $socksProxy = $this->socks_proxy;
         }
@@ -472,29 +472,29 @@ class Exchange extends \ccxt\Exchange {
         $wssProxy = null;
         $wsSocksProxy = null;
         // ws proxy
-        if ($this->wsProxy !== null) {
+        if ($this->valueIsDefined ($this->wsProxy)) {
             $usedProxies[] = 'wsProxy';
             $wsProxy = $this->wsProxy;
         }
-        if ($this->ws_proxy !== null) {
+        if ($this->valueIsDefined ($this->ws_proxy)) {
             $usedProxies[] = 'ws_proxy';
             $wsProxy = $this->ws_proxy;
         }
         // wss proxy
-        if ($this->wssProxy !== null) {
+        if ($this->valueIsDefined ($this->wssProxy)) {
             $usedProxies[] = 'wssProxy';
             $wssProxy = $this->wssProxy;
         }
-        if ($this->wss_proxy !== null) {
+        if ($this->valueIsDefined ($this->wss_proxy)) {
             $usedProxies[] = 'wss_proxy';
             $wssProxy = $this->wss_proxy;
         }
         // ws socks proxy
-        if ($this->wsSocksProxy !== null) {
+        if ($this->valueIsDefined ($this->wsSocksProxy)) {
             $usedProxies[] = 'wsSocksProxy';
             $wsSocksProxy = $this->wsSocksProxy;
         }
-        if ($this->ws_socks_proxy !== null) {
+        if ($this->valueIsDefined ($this->ws_socks_proxy)) {
             $usedProxies[] = 'ws_socks_proxy';
             $wsSocksProxy = $this->ws_socks_proxy;
         }
