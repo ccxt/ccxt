@@ -42,6 +42,7 @@ async function testWatchTickersHelper (exchange, skippedProperties, argSymbols, 
             const ticker = values[i];
             testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
         }
+        now = exchange.milliseconds ();
     }
 }
 
