@@ -6,6 +6,9 @@ import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE, ROUND, DECIMAL_PLACES } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
+import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import { ecdsa } from './base/functions/crypto.js';
 import type { Market, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position } from './base/types.js';
 import ethabi from './static_dependencies/ethabi/ethabi.js'
 
@@ -517,6 +520,24 @@ export default class hyperliquid extends Exchange {
         return this.decimalToPrecision (amount, ROUND, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
+    hashMessage (domain, message) {
+        const prefix = this.encode ('\x19\x01');
+        return '0x' + this.hash (this.binaryConcat (prefix, domain, message), keccak, 'hex');
+    }
+
+    signHash (hash, privateKey) {
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        return {
+            'r': '0x' + signature['r'],
+            's': '0x' + signature['s'],
+            'v': 27 + signature['v'],
+        };
+    }
+
+    signMessage (domain, message, privateKey) {
+        return this.signHash (this.hashMessage (domain, message), privateKey.slice (-64));
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -612,7 +633,7 @@ export default class hyperliquid extends Exchange {
         // without cloid
         // ["(uint32,bool,uint64,uint64,bool,uint8,uint64)[]", "uint8"]
         const connectionId = this.eth_abi_encode(["(uint32,bool,uint64,uint64,bool,uint8,uint64)[]", "uint8", "address", "uint256"], signing);
-        const connectionIdHash = this.hash (connectionId, 'keccak', 'binary');
+        const connectionIdHash = this.hash (connectionId, keccak, 'binary');
         const message = {
             "source": (isSandboxMode) ? "b" : "a",
             "connectionId": connectionIdHash,
@@ -639,9 +660,11 @@ export default class hyperliquid extends Exchange {
             "primaryType": "Agent",
             "message": message
         };
-        const account = this.eth_recover_account (this.secret);
+        // const account = this.eth_recover_account (this.privateKey);
+        // const signedMsg = account.sign_message(msg);
+        // TODO: use encode typed data?
         const msg = this.eth_encode_structured_data (structuredData);
-        const signedMsg = account.sign_message(msg);
+        const signature = this.signMessage (msg.header, msg.body, this.privateKey);
         const tmpRequest = {
             "action": {
                 "type": "order",
@@ -658,9 +681,9 @@ export default class hyperliquid extends Exchange {
             },
             "nonce": nonce,
             "signature": {
-                "r": this.eth_to_hex (signedMsg["r"]),
-                "s": this.eth_to_hex (signedMsg["s"]),
-                "v": signedMsg["v"]
+                "r": signature["r"],
+                "s": signature["s"],
+                "v": signature["v"]
             },
             "vaultAddress": vaultAddress,
         };

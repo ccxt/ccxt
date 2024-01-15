@@ -56,7 +56,6 @@ except ImportError:
 # eth signing
 from ccxt.static_dependencies import ethabi
 from ccxt.static_dependencies import ethaccount
-from ccxt.static_dependencies import ethutils
 
 # -----------------------------------------------------------------------------
 
@@ -1342,14 +1341,6 @@ class Exchange(object):
     @staticmethod
     def eth_encode_structured_data(data):
         return ethaccount.messages.encode_structured_data(data)
-
-    @staticmethod
-    def eth_recover_account(priv):
-        return ethaccount.Account.from_key(priv)
-
-    @staticmethod
-    def eth_to_hex(data):
-        return ethutils.to_hex(data)
 
     @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
