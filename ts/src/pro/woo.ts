@@ -734,8 +734,9 @@ export default class woo extends wooRest {
         const newPositions = [];
         for (let i = 0; i < postitionsIds.length; i++) {
             const marketId = postitionsIds[i];
+            const market = this.safeMarket (marketId);
             const rawPosition = rawPositions[marketId];
-            const position = this.parsePosition (rawPosition);
+            const position = this.parsePosition (rawPosition, market);
             newPositions.push (position);
             cache.append (position);
         }
