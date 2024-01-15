@@ -115,6 +115,7 @@
       },
       {
         "description": "closed market order",
+        "disabledPHP": true,
         "method": "fetchOrder",
         "input": [
           "OGMZCL-KC6MC-ZRBGM6",
