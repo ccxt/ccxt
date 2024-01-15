@@ -184,20 +184,21 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     {
         lock (_syncRoot)
         {
-            var copy = new OrderBook(new Dictionary<string, object>(){
-                {"asks", (this.asks.GetCopy() as IList<object>)},
-                {"bids", (this.bids.GetCopy() as IList<object>)},
-                {"nonce", this["nonce"]},
-                {"timestamp", this["timestamp"]},
-                {"datetime", this["datetime"]},
-                {"symbol", this["symbol"]},
-            });
-            // copy["asks"] = this.asks.GetCopy();
-            // copy["bids"] = this.bids.GetCopy();
-            // copy["nonce"] = this["nonce"];
-            // copy["timestamp"] = this["timestamp"];
-            // copy["datetime"] = this["datetime"];
-            // copy["symbol"] = this["symbol"];
+            // var copy = new OrderBook(new Dictionary<string, object>(){
+            //     {"asks", (this.asks.GetCopy() as IList<object>)},
+            //     {"bids", (this.bids.GetCopy() as IList<object>)},
+            //     {"nonce", this["nonce"]},
+            //     {"timestamp", this["timestamp"]},
+            //     {"datetime", this["datetime"]},
+            //     {"symbol", this["symbol"]},
+            // });
+            var copy = new OrderBook(new Dictionary<string, object>());
+            copy["asks"] = this.asks.GetCopy();
+            copy["bids"] = this.bids.GetCopy();
+            copy["nonce"] = this["nonce"];
+            copy["timestamp"] = this["timestamp"];
+            copy["datetime"] = this["datetime"];
+            copy["symbol"] = this["symbol"];
             // copy["nonce"] = this["nonce"];
             // copy["timestamp"] = this["timestamp"];
             // copy["datetime"] = this["datetime"];
