@@ -18,6 +18,7 @@ async function testFetchTickersHelper (exchange, skippedProperties, argSymbols, 
         checkedSymbol = argSymbols[0];
     }
     for (let i = 0; i < values.length; i++) {
+        // todo: symbol check here
         const ticker = values[i];
         testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
     }

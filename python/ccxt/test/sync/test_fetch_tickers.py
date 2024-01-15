@@ -27,5 +27,6 @@ def test_fetch_tickers(exchange, skipped_properties, symbol):
     assert isinstance(tickers, dict), exchange.id + ' ' + method + ' ' + checked_symbol + ' must return an object. ' + exchange.json(tickers)
     values = list(tickers.values())
     for i in range(0, len(values)):
+        # todo: symbol check here
         ticker = values[i]
         test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)

@@ -44,6 +44,7 @@ class bitmart extends bitmart$1 {
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
+                'createTrailingPercentOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
@@ -262,8 +263,8 @@ class bitmart extends bitmart$1 {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': this.parseNumber('0.0025'),
-                    'maker': this.parseNumber('0.0025'),
+                    'taker': this.parseNumber('0.0040'),
+                    'maker': this.parseNumber('0.0035'),
                     'tiers': {
                         'taker': [
                             [this.parseNumber('0'), this.parseNumber('0.0020')],
@@ -3512,14 +3513,13 @@ class bitmart extends bitmart$1 {
         //         "repay_id": "2afcc16d99bd4707818c5a355dc89bed",
         //     }
         //
-        const timestamp = this.milliseconds();
         return {
             'id': this.safeString2(info, 'borrow_id', 'repay_id'),
             'currency': this.safeCurrencyCode(undefined, currency),
             'amount': undefined,
             'symbol': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }

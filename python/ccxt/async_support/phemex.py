@@ -469,7 +469,7 @@ class phemex(Exchange, ImplicitAPI):
                 },
             },
             'options': {
-                'brokerId': 'CCXT',
+                'brokerId': 'CCXT123456',  # updated from CCXT to CCXT123456
                 'x-phemex-request-expiry': 60,  # in seconds
                 'createOrderByQuoteRequiresPrice': True,
                 'networks': {
@@ -2392,7 +2392,7 @@ class phemex(Exchange, ImplicitAPI):
         takeProfit = self.safe_value(params, 'takeProfit')
         takeProfitDefined = (takeProfit is not None)
         if clientOrderId is None:
-            brokerId = self.safe_string(self.options, 'brokerId')
+            brokerId = self.safe_string(self.options, 'brokerId', 'CCXT123456')
             if brokerId is not None:
                 request['clOrdID'] = brokerId + self.uuid16()
         else:
@@ -2785,12 +2785,14 @@ class phemex(Exchange, ImplicitAPI):
         fetch all unfilled currently open orders
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotListAllOpenOrder
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
+        await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
@@ -2821,26 +2823,31 @@ class phemex(Exchange, ImplicitAPI):
         """
         fetches information on multiple closed orders made by the user
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#queryorder
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedgedd-Perpetual-API.md#query-closed-orders-by-symbol
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataOrdersByIds
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.settle]: the settlement currency to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
-        market = self.market(symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         request = {
-            'symbol': market['id'],
         }
+        if market is not None:
+            request['symbol'] = market['id']
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit
         response = None
-        if market['settle'] == 'USDT':
-            request['currency'] = market['settle']
+        if (symbol is None) or (self.safe_string(market, 'settle') == 'USDT'):
+            request['currency'] = self.safe_string(params, 'settle', 'USDT')
             response = await self.privateGetExchangeOrderV2OrderList(self.extend(request, params))
         elif market['swap']:
             response = await self.privateGetExchangeOrderList(self.extend(request, params))
@@ -2894,21 +2901,23 @@ class phemex(Exchange, ImplicitAPI):
         fetch all trades made by the user
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-user-trade
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-trade
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataTradesHist
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
-        market = self.market(symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         request = {}
         if limit is not None:
             limit = min(200, limit)
             request['limit'] = limit
-        if market['settle'] == 'USDT':
+        isUSDTSettled = (symbol is None) or (self.safe_string(market, 'settle') == 'USDT')
+        if isUSDTSettled:
             request['currency'] = 'USDT'
             request['offset'] = 0
             if limit is None:
@@ -2917,15 +2926,11 @@ class phemex(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['start'] = since
-        if market['swap'] and (limit is not None):
-            request['limit'] = limit
-        isUSDTSettled = market['settle'] == 'USDT'
         response = None
-        if market['swap']:
-            if isUSDTSettled:
-                response = await self.privateGetExchangeOrderV2TradingList(self.extend(request, params))
-            else:
-                response = await self.privateGetExchangeOrderTrade(self.extend(request, params))
+        if isUSDTSettled:
+            response = await self.privateGetExchangeOrderV2TradingList(self.extend(request, params))
+        elif market['swap']:
+            response = await self.privateGetExchangeOrderTrade(self.extend(request, params))
         else:
             response = await self.privateGetExchangeSpotOrderTrades(self.extend(request, params))
         #
@@ -3984,6 +3989,11 @@ class phemex(Exchange, ImplicitAPI):
             }
             payload = ''
             if method == 'POST':
+                isOrderPlacement = (path == 'g-orders') or (path == 'spot/orders') or (path == 'orders')
+                if isOrderPlacement:
+                    if self.safe_string(params, 'clOrdID') is None:
+                        id = self.safe_string(self.options, 'brokerId', 'CCXT123456')
+                        params['clOrdID'] = id + self.uuid16()
                 payload = self.json(params)
                 body = payload
                 headers['Content-Type'] = 'application/json'

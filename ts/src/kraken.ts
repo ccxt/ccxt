@@ -40,8 +40,8 @@ export default class kraken extends Exchange {
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
-                'createTrailingAmountOrder': true,
                 'createStopOrder': true,
+                'createTrailingAmountOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -1281,12 +1281,8 @@ export default class kraken extends Exchange {
             request['since'] = since * 1e6;
             request['since'] = since.toString () + '000000'; // expected to be in nanoseconds
         }
-        // https://github.com/ccxt/ccxt/issues/5698
-        if (limit !== undefined && limit !== 1000) {
-            const fetchTradesWarning = this.safeValue (this.options, 'fetchTradesWarning', true);
-            if (fetchTradesWarning) {
-                throw new ExchangeError (this.id + ' fetchTrades() cannot serve ' + limit.toString () + " trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge this warning and silence it.");
-            }
+        if (limit !== undefined) {
+            request['count'] = limit;
         }
         const response = await this.publicGetTrades (this.extend (request, params));
         //
@@ -1464,6 +1460,17 @@ export default class kraken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    parseOrderType (status) {
+        const statuses = {
+            'take-profit': 'market',
+            'stop-loss-limit': 'limit',
+            'stop-loss': 'market',
+            'take-profit-limit': 'limit',
+            'trailing-stop-limit': 'limit',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder for regular orders
@@ -1602,7 +1609,16 @@ export default class kraken extends Exchange {
                 trades.push (rawTrade);
             }
         }
-        stopPrice = this.safeNumber (order, 'stopprice', stopPrice);
+        stopPrice = this.omitZero (this.safeString (order, 'stopprice', stopPrice));
+        let stopLossPrice = undefined;
+        let takeProfitPrice = undefined;
+        if (type.startsWith ('take-profit')) {
+            takeProfitPrice = this.safeString (description, 'price');
+            price = this.omitZero (this.safeString (description, 'price2'));
+        } else if (type.startsWith ('stop-loss')) {
+            stopLossPrice = this.safeString (description, 'price');
+            price = this.omitZero (this.safeString (description, 'price2'));
+        }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1612,13 +1628,15 @@ export default class kraken extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': type,
+            'type': this.parseOrderType (type),
             'timeInForce': undefined,
             'postOnly': isPostOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'cost': undefined,
             'amount': amount,
             'filled': filled,
@@ -1643,25 +1661,35 @@ export default class kraken extends Exchange {
         const trailingAmount = this.safeString (params, 'trailingAmount');
         const trailingLimitAmount = this.safeString (params, 'trailingLimitAmount');
         const isTrailingAmountOrder = trailingAmount !== undefined;
-        if ((type === 'limit') && !isTrailingAmountOrder) {
+        const isLimitOrder = type.endsWith ('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        if (isLimitOrder && !isTrailingAmountOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        let reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
+        const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
         if (isStopLossOrTakeProfitTrigger) {
             if (isStopLossTriggerOrder) {
                 request['price'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
-                request['ordertype'] = 'stop-loss-limit';
+                if (isLimitOrder) {
+                    request['ordertype'] = 'stop-loss-limit';
+                } else {
+                    request['ordertype'] = 'stop-loss';
+                }
             } else if (isTakeProfitTriggerOrder) {
                 request['price'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
-                request['ordertype'] = 'take-profit-limit';
+                if (isLimitOrder) {
+                    request['ordertype'] = 'take-profit-limit';
+                } else {
+                    request['ordertype'] = 'take-profit';
+                }
             }
-            request['price2'] = this.priceToPrecision (symbol, price);
-            reduceOnly = true;
+            if (isLimitOrder) {
+                request['price2'] = this.priceToPrecision (symbol, price);
+            }
         } else if (isTrailingAmountOrder) {
             const trailingActivationPriceType = this.safeString (params, 'trigger', 'last');
             const trailingAmountString = '+' + trailingAmount;
             request['trigger'] = trailingActivationPriceType;
-            if ((type === 'limit') || (trailingLimitAmount !== undefined)) {
+            if (isLimitOrder || (trailingLimitAmount !== undefined)) {
                 const offset = this.safeString (params, 'offset', '-');
                 const trailingLimitAmountString = offset + this.numberToString (trailingLimitAmount);
                 request['price'] = trailingAmountString;

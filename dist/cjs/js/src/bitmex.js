@@ -42,6 +42,7 @@ class bitmex extends bitmex$1 {
                 'closePosition': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
+                'createTrailingAmountOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
