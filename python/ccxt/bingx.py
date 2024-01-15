@@ -17,6 +17,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import AuthenticationError
@@ -101,6 +102,9 @@ class bingx(Exchange, ImplicitAPI):
                     'subAccount': 'https://open-api.{hostname}/openApi',
                     'account': 'https://open-api.{hostname}/openApi',
                     'copyTrading': 'https://open-api.{hostname}/openApi',
+                },
+                'test': {
+                    'swap': 'https://open-api-vst.{hostname}/openApi',  # only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -431,6 +435,9 @@ class bingx(Exchange, ImplicitAPI):
         """
         if not self.check_required_credentials(False):
             return None
+        isSandbox = self.safe_value(self.options, 'sandboxMode', False)
+        if isSandbox:
+            return None
         response = self.walletsV1PrivateGetCapitalConfigGetall(params)
         #
         #    {
@@ -662,7 +669,10 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        requests = [self.fetch_spot_markets(params), self.fetch_swap_markets(params)]
+        requests = [self.fetch_swap_markets(params)]
+        isSandbox = self.safe_value(self.options, 'sandboxMode', False)
+        if not isSandbox:
+            requests.append(self.fetch_spot_markets(params))  # sandbox is swap only
         promises = requests
         spotMarkets = self.safe_value(promises, 0, [])
         swapMarkets = self.safe_value(promises, 1, [])
@@ -3505,6 +3515,9 @@ class bingx(Exchange, ImplicitAPI):
         type = section[0]
         version = section[1]
         access = section[2]
+        isSandbox = self.safe_value(self.options, 'sandboxMode', False)
+        if isSandbox and (type != 'swap'):
+            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints')
         url = self.implode_hostname(self.urls['api'][type])
         if type == 'spot' and version == 'v3':
             url += '/api'
@@ -3539,6 +3552,10 @@ class bingx(Exchange, ImplicitAPI):
 
     def nonce(self):
         return self.milliseconds()
+
+    def set_sandbox_mode(self, enable):
+        super(bingx, self).set_sandbox_mode(enable)
+        self.options['sandboxMode'] = enable
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -93,6 +94,9 @@ class bingx extends Exchange {
                     'subAccount' => 'https://open-api.{hostname}/openApi',
                     'account' => 'https://open-api.{hostname}/openApi',
                     'copyTrading' => 'https://open-api.{hostname}/openApi',
+                ),
+                'test' => array(
+                    'swap' => 'https://open-api-vst.{hostname}/openApi', // only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
                 ),
                 'www' => 'https://bingx.com/',
                 'doc' => 'https://bingx-api.github.io/docs/',
@@ -429,6 +433,10 @@ class bingx extends Exchange {
             if (!$this->check_required_credentials(false)) {
                 return null;
             }
+            $isSandbox = $this->safe_value($this->options, 'sandboxMode', false);
+            if ($isSandbox) {
+                return null;
+            }
             $response = Async\await($this->walletsV1PrivateGetCapitalConfigGetall ($params));
             //
             //    {
@@ -676,7 +684,11 @@ class bingx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $requests = array( $this->fetch_spot_markets($params), $this->fetch_swap_markets($params) );
+            $requests = array( $this->fetch_swap_markets($params) );
+            $isSandbox = $this->safe_value($this->options, 'sandboxMode', false);
+            if (!$isSandbox) {
+                $requests[] = $this->fetch_spot_markets($params); // sandbox is swap only
+            }
             $promises = Async\await(Promise\all($requests));
             $spotMarkets = $this->safe_value($promises, 0, array());
             $swapMarkets = $this->safe_value($promises, 1, array());
@@ -3776,6 +3788,10 @@ class bingx extends Exchange {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];
+        $isSandbox = $this->safe_value($this->options, 'sandboxMode', false);
+        if ($isSandbox && ($type !== 'swap')) {
+            throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $type . ' endpoints');
+        }
         $url = $this->implode_hostname($this->urls['api'][$type]);
         if ($type === 'spot' && $version === 'v3') {
             $url .= '/api';
@@ -3815,6 +3831,11 @@ class bingx extends Exchange {
 
     public function nonce() {
         return $this->milliseconds();
+    }
+
+    public function set_sandbox_mode($enable) {
+        parent::set_sandbox_mode($enable);
+        $this->options['sandboxMode'] = $enable;
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
