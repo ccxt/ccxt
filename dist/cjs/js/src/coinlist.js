@@ -750,7 +750,7 @@ class coinlist extends coinlist$1 {
             request['start_time'] = this.iso8601(since);
         }
         if (limit !== undefined) {
-            request['count'] = limit;
+            request['count'] = Math.min(limit, 500);
         }
         const until = this.safeInteger2(params, 'till', 'until');
         if (until !== undefined) {

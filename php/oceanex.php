@@ -465,7 +465,7 @@ class oceanex extends Exchange {
             'market' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min ($limit, 1000);
         }
         $response = $this->publicGetTrades (array_merge($request, $params));
         //

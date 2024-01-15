@@ -124,6 +124,7 @@ class bigone extends bigone$1 {
                 },
                 'contractPublic': {
                     'get': [
+                        'symbols',
                         'instruments',
                         'depth@{symbol}/snapshot',
                         'instruments/difference',
@@ -519,7 +520,10 @@ class bigone extends bigone$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetAssetPairs(params);
+        const promises = [this.publicGetAssetPairs(params), this.contractPublicGetSymbols(params)];
+        const promisesResult = await Promise.all(promises);
+        const response = promisesResult[0];
+        const contractResponse = promisesResult[1];
         //
         //     {
         //         "code":0,
@@ -545,29 +549,30 @@ class bigone extends bigone$1 {
         //         ]
         //     }
         //
-        const contractResponse = await this.contractPublicGetInstruments(params);
         //
         //    [
         //        {
-        //            "usdtPrice": 1.00031998,
+        //            "baseCurrency": "BTC",
+        //            "multiplier": 1,
+        //            "enable": true,
+        //            "priceStep": 0.5,
+        //            "maxRiskLimit": 1000,
+        //            "pricePrecision": 1,
+        //            "maintenanceMargin": 0.00500,
         //            "symbol": "BTCUSD",
-        //            "btcPrice": 34700.4,
-        //            "ethPrice": 1787.83,
-        //            "nextFundingRate": 0.00010,
-        //            "fundingRate": 0.00010,
-        //            "latestPrice": 34708.5,
-        //            "last24hPriceChange": 0.0321,
-        //            "indexPrice": 34700.4,
-        //            "volume24h": 261319063,
-        //            "turnover24h": 8204.129380685496,
-        //            "nextFundingTime": 1698285600000,
-        //            "markPrice": 34702.4646738,
-        //            "last24hMaxPrice": 35127.5,
-        //            "volume24hInUsd": 0.0,
-        //            "openValue": 32.88054722085945,
-        //            "last24hMinPrice": 33552.0,
-        //            "openInterest": 1141372.0
-        //        }
+        //            "valuePrecision": 4,
+        //            "minRiskLimit": 100,
+        //            "riskLimit": 100,
+        //            "isInverse": true,
+        //            "riskStep": 1,
+        //            "settleCurrency": "BTC",
+        //            "baseName": "Bitcoin",
+        //            "feePrecision": 8,
+        //            "priceMin": 0.5,
+        //            "priceMax": 1E+6,
+        //            "initialMargin": 0.01000,
+        //            "quoteCurrency": "USD"
+        //        },
         //        ...
         //    ]
         //
@@ -634,15 +639,14 @@ class bigone extends bigone$1 {
         }
         for (let i = 0; i < contractResponse.length; i++) {
             const market = contractResponse[i];
+            const baseId = this.safeString(market, 'baseCurrency');
+            const quoteId = this.safeString(market, 'quoteCurrency');
+            const settleId = this.safeString(market, 'settleCurrency');
             const marketId = this.safeString(market, 'symbol');
-            const index = marketId.indexOf('USD');
-            const baseId = marketId.slice(0, index);
-            const quoteId = marketId.slice(index);
-            const inverse = (quoteId === 'USD');
-            const settleId = inverse ? baseId : quoteId;
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             const settle = this.safeCurrencyCode(settleId);
+            const inverse = this.safeValue(market, 'isInverse');
             result.push(this.safeMarketStructure({
                 'id': marketId,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -658,18 +662,18 @@ class bigone extends bigone$1 {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'active': true,
+                'active': this.safeValue(market, 'enable'),
                 'contract': true,
                 'linear': !inverse,
                 'inverse': inverse,
-                'contractSize': 1,
+                'contractSize': this.safeNumber(market, 'multiplier'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': undefined,
-                    'price': undefined,
+                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'valuePrecision'))),
+                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -681,11 +685,11 @@ class bigone extends bigone$1 {
                         'max': undefined,
                     },
                     'price': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber(market, 'priceMin'),
+                        'max': this.safeNumber(market, 'priceMax'),
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber(market, 'initialMargin'),
                         'max': undefined,
                     },
                 },
@@ -931,29 +935,90 @@ class bigone extends bigone$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const request = {
-            'asset_pair_name': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 50, max 200
+        let response = undefined;
+        if (market['contract']) {
+            const request = {
+                'symbol': market['id'],
+            };
+            response = await this.contractPublicGetDepthSymbolSnapshot(this.extend(request, params));
+            //
+            //    {
+            //        bids: {
+            //            '20000': '20',
+            //            ...
+            //            '34552': '64851',
+            //            '34526.5': '59594',
+            //            ...
+            //            '34551.5': '29711'
+            //        },
+            //        asks: {
+            //            '34557': '34395',
+            //            ...
+            //            '40000': '20',
+            //            '34611.5': '56024',
+            //            ...
+            //            '34578.5': '66367'
+            //        },
+            //        to: '59737174',
+            //        lastPrice: '34554.5',
+            //        bestPrices: {
+            //            ask: '34557.0',
+            //            bid: '34552.0'
+            //        },
+            //        from: '0'
+            //    }
+            //
+            return this.parseContractOrderBook(response, market['symbol'], limit);
         }
-        const response = await this.publicGetAssetPairsAssetPairNameDepth(this.extend(request, params));
-        //
-        //     {
-        //         "code":0,
-        //         "data": {
-        //             "asset_pair_name": "EOS-BTC",
-        //             "bids": [
-        //                 { "price": "42", "order_count": 4, "quantity": "23.33363711" }
-        //             ],
-        //             "asks": [
-        //                 { "price": "45", "order_count": 2, "quantity": "4193.3283464" }
-        //             ]
-        //         }
-        //     }
-        //
-        const orderbook = this.safeValue(response, 'data', {});
-        return this.parseOrderBook(orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'quantity');
+        else {
+            const request = {
+                'asset_pair_name': market['id'],
+            };
+            if (limit !== undefined) {
+                request['limit'] = limit; // default 50, max 200
+            }
+            response = await this.publicGetAssetPairsAssetPairNameDepth(this.extend(request, params));
+            //
+            //     {
+            //         "code":0,
+            //         "data": {
+            //             "asset_pair_name": "EOS-BTC",
+            //             "bids": [
+            //                 { "price": "42", "order_count": 4, "quantity": "23.33363711" }
+            //             ],
+            //             "asks": [
+            //                 { "price": "45", "order_count": 2, "quantity": "4193.3283464" }
+            //             ]
+            //         }
+            //     }
+            //
+            const orderbook = this.safeValue(response, 'data', {});
+            return this.parseOrderBook(orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'quantity');
+        }
+    }
+    parseContractBidsAsks(bidsAsks) {
+        const bidsAsksKeys = Object.keys(bidsAsks);
+        const result = [];
+        for (let i = 0; i < bidsAsksKeys.length; i++) {
+            const price = bidsAsksKeys[i];
+            const amount = bidsAsks[price];
+            result.push([this.parseNumber(price), this.parseNumber(amount)]);
+        }
+        return result;
+    }
+    parseContractOrderBook(orderbook, symbol, limit = undefined) {
+        const responseBids = this.safeValue(orderbook, 'bids');
+        const responseAsks = this.safeValue(orderbook, 'asks');
+        const bids = this.parseContractBidsAsks(responseBids);
+        const asks = this.parseContractBidsAsks(responseAsks);
+        return {
+            'symbol': symbol,
+            'bids': this.filterByLimit(this.sortBy(bids, 0, true), limit),
+            'asks': this.filterByLimit(this.sortBy(asks, 0), limit),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'nonce': undefined,
+        };
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1113,6 +1178,9 @@ class bigone extends bigone$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        if (market['contract']) {
+            throw new errors.BadRequest(this.id + ' fetchTrades () can only fetch trades for spot markets');
+        }
         const request = {
             'asset_pair_name': market['id'],
         };
@@ -1175,6 +1243,9 @@ class bigone extends bigone$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        if (market['contract']) {
+            throw new errors.BadRequest(this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
+        }
         if (limit === undefined) {
             limit = 100; // default 100, max 500
         }

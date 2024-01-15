@@ -47,9 +47,12 @@ export default class htx extends Exchange {
                 'createOrders': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
+                'createStopLossOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createTakeProfitOrder': true,
                 'createTrailingPercentOrder': true,
+                'createTriggerOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -77,6 +80,7 @@ export default class htx extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': true,
                 'fetchL3OrderBook': undefined,
+                'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': false,
@@ -2253,6 +2257,126 @@ export default class htx extends Exchange {
             result[symbol] = ticker;
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
+    }
+
+    async fetchLastPrices (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchLastPrices
+         * @description fetches the last price for multiple markets
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81024-77b5-11ed-9966-0242ac110003 linear swap & linear future
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2e8fc-77ae-11ed-9966-0242ac110003 inverse future
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d517ef5-77b6-11ed-9966-0242ac110003 inverse swap
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of lastprices structures
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const market = this.getMarketFromSymbols (symbols);
+        let type = undefined;
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLastPrices', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
+        let response = undefined;
+        if (((type === 'swap') || (type === 'future')) && (subType === 'linear')) {
+            response = await this.contractPublicGetLinearSwapExMarketTrade (params);
+            //
+            //     {
+            //         "ch": "market.*.trade.detail",
+            //         "status": "ok",
+            //         "tick": {
+            //           "data": [
+            //             {
+            //               "amount": "4",
+            //               "quantity": "40",
+            //               "trade_turnover": "22.176",
+            //               "ts": 1703697705028,
+            //               "id": 1000003558478170000,
+            //               "price": "0.5544",
+            //               "direction": "buy",
+            //               "contract_code": "MANA-USDT",
+            //               "business_type": "swap",
+            //               "trade_partition": "USDT"
+            //             },
+            //           ],
+            //           "id": 1703697740147,
+            //           "ts": 1703697740147
+            //         },
+            //         "ts": 1703697740147
+            //     }
+            //
+        } else if ((type === 'swap') && (subType === 'inverse')) {
+            response = await this.contractPublicGetSwapExMarketTrade (params);
+            //
+            //     {
+            //         "ch": "market.*.trade.detail",
+            //         "status": "ok",
+            //         "tick": {
+            //           "data": [
+            //             {
+            //               "amount": "6",
+            //               "quantity": "94.5000945000945000945000945000945000945",
+            //               "ts": 1703698704594,
+            //               "id": 1000001187811060000,
+            //               "price": "0.63492",
+            //               "direction": "buy",
+            //               "contract_code": "XRP-USD"
+            //             },
+            //           ],
+            //           "id": 1703698706589,
+            //           "ts": 1703698706589
+            //         },
+            //         "ts": 1703698706589
+            //     }
+            //
+        } else if ((type === 'future') && (subType === 'inverse')) {
+            response = await this.contractPublicGetMarketTrade (params);
+            //
+            //     {
+            //         "ch": "market.*.trade.detail",
+            //         "status": "ok",
+            //         "tick": {
+            //           "data": [
+            //             {
+            //               "amount": "20",
+            //               "quantity": "44.4444444444444444444444444444444444444",
+            //               "ts": 1686134498885,
+            //               "id": 2323000000174820000,
+            //               "price": "4.5",
+            //               "direction": "sell",
+            //               "symbol": "DORA_CW"
+            //             },
+            //           ],
+            //           "id": 1703698855142,
+            //           "ts": 1703698855142
+            //         },
+            //         "ts": 1703698855142
+            //     }
+            //
+        } else {
+            throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
+        }
+        const tick = this.safeValue (response, 'tick', {});
+        const data = this.safeValue (tick, 'data', []);
+        return this.parseLastPrices (data, symbols);
+    }
+
+    parseLastPrice (entry, market: Market = undefined) {
+        // example responses are documented in fetchLastPrices
+        const marketId = this.safeString2 (entry, 'symbol', 'contract_code');
+        market = this.safeMarket (marketId, market);
+        const price = this.safeNumber (entry, 'price');
+        const direction = this.safeString (entry, 'direction'); // "buy" or "sell"
+        // group timestamp should not be assigned to the individual trades' times
+        return {
+            'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'price': price,
+            'side': direction,
+            'info': entry,
+        };
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -4895,7 +5019,7 @@ export default class htx extends Exchange {
     async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
         /**
          * @method
-         * @name createTrailingPercentOrder
+         * @name htx#createTrailingPercentOrder
          * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'

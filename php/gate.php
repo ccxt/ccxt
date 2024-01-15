@@ -87,8 +87,11 @@ class gate extends Exchange {
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
+                'createStopLossOrder' => true,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => true,
+                'createTakeProfitOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRateHistories' => false,
@@ -3080,7 +3083,7 @@ class gate extends Exchange {
             $request['to'] = $this->parse_to_int($until / 1000);
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 100, max 1000
+            $request['limit'] = min ($limit, 1000); // default 100, max 1000
         }
         if ($since !== null && ($market['contract'])) {
             $request['from'] = $this->parse_to_int($since / 1000);
@@ -3713,6 +3716,8 @@ class gate extends Exchange {
          * @param {array} [$params]  extra parameters specific to the exchange API endpoint
          * @param {float} [$params->stopPrice] The $price at which a $trigger order is triggered at
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
+         * @param {float} [$params->stopLossPrice] The $price at which a stop loss order is triggered at
+         * @param {float} [$params->takeProfitPrice] The $price at which a take profit order is triggered at
          * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
          * @param {int} [$params->iceberg] Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
          * @param {string} [$params->text] User defined information
@@ -5148,29 +5153,35 @@ class gate extends Exchange {
         // swap and future
         //
         //     {
-        //         "value" => "12.475572",
+        //         "value" => "4.60516",
         //         "leverage" => "0",
         //         "mode" => "single",
         //         "realised_point" => "0",
         //         "contract" => "BTC_USDT",
-        //         "entry_price" => "62422.6",
-        //         "mark_price" => "62377.86",
+        //         "entry_price" => "46030.3",
+        //         "mark_price" => "46051.6",
         //         "history_point" => "0",
-        //         "realised_pnl" => "-0.00624226",
-        //         "close_order" =>  null,
-        //         "size" => "2",
-        //         "cross_leverage_limit" => "25",
-        //         "pending_orders" => "0",
-        //         "adl_ranking" => "5",
-        //         "maintenance_rate" => "0.005",
-        //         "unrealised_pnl" => "-0.008948",
-        //         "user" => "663337",
-        //         "leverage_max" => "100",
-        //         "history_pnl" => "14.98868396636",
+        //         "realised_pnl" => "-0.002301515",
+        //         "close_order" => null,
+        //         "size" => 1,
+        //         "cross_leverage_limit" => "0",
+        //         "pending_orders" => 0,
+        //         "adl_ranking" => 5,
+        //         "maintenance_rate" => "0.004",
+        //         "unrealised_pnl" => "0.00213",
+        //         "user" => 5691076,
+        //         "leverage_max" => "125",
+        //         "history_pnl" => "0",
         //         "risk_limit" => "1000000",
-        //         "margin" => "0.740721495056",
-        //         "last_close_pnl" => "-0.041996015",
-        //         "liq_price" => "59058.58"
+        //         "margin" => "8.997698485",
+        //         "last_close_pnl" => "0",
+        //         "liq_price" => "0",
+        //         "update_time" => 1705034246,
+        //         "update_id" => 1,
+        //         "initial_margin" => "0",
+        //         "maintenance_margin" => "0",
+        //         "open_time" => 1705034246,
+        //         "trade_max_size" => "0"
         //     }
         //
         // option
@@ -5219,14 +5230,14 @@ class gate extends Exchange {
         $takerFee = '0.00075';
         $feePaid = Precise::string_mul($takerFee, $notional);
         $initialMarginString = Precise::string_add(Precise::string_div($notional, $leverage), $feePaid);
-        $timestamp = $this->safe_integer($position, 'time_ms');
+        $timestamp = $this->safe_timestamp($position, 'open_time');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
-            'timestamp' => null,
-            'datetime' => null,
-            'lastUpdateTimestamp' => $timestamp,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastUpdateTimestamp' => $this->safe_timestamp($position, 'update_time'),
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMarginString, $notional)),
             'maintenanceMargin' => $this->parse_number(Precise::string_mul($maintenanceRate, $notional)),
@@ -5282,29 +5293,35 @@ class gate extends Exchange {
         // swap and future
         //
         //     {
-        //         "value" => "12.475572",
+        //         "value" => "4.60516",
         //         "leverage" => "0",
         //         "mode" => "single",
         //         "realised_point" => "0",
         //         "contract" => "BTC_USDT",
-        //         "entry_price" => "62422.6",
-        //         "mark_price" => "62377.86",
+        //         "entry_price" => "46030.3",
+        //         "mark_price" => "46051.6",
         //         "history_point" => "0",
-        //         "realised_pnl" => "-0.00624226",
-        //         "close_order" =>  null,
-        //         "size" => "2",
-        //         "cross_leverage_limit" => "25",
-        //         "pending_orders" => "0",
-        //         "adl_ranking" => "5",
-        //         "maintenance_rate" => "0.005",
-        //         "unrealised_pnl" => "-0.008948",
-        //         "user" => "6693577",
-        //         "leverage_max" => "100",
-        //         "history_pnl" => "14.98868396636",
+        //         "realised_pnl" => "-0.002301515",
+        //         "close_order" => null,
+        //         "size" => 1,
+        //         "cross_leverage_limit" => "0",
+        //         "pending_orders" => 0,
+        //         "adl_ranking" => 5,
+        //         "maintenance_rate" => "0.004",
+        //         "unrealised_pnl" => "0.00213",
+        //         "user" => 5691076,
+        //         "leverage_max" => "125",
+        //         "history_pnl" => "0",
         //         "risk_limit" => "1000000",
-        //         "margin" => "0.740721495056",
-        //         "last_close_pnl" => "-0.041996015",
-        //         "liq_price" => "59058.58"
+        //         "margin" => "8.997698485",
+        //         "last_close_pnl" => "0",
+        //         "liq_price" => "0",
+        //         "update_time" => 1705034246,
+        //         "update_id" => 1,
+        //         "initial_margin" => "0",
+        //         "maintenance_margin" => "0",
+        //         "open_time" => 1705034246,
+        //         "trade_max_size" => "0"
         //     }
         //
         // option
@@ -5380,29 +5397,35 @@ class gate extends Exchange {
         //
         //     array(
         //         {
-        //             "value" => "12.475572",
+        //             "value" => "4.602828",
         //             "leverage" => "0",
         //             "mode" => "single",
         //             "realised_point" => "0",
         //             "contract" => "BTC_USDT",
-        //             "entry_price" => "62422.6",
-        //             "mark_price" => "62377.86",
+        //             "entry_price" => "46030.3",
+        //             "mark_price" => "46028.28",
         //             "history_point" => "0",
-        //             "realised_pnl" => "-0.00624226",
-        //             "close_order" =>  null,
-        //             "size" => "2",
-        //             "cross_leverage_limit" => "25",
-        //             "pending_orders" => "0",
-        //             "adl_ranking" => "5",
-        //             "maintenance_rate" => "0.005",
-        //             "unrealised_pnl" => "-0.008948",
-        //             "user" => "6693577",
-        //             "leverage_max" => "100",
-        //             "history_pnl" => "14.98868396636",
+        //             "realised_pnl" => "-0.002301515",
+        //             "close_order" => null,
+        //             "size" => 1,
+        //             "cross_leverage_limit" => "0",
+        //             "pending_orders" => 0,
+        //             "adl_ranking" => 5,
+        //             "maintenance_rate" => "0.004",
+        //             "unrealised_pnl" => "-0.000202",
+        //             "user" => 5691076,
+        //             "leverage_max" => "125",
+        //             "history_pnl" => "0",
         //             "risk_limit" => "1000000",
-        //             "margin" => "0.740721495056",
-        //             "last_close_pnl" => "-0.041996015",
-        //             "liq_price" => "59058.58"
+        //             "margin" => "8.997698485",
+        //             "last_close_pnl" => "0",
+        //             "liq_price" => "0",
+        //             "update_time" => 1705034246,
+        //             "update_id" => 1,
+        //             "initial_margin" => "0",
+        //             "maintenance_margin" => "0",
+        //             "open_time" => 1705034246,
+        //             "trade_max_size" => "0"
         //         }
         //     )
         //

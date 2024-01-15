@@ -66,6 +66,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
@@ -332,6 +333,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'premium/query': 4.5,  # 3PW
                         'trade-statistics': 4.5,  # 3PW
                         'funding-rate/{symbol}/current': 3,  # 2PW
+                        'contract/funding-rates': 7.5,  # 5PW
                         'timestamp': 3,  # 2PW
                         'status': 6,  # 4PW
                         # ?
@@ -361,6 +363,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'openOrderStatistics': 15,  # 10FW
                         'position': 3,  # 2FW
                         'positions': 3,  # 2FW
+                        'margin/maxWithdrawMargin': 15,  # 10FW
                         'contracts/risk-limit/{symbol}': 7.5,  # 5FW
                         'funding-history': 7.5,  # 5FW
                     },
@@ -371,7 +374,9 @@ class kucoin(Exchange, ImplicitAPI):
                         # futures
                         'orders': 3,  # 2FW
                         'orders/test': 3,  # 2FW
+                        'orders/multi': 4.5,  # 3FW
                         'position/margin/auto-deposit-status': 6,  # 4FW
+                        'margin/withdrawMargin': 15,  # 10FW
                         'position/margin/deposit-margin': 6,  # 4FW
                         'position/risk-limit-level/change': 6,  # 4FW
                         # ws

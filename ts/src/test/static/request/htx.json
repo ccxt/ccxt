@@ -818,6 +818,54 @@
                 ]
             }
         ],
+        "fetchLastPrices": [
+            {
+                "description": "fetch last prices - linear swap defaultType",
+                "method": "fetchLastPrices",
+                "url": "https://api.hbdm.com/linear-swap-ex/market/trade",
+                "input": [
+                  null,
+                  {
+                    "defaultType": "swap",
+                    "subType": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "fetch last prices - linear swap symbols",
+                "method": "fetchLastPrices",
+                "url": "https://api.hbdm.com/linear-swap-ex/market/trade",
+                "input": [
+                  [
+                    "BTC/USDT:USDT",
+                    "ETH/USDT:USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "fetch last prices - inverse swap defaultType",
+                "method": "fetchLastPrices",
+                "url": "https://api.hbdm.com/swap-ex/market/trade",
+                "input": [
+                  null,
+                  {
+                    "defaultType": "swap",
+                    "subType": "inverse"
+                  }
+                ]
+            },
+            {
+                "description": "fetch last prices - inverse swap symbols",
+                "method": "fetchLastPrices",
+                "url": "https://api.hbdm.com/swap-ex/market/trade",
+                "input": [
+                  [
+                    "BTC/USD:BTC",
+                    "ETH/USD:ETH"
+                  ]
+                ]
+            }
+        ],
         "fetchTickers": [
             {
                 "description": "fetch Tickers - spot",

@@ -161,6 +161,16 @@
                 ]
             }
         ],
+        "fetchPosition": [
+            {
+                "description": "Fetch a linear swap position",
+                "method": "fetchPosition",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/positions/BTC_USDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",

@@ -303,13 +303,17 @@ export default class Exchange {
             createMarketOrderWithCost: any;
             createMarketSellOrderWithCost: any;
             createOrders: any;
+            createOrderWithTakeProfitAndStopLoss: any;
             createPostOnlyOrder: any;
             createReduceOnlyOrder: any;
+            createStopLossOrder: any;
             createStopOrder: any;
             createStopLimitOrder: any;
             createStopMarketOrder: any;
+            createTakeProfitOrder: any;
             createTrailingAmountOrder: any;
             createTrailingPercentOrder: any;
+            createTriggerOrder: any;
             createOrderWs: any;
             editOrderWs: any;
             fetchOpenOrdersWs: any;
@@ -778,6 +782,10 @@ export default class Exchange {
     createMarketOrderWithCost(symbol: string, side: OrderSide, cost: any, params?: {}): Promise<Order>;
     createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createMarketSellOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
+    createTriggerOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, triggerPrice?: any, params?: {}): Promise<Order>;
+    createStopLossOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, stopLossPrice?: any, params?: {}): Promise<Order>;
+    createTakeProfitOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, takeProfitPrice?: any, params?: {}): Promise<Order>;
+    createOrderWithTakeProfitAndStopLoss(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, takeProfit?: any, stopLoss?: any, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;

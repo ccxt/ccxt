@@ -701,7 +701,7 @@ class coinone extends Exchange {
             'target_currency' => $market['base'],
         );
         if ($limit !== null) {
-            $request['size'] = $limit; // only support 10, 50, 100, 150, 200
+            $request['size'] = min ($limit, 200);
         }
         $response = $this->v2PublicGetTradesQuoteCurrencyTargetCurrency (array_merge($request, $params));
         //

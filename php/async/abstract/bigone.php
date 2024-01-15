@@ -70,6 +70,9 @@ abstract class bigone extends \ccxt\async\Exchange {
     public function private_post_transfer($params = array()) {
         return $this->request('transfer', 'private', 'POST', $params, null, null, array());
     }
+    public function contractpublic_get_symbols($params = array()) {
+        return $this->request('symbols', 'contractPublic', 'GET', $params, null, null, array());
+    }
     public function contractpublic_get_instruments($params = array()) {
         return $this->request('instruments', 'contractPublic', 'GET', $params, null, null, array());
     }
@@ -189,6 +192,9 @@ abstract class bigone extends \ccxt\async\Exchange {
     }
     public function privatePostTransfer($params = array()) {
         return $this->request('transfer', 'private', 'POST', $params, null, null, array());
+    }
+    public function contractPublicGetSymbols($params = array()) {
+        return $this->request('symbols', 'contractPublic', 'GET', $params, null, null, array());
     }
     public function contractPublicGetInstruments($params = array()) {
         return $this->request('instruments', 'contractPublic', 'GET', $params, null, null, array());

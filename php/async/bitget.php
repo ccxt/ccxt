@@ -49,8 +49,12 @@ class bitget extends Exchange {
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createOrderWithTakeProfitAndStopLoss' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLossOrder' => true,
+                'createTakeProfitOrder' => true,
                 'createTrailingPercentOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
@@ -2959,7 +2963,11 @@ class bitget extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                if ($market['contract']) {
+                    $request['limit'] = min ($limit, 1000);
+                } else {
+                    $request['limit'] = $limit;
+                }
             }
             $options = $this->safe_value($this->options, 'fetchTrades', array());
             $response = null;
@@ -3271,7 +3279,8 @@ class bitget extends Exchange {
                 'symbol' => $market['id'],
                 'granularity' => $selectedTimeframe,
             );
-            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+            $until = $this->safe_integer_2($params, 'until', 'till');
+            $params = $this->omit($params, array( 'until', 'till' ));
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
@@ -3284,14 +3293,15 @@ class bitget extends Exchange {
                 if ($since !== null) {
                     $request['startTime'] = $since;
                 }
+                if ($until !== null) {
+                    $request['endTime'] = $until;
+                }
             }
             $response = null;
             if ($market['spot']) {
                 if ($method === 'publicSpotGetV2SpotMarketCandles') {
                     $response = Async\await($this->publicSpotGetV2SpotMarketCandles (array_merge($request, $params)));
                 } elseif ($method === 'publicSpotGetV2SpotMarketHistoryCandles') {
-                    $until = $this->safe_integer_2($params, 'until', 'till');
-                    $params = $this->omit($params, array( 'until', 'till' ));
                     if ($since !== null) {
                         if ($limit === null) {
                             $limit = 100; // exchange default

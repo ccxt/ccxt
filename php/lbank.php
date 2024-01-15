@@ -917,13 +917,16 @@ class lbank extends Exchange {
         } else {
             $request['size'] = 600; // max
         }
-        $method = $this->safe_string($params, 'method');
+        $options = $this->safe_value($this->options, 'fetchTrades', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'spotPublicGetTrades');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
         $params = $this->omit($params, 'method');
-        if ($method === null) {
-            $options = $this->safe_value($this->options, 'fetchTrades', array());
-            $method = $this->safe_string($options, 'method', 'spotPublicGetTrades');
+        $response = null;
+        if ($method === 'spotPublicGetSupplementTrades') {
+            $response = $this->spotPublicGetSupplementTrades (array_merge($request, $params));
+        } else {
+            $response = $this->spotPublicGetTrades (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         //      {
         //          "result":"true",
@@ -1160,12 +1163,17 @@ class lbank extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $method = $this->safe_string($params, 'method');
-        if ($method === null) {
-            $options = $this->safe_value($this->options, 'fetchBalance', array());
-            $method = $this->safe_string($options, 'method', 'spotPrivatePostSupplementUserInfo');
+        $options = $this->safe_value($this->options, 'fetchBalance', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'spotPrivatePostSupplementUserInfo');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
+        $response = null;
+        if ($method === 'spotPrivatePostSupplementUserInfoAccount') {
+            $response = $this->spotPrivatePostSupplementUserInfoAccount ();
+        } elseif ($method === 'spotPrivatePostUserInfo') {
+            $response = $this->spotPrivatePostUserInfo ();
+        } else {
+            $response = $this->spotPrivatePostSupplementUserInfo ();
         }
-        $response = $this->$method ();
         //
         //    {
         //        "result" => "true",
@@ -1340,14 +1348,16 @@ class lbank extends Exchange {
         if ($clientOrderId !== null) {
             $request['custom_id'] = $clientOrderId;
         }
-        $method = null;
-        $method = $this->safe_string($params, 'method');
+        $options = $this->safe_value($this->options, 'createOrder', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'spotPrivatePostSupplementCreateOrder');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
         $params = $this->omit($params, 'method');
-        if ($method === null) {
-            $options = $this->safe_value($this->options, 'createOrder', array());
-            $method = $this->safe_string($options, 'method', 'spotPrivatePostSupplementCreateOrder');
+        $response = null;
+        if ($method === 'spotPrivatePostCreateOrder') {
+            $response = $this->spotPrivatePostCreateOrder (array_merge($request, $params));
+        } else {
+            $response = $this->spotPrivatePostSupplementCreateOrder (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         //      {
         //          "result":true,
@@ -1879,13 +1889,17 @@ class lbank extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
-        $method = $this->safe_string($params, 'method');
+        $options = $this->safe_value($this->options, 'fetchDepositAddress', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'fetchDepositAddressDefault');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
         $params = $this->omit($params, 'method');
-        if ($method === null) {
-            $options = $this->safe_value($this->options, 'fetchDepositAddress', array());
-            $method = $this->safe_string($options, 'method', 'fetchDepositAddressDefault');
+        $response = null;
+        if ($method === 'fetchDepositAddressSupplement') {
+            $response = $this->fetch_deposit_address_supplement($code, $params);
+        } else {
+            $response = $this->fetch_deposit_address_default($code, $params);
         }
-        return $this->$method ($code, $params);
+        return $response;
     }
 
     public function fetch_deposit_address_default(string $code, $params = array ()) {
@@ -2255,13 +2269,15 @@ class lbank extends Exchange {
         $isAuthorized = $this->check_required_credentials(false);
         $result = null;
         if ($isAuthorized === true) {
-            $method = $this->safe_string($params, 'method');
+            $options = $this->safe_value($this->options, 'fetchTransactionFees', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTransactionFees');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
             $params = $this->omit($params, 'method');
-            if ($method === null) {
-                $options = $this->safe_value($this->options, 'fetchTransactionFees', array());
-                $method = $this->safe_string($options, 'method', 'fetchPrivateTransactionFees');
+            if ($method === 'fetchPublicTransactionFees') {
+                $result = $this->fetch_public_transaction_fees($params);
+            } else {
+                $result = $this->fetch_private_transaction_fees($params);
             }
-            $result = $this->$method ($params);
         } else {
             $result = $this->fetch_public_transaction_fees($params);
         }
@@ -2399,18 +2415,21 @@ class lbank extends Exchange {
          */
         $this->load_markets();
         $isAuthorized = $this->check_required_credentials(false);
-        $method = null;
+        $response = null;
         if ($isAuthorized === true) {
-            $method = $this->safe_string($params, 'method');
+            $options = $this->safe_value($this->options, 'fetchDepositWithdrawFees', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateDepositWithdrawFees');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
             $params = $this->omit($params, 'method');
-            if ($method === null) {
-                $options = $this->safe_value($this->options, 'fetchDepositWithdrawFees', array());
-                $method = $this->safe_string($options, 'method', 'fetchPrivateDepositWithdrawFees');
+            if ($method === 'fetchPublicDepositWithdrawFees') {
+                $this->fetch_public_deposit_withdraw_fees($codes, $params);
+            } else {
+                $this->fetch_private_deposit_withdraw_fees($codes, $params);
             }
         } else {
-            $method = 'fetchPublicDepositWithdrawFees';
+            $this->fetch_public_deposit_withdraw_fees($codes, $params);
         }
-        return $this->$method ($codes, $params);
+        return $response;
     }
 
     public function fetch_private_deposit_withdraw_fees($codes = null, $params = array ()) {

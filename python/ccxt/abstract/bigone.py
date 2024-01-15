@@ -23,6 +23,7 @@ class ImplicitAPI:
     private_post_orders_cancel = privatePostOrdersCancel = Entry('orders/cancel', 'private', 'POST', {})
     private_post_withdrawals = privatePostWithdrawals = Entry('withdrawals', 'private', 'POST', {})
     private_post_transfer = privatePostTransfer = Entry('transfer', 'private', 'POST', {})
+    contractpublic_get_symbols = contractPublicGetSymbols = Entry('symbols', 'contractPublic', 'GET', {})
     contractpublic_get_instruments = contractPublicGetInstruments = Entry('instruments', 'contractPublic', 'GET', {})
     contractpublic_get_depth_symbol_snapshot = contractPublicGetDepthSymbolSnapshot = Entry('depth@{symbol}/snapshot', 'contractPublic', 'GET', {})
     contractpublic_get_instruments_difference = contractPublicGetInstrumentsDifference = Entry('instruments/difference', 'contractPublic', 'GET', {})

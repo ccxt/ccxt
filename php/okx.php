@@ -37,12 +37,16 @@ class okx extends Exchange {
                 'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createOrderWithTakeProfitAndStopLoss' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
+                'createStopLossOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'createTakeProfitOrder' => true,
                 'createTrailingPercentOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
@@ -256,6 +260,7 @@ class okx extends Exchange {
                         'sprd/order' => 1 / 3,
                         'sprd/orders-pending' => 1 / 3,
                         'sprd/orders-history' => 1 / 2,
+                        'sprd/orders-history-archive' => 1 / 2,
                         'sprd/trades' => 1 / 3,
                         // trade
                         'trade/order' => 1 / 3,
@@ -2120,17 +2125,14 @@ class okx extends Exchange {
         $defaultType = 'Candles';
         if ($since !== null) {
             $now = $this->milliseconds();
-            $difference = $now - $since;
             $durationInMilliseconds = $duration * 1000;
-            // if the $since timestamp is more than $limit candles back in the past
-            // additional one $bar for max offset to round the current day to UTC
-            $calc = (1440 - $limit - 1) * $durationInMilliseconds;
-            if ($difference > $calc) {
+            // switch to history candles if $since is past the cutoff for current candles
+            $historyBorder = $now - ((1440 - 1) * $durationInMilliseconds);
+            if ($since < $historyBorder) {
                 $defaultType = 'HistoryCandles';
             }
-            $startTime = max ($since - 1, 0);
-            $request['before'] = $startTime;
-            $request['after'] = $this->sum($startTime, $durationInMilliseconds * $limit);
+            $request['before'] = $since;
+            $request['after'] = $this->sum($since, $durationInMilliseconds * $limit);
         }
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {

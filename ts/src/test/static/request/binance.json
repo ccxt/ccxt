@@ -978,6 +978,106 @@
                 ]
             }
         ],
+        "fetchLastPrices": [
+            {
+                "description": "fetch last prices - no arguments",
+                "method": "fetchLastPrices",
+                "url": "https://api.binance.com/api/v3/ticker/price",
+                "input": []
+            },
+            {
+                "description": "fetch last prices - spot defaultType",
+                "method": "fetchLastPrices",
+                "url": "https://api.binance.com/api/v3/ticker/price",
+                "input": [
+                    null,
+                    {
+                      "defaultType": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "fetch last prices - spot symbols",
+                "method": "fetchLastPrices",
+                "url": "https://api.binance.com/api/v3/ticker/price",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "ETH/USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "fetch last prices - linear swap",
+                "method": "fetchLastPrices",
+                "url": "https://fapi.binance.com/fapi/v2/ticker/price",
+                "input": [
+                  null,
+                  {
+                    "defaultType": "swap",
+                    "subType": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "fetch last prices - linear swap symbols",
+                "method": "fetchLastPrices",
+                "url": "https://fapi.binance.com/fapi/v2/ticker/price",
+                "input": [
+                  [
+                    "BTC/USDT:USDT",
+                    "ETH/USDT:USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "fetch last prices - linear future",
+                "method": "fetchLastPrices",
+                "url": "https://fapi.binance.com/fapi/v2/ticker/price",
+                "input": [
+                  null,
+                  {
+                    "defaultType": "future",
+                    "subType": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "fetch last prices - inverse swap",
+                "method": "fetchLastPrices",
+                "url": "https://dapi.binance.com/dapi/v1/ticker/price",
+                "input": [
+                  null,
+                  {
+                    "defaultType": "swap",
+                    "subType": "inverse"
+                  }
+                ]
+            },
+            {
+                "description": "fetch last prices - inverse swap symbols",
+                "method": "fetchLastPrices",
+                "url": "https://dapi.binance.com/dapi/v1/ticker/price",
+                "input": [
+                  [
+                    "BTC/USD:BTC",
+                    "ETH/USD:ETH"
+                  ]
+                ]
+            },
+            {
+                "description": "fetch last prices - inverse future",
+                "method": "fetchLastPrices",
+                "url": "https://dapi.binance.com/dapi/v1/ticker/price",
+                "input": [
+                  null,
+                  {
+                    "defaultType": "future",
+                    "subType": "inverse"
+                  }
+                ]
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "Fetch OHLCV - spot",

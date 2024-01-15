@@ -743,7 +743,7 @@ class coinlist(Exchange, ImplicitAPI):
         if since is not None:
             request['start_time'] = self.iso8601(since)
         if limit is not None:
-            request['count'] = limit
+            request['count'] = min(limit, 500)
         until = self.safe_integer_2(params, 'till', 'until')
         if until is not None:
             params = self.omit(params, ['till', 'until'])

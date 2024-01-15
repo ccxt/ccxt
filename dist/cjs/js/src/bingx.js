@@ -36,8 +36,12 @@ class bingx extends bingx$1 {
                 'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
+                'createStopLossOrder': true,
+                'createTakeProfitOrder': true,
                 'createTrailingAmountOrder': true,
                 'createTrailingPercentOrder': true,
+                'createTriggerOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -81,6 +85,9 @@ class bingx extends bingx$1 {
                     'account': 'https://open-api.{hostname}/openApi',
                     'copyTrading': 'https://open-api.{hostname}/openApi',
                 },
+                'test': {
+                    'swap': 'https://open-api-vst.{hostname}/openApi', // only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
+                },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
                 'referral': 'https://bingx.com/invite/OHETOM',
@@ -119,6 +126,7 @@ class bingx extends bingx$1 {
                                 'trade/query': 3,
                                 'trade/openOrders': 3,
                                 'trade/historyOrders': 3,
+                                'trade/myTrades': 3,
                                 'user/commissionRate': 3,
                                 'account/balance': 3,
                             },
@@ -178,6 +186,7 @@ class bingx extends bingx$1 {
                                 'user/positions': 3,
                                 'user/income': 3,
                                 'trade/openOrders': 3,
+                                'trade/openOrder': 3,
                                 'trade/order': 3,
                                 'trade/marginType': 3,
                                 'trade/leverage': 3,
@@ -355,6 +364,7 @@ class bingx extends bingx$1 {
                     '80016': errors.OrderNotFound,
                     '80017': errors.OrderNotFound,
                     '100414': errors.AccountSuspended,
+                    '100419': errors.PermissionDenied,
                     '100437': errors.BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                 },
                 'broad': {},
@@ -409,6 +419,10 @@ class bingx extends bingx$1 {
          * @returns {object} an associative dictionary of currencies
          */
         if (!this.checkRequiredCredentials(false)) {
+            return undefined;
+        }
+        const isSandbox = this.safeValue(this.options, 'sandboxMode', false);
+        if (isSandbox) {
             return undefined;
         }
         const response = await this.walletsV1PrivateGetCapitalConfigGetall(params);
@@ -650,7 +664,11 @@ class bingx extends bingx$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const requests = [this.fetchSpotMarkets(params), this.fetchSwapMarkets(params)];
+        const requests = [this.fetchSwapMarkets(params)];
+        const isSandbox = this.safeValue(this.options, 'sandboxMode', false);
+        if (!isSandbox) {
+            requests.push(this.fetchSpotMarkets(params)); // sandbox is swap only
+        }
         const promises = await Promise.all(requests);
         const spotMarkets = this.safeValue(promises, 0, []);
         const swapMarkets = this.safeValue(promises, 1, []);
@@ -845,6 +863,22 @@ class bingx extends bingx$1 {
         //        "buyerMaker": false
         //    }
         //
+        // spot
+        // fetchMyTrades
+        //     {
+        //         "symbol": "LTC-USDT",
+        //         "id": 36237072,
+        //         "orderId": 1674069326895775744,
+        //         "price": "85.891",
+        //         "qty": "0.0582",
+        //         "quoteQty": "4.9988562000000005",
+        //         "commission": -0.00005820000000000001,
+        //         "commissionAsset": "LTC",
+        //         "time": 1687964205000,
+        //         "isBuyer": true,
+        //         "isMaker": false
+        //     }
+        //
         // swap
         // fetchTrades
         //
@@ -907,7 +941,7 @@ class bingx extends bingx$1 {
         }
         const cost = this.safeString(trade, 'quoteQty');
         const type = (cost === undefined) ? 'spot' : 'swap';
-        const currencyId = this.safeString2(trade, 'currency', 'N');
+        const currencyId = this.safeStringN(trade, ['currency', 'N', 'commissionAsset']);
         const currencyCode = this.safeCurrencyCode(currencyId);
         const m = this.safeValue(trade, 'm');
         const marketId = this.safeString(trade, 's');
@@ -922,6 +956,14 @@ class bingx extends bingx$1 {
                 side = (isBuyerMaker || m) ? 'sell' : 'buy';
                 takeOrMaker = 'taker';
             }
+        }
+        const isBuyer = this.safeValue(trade, 'isBuyer');
+        if (isBuyer !== undefined) {
+            side = isBuyer ? 'buy' : 'sell';
+        }
+        const isMaker = this.safeValue(trade, 'isMaker');
+        if (isMaker !== undefined) {
+            takeOrMaker = isMaker ? 'maker' : 'taker';
         }
         return this.safeTrade({
             'id': this.safeStringN(trade, ['id', 't']),
@@ -3257,57 +3299,101 @@ class bingx extends bingx$1 {
          * @method
          * @name bingx#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20History
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20historical%20transaction%20orders
          * @param {string} [symbol] unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
          * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        if (since === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a since argument');
-        }
-        const tradingUnit = this.safeStringUpper(params, 'tradingUnit', 'CONT');
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['spot']) {
-            throw new errors.BadSymbol(this.id + ' fetchMyTrades() supports swap contracts only');
-        }
+        const now = this.milliseconds();
+        let response = undefined;
         const request = {
             'symbol': market['id'],
-            'tradingUnit': tradingUnit,
-            'startTs': since,
-            'endTs': this.nonce(),
         };
-        const query = this.omit(params, 'tradingUnit');
-        const response = await this.swapV2PrivateGetTradeAllFillOrders(this.extend(request, query));
-        //
-        //    {
-        //       "code": "0",
-        //       "msg": '',
-        //       "data": { fill_orders: [
-        //          {
-        //              "volume": "0.1",
-        //              "price": "106.75",
-        //              "amount": "10.6750",
-        //              "commission": "-0.0053",
-        //              "currency": "USDT",
-        //              "orderId": "1676213270274379776",
-        //              "liquidatedPrice": "0.00",
-        //              "liquidatedMarginRatio": "0.00",
-        //              "filledTime": "2023-07-04T20:56:01.000+0800"
-        //          }
-        //        ]
-        //      }
-        //    }
-        //
-        const data = this.safeValue(response, 'data', []);
-        const fillOrders = this.safeValue(data, 'fill_orders', []);
-        return this.parseTrades(fillOrders, market, since, limit, query);
+        if (since !== undefined) {
+            const startTimeReq = market['spot'] ? 'startTime' : 'startTs';
+            request[startTimeReq] = since;
+        }
+        else if (market['swap']) {
+            request['startTs'] = now - 7776000000; // 90 days
+        }
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, 'until');
+        if (until !== undefined) {
+            const endTimeReq = market['spot'] ? 'endTime' : 'endTs';
+            request[endTimeReq] = until;
+        }
+        else if (market['swap']) {
+            request['endTs'] = now;
+        }
+        let fills = undefined;
+        if (market['spot']) {
+            response = await this.spotV1PrivateGetTradeMyTrades(this.extend(request, params));
+            const data = this.safeValue(response, 'data', []);
+            fills = this.safeValue(data, 'fills', []);
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "debugMsg": "",
+            //         "data": {
+            //             "fills": [
+            //                 {
+            //                     "symbol": "LTC-USDT",
+            //                     "id": 36237072,
+            //                     "orderId": 1674069326895775744,
+            //                     "price": "85.891",
+            //                     "qty": "0.0582",
+            //                     "quoteQty": "4.9988562000000005",
+            //                     "commission": -0.00005820000000000001,
+            //                     "commissionAsset": "LTC",
+            //                     "time": 1687964205000,
+            //                     "isBuyer": true,
+            //                     "isMaker": false
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+        }
+        else {
+            const tradingUnit = this.safeStringUpper(params, 'tradingUnit', 'CONT');
+            params = this.omit(params, 'tradingUnit');
+            request['tradingUnit'] = tradingUnit;
+            response = await this.swapV2PrivateGetTradeAllFillOrders(this.extend(request, params));
+            const data = this.safeValue(response, 'data', []);
+            fills = this.safeValue(data, 'fill_orders', []);
+            //
+            //    {
+            //       "code": "0",
+            //       "msg": '',
+            //       "data": { fill_orders: [
+            //          {
+            //              "volume": "0.1",
+            //              "price": "106.75",
+            //              "amount": "10.6750",
+            //              "commission": "-0.0053",
+            //              "currency": "USDT",
+            //              "orderId": "1676213270274379776",
+            //              "liquidatedPrice": "0.00",
+            //              "liquidatedMarginRatio": "0.00",
+            //              "filledTime": "2023-07-04T20:56:01.000+0800"
+            //          }
+            //        ]
+            //      }
+            //    }
+            //
+        }
+        return this.parseTrades(fills, market, since, limit, params);
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
         //
@@ -3667,6 +3753,10 @@ class bingx extends bingx$1 {
         const type = section[0];
         const version = section[1];
         const access = section[2];
+        const isSandbox = this.safeValue(this.options, 'sandboxMode', false);
+        if (isSandbox && (type !== 'swap')) {
+            throw new errors.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints');
+        }
         let url = this.implodeHostname(this.urls['api'][type]);
         if (type === 'spot' && version === 'v3') {
             url += '/api';
@@ -3708,6 +3798,10 @@ class bingx extends bingx$1 {
     }
     nonce() {
         return this.milliseconds();
+    }
+    setSandboxMode(enable) {
+        super.setSandboxMode(enable);
+        this.options['sandboxMode'] = enable;
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
