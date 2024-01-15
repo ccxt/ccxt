@@ -3,7 +3,7 @@
 
 import coinoneRest from '../coinone.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Int, OrderBook } from '../base/types.js';
+import type { Int, OrderBook, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -17,7 +17,7 @@ export default class coinone extends coinoneRest {
                 'watchOrders': false,
                 'watchTrades': false,
                 'watchOHLCV': false,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchTickers': false,
             },
             'urls': {
@@ -129,6 +129,70 @@ export default class coinone extends coinoneRest {
         bookside.storeArray (bidAsk);
     }
 
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name bybit#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.coinone.co.kr/reference/public-websocket-ticker
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'ticker:' + symbol;
+        const url = this.urls['api']['ws'];
+        const request = {
+            'request_type': 'SUBSCRIBE',
+            'channel': 'TICKER',
+            'topic': {
+                'quote_currency': market['quote'],
+                'target_currency': market['base'],
+            },
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    handleTicker (client: Client, message) {
+        //
+        //     {
+        //         "response_type": "DATA",
+        //         "channel": "TICKER",
+        //         "data": {
+        //             "quote_currency": "KRW",
+        //             "target_currency": "BTC",
+        //             "timestamp": 1705301117198,
+        //             "quote_volume": "19521465345.504",
+        //             "target_volume": "334.81445168",
+        //             "high": "58710000",
+        //             "low": "57276000",
+        //             "first": "57293000",
+        //             "last": "58532000",
+        //             "volume_power": "100",
+        //             "ask_best_price": "58537000",
+        //             "ask_best_qty": "0.1961",
+        //             "bid_best_price": "58532000",
+        //             "bid_best_qty": "0.00009258",
+        //             "id": "1705301117198001",
+        //             "yesterday_high": "59140000",
+        //             "yesterday_low": "57273000",
+        //             "yesterday_first": "58897000",
+        //             "yesterday_last": "57301000",
+        //             "yesterday_quote_volume": "12967227517.4262",
+        //             "yesterday_target_volume": "220.09232233"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (message, 'data', {});
+        const ticker = this.parseTicker (data);
+        const symbol = ticker['symbol'];
+        this.tickers[symbol] = ticker;
+        const messageHash = 'ticker:' + symbol;
+        client.resolve (this.tickers[symbol], messageHash);
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         //     {
@@ -157,6 +221,7 @@ export default class coinone extends coinoneRest {
             const topic = this.safeString (message, 'channel', '');
             const methods = {
                 'ORDERBOOK': this.handleOrderBook,
+                'TICKER': this.handleTicker,
             };
             const exacMethod = this.safeValue (methods, topic);
             if (exacMethod !== undefined) {

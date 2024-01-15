@@ -580,6 +580,8 @@ export default class coinone extends Exchange {
 
     parseTicker (ticker, market: Market = undefined): Ticker {
         //
+        // fetchTicker
+        //
         //     {
         //         "quote_currency": "krw",
         //         "target_currency": "btc",
@@ -605,10 +607,48 @@ export default class coinone extends Exchange {
         //         "id": "1701073357818001"
         //     }
         //
+        // watchTicker
+        //
+        //     {
+        //         "quote_currency": "KRW",
+        //         "target_currency": "BTC",
+        //         "timestamp": 1705301117198,
+        //         "quote_volume": "19521465345.504",
+        //         "target_volume": "334.81445168",
+        //         "high": "58710000",
+        //         "low": "57276000",
+        //         "first": "57293000",
+        //         "last": "58532000",
+        //         "volume_power": "100",
+        //         "ask_best_price": "58537000",
+        //         "ask_best_qty": "0.1961",
+        //         "bid_best_price": "58532000",
+        //         "bid_best_qty": "0.00009258",
+        //         "id": "1705301117198001",
+        //         "yesterday_high": "59140000",
+        //         "yesterday_low": "57273000",
+        //         "yesterday_first": "58897000",
+        //         "yesterday_last": "57301000",
+        //         "yesterday_quote_volume": "12967227517.4262",
+        //         "yesterday_target_volume": "220.09232233"
+        //     }
+        //
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeString (ticker, 'last');
-        const asks = this.safeValue (ticker, 'best_asks');
-        const bids = this.safeValue (ticker, 'best_bids');
+        let asks = this.safeValue (ticker, 'best_asks');
+        if (asks === undefined) {
+            asks = {
+                'price': this.safeNumber (ticker, 'ask_best_price'),
+                'qty': this.safeNumber (ticker, 'ask_best_qty'),
+            };
+        }
+        let bids = this.safeValue (ticker, 'best_bids');
+        if (bids === undefined) {
+            bids = {
+                'price': this.safeNumber (ticker, 'bid_best_price'),
+                'qty': this.safeNumber (ticker, 'bid_best_qty'),
+            };
+        }
         const baseId = this.safeString (ticker, 'target_currency');
         const quoteId = this.safeString (ticker, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
