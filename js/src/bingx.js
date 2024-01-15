@@ -39,6 +39,12 @@ export default class bingx extends Exchange {
                 'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
+                'createTrailingAmountOrder': true,
+                'createTrailingPercentOrder': true,
+                'createTriggerOrder': true,
+                'createTakeProfitOrder': true,
+                'createStopLossOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -120,6 +126,7 @@ export default class bingx extends Exchange {
                                 'trade/query': 3,
                                 'trade/openOrders': 3,
                                 'trade/historyOrders': 3,
+                                'trade/myTrades': 3,
                                 'user/commissionRate': 3,
                                 'account/balance': 3,
                             },
@@ -179,6 +186,7 @@ export default class bingx extends Exchange {
                                 'user/positions': 3,
                                 'user/income': 3,
                                 'trade/openOrders': 3,
+                                'trade/openOrder': 3,
                                 'trade/order': 3,
                                 'trade/marginType': 3,
                                 'trade/leverage': 3,
@@ -846,6 +854,22 @@ export default class bingx extends Exchange {
         //        "buyerMaker": false
         //    }
         //
+        // spot
+        // fetchMyTrades
+        //     {
+        //         "symbol": "LTC-USDT",
+        //         "id": 36237072,
+        //         "orderId": 1674069326895775744,
+        //         "price": "85.891",
+        //         "qty": "0.0582",
+        //         "quoteQty": "4.9988562000000005",
+        //         "commission": -0.00005820000000000001,
+        //         "commissionAsset": "LTC",
+        //         "time": 1687964205000,
+        //         "isBuyer": true,
+        //         "isMaker": false
+        //     }
+        //
         // swap
         // fetchTrades
         //
@@ -908,7 +932,7 @@ export default class bingx extends Exchange {
         }
         const cost = this.safeString(trade, 'quoteQty');
         const type = (cost === undefined) ? 'spot' : 'swap';
-        const currencyId = this.safeString2(trade, 'currency', 'N');
+        const currencyId = this.safeStringN(trade, ['currency', 'N', 'commissionAsset']);
         const currencyCode = this.safeCurrencyCode(currencyId);
         const m = this.safeValue(trade, 'm');
         const marketId = this.safeString(trade, 's');
@@ -923,6 +947,14 @@ export default class bingx extends Exchange {
                 side = (isBuyerMaker || m) ? 'sell' : 'buy';
                 takeOrMaker = 'taker';
             }
+        }
+        const isBuyer = this.safeValue(trade, 'isBuyer');
+        if (isBuyer !== undefined) {
+            side = isBuyer ? 'buy' : 'sell';
+        }
+        const isMaker = this.safeValue(trade, 'isMaker');
+        if (isMaker !== undefined) {
+            takeOrMaker = isMaker ? 'maker' : 'taker';
         }
         return this.safeTrade({
             'id': this.safeStringN(trade, ['id', 't']),
@@ -1909,16 +1941,6 @@ export default class bingx extends Exchange {
         const order = this.safeValue(data, 'order', data);
         return this.parseOrder(order, market);
     }
-    fixStringifiedJsonMembers(content) {
-        // when stringified json has members with their values also stringified, like:
-        // '{"code":0, "data":{"order":{"orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"{\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1}","reduceOnly":false}}}'
-        // we can fix with below manipulations
-        // @ts-ignore
-        let modifiedContent = content.replaceAll('\\', '');
-        modifiedContent = modifiedContent.replaceAll('"{', '{');
-        modifiedContent = modifiedContent.replaceAll('}"', '}');
-        return modifiedContent;
-    }
     async createOrders(orders, params = {}) {
         /**
          * @method
@@ -2430,6 +2452,7 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
         };
         const clientOrderIds = this.safeValue(params, 'clientOrderIds');
+        params = this.omit(params, 'clientOrderIds');
         let idsToParse = ids;
         const areClientOrderIds = (clientOrderIds !== undefined);
         if (areClientOrderIds) {
@@ -2448,8 +2471,12 @@ export default class bingx extends Exchange {
             response = await this.spotV1PrivatePostTradeCancelOrders(this.extend(request, params));
         }
         else {
-            const swapReqKey = areClientOrderIds ? 'ClientOrderIDList' : 'orderIdList';
-            request[swapReqKey] = parsedIds;
+            if (areClientOrderIds) {
+                request['clientOrderIDList'] = this.json(parsedIds);
+            }
+            else {
+                request['orderIdList'] = parsedIds;
+            }
             response = await this.swapV2PrivateDeleteTradeBatchOrders(this.extend(request, params));
         }
         //
@@ -3263,57 +3290,101 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20History
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20historical%20transaction%20orders
          * @param {string} [symbol] unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
          * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        if (since === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a since argument');
-        }
-        const tradingUnit = this.safeStringUpper(params, 'tradingUnit', 'CONT');
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['spot']) {
-            throw new BadSymbol(this.id + ' fetchMyTrades() supports swap contracts only');
-        }
+        const now = this.milliseconds();
+        let response = undefined;
         const request = {
             'symbol': market['id'],
-            'tradingUnit': tradingUnit,
-            'startTs': since,
-            'endTs': this.nonce(),
         };
-        const query = this.omit(params, 'tradingUnit');
-        const response = await this.swapV2PrivateGetTradeAllFillOrders(this.extend(request, query));
-        //
-        //    {
-        //       "code": "0",
-        //       "msg": '',
-        //       "data": { fill_orders: [
-        //          {
-        //              "volume": "0.1",
-        //              "price": "106.75",
-        //              "amount": "10.6750",
-        //              "commission": "-0.0053",
-        //              "currency": "USDT",
-        //              "orderId": "1676213270274379776",
-        //              "liquidatedPrice": "0.00",
-        //              "liquidatedMarginRatio": "0.00",
-        //              "filledTime": "2023-07-04T20:56:01.000+0800"
-        //          }
-        //        ]
-        //      }
-        //    }
-        //
-        const data = this.safeValue(response, 'data', []);
-        const fillOrders = this.safeValue(data, 'fill_orders', []);
-        return this.parseTrades(fillOrders, market, since, limit, query);
+        if (since !== undefined) {
+            const startTimeReq = market['spot'] ? 'startTime' : 'startTs';
+            request[startTimeReq] = since;
+        }
+        else if (market['swap']) {
+            request['startTs'] = now - 7776000000; // 90 days
+        }
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, 'until');
+        if (until !== undefined) {
+            const endTimeReq = market['spot'] ? 'endTime' : 'endTs';
+            request[endTimeReq] = until;
+        }
+        else if (market['swap']) {
+            request['endTs'] = now;
+        }
+        let fills = undefined;
+        if (market['spot']) {
+            response = await this.spotV1PrivateGetTradeMyTrades(this.extend(request, params));
+            const data = this.safeValue(response, 'data', []);
+            fills = this.safeValue(data, 'fills', []);
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "debugMsg": "",
+            //         "data": {
+            //             "fills": [
+            //                 {
+            //                     "symbol": "LTC-USDT",
+            //                     "id": 36237072,
+            //                     "orderId": 1674069326895775744,
+            //                     "price": "85.891",
+            //                     "qty": "0.0582",
+            //                     "quoteQty": "4.9988562000000005",
+            //                     "commission": -0.00005820000000000001,
+            //                     "commissionAsset": "LTC",
+            //                     "time": 1687964205000,
+            //                     "isBuyer": true,
+            //                     "isMaker": false
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+        }
+        else {
+            const tradingUnit = this.safeStringUpper(params, 'tradingUnit', 'CONT');
+            params = this.omit(params, 'tradingUnit');
+            request['tradingUnit'] = tradingUnit;
+            response = await this.swapV2PrivateGetTradeAllFillOrders(this.extend(request, params));
+            const data = this.safeValue(response, 'data', []);
+            fills = this.safeValue(data, 'fill_orders', []);
+            //
+            //    {
+            //       "code": "0",
+            //       "msg": '',
+            //       "data": { fill_orders: [
+            //          {
+            //              "volume": "0.1",
+            //              "price": "106.75",
+            //              "amount": "10.6750",
+            //              "commission": "-0.0053",
+            //              "currency": "USDT",
+            //              "orderId": "1676213270274379776",
+            //              "liquidatedPrice": "0.00",
+            //              "liquidatedMarginRatio": "0.00",
+            //              "filledTime": "2023-07-04T20:56:01.000+0800"
+            //          }
+            //        ]
+            //      }
+            //    }
+            //
+        }
+        return this.parseTrades(fills, market, since, limit, params);
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
         //

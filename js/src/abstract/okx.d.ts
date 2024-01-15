@@ -81,6 +81,7 @@ interface Exchange {
     privateGetSprdOrder(params?: {}): Promise<implicitReturnType>;
     privateGetSprdOrdersPending(params?: {}): Promise<implicitReturnType>;
     privateGetSprdOrdersHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetSprdOrdersHistoryArchive(params?: {}): Promise<implicitReturnType>;
     privateGetSprdTrades(params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrder(params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersPending(params?: {}): Promise<implicitReturnType>;

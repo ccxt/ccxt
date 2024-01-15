@@ -1,0 +1,12 @@
+{
+    "BTC": {
+        "code": "BTC",
+        "precision": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    }
+}

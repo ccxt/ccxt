@@ -566,7 +566,7 @@ class kraken extends \ccxt\async\kraken {
                 ),
                 'subscription' => array(
                     'name' => $name,
-                    'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+                    'interval' => $this->safe_value($this->timeframes, $timeframe, $timeframe),
                 ),
             );
             $request = $this->deep_extend($subscribe, $params);
