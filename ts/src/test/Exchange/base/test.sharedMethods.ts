@@ -368,7 +368,6 @@ function setProxyOptions (exchange, skippedProperties, proxyUrl, httpProxy, http
 export default {
     logTemplate,
     isTemporaryFailure,
-    isArgumentsRequiredException,
     assertTimestamp,
     assertTimestampAndDatetime,
     assertStructure,
