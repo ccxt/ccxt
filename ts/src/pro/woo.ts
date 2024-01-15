@@ -674,7 +674,7 @@ export default class woo extends wooRest {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
-                this.spawn (this.loadPositionsSnapshot, client, messageHash, type);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash);
             }
         } else {
             this.positions = new ArrayCacheBySymbolBySide ();
