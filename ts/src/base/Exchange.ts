@@ -1588,7 +1588,7 @@ export default class Exchange {
         return value.split ('');
     }
 
-    valueIsDefined(value){
+    valueIsDefined (value){
         return value !== undefined && value !== null;
     }
 
@@ -1737,11 +1737,11 @@ export default class Exchange {
         let httpsProxy = undefined;
         let socksProxy = undefined;
         // httpProxy
-        if (this.httpProxy !== undefined) {
+        if (this.valueIsDefined (this.httpProxy)) {
             usedProxies.push ('httpProxy');
             httpProxy = this.httpProxy;
         }
-        if (this.http_proxy !== undefined) {
+        if (this.valueIsDefined (this.http_proxy)) {
             usedProxies.push ('http_proxy');
             httpProxy = this.http_proxy;
         }
@@ -1754,11 +1754,11 @@ export default class Exchange {
             httpProxy = this.http_proxy_callback (url, method, headers, body);
         }
         // httpsProxy
-        if (this.httpsProxy !== undefined) {
+        if (this.valueIsDefined (this.httpsProxy)) {
             usedProxies.push ('httpsProxy');
             httpsProxy = this.httpsProxy;
         }
-        if (this.https_proxy !== undefined) {
+        if (this.valueIsDefined (this.https_proxy)) {
             usedProxies.push ('https_proxy');
             httpsProxy = this.https_proxy;
         }
@@ -1771,11 +1771,11 @@ export default class Exchange {
             httpsProxy = this.https_proxy_callback (url, method, headers, body);
         }
         // socksProxy
-        if (this.socksProxy !== undefined) {
+        if (this.valueIsDefined (this.socksProxy)) {
             usedProxies.push ('socksProxy');
             socksProxy = this.socksProxy;
         }
-        if (this.socks_proxy !== undefined) {
+        if (this.valueIsDefined (this.socks_proxy)) {
             usedProxies.push ('socks_proxy');
             socksProxy = this.socks_proxy;
         }
@@ -1802,29 +1802,29 @@ export default class Exchange {
         let wssProxy = undefined;
         let wsSocksProxy = undefined;
         // ws proxy
-        if (this.wsProxy !== undefined) {
+        if (this.valueIsDefined (this.wsProxy)) {
             usedProxies.push ('wsProxy');
             wsProxy = this.wsProxy;
         }
-        if (this.ws_proxy !== undefined) {
+        if (this.valueIsDefined (this.ws_proxy)) {
             usedProxies.push ('ws_proxy');
             wsProxy = this.ws_proxy;
         }
         // wss proxy
-        if (this.wssProxy !== undefined) {
+        if (this.valueIsDefined (this.wssProxy)) {
             usedProxies.push ('wssProxy');
             wssProxy = this.wssProxy;
         }
-        if (this.wss_proxy !== undefined) {
+        if (this.valueIsDefined (this.wss_proxy)) {
             usedProxies.push ('wss_proxy');
             wssProxy = this.wss_proxy;
         }
         // ws socks proxy
-        if (this.wsSocksProxy !== undefined) {
+        if (this.valueIsDefined (this.wsSocksProxy)) {
             usedProxies.push ('wsSocksProxy');
             wsSocksProxy = this.wsSocksProxy;
         }
-        if (this.ws_socks_proxy !== undefined) {
+        if (this.valueIsDefined (this.ws_socks_proxy)) {
             usedProxies.push ('ws_socks_proxy');
             wsSocksProxy = this.ws_socks_proxy;
         }
