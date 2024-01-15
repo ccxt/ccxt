@@ -1327,6 +1327,10 @@ class testMainClass extends baseMainTestClass {
                     if ($is_disabled) {
                         continue;
                     }
+                    $is_disabled_php = $exchange->safe_value($result, 'disabledPHP', false);
+                    if ($is_disabled_php && ($this->ext === 'php')) {
+                        continue;
+                    }
                     if (($test_name !== null) && ($test_name !== $description)) {
                         continue;
                     }

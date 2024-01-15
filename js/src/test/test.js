@@ -1230,6 +1230,10 @@ export default class testMainClass extends baseMainTestClass {
                 if (isDisabled) {
                     continue;
                 }
+                const isDisabledPHP = exchange.safeValue(result, 'disabledPHP', false);
+                if (isDisabledPHP && (this.ext === 'php')) {
+                    continue;
+                }
                 if ((testName !== undefined) && (testName !== description)) {
                     continue;
                 }

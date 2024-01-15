@@ -1388,6 +1388,16 @@ class kraken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
+    def parse_order_type(self, status):
+        statuses = {
+            'take-profit': 'market',
+            'stop-loss-limit': 'limit',
+            'stop-loss': 'market',
+            'take-profit-limit': 'limit',
+            'trailing-stop-limit': 'limit',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder for regular orders
@@ -1515,7 +1525,15 @@ class kraken(Exchange, ImplicitAPI):
                 trades.append(self.safe_trade({'id': rawTrade, 'orderId': id, 'symbol': symbol, 'info': {}}))
             else:
                 trades.append(rawTrade)
-        stopPrice = self.safe_number(order, 'stopprice', stopPrice)
+        stopPrice = self.omit_zero(self.safe_string(order, 'stopprice', stopPrice))
+        stopLossPrice = None
+        takeProfitPrice = None
+        if type.startswith('take-profit'):
+            takeProfitPrice = self.safe_string(description, 'price')
+            price = self.omit_zero(self.safe_string(description, 'price2'))
+        elif type.startswith('stop-loss'):
+            stopLossPrice = self.safe_string(description, 'price')
+            price = self.omit_zero(self.safe_string(description, 'price2'))
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1525,13 +1543,15 @@ class kraken(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': type,
+            'type': self.parse_order_type(type),
             'timeInForce': None,
             'postOnly': isPostOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'cost': None,
             'amount': amount,
             'filled': filled,

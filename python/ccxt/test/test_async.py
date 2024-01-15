@@ -1078,6 +1078,9 @@ class testMainClass(baseMainTestClass):
                 is_disabled = exchange.safe_value(result, 'disabled', False)
                 if is_disabled:
                     continue
+                is_disabled_php = exchange.safe_value(result, 'disabledPHP', False)
+                if is_disabled_php and (self.ext == 'php'):
+                    continue
                 if (test_name is not None) and (test_name != description):
                     continue
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])

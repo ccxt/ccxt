@@ -1473,6 +1473,17 @@ class kraken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function parse_order_type($status) {
+        $statuses = array(
+            'take-profit' => 'market',
+            'stop-loss-limit' => 'limit',
+            'stop-loss' => 'market',
+            'take-profit-limit' => 'limit',
+            'trailing-stop-limit' => 'limit',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_order($order, ?array $market = null): array {
         //
         // createOrder for regular orders
@@ -1611,7 +1622,16 @@ class kraken extends Exchange {
                 $trades[] = $rawTrade;
             }
         }
-        $stopPrice = $this->safe_number($order, 'stopprice', $stopPrice);
+        $stopPrice = $this->omit_zero($this->safe_string($order, 'stopprice', $stopPrice));
+        $stopLossPrice = null;
+        $takeProfitPrice = null;
+        if (str_starts_with($type, 'take-profit')) {
+            $takeProfitPrice = $this->safe_string($description, 'price');
+            $price = $this->omit_zero($this->safe_string($description, 'price2'));
+        } elseif (str_starts_with($type, 'stop-loss')) {
+            $stopLossPrice = $this->safe_string($description, 'price');
+            $price = $this->omit_zero($this->safe_string($description, 'price2'));
+        }
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1621,13 +1641,15 @@ class kraken extends Exchange {
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $type,
+            'type' => $this->parse_order_type($type),
             'timeInForce' => null,
             'postOnly' => $isPostOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
+            'takeProfitPrice' => $takeProfitPrice,
+            'stopLossPrice' => $stopLossPrice,
             'cost' => null,
             'amount' => $amount,
             'filled' => $filled,
