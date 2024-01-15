@@ -1712,7 +1712,7 @@ class testMainClass extends baseMainTestClass {
 
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-$promise = (new testMainClass())->init($argvExchange, $argvSymbol);
+$promise = (new testMainClass())->init($argvExchange, $argvSymbol, $argvMethod);
 if (!is_synchronous) {
     Async\await($promise);
 }
