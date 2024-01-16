@@ -152,7 +152,8 @@ export type {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balanc
 // move this elsewhere
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
 import totp from './functions/totp.js';
-
+import ethers from '../static_dependencies/ethers/index.js';
+import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -5541,6 +5542,20 @@ export default class Exchange {
 
     parseGreeks (greeks, market: Market = undefined): Greeks {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
+    }
+
+    ethAbiEncode (types, args) {
+        return this.base16ToBinary (ethers.encode (types, args).slice (2));
+    }
+
+    ethEncodeStructuredData (data) {
+        if (data.types && data.types.EIP712Domain) {
+            delete data.types.EIP712Domain;
+        }
+        return [
+            this.base16ToBinary (TypedDataEncoder.hashDomain (data.domain).slice (-64)),
+            this.base16ToBinary (TypedDataEncoder.from (data.types).hash(data.message).slice (-64))
+        ];
     }
 }
 

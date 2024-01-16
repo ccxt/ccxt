@@ -548,7 +548,7 @@ export default class hyperliquid extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.timeInForce] "Gtc", "Ioc", "Alo"
+         * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -615,10 +615,10 @@ export default class hyperliquid extends Exchange {
             [
                 [
                     orderSpec['order']['asset'],
-                    orderSpec['order']["isBuy"],
-                    this.parseToInt (orderSpec['order']["limitPx"] * base),
-                    this.parseToInt (orderSpec['order']["sz"] * base),
-                    orderSpec['order']["reduceOnly"],
+                    orderSpec['order']['isBuy'],
+                    this.parseToInt (orderSpec['order']['limitPx'] * base),
+                    this.parseToInt (orderSpec['order']['sz'] * base),
+                    orderSpec['order']['reduceOnly'],
                     signingOrderType,
                     0,
                 ],
@@ -628,36 +628,36 @@ export default class hyperliquid extends Exchange {
             nonce,
         ];
         // withcloid
-        // ["(uint32,bool,uint64,uint64,bool,uint8,uint64,bytes16)[]", "uint8"]
+        // ['(uint32,bool,uint64,uint64,bool,uint8,uint64,bytes16)[]', 'uint8']
         // without cloid
-        // ["(uint32,bool,uint64,uint64,bool,uint8,uint64)[]", "uint8"]
-        const connectionId = this.eth_abi_encode(["(uint32,bool,uint64,uint64,bool,uint8,uint64)[]", "uint8", "address", "uint256"], signing);
+        // ['(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8']
+        const connectionId = this.eth_abi_encode(['(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8', 'address', 'uint256'], signing);
         const connectionIdHash = this.hash (connectionId, keccak, 'binary');
         const message = {
-            "source": (isSandboxMode) ? "b" : "a",
-            "connectionId": connectionIdHash,
+            'source': (isSandboxMode) ? 'b' : 'a',
+            'connectionId': connectionIdHash,
         };
         const structuredData = {
-            "domain": {
-                "chainId": 1337,
-                "name": "Exchange",
-                "verifyingContract": zeroAddress,
-                "version": "1",
+            'domain': {
+                'chainId': 1337,
+                'name': 'Exchange',
+                'verifyingContract': zeroAddress,
+                'version': '1',
             },
-            "types": {
-                "Agent": [
-                    {"name": "source", "type": "string"},
-                    {"name": "connectionId", "type": "bytes32"},
+            'types': {
+                'Agent': [
+                    {'name': 'source', 'type': 'string'},
+                    {'name': 'connectionId', 'type': 'bytes32'},
                 ],
-                "EIP712Domain": [
-                    {"name": "name", "type": "string"},
-                    {"name": "version", "type": "string"},
-                    {"name": "chainId", "type": "uint256"},
-                    {"name": "verifyingContract", "type": "address"},
+                'EIP712Domain': [
+                    {'name': 'name', 'type': 'string'},
+                    {'name': 'version', 'type': 'string'},
+                    {'name': 'chainId', 'type': 'uint256'},
+                    {'name': 'verifyingContract', 'type': 'address'},
                 ],
             },
-            "primaryType": "Agent",
-            "message": message
+            'primaryType': 'Agent',
+            'message': message
         };
         // const account = this.eth_recover_account (this.privateKey);
         // const signedMsg = account.sign_message(msg);
@@ -665,11 +665,11 @@ export default class hyperliquid extends Exchange {
         const msg = this.eth_encode_structured_data (structuredData);
         const signature = this.signMessage (msg[0], msg[1], this.privateKey);
         const tmpRequest = {
-            "action": {
-                "type": "order",
-                "grouping": "na",
-                "orders": [{
-                    'asset': market['baseId'],
+            'action': {
+                'type': 'order',
+                'grouping': 'na',
+                'orders': [{
+                    'asset': this.parseToInt (market['baseId']),
                     'isBuy': (orderSide === 'BUY'),
                     'sz': this.amountToPrecision (symbol, amount),
                     'limitPx': this.amountToPrecision (symbol, px),
@@ -678,13 +678,13 @@ export default class hyperliquid extends Exchange {
                     'cloid': undefined
                 }],
             },
-            "nonce": nonce,
-            "signature": {
-                "r": signature["r"],
-                "s": signature["s"],
-                "v": signature["v"]
+            'nonce': nonce,
+            'signature': {
+                'r': signature['r'],
+                's': signature['s'],
+                'v': signature['v']
             },
-            "vaultAddress": vaultAddress,
+            'vaultAddress': vaultAddress,
         };
         console.log (tmpRequest);
         const response = await this.privatePostExchange (this.extend (tmpRequest, params));
