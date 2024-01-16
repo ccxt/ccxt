@@ -668,7 +668,6 @@ export default class blofin extends Exchange {
             request['after'] = until;
             params = this.omit (params, 'until');
         }
-        params = this.omit (params, 'type');
         let response = undefined;
         response = await this.publicGetMarketCandles (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
@@ -1704,10 +1703,7 @@ export default class blofin extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
-        if (marginMode === undefined) {
-            marginMode = this.safeString (params, 'marginMode', 'cross'); // cross as default marginMode
-        }
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
