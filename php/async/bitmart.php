@@ -50,6 +50,7 @@ class bitmart extends Exchange {
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
+                'createTrailingPercentOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => true,
                 'fetchBorrowRateHistories' => false,
@@ -268,8 +269,8 @@ class bitmart extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => $this->parse_number('0.0025'),
-                    'maker' => $this->parse_number('0.0025'),
+                    'taker' => $this->parse_number('0.0040'),
+                    'maker' => $this->parse_number('0.0035'),
                     'tiers' => array(
                         'taker' => array(
                             array( $this->parse_number('0'), $this->parse_number('0.0020') ),
@@ -3518,14 +3519,13 @@ class bitmart extends Exchange {
         //         "repay_id" => "2afcc16d99bd4707818c5a355dc89bed",
         //     }
         //
-        $timestamp = $this->milliseconds();
         return array(
             'id' => $this->safe_string_2($info, 'borrow_id', 'repay_id'),
             'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'symbol' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'info' => $info,
         );
     }

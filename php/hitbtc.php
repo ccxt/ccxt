@@ -2560,11 +2560,10 @@ class hitbtc extends Exchange {
         //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
         //     )
         //
-        $timestamp = $this->milliseconds();
         return array(
             'id' => $this->safe_string($transfer, 0),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'fromAccount' => null,

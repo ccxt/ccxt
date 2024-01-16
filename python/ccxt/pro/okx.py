@@ -29,6 +29,7 @@ class okx(ccxt.async_support.okx):
                 'watchOrderBookForSymbols': True,
                 'watchBalance': True,
                 'watchOHLCV': True,
+                'watchOHLCVForSymbols': True,
                 'watchOrders': True,
                 'watchMyTrades': True,
                 'watchPositions': True,
@@ -339,6 +340,45 @@ class okx(ccxt.async_support.okx):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        symbolsLength = len(symbolsAndTimeframes)
+        if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
+            raise ArgumentsRequired(self.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")
+        await self.load_markets()
+        topics = []
+        messageHashes = []
+        for i in range(0, len(symbolsAndTimeframes)):
+            symbolAndTimeframe = symbolsAndTimeframes[i]
+            sym = symbolAndTimeframe[0]
+            tf = symbolAndTimeframe[1]
+            marketId = self.market_id(sym)
+            interval = self.safe_string(self.timeframes, tf, tf)
+            channel = 'candle' + interval
+            topic = {
+                'channel': channel,
+                'instId': marketId,
+            }
+            topics.append(topic)
+            messageHashes.append('multi:' + channel + ':' + sym)
+        request = {
+            'op': 'subscribe',
+            'args': topics,
+        }
+        url = self.get_url('candle', 'public')
+        symbol, timeframe, candles = await self.watch_multiple(url, messageHashes, request, messageHashes)
+        if self.newUpdates:
+            limit = candles.getLimit(symbol, limit)
+        filtered = self.filter_by_since_limit(candles, since, limit, 0, True)
+        return self.create_ohlcv_object(symbol, timeframe, filtered)
+
     def handle_ohlcv(self, client: Client, message):
         #
         #     {
@@ -361,7 +401,7 @@ class okx(ccxt.async_support.okx):
         data = self.safe_value(message, 'data', [])
         marketId = self.safe_string(arg, 'instId')
         market = self.safe_market(marketId)
-        symbol = market['id']
+        symbol = market['symbol']
         interval = channel.replace('candle', '')
         # use a reverse lookup in a static map instead
         timeframe = self.find_timeframe(interval)
@@ -374,8 +414,13 @@ class okx(ccxt.async_support.okx):
                 stored = ArrayCacheByTimestamp(limit)
                 self.ohlcvs[symbol][timeframe] = stored
             stored.append(parsed)
-            messageHash = channel + ':' + marketId
+            messageHash = channel + ':' + market['id']
             client.resolve(stored, messageHash)
+            # for multiOHLCV we need special object, to other "multi"
+            # methods, because OHLCV response item does not contain symbol
+            # or timeframe, thus otherwise it would be unrecognizable
+            messageHashForMulti = 'multi:' + channel + ':' + symbol
+            client.resolve([symbol, timeframe, stored], messageHashForMulti)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """

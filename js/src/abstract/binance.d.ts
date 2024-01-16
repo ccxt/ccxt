@@ -17,6 +17,7 @@ interface Exchange {
     sapiGetAssetConvertTransferQueryByPage(params?: {}): Promise<implicitReturnType>;
     sapiGetAssetWalletBalance(params?: {}): Promise<implicitReturnType>;
     sapiGetAssetCustodyTransferHistory(params?: {}): Promise<implicitReturnType>;
+    sapiGetMarginBorrowRepay(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginLoan(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginRepay(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAccount(params?: {}): Promise<implicitReturnType>;
@@ -250,6 +251,7 @@ interface Exchange {
     sapiPostCapitalWithdrawApply(params?: {}): Promise<implicitReturnType>;
     sapiPostCapitalContractConvertibleCoins(params?: {}): Promise<implicitReturnType>;
     sapiPostCapitalDepositCreditApply(params?: {}): Promise<implicitReturnType>;
+    sapiPostMarginBorrowRepay(params?: {}): Promise<implicitReturnType>;
     sapiPostMarginTransfer(params?: {}): Promise<implicitReturnType>;
     sapiPostMarginLoan(params?: {}): Promise<implicitReturnType>;
     sapiPostMarginRepay(params?: {}): Promise<implicitReturnType>;

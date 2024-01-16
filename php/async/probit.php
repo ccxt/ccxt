@@ -793,7 +793,6 @@ class probit extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'market_id' => $market['id'],
-                'limit' => 100,
                 'start_time' => '1970-01-01T00:00:00.000Z',
                 'end_time' => $this->iso8601($this->milliseconds()),
             );
@@ -801,7 +800,9 @@ class probit extends Exchange {
                 $request['start_time'] = $this->iso8601($since);
             }
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 10000);
+                $request['limit'] = min ($limit, 1000);
+            } else {
+                $request['limit'] = 1000; // required to set any value
             }
             $response = Async\await($this->publicGetTrade (array_merge($request, $params)));
             //

@@ -1486,13 +1486,12 @@ class huobijp extends Exchange {
             }
             $method = $this->options['createOrderMethod'];
             $response = Async\await($this->$method (array_merge($request, $params)));
-            $timestamp = $this->milliseconds();
             $id = $this->safe_string($response, 'data');
             return $this->safe_order(array(
                 'info' => $response,
                 'id' => $id,
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
+                'timestamp' => null,
+                'datetime' => null,
                 'lastTradeTimestamp' => null,
                 'status' => null,
                 'symbol' => $symbol,

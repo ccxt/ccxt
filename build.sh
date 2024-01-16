@@ -190,14 +190,14 @@ ws_args=$(IFS=" " ; echo "${WS_EXCHANGES[*]}") || "skip"
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run request-js -- $exchange
   npm run request-py -- $exchange
-  npm run request-php -- $exchange
+  php php/test/test_async.php $exchange --requestTests
 done
 
 #response static tests
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run response-js -- $exchange
   npm run response-py -- $exchange
-  npm run response-php -- $exchange
+  php php/test/test_async.php $exchange --responseTests
 done
 
 run_tests "$rest_args" "$ws_args"

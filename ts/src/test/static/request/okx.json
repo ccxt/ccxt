@@ -902,6 +902,126 @@
               }
             ]
           }
+        ],
+        "fetchOHLCV": [
+          {
+            "description": "fetchOHLCV using a timestamp that is 1439 candles in the past so that the history endpoint is used",
+            "method": "fetchOHLCV",
+            "url": "https://www.okx.com/api/v5/market/history-candles?instId=BTC-USDT&bar=1H&limit=300&before=1699931781033&after=1701011781033",
+            "input": [
+              "BTC/USDT",
+              "1h",
+              1699931781033,
+              300
+            ]
+          },
+          {
+            "description": "fetchOHLCV using a timestamp that is 1438 candles in the past so that the current endpoint is used",
+            "method": "fetchOHLCV",
+            "disabled": true,
+            "reason": "relies on the current timestamp, which is not deterministic",
+            "url": "https://www.okx.com/api/v5/market/candles?instId=BTC-USDT&bar=1H&limit=300&before=1699935566969&after=1701015566969",
+            "input": [
+              "BTC/USDT",
+              "1h",
+              1699935566969,
+              300
+            ]
+          },
+          {
+            "description": "spot ohlcv",
+            "method": "fetchOHLCV",
+            "url": "https://www.okx.com/api/v5/market/candles?instId=BTC-USDT&bar=1m&limit=100",
+            "input": [
+              "BTC/USDT"
+            ]
+          }
+        ],
+        "createTriggerOrder": [
+          {
+            "description": "Swap create a stop order using the createTriggerOrder method (type 1)",
+            "method": "createTriggerOrder",
+            "url": "https://www.okx.com/api/v5/trade/order-algo",
+            "input": [
+              "BTC/USDT:USDT",
+              "limit",
+              "buy",
+              1,
+              50000,
+              49000,
+              {
+                "posSide": "long",
+                "triggerPrice": 49000
+              }
+            ],
+            "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"trigger\",\"sz\":\"1\",\"tdMode\":\"cross\",\"triggerPx\":\"49000\",\"orderPx\":\"50000\",\"clOrdId\":\"e847386590ce4dBC7eba5daba4bc902c\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+          }
+        ],
+        "createTakeProfitOrder": [
+          {
+            "description": "Swap create a take profit trigger order using the createTakeProfitOrder method (type 2)",
+            "method": "createTakeProfitOrder",
+            "url": "https://www.okx.com/api/v5/trade/order-algo",
+            "input": [
+              "BTC/USDT:USDT",
+              "limit",
+              "sell",
+              1,
+              50000,
+              49000,
+              {
+                "posSide": "long",
+                "takeProfitPrice": 49000
+              }
+            ],
+            "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"tpTriggerPx\":\"49000\",\"tpOrdPx\":\"50000\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC8a51e4172402892a\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+          }
+        ],
+        "createStopLossOrder": [
+          {
+            "description": "Swap create a stop loss trigger order using the createStopLossOrder method (type 2)",
+            "method": "createStopLossOrder",
+            "url": "https://www.okx.com/api/v5/trade/order-algo",
+            "input": [
+              "BTC/USDT:USDT",
+              "limit",
+              "sell",
+              1,
+              31000,
+              30000,
+              {
+                "posSide": "long",
+                "stopLossPrice": 30000
+              }
+            ],
+            "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"slTriggerPx\":\"30000\",\"slOrdPx\":\"31000\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC062a009804dcb58e\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+          }
+        ],
+        "createOrderWithTakeProfitAndStopLoss": [
+          {
+            "description": "Swap create an order with a take profit and stop loss attached using the createOrderWithTakeProfitAndStopLoss method (type 3)",
+            "method": "createOrderWithTakeProfitAndStopLoss",
+            "url": "https://www.okx.com/api/v5/trade/batch-orders",
+            "input": [
+              "LTC/USDT:USDT",
+              "limit",
+              "buy",
+              1,
+              60,
+              70,
+              50,
+              {
+                "posSide": "long",
+                "takeProfit": {
+                  "triggerPrice": 70
+                },
+                "stopLoss": {
+                  "triggerPrice": 50
+                }
+              }
+            ],
+            "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"60\",\"slTriggerPx\":\"50\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"tpTriggerPx\":\"70\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBCdb76299fc4b696da\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
+          }
         ]
     }
 }

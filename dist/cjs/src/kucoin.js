@@ -3445,10 +3445,12 @@ class kucoin extends kucoin$1 {
          * @name kucoin#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.kucoin.com/#list-accounts
+         * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf
          * @see https://docs.kucoin.com/#query-isolated-margin-account-info
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
          * @param {object} [params.type] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.hf] *default if false* if true, the result includes the balance of the high frequency account
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
@@ -3460,8 +3462,13 @@ class kucoin extends kucoin$1 {
         const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
         const requestedType = this.safeString(params, 'type', defaultType);
         const accountsByType = this.safeValue(this.options, 'accountsByType');
-        const type = this.safeString(accountsByType, requestedType, requestedType);
+        let type = this.safeString(accountsByType, requestedType, requestedType);
         params = this.omit(params, 'type');
+        const isHf = this.safeValue(params, 'hf', false);
+        if (isHf) {
+            type = 'trade_hf';
+        }
+        params = this.omit(params, 'hf');
         const [marginMode, query] = this.handleMarginModeAndParams('fetchBalance', params);
         let response = undefined;
         const request = {};
@@ -3543,7 +3550,7 @@ class kucoin extends kucoin$1 {
             'datetime': undefined,
         };
         if (isolated) {
-            const assets = this.safeValue(data, 'assets', []);
+            const assets = this.safeValue(data, 'assets', data);
             for (let i = 0; i < assets.length; i++) {
                 const entry = assets[i];
                 const marketId = this.safeString(entry, 'symbol');
@@ -3874,12 +3881,14 @@ class kucoin extends kucoin$1 {
          * @method
          * @name kucoin#fetchLedger
          * @see https://docs.kucoin.com/#get-account-ledgers
+         * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf
+         * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @see https://docs.kucoin.com/#get-account-ledgers
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
@@ -3888,6 +3897,8 @@ class kucoin extends kucoin$1 {
         await this.loadAccounts();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
+        const isHf = this.safeValue(params, 'hf');
+        params = this.omit(params, 'hf');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params);
         }
@@ -3908,7 +3919,20 @@ class kucoin extends kucoin$1 {
             request['currency'] = currency['id'];
         }
         [request, params] = this.handleUntilOption('endAt', request, params);
-        const response = await this.privateGetAccountsLedgers(this.extend(request, params));
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchLedger', params);
+        let response = undefined;
+        if (isHf) {
+            if (marginMode !== undefined) {
+                response = await this.privateGetHfMarginAccountLedgers(this.extend(request, params));
+            }
+            else {
+                response = await this.privateGetHfAccountsLedgers(this.extend(request, params));
+            }
+        }
+        else {
+            response = await this.privateGetAccountsLedgers(this.extend(request, params));
+        }
         //
         //     {
         //         "code":"200000",
@@ -3947,7 +3971,7 @@ class kucoin extends kucoin$1 {
         //     }
         //
         const data = this.safeValue(response, 'data');
-        const items = this.safeValue(data, 'items');
+        const items = this.safeValue(data, 'items', data);
         return this.parseLedger(items, currency, since, limit);
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {

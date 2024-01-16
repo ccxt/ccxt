@@ -799,12 +799,11 @@ class bitfinex extends Exchange {
         //         "message" => "0.0001 Bitcoin transfered from Margin to Exchange"
         //     }
         //
-        $timestamp = $this->milliseconds();
         return array(
             'info' => $transfer,
             'id' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'fromAccount' => null,

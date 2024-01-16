@@ -17,7 +17,7 @@ export default class upbit extends Exchange {
         limits: {
             withdraw: {
                 min: number;
-                max: any;
+                max: number;
             };
         };
     }>;
@@ -32,110 +32,12 @@ export default class upbit extends Exchange {
         limits: {
             withdraw: {
                 min: number;
-                max: any;
-            };
-        };
-    }>;
-    fetchMarket(symbol: string, params?: {}): Promise<{
-        id: string;
-        symbol: string;
-        base: string;
-        quote: string;
-        settle: any;
-        baseId: string;
-        quoteId: string;
-        settleId: any;
-        type: string;
-        spot: boolean;
-        margin: boolean;
-        swap: boolean;
-        future: boolean;
-        option: boolean;
-        active: boolean;
-        contract: boolean;
-        linear: any;
-        inverse: any;
-        taker: number;
-        maker: number;
-        contractSize: any;
-        expiry: any;
-        expiryDatetime: any;
-        strike: any;
-        optionType: any;
-        precision: {
-            amount: number;
-            price: number;
-        };
-        limits: {
-            leverage: {
-                min: any;
-                max: any;
-            };
-            amount: {
-                min: number;
-                max: any;
-            };
-            price: {
-                min: any;
-                max: any;
-            };
-            cost: {
-                min: number;
                 max: number;
             };
-            info: any;
         };
     }>;
-    fetchMarketById(id: string, params?: {}): Promise<{
-        id: string;
-        symbol: string;
-        base: string;
-        quote: string;
-        settle: any;
-        baseId: string;
-        quoteId: string;
-        settleId: any;
-        type: string;
-        spot: boolean;
-        margin: boolean;
-        swap: boolean;
-        future: boolean;
-        option: boolean;
-        active: boolean;
-        contract: boolean;
-        linear: any;
-        inverse: any;
-        taker: number;
-        maker: number;
-        contractSize: any;
-        expiry: any;
-        expiryDatetime: any;
-        strike: any;
-        optionType: any;
-        precision: {
-            amount: number;
-            price: number;
-        };
-        limits: {
-            leverage: {
-                min: any;
-                max: any;
-            };
-            amount: {
-                min: number;
-                max: any;
-            };
-            price: {
-                min: any;
-                max: any;
-            };
-            cost: {
-                min: number;
-                max: number;
-            };
-            info: any;
-        };
-    }>;
+    fetchMarket(symbol: string, params?: {}): Promise<import("./base/types.js").MarketInterface>;
+    fetchMarketById(id: string, params?: {}): Promise<import("./base/types.js").MarketInterface>;
     fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     parseMarket(market: any): Market;
     parseBalance(response: any): Balances;

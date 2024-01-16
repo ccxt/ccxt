@@ -387,11 +387,12 @@ class testMainClass(baseMainTestClass):
         # others
         timeout = exchange.safe_value(skipped_settings_for_exchange, 'timeout')
         if timeout is not None:
-            exchange.timeout = exchange.parse_to_int(timeout)
-        exchange.http_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpProxy')
-        exchange.https_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpsProxy')
-        exchange.ws_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wsProxy')
-        exchange.wss_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wssProxy')
+            exchange.timeout = timeout
+        if get_cli_arg_value('--useProxy'):
+            exchange.http_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpProxy')
+            exchange.https_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpsProxy')
+            exchange.ws_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wsProxy')
+            exchange.wss_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wssProxy')
         self.skipped_methods = exchange.safe_value(skipped_settings_for_exchange, 'skipMethods', {})
         self.checked_public_tests = {}
 
@@ -526,6 +527,7 @@ class testMainClass(baseMainTestClass):
             'fetchCurrencies': [],
             'fetchTicker': [symbol],
             'fetchTickers': [symbol],
+            'fetchLastPrices': [symbol],
             'fetchOHLCV': [symbol],
             'fetchTrades': [symbol],
             'fetchOrderBook': [symbol],
@@ -814,13 +816,15 @@ class testMainClass(baseMainTestClass):
             await close(exchange)
             raise e
 
-    def assert_static_error(self, cond, message, calculated_output, stored_output):
+    def assert_static_error(self, cond, message, calculated_output, stored_output, key=None):
         #  -----------------------------------------------------------------------------
         #  --- Init of static tests functions------------------------------------------
         #  -----------------------------------------------------------------------------
         calculated_string = json_stringify(calculated_output)
         output_string = json_stringify(stored_output)
         error_message = message + ' expected ' + output_string + ' received: ' + calculated_string
+        if key is not None:
+            error_message = ' | ' + key + ' | ' + 'computed value: ' + output_string + ' stored value: ' + calculated_string
         assert cond, error_message
 
     def load_markets_from_file(self, id):
@@ -890,7 +894,7 @@ class testMainClass(baseMainTestClass):
             result[key] = value
         return result
 
-    def assert_new_and_stored_output(self, exchange, skip_keys, new_output, stored_output, strict_type_check=True):
+    def assert_new_and_stored_output(self, exchange, skip_keys, new_output, stored_output, strict_type_check=True, asserting_key=None):
         if is_null_value(new_output) and is_null_value(stored_output):
             return True
         if not new_output and not stored_output:
@@ -910,7 +914,7 @@ class testMainClass(baseMainTestClass):
                     self.assert_static_error(False, 'output key missing: ' + key, stored_output, new_output)
                 stored_value = stored_output[key]
                 new_value = new_output[key]
-                self.assert_new_and_stored_output(exchange, skip_keys, new_value, stored_value, strict_type_check)
+                self.assert_new_and_stored_output(exchange, skip_keys, new_value, stored_value, strict_type_check, key)
         elif isinstance(stored_output, list) and (isinstance(new_output, list)):
             stored_array_length = len(stored_output)
             new_array_length = len(new_output)
@@ -929,40 +933,17 @@ class testMainClass(baseMainTestClass):
             if strict_type_check and (self.lang != 'C#'):
                 # upon building the request we want strict type check to make sure all the types are correct
                 # when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
-                self.assert_static_error(sanitized_new_output == sanitized_stored_output, message_error, stored_output, new_output)
+                self.assert_static_error(sanitized_new_output == sanitized_stored_output, message_error, stored_output, new_output, asserting_key)
             else:
                 is_boolean = (isinstance(sanitized_new_output, bool)) or (isinstance(sanitized_stored_output, bool))
                 is_string = (isinstance(sanitized_new_output, str)) or (isinstance(sanitized_stored_output, str))
                 is_undefined = (sanitized_new_output is None) or (sanitized_stored_output is None)  # undefined is a perfetly valid value
                 if is_boolean or is_string or is_undefined:
-                    if self.lang == 'C#':
-                        # tmp c# number comparsion
-                        is_number = False
-                        try:
-                            exchange.parse_to_numeric(sanitized_new_output)
-                            is_number = True
-                        except Exception as e:
-                            # if we can't parse it to number, then it's not a number
-                            is_number = False
-                        if is_number:
-                            self.assert_static_error(exchange.parse_to_numeric(sanitized_new_output) == exchange.parse_to_numeric(sanitized_stored_output), message_error, stored_output, new_output)
-                            return True
-                        else:
-                            self.assert_static_error(convert_ascii(new_output_string) == convert_ascii(stored_output_string), message_error, stored_output, new_output)
-                            return True
-                    else:
-                        self.assert_static_error(convert_ascii(new_output_string) == convert_ascii(stored_output_string), message_error, stored_output, new_output)
-                        return True
+                    self.assert_static_error(new_output_string == stored_output_string, message_error, stored_output, new_output, asserting_key)
                 else:
-                    if self.lang == 'C#':
-                        stringified_new_output = exchange.number_to_string(sanitized_new_output)
-                        stringified_stored_output = exchange.number_to_string(sanitized_stored_output)
-                        self.assert_static_error(str(stringified_new_output) == str(stringified_stored_output), message_error, stored_output, new_output)
-                    else:
-                        numeric_new_output = exchange.parse_to_numeric(new_output_string)
-                        numeric_stored_output = exchange.parse_to_numeric(stored_output_string)
-                        self.assert_static_error(numeric_new_output == numeric_stored_output, message_error, stored_output, new_output)
-        return True   # c# requ
+                    numeric_new_output = exchange.parse_to_numeric(new_output_string)
+                    numeric_stored_output = exchange.parse_to_numeric(stored_output_string)
+                    self.assert_static_error(numeric_new_output == numeric_stored_output, message_error, stored_output, new_output, asserting_key)
 
     def assert_static_request_output(self, exchange, type, skip_keys, stored_url, request_url, stored_output, new_output):
         if stored_url != request_url:
@@ -1065,6 +1046,10 @@ class testMainClass(baseMainTestClass):
             'uid': 'uid',
             'accounts': [{
     'id': 'myAccount',
+    'code': 'USDT',
+}, {
+    'id': 'myAccount',
+    'code': 'USDC',
 }],
             'options': {
                 'enableUnifiedAccount': True,
@@ -1090,6 +1075,9 @@ class testMainClass(baseMainTestClass):
                 description = exchange.safe_value(result, 'description')
                 if (test_name is not None) and (test_name != description):
                     continue
+                is_disabled = exchange.safe_value(result, 'disabled', False)
+                if is_disabled:
+                    continue
                 type = exchange.safe_string(exchange_data, 'outputType')
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 await self.test_method_statically(exchange, method, result, type, skip_keys)
@@ -1110,6 +1098,9 @@ class testMainClass(baseMainTestClass):
                 description = exchange.safe_value(result, 'description')
                 is_disabled = exchange.safe_value(result, 'disabled', False)
                 if is_disabled:
+                    continue
+                is_disabled_php = exchange.safe_value(result, 'disabledPHP', False)
+                if is_disabled_php and (self.ext == 'php'):
                     continue
                 if (test_name is not None) and (test_name != description):
                     continue
@@ -1172,7 +1163,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1311,8 +1302,8 @@ class testMainClass(baseMainTestClass):
         await close(exchange)
         return True
 
-    async def test_huobi(self):
-        exchange = self.init_offline_exchange('huobi')
+    async def test_htx(self):
+        exchange = self.init_offline_exchange('htx')
         # spot test
         id = 'AA03022abc'
         spot_order_request = None
@@ -1407,7 +1398,7 @@ class testMainClass(baseMainTestClass):
 
     async def test_phemex(self):
         exchange = self.init_offline_exchange('phemex')
-        id = 'CCXT'
+        id = 'CCXT123456'
         request = None
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)

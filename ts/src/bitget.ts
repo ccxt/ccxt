@@ -44,7 +44,12 @@ export default class bitget extends Exchange {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createReduceOnlyOrder': false,
+                'createStopLossOrder': true,
+                'createTakeProfitOrder': true,
+                'createTrailingPercentOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -2954,7 +2959,11 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            if (market['contract']) {
+                request['limit'] = Math.min (limit, 1000);
+            } else {
+                request['limit'] = limit;
+            }
         }
         const options = this.safeValue (this.options, 'fetchTrades', {});
         let response = undefined;
@@ -3262,30 +3271,42 @@ export default class bitget extends Exchange {
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
         const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
-        let request = {
+        const request = {
             'symbol': market['id'],
             'granularity': selectedTimeframe,
         };
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        if (since !== undefined) {
-            request['startTime'] = limit;
-        }
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const spotOptions = this.safeValue (options, 'spot', {});
+        const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
+        const method = this.safeString (params, 'method', defaultSpotMethod);
+        params = this.omit (params, 'method');
+        if (method !== 'publicSpotGetV2SpotMarketHistoryCandles') {
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if (until !== undefined) {
+                request['endTime'] = until;
+            }
+        }
         let response = undefined;
         if (market['spot']) {
-            const spotOptions = this.safeValue (options, 'spot', {});
-            const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
-            const method = this.safeString (params, 'method', defaultSpotMethod);
-            params = this.omit (params, 'method');
             if (method === 'publicSpotGetV2SpotMarketCandles') {
                 response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
             } else if (method === 'publicSpotGetV2SpotMarketHistoryCandles') {
-                const until = this.safeInteger2 (params, 'until', 'till');
-                params = this.omit (params, [ 'until', 'till' ]);
-                if (until === undefined) {
+                if (since !== undefined) {
+                    if (limit === undefined) {
+                        limit = 100; // exchange default
+                    }
+                    const duration = this.parseTimeframe (timeframe) * 1000;
+                    request['endTime'] = this.sum (since, duration * limit);
+                } else if (until !== undefined) {
+                    request['endTime'] = until;
+                } else {
                     request['endTime'] = this.milliseconds ();
                 }
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));

@@ -4,7 +4,7 @@ import coinbaseRest from '../coinbase.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Ticker, Int, Trade, OrderBook, Order } from '../base/types.js';
+import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -102,7 +102,7 @@ export default class coinbase extends coinbaseRest {
         return await this.subscribe (name, symbol, params);
     }
 
-    async watchTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name coinbasepro#watchTickers
@@ -117,7 +117,10 @@ export default class coinbase extends coinbaseRest {
         }
         const name = 'ticker_batch';
         const tickers = await this.subscribe (name, symbols, params);
-        return tickers;
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.tickers;
     }
 
     handleTickers (client, message) {

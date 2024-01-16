@@ -1318,7 +1318,8 @@ class mexc extends Exchange {
             //         ]
             //     }
             //
-            $orderbook = $this->parse_order_book($response, $symbol);
+            $spotTimestamp = $this->safe_integer($response, 'timestamp');
+            $orderbook = $this->parse_order_book($response, $symbol, $spotTimestamp);
             $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
         } elseif ($market['swap']) {
             $response = $this->contractPublicGetDepthSymbol (array_merge($request, $params));

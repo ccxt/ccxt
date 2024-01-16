@@ -2863,7 +2863,7 @@ class Transpiler {
 }
 
 function parallelizeTranspiling (exchanges, processes = undefined) {
-    const processesNum = Math.max(processes || os.cpus ().length, 4)
+    const processesNum = Math.min(processes || os.cpus ().length, exchanges.length)
     log.bright.green ('starting ' + processesNum + ' new processes...')
     let isFirst = true
     for (let i = 0; i < processesNum; i ++) {

@@ -43,11 +43,16 @@ export default class okx extends Exchange {
                 'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
+                'createStopLossOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createTakeProfitOrder': true,
+                'createTrailingPercentOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -160,8 +165,7 @@ export default class okx extends Exchange {
                 'referral': {
                     // old reflink 0% discount https://www.okx.com/join/1888677
                     // new reflink 20% discount https://www.okx.com/join/CCXT2023
-                    // okx + ccxt campaign reflink with 20% discount https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023
-                    'url': 'https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023',
+                    'url': 'https://www.okx.com/join/CCXT2023',
                     'discount': 0.2,
                 },
                 'test': {
@@ -262,6 +266,7 @@ export default class okx extends Exchange {
                         'sprd/order': 1 / 3,
                         'sprd/orders-pending': 1 / 3,
                         'sprd/orders-history': 1 / 2,
+                        'sprd/orders-history-archive': 1 / 2,
                         'sprd/trades': 1 / 3,
                         // trade
                         'trade/order': 1 / 3,
@@ -1218,9 +1223,19 @@ export default class okx extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const event = data[i];
             const state = this.safeString(event, 'state');
+            update['eta'] = this.safeInteger(event, 'end');
+            update['url'] = this.safeString(event, 'href');
             if (state === 'ongoing') {
-                update['eta'] = this.safeInteger(event, 'end');
                 update['status'] = 'maintenance';
+            }
+            else if (state === 'scheduled') {
+                update['status'] = 'ok';
+            }
+            else if (state === 'completed') {
+                update['status'] = 'ok';
+            }
+            else if (state === 'canceled') {
+                update['status'] = 'ok';
             }
         }
         return update;
@@ -2125,17 +2140,14 @@ export default class okx extends Exchange {
         let defaultType = 'Candles';
         if (since !== undefined) {
             const now = this.milliseconds();
-            const difference = now - since;
             const durationInMilliseconds = duration * 1000;
-            // if the since timestamp is more than limit candles back in the past
-            // additional one bar for max offset to round the current day to UTC
-            const calc = (1440 - limit - 1) * durationInMilliseconds;
-            if (difference > calc) {
+            // switch to history candles if since is past the cutoff for current candles
+            const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
+            if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
             }
-            const startTime = Math.max(since - 1, 0);
-            request['before'] = startTime;
-            request['after'] = this.sum(startTime, durationInMilliseconds * limit);
+            request['before'] = since;
+            request['after'] = this.sum(since, durationInMilliseconds * limit);
         }
         const until = this.safeInteger(params, 'until');
         if (until !== undefined) {

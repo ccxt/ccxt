@@ -657,6 +657,8 @@ class NewTranspiler {
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
 
         // to c#
+        // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
+        // const delimited = tsContent.split (delimiter)
         const baseFile = this.transpiler.transpileCSharpByPath(baseExchangeFile);
         let baseClass = baseFile.content as any;// remove this later
 

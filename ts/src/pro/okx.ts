@@ -23,6 +23,7 @@ export default class okx extends okxRest {
                 'watchOrderBookForSymbols': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchPositions': true,
@@ -369,6 +370,51 @@ export default class okx extends okxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchOHLCVForSymbols
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
+        }
+        await this.loadMarkets ();
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const sym = symbolAndTimeframe[0];
+            const tf = symbolAndTimeframe[1];
+            const marketId = this.marketId (sym);
+            const interval = this.safeString (this.timeframes, tf, tf);
+            const channel = 'candle' + interval;
+            const topic = {
+                'channel': channel,
+                'instId': marketId,
+            };
+            topics.push (topic);
+            messageHashes.push ('multi:' + channel + ':' + sym);
+        }
+        const request = {
+            'op': 'subscribe',
+            'args': topics,
+        };
+        const url = this.getUrl ('candle', 'public');
+        const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        if (this.newUpdates) {
+            limit = candles.getLimit (symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
+        return this.createOHLCVObject (symbol, timeframe, filtered);
+    }
+
     handleOHLCV (client: Client, message) {
         //
         //     {
@@ -391,7 +437,7 @@ export default class okx extends okxRest {
         const data = this.safeValue (message, 'data', []);
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
-        const symbol = market['id'];
+        const symbol = market['symbol'];
         const interval = channel.replace ('candle', '');
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
@@ -405,8 +451,13 @@ export default class okx extends okxRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
-            const messageHash = channel + ':' + marketId;
+            const messageHash = channel + ':' + market['id'];
             client.resolve (stored, messageHash);
+            // for multiOHLCV we need special object, as opposed to other "multi"
+            // methods, because OHLCV response item does not contain symbol
+            // or timeframe, thus otherwise it would be unrecognizable
+            const messageHashForMulti = 'multi:' + channel + ':' + symbol;
+            client.resolve ([ symbol, timeframe, stored ], messageHashForMulti);
         }
     }
 

@@ -193,11 +193,21 @@ export default class gate extends Exchange {
     fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+        id: string;
+        timestamp: any;
+        datetime: any;
+        currency: string;
+        amount: any;
+        fromAccount: any;
+        toAccount: any;
+        status: any;
+        info: any;
+    }>;
     parseTransfer(transfer: any, currency?: Currency): {
         id: string;
-        timestamp: number;
-        datetime: string;
+        timestamp: any;
+        datetime: any;
         currency: string;
         amount: any;
         fromAccount: any;

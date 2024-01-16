@@ -70,11 +70,21 @@ export default class hitbtc extends Exchange {
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
     fetchMarginMode(symbol?: Str, params?: {}): Promise<MarginMode>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+        id: string;
+        timestamp: any;
+        datetime: any;
+        currency: string;
+        amount: any;
+        fromAccount: any;
+        toAccount: any;
+        status: any;
+        info: any;
+    }>;
     parseTransfer(transfer: any, currency?: Currency): {
         id: string;
-        timestamp: number;
-        datetime: string;
+        timestamp: any;
+        datetime: any;
         currency: string;
         amount: any;
         fromAccount: any;
