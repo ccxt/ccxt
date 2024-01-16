@@ -649,6 +649,18 @@ export default class coinone extends Exchange {
         //         "is_seller_maker": false
         //     }
         //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         "timestamp": "1416561032",
+        //         "price": "419000.0",
+        //         "type": "bid",
+        //         "qty": "0.001",
+        //         "feeRate": "-0.0015",
+        //         "fee": "-0.0000015",
+        //         "orderId": "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
+        //     }
+        //
         const timestamp = this.safeInteger (trade, 'timestamp');
         market = this.safeMarket (undefined, market);
         const isSellerMaker = this.safeValue (trade, 'is_seller_maker');
