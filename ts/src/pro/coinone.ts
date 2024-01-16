@@ -62,7 +62,7 @@ export default class coinone extends coinoneRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = 'orderbook:' + symbol;
+        const messageHash = 'orderbook:' + market['symbol'];
         const url = this.urls['api']['ws'];
         const request = {
             'request_type': 'SUBSCRIBE',
@@ -144,7 +144,7 @@ export default class coinone extends coinoneRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + market['symbol'];
         const url = this.urls['api']['ws'];
         const request = {
             'request_type': 'SUBSCRIBE',
@@ -267,7 +267,7 @@ export default class coinone extends coinoneRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = 'trade:' + symbol;
+        const messageHash = 'trade:' + market['symbol'];
         const url = this.urls['api']['ws'];
         const request = {
             'request_type': 'SUBSCRIBE',
@@ -278,7 +278,11 @@ export default class coinone extends coinoneRest {
             },
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        const trades = await this.watch (url, messageHash, message, messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (market['symbol'], limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrades (client: Client, message) {
