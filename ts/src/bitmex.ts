@@ -1520,8 +1520,8 @@ export default class bitmex extends Exchange {
             if (fetchOHLCVOpenTimestamp) {
                 timestamp = this.sum (timestamp, duration);
             }
-            const ymdhms = this.ymdhms (timestamp);
-            request['startTime'] = ymdhms; // starting date filter for results
+            const startTime = this.iso8601 (timestamp);
+            request['startTime'] = startTime; // starting date filter for results
         } else {
             request['reverse'] = true;
         }
