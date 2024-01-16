@@ -686,20 +686,22 @@ export default class independentreserve extends Exchange {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const capitalizedOrderType = this.capitalize(type);
-        const method = 'privatePostPlace' + capitalizedOrderType + 'Order';
-        let orderType = capitalizedOrderType;
+        let orderType = this.capitalize(type);
         orderType += (side === 'sell') ? 'Offer' : 'Bid';
         const request = this.ordered({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         });
+        let response = undefined;
+        request['volume'] = amount;
         if (type === 'limit') {
             request['price'] = price;
+            response = await this.privatePostPlaceLimitOrder(this.extend(request, params));
         }
-        request['volume'] = amount;
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.privatePostPlaceMarketOrder(this.extend(request, params));
+        }
         return this.safeOrder({
             'info': response,
             'id': response['OrderGuid'],

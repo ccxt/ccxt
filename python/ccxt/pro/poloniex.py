@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -341,7 +341,7 @@ class poloniex(ccxt.async_support.poloniex):
         tickers = await self.watch_tickers([symbol], params)
         return self.safe_value(tickers, symbol)
 
-    async def watch_tickers(self, symbols=None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.poloniex.com/#public-channels-market-data-ticker

@@ -14,6 +14,7 @@ class binanceus(binance, ImplicitAPI):
             'id': 'binanceus',
             'name': 'Binance US',
             'countries': ['US'],  # US
+            'rateLimit': 50,  # 1200 req per min
             'certified': False,
             'pro': True,
             'urls': {
@@ -80,5 +81,12 @@ class binanceus(binance, ImplicitAPI):
                 'setMargin': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+            },
+            'api': {
+                'public': {
+                    'get': {
+                        'ticker/price': {'cost': 1, 'noSymbol': 2},
+                    },
+                },
             },
         })

@@ -4008,6 +4008,7 @@ class bitget extends bitget$1 {
          * @param {string} [params.trailingPercent] *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
          * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
          * @param {string} [params.triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+         * @param {boolean} [params.oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -4201,15 +4202,23 @@ class bitget extends bitget$1 {
                 }
                 const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
+                const oneWayMode = this.safeValue(params, 'oneWayMode', false);
+                params = this.omit(params, 'oneWayMode');
                 let requestSide = side;
                 if (reduceOnly) {
-                    request['reduceOnly'] = 'YES';
-                    request['tradeSide'] = 'Close';
-                    // on bitget if the position is long the side is always buy, and if the position is short the side is always sell
-                    requestSide = (side === 'buy') ? 'sell' : 'buy';
+                    if (oneWayMode) {
+                        request['reduceOnly'] = 'YES';
+                    }
+                    else {
+                        // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
+                        requestSide = (side === 'buy') ? 'sell' : 'buy';
+                        request['tradeSide'] = 'Close';
+                    }
                 }
                 else {
-                    request['tradeSide'] = 'Open';
+                    if (!oneWayMode) {
+                        request['tradeSide'] = 'Open';
+                    }
                 }
                 request['side'] = requestSide;
             }

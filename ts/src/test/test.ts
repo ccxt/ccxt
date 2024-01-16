@@ -504,6 +504,7 @@ export default class testMainClass extends baseMainTestClass {
             'fetchCurrencies': [],
             'fetchTicker': [ symbol ],
             'fetchTickers': [ symbol ],
+            'fetchLastPrices': [ symbol ],
             'fetchOHLCV': [ symbol ],
             'fetchTrades': [ symbol ],
             'fetchOrderBook': [ symbol ],
@@ -953,13 +954,16 @@ export default class testMainClass extends baseMainTestClass {
         }
     }
 
-    assertStaticError (cond:boolean, message: string, calculatedOutput, storedOutput) {
+    assertStaticError (cond:boolean, message: string, calculatedOutput, storedOutput, key = undefined) {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
         const calculatedString = jsonStringify (calculatedOutput);
         const outputString = jsonStringify (storedOutput);
-        const errorMessage = message + ' expected ' + outputString + ' received: ' + calculatedString;
+        let errorMessage = message + ' expected ' + outputString + ' received: ' + calculatedString;
+        if (key !== undefined) {
+            errorMessage = ' | ' + key + ' | ' + 'computed value: ' + outputString + ' stored value: ' + calculatedString;
+        }
         assert (cond, errorMessage);
     }
 
@@ -1045,7 +1049,7 @@ export default class testMainClass extends baseMainTestClass {
         return result;
     }
 
-    assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true) {
+    assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
         if (isNullValue (newOutput) && isNullValue (storedOutput)) {
             return true;
             // c# requirement
@@ -1071,7 +1075,7 @@ export default class testMainClass extends baseMainTestClass {
                 }
                 const storedValue = storedOutput[key];
                 const newValue = newOutput[key];
-                this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue, strictTypeCheck);
+                this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
         } else if (Array.isArray (storedOutput) && (Array.isArray (newOutput))) {
             const storedArrayLength = storedOutput.length;
@@ -1092,7 +1096,7 @@ export default class testMainClass extends baseMainTestClass {
             if (strictTypeCheck && (this.lang !== 'C#')) { // in c# types are different, so we can't do strict type check
                 // upon building the request we want strict type check to make sure all the types are correct
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
-                this.assertStaticError (sanitizedNewOutput === sanitizedStoredOutput, messageError, storedOutput, newOutput);
+                this.assertStaticError (sanitizedNewOutput === sanitizedStoredOutput, messageError, storedOutput, newOutput, assertingKey);
             } else {
                 const isBoolean = (typeof sanitizedNewOutput === 'boolean') || (typeof sanitizedStoredOutput === 'boolean');
                 const isString = (typeof sanitizedNewOutput === 'string') || (typeof sanitizedStoredOutput === 'string');
@@ -1109,25 +1113,25 @@ export default class testMainClass extends baseMainTestClass {
                             isNumber = false;
                         }
                         if (isNumber) {
-                            this.assertStaticError (exchange.parseToNumeric (sanitizedNewOutput) === exchange.parseToNumeric (sanitizedStoredOutput), messageError, storedOutput, newOutput);
+                            this.assertStaticError (exchange.parseToNumeric (sanitizedNewOutput) === exchange.parseToNumeric (sanitizedStoredOutput), messageError, storedOutput, newOutput, assertingKey);
                             return true;
                         } else {
-                            this.assertStaticError (convertAscii (newOutputString) === convertAscii (storedOutputString), messageError, storedOutput, newOutput);
+                            this.assertStaticError (convertAscii (newOutputString) === convertAscii (storedOutputString), messageError, storedOutput, newOutput, assertingKey);
                             return true;
                         }
                     } else {
-                        this.assertStaticError (convertAscii (newOutputString) === convertAscii (storedOutputString), messageError, storedOutput, newOutput);
+                        this.assertStaticError (convertAscii (newOutputString) === convertAscii (storedOutputString), messageError, storedOutput, newOutput, assertingKey);
                         return true;
                     }
                 } else {
                     if (this.lang === "C#") { // tmp fix, stil failing with the "1.0" != "1" error
                         const stringifiedNewOutput = exchange.numberToString (sanitizedNewOutput);
                         const stringifiedStoredOutput = exchange.numberToString (sanitizedStoredOutput);
-                        this.assertStaticError (stringifiedNewOutput.toString () === stringifiedStoredOutput.toString (), messageError, storedOutput, newOutput);
+                        this.assertStaticError (stringifiedNewOutput.toString () === stringifiedStoredOutput.toString (), messageError, storedOutput, newOutput, assertingKey);
                     } else {
                         const numericNewOutput =  exchange.parseToNumeric (newOutputString);
                         const numericStoredOutput = exchange.parseToNumeric (storedOutputString);
-                        this.assertStaticError (numericNewOutput === numericStoredOutput, messageError, storedOutput, newOutput);
+                        this.assertStaticError (numericNewOutput === numericStoredOutput, messageError, storedOutput, newOutput, assertingKey);
                     }
                 }
             }
@@ -1249,7 +1253,7 @@ export default class testMainClass extends baseMainTestClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
-        const exchange = initExchange (exchangeName, { 'markets': markets, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
+        const exchange = initExchange (exchangeName, { 'markets': markets, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
         exchange.currencies = currencies; // not working in python if assigned  in the config dict
         return exchange;
     }
@@ -1266,6 +1270,10 @@ export default class testMainClass extends baseMainTestClass {
                 const result = results[j];
                 const description = exchange.safeValue (result, 'description');
                 if ((testName !== undefined) && (testName !== description)) {
+                    continue;
+                }
+                const isDisabled = exchange.safeValue (result, 'disabled', false);
+                if (isDisabled) {
                     continue;
                 }
                 const type = exchange.safeString (exchangeData, 'outputType');
@@ -1295,6 +1303,10 @@ export default class testMainClass extends baseMainTestClass {
                 }
                 const isDisabledCSharp = exchange.safeValue (result, 'disabledCSharp', false);
                 if (isDisabledCSharp && (this.lang === 'C#')) {
+                    continue;
+                }
+                const isDisabledPHP = exchange.safeValue (result, 'disabledPHP', false);
+                if (isDisabledPHP && (this.lang === 'PHP')) {
                     continue;
                 }
                 if ((testName !== undefined) && (testName !== description)) {
@@ -1382,7 +1394,7 @@ export default class testMainClass extends baseMainTestClass {
             this.testKucoinfutures (),
             this.testBitget (),
             this.testMexc (),
-            this.testHuobi (),
+            this.testHtx (),
             this.testWoo (),
             this.testBitmart (),
             this.testCoinex (),
@@ -1547,8 +1559,8 @@ export default class testMainClass extends baseMainTestClass {
         return true;
     }
 
-    async testHuobi () {
-        const exchange = this.initOfflineExchange ('huobi');
+    async testHtx () {
+        const exchange = this.initOfflineExchange ('htx');
         // spot test
         const id = 'AA03022abc';
         let spotOrderRequest = undefined;
@@ -1654,7 +1666,7 @@ export default class testMainClass extends baseMainTestClass {
 
     async testPhemex () {
         const exchange = this.initOfflineExchange ('phemex');
-        const id = 'CCXT';
+        const id = 'CCXT123456';
         let request = undefined;
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);

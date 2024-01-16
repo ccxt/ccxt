@@ -789,7 +789,6 @@ export default class probit extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market_id': market['id'],
-            'limit': 100,
             'start_time': '1970-01-01T00:00:00.000Z',
             'end_time': this.iso8601 (this.milliseconds ()),
         };
@@ -797,7 +796,9 @@ export default class probit extends Exchange {
             request['start_time'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            request['limit'] = Math.min (limit, 10000);
+            request['limit'] = Math.min (limit, 1000);
+        } else {
+            request['limit'] = 1000; // required to set any value
         }
         const response = await this.publicGetTrade (this.extend (request, params));
         //

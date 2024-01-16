@@ -175,6 +175,12 @@
                     1699457638000,
                     5
                 ]
+            },
+            {
+                "description": "my trades without symbol should return usdt settled trades",
+                "method": "fetchMyTrades",
+                "url": "https://testnet-api.phemex.com/exchange/order/v2/tradingList?currency=USDT&offset=0&limit=200",
+                "input": []
             }
         ],
         "fetchOpenOrders": [
@@ -227,6 +233,12 @@
                 "input": [
                     "BTC/USD:BTC"
                 ]
+            },
+            {
+                "description": "Closed orders without symbol should return usdt settled orders",
+                "method": "fetchClosedOrders",
+                "url": "https://testnet-api.phemex.com/exchange/order/v2/orderList?currency=USDT",
+                "input": []
             }
         ],
         "cancelAllOrders": [

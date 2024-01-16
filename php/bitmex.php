@@ -39,6 +39,7 @@ class bitmex extends Exchange {
                 'closePosition' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
+                'createTrailingAmountOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,

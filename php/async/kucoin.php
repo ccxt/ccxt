@@ -52,6 +52,7 @@ class kucoin extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
@@ -318,6 +319,7 @@ class kucoin extends Exchange {
                         'premium/query' => 4.5, // 3PW
                         'trade-statistics' => 4.5, // 3PW
                         'funding-rate/{symbol}/current' => 3, // 2PW
+                        'contract/funding-rates' => 7.5, // 5PW
                         'timestamp' => 3, // 2PW
                         'status' => 6, // 4PW
                         // ?
@@ -347,6 +349,7 @@ class kucoin extends Exchange {
                         'openOrderStatistics' => 15, // 10FW
                         'position' => 3, // 2FW
                         'positions' => 3, // 2FW
+                        'margin/maxWithdrawMargin' => 15, // 10FW
                         'contracts/risk-limit/{symbol}' => 7.5, // 5FW
                         'funding-history' => 7.5, // 5FW
                     ),
@@ -357,7 +360,9 @@ class kucoin extends Exchange {
                         // futures
                         'orders' => 3, // 2FW
                         'orders/test' => 3, // 2FW
+                        'orders/multi' => 4.5, // 3FW
                         'position/margin/auto-deposit-status' => 6, // 4FW
+                        'margin/withdrawMargin' => 15, // 10FW
                         'position/margin/deposit-margin' => 6, // 4FW
                         'position/risk-limit-level/change' => 6, // 4FW
                         // ws
@@ -3451,10 +3456,12 @@ class kucoin extends Exchange {
             /**
              * $query for $balance and get the amount of funds available for trading or funds locked in orders
              * @see https://docs.kucoin.com/#list-$accounts
+             * @see https://www.kucoin.com/docs/rest/account/basic-info/get-$account-list-spot-margin-trade_hf
              * @see https://docs.kucoin.com/#$query-$isolated-margin-$account-info
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {array} [$params->marginMode] 'cross' or 'isolated', margin $type for fetching margin $balance
              * @param {array} [$params->type] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->hf] *default if false* if true, the $result includes the $balance of the high frequency $account
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
              */
             Async\await($this->load_markets());
@@ -3468,6 +3475,11 @@ class kucoin extends Exchange {
             $accountsByType = $this->safe_value($this->options, 'accountsByType');
             $type = $this->safe_string($accountsByType, $requestedType, $requestedType);
             $params = $this->omit($params, 'type');
+            $isHf = $this->safe_value($params, 'hf', false);
+            if ($isHf) {
+                $type = 'trade_hf';
+            }
+            $params = $this->omit($params, 'hf');
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
             $response = null;
             $request = array();
@@ -3547,7 +3559,7 @@ class kucoin extends Exchange {
                 'datetime' => null,
             );
             if ($isolated) {
-                $assets = $this->safe_value($data, 'assets', array());
+                $assets = $this->safe_value($data, 'assets', $data);
                 for ($i = 0; $i < count($assets); $i++) {
                     $entry = $assets[$i];
                     $marketId = $this->safe_string($entry, 'symbol');
@@ -3879,12 +3891,14 @@ class kucoin extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * @see https://docs.kucoin.com/#get-account-ledgers
+             * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf
+             * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
-             * @see https://docs.kucoin.com/#get-account-ledgers
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entrys to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->hf] default false, when true will fetch ledger entries for the high frequency trading account
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
@@ -3893,6 +3907,8 @@ class kucoin extends Exchange {
             Async\await($this->load_accounts());
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+            $isHf = $this->safe_value($params, 'hf');
+            $params = $this->omit($params, 'hf');
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params));
             }
@@ -3913,7 +3929,18 @@ class kucoin extends Exchange {
                 $request['currency'] = $currency['id'];
             }
             list($request, $params) = $this->handle_until_option('endAt', $request, $params);
-            $response = Async\await($this->privateGetAccountsLedgers (array_merge($request, $params)));
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLedger', $params);
+            $response = null;
+            if ($isHf) {
+                if ($marginMode !== null) {
+                    $response = Async\await($this->privateGetHfMarginAccountLedgers (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->privateGetHfAccountsLedgers (array_merge($request, $params)));
+                }
+            } else {
+                $response = Async\await($this->privateGetAccountsLedgers (array_merge($request, $params)));
+            }
             //
             //     {
             //         "code":"200000",
@@ -3952,7 +3979,7 @@ class kucoin extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data');
-            $items = $this->safe_value($data, 'items');
+            $items = $this->safe_value($data, 'items', $data);
             return $this->parse_ledger($items, $currency, $since, $limit);
         }) ();
     }

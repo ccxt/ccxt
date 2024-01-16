@@ -2444,11 +2444,10 @@ class hitbtc(Exchange, ImplicitAPI):
         #         "2db6ebab-fb26-4537-9ef8-1a689472d236"
         #     ]
         #
-        timestamp = self.milliseconds()
         return {
             'id': self.safe_string(transfer, 0),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'currency': self.safe_currency_code(None, currency),
             'amount': None,
             'fromAccount': None,
