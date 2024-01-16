@@ -1486,8 +1486,8 @@ class bitmex extends Exchange {
             if ($fetchOHLCVOpenTimestamp) {
                 $timestamp = $this->sum($timestamp, $duration);
             }
-            $ymdhms = $this->ymdhms($timestamp);
-            $request['startTime'] = $ymdhms; // starting date $filter for results
+            $startTime = $this->iso8601($timestamp);
+            $request['startTime'] = $startTime; // starting date $filter for results
         } else {
             $request['reverse'] = true;
         }
@@ -2575,12 +2575,9 @@ class bitmex extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires $params["network"]');
         }
         $currency = $this->currency($code);
-        $currencyId = $currency['id'];
-        $idLength = count($currencyId);
-        $currencyId = strtolower(mb_substr($currencyId, 0, $idLength - 1 - 0) . mb_substr($currencyId, $idLength - 1, $idLength - $idLength - 1));  // make the last letter lowercase
         $params = $this->omit($params, 'network');
         $request = array(
-            'currency' => $currencyId,
+            'currency' => $currency['id'],
             'network' => $this->network_code_to_id($networkCode, $currency['code']),
         );
         $response = $this->privateGetUserDepositAddress (array_merge($request, $params));

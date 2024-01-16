@@ -174,7 +174,12 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         name = self.safe_string_2(params, 'method', 'watchTickerMethod', method)
         params = self.omit(params, ['watchTickerMethod', 'method'])
         symbols = self.market_symbols(symbols, None, False)
-        return await self.subscribe_public(name, symbols, params)
+        ticker = await self.subscribe_public(name, symbols, params)
+        if self.newUpdates:
+            tickers = {}
+            tickers[ticker['symbol']] = ticker
+            return tickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     async def watch_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """

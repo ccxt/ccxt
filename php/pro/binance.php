@@ -1107,7 +1107,7 @@ class binance extends \ccxt\async\binance {
             $result = $this->parse_ws_ticker($ticker, $marketType);
             $symbol = $result['symbol'];
             $this->tickers[$symbol] = $result;
-            $newTickers[] = $result;
+            $newTickers[$symbol] = $result;
         }
         $messageHashes = $this->find_message_hashes($client, 'tickers::');
         for ($i = 0; $i < count($messageHashes); $i++) {

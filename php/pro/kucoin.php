@@ -276,7 +276,9 @@ class kucoin extends \ccxt\async\kucoin {
         $messageHash = 'ticker:' . $symbol;
         $client->resolve ($ticker, $messageHash);
         // watchTickers
-        $client->resolve ($ticker, 'tickers');
+        $allTickers = array();
+        $allTickers[$symbol] = $ticker;
+        $client->resolve ($allTickers, 'tickers');
         $messageHashes = $this->find_message_hashes($client, 'tickers::');
         for ($i = 0; $i < count($messageHashes); $i++) {
             $currentMessageHash = $messageHashes[$i];
