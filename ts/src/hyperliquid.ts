@@ -10,7 +10,6 @@ import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
 import type { Market, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position } from './base/types.js';
-import ethabi from './static_dependencies/ethabi/ethabi.js'
 
 //  ---------------------------------------------------------------------------
 
@@ -181,7 +180,7 @@ export default class hyperliquid extends Exchange {
     }
 
     test (params = {}) {
-        return ethabi.encode (['uint256','uint256'], [1,2]);
+        return this.eth_abi_encode (['uint256','uint256'], [1,2]);
     }
 
     setSandboxMode (enabled) {
@@ -273,7 +272,7 @@ export default class hyperliquid extends Exchange {
         const quoteId = 'USD';
         const base = this.safeString (market, 'name');
         const quote = this.safeCurrencyCode (quoteId);
-        const baseId = this.safeInteger (market, 'baseId');
+        const baseId = this.safeString (market, 'baseId');
         const settleId = 'USDC';
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
@@ -574,7 +573,7 @@ export default class hyperliquid extends Exchange {
         }
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         const request = {
-            'coin': market['baseId'],
+            'coin': this.parseToInt (market['baseId']),
             'is_buy': (orderSide === 'BUY'),
             // 'sz': this.amountToPrecision (symbol, amount),
             // 'limit_px': this.priceToPrecision (symbol, px),
@@ -584,7 +583,7 @@ export default class hyperliquid extends Exchange {
         };
         const orderSpec = {
             'order': {
-                'asset': market['baseId'],
+                'asset': this.parseToInt (market['baseId']),
                 'isBuy': (orderSide === 'BUY'),
                 'sz': amount,
                 'limitPx': px,
@@ -664,7 +663,7 @@ export default class hyperliquid extends Exchange {
         // const signedMsg = account.sign_message(msg);
         // TODO: use encode typed data?
         const msg = this.eth_encode_structured_data (structuredData);
-        const signature = this.signMessage (msg.header, msg.body, this.privateKey);
+        const signature = this.signMessage (msg[0], msg[1], this.privateKey);
         const tmpRequest = {
             "action": {
                 "type": "order",

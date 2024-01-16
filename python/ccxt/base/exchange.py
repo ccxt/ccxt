@@ -1340,7 +1340,8 @@ class Exchange(object):
 
     @staticmethod
     def eth_encode_structured_data(data):
-        return ethaccount.messages.encode_structured_data(data)
+        encodedData = ethaccount.messages.encode_structured_data(data)
+        return [encodedData.header, encodedData.body]
 
     @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
