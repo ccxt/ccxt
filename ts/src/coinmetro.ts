@@ -131,7 +131,7 @@ export default class coinmetro extends Exchange {
                 '1d': '86400000',
             },
             'urls': {
-                'logo': '', // todo
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/8c0ad35d-dec4-474a-af7a-1c0120acf664',
                 'api': {
                     'public': 'https://api.coinmetro.com',
                     'private': 'https://api.coinmetro.com',
@@ -776,7 +776,7 @@ export default class coinmetro extends Exchange {
             'asks': rawAsks,
         };
         const orderbook = this.parseOrderBook (rawOrderbook, symbol);
-        orderbook['nonce'] = this.safeInteger (book, 'checksum'); // todo: check
+        orderbook['nonce'] = this.safeInteger (book, 'seqNumber');
         return orderbook;
     }
 
@@ -917,7 +917,7 @@ export default class coinmetro extends Exchange {
         const ask = this.safeString (ticker, 'ask');
         const high = this.safeString (ticker, 'h');
         const low = this.safeString (ticker, 'l');
-        const close = this.safeString (ticker, 'price'); // todo: check the GUI shows it as a last price
+        const last = this.safeString (ticker, 'price');
         const baseVolume = this.safeString (ticker, 'v');
         const delta = this.safeString (ticker, 'delta');
         const percentage = Precise.stringMul (delta, '100');
@@ -928,7 +928,8 @@ export default class coinmetro extends Exchange {
             'open': undefined,
             'high': high,
             'low': low,
-            'close': close,
+            'close': undefined,
+            'last': last,
             'bid': bid,
             'bidVolume': undefined,
             'ask': ask,
