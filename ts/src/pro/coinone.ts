@@ -112,6 +112,8 @@ export default class coinone extends coinoneRest {
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             orderbook = this.orderBook ();
+        } else {
+            orderbook.reset ();
         }
         orderbook['symbol'] = symbol;
         const asks = this.safeValue (data, 'asks', []);
