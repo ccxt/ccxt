@@ -267,7 +267,9 @@ export default class kucoin extends kucoinRest {
         const messageHash = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
         // watchTickers
-        client.resolve (ticker, 'tickers');
+        const allTickers = {};
+        allTickers[symbol] = ticker;
+        client.resolve (allTickers, 'tickers');
         const messageHashes = this.findMessageHashes (client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
             const currentMessageHash = messageHashes[i];
