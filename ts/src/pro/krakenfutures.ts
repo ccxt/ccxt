@@ -185,7 +185,10 @@ export default class krakenfutures extends krakenfuturesRest {
         const name = this.safeString2 (params, 'method', 'watchTickerMethod', method);
         params = this.omit (params, [ 'watchTickerMethod', 'method' ]);
         symbols = this.marketSymbols (symbols, undefined, false);
-        return await this.subscribePublic (name, symbols, params);
+        const ticker = await this.subscribePublic (name, symbols, params);
+        const tickers = {};
+        tickers[ticker['symbol']] = ticker;
+        return tickers;
     }
 
     async watchTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
