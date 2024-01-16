@@ -18,8 +18,8 @@ export default class coinmetro extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinmetro',
             'name': 'Coinmetro',
-            'countries': [ 'EE' ], // Republic of Estonia todo: check
-            'version': 'v1', // todo: check
+            'countries': [ 'EE' ], // Republic of Estonia
+            'version': 'v1',
             'rateLimit': 200, // 1 request per 200ms, 20 per minute, 300 per hour, 1k per day
             'certified': false,
             'pro': false,
@@ -145,6 +145,7 @@ export default class coinmetro extends Exchange {
                     'https://documenter.getpostman.com/view/3653795/SVfWN6KS',
                 ],
                 'fees': 'https://help.coinmetro.com/hc/en-gb/articles/6844007317789-What-are-the-fees-on-Coinmetro-',
+                'referral': 'https://go.coinmetro.com/?ref=crypto24',
             },
             'api': {
                 'public': {
@@ -348,7 +349,6 @@ export default class coinmetro extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets (params);
-        // todo: check
         if (this.safeValue (this.options, 'currenciesByIdForParseMarket') === undefined) {
             await this.fetchCurrencies ();
         }
