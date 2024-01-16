@@ -250,7 +250,9 @@ class kucoin(ccxt.async_support.kucoin):
         messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
         # watchTickers
-        client.resolve(ticker, 'tickers')
+        allTickers = {}
+        allTickers[symbol] = ticker
+        client.resolve(allTickers, 'tickers')
         messageHashes = self.find_message_hashes(client, 'tickers::')
         for i in range(0, len(messageHashes)):
             currentMessageHash = messageHashes[i]
