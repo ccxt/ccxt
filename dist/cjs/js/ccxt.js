@@ -135,6 +135,7 @@ var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
 var coinbasepro$1 = require('./src/pro/coinbasepro.js');
 var coinex$1 = require('./src/pro/coinex.js');
+var coinone$1 = require('./src/pro/coinone.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
 var currencycom$1 = require('./src/pro/currencycom.js');
 var deribit$1 = require('./src/pro/deribit.js');
@@ -297,6 +298,7 @@ const pro = {
     'coinbase': coinbase$1,
     'coinbasepro': coinbasepro$1,
     'coinex': coinex$1,
+    'coinone': coinone$1,
     'cryptocom': cryptocom$1,
     'currencycom': currencycom$1,
     'deribit': deribit$1,
