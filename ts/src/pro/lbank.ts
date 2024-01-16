@@ -2,7 +2,7 @@
 import lbankRest from '../lbank.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, Trade, OrderBook, Order, OHLCV } from '../base/types.js';
+import type { Int, Str, Trade, OrderBook, Order, OHLCV, Ticker } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -11,6 +11,10 @@ export default class lbank extends lbankRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'fetchOHLCVWs': true,
+                'fetchOrderBookWs': true,
+                'fetchTickerWs': true,
+                'fetchTradesWs': true,
                 'watchBalance': false,
                 'watchTicker': true,
                 'watchTickers': false,
@@ -48,10 +52,55 @@ export default class lbank extends lbankRest {
         });
     }
 
+    requestId () {
+        const previousValue = this.safeInteger (this.options, 'requestId', 0);
+        const newValue = this.sum (previousValue, 1);
+        this.options['requestId'] = newValue;
+        return newValue;
+    }
+
+    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name lbank#fetchOHLCVWs
+         * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws'];
+        const watchOHLCVOptions = this.safeValue (this.options, 'watchOHLCV', {});
+        const timeframes = this.safeValue (watchOHLCVOptions, 'timeframes', {});
+        const timeframeId = this.safeString (timeframes, timeframe, timeframe);
+        const messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
+        const message = {
+            'action': 'request',
+            'request': 'kbar',
+            'kbar': timeframeId,
+            'pair': market['id'],
+        };
+        if (since !== undefined) {
+            message['start'] = this.parseToInt (Math.floor (since / 1000));
+        }
+        if (limit !== undefined) {
+            message['size'] = limit;
+        }
+        const request = this.deepExtend (message, params);
+        const requestId = this.requestId ();
+        return await this.watch (url, messageHash, request, requestId, request);
+    }
+
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name lbank#watchOHLCV
+         * @see https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -83,6 +132,38 @@ export default class lbank extends lbankRest {
 
     handleOHLCV (client, message) {
         //
+        // request
+        //    {
+        //        "records":[
+        //           [
+        //              1705364400,
+        //              42614,
+        //              42624.57,
+        //              42532.15,
+        //              42537.43,
+        //              13.2615,
+        //              564568.931565,
+        //              433
+        //           ]
+        //        ],
+        //        "columns":[
+        //           "timestamp",
+        //           "open",
+        //           "high",
+        //           "low",
+        //           "close",
+        //           "volume",
+        //           "turnover",
+        //           "count"
+        //        ],
+        //        "SERVER":"V2",
+        //        "count":1,
+        //        "kbar":"5min",
+        //        "type":"kbar",
+        //        "pair":"btc_usdt",
+        //        "TS":"2024-01-16T08:29:41.718"
+        //    }
+        // subscribe
         //      {
         //          SERVER: 'V2',
         //          kbar: {
@@ -103,36 +184,86 @@ export default class lbank extends lbankRest {
         //
         const marketId = this.safeString (message, 'pair');
         const symbol = this.safeSymbol (marketId, undefined, '_');
-        const kbar = this.safeValue (message, 'kbar', {});
-        const timeframeId = this.safeString (kbar, 'slot');
-        const datetime = this.safeString (kbar, 't');
-        const parsed = [
-            this.parse8601 (datetime),
-            this.safeNumber (kbar, 'o'),
-            this.safeNumber (kbar, 'h'),
-            this.safeNumber (kbar, 'l'),
-            this.safeNumber (kbar, 'c'),
-            this.safeNumber (kbar, 'v'),
-        ];
         const watchOHLCVOptions = this.safeValue (this.options, 'watchOHLCV', {});
         const timeframes = this.safeValue (watchOHLCVOptions, 'timeframes', {});
-        const timeframe = this.findTimeframe (timeframeId, timeframes);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+        const records = this.safeValue (message, 'records');
+        if (records !== undefined) {  // from request
+            const rawOHLCV = this.safeValue (records, 0, []);
+            const parsed = [
+                this.safeInteger (rawOHLCV, 0),
+                this.safeNumber (rawOHLCV, 1),
+                this.safeNumber (rawOHLCV, 2),
+                this.safeNumber (rawOHLCV, 3),
+                this.safeNumber (rawOHLCV, 4),
+                this.safeNumber (rawOHLCV, 5),
+            ];
+            const timeframeId = this.safeString (message, 'kbar');
+            const timeframe = this.findTimeframe (timeframeId, timeframes);
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                stored = new ArrayCacheByTimestamp (limit);
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
+            stored.append (parsed);
+            const messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
+            client.resolve (stored, messageHash);
+        } else {  // from subscription
+            const rawOHLCV = this.safeValue (message, 'kbar', {});
+            const timeframeId = this.safeString (rawOHLCV, 'slot');
+            const datetime = this.safeString (rawOHLCV, 't');
+            const parsed = [
+                this.parse8601 (datetime),
+                this.safeNumber (rawOHLCV, 'o'),
+                this.safeNumber (rawOHLCV, 'h'),
+                this.safeNumber (rawOHLCV, 'l'),
+                this.safeNumber (rawOHLCV, 'c'),
+                this.safeNumber (rawOHLCV, 'v'),
+            ];
+            const timeframe = this.findTimeframe (timeframeId, timeframes);
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                stored = new ArrayCacheByTimestamp (limit);
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
+            stored.append (parsed);
+            const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
+            client.resolve (stored, messageHash);
         }
-        stored.append (parsed);
-        const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
-        client.resolve (stored, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async fetchTickerWs (symbol, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name lbank#fetchTickerWs
+         * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws'];
+        const messageHash = 'fetchTicker:' + symbol;
+        const message = {
+            'action': 'request',
+            'request': 'tick',
+            'pair': market['id'],
+        };
+        const request = this.deepExtend (message, params);
+        const requestId = this.requestId ();
+        return await this.watch (url, messageHash, request, requestId, request);
+    }
+
+    async watchTicker (symbol, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name lbank#watchTicker
+         * @see https://www.lbank.com/en-US/docs/index.html#market
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the lbank api endpoint
@@ -177,8 +308,10 @@ export default class lbank extends lbankRest {
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (marketId);
         const parsedTicker = this.parseWsTicker (message, market);
-        const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = parsedTicker;
+        let messageHash = 'ticker:' + symbol;
+        client.resolve (parsedTicker, messageHash);
+        messageHash = 'fetchTicker:' + symbol;
         client.resolve (parsedTicker, messageHash);
     }
 
@@ -232,10 +365,41 @@ export default class lbank extends lbankRest {
         }, market);
     }
 
+    async fetchTradesWs (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name lbank#fetchTradesWs
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws'];
+        const messageHash = 'fetchTrades:' + symbol;
+        if (limit === undefined) {
+            limit = 10;
+        }
+        const message = {
+            'action': 'request',
+            'request': 'trade',
+            'pair': market['id'],
+            'size': limit,
+        };
+        const request = this.deepExtend (message, params);
+        const requestId = this.requestId ();
+        return await this.watch (url, messageHash, request, requestId, request);
+    }
+
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name lbank#watchTrades
+         * @see https://www.lbank.com/en-US/docs/index.html#trade-record
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -259,6 +423,17 @@ export default class lbank extends lbankRest {
 
     handleTrades (client, message) {
         //
+        // request
+        //     {
+        //         columns: [ 'timestamp', 'price', 'volume', 'direction' ],
+        //         SERVER: 'V2',
+        //         count: 100,
+        //         trades: [],
+        //         type: 'trade',
+        //         pair: 'btc_usdt',
+        //         TS: '2024-01-16T08:48:24.470'
+        //     }
+        // subscribe
         //     {
         //         "trade":{
         //             "volume":6.3607,
@@ -276,43 +451,52 @@ export default class lbank extends lbankRest {
         const marketId = this.safeString (message, 'pair');
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (marketId);
-        const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const trade = this.safeValue (message, 'trade');
-        const parsed = this.parseWsTrade (trade, market);
-        parsed['symbol'] = symbol;
-        stored.append (parsed);
+        const rawTrade = this.safeValue (message, 'trade');
+        const rawTrades = this.safeValue (message, 'trades', [ rawTrade ]);
+        for (let i = 0; i < rawTrades.length; i++) {
+            const trade = this.parseWsTrade (rawTrades[i], market);
+            trade['symbol'] = symbol;
+            stored.append (trade);
+        }
         this.trades[symbol] = stored;
+        let messageHash = 'trades:' + symbol;
+        client.resolve (this.trades[symbol], messageHash);
+        messageHash = 'fetchTrades:' + symbol;
         client.resolve (this.trades[symbol], messageHash);
     }
 
     parseWsTrade (trade, market = undefined) {
         //
-        //     {
-        //         "volume":6.3607,
-        //         "amount":77148.9303,
-        //         "price":12129,
-        //         "direction":"sell",
-        //         "TS":"2019-06-28T19:55:49.460"
-        //     }
+        // request
+        //    [ 'timestamp', 'price', 'volume', 'direction' ]
+        // subscribe
+        //    {
+        //        "volume":6.3607,
+        //        "amount":77148.9303,
+        //        "price":12129,
+        //        "direction":"sell",
+        //        "TS":"2019-06-28T19:55:49.460"
+        //    }
         //
-        const datetime = this.safeString (trade, 'TS');
+        const timestamp = this.safeInteger (trade, 0);
+        const datetime = (timestamp !== undefined) ? this.iso8601 (timestamp) : this.safeString (trade, 'TS');
         return this.safeTrade ({
-            'timestamp': this.parse8601 (datetime),
+            'timestamp': (timestamp !== undefined) ? timestamp : this.parse8601 (datetime),
             'datetime': datetime,
             'symbol': undefined,
             'id': undefined,
             'order': undefined,
             'type': undefined,
             'takerOrMaker': undefined,
-            'side': this.safeString (trade, 'direction'),
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'amount'),
+            'side': this.safeString2 (trade, 'direction', 3),
+            'price': this.safeString2 (trade, 'price', 1),
+            'amount': this.safeString2 (trade, 'amount', 2),
             'cost': undefined,
             'fee': undefined,
             'info': trade,
@@ -322,14 +506,14 @@ export default class lbank extends lbankRest {
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name lbank#watchTrades
-         * @url https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe
+         * @name lbank#watchOrders
+         * @see https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe
          * @description get the list of trades associated with the user
          * @param {string} [symbol] unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the lbank api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const key = await this.authenticate (params);
@@ -450,10 +634,41 @@ export default class lbank extends lbankRest {
         return this.safeString (statuses, status, status);
     }
 
+    async fetchOrderBookWs (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name lbank#watchOrderBook
+         * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the lbank api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws'];
+        const messageHash = 'fetchOrderbook:' + symbol;
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const subscribe = {
+            'action': 'request',
+            'request': 'depth',
+            'depth': limit,
+            'pair': market['id'],
+        };
+        const request = this.deepExtend (subscribe, params);
+        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        return orderbook.limit (limit);
+    }
+
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name lbank#watchOrderBook
+         * @see https://www.lbank.com/en-US/docs/index.html#market-depth
+         * @see https://www.lbank.com/en-US/docs/index.html#market-increment-depth
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -481,6 +696,29 @@ export default class lbank extends lbankRest {
 
     handleOrderBook (client, message) {
         //
+        // request
+        //    {
+        //        "SERVER":"V2",
+        //        "asks":[
+        //           [
+        //              42585.84,
+        //              1.4422
+        //           ],
+        //           ...
+        //        ],
+        //        "bids":[
+        //           [
+        //              42585.83,
+        //              1.8054
+        //           ],
+        //          ,,,
+        //        ],
+        //        "count":100,
+        //        "type":"depth",
+        //        "pair":"btc_usdt",
+        //        "TS":"2024-01-16T08:26:00.413"
+        //    }
+        // subscribe
         //     {
         //         "depth": {
         //             "asks": [
@@ -515,7 +753,7 @@ export default class lbank extends lbankRest {
         //
         const marketId = this.safeString (message, 'pair');
         const symbol = this.safeSymbol (marketId);
-        const orderBook = this.safeValue (message, 'depth', {});
+        const orderBook = this.safeValue (message, 'depth', message);
         const datetime = this.safeString (message, 'TS');
         const timestamp = this.parse8601 (datetime);
         let storedOrderBook = this.safeValue (this.orderbooks, symbol);
@@ -525,18 +763,50 @@ export default class lbank extends lbankRest {
         }
         const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'bids', 'asks');
         storedOrderBook.reset (snapshot);
-        const messageHash = 'orderbook:' + symbol;
+        let messageHash = 'orderbook:' + symbol;
+        client.resolve (storedOrderBook, messageHash);
+        messageHash = 'fetchOrderbook:' + symbol;
         client.resolve (storedOrderBook, messageHash);
     }
 
+    handleErrorMessage (client, message) {
+        //
+        //    {
+        //        SERVER: 'V2',
+        //        message: "Missing parameter ['kbar']",
+        //        status: 'error',
+        //        TS: '2024-01-16T08:09:43.314'
+        //    }
+        //
+        const errMsg = this.safeString (message, 'message', '');
+        const error = new ExchangeError (this.id + ' ' + errMsg);
+        client.reject (error);
+    }
+
+    handlePing (client, message) {
+        //
+        //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
+        //
+        const pingId = this.safeString (message, 'ping');
+        client.send ({
+            'action': 'pong',
+            'pong': pingId,
+        });
+    }
+
     handleMessage (client, message) {
-        const type = this.safeString (message, 'type');
+        const status = this.safeString (message, 'status');
+        if (status === 'error') {
+            return this.handleErrorMessage (client, message);
+        }
+        const type = this.safeString2 (message, 'type', 'action');
         const handlers = {
             'kbar': this.handleOHLCV,
             'depth': this.handleOrderBook,
             'trade': this.handleTrades,
             'tick': this.handleTicker,
             'orderUpdate': this.handleOrders,
+            'ping': this.handlePing,
         };
         const handler = this.safeValue (handlers, type);
         if (handler !== undefined) {
