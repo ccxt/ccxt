@@ -1034,18 +1034,6 @@ export default class blofin extends Exchange {
     }
 
     parseOrder (order, market: Market = undefined): Order {
-        const scode = this.safeString (order, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            const error_symbol = this.safeString (market, 'symbol');
-            return this.safeError ({
-                'code': scode,
-                'id': this.safeString (order, 'orderId'),
-                'symbol': error_symbol,
-                'clientOrderId': this.safeString (order, 'clientOrderId'),
-                'status': 'rejected',
-                'info': order,
-            });
-        }
         const id = this.safeString2 (order, 'tpslId', 'orderId');
         const timestamp = this.safeInteger (order, 'createTime');
         const lastUpdateTimestamp = this.safeInteger (order, 'updateTime');
@@ -1236,16 +1224,6 @@ export default class blofin extends Exchange {
         }
         const query = this.omit (params, [ 'orderId', 'clientOrderId' ]);
         const response = await this.privatePostTradeCancelOrder (this.extend (request, query));
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'id': id,
-                'symbol': market['symbol'],
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         const data = this.safeValue (response, 'data', []);
         const order = this.safeValue (data, 0);
         return this.parseOrder (order, market);
@@ -1635,15 +1613,6 @@ export default class blofin extends Exchange {
             'toAccount': toAccount,
         };
         const response = await this.privatePostAssetTransfer (this.extend (request, params));
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'clientOrderId': this.safeString (response, 'clientOrderId'),
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         const data = this.safeValue (response, 'data', []);
         return this.parseTransfer (data, undefined);
     }
@@ -1888,15 +1857,6 @@ export default class blofin extends Exchange {
             request['clientOrderId'] = clientOrderId;
         }
         const response = await this.privatePostTradeClosePosition (this.extend (request, params));
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'clientOrderId': this.safeString (response, 'clientOrderId'),
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         return this.safeValue (response, 'data');
     }
 
