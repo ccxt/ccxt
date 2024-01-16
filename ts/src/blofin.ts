@@ -991,14 +991,6 @@ export default class blofin extends Exchange {
         } else {
             response = await this.privateGetAccountBalance (this.extend (request));
         }
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         return this.parseBalanceByType (marketType, response);
     }
 
@@ -1163,14 +1155,6 @@ export default class blofin extends Exchange {
         const market = this.market (symbol);
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         const response = await this.privatePostTradeOrder (request);
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0);
         const order = this.parseOrder (first, market);
@@ -1217,14 +1201,6 @@ export default class blofin extends Exchange {
         const market = this.market (symbol);
         const request = this.createTpslOrderRequest (symbol, positionSide, side, params);
         const response = await this.privatePostTradeOrderTpsl (request);
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         const data = this.safeValue (response, 'data', []);
         const order = this.parseOrder (data, market);
         order['positionSide'] = positionSide;
@@ -1299,14 +1275,6 @@ export default class blofin extends Exchange {
             ordersRequests.push (orderRequest);
         }
         const response = await this.privatePostTradeBatchOrders (ordersRequests);
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data);
     }
@@ -1356,14 +1324,6 @@ export default class blofin extends Exchange {
         } else {
             response = await this.privateGetTradeOrdersPending (this.extend (request, query));
         }
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
@@ -1402,14 +1362,6 @@ export default class blofin extends Exchange {
             request['limit'] = limit; // default 100, max 100
         }
         const response = await this.privateGetTradeFillsHistory (this.extend (request, query));
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit, query);
     }
@@ -1449,14 +1401,6 @@ export default class blofin extends Exchange {
         }
         [ request, params ] = this.handleUntilOption ('after', request, params);
         const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         const data = this.safeValue (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, params);
     }
@@ -1496,14 +1440,6 @@ export default class blofin extends Exchange {
         }
         [ request, params ] = this.handleUntilOption ('after', request, params);
         const response = await this.privateGetAssetWithdrawalHistory (this.extend (request, params));
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         const data = this.safeValue (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, params);
     }
@@ -1544,14 +1480,6 @@ export default class blofin extends Exchange {
         [ request, params ] = this.handleUntilOption ('end', request, params);
         let response = undefined;
         response = await this.privateGetAssetBills (this.extend (request, query));
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         const data = this.safeValue (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
     }
@@ -1679,14 +1607,6 @@ export default class blofin extends Exchange {
         } else {
             response = await this.privatePostTradeCancelBatchOrders (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         const ordersData = this.safeValue (response, 'data', []);
         return this.parseOrders (ordersData, market, undefined, undefined, params);
     }
@@ -1772,14 +1692,6 @@ export default class blofin extends Exchange {
             'instId': market['id'],
         };
         const response = await this.privateGetAccountPositions (this.extend (request, query));
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         const data = this.safeValue (response, 'data', []);
         const position = this.safeValue (data, 0);
         if (position === undefined) {
@@ -1902,14 +1814,6 @@ export default class blofin extends Exchange {
             'marginMode': marginMode,
         };
         const response = await this.privateGetAccountLeverageInfo (this.extend (request, params));
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         return response;
     }
 
@@ -1950,14 +1854,6 @@ export default class blofin extends Exchange {
             'instId': market['id'],
         };
         const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'status': 'rejected',
-                'info': response,
-            });
-        }
         return response;
     }
 
@@ -2050,14 +1946,6 @@ export default class blofin extends Exchange {
             response = await this.privateGetTradeOrdersTpslHistory (this.extend (request, query));
         } else {
             response = await this.privateGetTradeOrdersHistory (this.extend (request, query));
-        }
-        const scode = this.safeString (response, 'code');
-        if ((scode !== undefined) && (scode !== '0')) {
-            return this.safeError ({
-                'code': scode,
-                'status': 'rejected',
-                'info': response,
-            });
         }
         const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
