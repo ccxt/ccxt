@@ -2633,12 +2633,9 @@ export default class bitmex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
         }
         const currency = this.currency (code);
-        let currencyId = currency['id'];
-        const idLength = currencyId.length;
-        currencyId = currencyId.slice (0, idLength - 1) + currencyId.slice (idLength - 1, idLength).toLowerCase ();  // make the last letter lowercase
         params = this.omit (params, 'network');
         const request = {
-            'currency': currencyId,
+            'currency': currency['id'],
             'network': this.networkCodeToId (networkCode, currency['code']),
         };
         const response = await this.privateGetUserDepositAddress (this.extend (request, params));
