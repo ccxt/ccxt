@@ -5,6 +5,7 @@ import coinoneRest from '../coinone.js';
 import { AuthenticationError } from '../base/errors.js';
 import type { Int, Market, OrderBook, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -297,9 +298,15 @@ export default class coinone extends coinoneRest {
         const data = this.safeValue (message, 'data', {});
         const trade = this.parseWsTrade (data);
         const symbol = trade['symbol'];
-        this.trades[symbol] = trade;
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
+        stored.append (trade);
         const messageHash = 'trade:' + symbol;
-        client.resolve (this.trades[symbol], messageHash);
+        client.resolve (stored, messageHash);
     }
 
     parseWsTrade (trade, market: Market = undefined): Trade {
