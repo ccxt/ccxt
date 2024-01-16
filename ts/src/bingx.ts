@@ -1444,16 +1444,11 @@ export default class bingx extends Exchange {
         let response = undefined;
         let standard = undefined;
         let marketType = undefined;
-        let marginMode = undefined;
         [ standard, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'standard', false);
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         if (standard) {
             response = await this.contractV1PrivateGetBalance (params);
         } else if ((marketType === 'spot') || (marketType === undefined)) {
-            if (marginMode !== undefined) {
-                throw new BadRequest (this.id + ' does not support spot margin trading');
-            }
             response = await this.spotV1PrivateGetAccountBalance (params);
         } else {
             response = await this.swapV2PrivateGetUserBalance (params);
