@@ -39,7 +39,12 @@ class bitget extends Exchange {
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createOrderWithTakeProfitAndStopLoss' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLossOrder' => true,
+                'createTakeProfitOrder' => true,
+                'createTrailingPercentOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
@@ -2923,7 +2928,11 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            if ($market['contract']) {
+                $request['limit'] = min ($limit, 1000);
+            } else {
+                $request['limit'] = $limit;
+            }
         }
         $options = $this->safe_value($this->options, 'fetchTrades', array());
         $response = null;
@@ -3180,14 +3189,13 @@ class bitget extends Exchange {
         //         "1399132.341"
         //     )
         //
-        $volumeIndex = ($market['inverse']) ? 6 : 5;
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
             $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 3),
             $this->safe_number($ohlcv, 4),
-            $this->safe_number($ohlcv, $volumeIndex),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
@@ -3230,26 +3238,38 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
             'granularity' => $selectedTimeframe,
         );
-        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        if ($since !== null) {
-            $request['startTime'] = $limit;
-        }
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
         $options = $this->safe_value($this->options, 'fetchOHLCV', array());
+        $spotOptions = $this->safe_value($options, 'spot', array());
+        $defaultSpotMethod = $this->safe_string($spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
+        $method = $this->safe_string($params, 'method', $defaultSpotMethod);
+        $params = $this->omit($params, 'method');
+        if ($method !== 'publicSpotGetV2SpotMarketHistoryCandles') {
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            if ($until !== null) {
+                $request['endTime'] = $until;
+            }
+        }
         $response = null;
         if ($market['spot']) {
-            $spotOptions = $this->safe_value($options, 'spot', array());
-            $defaultSpotMethod = $this->safe_string($spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
-            $method = $this->safe_string($params, 'method', $defaultSpotMethod);
-            $params = $this->omit($params, 'method');
             if ($method === 'publicSpotGetV2SpotMarketCandles') {
                 $response = $this->publicSpotGetV2SpotMarketCandles (array_merge($request, $params));
             } elseif ($method === 'publicSpotGetV2SpotMarketHistoryCandles') {
-                $until = $this->safe_integer_2($params, 'until', 'till');
-                $params = $this->omit($params, array( 'until', 'till' ));
-                if ($until === null) {
+                if ($since !== null) {
+                    if ($limit === null) {
+                        $limit = 100; // exchange default
+                    }
+                    $duration = $this->parse_timeframe($timeframe) * 1000;
+                    $request['endTime'] = $this->sum($since, $duration * $limit);
+                } elseif ($until !== null) {
+                    $request['endTime'] = $until;
+                } else {
                     $request['endTime'] = $this->milliseconds();
                 }
                 $response = $this->publicSpotGetV2SpotMarketHistoryCandles (array_merge($request, $params));
@@ -3483,10 +3503,15 @@ class bitget extends Exchange {
                 // Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
                 $spotAccountFree = $this->safe_string($entry, 'available');
                 $contractAccountFree = $this->safe_string($entry, 'maxTransferOut');
-                $account['free'] = ($contractAccountFree !== null) ? $contractAccountFree : $spotAccountFree;
-                $frozen = $this->safe_string($entry, 'frozen');
-                $locked = $this->safe_string($entry, 'locked');
-                $account['used'] = Precise::string_add($frozen, $locked);
+                if ($contractAccountFree !== null) {
+                    $account['free'] = $contractAccountFree;
+                    $account['total'] = $this->safe_string($entry, 'accountEquity');
+                } else {
+                    $account['free'] = $spotAccountFree;
+                    $frozen = $this->safe_string($entry, 'frozen');
+                    $locked = $this->safe_string($entry, 'locked');
+                    $account['used'] = Precise::string_add($frozen, $locked);
+                }
             }
             $result[$code] = $account;
         }
@@ -3948,6 +3973,7 @@ class bitget extends Exchange {
          * @param {string} [$params->trailingPercent] *swap and future only* the percent to trail away from the current $market $price, rate can not be greater than 10
          * @param {string} [$params->trailingTriggerPrice] *swap and future only* the $price to trigger a trailing stop order, default uses the $price argument
          * @param {string} [$params->triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+         * @param {boolean} [$params->oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this in hedge_mode, can adjust the mode using the setPositionMode() method
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -4128,14 +4154,21 @@ class bitget extends Exchange {
                 }
                 $marginModeRequest = ($marginMode === 'cross') ? 'crossed' : 'isolated';
                 $request['marginMode'] = $marginModeRequest;
+                $oneWayMode = $this->safe_value($params, 'oneWayMode', false);
+                $params = $this->omit($params, 'oneWayMode');
                 $requestSide = $side;
                 if ($reduceOnly) {
-                    $request['reduceOnly'] = 'YES';
-                    $request['tradeSide'] = 'Close';
-                    // on bitget if the position is long the $side is always buy, and if the position is short the $side is always sell
-                    $requestSide = ($side === 'buy') ? 'sell' : 'buy';
+                    if ($oneWayMode) {
+                        $request['reduceOnly'] = 'YES';
+                    } else {
+                        // on bitget hedge mode if the position is long the $side is always buy, and if the position is short the $side is always sell
+                        $requestSide = ($side === 'buy') ? 'sell' : 'buy';
+                        $request['tradeSide'] = 'Close';
+                    }
                 } else {
-                    $request['tradeSide'] = 'Open';
+                    if (!$oneWayMode) {
+                        $request['tradeSide'] = 'Open';
+                    }
                 }
                 $request['side'] = $requestSide;
             }
@@ -4632,8 +4665,8 @@ class bitget extends Exchange {
         }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrders', $params);
-        $stop = $this->safe_value($params, 'stop');
-        $params = $this->omit($params, 'stop');
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $params = $this->omit($params, array( 'stop', 'trigger' ));
         $orderIdList = array();
         for ($i = 0; $i < count($ids); $i++) {
             $individualId = $ids[$i];
@@ -4722,8 +4755,8 @@ class bitget extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $stop = $this->safe_value($params, 'stop');
-        $params = $this->omit($params, 'stop');
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
         if ($market['spot']) {
             if ($marginMode !== null) {

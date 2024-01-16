@@ -35,6 +35,7 @@ class kraken extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'createTrailingAmountOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
@@ -748,7 +749,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
+    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
         $timestamp = $this->safe_integer($bidask, 2);
@@ -1256,12 +1257,8 @@ class kraken extends Exchange {
             $request['since'] = $since * 1e6;
             $request['since'] = (string) $since . '000000'; // expected to be in nanoseconds
         }
-        // https://github.com/ccxt/ccxt/issues/5698
-        if ($limit !== null && $limit !== 1000) {
-            $fetchTradesWarning = $this->safe_value($this->options, 'fetchTradesWarning', true);
-            if ($fetchTradesWarning) {
-                throw new ExchangeError($this->id . ' fetchTrades() cannot serve ' . (string) $limit . " $trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge this warning and silence it.");
-            }
+        if ($limit !== null) {
+            $request['count'] = $limit;
         }
         $response = $this->publicGetTrades (array_merge($request, $params));
         //
@@ -1435,6 +1432,17 @@ class kraken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function parse_order_type($status) {
+        $statuses = array(
+            'take-profit' => 'market',
+            'stop-loss-limit' => 'limit',
+            'stop-loss' => 'market',
+            'take-profit-limit' => 'limit',
+            'trailing-stop-limit' => 'limit',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_order($order, ?array $market = null): array {
         //
         // createOrder for regular orders
@@ -1573,7 +1581,16 @@ class kraken extends Exchange {
                 $trades[] = $rawTrade;
             }
         }
-        $stopPrice = $this->safe_number($order, 'stopprice', $stopPrice);
+        $stopPrice = $this->omit_zero($this->safe_string($order, 'stopprice', $stopPrice));
+        $stopLossPrice = null;
+        $takeProfitPrice = null;
+        if (str_starts_with($type, 'take-profit')) {
+            $takeProfitPrice = $this->safe_string($description, 'price');
+            $price = $this->omit_zero($this->safe_string($description, 'price2'));
+        } elseif (str_starts_with($type, 'stop-loss')) {
+            $stopLossPrice = $this->safe_string($description, 'price');
+            $price = $this->omit_zero($this->safe_string($description, 'price2'));
+        }
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1583,13 +1600,15 @@ class kraken extends Exchange {
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $type,
+            'type' => $this->parse_order_type($type),
             'timeInForce' => null,
             'postOnly' => $isPostOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
+            'takeProfitPrice' => $takeProfitPrice,
+            'stopLossPrice' => $stopLossPrice,
             'cost' => null,
             'amount' => $amount,
             'filled' => $filled,
@@ -1614,25 +1633,35 @@ class kraken extends Exchange {
         $trailingAmount = $this->safe_string($params, 'trailingAmount');
         $trailingLimitAmount = $this->safe_string($params, 'trailingLimitAmount');
         $isTrailingAmountOrder = $trailingAmount !== null;
-        if (($type === 'limit') && !$isTrailingAmountOrder) {
+        $isLimitOrder = str_ends_with($type, 'limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        if ($isLimitOrder && !$isTrailingAmountOrder) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
         if ($isStopLossOrTakeProfitTrigger) {
             if ($isStopLossTriggerOrder) {
                 $request['price'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
-                $request['ordertype'] = 'stop-loss-limit';
+                if ($isLimitOrder) {
+                    $request['ordertype'] = 'stop-loss-limit';
+                } else {
+                    $request['ordertype'] = 'stop-loss';
+                }
             } elseif ($isTakeProfitTriggerOrder) {
                 $request['price'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
-                $request['ordertype'] = 'take-profit-limit';
+                if ($isLimitOrder) {
+                    $request['ordertype'] = 'take-profit-limit';
+                } else {
+                    $request['ordertype'] = 'take-profit';
+                }
             }
-            $request['price2'] = $this->price_to_precision($symbol, $price);
-            $reduceOnly = true;
+            if ($isLimitOrder) {
+                $request['price2'] = $this->price_to_precision($symbol, $price);
+            }
         } elseif ($isTrailingAmountOrder) {
             $trailingActivationPriceType = $this->safe_string($params, 'trigger', 'last');
             $trailingAmountString = '+' . $trailingAmount;
             $request['trigger'] = $trailingActivationPriceType;
-            if (($type === 'limit') || ($trailingLimitAmount !== null)) {
+            if ($isLimitOrder || ($trailingLimitAmount !== null)) {
                 $offset = $this->safe_string($params, 'offset', '-');
                 $trailingLimitAmountString = $offset . $this->number_to_string($trailingLimitAmount);
                 $request['price'] = $trailingAmountString;

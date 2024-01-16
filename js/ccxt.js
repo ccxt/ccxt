@@ -38,7 +38,7 @@ import * as errors from './src/base/errors.js';
 import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, NoChange } from './src/base/errors.js';
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.1.100';
+const version = '4.2.16';
 Exchange.ccxtVersion = version;
 //-----------------------------------------------------------------------------
 import ace from './src/ace.js';
@@ -165,6 +165,7 @@ import cexPro from './src/pro/cex.js';
 import coinbasePro from './src/pro/coinbase.js';
 import coinbaseproPro from './src/pro/coinbasepro.js';
 import coinexPro from './src/pro/coinex.js';
+import coinonePro from './src/pro/coinone.js';
 import cryptocomPro from './src/pro/cryptocom.js';
 import currencycomPro from './src/pro/currencycom.js';
 import deribitPro from './src/pro/deribit.js';
@@ -322,6 +323,7 @@ const pro = {
     'coinbase': coinbasePro,
     'coinbasepro': coinbaseproPro,
     'coinex': coinexPro,
+    'coinone': coinonePro,
     'cryptocom': cryptocomPro,
     'currencycom': currencycomPro,
     'deribit': deribitPro,

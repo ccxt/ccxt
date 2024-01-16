@@ -216,6 +216,23 @@
                     }
                 ],
                 "output": "timestamp=1699380695835&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu392bafca1fb740208ee8d3&newOrderRespType=RESULT&type=LIMIT&quantity=0.2&price=50&timeInForce=GTX&recvWindow=10000&signature=27dfce7c02d210d4d88f029e34550f153283e849b34bbf80aebbc7f860937b84"
+            },
+            {
+                "description": "Swap trailingPercent order",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.1,
+                  null,
+                  {
+                    "trailingPercent": 5,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "timestamp=1704512493514&symbol=BTCUSDT&side=SELL&callbackRate=5&newClientOrderId=x-xcKtGhcufdcb378c830d451392c9a2&newOrderRespType=RESULT&type=TRAILING_STOP_MARKET&quantity=0.1&reduceOnly=true&recvWindow=10000&signature=381024e31ce5868d69dd3e12668b9b47514c1211e7d0021a7939cb26d07f679a"
             }
         ],
         "createOrders": [
@@ -769,6 +786,72 @@
                     "spot"
                 ],
                 "output": "timestamp=1699384759972&asset=USDT&amount=1&type=FUNDING_MAIN&recvWindow=10000&signature=4e43d89ac545361e50c2b7df44b91f6c168c99dab114acc6bad382a4c51aa34b"
+            },
+            {
+                "description": "Main to isolated using symbol as toAccount",
+                "method": "transfer",
+                "url": "https://api.binance.com/sapi/v1/asset/transfer",
+                "input": [
+                  "USDT",
+                  1,
+                  "main",
+                  "LTC/USDT"
+                ],
+                "output": "timestamp=1704968135307&asset=USDT&amount=1&type=MAIN_ISOLATED_MARGIN&toSymbol=LTCUSDT&recvWindow=10000&signature=6fca390794311a2b8595b1b434d01f4533cef142980b5d4fdbb2f7ef7353f0b4"
+            },
+            {
+                "description": "from main to isolated",
+                "method": "transfer",
+                "url": "https://api.binance.com/sapi/v1/asset/transfer",
+                "input": [
+                  "USDT",
+                  1,
+                  "main",
+                  "isolated",
+                  {
+                    "symbol": "LTC/USDT"
+                  }
+                ],
+                "output": "timestamp=1704968267133&asset=USDT&amount=1&type=MAIN_ISOLATED_MARGIN&toSymbol=LTCUSDT&recvWindow=10000&signature=b4343c34b6664e6a95f519ef6828defa6b4b86cc14a135dbca00b723cba4787b"
+            },
+            {
+                "description": "From isolated to main using symbol as fromAccount",
+                "method": "transfer",
+                "url": "https://api.binance.com/sapi/v1/asset/transfer",
+                "input": [
+                  "USDT",
+                  1,
+                  "LTC/USDT",
+                  "main"
+                ],
+                "output": "timestamp=1704968308751&asset=USDT&amount=1&type=ISOLATED_MARGIN_MAIN&fromSymbol=LTCUSDT&recvWindow=10000&signature=40eabe9bb3f2265d8d15656278c5b92f37b690d4bc3161efa9803739e54d6dbf"
+            },
+            {
+                "description": "From isolated to main",
+                "method": "transfer",
+                "url": "https://api.binance.com/sapi/v1/asset/transfer",
+                "input": [
+                  "USDT",
+                  1,
+                  "isolated",
+                  "main",
+                  {
+                    "symbol": "LTC/USDT"
+                  }
+                ],
+                "output": "timestamp=1704968353605&asset=USDT&amount=1&type=ISOLATED_MARGIN_MAIN&fromSymbol=LTCUSDT&recvWindow=10000&signature=9dd361ee76b7d1ea34d282c538bb9cfe44b32a470f1076a00cc1592b1eb51ef0"
+            },
+            {
+                "description": "From isolated to isolated",
+                "method": "transfer",
+                "url": "https://api.binance.com/sapi/v1/asset/transfer",
+                "input": [
+                  "USDT",
+                  1,
+                  "LTC/USDT",
+                  "ADA/USDT"
+                ],
+                "output": "timestamp=1704968820014&asset=USDT&amount=1&type=ISOLATEDMARGIN_ISOLATEDMARGIN&fromSymbol=LTCUSDT&toSymbol=ADAUSDT&recvWindow=10000&signature=190b3acf1286fe5ab2e41d2024d8fe1cc81eb9a30bccf77386275d37d8cc81c5"
             }
         ],
         "fetchDeposits": [
@@ -892,6 +975,106 @@
                     [
                         "BTC/USD:BTC"
                     ]
+                ]
+            }
+        ],
+        "fetchLastPrices": [
+            {
+                "description": "fetch last prices - no arguments",
+                "method": "fetchLastPrices",
+                "url": "https://api.binance.com/api/v3/ticker/price",
+                "input": []
+            },
+            {
+                "description": "fetch last prices - spot defaultType",
+                "method": "fetchLastPrices",
+                "url": "https://api.binance.com/api/v3/ticker/price",
+                "input": [
+                    null,
+                    {
+                      "defaultType": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "fetch last prices - spot symbols",
+                "method": "fetchLastPrices",
+                "url": "https://api.binance.com/api/v3/ticker/price",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "ETH/USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "fetch last prices - linear swap",
+                "method": "fetchLastPrices",
+                "url": "https://fapi.binance.com/fapi/v2/ticker/price",
+                "input": [
+                  null,
+                  {
+                    "defaultType": "swap",
+                    "subType": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "fetch last prices - linear swap symbols",
+                "method": "fetchLastPrices",
+                "url": "https://fapi.binance.com/fapi/v2/ticker/price",
+                "input": [
+                  [
+                    "BTC/USDT:USDT",
+                    "ETH/USDT:USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "fetch last prices - linear future",
+                "method": "fetchLastPrices",
+                "url": "https://fapi.binance.com/fapi/v2/ticker/price",
+                "input": [
+                  null,
+                  {
+                    "defaultType": "future",
+                    "subType": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "fetch last prices - inverse swap",
+                "method": "fetchLastPrices",
+                "url": "https://dapi.binance.com/dapi/v1/ticker/price",
+                "input": [
+                  null,
+                  {
+                    "defaultType": "swap",
+                    "subType": "inverse"
+                  }
+                ]
+            },
+            {
+                "description": "fetch last prices - inverse swap symbols",
+                "method": "fetchLastPrices",
+                "url": "https://dapi.binance.com/dapi/v1/ticker/price",
+                "input": [
+                  [
+                    "BTC/USD:BTC",
+                    "ETH/USD:ETH"
+                  ]
+                ]
+            },
+            {
+                "description": "fetch last prices - inverse future",
+                "method": "fetchLastPrices",
+                "url": "https://dapi.binance.com/dapi/v1/ticker/price",
+                "input": [
+                  null,
+                  {
+                    "defaultType": "future",
+                    "subType": "inverse"
+                  }
                 ]
             }
         ],
@@ -1285,6 +1468,69 @@
                     }
                 ],
                 "output": "timestamp=1699441011001&dualSidePosition=true&recvWindow=10000&signature=f932a4e8dd21ce1dcea84d8ab2fd9451c31b77c710d1adb9c51f54adc520cd90"
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "Fetch Bids Asks spot with array of symbols",
+                "method": "fetchBidsAsks",
+                "url": "https://testnet.binance.vision/api/v3/ticker/bookTicker?symbols=%5B%22BTCUSDT%22%2C%22LTCUSDT%22%5D",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "LTC/USDT"
+                  ]
+                ]
+            }
+        ],
+        "borrowIsolatedMargin":[
+            {
+                "description": "Borrow isolated margin",
+                "method": "borrowIsolatedMargin",
+                "url": "https://api.binance.com/sapi/v1/margin/borrow-repay",
+                "input": [
+                  "LTC/USDT",
+                  "USDT",
+                  1
+                ],
+                "output": "timestamp=1704884479247&asset=USDT&amount=1&symbol=LTCUSDT&isIsolated=TRUE&type=BORROW&recvWindow=10000&signature=f173dc9490b5b255ac77fbf3bd0a53586cc768d2364cd0c439d51084ea1c4f98"
+            }
+        ],
+        "repayIsolatedMargin": [
+            {
+                "description": "Repay isolated margin",
+                "method": "repayIsolatedMargin",
+                "url": "https://api.binance.com/sapi/v1/margin/borrow-repay",
+                "input": [
+                  "LTC/USDT",
+                  "USDT",
+                  1
+                ],
+                "output": "timestamp=1704884544319&asset=USDT&amount=1&symbol=LTCUSDT&isIsolated=TRUE&type=REPAY&recvWindow=10000&signature=aa81a97855a7512780aebf078a1a149360dcbee2111ab8e416881ff0e8c933a8"
+            }
+        ],
+        "borrowCrossMargin": [
+            {
+                "description": "borrow cross margin",
+                "method": "borrowCrossMargin",
+                "url": "https://api.binance.com/sapi/v1/margin/borrow-repay",
+                "input": [
+                  "USDT",
+                  1
+                ],
+                "output": "timestamp=1704884619619&asset=USDT&amount=1&isIsolated=FALSE&type=BORROW&recvWindow=10000&signature=7decbb81d0e7d0b0d553496893c7a36438ddcba418c9437eaa384a541325843b"
+            }
+        ],
+        "repayCrossMargin": [
+            {
+                "description": "repay cross margin",
+                "method": "repayCrossMargin",
+                "url": "https://api.binance.com/sapi/v1/margin/borrow-repay",
+                "input": [
+                  "USDT",
+                  1
+                ],
+                "output": "timestamp=1704884654418&asset=USDT&amount=1&isIsolated=FALSE&type=REPAY&recvWindow=10000&signature=22d5b8db751dc8cc40771a7e6999e863c5630b9108c15dca22c7bebd6b07ca17"
             }
         ]
     }

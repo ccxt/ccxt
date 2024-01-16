@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.100';
+$version = '4.2.16';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.100';
+    const VERSION = '4.2.16';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -280,6 +280,7 @@ class Exchange {
         'fetchFundingRates' => null,
         'fetchIndexOHLCV' => null,
         'fetchL2OrderBook' => true,
+        'fetchLastPrices' => null,
         'fetchLedger' => null,
         'fetchLedgerEntry' => null,
         'fetchLeverageTiers' => null,
@@ -2082,7 +2083,7 @@ class Exchange {
     }
 
     function clone($obj) {
-        return is_array($obj) ? $obj : $this->extend($obj);
+        return is_array($obj) ? $obj : $this->deep_extend($obj);
     }
 
     function parse_to_big_int($value) {
@@ -2115,6 +2116,17 @@ class Exchange {
 
     function un_camel_case($str){
         return self::underscore($str);
+    }
+
+    public function fix_stringified_json_members($content) {
+        // when stringified json has members with their values also stringified, like:
+        // 'array("code":0, "data":array("order":array("orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"array(\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1)","reduceOnly":false)))'
+        // we can fix with below manipulations
+        // @ts-ignore
+        $modifiedContent = str_replace('\\', '', $content);
+        $modifiedContent = str_replace('"{', '{', $modifiedContent);
+        $modifiedContent = str_replace('}"', '}', $modifiedContent);
+        return $modifiedContent;
     }
 
     // ########################################################################
@@ -2227,11 +2239,11 @@ class Exchange {
         $httpsProxy = null;
         $socksProxy = null;
         // $httpProxy
-        if ($this->httpProxy !== null) {
+        if ($this->valueIsDefined ($this->httpProxy)) {
             $usedProxies[] = 'httpProxy';
             $httpProxy = $this->httpProxy;
         }
-        if ($this->http_proxy !== null) {
+        if ($this->valueIsDefined ($this->http_proxy)) {
             $usedProxies[] = 'http_proxy';
             $httpProxy = $this->http_proxy;
         }
@@ -2244,11 +2256,11 @@ class Exchange {
             $httpProxy = $this->http_proxy_callback ($url, $method, $headers, $body);
         }
         // $httpsProxy
-        if ($this->httpsProxy !== null) {
+        if ($this->valueIsDefined ($this->httpsProxy)) {
             $usedProxies[] = 'httpsProxy';
             $httpsProxy = $this->httpsProxy;
         }
-        if ($this->https_proxy !== null) {
+        if ($this->valueIsDefined ($this->https_proxy)) {
             $usedProxies[] = 'https_proxy';
             $httpsProxy = $this->https_proxy;
         }
@@ -2261,11 +2273,11 @@ class Exchange {
             $httpsProxy = $this->https_proxy_callback ($url, $method, $headers, $body);
         }
         // $socksProxy
-        if ($this->socksProxy !== null) {
+        if ($this->valueIsDefined ($this->socksProxy)) {
             $usedProxies[] = 'socksProxy';
             $socksProxy = $this->socksProxy;
         }
-        if ($this->socks_proxy !== null) {
+        if ($this->valueIsDefined ($this->socks_proxy)) {
             $usedProxies[] = 'socks_proxy';
             $socksProxy = $this->socks_proxy;
         }
@@ -2292,29 +2304,29 @@ class Exchange {
         $wssProxy = null;
         $wsSocksProxy = null;
         // ws proxy
-        if ($this->wsProxy !== null) {
+        if ($this->valueIsDefined ($this->wsProxy)) {
             $usedProxies[] = 'wsProxy';
             $wsProxy = $this->wsProxy;
         }
-        if ($this->ws_proxy !== null) {
+        if ($this->valueIsDefined ($this->ws_proxy)) {
             $usedProxies[] = 'ws_proxy';
             $wsProxy = $this->ws_proxy;
         }
         // wss proxy
-        if ($this->wssProxy !== null) {
+        if ($this->valueIsDefined ($this->wssProxy)) {
             $usedProxies[] = 'wssProxy';
             $wssProxy = $this->wssProxy;
         }
-        if ($this->wss_proxy !== null) {
+        if ($this->valueIsDefined ($this->wss_proxy)) {
             $usedProxies[] = 'wss_proxy';
             $wssProxy = $this->wss_proxy;
         }
         // ws socks proxy
-        if ($this->wsSocksProxy !== null) {
+        if ($this->valueIsDefined ($this->wsSocksProxy)) {
             $usedProxies[] = 'wsSocksProxy';
             $wsSocksProxy = $this->wsSocksProxy;
         }
-        if ($this->ws_socks_proxy !== null) {
+        if ($this->valueIsDefined ($this->ws_socks_proxy)) {
             $usedProxies[] = 'ws_socks_proxy';
             $wsSocksProxy = $this->ws_socks_proxy;
         }
@@ -3740,11 +3752,11 @@ class Exchange {
         return $result;
     }
 
-    public function parse_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1) {
+    public function parse_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $bidasks = $this->to_array($bidasks);
         $result = array();
         for ($i = 0; $i < count($bidasks); $i++) {
-            $result[] = $this->parse_bid_ask($bidasks[$i], $priceKey, $amountKey);
+            $result[] = $this->parse_bid_ask($bidasks[$i], $priceKey, $amountKey, $countOrIdKey);
         }
         return $result;
     }
@@ -3915,9 +3927,9 @@ class Exchange {
         return $this->parse_number($value, $d);
     }
 
-    public function parse_order_book(array $orderbook, string $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 0, int|string $amountKey = 1) {
-        $bids = $this->parse_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey);
-        $asks = $this->parse_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey);
+    public function parse_order_book(array $orderbook, string $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+        $bids = $this->parse_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
+        $asks = $this->parse_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
         return array(
             'symbol' => $symbol,
             'bids' => $this->sort_by($bids, 0, true),
@@ -4262,10 +4274,15 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchBidsAsks() is not supported yet');
     }
 
-    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1) {
+    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
-        return array( $price, $amount );
+        $countOrId = $this->safe_integer($bidask, $countOrIdKey);
+        $bidAsk = array( $price, $amount );
+        if ($countOrId !== null) {
+            $bidAsk[] = $countOrId;
+        }
+        return $bidAsk;
     }
 
     public function safe_currency(?string $currencyId, ?array $currency = null) {
@@ -4312,7 +4329,7 @@ class Exchange {
                         }
                     }
                 }
-            } elseif ($delimiter !== null) {
+            } elseif ($delimiter !== null && $delimiter !== '') {
                 $parts = explode($delimiter, $marketId);
                 $partsLength = count($parts);
                 if ($partsLength === 2) {
@@ -4490,6 +4507,30 @@ class Exchange {
         return array( $value, $params );
     }
 
+    public function handle_option_and_params_2($params, $methodName, $methodName2, $optionName, $defaultValue = null) {
+        // This method can be used to obtain method specific properties, i.e => $this->handle_option_and_params($params, 'fetchPosition', 'marginMode', 'isolated')
+        $defaultOptionName = 'default' . $this->capitalize ($optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if $params contain the key
+        $value = $this->safe_value_2($params, $optionName, $defaultOptionName);
+        if ($value !== null) {
+            $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
+        } else {
+            // check if exchange has properties for this method
+            $exchangeWideMethodOptions = $this->safe_value_2($this->options, $methodName, $methodName2);
+            if ($exchangeWideMethodOptions !== null) {
+                // check if the option is defined inside this method's props
+                $value = $this->safe_value_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
+            }
+            if ($value === null) {
+                // if it's still null, check if global exchange-wide option exists
+                $value = $this->safe_value_2($this->options, $optionName, $defaultOptionName);
+            }
+            // if it's still null, use the default $value
+            $value = ($value !== null) ? $value : $defaultValue;
+        }
+        return array( $value, $params );
+    }
+
     public function handle_option($methodName, $optionName, $defaultValue = null) {
         // eslint-disable-next-line no-unused-vars
         list($result, $empty) = $this->handle_option_and_params(array(), $methodName, $optionName, $defaultValue);
@@ -4641,6 +4682,58 @@ class Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
+    public function create_trailing_amount_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()) {
+        /**
+         * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [$price] the $price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} $trailingAmount the quote $amount to trail away from the current market $price
+         * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        if ($trailingAmount === null) {
+            throw new ArgumentsRequired($this->id . ' createTrailingAmountOrder() requires a $trailingAmount argument');
+        }
+        $params['trailingAmount'] = $trailingAmount;
+        if ($trailingTriggerPrice !== null) {
+            $params['trailingTriggerPrice'] = $trailingTriggerPrice;
+        }
+        if ($this->has['createTrailingAmountOrder']) {
+            return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+        }
+        throw new NotSupported($this->id . ' createTrailingAmountOrder() is not supported yet');
+    }
+
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()) {
+        /**
+         * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [$price] the $price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} $trailingPercent the percent to trail away from the current market $price
+         * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        if ($trailingPercent === null) {
+            throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a $trailingPercent argument');
+        }
+        $params['trailingPercent'] = $trailingPercent;
+        if ($trailingTriggerPrice !== null) {
+            $params['trailingTriggerPrice'] = $trailingTriggerPrice;
+        }
+        if ($this->has['createTrailingPercentOrder']) {
+            return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+        }
+        throw new NotSupported($this->id . ' createTrailingPercentOrder() is not supported yet');
+    }
+
     public function create_market_order_with_cost(string $symbol, string $side, $cost, $params = array ()) {
         /**
          * create a market order by providing the $symbol, $side and $cost
@@ -4678,10 +4771,149 @@ class Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
-        if ($this->options['createMarketSellOrderRequiresPrice'] || $this->options['createMarketSellOrderWithCost']) {
+        if ($this->options['createMarketSellOrderRequiresPrice'] || $this->has['createMarketSellOrderWithCost']) {
             return $this->create_order($symbol, 'market', 'sell', $cost, 1, $params);
         }
         throw new NotSupported($this->id . ' createMarketSellOrderWithCost() is not supported yet');
+    }
+
+    public function create_trigger_order(string $symbol, string $type, string $side, $amount, $price = null, $triggerPrice = null, $params = array ()) {
+        /**
+         * create a trigger stop order ($type 1)
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} $triggerPrice the $price to trigger the stop order, in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        if ($triggerPrice === null) {
+            throw new ArgumentsRequired($this->id . ' createTriggerOrder() requires a $triggerPrice argument');
+        }
+        $params['triggerPrice'] = $triggerPrice;
+        if ($this->has['createTriggerOrder']) {
+            return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+        }
+        throw new NotSupported($this->id . ' createTriggerOrder() is not supported yet');
+    }
+
+    public function create_stop_loss_order(string $symbol, string $type, string $side, $amount, $price = null, $stopLossPrice = null, $params = array ()) {
+        /**
+         * create a trigger stop loss order ($type 2)
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} $stopLossPrice the $price to trigger the stop loss order, in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        if ($stopLossPrice === null) {
+            throw new ArgumentsRequired($this->id . ' createStopLossOrder() requires a $stopLossPrice argument');
+        }
+        $params['stopLossPrice'] = $stopLossPrice;
+        if ($this->has['createStopLossOrder']) {
+            return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+        }
+        throw new NotSupported($this->id . ' createStopLossOrder() is not supported yet');
+    }
+
+    public function create_take_profit_order(string $symbol, string $type, string $side, $amount, $price = null, $takeProfitPrice = null, $params = array ()) {
+        /**
+         * create a trigger take profit order ($type 2)
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} $takeProfitPrice the $price to trigger the take profit order, in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        if ($takeProfitPrice === null) {
+            throw new ArgumentsRequired($this->id . ' createTakeProfitOrder() requires a $takeProfitPrice argument');
+        }
+        $params['takeProfitPrice'] = $takeProfitPrice;
+        if ($this->has['createTakeProfitOrder']) {
+            return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+        }
+        throw new NotSupported($this->id . ' createTakeProfitOrder() is not supported yet');
+    }
+
+    public function create_order_with_take_profit_and_stop_loss(string $symbol, string $type, string $side, $amount, $price = null, $takeProfit = null, $stopLoss = null, $params = array ()) {
+        /**
+         * create an order with a stop loss or take profit attached ($type 3)
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} [$takeProfit] the take profit $price, in units of the quote currency
+         * @param {float} [$stopLoss] the stop loss $price, in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->takeProfitType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [$params->stopLossType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [$params->takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {string} [$params->stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {float} [$params->takeProfitLimitPrice] *not available on all exchanges* limit $price for a limit take profit order
+         * @param {float} [$params->stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+         * @param {float} [$params->takeProfitAmount] *not available on all exchanges* the $amount for a take profit
+         * @param {float} [$params->stopLossAmount] *not available on all exchanges* the $amount for a stop loss
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        if (($takeProfit === null) && ($stopLoss === null)) {
+            throw new ArgumentsRequired($this->id . ' createOrderWithTakeProfitAndStopLoss() requires either a $takeProfit or $stopLoss argument');
+        }
+        if ($takeProfit !== null) {
+            $params['takeProfit'] = array(
+                'triggerPrice' => $takeProfit,
+            );
+        }
+        if ($stopLoss !== null) {
+            $params['stopLoss'] = array(
+                'triggerPrice' => $stopLoss,
+            );
+        }
+        $takeProfitType = $this->safe_string($params, 'takeProfitType');
+        $takeProfitPriceType = $this->safe_string($params, 'takeProfitPriceType');
+        $takeProfitLimitPrice = $this->safe_string($params, 'takeProfitLimitPrice');
+        $takeProfitAmount = $this->safe_string($params, 'takeProfitAmount');
+        $stopLossType = $this->safe_string($params, 'stopLossType');
+        $stopLossPriceType = $this->safe_string($params, 'stopLossPriceType');
+        $stopLossLimitPrice = $this->safe_string($params, 'stopLossLimitPrice');
+        $stopLossAmount = $this->safe_string($params, 'stopLossAmount');
+        if ($takeProfitType !== null) {
+            $params['takeProfit']['type'] = $takeProfitType;
+        }
+        if ($takeProfitPriceType !== null) {
+            $params['takeProfit']['priceType'] = $takeProfitPriceType;
+        }
+        if ($takeProfitLimitPrice !== null) {
+            $params['takeProfit']['price'] = $this->parse_to_numeric($takeProfitLimitPrice);
+        }
+        if ($takeProfitAmount !== null) {
+            $params['takeProfit']['amount'] = $this->parse_to_numeric($takeProfitAmount);
+        }
+        if ($stopLossType !== null) {
+            $params['stopLoss']['type'] = $stopLossType;
+        }
+        if ($stopLossPriceType !== null) {
+            $params['stopLoss']['priceType'] = $stopLossPriceType;
+        }
+        if ($stopLossLimitPrice !== null) {
+            $params['stopLoss']['price'] = $this->parse_to_numeric($stopLossLimitPrice);
+        }
+        if ($stopLossAmount !== null) {
+            $params['stopLoss']['amount'] = $this->parse_to_numeric($stopLossAmount);
+        }
+        $params = $this->omit ($params, array( 'takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount' ));
+        if ($this->has['createOrderWithTakeProfitAndStopLoss']) {
+            return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+        }
+        throw new NotSupported($this->id . ' createOrderWithTakeProfitAndStopLoss() is not supported yet');
     }
 
     public function create_orders(array $orders, $params = array ()) {
@@ -4825,7 +5057,7 @@ class Exchange {
     }
 
     public function close_position(string $symbol, ?string $side = null, $params = array ()) {
-        throw new NotSupported($this->id . ' closePositions() is not supported yet');
+        throw new NotSupported($this->id . ' closePosition() is not supported yet');
     }
 
     public function close_all_positions($params = array ()) {

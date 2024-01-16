@@ -11,6 +11,7 @@ export default class binanceus extends binance {
             'id': 'binanceus',
             'name': 'Binance US',
             'countries': [ 'US' ], // US
+            'rateLimit': 50, // 1200 req per min
             'certified': false,
             'pro': true,
             'urls': {
@@ -77,6 +78,13 @@ export default class binanceus extends binance {
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+            },
+            'api': {
+                'public': {
+                    'get': {
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                    },
+                },
             },
         });
     }

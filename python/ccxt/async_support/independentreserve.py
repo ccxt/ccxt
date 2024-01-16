@@ -638,19 +638,20 @@ class independentreserve(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        capitalizedOrderType = self.capitalize(type)
-        method = 'privatePostPlace' + capitalizedOrderType + 'Order'
-        orderType = capitalizedOrderType
+        orderType = self.capitalize(type)
         orderType += 'Offer' if (side == 'sell') else 'Bid'
         request = self.ordered({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         })
+        response = None
+        request['volume'] = amount
         if type == 'limit':
             request['price'] = price
-        request['volume'] = amount
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privatePostPlaceLimitOrder(self.extend(request, params))
+        else:
+            response = await self.privatePostPlaceMarketOrder(self.extend(request, params))
         return self.safe_order({
             'info': response,
             'id': response['OrderGuid'],

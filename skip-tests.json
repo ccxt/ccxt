@@ -106,7 +106,8 @@
             },
             "watchTicker": {
                 "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
-            }
+            },
+            "watchOrderBook": "out of order update"
         }
     },
     "binanceusdm": {
@@ -624,6 +625,11 @@
                 "bid": "broken bid-ask",
                 "ask": "broken bid-ask",
                 "baseVolume": "negative value"
+            },
+            "loadMarkets": {
+                "taker": "key is there when run locally, but not on travis",
+                "maker": "key is there when run locally, but not on travis",
+                "currencyIdAndCode": true
             }
         }
     },
@@ -668,6 +674,7 @@
         }
     },
     "coinone": {
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
@@ -712,7 +719,8 @@
         "skipMethods": {
             "proxies": "probably they do not permit our proxy location",
             "loadMarkets": {
-                "active":"is undefined"
+                "active":"is undefined",
+                "currencyIdAndCode": "messes codes"
             },
             "fetchOHLCV": "unexpected issue",
             "fetchCurrencies": {
@@ -742,6 +750,7 @@
         }
     },
     "cryptocom": {
+        "skipWs": "timeout",
         "skipMethods": {
             "proxies": "probably they do not permit our proxy",
             "loadMarkets": {
@@ -1652,6 +1661,7 @@
         }
     },
     "bitteam": {
+        "skip": "tmp timeout",
         "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {

@@ -26,6 +26,7 @@ function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
         assert(is_array($tickers), $exchange->id . ' ' . $method . ' ' . $checked_symbol . ' must return an object. ' . $exchange->json($tickers));
         $values = is_array($tickers) ? array_values($tickers) : array();
         for ($i = 0; $i < count($values); $i++) {
+            // todo: symbol check here
             $ticker = $values[$i];
             test_ticker($exchange, $skipped_properties, $method, $ticker, $checked_symbol);
         }

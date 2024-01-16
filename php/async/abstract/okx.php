@@ -247,6 +247,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_get_sprd_orders_history($params = array()) {
         return $this->request('sprd/orders-history', 'private', 'GET', $params, null, null, array("cost" => 0.5));
     }
+    public function private_get_sprd_orders_history_archive($params = array()) {
+        return $this->request('sprd/orders-history-archive', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
     public function private_get_sprd_trades($params = array()) {
         return $this->request('sprd/trades', 'private', 'GET', $params, null, null, array("cost" => 0.3333333333333333));
     }
@@ -1119,6 +1122,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privateGetSprdOrdersHistory($params = array()) {
         return $this->request('sprd/orders-history', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function privateGetSprdOrdersHistoryArchive($params = array()) {
+        return $this->request('sprd/orders-history-archive', 'private', 'GET', $params, null, null, array("cost" => 0.5));
     }
     public function privateGetSprdTrades($params = array()) {
         return $this->request('sprd/trades', 'private', 'GET', $params, null, null, array("cost" => 0.3333333333333333));

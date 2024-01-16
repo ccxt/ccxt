@@ -64,7 +64,12 @@ class bitget(Exchange, ImplicitAPI):
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,
+                'createOrderWithTakeProfitAndStopLoss': True,
                 'createReduceOnlyOrder': False,
+                'createStopLossOrder': True,
+                'createTakeProfitOrder': True,
+                'createTrailingPercentOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
@@ -2871,7 +2876,10 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit
+            if market['contract']:
+                request['limit'] = min(limit, 1000)
+            else:
+                request['limit'] = limit
         options = self.safe_value(self.options, 'fetchTrades', {})
         response = None
         if market['spot']:
@@ -3113,14 +3121,13 @@ class bitget(Exchange, ImplicitAPI):
         #         "1399132.341"
         #     ]
         #
-        volumeIndex = 6 if (market['inverse']) else 5
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
             self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 3),
             self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, volumeIndex),
+            self.safe_number(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -3160,24 +3167,33 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'granularity': selectedTimeframe,
         }
-        request, params = self.handle_until_option('endTime', request, params)
-        if since is not None:
-            request['startTime'] = limit
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
         if limit is not None:
             request['limit'] = limit
         options = self.safe_value(self.options, 'fetchOHLCV', {})
+        spotOptions = self.safe_value(options, 'spot', {})
+        defaultSpotMethod = self.safe_string(spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles')
+        method = self.safe_string(params, 'method', defaultSpotMethod)
+        params = self.omit(params, 'method')
+        if method != 'publicSpotGetV2SpotMarketHistoryCandles':
+            if since is not None:
+                request['startTime'] = since
+            if until is not None:
+                request['endTime'] = until
         response = None
         if market['spot']:
-            spotOptions = self.safe_value(options, 'spot', {})
-            defaultSpotMethod = self.safe_string(spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles')
-            method = self.safe_string(params, 'method', defaultSpotMethod)
-            params = self.omit(params, 'method')
             if method == 'publicSpotGetV2SpotMarketCandles':
                 response = await self.publicSpotGetV2SpotMarketCandles(self.extend(request, params))
             elif method == 'publicSpotGetV2SpotMarketHistoryCandles':
-                until = self.safe_integer_2(params, 'until', 'till')
-                params = self.omit(params, ['until', 'till'])
-                if until is None:
+                if since is not None:
+                    if limit is None:
+                        limit = 100  # exchange default
+                    duration = self.parse_timeframe(timeframe) * 1000
+                    request['endTime'] = self.sum(since, duration * limit)
+                elif until is not None:
+                    request['endTime'] = until
+                else:
                     request['endTime'] = self.milliseconds()
                 response = await self.publicSpotGetV2SpotMarketHistoryCandles(self.extend(request, params))
         else:
@@ -3403,10 +3419,14 @@ class bitget(Exchange, ImplicitAPI):
                 # Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
                 spotAccountFree = self.safe_string(entry, 'available')
                 contractAccountFree = self.safe_string(entry, 'maxTransferOut')
-                account['free'] = contractAccountFree if (contractAccountFree is not None) else spotAccountFree
-                frozen = self.safe_string(entry, 'frozen')
-                locked = self.safe_string(entry, 'locked')
-                account['used'] = Precise.string_add(frozen, locked)
+                if contractAccountFree is not None:
+                    account['free'] = contractAccountFree
+                    account['total'] = self.safe_string(entry, 'accountEquity')
+                else:
+                    account['free'] = spotAccountFree
+                    frozen = self.safe_string(entry, 'frozen')
+                    locked = self.safe_string(entry, 'locked')
+                    account['used'] = Precise.string_add(frozen, locked)
             result[code] = account
         return self.safe_balance(result)
 
@@ -3851,6 +3871,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.trailingPercent]: *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
         :param str [params.trailingTriggerPrice]: *swap and future only* the price to trigger a trailing stop order, default uses the price argument
         :param str [params.triggerType]: *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+        :param boolean [params.oneWayMode]: *swap and future only* required to set self to True in one_way_mode and you can leave self in hedge_mode, can adjust the mode using the setPositionMode() method
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -4010,14 +4031,19 @@ class bitget(Exchange, ImplicitAPI):
                     marginMode = 'cross'
                 marginModeRequest = 'crossed' if (marginMode == 'cross') else 'isolated'
                 request['marginMode'] = marginModeRequest
+                oneWayMode = self.safe_value(params, 'oneWayMode', False)
+                params = self.omit(params, 'oneWayMode')
                 requestSide = side
                 if reduceOnly:
-                    request['reduceOnly'] = 'YES'
-                    request['tradeSide'] = 'Close'
-                    # on bitget if the position is long the side is always buy, and if the position is short the side is always sell
-                    requestSide = 'sell' if (side == 'buy') else 'buy'
+                    if oneWayMode:
+                        request['reduceOnly'] = 'YES'
+                    else:
+                        # on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
+                        requestSide = 'sell' if (side == 'buy') else 'buy'
+                        request['tradeSide'] = 'Close'
                 else:
-                    request['tradeSide'] = 'Open'
+                    if not oneWayMode:
+                        request['tradeSide'] = 'Open'
                 request['side'] = requestSide
         elif marketType == 'spot':
             if isStopLossOrTakeProfitTrigger or isStopLossOrTakeProfit:
@@ -4458,8 +4484,8 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('cancelOrders', params)
-        stop = self.safe_value(params, 'stop')
-        params = self.omit(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
+        params = self.omit(params, ['stop', 'trigger'])
         orderIdList = []
         for i in range(0, len(ids)):
             individualId = ids[i]
@@ -4539,8 +4565,8 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        stop = self.safe_value(params, 'stop')
-        params = self.omit(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
+        params = self.omit(params, ['stop', 'trigger'])
         response = None
         if market['spot']:
             if marginMode is not None:

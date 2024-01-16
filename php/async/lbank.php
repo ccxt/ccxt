@@ -940,13 +940,16 @@ class lbank extends Exchange {
             } else {
                 $request['size'] = 600; // max
             }
-            $method = $this->safe_string($params, 'method');
+            $options = $this->safe_value($this->options, 'fetchTrades', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'spotPublicGetTrades');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
             $params = $this->omit($params, 'method');
-            if ($method === null) {
-                $options = $this->safe_value($this->options, 'fetchTrades', array());
-                $method = $this->safe_string($options, 'method', 'spotPublicGetTrades');
+            $response = null;
+            if ($method === 'spotPublicGetSupplementTrades') {
+                $response = Async\await($this->spotPublicGetSupplementTrades (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->spotPublicGetTrades (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //      {
             //          "result":"true",
@@ -1187,12 +1190,17 @@ class lbank extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $method = $this->safe_string($params, 'method');
-            if ($method === null) {
-                $options = $this->safe_value($this->options, 'fetchBalance', array());
-                $method = $this->safe_string($options, 'method', 'spotPrivatePostSupplementUserInfo');
+            $options = $this->safe_value($this->options, 'fetchBalance', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'spotPrivatePostSupplementUserInfo');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
+            $response = null;
+            if ($method === 'spotPrivatePostSupplementUserInfoAccount') {
+                $response = Async\await($this->spotPrivatePostSupplementUserInfoAccount ());
+            } elseif ($method === 'spotPrivatePostUserInfo') {
+                $response = Async\await($this->spotPrivatePostUserInfo ());
+            } else {
+                $response = Async\await($this->spotPrivatePostSupplementUserInfo ());
             }
-            $response = Async\await($this->$method ());
             //
             //    {
             //        "result" => "true",
@@ -1375,14 +1383,16 @@ class lbank extends Exchange {
             if ($clientOrderId !== null) {
                 $request['custom_id'] = $clientOrderId;
             }
-            $method = null;
-            $method = $this->safe_string($params, 'method');
+            $options = $this->safe_value($this->options, 'createOrder', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'spotPrivatePostSupplementCreateOrder');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
             $params = $this->omit($params, 'method');
-            if ($method === null) {
-                $options = $this->safe_value($this->options, 'createOrder', array());
-                $method = $this->safe_string($options, 'method', 'spotPrivatePostSupplementCreateOrder');
+            $response = null;
+            if ($method === 'spotPrivatePostCreateOrder') {
+                $response = Async\await($this->spotPrivatePostCreateOrder (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->spotPrivatePostSupplementCreateOrder (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //      {
             //          "result":true,
@@ -1932,13 +1942,17 @@ class lbank extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
-            $method = $this->safe_string($params, 'method');
+            $options = $this->safe_value($this->options, 'fetchDepositAddress', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'fetchDepositAddressDefault');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
             $params = $this->omit($params, 'method');
-            if ($method === null) {
-                $options = $this->safe_value($this->options, 'fetchDepositAddress', array());
-                $method = $this->safe_string($options, 'method', 'fetchDepositAddressDefault');
+            $response = null;
+            if ($method === 'fetchDepositAddressSupplement') {
+                $response = Async\await($this->fetch_deposit_address_supplement($code, $params));
+            } else {
+                $response = Async\await($this->fetch_deposit_address_default($code, $params));
             }
-            return Async\await($this->$method ($code, $params));
+            return $response;
         }) ();
     }
 
@@ -2320,13 +2334,15 @@ class lbank extends Exchange {
             $isAuthorized = $this->check_required_credentials(false);
             $result = null;
             if ($isAuthorized === true) {
-                $method = $this->safe_string($params, 'method');
+                $options = $this->safe_value($this->options, 'fetchTransactionFees', array());
+                $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTransactionFees');
+                $method = $this->safe_string($params, 'method', $defaultMethod);
                 $params = $this->omit($params, 'method');
-                if ($method === null) {
-                    $options = $this->safe_value($this->options, 'fetchTransactionFees', array());
-                    $method = $this->safe_string($options, 'method', 'fetchPrivateTransactionFees');
+                if ($method === 'fetchPublicTransactionFees') {
+                    $result = Async\await($this->fetch_public_transaction_fees($params));
+                } else {
+                    $result = Async\await($this->fetch_private_transaction_fees($params));
                 }
-                $result = Async\await($this->$method ($params));
             } else {
                 $result = Async\await($this->fetch_public_transaction_fees($params));
             }
@@ -2470,18 +2486,21 @@ class lbank extends Exchange {
              */
             Async\await($this->load_markets());
             $isAuthorized = $this->check_required_credentials(false);
-            $method = null;
+            $response = null;
             if ($isAuthorized === true) {
-                $method = $this->safe_string($params, 'method');
+                $options = $this->safe_value($this->options, 'fetchDepositWithdrawFees', array());
+                $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateDepositWithdrawFees');
+                $method = $this->safe_string($params, 'method', $defaultMethod);
                 $params = $this->omit($params, 'method');
-                if ($method === null) {
-                    $options = $this->safe_value($this->options, 'fetchDepositWithdrawFees', array());
-                    $method = $this->safe_string($options, 'method', 'fetchPrivateDepositWithdrawFees');
+                if ($method === 'fetchPublicDepositWithdrawFees') {
+                    Async\await($this->fetch_public_deposit_withdraw_fees($codes, $params));
+                } else {
+                    Async\await($this->fetch_private_deposit_withdraw_fees($codes, $params));
                 }
             } else {
-                $method = 'fetchPublicDepositWithdrawFees';
+                Async\await($this->fetch_public_deposit_withdraw_fees($codes, $params));
             }
-            return Async\await($this->$method ($codes, $params));
+            return $response;
         }) ();
     }
 

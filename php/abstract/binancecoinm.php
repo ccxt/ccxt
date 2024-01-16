@@ -28,6 +28,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function sapi_get_margin_priceindex($params = array()) {
         return $this->request('margin/priceIndex', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function sapi_get_spot_delist_schedule($params = array()) {
+        return $this->request('spot/delist-schedule', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
     public function sapi_get_asset_assetdividend($params = array()) {
         return $this->request('asset/assetDividend', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -54,6 +57,9 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function sapi_get_asset_custody_transfer_history($params = array()) {
         return $this->request('asset/custody/transfer-history', 'sapi', 'GET', $params, null, null, array("cost" => 6));
+    }
+    public function sapi_get_margin_borrow_repay($params = array()) {
+        return $this->request('margin/borrow-repay', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function sapi_get_margin_loan($params = array()) {
         return $this->request('margin/loan', 'sapi', 'GET', $params, null, null, array("cost" => 1));
@@ -753,6 +759,9 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function sapi_post_capital_deposit_credit_apply($params = array()) {
         return $this->request('capital/deposit/credit-apply', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_post_margin_borrow_repay($params = array()) {
+        return $this->request('margin/borrow-repay', 'sapi', 'POST', $params, null, null, array("cost" => 20.001));
     }
     public function sapi_post_margin_transfer($params = array()) {
         return $this->request('margin/transfer', 'sapi', 'POST', $params, null, null, array("cost" => 4.0002));
@@ -2065,6 +2074,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function sapiGetMarginPriceIndex($params = array()) {
         return $this->request('margin/priceIndex', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function sapiGetSpotDelistSchedule($params = array()) {
+        return $this->request('spot/delist-schedule', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
     public function sapiGetAssetAssetDividend($params = array()) {
         return $this->request('asset/assetDividend', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -2091,6 +2103,9 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function sapiGetAssetCustodyTransferHistory($params = array()) {
         return $this->request('asset/custody/transfer-history', 'sapi', 'GET', $params, null, null, array("cost" => 6));
+    }
+    public function sapiGetMarginBorrowRepay($params = array()) {
+        return $this->request('margin/borrow-repay', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function sapiGetMarginLoan($params = array()) {
         return $this->request('margin/loan', 'sapi', 'GET', $params, null, null, array("cost" => 1));
@@ -2790,6 +2805,9 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function sapiPostCapitalDepositCreditApply($params = array()) {
         return $this->request('capital/deposit/credit-apply', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiPostMarginBorrowRepay($params = array()) {
+        return $this->request('margin/borrow-repay', 'sapi', 'POST', $params, null, null, array("cost" => 20.001));
     }
     public function sapiPostMarginTransfer($params = array()) {
         return $this->request('margin/transfer', 'sapi', 'POST', $params, null, null, array("cost" => 4.0002));

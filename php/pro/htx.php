@@ -939,17 +939,22 @@ class htx extends \ccxt\async\htx {
             // spot updates
             $eventType = $this->safe_string($data, 'eventType');
             if ($eventType === 'trade') {
-                // when a spot $order is filled we get an update $message
+                // when a spot $order is $filled we get an update $message
                 // with the trade info
                 $parsedTrade = $this->parse_order_trade($data, $market);
                 // inject trade in existing $order by faking an $order object
                 $orderId = $this->safe_string($parsedTrade, 'order');
                 $trades = array( $parsedTrade );
+                $status = $this->parse_order_status($this->safe_string_2($data, 'orderStatus', 'status', 'closed'));
+                $filled = $this->safe_string($data, 'execAmt');
+                $remaining = $this->safe_string($data, 'remainAmt');
                 $order = array(
                     'id' => $orderId,
                     'trades' => $trades,
-                    'status' => 'closed',
+                    'status' => $status,
                     'symbol' => $market['symbol'],
+                    'filled' => $this->parse_number($filled),
+                    'remaining' => $this->parse_number($remaining),
                 );
                 $parsedOrder = $order;
             } else {

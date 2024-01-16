@@ -1109,13 +1109,14 @@ class cex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request = {}
-        method = 'privatePostOpenOrders'
         market = None
+        orders = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-            method += 'Pair'
-        orders = getattr(self, method)(self.extend(request, params))
+            orders = self.privatePostOpenOrdersPair(self.extend(request, params))
+        else:
+            orders = self.privatePostOpenOrders(self.extend(request, params))
         for i in range(0, len(orders)):
             orders[i] = self.extend(orders[i], {'status': 'open'})
         return self.parse_orders(orders, market, since, limit)
@@ -1133,10 +1134,9 @@ class cex(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.load_markets()
-        method = 'privatePostArchivedOrdersPair'
         market = self.market(symbol)
         request = {'pair': market['id']}
-        response = getattr(self, method)(self.extend(request, params))
+        response = self.privatePostArchivedOrdersPair(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
