@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/blofin.js';
-import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, BadSymbol, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, MarketInterface, Currency, Position } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -326,110 +326,6 @@ export default class blofin extends Exchange {
                 },
             },
         });
-    }
-
-    handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
-        const instType = this.safeString (params, 'instType');
-        params = this.omit (params, 'instType');
-        const type = this.safeString (params, 'type');
-        if ((type === undefined) && (instType !== undefined)) {
-            params['type'] = instType;
-        }
-        return super.handleMarketTypeAndParams (methodName, market, params);
-    }
-
-    convertToInstrumentType (type) {
-        const exchangeTypes = this.safeValue (this.options, 'exchangeType', {});
-        return this.safeString (exchangeTypes, type, type);
-    }
-
-    convertExpireDate (date) {
-        // parse YYMMDD to timestamp
-        const year = date.slice (0, 2);
-        const month = date.slice (2, 4);
-        const day = date.slice (4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
-        return reconstructedDate;
-    }
-
-    createExpiredOptionMarket (symbol) {
-        // support expired option contracts
-        const quote = 'USD';
-        const optionParts = symbol.split ('-');
-        const symbolBase = symbol.split ('/');
-        let base = undefined;
-        if (symbol.indexOf ('/') > -1) {
-            base = this.safeString (symbolBase, 0);
-        } else {
-            base = this.safeString (optionParts, 0);
-        }
-        const settle = base;
-        const expiry = this.safeString (optionParts, 2);
-        const strike = this.safeString (optionParts, 3);
-        const optionType = this.safeString (optionParts, 4);
-        const datetime = this.convertExpireDate (expiry);
-        const timestamp = this.parse8601 (datetime);
-        return {
-            'id': base + '-' + quote + '-' + expiry + '-' + strike + '-' + optionType,
-            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
-            'base': base,
-            'quote': quote,
-            'settle': settle,
-            'baseId': base,
-            'quoteId': quote,
-            'settleId': settle,
-            'active': false,
-            'type': 'option',
-            'linear': undefined,
-            'inverse': undefined,
-            'spot': false,
-            'swap': true,
-            'future': false,
-            'option': false,
-            'margin': false,
-            'contract': true,
-            'contractSize': this.parseNumber ('1'),
-            'expiry': timestamp,
-            'expiryDatetime': datetime,
-            'optionType': (optionType === 'C') ? 'call' : 'put',
-            'strike': this.parseNumber (strike),
-            'precision': {
-                'amount': undefined,
-                'price': undefined,
-            },
-            'limits': {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            },
-            'info': undefined,
-        } as MarketInterface;
-    }
-
-    market (symbol) {
-        if (this.markets === undefined) {
-            throw new ExchangeError (this.id + ' markets not loaded');
-        }
-        if (typeof symbol === 'string') {
-            if (symbol in this.markets) {
-                return this.markets[symbol];
-            } else if (symbol in this.markets_by_id) {
-                const markets = this.markets_by_id[symbol];
-                return markets[0];
-            } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1)) {
-                return this.createExpiredOptionMarket (symbol);
-            }
-        }
-        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
     }
 
     async fetchMarkets (params = {}) {
@@ -1002,10 +898,8 @@ export default class blofin extends Exchange {
             'orderType': type,
             'size': this.amountToPrecision (symbol, amount),
         };
-        const marginMode = this.safeString (params, 'marginMode', 'cross'); // cross or isolated
-        if (marginMode !== 'cross' && marginMode !== 'isolated') {
-            throw new BadRequest (this.id + ' createOrder() requires a marginMode parameter that must be either cross or isolated');
-        }
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, 'cross');
         request['marginMode'] = marginMode;
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const isMarketOrder = type === 'market';
@@ -1137,6 +1031,8 @@ export default class blofin extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
          * @param {bool} [params.postOnly] true to place a post only order
+         * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+         * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1334,14 +1230,12 @@ export default class blofin extends Exchange {
             request['instId'] = market['id'];
         }
         [ request, params ] = this.handleUntilOption ('end', request, params);
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        request['instType'] = this.convertToInstrumentType (type);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const response = await this.privateGetTradeFillsHistory (this.extend (request, query));
+        const response = await this.privateGetTradeFillsHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data, market, since, limit, query);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
