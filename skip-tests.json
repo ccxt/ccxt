@@ -906,7 +906,8 @@
                 "currencyIdAndCode": "messed codes"
             },
             "fetchCurrencies": {
-                "fee": "not provided"
+                "fee": "not provided",
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268371892#L2455"
             },
             "fetchTickers": {
                 "bid":"messed bid-ask",
@@ -976,6 +977,9 @@
                 "limits": "max should be above min",
                 "contractSize": "broken for some markets",
                 "strike": "incorrect number type"
+            },
+            "fetchCurrencies": {
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268371892#L2559"
             },
             "fetchTrades":  {
                 "timestamp": "timestamp is in decimals"
