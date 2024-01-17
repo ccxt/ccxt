@@ -10,7 +10,7 @@ public interface IOrderBook : IDictionary<string, object>
 {
     IOrderBook limit();
     void reset(object snapshot = null);
-    IOrderBook GetCopy();
+    IOrderBook Copy();
     public IOrderBook update(object snapshot);
     IAsks asks { get; set; }
     IBids bids { get; set; }
@@ -180,7 +180,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
         }
     }
 
-    public IOrderBook GetCopy()
+    public IOrderBook Copy()
     {
         lock (_syncRoot)
         {
@@ -193,8 +193,8 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
             //     {"symbol", this["symbol"]},
             // });
             var copy = new OrderBook(new Dictionary<string, object>());
-            copy["asks"] = this.asks.GetCopy();
-            copy["bids"] = this.bids.GetCopy();
+            copy["asks"] = this.asks.Copy();
+            copy["bids"] = this.bids.Copy();
             copy["nonce"] = this["nonce"];
             copy["timestamp"] = this["timestamp"];
             copy["datetime"] = this["datetime"];
@@ -260,13 +260,13 @@ public class CountedOrderBook : OrderBook, IOrderBook
     }
 
 
-    public IOrderBook GetCopy()
+    public IOrderBook Copy()
     {
         lock (_syncRoot)
         {
             var copy = new CountedOrderBook(new Dictionary<string, object>());
-            copy["asks"] = this.asks.GetCopy();
-            copy["bids"] = this.bids.GetCopy();
+            copy["asks"] = this.asks.Copy();
+            copy["bids"] = this.bids.Copy();
             copy["nonce"] = this["nonce"];
             copy["timestamp"] = this["timestamp"];
             copy["datetime"] = this["datetime"];
@@ -298,13 +298,13 @@ public class IndexedOrderBook : OrderBook, IOrderBook
         return this;
     }
 
-    public IOrderBook GetCopy()
+    public IOrderBook Copy()
     {
         lock (_syncRoot)
         {
             var copy = new IndexedOrderBook(new Dictionary<string, object>());
-            copy["asks"] = this.asks.GetCopy();
-            copy["bids"] = this.bids.GetCopy();
+            copy["asks"] = this.asks.Copy();
+            copy["bids"] = this.bids.Copy();
             copy["nonce"] = this["nonce"];
             copy["timestamp"] = this["timestamp"];
             copy["datetime"] = this["datetime"];

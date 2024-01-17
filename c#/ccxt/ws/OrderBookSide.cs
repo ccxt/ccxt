@@ -32,7 +32,7 @@ public interface IOrderBookSide : IList<object>
     void storeArray(object delta);
     void limit();
     void store(object price, object size, object order_id);
-    IOrderBookSide GetCopy();
+    IOrderBookSide Copy();
 }
 
 
@@ -222,7 +222,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
         }
     }
 
-    public IOrderBookSide GetCopy()
+    public IOrderBookSide Copy()
     {
         lock (_syncRoot)
         {
@@ -253,7 +253,7 @@ public class NormalOrderBookSide : OrderBookSide, IOrderBookSide
         }
     }
 
-    public IOrderBookSide GetCopy()
+    public IOrderBookSide Copy()
     {
         lock (_syncRoot)
         {
@@ -281,7 +281,7 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
         }
     }
 
-    public IOrderBookSide GetCopy()
+    public IOrderBookSide Copy()
     {
         lock (_syncRoot)
         {
@@ -353,7 +353,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
 
     }
 
-    public IOrderBookSide GetCopy()
+    public IOrderBookSide Copy()
     {
         lock (_syncRoot)
         {
@@ -477,13 +477,13 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
 
 public interface IAsks : IOrderBookSide
 {
-    public IAsks GetCopy();
+    public IAsks Copy();
 
 }
 
 public interface IBids : IOrderBookSide
 {
-    public IBids GetCopy();
+    public IBids Copy();
 
 }
 
@@ -494,7 +494,7 @@ public class Asks : NormalOrderBookSide, IAsks
         this.side = false;
     }
 
-    public IAsks GetCopy()
+    public IAsks Copy()
     {
         lock (_syncRoot)
         {
@@ -512,7 +512,7 @@ public class Bids : NormalOrderBookSide, IBids
         this.side = true;
     }
 
-    public IBids GetCopy()
+    public IBids Copy()
     {
         lock (_syncRoot)
         {
@@ -531,7 +531,7 @@ public class CountedAsks : CountedOrderBookSide, IAsks
         // super.side = false;
     }
 
-    public IAsks GetCopy()
+    public IAsks Copy()
     {
         lock (_syncRoot)
         {
@@ -549,7 +549,7 @@ public class CountedBids : CountedOrderBookSide, IBids
         this.side = true;
     }
 
-    public IBids GetCopy()
+    public IBids Copy()
     {
         lock (_syncRoot)
         {
@@ -568,7 +568,7 @@ public class IndexedAsks : IndexedOrderBookSide, IAsks
         this.side = false;
     }
 
-    public IAsks GetCopy()
+    public IAsks Copy()
     {
         lock (_syncRoot)
         {
@@ -586,7 +586,7 @@ public class IndexedBids : IndexedOrderBookSide, IBids
         this.side = true;
     }
 
-    public IBids GetCopy()
+    public IBids Copy()
     {
         lock (_syncRoot)
         {
