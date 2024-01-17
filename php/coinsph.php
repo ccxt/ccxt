@@ -978,10 +978,10 @@ class coinsph extends Exchange {
                 'currency' => $this->safe_currency_code($feeCurrencyId),
             );
         }
-        $isBuyer = $this->safe_string_2($trade, 'isBuyer', 'isBuyerMaker', null);
+        $isBuyer = $this->safe_value_2($trade, 'isBuyer', 'isBuyerMaker', null);
         $side = null;
         if ($isBuyer !== null) {
-            $side = ($isBuyer === 'true') ? 'buy' : 'sell';
+            $side = ($isBuyer === true) ? 'buy' : 'sell';
         }
         $isMaker = $this->safe_string_2($trade, 'isMaker', null);
         $takerOrMaker = null;

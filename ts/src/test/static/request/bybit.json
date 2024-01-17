@@ -246,6 +246,34 @@
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"0.001\",\"trailingStop\":\"1000\"}"
+            },
+            {
+                "description": "Swap inverse market buy order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "BTC/USD:BTC",
+                  "market",
+                  "buy",
+                  1
+                ],
+                "output": "{\"symbol\":\"BTCUSD\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"inverse\",\"qty\":\"1\"}"
+            },
+            {
+                "description": "Swap inverse market sell order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "BTC/USD:BTC",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSD\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"inverse\",\"qty\":\"1\",\"reduceOnly\":true}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -306,6 +334,19 @@
                     "LTC/USDT"
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"orderFilter\":\"Order\",\"orderId\":\"1513125485218108928\",\"category\":\"spot\"}"
+            },
+            {
+                "description": "Spot cancel a stop order",
+                "method": "cancelOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/cancel",
+                "input": [
+                  "1599966662050972416",
+                  "BTC/USDT",
+                  {
+                    "stop": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"orderFilter\":\"StopOrder\",\"orderId\":\"1599966662050972416\",\"category\":\"spot\"}"
             }
         ],
         "cancelAllOrders": [
@@ -317,6 +358,30 @@
                   "BTC/USDT:USDT"
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "Swap cancel all open stop orders",
+                "method": "cancelAllOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/cancel-all",
+                "input": [
+                  "BTC/USDT:USDT",
+                  {
+                    "stop": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"linear\",\"orderFilter\":\"StopOrder\"}"
+            },
+            {
+                "description": "Spot cancel all open stop orders",
+                "method": "cancelAllOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/cancel-all",
+                "input": [
+                  "BTC/USDT",
+                  {
+                    "stop": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"spot\",\"orderFilter\":\"StopOrder\"}"
             }
         ],
         "fetchOpenOrders": [
@@ -404,6 +469,16 @@
                 "method": "fetchPositions",
                 "url": "https://api-testnet.bybit.com/v5/position/list?settleCoin=USDT&category=linear",
                 "input": []
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "Swap fetch an inverse swap position",
+                "method": "fetchPosition",
+                "url": "https://api-testnet.bybit.com/v5/position/list?symbol=BTCUSD&category=inverse",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
             }
         ],
         "fetchBalance": [

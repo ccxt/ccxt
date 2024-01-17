@@ -880,7 +880,7 @@ class poloniex(ccxt.async_support.poloniex):
         #    }
         #
         data = self.safe_value(message, 'data', [])
-        newTickers = []
+        newTickers = {}
         for i in range(0, len(data)):
             item = data[i]
             marketId = self.safe_string(item, 'symbol')
@@ -888,7 +888,7 @@ class poloniex(ccxt.async_support.poloniex):
                 ticker = self.parse_ticker(item)
                 symbol = ticker['symbol']
                 self.tickers[symbol] = ticker
-                newTickers.append(ticker)
+                newTickers[symbol] = ticker
         messageHashes = self.find_message_hashes(client, 'ticker::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
