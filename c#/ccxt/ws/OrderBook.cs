@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 using dict = IDictionary<string, object>;
 
-public interface IOrderBook
+public interface IOrderBook : IDictionary<string, object>
 {
     IOrderBook limit();
     void reset(object snapshot = null);
