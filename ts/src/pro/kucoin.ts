@@ -105,13 +105,13 @@ export default class kucoin extends kucoinRest {
             });
             const client = this.client (result);
             client.keepAlive = pingInterval;
-            const future = this.safeValue (this.options['urls'], connectId);
-            future.resolve (result);
+            return result;
         } catch (e) {
             const future = this.safeValue (this.options['urls'], connectId);
             future.reject (e);
             delete this.options['urls'][connectId];
         }
+        return undefined;
     }
 
     requestId () {

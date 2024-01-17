@@ -117,8 +117,6 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 'connectId': connectId,
             });
             const client = this.client (result);
-            const future = this.safeValue (this.options['urls'], connectId);
-            future.resolve (result);
             client.keepAlive = pingInterval;
             return result;
         } catch (e) {
@@ -126,6 +124,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             future.reject (e);
             delete this.options['urls'][connectId];
         }
+        return undefined;
     }
 
     requestId () {
