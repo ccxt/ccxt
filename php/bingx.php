@@ -23,7 +23,7 @@ class bingx extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => true,
+                'margin' => false,
                 'swap' => true,
                 'future' => false,
                 'option' => false,
@@ -3051,6 +3051,21 @@ class bingx extends Exchange {
         //        "txId" => "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
         //    }
         //
+        // withdraw
+        //
+        //     {
+        //         "code":0,
+        //         "timestamp":1705274263621,
+        //         "data":{
+        //             "id":"1264246141278773252"
+        //         }
+        //     }
+        //
+        // parse withdraw-$type output first...
+        //
+        $data = $this->safe_value($transaction, 'data');
+        $dataId = ($data === null) ? null : $this->safe_string($data, 'id');
+        $id = $this->safe_string($transaction, 'id', $dataId);
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag');
         $timestamp = $this->safe_integer($transaction, 'insertTime');
@@ -3071,7 +3086,7 @@ class bingx extends Exchange {
         $type = ($rawType === '0') ? 'deposit' : 'withdrawal';
         return array(
             'info' => $transaction,
-            'id' => $this->safe_string($transaction, 'id'),
+            'id' => $id,
             'txid' => $this->safe_string($transaction, 'txId'),
             'type' => $type,
             'currency' => $code,

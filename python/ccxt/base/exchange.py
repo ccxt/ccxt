@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.15'
+__version__ = '4.2.16'
 
 # -----------------------------------------------------------------------------
 
@@ -1789,10 +1789,10 @@ class Exchange(object):
         httpsProxy = None
         socksProxy = None
         # httpProxy
-        if self.httpProxy is not None:
+        if self.valueIsDefined(self.httpProxy):
             usedProxies.append('httpProxy')
             httpProxy = self.httpProxy
-        if self.http_proxy is not None:
+        if self.valueIsDefined(self.http_proxy):
             usedProxies.append('http_proxy')
             httpProxy = self.http_proxy
         if self.httpProxyCallback is not None:
@@ -1802,10 +1802,10 @@ class Exchange(object):
             usedProxies.append('http_proxy_callback')
             httpProxy = self.http_proxy_callback(url, method, headers, body)
         # httpsProxy
-        if self.httpsProxy is not None:
+        if self.valueIsDefined(self.httpsProxy):
             usedProxies.append('httpsProxy')
             httpsProxy = self.httpsProxy
-        if self.https_proxy is not None:
+        if self.valueIsDefined(self.https_proxy):
             usedProxies.append('https_proxy')
             httpsProxy = self.https_proxy
         if self.httpsProxyCallback is not None:
@@ -1815,10 +1815,10 @@ class Exchange(object):
             usedProxies.append('https_proxy_callback')
             httpsProxy = self.https_proxy_callback(url, method, headers, body)
         # socksProxy
-        if self.socksProxy is not None:
+        if self.valueIsDefined(self.socksProxy):
             usedProxies.append('socksProxy')
             socksProxy = self.socksProxy
-        if self.socks_proxy is not None:
+        if self.valueIsDefined(self.socks_proxy):
             usedProxies.append('socks_proxy')
             socksProxy = self.socks_proxy
         if self.socksProxyCallback is not None:
@@ -1840,24 +1840,24 @@ class Exchange(object):
         wssProxy = None
         wsSocksProxy = None
         # ws proxy
-        if self.wsProxy is not None:
+        if self.valueIsDefined(self.wsProxy):
             usedProxies.append('wsProxy')
             wsProxy = self.wsProxy
-        if self.ws_proxy is not None:
+        if self.valueIsDefined(self.ws_proxy):
             usedProxies.append('ws_proxy')
             wsProxy = self.ws_proxy
         # wss proxy
-        if self.wssProxy is not None:
+        if self.valueIsDefined(self.wssProxy):
             usedProxies.append('wssProxy')
             wssProxy = self.wssProxy
-        if self.wss_proxy is not None:
+        if self.valueIsDefined(self.wss_proxy):
             usedProxies.append('wss_proxy')
             wssProxy = self.wss_proxy
         # ws socks proxy
-        if self.wsSocksProxy is not None:
+        if self.valueIsDefined(self.wsSocksProxy):
             usedProxies.append('wsSocksProxy')
             wsSocksProxy = self.wsSocksProxy
-        if self.ws_socks_proxy is not None:
+        if self.valueIsDefined(self.ws_socks_proxy):
             usedProxies.append('ws_socks_proxy')
             wsSocksProxy = self.ws_socks_proxy
         # check

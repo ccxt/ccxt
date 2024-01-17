@@ -22,7 +22,7 @@ class bingx extends bingx$1 {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': true,
+                'margin': false,
                 'swap': true,
                 'future': false,
                 'option': false,
@@ -3099,6 +3099,21 @@ class bingx extends bingx$1 {
         //        "txId": "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
         //    }
         //
+        // withdraw
+        //
+        //     {
+        //         "code":0,
+        //         "timestamp":1705274263621,
+        //         "data":{
+        //             "id":"1264246141278773252"
+        //         }
+        //     }
+        //
+        // parse withdraw-type output first...
+        //
+        const data = this.safeValue(transaction, 'data');
+        const dataId = (data === undefined) ? undefined : this.safeString(data, 'id');
+        const id = this.safeString(transaction, 'id', dataId);
         const address = this.safeString(transaction, 'address');
         const tag = this.safeString(transaction, 'addressTag');
         let timestamp = this.safeInteger(transaction, 'insertTime');
@@ -3119,7 +3134,7 @@ class bingx extends bingx$1 {
         const type = (rawType === '0') ? 'deposit' : 'withdrawal';
         return {
             'info': transaction,
-            'id': this.safeString(transaction, 'id'),
+            'id': id,
             'txid': this.safeString(transaction, 'txId'),
             'type': type,
             'currency': code,

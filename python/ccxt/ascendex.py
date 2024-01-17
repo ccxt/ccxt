@@ -800,12 +800,14 @@ class ascendex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         self.load_accounts()
-        query = None
         marketType = None
-        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
+        marginMode = None
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
         isMargin = self.safe_value(params, 'margin', False)
-        marketType = 'margin' if isMargin else marketType
-        query = self.omit(query, 'margin')
+        isCross = marginMode == 'cross'
+        marketType = 'margin' if (isMargin or isCross) else marketType
+        params = self.omit(params, 'margin')
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         accountCategory = self.safe_string(accountsByType, marketType, 'cash')
         account = self.safe_value(self.accounts, 0, {})
@@ -813,13 +815,15 @@ class ascendex(Exchange, ImplicitAPI):
         request = {
             'account-group': accountGroup,
         }
+        if (marginMode == 'isolated') and (marketType != 'swap'):
+            raise BadRequest(self.id + ' does not supported isolated margin trading')
         if (accountCategory == 'cash') or (accountCategory == 'margin'):
             request['account-category'] = accountCategory
         response = None
         if (marketType == 'spot') or (marketType == 'margin'):
-            response = self.v1PrivateAccountCategoryGetBalance(self.extend(request, query))
+            response = self.v1PrivateAccountCategoryGetBalance(self.extend(request, params))
         elif marketType == 'swap':
-            response = self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, query))
+            response = self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchBalance() is not currently supported for ' + marketType + ' markets')
         #
