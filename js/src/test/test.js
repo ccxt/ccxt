@@ -488,6 +488,7 @@ export default class testMainClass extends baseMainTestClass {
                 // @ts-ignore
                 'watchOHLCV': [symbol],
                 'watchTicker': [symbol],
+                'watchTickers': [symbol],
                 'watchOrderBook': [symbol],
                 'watchTrades': [symbol],
             };

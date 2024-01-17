@@ -134,6 +134,7 @@ var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
 var coinbasepro$1 = require('./src/pro/coinbasepro.js');
+var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
@@ -170,7 +171,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.16';
+const version = '4.2.17';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -297,6 +298,7 @@ const pro = {
     'cex': cex$1,
     'coinbase': coinbase$1,
     'coinbasepro': coinbasepro$1,
+    'coincheck': coincheck$1,
     'coinex': coinex$1,
     'coinone': coinone$1,
     'cryptocom': cryptocom$1,

@@ -107,6 +107,9 @@
             "watchTicker": {
                 "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
             },
+            "watchTickers": {
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L2414"
+            },
             "watchOrderBook": "out of order update"
         }
     },
@@ -637,6 +640,7 @@
         }
     },
     "coincheck": {
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets":{
                 "info":"not provided",
@@ -913,6 +917,9 @@
             "fetchTickers": {
                 "bid":"messed bid-ask",
                 "ask":"messed bid-ask"
+            },
+            "watchOrderBook": {
+                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268349324#L2400"
             }
         }
     },
