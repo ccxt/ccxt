@@ -7,7 +7,6 @@ import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.j
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { Future } from '../base/ws/Future.js';
 
 //  ---------------------------------------------------------------------------
 
