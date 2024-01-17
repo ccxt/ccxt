@@ -593,6 +593,9 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const messageHash = 'orderbook:' + symbol;
         const storedOrderBook = this.safeValue (this.orderbooks, symbol);
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
+        if (storedOrderBook === undefined) {
+            return; // this shouldn't be needed, but for some reason sometimes this runs before handleOrderBookSubscription in c#
+        }
         const deltaEnd = this.safeInteger (data, 'sequence');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
