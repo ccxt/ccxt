@@ -145,11 +145,8 @@ export default class coincheck extends coincheckRest {
         //         ]
         //     ]
         //
-        let symbol = undefined;
-        if (message.length > 0) {
-            const first = this.safeValue (message, 0, []);
-            symbol = this.symbol (this.safeString (first, 2));
-        }
+        const first = this.safeValue (message, 0, []);
+        const symbol = this.symbol (this.safeString (first, 2));
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
