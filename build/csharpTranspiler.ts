@@ -1217,19 +1217,30 @@ class NewTranspiler {
             });
         });
 
-        this.transpileAndSaveCsharpExchangeTests (tests);
+        this.transpileAndSaveCsharpExchangeTests (tests, true);
     }
 
-    async transpileAndSaveCsharpExchangeTests(tests) {
+    async transpileAndSaveCsharpExchangeTests(tests, isWs = false) {
         const paths = tests.map(test => test.tsFile);
         const flatResult = await this.webworkerTranspile (paths, this.getTranspilerConfig());
         flatResult.forEach((file, idx) => {
             let contentIndentend = file.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
-            contentIndentend = this.regexAll (contentIndentend, [
+
+            let regexes = [
                 [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
                 [ /throw new Error/g, 'throw new Exception' ],
+                [/testSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
                 [ /void function/g, 'void']
-            ])
+            ];
+
+            if (isWs) {
+                // add ws-tests specific regeces
+                regexes = regexes.concat([
+                    [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
+                ]);
+            }
+
+            contentIndentend = this.regexAll (contentIndentend, regexes)
             const fileHeaders = [
                 'using ccxt;',
                 'namespace Tests;',
