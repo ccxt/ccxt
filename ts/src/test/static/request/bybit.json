@@ -246,6 +246,34 @@
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"0.001\",\"trailingStop\":\"1000\"}"
+            },
+            {
+                "description": "Swap inverse market buy order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "BTC/USD:BTC",
+                  "market",
+                  "buy",
+                  1
+                ],
+                "output": "{\"symbol\":\"BTCUSD\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"inverse\",\"qty\":\"1\"}"
+            },
+            {
+                "description": "Swap inverse market sell order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "BTC/USD:BTC",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSD\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"inverse\",\"qty\":\"1\",\"reduceOnly\":true}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -441,6 +469,16 @@
                 "method": "fetchPositions",
                 "url": "https://api-testnet.bybit.com/v5/position/list?settleCoin=USDT&category=linear",
                 "input": []
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "Swap fetch an inverse swap position",
+                "method": "fetchPosition",
+                "url": "https://api-testnet.bybit.com/v5/position/list?symbol=BTCUSD&category=inverse",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
             }
         ],
         "fetchBalance": [
