@@ -62,8 +62,7 @@ export default class kucoin extends kucoinRest {
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
-        urls[connectId] = Future ();
-        this.spawn (this.negotiateHelper, privateChannel, params);
+        urls[connectId] = this.spawn (this.negotiateHelper, privateChannel, params);
         this.options['urls'] = urls;
         return urls[connectId];
     }
