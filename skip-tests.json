@@ -748,7 +748,10 @@
                 "active":"is undefined"
             },
             "fetchOrderBook": "ask should be less than next ask",
-            "fetchL2OrderBook": "same"
+            "fetchL2OrderBook": "same",
+            "fetchTrades": {
+                "emptyResponse": "sometimes response is empty"
+            }
         }
     },
     "cryptocom": {
