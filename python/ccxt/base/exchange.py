@@ -1339,8 +1339,8 @@ class Exchange(object):
         return ethabi.encode(types, args)
 
     @staticmethod
-    def eth_encode_structured_data(data):
-        encodedData = ethaccount.messages.encode_structured_data(data)
+    def eth_encode_structured_data(domain, messageTypes, message):
+        encodedData = ethaccount.messages.encode_typed_data(domain, messageTypes, message)
         return [encodedData.header, encodedData.body]
 
     @staticmethod

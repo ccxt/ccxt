@@ -30,14 +30,6 @@ from ._utils.encode_typed_data.encoding_and_hashing import (
     hash_domain,
     hash_eip712_message,
 )
-from ._utils.structured_data.hashing import (
-    hash_domain as hash_eip712_domain_legacy,
-    hash_message as hash_eip712_message_legacy,
-    load_and_validate_structured_message,
-)
-from ._utils.structured_data.validation import (
-    validate_structured_data,
-)
 from ._utils.validation import (
     is_valid_address,
 )
@@ -58,7 +50,7 @@ class SignableMessage(NamedTuple):
     In typical usage, you should never need to create these by hand. Instead, use
     one of the available encode_* methods in this module, like:
 
-        - :meth:`encode_structured_data`
+        - :meth:`encode_typed_data`
         - :meth:`encode_intended_validator`
         - :meth:`encode_defunct`
 
@@ -123,133 +115,6 @@ def encode_intended_validator(
         HexBytes(b"\x00"),  # version 0, as defined in EIP-191
         canonical_address,
         message_bytes,
-    )
-
-
-def encode_structured_data(
-    primitive: Union[bytes, int, Mapping] = None,
-    *,
-    hexstr: str = None,
-    text: str = None,
-) -> SignableMessage:
-    r"""
-
-    .. WARNING:: This method is deprecated. Use :meth:`encode_typed_data` instead.
-
-    Encode an EIP-712_ message.
-
-    EIP-712 is the "structured data" approach (ie~ version 1 of an EIP-191 message).
-
-    Supply the message as exactly one of the three arguments:
-
-        - primitive, as a dict that defines the structured data
-        - primitive, as bytes
-        - text, as a json-encoded string
-        - hexstr, as a hex-encoded (json-encoded) string
-
-    .. WARNING:: Note that this code has not gone through an external audit, and
-        the test cases are incomplete.
-
-    :param primitive: the binary message to be signed
-    :type primitive: bytes or int or Mapping (eg~ dict )
-    :param hexstr: the message encoded as hex
-    :param text: the message as a series of unicode characters (a normal Py3 str)
-    :returns: The EIP-191 encoded message, ready for signing
-
-
-    Usage Notes:
-     - An EIP712 message consists of 4 top-level keys: ``types``, ``primaryType``,
-       ``domain``, and ``message``. All 4 must be present to encode properly.
-     - The key ``EIP712Domain`` must be present within ``types``.
-     - The `type` of a field may be a Solidity type or a `custom` type, i.e., one
-       that is defined within the ``types`` section of the typed data.
-     - Extra information in ``message`` and ``domain`` will be ignored when encoded.
-       For example, if the custom type ``Person`` defines the fields ``name`` and
-       ``wallet``, but an additional ``id`` field is provided in ``message``, the
-       resulting encoding will be the same as if the ``id`` information was not present.
-     - Unused custom types will be ignored in the same way.
-
-    .. doctest:: python
-
-        >>> # an example of basic usage
-        >>> import json
-        >>> from eth_account import Account
-        >>> from .messages import encode_structured_data
-
-        >>> typed_data = {
-        ...     "types": {
-        ...         "EIP712Domain": [
-        ...             {"name": "name", "type": "string"},
-        ...             {"name": "version", "type": "string"},
-        ...             {"name": "chainId", "type": "uint256"},
-        ...             {"name": "verifyingContract", "type": "address"},
-        ...         ],
-        ...         "Person": [
-        ...             {"name": "name", "type": "string"},
-        ...             {"name": "wallet", "type": "address"},
-        ...         ],
-        ...         "Mail": [
-        ...             {"name": "from", "type": "Person"},
-        ...             {"name": "to", "type": "Person"},
-        ...             {"name": "contents", "type": "string"},
-        ...         ],
-        ...     },
-        ...     "primaryType": "Mail",
-        ...     "domain": {
-        ...         "name": "Ether Mail",
-        ...         "version": "1",
-        ...         "chainId": 1,
-        ...         "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
-        ...     },
-        ...     "message": {
-        ...         "from": {
-        ...             "name": "Cow",
-        ...             "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
-        ...         },
-        ...         "to": {
-        ...             "name": "Bob",
-        ...             "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
-        ...         },
-        ...         "contents": "Hello, Bob!",
-        ...     },
-        ... }
-
-        >>> key = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-
-        >>> signable_msg_from_dict = encode_structured_data(typed_data)
-        >>> signable_msg_from_str = encode_structured_data(text=json.dumps(typed_data))
-        >>> signable_msg_from_hexstr = encode_structured_data(
-        ...     hexstr=json.dumps(typed_data).encode("utf-8").hex()
-        ... )
-
-        >>> signed_msg_from_dict = Account.sign_message(signable_msg_from_dict, key)
-        >>> signed_msg_from_str = Account.sign_message(signable_msg_from_str, key)
-        >>> signed_msg_from_hexstr = Account.sign_message(signable_msg_from_hexstr, key)
-
-        >>> signed_msg_from_dict == signed_msg_from_str == signed_msg_from_hexstr
-        True
-        >>> signed_msg_from_dict.messageHash
-        HexBytes('0xbe609aee343fb3c4b28e1df9e632fca64fcfaede20f02e86244efddf30957bd2')
-
-    .. _EIP-712: https://eips.ethereum.org/EIPS/eip-712
-    """
-    warnings.warn(
-        "`encode_structured_data` is deprecated and will be removed in a"
-        " future release. Use encode_typed_data instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    if isinstance(primitive, Mapping):
-        validate_structured_data(primitive)
-        structured_data = primitive
-    else:
-        message_string = to_text(primitive, hexstr=hexstr, text=text)
-        structured_data = load_and_validate_structured_message(message_string)
-    return SignableMessage(
-        HexBytes(b"\x01"),
-        hash_eip712_domain_legacy(structured_data),
-        hash_eip712_message_legacy(structured_data),
     )
 
 

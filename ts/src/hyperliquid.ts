@@ -637,32 +637,22 @@ export default class hyperliquid extends Exchange {
             'source': (isSandboxMode) ? 'b' : 'a',
             'connectionId': connectionIdHash,
         };
-        const structuredData = {
-            'domain': {
-                'chainId': 1337,
-                'name': 'Exchange',
-                'verifyingContract': zeroAddress,
-                'version': '1',
-            },
-            'types': {
-                'Agent': [
-                    {'name': 'source', 'type': 'string'},
-                    {'name': 'connectionId', 'type': 'bytes32'},
-                ],
-                'EIP712Domain': [
-                    {'name': 'name', 'type': 'string'},
-                    {'name': 'version', 'type': 'string'},
-                    {'name': 'chainId', 'type': 'uint256'},
-                    {'name': 'verifyingContract', 'type': 'address'},
-                ],
-            },
-            'primaryType': 'Agent',
-            'message': message
+        const domain = {
+            'chainId': 1337,
+            'name': 'Exchange',
+            'verifyingContract': zeroAddress,
+            'version': '1',
+        };
+        const messageTypes = {
+            'Agent': [
+                {'name': 'source', 'type': 'string'},
+                {'name': 'connectionId', 'type': 'bytes32'},
+            ],
         };
         // const account = this.eth_recover_account (this.privateKey);
         // const signedMsg = account.sign_message(msg);
         // TODO: use encode typed data?
-        const msg = this.eth_encode_structured_data (structuredData);
+        const msg = this.eth_encode_structured_data (domain, messageTypes, message);
         const signature = this.signMessage (msg[0], msg[1], this.privateKey);
         const tmpRequest = {
             'action': {
