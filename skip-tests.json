@@ -1511,7 +1511,8 @@
                 "networks": "key not present"
             },
             "fetchTrades": {
-                "fees": "missingn from structure"
+                "fees": "missingn from structure",
+                "side": "only sell sides are returned"
             },
             "fetchTickers": "temporary issues"
         }
