@@ -357,6 +357,9 @@
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            },
+            "fetchTrades": {
+                "emptyResponse": "sometimes response is empty"
             }
         }
     },
