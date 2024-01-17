@@ -4293,7 +4293,7 @@ export default class bybit extends Exchange {
         const isStop = this.safeValue (params, 'stop', false);
         params = this.omit (params, [ 'stop' ]);
         if (isStop) {
-            request['orderFilter'] = 'tpslOrder';
+            request['orderFilter'] = 'StopOrder';
         }
         const response = await this.privatePostV5OrderCancelAll (this.extend (request, params));
         //
