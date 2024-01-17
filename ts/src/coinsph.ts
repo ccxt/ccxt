@@ -998,10 +998,10 @@ export default class coinsph extends Exchange {
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             };
         }
-        const isBuyer = this.safeString2 (trade, 'isBuyer', 'isBuyerMaker', undefined);
+        const isBuyer = this.safeValue2 (trade, 'isBuyer', 'isBuyerMaker', undefined);
         let side = undefined;
         if (isBuyer !== undefined) {
-            side = (isBuyer === 'true') ? 'buy' : 'sell';
+            side = (isBuyer === true) ? 'buy' : 'sell';
         }
         const isMaker = this.safeString2 (trade, 'isMaker', undefined);
         let takerOrMaker = undefined;
