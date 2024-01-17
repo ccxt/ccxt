@@ -4172,7 +4172,7 @@ export default class bybit extends Exchange {
             // only works for spot market
             const isStop = this.safeValue (params, 'stop', false);
             params = this.omit (params, [ 'stop' ]);
-            request['orderFilter'] = isStop ? 'tpslOrder' : 'Order';
+            request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
         }
         if (id !== undefined) { // The user can also use argument params["orderLinkId"]
             request['orderId'] = id;
