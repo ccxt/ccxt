@@ -317,6 +317,30 @@
                   "BTC/USDT:USDT"
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "Swap cancel all open stop orders",
+                "method": "cancelAllOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/cancel-all",
+                "input": [
+                  "BTC/USDT:USDT",
+                  {
+                    "stop": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"linear\",\"orderFilter\":\"StopOrder\"}"
+            },
+            {
+                "description": "Spot cancel all open stop orders",
+                "method": "cancelAllOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/cancel-all",
+                "input": [
+                  "BTC/USDT",
+                  {
+                    "stop": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"spot\",\"orderFilter\":\"StopOrder\"}"
             }
         ],
         "fetchOpenOrders": [
