@@ -3,8 +3,9 @@
 
 import coincheckRest from '../coincheck.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Int, OrderBook } from '../base/types.js';
+import type { Int, Market, OrderBook, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -13,9 +14,9 @@ export default class coincheck extends coincheckRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOrders': false,
-                'watchTrades': false,
+                'watchTrades': true,
                 'watchOHLCV': false,
                 'watchTicker': false,
                 'watchTickers': false,
@@ -105,10 +106,106 @@ export default class coincheck extends coincheckRest {
         client.resolve (orderbook, messageHash);
     }
 
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name coincheck#watchTrades
+         * @description watches information on multiple trades made in a market
+         * @see https://coincheck.com/documents/exchange/api#websocket-trades
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'trade:' + symbol;
+        const url = this.urls['api']['ws'];
+        const request = {
+            'type': 'subscribe',
+            'channel': market['id'] + '-trades',
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    handleTrades (client: Client, message) {
+        //
+        //     [
+        //         [
+        //             "1663318663", // transaction timestamp (unix time)
+        //             "2357062", // transaction ID
+        //             "btc_jpy", // pair
+        //             "2820896.0", // transaction rate
+        //             "5.0", // transaction amount
+        //             "sell", // order side
+        //             "1193401", // ID of the Taker
+        //             "2078767" // ID of the Maker
+        //         ]
+        //     ]
+        //
+        let symbol = undefined;
+        if (message.length > 0) {
+            const first = this.safeValue (message, 0, []);
+            symbol = this.symbol (this.safeString (first, 2));
+        }
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
+        for (let i = 0; i < message.length; i++) {
+            const data = this.safeValue (message, i);
+            const trade = this.parseWsTrade (data);
+            stored.append (trade);
+        }
+        const messageHash = 'trade:' + symbol;
+        client.resolve (stored, messageHash);
+    }
+
+    parseWsTrade (trade, market: Market = undefined): Trade {
+        //
+        //     [
+        //         "1663318663", // transaction timestamp (unix time)
+        //         "2357062", // transaction ID
+        //         "btc_jpy", // pair
+        //         "2820896.0", // transaction rate
+        //         "5.0", // transaction amount
+        //         "sell", // order side
+        //         "1193401", // ID of the Taker
+        //         "2078767" // ID of the Maker
+        //     ]
+        //
+        const symbol = this.symbol (this.safeString (trade, 2));
+        const timestamp = this.safeTimestamp (trade, 0);
+        const side = this.safeString (trade, 5);
+        const priceString = this.safeString (trade, 3);
+        const amountString = this.safeString (trade, 4);
+        return this.safeTrade ({
+            'id': this.safeString (trade, 1),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'order': undefined,
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
     handleMessage (client: Client, message) {
         const data = this.safeValue (message, 0);
         if (!Array.isArray (data)) {
             this.handleOrderBook.call (this, client, message);
+        } else {
+            this.handleTrades.call (this, client, message);
         }
     }
 }
