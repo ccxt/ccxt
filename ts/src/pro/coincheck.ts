@@ -58,7 +58,7 @@ export default class coincheck extends coincheckRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = 'orderbook:' + symbol;
+        const messageHash = 'orderbook:' + market['symbol'];
         const url = this.urls['api']['ws'];
         const request = {
             'type': 'subscribe',
@@ -120,14 +120,19 @@ export default class coincheck extends coincheckRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = 'trade:' + symbol;
+        symbol = market['symbol'];
+        const messageHash = 'trade:' + market['symbol'];
         const url = this.urls['api']['ws'];
         const request = {
             'type': 'subscribe',
             'channel': market['id'] + '-trades',
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        const trades = await this.watch (url, messageHash, message, messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrades (client: Client, message) {
@@ -200,9 +205,9 @@ export default class coincheck extends coincheckRest {
     handleMessage (client: Client, message) {
         const data = this.safeValue (message, 0);
         if (!Array.isArray (data)) {
-            this.handleOrderBook.call (this, client, message);
+            this.handleOrderBook (client, message);
         } else {
-            this.handleTrades.call (this, client, message);
+            this.handleTrades (client, message);
         }
     }
 }
