@@ -26,7 +26,7 @@ public partial class Exchange
 
 }
 
-public interface IOrderBookSide
+public interface IOrderBookSide : IList<object>
 {
     void store(object price, object size);
     void storeArray(object delta);
@@ -126,6 +126,18 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
             var delta = (IList<object>)delta2;
             var price = Convert.ToDecimal(delta[0]);
             var amount = Convert.ToDecimal(delta[1]);
+            var type = (this.side) ? "bid" : "ask";
+            // if (amount == 0)
+            // {
+            //     Console.WriteLine($"[{type}]Will deleteeeeee {price} {amount}");
+
+            // }
+            // else
+            // {
+            //     Console.WriteLine($"[{type}] Will store {price} {amount}");
+
+            // }
+            // debug
             var index_price = (this.side) ? -price : price;
             var index = Exchange.bisectLeft(this._index, index_price);
             if (amount != null && amount != 0)
@@ -147,6 +159,36 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 
             }
         }
+        // check if there are duplicated prices in the ob
+        // for (var i = 0; i < this._index.Count - 1; i++)
+        // {
+        //     if (this._index[i] == this._index[i + 1])
+        //     {
+        //         Console.WriteLine($"Duplicated price on index {this._index[i]}");
+        //     }
+        //     if (this[i] == this[i + 1])
+        //     {
+        //         Console.WriteLine($"Duplicated price{this._index[i]}");
+        //     }
+
+        //     if (this.side && this._index[i] < this._index[i + 1]) // bids
+        //     {
+        //         Console.WriteLine($"bids order on index {this._index[i]}");
+        //     }
+        //     if (this.side && Convert.ToDouble(this[i]) < Convert.ToDouble(this[i + 1]))
+        //     {
+        //         Console.WriteLine($"bids order on index {this._index[i]}");
+        //     }
+        //     if (!this.side && this._index[i] > this._index[i + 1])
+        //     {
+        //         Console.WriteLine($"Wrong order on index {this._index[i]}");
+        //     }
+        //     if (!this.side && Convert.ToDouble(this[i]) > Convert.ToDouble(this[i + 1]))
+        //     {
+        //         Console.WriteLine($"Asks Wrong order on index {this._index[i]}");
+        //     }
+
+        // }
     }
 
     public void store(object price, object amount)
@@ -435,11 +477,13 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
 
 public interface IAsks : IOrderBookSide
 {
+    public IAsks GetCopy();
 
 }
 
 public interface IBids : IOrderBookSide
 {
+    public IBids GetCopy();
 
 }
 
@@ -473,7 +517,7 @@ public class Bids : NormalOrderBookSide, IBids
         lock (_syncRoot)
         {
 
-            var copy = new Bids(this.ToList());
+            var copy = new Bids(this);
             return copy;
         }
     }
@@ -486,6 +530,16 @@ public class CountedAsks : CountedOrderBookSide, IAsks
         this.side = false;
         // super.side = false;
     }
+
+    public IAsks GetCopy()
+    {
+        lock (_syncRoot)
+        {
+
+            var copy = new CountedAsks(this);
+            return copy;
+        }
+    }
 }
 
 public class CountedBids : CountedOrderBookSide, IBids
@@ -493,6 +547,16 @@ public class CountedBids : CountedOrderBookSide, IBids
     public CountedBids(object deltas2, object depth = null) : base(deltas2, depth, true)
     {
         this.side = true;
+    }
+
+    public IBids GetCopy()
+    {
+        lock (_syncRoot)
+        {
+
+            var copy = new CountedBids(this);
+            return copy;
+        }
     }
 }
 
@@ -503,6 +567,16 @@ public class IndexedAsks : IndexedOrderBookSide, IAsks
     {
         this.side = false;
     }
+
+    public IAsks GetCopy()
+    {
+        lock (_syncRoot)
+        {
+
+            var copy = new IndexedAsks(this);
+            return copy;
+        }
+    }
 }
 
 public class IndexedBids : IndexedOrderBookSide, IBids
@@ -510,5 +584,15 @@ public class IndexedBids : IndexedOrderBookSide, IBids
     public IndexedBids(object deltas2, object depth = null) : base(deltas2, depth, true)
     {
         this.side = true;
+    }
+
+    public IBids GetCopy()
+    {
+        lock (_syncRoot)
+        {
+
+            var copy = new IndexedBids(this);
+            return copy;
+        }
     }
 }
