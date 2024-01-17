@@ -40,12 +40,14 @@ async function testFetchTrades_ArrayValues (exchange, skippedProperties, symbol,
         testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'side', [ 'buy', 'sell' ]);
         collectedSides[trade['side']] = true;
     }
-    // ensure both of them are returned
+    // ensure both 'buy' & 'sell' are returned
     // (if trades are more than 100, it should be happening in most cases)
     if (trades.length >= 100) {
-        const msg = 'side of trades are not being returned, if this error happens consistently, then it might be an implementation issue';
-        assert (collectedSides['buy'], 'buy ' + msg + testSharedMethods.logTemplate (exchange, method, trades));
-        assert (collectedSides['sell'], 'sell ' + msg + testSharedMethods.logTemplate (exchange, method, trades));
+        if (!('side' in skippedProperties)) {
+            const msg = 'side of trades are not being returned, if this error happens consistently, then it might be an implementation issue';
+            assert (collectedSides['buy'], 'buy ' + msg + testSharedMethods.logTemplate (exchange, method, trades));
+            assert (collectedSides['sell'], 'sell ' + msg + testSharedMethods.logTemplate (exchange, method, trades));
+        }
     }
 }
 
