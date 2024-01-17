@@ -330,7 +330,6 @@ export default class coinmetro extends Exchange {
                 'networks': {},
             });
         }
-        // todo: check
         if (this.safeValue (this.options, 'currenciesByIdForParseMarket') === undefined) {
             const currenciesById = this.indexBy (result, 'id');
             this.options['currenciesByIdForParseMarket'] = currenciesById;
@@ -383,7 +382,6 @@ export default class coinmetro extends Exchange {
         const quoteId = this.safeString (parsedMarketId, 'quoteId');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        // todo: check
         const basePrecisionAndLimits = this.parseMarketPrecisionAndLimits (baseId);
         const quotePrecisionAndLimits = this.parseMarketPrecisionAndLimits (quoteId);
         const margin = this.safeValue (market, 'margin', false);
@@ -622,7 +620,7 @@ export default class coinmetro extends Exchange {
         //     }
         //
         const tickHistory = this.safeValue (response, 'tickHistory', []);
-        return this.parseTrades (tickHistory, market, since, limit);  // todo: check - returns an empty array if since = 0
+        return this.parseTrades (tickHistory, market, since, limit);  // todo: check - returns an empty array if since = 0. Is it correct?
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -701,7 +699,7 @@ export default class coinmetro extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const id = this.safeStringN (trade, [ '_id', 'seqNum', 'seqNumber' ]); // todo: check
+        const id = this.safeStringN (trade, [ '_id', 'seqNum', 'seqNumber' ]);
         const timestamp = this.safeInteger (trade, 'timestamp');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
@@ -1125,7 +1123,7 @@ export default class coinmetro extends Exchange {
                 ledger.push (rawLedgerEntry);
             }
         }
-        return this.parseLedger (ledger, currency, since, limit); // todo: check - returns an empty array if since = 0
+        return this.parseLedger (ledger, currency, since, limit); // todo: check - returns an empty array if since = 0. Is it correct?
     }
 
     parseLedgerEntry (item, currency: Currency = undefined) {
@@ -1155,7 +1153,7 @@ export default class coinmetro extends Exchange {
             'info': item,
             'id': undefined,
             'timestamp': this.parse8601 (datetime),
-            'datetime': datetime, // todo: check
+            'datetime': datetime,
             'direction': direction,
             'account': undefined,
             'referenceId': referenceId,
