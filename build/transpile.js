@@ -635,7 +635,6 @@ class Transpiler {
             [ /Precise\.stringLe\s/g, 'Precise::string_le' ],
             [ /(\w+)\.padEnd\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_RIGHT)' ],
             [ /(\w+)\.padStart\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_LEFT)' ],
-            [ /Future()/g, 'new Future' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -988,9 +987,6 @@ class Transpiler {
         if (bodyAsString.match (/: Client/)) {
             libraries.push ('from ccxt.async_support.base.ws.client import Client')
         }
-        if (bodyAsString.match (/Future()/)) {
-            libraries.push ('from ccxt.async_support.base.ws.future import Future')
-        }
         if (bodyAsString.match (/[\s(]Optional\[/)) {
             libraries.push ('from typing import Optional')
         }
@@ -1133,9 +1129,6 @@ class Transpiler {
             }
             if (bodyAsString.match (/: PromiseInterface/)) {
                 libraryImports.push ('use React\\Promise\\PromiseInterface;')
-            }
-            if (bodyAsString.match (/Future/)) {
-                libraryImports.push ('use ccxt\\pro\\Future;')
             }
         }
 
@@ -2455,6 +2448,7 @@ class Transpiler {
             const usesNumber = pythonAsync.indexOf ('numbers.') >= 0;
             const usesTickSize = pythonAsync.indexOf ('TICK_SIZE') >= 0;
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
+            const usesAsyncio = pythonAsync.indexOf ('asyncio.') >= 0;
 
             let importedExceptionTypes = imports.filter(x => Object.keys(errors).includes(x.name)).map(x => x.name); // returns 'OnMaintenance,ExchangeNotAvailable', etc...
 
@@ -2497,6 +2491,9 @@ class Transpiler {
                 pythonHeaderSync.push ('from ccxt.base.precise import Precise  # noqa E402')
                 phpHeaderAsync.push ('use \\ccxt\\Precise;')
                 phpHeaderSync.push ('use \\ccxt\\Precise;')
+            }
+            if (usesAsyncio) {
+                pythonHeaderAsync.push ('import asyncio')
             }
             if (test.pyHeaders) {
                 pythonHeaderAsync = pythonHeaderAsync.concat (test.pyHeaders);
