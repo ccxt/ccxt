@@ -325,7 +325,7 @@ public partial class Exchange
 
         public OrderBook(object orderbook2)
         {
-            var orderbook = (Dictionary<string, object>)orderbook2;
+            var orderbook = (IDictionary<string, object>)orderbook2;
             bids = orderbook.ContainsKey("bids") ? ((IEnumerable<object>)orderbook["bids"]).Select(x => ((IEnumerable<object>)x).Select(y => Convert.ToDouble(y)).ToList()).ToList() : null;
             asks = orderbook.ContainsKey("asks") ? ((IEnumerable<object>)orderbook["asks"]).Select(x => ((IEnumerable<object>)x).Select(y => Convert.ToDouble(y)).ToList()).ToList() : null;
             symbol = SafeString(orderbook, "symbol");
