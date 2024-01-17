@@ -7,6 +7,7 @@ import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.j
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { Future } from '../base/ws/Future.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -74,7 +75,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
-        urls[connectId] = this.spawn (this.negotiateHelper, privateChannel, params);
+        urls[connectId] = Future ();
+        this.spawn (this.negotiateHelper, privateChannel, params);
         this.options['urls'] = urls;
         return urls[connectId];
     }
@@ -82,42 +84,50 @@ export default class poloniexfutures extends poloniexfuturesRest {
     async negotiateHelper (privateChannel, params = {}) {
         let response = undefined;
         const connectId = privateChannel ? 'private' : 'public';
-        if (privateChannel) {
-            response = await this.privatePostBulletPrivate (params);
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "instanceServers": [
-            //                 {
-            //                     "pingInterval":  50000,
-            //                     "endpoint": "wss://push-private.kucoin.com/endpoint",
-            //                     "protocol": "websocket",
-            //                     "encrypt": true,
-            //                     "pingTimeout": 10000
-            //                 }
-            //             ],
-            //             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
-            //         }
-            //     }
-            //
-        } else {
-            response = await this.publicPostBulletPublic (params);
+        try {
+            if (privateChannel) {
+                response = await this.privatePostBulletPrivate (params);
+                //
+                //     {
+                //         "code": "200000",
+                //         "data": {
+                //             "instanceServers": [
+                //                 {
+                //                     "pingInterval":  50000,
+                //                     "endpoint": "wss://push-private.kucoin.com/endpoint",
+                //                     "protocol": "websocket",
+                //                     "encrypt": true,
+                //                     "pingTimeout": 10000
+                //                 }
+                //             ],
+                //             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                //         }
+                //     }
+                //
+            } else {
+                response = await this.publicPostBulletPublic (params);
+            }
+            const data = this.safeValue (response, 'data', {});
+            const instanceServers = this.safeValue (data, 'instanceServers', []);
+            const firstInstanceServer = this.safeValue (instanceServers, 0);
+            const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
+            const endpoint = this.safeString (firstInstanceServer, 'endpoint');
+            const token = this.safeString (data, 'token');
+            const result = endpoint + '?' + this.urlencode ({
+                'token': token,
+                'privateChannel': privateChannel,
+                'connectId': connectId,
+            });
+            const client = this.client (result);
+            const future = this.safeValue (this.options['urls'], connectId);
+            future.resolve (result);
+            client.keepAlive = pingInterval;
+            return result;
+        } catch (e) {
+            const future = this.safeValue (this.options['urls'], connectId);
+            future.reject (e);
+            delete this.options['urls'][connectId];
         }
-        const data = this.safeValue (response, 'data', {});
-        const instanceServers = this.safeValue (data, 'instanceServers', []);
-        const firstInstanceServer = this.safeValue (instanceServers, 0);
-        const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
-        const endpoint = this.safeString (firstInstanceServer, 'endpoint');
-        const token = this.safeString (data, 'token');
-        const result = endpoint + '?' + this.urlencode ({
-            'token': token,
-            'privateChannel': privateChannel,
-            'connectId': connectId,
-        });
-        const client = this.client (result);
-        client.keepAlive = pingInterval;
-        return result;
     }
 
     requestId () {

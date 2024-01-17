@@ -635,6 +635,7 @@ class Transpiler {
             [ /Precise\.stringLe\s/g, 'Precise::string_le' ],
             [ /(\w+)\.padEnd\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_RIGHT)' ],
             [ /(\w+)\.padStart\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_LEFT)' ],
+            [ /Future()/g, 'new Future' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -987,6 +988,9 @@ class Transpiler {
         if (bodyAsString.match (/: Client/)) {
             libraries.push ('from ccxt.async_support.base.ws.client import Client')
         }
+        if (bodyAsString.match (/Future()/)) {
+            libraries.push ('from ccxt.async_support.base.ws.future import Future')
+        }
         if (bodyAsString.match (/[\s(]Optional\[/)) {
             libraries.push ('from typing import Optional')
         }
@@ -1129,6 +1133,9 @@ class Transpiler {
             }
             if (bodyAsString.match (/: PromiseInterface/)) {
                 libraryImports.push ('use React\\Promise\\PromiseInterface;')
+            }
+            if (bodyAsString.match (/Future/)) {
+                libraryImports.push ('use ccxt\\pro\\Future;')
             }
         }
 
