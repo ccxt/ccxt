@@ -232,7 +232,7 @@ public partial class Exchange
             // }
 
         }
-        return parsedValue == null ? null : parsedValue;
+        return parsedValue == null ? Convert.ToInt64(defaultValue) : parsedValue;
     }
 
     public object safeStringN(object obj, object keys, object defaultValue = null) => SafeStringN(obj, keys, defaultValue);
