@@ -262,6 +262,10 @@ class CCXTProTranspiler extends Transpiler {
 
     
     afterTranspileClass (result, contents) {
+        // if same class import (like binanceWS extending binanceRest)
+        if (result.baseClass === result.className + 'Rest') {
+            return result;
+        }
         const matchOfRestImports = contents.matchAll('\nimport (.*?)Rest from \'..(.*?)\';');
         const matches = [...matchOfRestImports];
         if (matches.length) {
