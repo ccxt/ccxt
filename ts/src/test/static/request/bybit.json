@@ -306,6 +306,19 @@
                     "LTC/USDT"
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"orderFilter\":\"Order\",\"orderId\":\"1513125485218108928\",\"category\":\"spot\"}"
+            },
+            {
+                "description": "Spot cancel a stop order",
+                "method": "cancelOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/cancel",
+                "input": [
+                  "1599966662050972416",
+                  "BTC/USDT",
+                  {
+                    "stop": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"orderFilter\":\"StopOrder\",\"orderId\":\"1599966662050972416\",\"category\":\"spot\"}"
             }
         ],
         "cancelAllOrders": [
