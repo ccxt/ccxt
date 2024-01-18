@@ -2,8 +2,8 @@
 //  ---------------------------------------------------------------------------
 
 import zondaRest from '../zonda.js';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, Strings } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import type { Tickers, Int, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -52,6 +52,7 @@ export default class zonda extends zondaRest {
 
     async authenticate () {
         /**
+         * TODO
          * @ignore
          * @method
          * @description authenticates the user to access private web socket channels
@@ -98,7 +99,7 @@ export default class zonda extends zondaRest {
         return future;
     }
 
-    async subscribePublic (name: string, params = {}) {
+    async subscribePublic (name: string, snapshot: boolean, params = {}) {
         /**
          * @ignore
          * @method
@@ -108,18 +109,38 @@ export default class zonda extends zondaRest {
          */
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
-        const messageHash = name;
+        const messageHashes = [
+            name + '::snapshot',
+            name,
+        ];
+        const subscribeSnapshot = {
+            'action': 'proxy',
+            'module': 'trading',
+            'path': name,
+            'requestId': this.milliseconds (),
+        };
         const subscribe = {
             'action': 'subscribe-public',
             'module': 'trading',
             'path': name,
         };
-        const request = this.extend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        const messages = [
+            this.extend (subscribeSnapshot, params),
+            this.extend (subscribe, params),
+        ];
+        // const client = this.client (url);
+        // for (let i = 0; i < subscriptionHashes.length; i++) {
+        //     const subscriptionHash = subscriptionHashes[i];
+        //     if (!(subscriptionHash in client.subscriptions)) {
+        //         client.subscriptions[requestId] = subscriptionHash;
+        //     }
+        // }
+        return await this.watchMultiple (url, messageHashes, messages, messageHashes);
     }
 
     async subscribePrivate (name: string, symbol: Str = undefined, params = {}) {
         /**
+         * TODO
          * @ignore
          * @method
          * @param {string} name websocket endpoint name
@@ -138,26 +159,6 @@ export default class zonda extends zondaRest {
             'method': name,
             'params': params,
             'id': this.nonce (),
-        };
-        return await this.watch (url, messageHash, subscribe, messageHash);
-    }
-
-    async tradeRequest (name: string, params = {}) {
-        /**
-         * @ignore
-         * @method
-         * @param {string} name websocket endpoint name
-         * @param {string} [symbol] unified CCXT symbol
-         * @param {object} [params] extra parameters specific to the zonda api
-         */
-        await this.loadMarkets ();
-        await this.authenticate ();
-        const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce ();
-        const subscribe = {
-            'method': name,
-            'params': params,
-            'id': messageHash,
         };
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
@@ -181,7 +182,7 @@ export default class zonda extends zondaRest {
         if (limit !== undefined) {
             name = 'orderbook-limited/' + market['id'] + '/' + limit;
         }
-        const orderbook = await this.subscribePublic (name, params);
+        const orderbook = await this.subscribePublic (name, true, params);
         return orderbook.limit ();
     }
 
@@ -245,12 +246,14 @@ export default class zonda extends zondaRest {
     }
 
     handleDelta (bookside, delta) {
+        // TODO
         const price = this.safeNumber (delta, 0);
         const amount = this.safeNumber (delta, 1);
         bookside.store (price, amount);
     }
 
     handleDeltas (bookside, deltas) {
+        // TODO
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -274,7 +277,7 @@ export default class zonda extends zondaRest {
         params = this.omit (params, [ 'method', 'defaultMethod' ]);
         const market = this.market (symbol);
         const name = method + '/' + market['id'];
-        return await this.subscribePublic (name, params);
+        return await this.subscribePublic (name, true, params);
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -290,12 +293,13 @@ export default class zonda extends zondaRest {
         const options = this.safeValue (this.options, 'watchTicker');
         const defaultMethod = this.safeString (options, 'method', 'ticker');
         const name = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
-        const tickers = await this.subscribePublic (name, params);
+        const tickers = await this.subscribePublic (name, true, params);
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
         //
+        // TODO
         // ticker
         //
         //    {
@@ -338,7 +342,6 @@ export default class zonda extends zondaRest {
         //        "seqNo": 430772
         //    }
         //
-        console.log ('test');
         const data = this.safeValue (message, 'data', {});
         const marketIds = Object.keys (data);
         const channel = this.safeString (message, 'ch');
@@ -372,6 +375,7 @@ export default class zonda extends zondaRest {
 
     parseWsTicker (ticker, market = undefined) {
         //
+        // TODO
         //    {
         //        "t": 1614815872000,             // Timestamp in milliseconds
         //        "a": "0.031175",                // Best ask
@@ -441,7 +445,7 @@ export default class zonda extends zondaRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'transactions/' + market['id'].toLowerCase ();
-        const trades = await this.subscribePublic (name, params);
+        const trades = await this.subscribePublic (name, true, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -450,6 +454,7 @@ export default class zonda extends zondaRest {
 
     handleTrades (client: Client, message) {
         //
+        // TODO
         //    {
         //        action: 'push',
         //        topic: 'trading/transactions/btc-usdt',
@@ -493,6 +498,7 @@ export default class zonda extends zondaRest {
     }
 
     parseWsTrades (trades, market: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        // TODO
         trades = this.toArray (trades);
         let result = [];
         for (let i = 0; i < trades.length; i++) {
@@ -506,6 +512,7 @@ export default class zonda extends zondaRest {
 
     parseWsTrade (trade, market = undefined) {
         //
+        // TODO
         //    {
         //        "t": 1626861123552,       // Timestamp in milliseconds
         //        "i": 1555634969,          // Trade identifier
@@ -532,122 +539,9 @@ export default class zonda extends zondaRest {
         }, market);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name zonda#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://api.zonda.com/#subscribe-to-candles
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} [timeframe] the length of time each candle represents
-         * @param {int} [since] not used by zonda watchOHLCV
-         * @param {int} [limit] 0 – 1000, default value = 0 (no history returned)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        const period = this.safeString (this.timeframes, timeframe, timeframe);
-        const name = 'candles/' + period;
-        const market = this.market (symbol);
-        const request = {
-            'params': {
-                'symbols': [ market['id'] ],
-            },
-        };
-        if (limit !== undefined) {
-            request['params']['limit'] = limit;
-        }
-        const ohlcv = await this.subscribePublic (name, this.deepExtend (request, params));
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0);
-    }
-
-    handleOHLCV (client: Client, message) {
-        //
-        //    {
-        //        "ch": "candles/M1",                     // Channel
-        //        "snapshot": {
-        //            "BTCUSDT": [{
-        //                "t": 1626860340000,             // Message timestamp
-        //                "o": "30881.95",                // Open price
-        //                "c": "30890.96",                // Last price
-        //                "h": "30900.8",                 // High price
-        //                "l": "30861.27",                // Low price
-        //                "v": "1.27852",                 // Base asset volume
-        //                "q": "39493.9021811"            // Quote asset volume
-        //            }
-        //            ...
-        //            ]
-        //        }
-        //    }
-        //
-        //    {
-        //        "ch": "candles/M1",
-        //        "update": {
-        //            "ETHBTC": [{
-        //                "t": 1626860880000,
-        //                "o": "0.060711",
-        //                "c": "0.060749",
-        //                "h": "0.060749",
-        //                "l": "0.060711",
-        //                "v": "12.2800",
-        //                "q": "0.7455339675"
-        //          }]
-        //        }
-        //    }
-        //
-        const data = this.safeValue2 (message, 'snapshot', 'update', {});
-        const marketIds = Object.keys (data);
-        const channel = this.safeString (message, 'ch');
-        const splitChannel = channel.split ('/');
-        const period = this.safeString (splitChannel, 1);
-        const timeframe = this.findTimeframe (period);
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-            if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
-            }
-            const ohlcvs = this.parseWsOHLCVs (data[marketId], market);
-            for (let j = 0; j < ohlcvs.length; j++) {
-                stored.append (ohlcvs[j]);
-            }
-            const messageHash = channel + '::' + symbol;
-            client.resolve (stored, messageHash);
-        }
-        return message;
-    }
-
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
-        //
-        //    {
-        //        "t": 1626860340000,             // Message timestamp
-        //        "o": "30881.95",                // Open price
-        //        "c": "30890.96",                // Last price
-        //        "h": "30900.8",                 // High price
-        //        "l": "30861.27",                // Low price
-        //        "v": "1.27852",                 // Base asset volume
-        //        "q": "39493.9021811"            // Quote asset volume
-        //    }
-        //
-        return [
-            this.safeInteger (ohlcv, 't'),
-            this.safeNumber (ohlcv, 'o'),
-            this.safeNumber (ohlcv, 'h'),
-            this.safeNumber (ohlcv, 'l'),
-            this.safeNumber (ohlcv, 'c'),
-            this.safeNumber (ohlcv, 'v'),
-        ];
-    }
-
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
+         * TODO
          * @method
          * @name zonda#watchOrders
          * @description watches information on multiple orders made by the user
@@ -682,6 +576,7 @@ export default class zonda extends zondaRest {
 
     handleOrder (client: Client, message) {
         //
+        // TODO
         //    {
         //        "jsonrpc": "2.0",
         //        "method": "spot_order",                            // "margin_order", "future_order"
@@ -759,6 +654,7 @@ export default class zonda extends zondaRest {
     }
 
     handleOrderHelper (client: Client, message, order) {
+        // TODO
         const orders = this.orders;
         const marketId = this.safeStringLower2 (order, 'instrument', 'symbol');
         const method = this.safeString (message, 'method');
@@ -773,6 +669,7 @@ export default class zonda extends zondaRest {
 
     parseWsOrderTrade (trade, market = undefined) {
         //
+        // TODO
         //    {
         //        "id": 584244931496,
         //        "client_order_id": "b5acd79c0a854b01b558665bcf379456",
@@ -823,6 +720,7 @@ export default class zonda extends zondaRest {
 
     parseWsOrder (order, market = undefined) {
         //
+        // TODO
         //    {
         //        "id": 584244931496,
         //        "client_order_id": "b5acd79c0a854b01b558665bcf379456",
@@ -892,6 +790,7 @@ export default class zonda extends zondaRest {
 
     async watchBalance (params = {}): Promise<Balances> {
         /**
+         * TODO
          * @method
          * @name zonda#watchBalance
          * @description watches balance updates, cannot subscribe to margin account balances
@@ -922,6 +821,7 @@ export default class zonda extends zondaRest {
 
     handleBalance (client: Client, message) {
         //
+        // TODO
         //    {
         //        "jsonrpc": "2.0",
         //        "method": "futures_balance",
@@ -945,6 +845,7 @@ export default class zonda extends zondaRest {
 
     handleNotification (client: Client, message) {
         //
+        // TODO
         //     { jsonrpc: "2.0", result: true, id: null }
         //
         return message;
@@ -952,6 +853,7 @@ export default class zonda extends zondaRest {
 
     handleOrderRequest (client: Client, message) {
         //
+        // TODO
         // createOrderWs, cancelOrderWs
         //
         //    {
@@ -1015,6 +917,7 @@ export default class zonda extends zondaRest {
 
     handleAuthenticate (client: Client, message) {
         //
+        // TODO
         //    {
         //        "jsonrpc": "2.0",
         //        "result": true
@@ -1037,6 +940,7 @@ export default class zonda extends zondaRest {
 
     handleError (client: Client, message) {
         //
+        // TODO
         //    {
         //        jsonrpc: '2.0',
         //        error: {
