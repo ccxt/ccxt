@@ -32,6 +32,7 @@ export default class bingx extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     }>;
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<any[]>;
     parseFundingRate(contract: any, market?: Market): {
         info: any;
         symbol: string;
@@ -143,5 +144,6 @@ export default class bingx extends Exchange {
         headers: any;
     };
     nonce(): number;
+    setSandboxMode(enable: any): void;
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

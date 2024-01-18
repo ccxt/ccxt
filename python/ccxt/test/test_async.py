@@ -521,6 +521,7 @@ class testMainClass(baseMainTestClass):
             tests = {
                 'watchOHLCV': [symbol],
                 'watchTicker': [symbol],
+                'watchTickers': [symbol],
                 'watchOrderBook': [symbol],
                 'watchTrades': [symbol],
             }
@@ -1077,6 +1078,9 @@ class testMainClass(baseMainTestClass):
                 description = exchange.safe_value(result, 'description')
                 is_disabled = exchange.safe_value(result, 'disabled', False)
                 if is_disabled:
+                    continue
+                is_disabled_php = exchange.safe_value(result, 'disabledPHP', False)
+                if is_disabled_php and (self.ext == 'php'):
                     continue
                 if (test_name is not None) and (test_name != description):
                     continue

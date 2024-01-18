@@ -940,7 +940,7 @@ class poloniex extends poloniex$1 {
         //    }
         //
         const data = this.safeValue(message, 'data', []);
-        const newTickers = [];
+        const newTickers = {};
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
             const marketId = this.safeString(item, 'symbol');
@@ -948,7 +948,7 @@ class poloniex extends poloniex$1 {
                 const ticker = this.parseTicker(item);
                 const symbol = ticker['symbol'];
                 this.tickers[symbol] = ticker;
-                newTickers.push(ticker);
+                newTickers[symbol] = ticker;
             }
         }
         const messageHashes = this.findMessageHashes(client, 'ticker::');

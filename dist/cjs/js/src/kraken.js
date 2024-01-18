@@ -103,7 +103,7 @@ class kraken extends kraken$1 {
                     'zendesk': 'https://kraken.zendesk.com/api/v2/help_center/en-us/articles', // use the public zendesk api to receive article bodies and bypass new anti-spam protections
                 },
                 'www': 'https://www.kraken.com',
-                'doc': 'https://www.kraken.com/features/api',
+                'doc': 'https://docs.kraken.com/rest/',
                 'fees': 'https://www.kraken.com/en-us/features/fee-schedule',
             },
             'fees': {
@@ -1438,6 +1438,16 @@ class kraken extends kraken$1 {
         };
         return this.safeString(statuses, status, status);
     }
+    parseOrderType(status) {
+        const statuses = {
+            'take-profit': 'market',
+            'stop-loss-limit': 'limit',
+            'stop-loss': 'market',
+            'take-profit-limit': 'limit',
+            'trailing-stop-limit': 'limit',
+        };
+        return this.safeString(statuses, status, status);
+    }
     parseOrder(order, market = undefined) {
         //
         // createOrder for regular orders
@@ -1580,7 +1590,17 @@ class kraken extends kraken$1 {
                 trades.push(rawTrade);
             }
         }
-        stopPrice = this.safeNumber(order, 'stopprice', stopPrice);
+        stopPrice = this.omitZero(this.safeString(order, 'stopprice', stopPrice));
+        let stopLossPrice = undefined;
+        let takeProfitPrice = undefined;
+        if (type.startsWith('take-profit')) {
+            takeProfitPrice = this.safeString(description, 'price');
+            price = this.omitZero(this.safeString(description, 'price2'));
+        }
+        else if (type.startsWith('stop-loss')) {
+            stopLossPrice = this.safeString(description, 'price');
+            price = this.omitZero(this.safeString(description, 'price2'));
+        }
         return this.safeOrder({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1590,13 +1610,15 @@ class kraken extends kraken$1 {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': type,
+            'type': this.parseOrderType(type),
             'timeInForce': undefined,
             'postOnly': isPostOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'cost': undefined,
             'amount': amount,
             'filled': filled,

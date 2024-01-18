@@ -511,6 +511,7 @@ export default class testMainClass extends baseMainTestClass {
                 // @ts-ignore
                 'watchOHLCV': [ symbol ],
                 'watchTicker': [ symbol ],
+                'watchTickers': [ symbol ],
                 'watchOrderBook': [ symbol ],
                 'watchTrades': [ symbol ],
             };
@@ -1260,6 +1261,10 @@ export default class testMainClass extends baseMainTestClass {
                 const description = exchange.safeValue (result, 'description');
                 const isDisabled = exchange.safeValue (result, 'disabled', false);
                 if (isDisabled) {
+                    continue;
+                }
+                const isDisabledPHP = exchange.safeValue (result, 'disabledPHP', false);
+                if (isDisabledPHP && (this.ext === 'php')) {
                     continue;
                 }
                 if ((testName !== undefined) && (testName !== description)) {

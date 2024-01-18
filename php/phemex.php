@@ -2922,12 +2922,14 @@ class phemex extends Exchange {
          * fetch all unfilled currently open orders
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotListAllOpenOrder
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
+        $this->load_markets();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
@@ -2964,20 +2966,26 @@ class phemex extends Exchange {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#queryorder
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedgedd-Perpetual-API.md#query-closed-orders-by-$symbol
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataOrdersByIds
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->settle] the settlement currency to fetch orders for
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
-        }
         $this->load_markets();
-        $market = $this->market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $request = array(
-            'symbol' => $market['id'],
         );
+        if ($market !== null) {
+            $request['symbol'] = $market['id'];
+        }
         if ($since !== null) {
             $request['start'] = $since;
         }
@@ -2985,8 +2993,8 @@ class phemex extends Exchange {
             $request['limit'] = $limit;
         }
         $response = null;
-        if ($market['settle'] === 'USDT') {
-            $request['currency'] = $market['settle'];
+        if (($symbol === null) || ($this->safe_string($market, 'settle') === 'USDT')) {
+            $request['currency'] = $this->safe_string($params, 'settle', 'USDT');
             $response = $this->privateGetExchangeOrderV2OrderList (array_merge($request, $params));
         } elseif ($market['swap']) {
             $response = $this->privateGetExchangeOrderList (array_merge($request, $params));
@@ -3043,23 +3051,25 @@ class phemex extends Exchange {
          * fetch all trades made by the user
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-user-trade
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-trade
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataTradesHist
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
         $this->load_markets();
-        $market = $this->market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $request = array();
         if ($limit !== null) {
             $limit = min (200, $limit);
             $request['limit'] = $limit;
         }
-        if ($market['settle'] === 'USDT') {
+        $isUSDTSettled = ($symbol === null) || ($this->safe_string($market, 'settle') === 'USDT');
+        if ($isUSDTSettled) {
             $request['currency'] = 'USDT';
             $request['offset'] = 0;
             if ($limit === null) {
@@ -3071,17 +3081,11 @@ class phemex extends Exchange {
         if ($since !== null) {
             $request['start'] = $since;
         }
-        if ($market['swap'] && ($limit !== null)) {
-            $request['limit'] = $limit;
-        }
-        $isUSDTSettled = $market['settle'] === 'USDT';
         $response = null;
-        if ($market['swap']) {
-            if ($isUSDTSettled) {
-                $response = $this->privateGetExchangeOrderV2TradingList (array_merge($request, $params));
-            } else {
-                $response = $this->privateGetExchangeOrderTrade (array_merge($request, $params));
-            }
+        if ($isUSDTSettled) {
+            $response = $this->privateGetExchangeOrderV2TradingList (array_merge($request, $params));
+        } elseif ($market['swap']) {
+            $response = $this->privateGetExchangeOrderTrade (array_merge($request, $params));
         } else {
             $response = $this->privateGetExchangeSpotOrderTrades (array_merge($request, $params));
         }

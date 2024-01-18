@@ -621,6 +621,7 @@ class testMainClass extends baseMainTestClass {
             $tests = array(
                 'watchOHLCV' => [$symbol],
                 'watchTicker' => [$symbol],
+                'watchTickers' => [$symbol],
                 'watchOrderBook' => [$symbol],
                 'watchTrades' => [$symbol],
             );
@@ -1296,6 +1297,10 @@ class testMainClass extends baseMainTestClass {
                 $description = $exchange->safe_value($result, 'description');
                 $is_disabled = $exchange->safe_value($result, 'disabled', false);
                 if ($is_disabled) {
+                    continue;
+                }
+                $is_disabled_php = $exchange->safe_value($result, 'disabledPHP', false);
+                if ($is_disabled_php && ($this->ext === 'php')) {
                     continue;
                 }
                 if (($test_name !== null) && ($test_name !== $description)) {
