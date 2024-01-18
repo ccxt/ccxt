@@ -41,7 +41,7 @@ class bingx(Exchange, ImplicitAPI):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': True,
+                'margin': False,
                 'swap': True,
                 'future': False,
                 'option': False,

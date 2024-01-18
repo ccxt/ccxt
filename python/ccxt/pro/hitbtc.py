@@ -297,7 +297,8 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'symbols': [market['id']],
             },
         }
-        return await self.subscribe_public(name, [symbol], self.deep_extend(request, params))
+        result = await self.subscribe_public(name, [symbol], self.deep_extend(request, params))
+        return self.safe_value(result, symbol)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -374,16 +375,16 @@ class hitbtc(ccxt.async_support.hitbtc):
         data = self.safe_value(message, 'data', {})
         marketIds = list(data.keys())
         channel = self.safe_string(message, 'ch')
-        newTickers = []
+        newTickers = {}
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
             symbol = market['symbol']
             ticker = self.parse_ws_ticker(data[marketId], market)
             self.tickers[symbol] = ticker
-            newTickers.append(ticker)
+            newTickers[symbol] = ticker
             messageHash = channel + '::' + symbol
-            client.resolve(self.tickers[symbol], messageHash)
+            client.resolve(newTickers, messageHash)
         messageHashes = self.find_message_hashes(client, channel + '::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]

@@ -964,10 +964,10 @@ class coinsph(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': self.safe_currency_code(feeCurrencyId),
             }
-        isBuyer = self.safe_string_2(trade, 'isBuyer', 'isBuyerMaker', None)
+        isBuyer = self.safe_value_2(trade, 'isBuyer', 'isBuyerMaker', None)
         side = None
         if isBuyer is not None:
-            side = 'buy' if (isBuyer == 'true') else 'sell'
+            side = 'buy' if (isBuyer is True) else 'sell'
         isMaker = self.safe_string_2(trade, 'isMaker', None)
         takerOrMaker = None
         if isMaker is not None:

@@ -9,6 +9,7 @@ class ImplicitAPI:
     sapi_get_margin_allassets = sapiGetMarginAllAssets = Entry('margin/allAssets', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_margin_allpairs = sapiGetMarginAllPairs = Entry('margin/allPairs', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_margin_priceindex = sapiGetMarginPriceIndex = Entry('margin/priceIndex', 'sapi', 'GET', {'cost': 1})
+    sapi_get_spot_delist_schedule = sapiGetSpotDelistSchedule = Entry('spot/delist-schedule', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_asset_assetdividend = sapiGetAssetAssetDividend = Entry('asset/assetDividend', 'sapi', 'GET', {'cost': 1})
     sapi_get_asset_dribblet = sapiGetAssetDribblet = Entry('asset/dribblet', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_asset_transfer = sapiGetAssetTransfer = Entry('asset/transfer', 'sapi', 'GET', {'cost': 0.1})

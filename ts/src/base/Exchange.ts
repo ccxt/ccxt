@@ -1275,10 +1275,13 @@ export default class Exchange {
         }
     }
 
-    spawn (method, ... args): ReturnType<typeof Future> {
-        const future = Future ()
-        method.apply (this, args).then (future.resolve).catch (future.reject)
-        return future
+    spawn(method, ...args) {
+        const future = Future();
+        // using setTimeout 0 to force the execution to run after the future is returned
+        setTimeout(() => {
+            method.apply(this, args).then(future.resolve).catch(future.reject);
+        }, 0);
+        return future;
     }
 
     delay (timeout, method, ... args) {
