@@ -3,9 +3,9 @@
 
 import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, OrderBook, Trade, Ticker, Balances } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, Balances, Str, Order } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -19,15 +19,15 @@ export default class bitopro extends bitoproRest {
                 'watchMyTrades': false,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
             },
             'urls': {
                 'ws': {
-                    'public': 'wss://stream.bitopro.com:9443/ws/v1/pub',
-                    'private': 'wss://stream.bitopro.com:9443/ws/v1/pub/auth',
+                    'public': 'wss://stream.bitopro.com:443/ws/v1/pub',
+                    'private': 'wss://stream.bitopro.com:443/ws/v1/pub/auth',
                 },
             },
             'requiredCredentials': {
@@ -262,6 +262,166 @@ export default class bitopro extends bitoproRest {
         this.options['ws']['options']['headers'] = originalHeaders;
     }
 
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name bitopro#watchOrders
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/history_orders_stream.md
+         * @description watches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] maximum number of orderic to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const openOrders = await this.watchOpenOrders (symbol, since, limit, params);
+        const closedOrders = await this.watchClosedOrders (symbol, since, limit, params);
+        const result = this.arrayConcat (this.toArray (openOrders), this.toArray (closedOrders));
+        return this.filterBySinceLimit (result, since, limit, 'timestamp', true);
+    }
+
+    async watchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name bitopro#watchClosedOrders
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/history_orders_stream.md
+         * @description watches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] maximum number of orderic to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        let messageHash = 'ORDERS';
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            messageHash = messageHash + ':' + symbol;
+        }
+        const url = this.urls['ws']['private'] + '/' + 'orders/histories';
+        this.authenticate (url);
+        const trades = await this.watch (url, messageHash, undefined, messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async watchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name bitopro#watchOpenOrders
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/history_orders_stream.md
+         * @description watches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] maximum number of orderic to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        let messageHash = 'ORDERS';
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            messageHash = messageHash + ':' + symbol;
+        }
+        const url = this.urls['ws']['private'] + '/' + 'orders';
+        this.authenticate (url);
+        const trades = await this.watch (url, messageHash, undefined, messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleOrders (client: Client, message, subscription = undefined) {
+        //
+        //     {
+        //         "event": "RECENT_HISTORY_ORDERS",
+        //         "timestamp": 1639552073346,
+        //         "datetime": "2021-12-15T07:07:53.346Z",
+        //         "data": {
+        //             "sol_usdt": [
+        //                 {
+        //                     "id": "8917255503",
+        //                     "pair": "sol_usdt",
+        //                     "price": "107",
+        //                     "avgExecutionPrice": "0",
+        //                     "action": "SELL",
+        //                     "type": "LIMIT",
+        //                     "timestamp": 1639386803663,
+        //                     "updatedTimestamp": 1639386803663,
+        //                     "createdTimestamp": 1639386803663,
+        //                     "status": 0,
+        //                     "originalAmount": "0.02",
+        //                     "remainingAmount": "0.02",
+        //                     "executedAmount": "0",
+        //                     "fee": "0",
+        //                     "feeSymbol": "usdt",
+        //                     "bitoFee": "0",
+        //                     "total": "0",
+        //                     "seq": "SOLUSDT3273528249",
+        //                     "timeInForce": "GTC"
+        //                 }
+        //             ],
+        //             "usdc_twd": [
+        //                 {
+        //                     "id": "3452766477",
+        //                     "pair": "usdc_twd",
+        //                     "price": "10",
+        //                     "avgExecutionPrice": "0",
+        //                     "action": "BUY",
+        //                     "type": "LIMIT",
+        //                     "timestamp": 1638258713957,
+        //                     "updatedTimestamp": 1639386803663,
+        //                     "createdTimestamp": 1639386803663,
+        //                     "status": 0,
+        //                     "originalAmount": "0.01",
+        //                     "remainingAmount": "0.01",
+        //                     "executedAmount": "0",
+        //                     "fee": "0",
+        //                     "feeSymbol": "usdc",
+        //                     "bitoFee": "0",
+        //                     "total": "0",
+        //                     "seq": "USDCTWD2310459465"
+        //                     "timeInForce": "GTC"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const allOrders = this.safeValue (message, 'data', {});
+        const symbols = Object.keys (allOrders);
+        const ordersLength = symbols.length;
+        if (ordersLength > 0) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            if (this.orders === undefined) {
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const stored = this.orders;
+            const marketIds = {};
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                const orders = allOrders[market['id']];
+                const parsed = this.parseOrders (orders);
+                for (let j = 0; j < parsed.length; j++) {
+                    const order = parsed[j];
+                    stored.append (order);
+                    marketIds[market['symbol']] = true;
+                }
+            }
+            const messageHash = 'ORDERS';
+            client.resolve (this.orders, messageHash);
+            const keys = Object.keys (marketIds);
+            for (let j = 0; j < keys.length; j++) {
+                client.resolve (this.orders, messageHash + ':' + keys[j]);
+            }
+        }
+    }
+
     async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
@@ -325,6 +485,8 @@ export default class bitopro extends bitoproRest {
             'TICKER': this.handleTicker,
             'ORDER_BOOK': this.handleOrderBook,
             'ACCOUNT_BALANCE': this.handleBalance,
+            'ACTIVE_ORDERS': this.handleOrders,
+            'RECENT_HISTORY_ORDERS': this.handleOrders,
         };
         const event = this.safeString (message, 'event');
         const method = this.safeValue (methods, event);
