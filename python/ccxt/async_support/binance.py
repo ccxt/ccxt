@@ -244,7 +244,7 @@ class binance(Exchange, ImplicitAPI):
                         'margin/allPairs': 0.1,
                         'margin/priceIndex': 1,
                         # these endpoints require self.apiKey + self.secret
-                        'spot/delist-schedule': 0.1,
+                        'spot/delist-schedule': 10,
                         'asset/assetDividend': 1,
                         'asset/dribblet': 0.1,
                         'asset/transfer': 0.1,
@@ -5186,6 +5186,7 @@ class binance(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch my dust trades for
         :param int [limit]: the maximum number of dust trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'spot' or 'margin', default spot
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         #
@@ -5199,6 +5200,10 @@ class binance(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
             request['endTime'] = self.sum(since, 7776000000)
+        accountType = self.safe_string_upper(params, 'type')
+        params = self.omit(params, 'type')
+        if accountType is not None:
+            request['accountType'] = accountType
         response = await self.sapiGetAssetDribblet(self.extend(request, params))
         #     {
         #       "total": "4",

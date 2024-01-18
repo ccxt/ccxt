@@ -441,7 +441,7 @@ class Exchange {
                 'fetchPositionsForSymbol': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
-                'fetchStatus': 'emulated',
+                'fetchStatus': undefined,
                 'fetchTicker': true,
                 'fetchTickers': undefined,
                 'fetchTime': undefined,

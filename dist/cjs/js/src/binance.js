@@ -222,7 +222,7 @@ class binance extends binance$1 {
                         'margin/allPairs': 0.1,
                         'margin/priceIndex': 1,
                         // these endpoints require this.apiKey + this.secret
-                        'spot/delist-schedule': 0.1,
+                        'spot/delist-schedule': 10,
                         'asset/assetDividend': 1,
                         'asset/dribblet': 0.1,
                         'asset/transfer': 0.1,
@@ -5580,6 +5580,7 @@ class binance extends binance$1 {
          * @param {int} [since] the earliest time in ms to fetch my dust trades for
          * @param {int} [limit] the maximum number of dust trades to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'margin', default spot
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         //
@@ -5593,6 +5594,11 @@ class binance extends binance$1 {
         if (since !== undefined) {
             request['startTime'] = since;
             request['endTime'] = this.sum(since, 7776000000);
+        }
+        const accountType = this.safeStringUpper(params, 'type');
+        params = this.omit(params, 'type');
+        if (accountType !== undefined) {
+            request['accountType'] = accountType;
         }
         const response = await this.sapiGetAssetDribblet(this.extend(request, params));
         //     {

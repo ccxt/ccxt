@@ -1683,6 +1683,10 @@ class deribit extends deribit$1 {
         const request = {
             'order_id': id,
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
         const response = await this.privateGetGetOrderState(this.extend(request, params));
         //
         //     {
@@ -1713,7 +1717,7 @@ class deribit extends deribit$1 {
         //     }
         //
         const result = this.safeValue(response, 'result');
-        return this.parseOrder(result);
+        return this.parseOrder(result, market);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**

@@ -4501,12 +4501,7 @@ export default class bybit extends Exchange {
         const isStop = this.safeValueN(params, ['trigger', 'stop'], false);
         params = this.omit(params, ['trigger', 'stop']);
         if (isStop) {
-            if (type === 'spot') {
-                request['orderFilter'] = 'tpslOrder';
-            }
-            else {
-                request['orderFilter'] = 'StopOrder';
-            }
+            request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -4665,7 +4660,7 @@ export default class bybit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] true if stop order
+         * @param {boolean} [params.stop] set to true for fetching open stop orders
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
@@ -4702,12 +4697,7 @@ export default class bybit extends Exchange {
         const isStop = this.safeValue2(params, 'stop', 'trigger', false);
         params = this.omit(params, ['stop', 'trigger']);
         if (isStop) {
-            if (type === 'spot') {
-                request['orderFilter'] = 'tpslOrder';
-            }
-            else {
-                request['orderFilter'] = 'StopOrder';
-            }
+            request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -4844,7 +4834,6 @@ export default class bybit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] true if stop order
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -4858,7 +4847,7 @@ export default class bybit extends Exchange {
         }
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        const request = {};
+        let request = {};
         let market = undefined;
         let isUsdcSettled = false;
         if (symbol !== undefined) {
@@ -4872,28 +4861,13 @@ export default class bybit extends Exchange {
             return await this.fetchMyUsdcTrades(symbol, since, limit, params);
         }
         request['category'] = type;
-        const isStop = this.safeValue2(params, 'stop', 'trigger', false);
-        params = this.omit(params, ['stop', 'type', 'trigger']);
-        if (isStop) {
-            if (type === 'spot') {
-                request['orderFilter'] = 'tpslOrder';
-            }
-            else {
-                request['orderFilter'] = 'StopOrder';
-            }
-        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
-        const endTime = this.safeInteger(params, 'endTime', until); // exchange-specific in milliseconds
-        params = this.omit(params, ['endTime', 'till', 'until']);
-        if (endTime !== undefined) {
-            request['endTime'] = endTime;
-        }
+        [request, params] = this.handleUntilOption('endTime', request, params);
         const response = await this.privateGetV5ExecutionList(this.extend(request, params));
         //
         //     {

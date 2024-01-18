@@ -50,6 +50,7 @@ class bingx extends bingx$1 {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingRate': true,
+                'fetchFundingRates': true,
                 'fetchFundingRateHistory': true,
                 'fetchLeverage': true,
                 'fetchLiquidations': false,
@@ -1109,6 +1110,31 @@ class bingx extends bingx$1 {
         //
         const data = this.safeValue(response, 'data', {});
         return this.parseFundingRate(data, market);
+    }
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
+         * @param {string[]} [symbols] list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, 'swap', true);
+        const response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(params));
+        const data = this.safeValue(response, 'data', []);
+        const filteredResponse = [];
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            const marketId = this.safeString(item, 'symbol');
+            const market = this.safeMarket(marketId, undefined, undefined, 'swap');
+            if ((symbols === undefined) || this.inArray(market['symbol'], symbols)) {
+                filteredResponse.push(this.parseFundingRate(item, market));
+            }
+        }
+        return filteredResponse;
     }
     parseFundingRate(contract, market = undefined) {
         //
