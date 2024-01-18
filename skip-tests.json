@@ -1200,6 +1200,9 @@
                 "withdraw":"not provided",
                 "deposit":"not provided"
             },
+            "fetchTrades": {
+                "side":"sometimes only one side trades happen"
+            },
             "fetchTickers": "negative values"
         }
     },
