@@ -149,6 +149,17 @@
                   1,
                   0.15
                 ]
+            },
+            {
+                "description": "Option market buy order",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/buy?instrument_name=BTC-26JAN24-39000-C&amount=1&type=market",
+                "input": [
+                  "BTC/USD:BTC-240126-39000-C",
+                  "market",
+                  "buy",
+                  1
+                ]
             }
         ],
         "cancelAllOrders": [
@@ -572,6 +583,24 @@
                 "description": "fetch the greeks of an options contract",
                 "method": "fetchGreeks",
                 "url": "https://test.deribit.com/api/v2/public/ticker?instrument_name=BTC-26JAN24-39000-C",
+                "input": [
+                  "BTC/USD:BTC-240126-39000-C"
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "Swap fetch position",
+                "method": "fetchPosition",
+                "url": "https://test.deribit.com/api/v2/private/get_position?instrument_name=BTC_USDT-PERPETUAL",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option fetch position",
+                "method": "fetchPosition",
+                "url": "https://test.deribit.com/api/v2/private/get_position?instrument_name=BTC-26JAN24-39000-C",
                 "input": [
                   "BTC/USD:BTC-240126-39000-C"
                 ]
