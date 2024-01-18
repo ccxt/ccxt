@@ -343,7 +343,7 @@ class Exchange(object):
         'fetchPositions': None,
         'fetchPositionsRisk': None,
         'fetchPremiumIndexOHLCV': None,
-        'fetchStatus': 'emulated',
+        'fetchStatus': None,
         'fetchTicker': True,
         'fetchTickers': None,
         'fetchTime': None,
