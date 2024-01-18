@@ -1532,6 +1532,31 @@
                 ],
                 "output": "timestamp=1704884654418&asset=USDT&amount=1&isIsolated=FALSE&type=REPAY&recvWindow=10000&signature=22d5b8db751dc8cc40771a7e6999e863c5630b9108c15dca22c7bebd6b07ca17"
             }
+        ],
+        "fetchMyDustTrades": [
+            {
+                "description": "Fetch My Dust Trades",
+                "method": "fetchMyDustTrades",
+                "url": "https://api.binance.com/sapi/v1/asset/dribblet?timestamp=1704884619619&recvWindow=10000&signature=7decbb81d0e7d0b0d553496893c7a36438ddcba418c9437eaa384a541325843b",
+                "input": [
+                    null,
+                    null,
+                    null
+                ]
+            },
+            {
+                "description": "Fetch My Dust Trades - margin",
+                "method": "fetchMyDustTrades",
+                "url": "https://api.binance.com/sapi/v1/asset/dribblet?timestamp=1704884619619&accountType=MARGIN&recvWindow=10000&signature=7decbb81d0e7d0b0d553496893c7a36438ddcba418c9437eaa384a541325843b",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "margin"
+                    }
+                ]
+            }
         ]
     }
 }
