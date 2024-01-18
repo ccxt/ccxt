@@ -520,6 +520,7 @@ class testMainClass(baseMainTestClass):
             tests = {
                 'watchOHLCV': [symbol],
                 'watchTicker': [symbol],
+                'watchTickers': [symbol],
                 'watchOrderBook': [symbol],
                 'watchTrades': [symbol],
             }

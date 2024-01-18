@@ -222,6 +222,7 @@ class binance extends binance$1 {
                         'margin/allPairs': 0.1,
                         'margin/priceIndex': 1,
                         // these endpoints require this.apiKey + this.secret
+                        'spot/delist-schedule': 0.1,
                         'asset/assetDividend': 1,
                         'asset/dribblet': 0.1,
                         'asset/transfer': 0.1,

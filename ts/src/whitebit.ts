@@ -68,6 +68,7 @@ export default class whitebit extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPositionMode': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,

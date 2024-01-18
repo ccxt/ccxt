@@ -244,6 +244,7 @@ class binance(Exchange, ImplicitAPI):
                         'margin/allPairs': 0.1,
                         'margin/priceIndex': 1,
                         # these endpoints require self.apiKey + self.secret
+                        'spot/delist-schedule': 0.1,
                         'asset/assetDividend': 1,
                         'asset/dribblet': 0.1,
                         'asset/transfer': 0.1,

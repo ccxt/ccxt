@@ -457,7 +457,7 @@ class bitget extends \ccxt\async\bitget {
             $symbols = $this->market_symbols($symbols);
             $channel = 'books';
             $incrementalFeed = true;
-            if (($limit === 5) || ($limit === 15)) {
+            if (($limit === 1) || ($limit === 5) || ($limit === 15)) {
                 $channel .= (string) $limit;
                 $incrementalFeed = false;
             }
