@@ -407,6 +407,19 @@
                         "type": "swap"
                     }
                 ]
+            },
+            {
+                "description": "Spot fetch open trigger orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/realtime?symbol=BTCUSDT&category=spot&orderFilter=StopOrder",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "stop": true
+                  }
+                ]
             }
         ],
         "fetchClosedOrders": [
@@ -442,6 +455,21 @@
                 "input": [
                     "8caeea8c-cf80-4b06-83e8-bb7df45fc122",
                     "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Spot fetch trigger orders",
+                "method": "fetchOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/history?symbol=BTCUSDT&category=spot&orderFilter=StopOrder",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "stop": true
+                  }
                 ]
             }
         ],
