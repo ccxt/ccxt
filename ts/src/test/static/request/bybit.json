@@ -407,6 +407,19 @@
                         "type": "swap"
                     }
                 ]
+            },
+            {
+                "description": "Spot fetch open trigger orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/realtime?symbol=BTCUSDT&category=spot&orderFilter=StopOrder",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "stop": true
+                  }
+                ]
             }
         ],
         "fetchClosedOrders": [
