@@ -233,6 +233,7 @@ export default class binance extends Exchange {
                         'asset/convert-transfer/queryByPage': 0.033335,
                         'asset/wallet/balance': 6, // Weight(IP): 60 => cost = 0.1 * 60 = 6
                         'asset/custody/transfer-history': 6, // Weight(IP): 60 => cost = 0.1 * 60 = 6
+                        'spot/delist-schedule': 10, // Weight(IP): 100 => cost = 0.1 * 100 = 10
                         'margin/borrow-repay': 1,
                         'margin/loan': 1,
                         'margin/repay': 1,
