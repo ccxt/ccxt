@@ -42,8 +42,8 @@ async function testFetchTrades_ArrayValues (exchange, skippedProperties, symbol,
         collectedSides[trade['side']] = true;
     }
     // ensure both 'buy' & 'sell' are returned
-    // (if trades are more than 100, it should be happening in most cases)
-    if (trades.length >= 100) {
+    // (if trades are more than 50, it should be happening in most cases)
+    if (trades.length >= 50) {
         if (!('side' in skippedProperties)) {
             const msg = 'side of trades are not being returned, if this error happens consistently, then it might be an implementation issue';
             for (let i = 0; i < sidesArray.length; i++) {
