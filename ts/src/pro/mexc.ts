@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import mexcRest from '../mexc.js';
-import { AuthenticationError } from '../base/errors.js';
+import { AuthenticationError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
@@ -364,17 +364,24 @@ export default class mexc extends mexcRest {
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {int} [limit] 5, 10, or 20
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const messageHash = 'orderbook:' + symbol;
+        let messageHash = 'orderbook:' + symbol;
         let orderbook = undefined;
         if (market['spot']) {
-            const channel = 'spot@public.increase.depth.v3.api@' + market['id'];
+            let channel = 'spot@public.increase.depth.v3.api@' + market['id'];
+            if (limit !== undefined) {
+                if ((limit !== 5) && (limit !== 10) && (limit !== 20)) {
+                    throw new BadRequest (this.id + ' watchOrderBook () limit argument can only be 5, 10 or 20');
+                }
+                messageHash += ':' + limit;
+                channel += '@' + limit;
+            }
             orderbook = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.depth';
