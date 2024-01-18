@@ -1535,6 +1535,9 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchTrades": {
+                "side": "sometimes does not have"
             }
         }
     },
