@@ -10,8 +10,8 @@ export default class binanceus extends binance {
     describe () {
         // eslint-disable-next-line new-cap
         const binanceusInstance = new binanceusRest ();
-        const describe = binanceusInstance.describe ();
-        const extended = this.deepExtend (super.describe (), describe);
+        const binanceusDescribe = binanceusInstance.describe ();
+        const extended = this.deepExtend (super.describe (), binanceusDescribe);
         return this.deepExtend (extended, {
             'id': 'binanceus',
             'name': 'Binance US',
