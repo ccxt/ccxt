@@ -83,6 +83,4 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
         bid_string = exchange.safe_string(entry, 'bid')
         if (ask_string is not None) and (bid_string is not None):
             test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'ask', exchange.safe_string(entry, 'bid'))
-    # if singular fetchTicker was called, then symbol needs to be asserted
-    if method == 'fetchTicker':
-        test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)
+    test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)

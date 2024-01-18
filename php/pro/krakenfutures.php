@@ -180,17 +180,23 @@ class krakenfutures extends \ccxt\async\krakenfutures {
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
-             * @param {string} symbol unified symbol of the market to fetch the ticker for
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-$ticker-lite
+             * @param {string} symbol unified symbol of the market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             $method = $this->safe_string($this->options, 'watchTickerMethod', 'ticker'); // or ticker_lite
             $name = $this->safe_string_2($params, 'method', 'watchTickerMethod', $method);
             $params = $this->omit($params, array( 'watchTickerMethod', 'method' ));
             $symbols = $this->market_symbols($symbols, null, false);
-            return Async\await($this->subscribe_public($name, $symbols, $params));
+            $ticker = Async\await($this->subscribe_public($name, $symbols, $params));
+            if ($this->newUpdates) {
+                $tickers = array();
+                $tickers[$ticker['symbol']] = $ticker;
+                return $tickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 

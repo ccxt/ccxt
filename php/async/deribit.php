@@ -1692,7 +1692,7 @@ class deribit extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
-             * @param {string} $symbol unified $symbol of the market the order was made in
+             * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -1700,6 +1700,10 @@ class deribit extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
             $response = Async\await($this->privateGetGetOrderState (array_merge($request, $params)));
             //
             //     {
@@ -1730,7 +1734,7 @@ class deribit extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result');
-            return $this->parse_order($result);
+            return $this->parse_order($result, $market);
         }) ();
     }
 

@@ -310,7 +310,8 @@ export default class hitbtc extends hitbtcRest {
                 'symbols': [market['id']],
             },
         };
-        return await this.subscribePublic(name, [symbol], this.deepExtend(request, params));
+        const result = await this.subscribePublic(name, [symbol], this.deepExtend(request, params));
+        return this.safeValue(result, symbol);
     }
     async watchTickers(symbols = undefined, params = {}) {
         /**
@@ -393,16 +394,16 @@ export default class hitbtc extends hitbtcRest {
         const data = this.safeValue(message, 'data', {});
         const marketIds = Object.keys(data);
         const channel = this.safeString(message, 'ch');
-        const newTickers = [];
+        const newTickers = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
             const ticker = this.parseWsTicker(data[marketId], market);
             this.tickers[symbol] = ticker;
-            newTickers.push(ticker);
+            newTickers[symbol] = ticker;
             const messageHash = channel + '::' + symbol;
-            client.resolve(this.tickers[symbol], messageHash);
+            client.resolve(newTickers, messageHash);
         }
         const messageHashes = this.findMessageHashes(client, channel + '::');
         for (let i = 0; i < messageHashes.length; i++) {

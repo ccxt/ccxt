@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bingx.js';
-import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired } from './base/errors.js';
+import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -24,7 +24,7 @@ export default class bingx extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': true,
+                'margin': false,
                 'swap': true,
                 'future': false,
                 'option': false,
@@ -53,6 +53,7 @@ export default class bingx extends Exchange {
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchFundingRates': true,
                 'fetchLeverage': true,
                 'fetchLiquidations': false,
                 'fetchMarkets': true,
@@ -86,6 +87,9 @@ export default class bingx extends Exchange {
                     'subAccount': 'https://open-api.{hostname}/openApi',
                     'account': 'https://open-api.{hostname}/openApi',
                     'copyTrading': 'https://open-api.{hostname}/openApi',
+                },
+                'test': {
+                    'swap': 'https://open-api-vst.{hostname}/openApi', // only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -363,6 +367,7 @@ export default class bingx extends Exchange {
                     '80016': OrderNotFound,
                     '80017': OrderNotFound,
                     '100414': AccountSuspended, // {"code":100414,"msg":"Code: 100414, Msg: risk control check fail,code(1)","debugMsg":""}
+                    '100419': PermissionDenied, // {"code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347}
                     '100437': BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                 },
                 'broad': {},
@@ -420,6 +425,10 @@ export default class bingx extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
+        const isSandbox = this.safeValue (this.options, 'sandboxMode', false);
+        if (isSandbox) {
             return undefined;
         }
         const response = await this.walletsV1PrivateGetCapitalConfigGetall (params);
@@ -665,7 +674,11 @@ export default class bingx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const requests = [ this.fetchSpotMarkets (params), this.fetchSwapMarkets (params) ];
+        const requests = [ this.fetchSwapMarkets (params) ];
+        const isSandbox = this.safeValue (this.options, 'sandboxMode', false);
+        if (!isSandbox) {
+            requests.push (this.fetchSpotMarkets (params)); // sandbox is swap only
+        }
         const promises = await Promise.all (requests);
         const spotMarkets = this.safeValue (promises, 0, []);
         const swapMarkets = this.safeValue (promises, 1, []);
@@ -1109,6 +1122,32 @@ export default class bingx extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseFundingRate (data, market);
+    }
+
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
+         * @param {string[]} [symbols] list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, 'swap', true);
+        const response = await this.swapV2PublicGetQuotePremiumIndex (this.extend (params));
+        const data = this.safeValue (response, 'data', []);
+        const filteredResponse = [];
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            const marketId = this.safeString (item, 'symbol');
+            const market = this.safeMarket (marketId, undefined, undefined, 'swap');
+            if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
+                filteredResponse.push (this.parseFundingRate (item, market));
+            }
+        }
+        return filteredResponse;
     }
 
     parseFundingRate (contract, market: Market = undefined) {
@@ -3101,6 +3140,21 @@ export default class bingx extends Exchange {
         //        "txId": "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
         //    }
         //
+        // withdraw
+        //
+        //     {
+        //         "code":0,
+        //         "timestamp":1705274263621,
+        //         "data":{
+        //             "id":"1264246141278773252"
+        //         }
+        //     }
+        //
+        // parse withdraw-type output first...
+        //
+        const data = this.safeValue (transaction, 'data');
+        const dataId = (data === undefined) ? undefined : this.safeString (data, 'id');
+        const id = this.safeString (transaction, 'id', dataId);
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'addressTag');
         let timestamp = this.safeInteger (transaction, 'insertTime');
@@ -3121,7 +3175,7 @@ export default class bingx extends Exchange {
         const type = (rawType === '0') ? 'deposit' : 'withdrawal';
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'id'),
+            'id': id,
             'txid': this.safeString (transaction, 'txId'),
             'type': type,
             'currency': code,
@@ -3767,6 +3821,10 @@ export default class bingx extends Exchange {
         const type = section[0];
         const version = section[1];
         const access = section[2];
+        const isSandbox = this.safeValue (this.options, 'sandboxMode', false);
+        if (isSandbox && (type !== 'swap')) {
+            throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints');
+        }
         let url = this.implodeHostname (this.urls['api'][type]);
         if (type === 'spot' && version === 'v3') {
             url += '/api';
@@ -3806,6 +3864,11 @@ export default class bingx extends Exchange {
 
     nonce () {
         return this.milliseconds ();
+    }
+
+    setSandboxMode (enable) {
+        super.setSandboxMode (enable);
+        this.options['sandboxMode'] = enable;
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

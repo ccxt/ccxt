@@ -196,11 +196,16 @@ function assert_symbol($exchange, $skipped_properties, $method, $entry, $key, $e
     $actual_symbol = $exchange->safe_string($entry, $key);
     if ($actual_symbol !== null) {
         assert(is_string($actual_symbol), 'symbol should be either undefined or a string' . $log_text);
-        assert((is_array($exchange->markets) && array_key_exists($actual_symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
     }
     if ($expected_symbol !== null) {
         assert($actual_symbol === $expected_symbol, 'symbol in response (\"' . string_value($actual_symbol) . '\") should be equal to expected symbol (\"' . string_value($expected_symbol) . '\")' . $log_text);
     }
+}
+
+
+function assert_symbol_in_markets($exchange, $skipped_properties, $method, $symbol) {
+    $log_text = log_template($exchange, $method, array());
+    assert((is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
 }
 
 

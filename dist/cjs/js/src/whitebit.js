@@ -66,6 +66,7 @@ class whitebit extends whitebit$1 {
                 'fetchOrderTrades': true,
                 'fetchPositionMode': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,

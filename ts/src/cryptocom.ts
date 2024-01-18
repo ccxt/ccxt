@@ -2318,7 +2318,7 @@ export default class cryptocom extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v2PrivatePostPrivateGetCurrencyNetworks (params);
+        const response = await this.v2PrivatePostPrivateGetCurrencyNetworks (params);
         const data = this.safeValue (response, 'result');
         const currencyMap = this.safeValue (data, 'currency_map');
         return this.parseDepositWithdrawFees (currencyMap, codes, 'full_name');

@@ -79,6 +79,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'fetchOrderTrades': True,
                 'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
