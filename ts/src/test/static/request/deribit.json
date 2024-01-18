@@ -501,6 +501,16 @@
                   "USDT"
                 ]
             }
+        ],
+        "fetchVolatilityHistory": [
+            {
+                "description": "BTC fetch volatility history",
+                "method": "fetchVolatilityHistory",
+                "url": "https://test.deribit.com/api/v2/public/get_historical_volatility?currency=BTC",
+                "input": [
+                  "BTC"
+                ]
+            }
         ]
     }
 }
