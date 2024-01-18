@@ -507,7 +507,6 @@ export default class coinmetro extends Exchange {
             request['from'] = since;
             if (limit !== undefined) {
                 const duration = this.parseTimeframe (timeframe) * 1000;
-                // todo: the exchange returns candles including the last one (with timestamp equals param 'to') should we substract 1 from duration?
                 until = this.sum (since, duration * (limit));
             }
         } else {
@@ -1133,7 +1132,7 @@ export default class coinmetro extends Exchange {
         const feeCost = this.safeString (JSONdata, 'fees');
         const fee = {
             'cost': feeCost,
-            'currency': undefined, // todo: or code?
+            'currency': undefined,
         };
         let amount = this.safeString (item, 'amount');
         let direction = undefined;
