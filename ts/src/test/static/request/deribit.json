@@ -64,6 +64,66 @@
                 ]
             },
             {
+                "description": "Spot market buy order",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/buy?instrument_name=BTC_USDT&amount=0.0001&type=market",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "buy",
+                  0.0001
+                ]
+            },
+            {
+                "description": "Spot market sell order",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/sell?instrument_name=BTC_USDT&amount=0.0001&type=market",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "sell",
+                  0.0001
+                ]
+            },
+            {
+                "description": "Swap market buy order",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/buy?instrument_name=BTC_USDT-PERPETUAL&amount=0.001&type=market",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  0.001
+                ]
+            },
+            {
+                "description": "Swap market sell order with a reduceOnly param",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/sell?instrument_name=BTC_USDT-PERPETUAL&amount=0.001&type=market&reduce_only=true",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.001,
+                  null,
+                  {
+                    "reduceOnly": true
+                  }
+                ]
+            },
+            {
+                "description": "Swap limit buy order",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/buy?instrument_name=BTC_USDT-PERPETUAL&amount=0.001&type=limit&price=35000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.001,
+                  35000
+                ]
+            },
+            {
                 "description": "Swap trailingAmount order",
                 "method": "createOrder",
                 "url": "https://test.deribit.com/api/v2/private/sell?instrument_name=BTC_USDT-PERPETUAL&amount=0.001&type=trailing_stop&trigger=last_price&trigger_offset=1000",
@@ -76,6 +136,18 @@
                   {
                     "trailingAmount": 1000
                   }
+                ]
+            },
+            {
+                "description": "Option limit buy order with the price as the option value in USD",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/buy?instrument_name=BTC-26JAN24-39000-C&amount=1&type=limit&price=0.15",
+                "input": [
+                  "BTC/USD:BTC-240126-39000-C",
+                  "limit",
+                  "buy",
+                  1,
+                  0.15
                 ]
             }
         ],
