@@ -158,7 +158,9 @@ export default class bitget extends bitgetRest {
         }
         const tickers = await this.watchPublicMultiple (messageHashes, topics, params);
         if (this.newUpdates) {
-            return tickers;
+            const result = {};
+            result[tickers['symbol']] = tickers;
+            return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
@@ -456,7 +458,7 @@ export default class bitget extends bitgetRest {
         symbols = this.marketSymbols (symbols);
         let channel = 'books';
         let incrementalFeed = true;
-        if ((limit === 5) || (limit === 15)) {
+        if ((limit === 1) || (limit === 5) || (limit === 15)) {
             channel += limit.toString ();
             incrementalFeed = false;
         }

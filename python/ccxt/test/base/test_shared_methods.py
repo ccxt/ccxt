@@ -17,6 +17,7 @@ import numbers  # noqa E402
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.base.errors import OperationFailed  # noqa E402
 from ccxt.base.errors import OnMaintenance  # noqa E402
+from ccxt.base.errors import ArgumentsRequired  # noqa E402
 
 def log_template(exchange, method, entry):
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json(entry) + ' >>> '
@@ -174,9 +175,13 @@ def assert_symbol(exchange, skipped_properties, method, entry, key, expected_sym
     actual_symbol = exchange.safe_string(entry, key)
     if actual_symbol is not None:
         assert isinstance(actual_symbol, str), 'symbol should be either undefined or a string' + log_text
-        assert (actual_symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
     if expected_symbol is not None:
         assert actual_symbol == expected_symbol, 'symbol in response (\"' + string_value(actual_symbol) + '\") should be equal to expected symbol (\"' + string_value(expected_symbol) + '\")' + log_text
+
+
+def assert_symbol_in_markets(exchange, skipped_properties, method, symbol):
+    log_text = log_template(exchange, method, {})
+    assert (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
 
 
 def assert_greater(exchange, skipped_properties, method, entry, key, compare_to):

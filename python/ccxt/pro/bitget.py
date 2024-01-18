@@ -153,7 +153,9 @@ class bitget(ccxt.async_support.bitget):
             messageHashes.append('ticker:' + symbol)
         tickers = await self.watch_public_multiple(messageHashes, topics, params)
         if self.newUpdates:
-            return tickers
+            result = {}
+            result[tickers['symbol']] = tickers
+            return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):
@@ -434,7 +436,7 @@ class bitget(ccxt.async_support.bitget):
         symbols = self.market_symbols(symbols)
         channel = 'books'
         incrementalFeed = True
-        if (limit == 5) or (limit == 15):
+        if (limit == 1) or (limit == 5) or (limit == 15):
             channel += str(limit)
             incrementalFeed = False
         topics = []

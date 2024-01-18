@@ -928,7 +928,7 @@ class gemini(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit_trades'] = limit
+            request['limit_trades'] = min(limit, 500)
         if since is not None:
             request['timestamp'] = since
         response = self.publicGetV1TradesSymbol(self.extend(request, params))

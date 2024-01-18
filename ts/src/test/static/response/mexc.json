@@ -1,0 +1,50 @@
+{
+  "exchange": "mexc",
+  "options": {},
+  "methods": {
+    "fetchOrderBook": [
+      {
+        "description": "Spot orderbook",
+        "method": "fetchOrderBook",
+        "input": [
+          "BTC/USDT",
+          1
+        ],
+        "httpResponse": {
+          "lastUpdateId": "20453289489",
+          "bids": [
+            [
+              "45995.47",
+              "10.337165"
+            ]
+          ],
+          "asks": [
+            [
+              "45995.48",
+              "13.457322"
+            ]
+          ],
+          "timestamp": "1704908526228"
+        },
+        "parsedResponse": {
+          "symbol": "BTC/USDT",
+          "bids": [
+            [
+              45995.47,
+              10.337165
+            ]
+          ],
+          "asks": [
+            [
+              45995.48,
+              13.457322
+            ]
+          ],
+          "timestamp": 1704908526228,
+          "datetime": "2024-01-10T17:42:06.228Z",
+          "nonce": 20453289489
+        }
+      }
+    ]
+  }
+}

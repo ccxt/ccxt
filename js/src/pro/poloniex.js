@@ -542,7 +542,8 @@ export default class poloniex extends poloniexRest {
         const marketId = this.safeString(data, 'symbol');
         const symbol = this.safeSymbol(marketId);
         const market = this.safeMarket(symbol);
-        const timeframe = this.findTimeframe(channel);
+        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        const timeframe = this.findTimeframe(channel, timeframes);
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV(data, market);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
@@ -942,7 +943,7 @@ export default class poloniex extends poloniexRest {
         //    }
         //
         const data = this.safeValue(message, 'data', []);
-        const newTickers = [];
+        const newTickers = {};
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
             const marketId = this.safeString(item, 'symbol');
@@ -950,7 +951,7 @@ export default class poloniex extends poloniexRest {
                 const ticker = this.parseTicker(item);
                 const symbol = ticker['symbol'];
                 this.tickers[symbol] = ticker;
-                newTickers.push(ticker);
+                newTickers[symbol] = ticker;
             }
         }
         const messageHashes = this.findMessageHashes(client, 'ticker::');

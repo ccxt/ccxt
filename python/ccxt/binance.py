@@ -70,8 +70,12 @@ class binance(Exchange, ImplicitAPI):
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
+                'createStopLossOrder': True,
                 'createStopMarketOrder': False,
                 'createStopOrder': True,
+                'createTakeProfitOrder': True,
+                'createTrailingPercentOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchAccounts': None,
                 'fetchBalance': True,
@@ -102,6 +106,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchL3OrderBook': False,
+                'fetchLastPrices': True,
                 'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
@@ -238,6 +243,7 @@ class binance(Exchange, ImplicitAPI):
                         'margin/allPairs': 0.1,
                         'margin/priceIndex': 1,
                         # these endpoints require self.apiKey + self.secret
+                        'spot/delist-schedule': 10,
                         'asset/assetDividend': 1,
                         'asset/dribblet': 0.1,
                         'asset/transfer': 0.1,
@@ -247,6 +253,7 @@ class binance(Exchange, ImplicitAPI):
                         'asset/convert-transfer/queryByPage': 0.033335,
                         'asset/wallet/balance': 6,  # Weight(IP): 60 => cost = 0.1 * 60 = 6
                         'asset/custody/transfer-history': 6,  # Weight(IP): 60 => cost = 0.1 * 60 = 6
+                        'margin/borrow-repay': 1,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -498,6 +505,7 @@ class binance(Exchange, ImplicitAPI):
                         'capital/withdraw/apply': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'capital/contract/convertible-coins': 4.0002,
                         'capital/deposit/credit-apply': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'margin/borrow-repay': 20.001,
                         'margin/transfer': 4.0002,
                         'margin/loan': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay': 20.001,
@@ -1613,6 +1621,7 @@ class binance(Exchange, ImplicitAPI):
                     '-4046': AuthenticationError,  # {"code":-4046,"msg":"Agreement not confirmed."}
                     '-4047': BadRequest,  # {"code":-4047,"msg":"Time interval must be within 0-90 days"}
                     '-4054': BadRequest,  # {"code":-4054,"msg":"Cannot add position margin: position is 0."}
+                    '-4164': InvalidOrder,  # {"code":-4164,"msg":"Order's notional must be no smaller than 5(unless you choose reduce only)."}
                     '-5001': BadRequest,  # {"code":-5001,"msg":"Don't allow transfer to micro assets."}
                     '-5002': InsufficientFunds,  # {"code":-5002,"msg":"You have insufficient balance."}
                     '-5003': InsufficientFunds,  # {"code":-5003,"msg":"You don't have self asset."}
@@ -3044,8 +3053,110 @@ class binance(Exchange, ImplicitAPI):
         elif self.is_inverse(type, subType):
             response = self.dapiPublicGetTickerBookTicker(params)
         else:
-            response = self.publicGetTickerBookTicker(params)
+            request = {}
+            if symbols is not None:
+                marketIds = self.market_ids(symbols)
+                request['symbols'] = self.json(marketIds)
+            response = self.publicGetTickerBookTicker(self.extend(request, params))
         return self.parse_tickers(response, symbols)
+
+    def fetch_last_prices(self, symbols: Strings = None, params={}):
+        """
+        fetches the last price for multiple markets
+        :see: https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         # spot
+        :see: https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       # swap
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     # future
+        :param str[]|None symbols: unified symbols of the markets to fetch the last prices
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of lastprices structures
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        market = self.get_market_from_symbols(symbols)
+        type = None
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchLastPrices', market, params)
+        type, params = self.handle_market_type_and_params('fetchLastPrices', market, params)
+        response = None
+        if self.is_linear(type, subType):
+            response = self.fapiPublicV2GetTickerPrice(params)
+            #
+            #     [
+            #         {
+            #             "symbol": "LTCBTC",
+            #             "price": "4.00000200"
+            #             "time": 1589437530011
+            #         },
+            #         ...
+            #     ]
+            #
+        elif self.is_inverse(type, subType):
+            response = self.dapiPublicGetTickerPrice(params)
+            #
+            #     [
+            #         {
+            #             "symbol": "BTCUSD_200626",
+            #             "ps": "9647.8",
+            #             "price": "9647.8",
+            #             "time": 1591257246176
+            #         }
+            #     ]
+            #
+        elif type == 'spot':
+            response = self.publicGetTickerPrice(params)
+            #
+            #     [
+            #         {
+            #             "symbol": "LTCBTC",
+            #             "price": "4.00000200"
+            #         },
+            #         ...
+            #     ]
+            #
+        else:
+            raise NotSupported(self.id + ' fetchLastPrices() does not support ' + type + ' markets yet')
+        return self.parse_last_prices(response, symbols)
+
+    def parse_last_price(self, entry, market: Market = None):
+        #
+        # spot
+        #
+        #     {
+        #         "symbol": "LTCBTC",
+        #         "price": "4.00000200"
+        #     }
+        #
+        # usdm(swap/future)
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "price": "6000.01",
+        #         "time": 1589437530011   # Transaction time
+        #     }
+        #
+        #
+        # coinm(swap/future)
+        #
+        #     {
+        #         "symbol": "BTCUSD_200626",  # symbol("BTCUSD_200626", "BTCUSD_PERP", etc..)
+        #         "ps": "BTCUSD",  # pair
+        #         "price": "9647.8",
+        #         "time": 1591257246176
+        #     }
+        #
+        timestamp = self.safe_integer(entry, 'time')
+        type = 'spot' if (timestamp is None) else 'swap'
+        marketId = self.safe_string(entry, 'symbol')
+        market = self.safe_market(marketId, market, None, type)
+        price = self.safe_number(entry, 'price')
+        return {
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'price': price,
+            'side': None,
+            'info': entry,
+        }
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -4197,6 +4308,8 @@ class binance(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :param boolean [params.sor]: *spot only* whether to use SOR(Smart Order Routing) or not, default is False
         :param boolean [params.test]: *spot only* whether to use the test endpoint or not, default is False
+        :param float [params.trailingPercent]: the percent to trail away from the current market price
+        :param float [params.trailingTriggerPrice]: the price to trigger a trailing order, default uses the price argument
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -4236,6 +4349,8 @@ class binance(Exchange, ImplicitAPI):
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the exchange API endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
+        :param float [params.trailingPercent]: the percent to trail away from the current market price
+        :param float [params.trailingTriggerPrice]: the price to trigger a trailing order, default uses the price argument
         :returns dict: request to be sent to the exchange
         """
         market = self.market(symbol)
@@ -4249,9 +4364,12 @@ class binance(Exchange, ImplicitAPI):
         stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)  # fallback to stopLoss
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         trailingDelta = self.safe_value(params, 'trailingDelta')
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activationPrice', price)
+        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
+        isTrailingPercentOrder = trailingPercent is not None
         isStopLoss = stopLossPrice is not None or trailingDelta is not None
         isTakeProfit = takeProfitPrice is not None
-        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice'])
+        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent'])
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         request = {
             'symbol': market['id'],
@@ -4268,7 +4386,12 @@ class binance(Exchange, ImplicitAPI):
                 params = self.omit(params, 'reduceOnly')
         uppercaseType = type.upper()
         stopPrice = None
-        if isStopLoss:
+        if isTrailingPercentOrder:
+            uppercaseType = 'TRAILING_STOP_MARKET'
+            request['callbackRate'] = trailingPercent
+            if trailingTriggerPrice is not None:
+                request['activationPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
+        elif isStopLoss:
             stopPrice = stopLossPrice
             if isMarketOrder:
                 # spot STOP_LOSS market orders are not a valid order type
@@ -4379,9 +4502,8 @@ class binance(Exchange, ImplicitAPI):
             stopPriceIsRequired = True
         elif uppercaseType == 'TRAILING_STOP_MARKET':
             quantityIsRequired = True
-            callbackRate = self.safe_number(query, 'callbackRate')
-            if callbackRate is None:
-                raise InvalidOrder(self.id + ' createOrder() requires a callbackRate extra param for a ' + type + ' order')
+            if trailingPercent is None:
+                raise InvalidOrder(self.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order')
         if quantityIsRequired:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         if priceIsRequired:
@@ -4828,7 +4950,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             return response
 
-    def cancel_orders(self, ids: List[Int], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :see: https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
@@ -5063,6 +5185,7 @@ class binance(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch my dust trades for
         :param int [limit]: the maximum number of dust trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'spot' or 'margin', default spot
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         #
@@ -5076,6 +5199,10 @@ class binance(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
             request['endTime'] = self.sum(since, 7776000000)
+        accountType = self.safe_string_upper(params, 'type')
+        params = self.omit(params, 'type')
+        if accountType is not None:
+            request['accountType'] = accountType
         response = self.sapiGetAssetDribblet(self.extend(request, params))
         #     {
         #       "total": "4",
@@ -5653,12 +5780,13 @@ class binance(Exchange, ImplicitAPI):
         """
         transfer currency internally between wallets on the same account
         :see: https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
-        :see: https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-transfer-margin
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: exchange specific transfer type
+        :param str [params.symbol]: the unified symbol, required for isolated margin transfers
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
@@ -5669,59 +5797,63 @@ class binance(Exchange, ImplicitAPI):
         }
         request['type'] = self.safe_string(params, 'type')
         params = self.omit(params, 'type')
-        response = None
         if request['type'] is None:
             symbol = self.safe_string(params, 'symbol')
+            market = None
             if symbol is not None:
+                market = self.market(symbol)
                 params = self.omit(params, 'symbol')
             fromId = self.convert_type_to_account(fromAccount).upper()
             toId = self.convert_type_to_account(toAccount).upper()
+            isolatedSymbol = None
+            if market is not None:
+                isolatedSymbol = market['id']
             if fromId == 'ISOLATED':
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when fromAccount is ' + fromAccount)
-                else:
-                    fromId = self.market_id(symbol)
             if toId == 'ISOLATED':
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when toAccount is ' + toAccount)
-                else:
-                    toId = self.market_id(symbol)
             accountsById = self.safe_value(self.options, 'accountsById', {})
             fromIsolated = not (fromId in accountsById)
             toIsolated = not (toId in accountsById)
+            if fromIsolated and (market is None):
+                isolatedSymbol = fromId  # allow user provide symbol from/to account
+            if toIsolated and (market is None):
+                isolatedSymbol = toId
             if fromIsolated or toIsolated:  # Isolated margin transfer
                 fromFuture = fromId == 'UMFUTURE' or fromId == 'CMFUTURE'
                 toFuture = toId == 'UMFUTURE' or toId == 'CMFUTURE'
                 fromSpot = fromId == 'MAIN'
                 toSpot = toId == 'MAIN'
                 funding = fromId == 'FUNDING' or toId == 'FUNDING'
-                mining = fromId == 'MINING' or toId == 'MINING'
                 option = fromId == 'OPTION' or toId == 'OPTION'
-                prohibitedWithIsolated = fromFuture or toFuture or mining or funding or option
+                prohibitedWithIsolated = fromFuture or toFuture or funding or option
                 if (fromIsolated or toIsolated) and prohibitedWithIsolated:
                     raise BadRequest(self.id + ' transfer() does not allow transfers between ' + fromAccount + ' and ' + toAccount)
                 elif toSpot and fromIsolated:
-                    request['transFrom'] = 'ISOLATED_MARGIN'
-                    request['transTo'] = 'SPOT'
-                    request['symbol'] = fromId
-                    response = self.sapiPostMarginIsolatedTransfer(self.extend(request, params))
+                    fromId = 'ISOLATED_MARGIN'
+                    request['fromSymbol'] = isolatedSymbol
                 elif fromSpot and toIsolated:
-                    request['transFrom'] = 'SPOT'
-                    request['transTo'] = 'ISOLATED_MARGIN'
-                    request['symbol'] = toId
-                    response = self.sapiPostMarginIsolatedTransfer(self.extend(request, params))
+                    toId = 'ISOLATED_MARGIN'
+                    request['toSymbol'] = isolatedSymbol
                 else:
-                    if fromIsolated:
+                    if fromIsolated and toIsolated:
                         request['fromSymbol'] = fromId
-                        fromId = 'ISOLATEDMARGIN'
-                    if toIsolated:
                         request['toSymbol'] = toId
+                        fromId = 'ISOLATEDMARGIN'
                         toId = 'ISOLATEDMARGIN'
-                    request['type'] = fromId + '_' + toId
+                    else:
+                        if fromIsolated:
+                            request['fromSymbol'] = isolatedSymbol
+                            fromId = 'ISOLATEDMARGIN'
+                        if toIsolated:
+                            request['toSymbol'] = isolatedSymbol
+                            toId = 'ISOLATEDMARGIN'
+                request['type'] = fromId + '_' + toId
             else:
                 request['type'] = fromId + '_' + toId
-        if response is None:
-            response = self.sapiPostAssetTransfer(self.extend(request, params))
+        response = self.sapiPostAssetTransfer(self.extend(request, params))
         #
         #     {
         #         "tranId":13526853623
@@ -8355,7 +8487,7 @@ class binance(Exchange, ImplicitAPI):
     def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -8367,8 +8499,9 @@ class binance(Exchange, ImplicitAPI):
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'isIsolated': 'FALSE',
+            'type': 'REPAY',
         }
-        response = self.sapiPostMarginRepay(self.extend(request, params))
+        response = self.sapiPostMarginBorrowRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,
@@ -8380,7 +8513,7 @@ class binance(Exchange, ImplicitAPI):
     def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
         :param str symbol: unified market symbol, required for isolated margin
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
@@ -8395,8 +8528,9 @@ class binance(Exchange, ImplicitAPI):
             'amount': self.currency_to_precision(code, amount),
             'symbol': market['id'],
             'isIsolated': 'TRUE',
+            'type': 'REPAY',
         }
-        response = self.sapiPostMarginRepay(self.extend(request, params))
+        response = self.sapiPostMarginBorrowRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,
@@ -8408,7 +8542,7 @@ class binance(Exchange, ImplicitAPI):
     def borrow_cross_margin(self, code: str, amount, params={}):
         """
         create a loan to borrow margin
-        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -8420,8 +8554,9 @@ class binance(Exchange, ImplicitAPI):
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'isIsolated': 'FALSE',
+            'type': 'BORROW',
         }
-        response = self.sapiPostMarginLoan(self.extend(request, params))
+        response = self.sapiPostMarginBorrowRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,
@@ -8433,7 +8568,7 @@ class binance(Exchange, ImplicitAPI):
     def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         create a loan to borrow margin
-        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
         :param str symbol: unified market symbol, required for isolated margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
@@ -8448,8 +8583,9 @@ class binance(Exchange, ImplicitAPI):
             'amount': self.currency_to_precision(code, amount),
             'symbol': market['id'],
             'isIsolated': 'TRUE',
+            'type': 'BORROW',
         }
-        response = self.sapiPostMarginLoan(self.extend(request, params))
+        response = self.sapiPostMarginBorrowRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,

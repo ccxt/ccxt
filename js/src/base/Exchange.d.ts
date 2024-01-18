@@ -2,7 +2,6 @@ import * as functions from './functions.js';
 import { // eslint-disable-line object-curly-newline
 ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotAvailable, RateLimitExceeded } from "./errors.js";
 import WsClient from './ws/WsClient.js';
-import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks } from './types.js';
@@ -303,11 +302,17 @@ export default class Exchange {
             createMarketOrderWithCost: any;
             createMarketSellOrderWithCost: any;
             createOrders: any;
+            createOrderWithTakeProfitAndStopLoss: any;
             createPostOnlyOrder: any;
             createReduceOnlyOrder: any;
+            createStopLossOrder: any;
             createStopOrder: any;
             createStopLimitOrder: any;
             createStopMarketOrder: any;
+            createTakeProfitOrder: any;
+            createTrailingAmountOrder: any;
+            createTrailingPercentOrder: any;
+            createTriggerOrder: any;
             createOrderWs: any;
             editOrderWs: any;
             fetchOpenOrdersWs: any;
@@ -371,7 +376,7 @@ export default class Exchange {
             fetchPositionsForSymbol: any;
             fetchPositionsRisk: any;
             fetchPremiumIndexOHLCV: any;
-            fetchStatus: string;
+            fetchStatus: any;
             fetchTicker: boolean;
             fetchTickers: any;
             fetchTime: any;
@@ -534,7 +539,7 @@ export default class Exchange {
     checkOrderArguments(market: any, type: any, side: any, amount: any, price: any, params: any): void;
     handleHttpStatusCode(code: any, reason: any, url: any, method: any, body: any): void;
     remove0xPrefix(hexData: any): any;
-    spawn(method: any, ...args: any[]): ReturnType<typeof Future>;
+    spawn(method: any, ...args: any[]): import("./ws/Future.js").FutureInterface;
     delay(timeout: any, method: any, ...args: any[]): void;
     orderBook(snapshot?: {}, depth?: number): WsOrderBook;
     indexedOrderBook(snapshot?: {}, depth?: number): IndexedOrderBook;
@@ -546,7 +551,7 @@ export default class Exchange {
     onConnected(client: any, message?: any): void;
     onError(client: any, error: any): void;
     onClose(client: any, error: any): void;
-    close(): Promise<any[]>;
+    close(): Promise<void>;
     loadOrderBook(client: any, messageHash: any, symbol: any, limit?: any, params?: {}): Promise<void>;
     convertToBigInt(value: string): bigint;
     stringToCharsArray(value: any): any;
@@ -555,6 +560,7 @@ export default class Exchange {
     getProperty(obj: any, property: any, defaultValue?: any): any;
     setProperty(obj: any, property: any, defaultValue?: any): void;
     axolotl(payload: any, hexKey: any, ed25519: any): string;
+    fixStringifiedJsonMembers(content: any): any;
     handleDeltas(orderbook: any, deltas: any): void;
     handleDelta(bookside: any, delta: any): void;
     getCacheIndex(orderbook: any, deltas: any): number;
@@ -678,7 +684,7 @@ export default class Exchange {
     marketIds(symbols: any): any;
     marketSymbols(symbols: any, type?: string, allowEmpty?: boolean, sameTypeOnly?: boolean, sameSubTypeOnly?: boolean): any;
     marketCodes(codes: any): any;
-    parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType): any[];
+    parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): any[];
     fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     filterBySymbol(objects: any, symbol?: string): any;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
@@ -690,7 +696,7 @@ export default class Exchange {
     selectNetworkIdFromRawNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any): any;
     selectNetworkKeyFromNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode?: boolean): any;
     safeNumber2(dictionary: any, key1: any, key2: any, d?: any): number;
-    parseOrderBook(orderbook: object, symbol: string, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType): OrderBook;
+    parseOrderBook(orderbook: object, symbol: string, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBook;
     parseOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
     loadTradingLimits(symbols?: string[], reload?: boolean, params?: {}): Promise<Dictionary<any>>;
@@ -726,7 +732,7 @@ export default class Exchange {
     fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchBidsAsks(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
-    parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType): number[];
+    parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): number[];
     safeCurrency(currencyId: Str, currency?: Currency): CurrencyInterface;
     safeMarket(marketId: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     checkRequiredCredentials(error?: boolean): boolean;
@@ -750,6 +756,7 @@ export default class Exchange {
     fetchCrossBorrowRate(code: string, params?: {}): Promise<any>;
     fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<any>;
     handleOptionAndParams(params: any, methodName: any, optionName: any, defaultValue?: any): any[];
+    handleOptionAndParams2(params: any, methodName: any, methodName2: any, optionName: any, defaultValue?: any): any[];
     handleOption(methodName: any, optionName: any, defaultValue?: any): any;
     handleMarketTypeAndParams(methodName: string, market?: Market, params?: {}): any;
     handleSubTypeAndParams(methodName: any, market?: any, params?: {}, defaultValue?: any): any[];
@@ -763,15 +770,21 @@ export default class Exchange {
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
-    watchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
+    watchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOrderWs(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<string>;
     fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createTrailingAmountOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, trailingAmount?: any, trailingTriggerPrice?: any, params?: {}): Promise<Order>;
+    createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, trailingPercent?: any, trailingTriggerPrice?: any, params?: {}): Promise<Order>;
     createMarketOrderWithCost(symbol: string, side: OrderSide, cost: any, params?: {}): Promise<Order>;
     createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createMarketSellOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
+    createTriggerOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, triggerPrice?: any, params?: {}): Promise<Order>;
+    createStopLossOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, stopLossPrice?: any, params?: {}): Promise<Order>;
+    createTakeProfitOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, takeProfitPrice?: any, params?: {}): Promise<Order>;
+    createOrderWithTakeProfitAndStopLoss(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, takeProfit?: any, stopLoss?: any, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;

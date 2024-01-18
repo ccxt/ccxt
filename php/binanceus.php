@@ -15,6 +15,7 @@ class binanceus extends binance {
             'id' => 'binanceus',
             'name' => 'Binance US',
             'countries' => array( 'US' ), // US
+            'rateLimit' => 50, // 1200 req per min
             'certified' => false,
             'pro' => true,
             'urls' => array(
@@ -81,6 +82,13 @@ class binanceus extends binance {
                 'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+            ),
+            'api' => array(
+                'public' => array(
+                    'get' => array(
+                        'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
+                    ),
+                ),
             ),
         ));
     }

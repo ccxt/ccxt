@@ -671,20 +671,21 @@ class independentreserve extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $capitalizedOrderType = $this->capitalize($type);
-        $method = 'privatePostPlace' . $capitalizedOrderType . 'Order';
-        $orderType = $capitalizedOrderType;
+        $orderType = $this->capitalize($type);
         $orderType .= ($side === 'sell') ? 'Offer' : 'Bid';
         $request = $this->ordered(array(
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
             'orderType' => $orderType,
         ));
+        $response = null;
+        $request['volume'] = $amount;
         if ($type === 'limit') {
             $request['price'] = $price;
+            $response = $this->privatePostPlaceLimitOrder (array_merge($request, $params));
+        } else {
+            $response = $this->privatePostPlaceMarketOrder (array_merge($request, $params));
         }
-        $request['volume'] = $amount;
-        $response = $this->$method (array_merge($request, $params));
         return $this->safe_order(array(
             'info' => $response,
             'id' => $response['OrderGuid'],

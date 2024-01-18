@@ -51,6 +51,7 @@ const errorHierarchy = {
                 'RequestTimeout': {},
             },
         },
+        'ExchangeClosedByUser': {},
     },
 };
 export default errorHierarchy;

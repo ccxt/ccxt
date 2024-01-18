@@ -264,11 +264,11 @@ class upbit(Exchange, ImplicitAPI):
             active = False
         elif (locked is not None) and locked:
             active = False
-        maxOnetimeWithdrawal = self.safe_number(withdrawLimits, 'onetime')
-        maxDailyWithdrawal = self.safe_number(withdrawLimits, 'daily', maxOnetimeWithdrawal)
-        remainingDailyWithdrawal = self.safe_number(withdrawLimits, 'remaining_daily', maxDailyWithdrawal)
+        maxOnetimeWithdrawal = self.safe_string(withdrawLimits, 'onetime')
+        maxDailyWithdrawal = self.safe_string(withdrawLimits, 'daily', maxOnetimeWithdrawal)
+        remainingDailyWithdrawal = self.safe_string(withdrawLimits, 'remaining_daily', maxDailyWithdrawal)
         maxWithdrawLimit = None
-        if remainingDailyWithdrawal > 0:
+        if Precise.string_gt(remainingDailyWithdrawal, '0'):
             maxWithdrawLimit = remainingDailyWithdrawal
         else:
             maxWithdrawLimit = maxDailyWithdrawal
@@ -285,7 +285,7 @@ class upbit(Exchange, ImplicitAPI):
             'limits': {
                 'withdraw': {
                     'min': self.safe_number(withdrawLimits, 'minimum'),
-                    'max': maxWithdrawLimit,
+                    'max': self.parse_number(maxWithdrawLimit),
                 },
             },
         }
@@ -345,10 +345,10 @@ class upbit(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         state = self.safe_string(marketInfo, 'state')
-        bidFee = self.safe_number(response, 'bid_fee')
-        askFee = self.safe_number(response, 'ask_fee')
-        fee = max(bidFee, askFee)
-        return {
+        bidFee = self.safe_string(response, 'bid_fee')
+        askFee = self.safe_string(response, 'ask_fee')
+        fee = self.parse_number(Precise.string_max(bidFee, askFee))
+        return self.safe_market_structure({
             'id': marketId,
             'symbol': base + '/' + quote,
             'base': base,
@@ -397,7 +397,7 @@ class upbit(Exchange, ImplicitAPI):
                 },
                 'info': response,
             },
-        }
+        })
 
     def fetch_markets(self, params={}):
         """
@@ -424,7 +424,7 @@ class upbit(Exchange, ImplicitAPI):
         quoteId, baseId = id.split('-')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        return {
+        return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -474,7 +474,7 @@ class upbit(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
     def parse_balance(self, response) -> Balances:
         result = {
