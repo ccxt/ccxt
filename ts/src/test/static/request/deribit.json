@@ -199,6 +199,32 @@
                   "BTC"
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Spot fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://test.deribit.com/api/v2/public/ticker?instrument_name=BTC_USDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://test.deribit.com/api/v2/public/ticker?instrument_name=BTC_USDT-PERPETUAL",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://test.deribit.com/api/v2/public/ticker?instrument_name=BTC-26JAN24-39000-C",
+                "input": [
+                  "BTC/USD:BTC-240126-39000-C"
+                ]
+            }
         ]
     }
 }
