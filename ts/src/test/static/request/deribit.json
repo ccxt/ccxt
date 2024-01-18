@@ -481,6 +481,26 @@
                   "BTC/USD:BTC-240126-39000-C"
                 ]
             }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "BTC fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://test.deribit.com/api/v2/private/get_deposits?currency=BTC",
+                "input": [
+                  "BTC"
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "USDT fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://test.deribit.com/api/v2/private/get_withdrawals?currency=USDT",
+                "input": [
+                  "USDT"
+                ]
+            }
         ]
     }
 }
