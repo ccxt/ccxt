@@ -511,6 +511,16 @@
                   "BTC"
                 ]
             }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "Swap fetch the funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://test.deribit.com/api/v2/public/get_funding_rate_value?instrument_name=BTC_USDT-PERPETUAL&start_timestamp=1705533267483&end_timestamp=1705562067483",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
