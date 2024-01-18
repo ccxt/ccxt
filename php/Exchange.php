@@ -301,7 +301,7 @@ class Exchange {
         'fetchPositions' => null,
         'fetchPositionsRisk' => null,
         'fetchPremiumIndexOHLCV' => null,
-        'fetchStatus' => 'emulated',
+        'fetchStatus' => null,
         'fetchTicker' => true,
         'fetchTickers' => null,
         'fetchTime' => null,
