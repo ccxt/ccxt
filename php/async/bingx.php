@@ -32,7 +32,7 @@ class bingx extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => true,
+                'margin' => false,
                 'swap' => true,
                 'future' => false,
                 'option' => false,

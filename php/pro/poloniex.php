@@ -977,7 +977,7 @@ class poloniex extends \ccxt\async\poloniex {
                 $ticker = $this->parse_ticker($item);
                 $symbol = $ticker['symbol'];
                 $this->tickers[$symbol] = $ticker;
-                $newTickers[] = $ticker;
+                $newTickers[$symbol] = $ticker;
             }
         }
         $messageHashes = $this->find_message_hashes($client, 'ticker::');

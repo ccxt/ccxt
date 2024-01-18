@@ -1023,7 +1023,10 @@ class Exchange {
     }
     spawn(method, ...args) {
         const future = Future.Future();
-        method.apply(this, args).then(future.resolve).catch(future.reject);
+        // using setTimeout 0 to force the execution to run after the future is returned
+        setTimeout(() => {
+            method.apply(this, args).then(future.resolve).catch(future.reject);
+        }, 0);
         return future;
     }
     delay(timeout, method, ...args) {

@@ -3948,7 +3948,7 @@ class bybit extends Exchange {
             if ($market['option']) {
                 $response = Async\await($this->privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder (array_merge($request, $params)));
             } else {
-                $isStop = $this->safe_value($params, 'stop', false);
+                $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
                 $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
                 $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
                 $isStopLossOrder = $stopLossPrice !== null;
@@ -4128,8 +4128,8 @@ class bybit extends Exchange {
                 // 'orderLinkId' => 'string', // one of order_id, stop_order_id or order_link_id is required
                 // 'orderId' => $id,
             );
-            $isStop = $this->safe_value($params, 'stop', false);
-            $params = $this->omit($params, array( 'stop' ));
+            $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
             if ($id !== null) { // The user can also use argument $params["order_link_id"]
                 $request['orderId'] = $id;
             }
@@ -4190,9 +4190,9 @@ class bybit extends Exchange {
             );
             if ($market['spot']) {
                 // only works for spot $market
-                $isStop = $this->safe_value($params, 'stop', false);
-                $params = $this->omit($params, array( 'stop' ));
-                $request['orderFilter'] = $isStop ? 'tpslOrder' : 'Order';
+                $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
+                $params = $this->omit($params, array( 'stop', 'trigger' ));
+                $request['orderFilter'] = $isStop ? 'StopOrder' : 'Order';
             }
             if ($id !== null) { // The user can also use argument $params["orderLinkId"]
                 $request['orderId'] = $id;
@@ -4238,13 +4238,13 @@ class bybit extends Exchange {
             if ($market['option']) {
                 $response = Async\await($this->privatePostOptionUsdcOpenapiPrivateV1CancelAll (array_merge($request, $params)));
             } else {
-                $isStop = $this->safe_value($params, 'stop', false);
+                $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
                 if ($isStop) {
                     $request['orderFilter'] = 'StopOrder';
                 } else {
                     $request['orderFilter'] = 'Order';
                 }
-                $params = $this->omit($params, array( 'stop' ));
+                $params = $this->omit($params, array( 'stop', 'trigger' ));
                 $response = Async\await($this->privatePostPerpetualUsdcOpenapiPrivateV1CancelAll (array_merge($request, $params)));
             }
             //
@@ -4312,10 +4312,10 @@ class bybit extends Exchange {
                     $request['settleCoin'] = $this->safe_string($params, 'settleCoin', $defaultSettle);
                 }
             }
-            $isStop = $this->safe_value($params, 'stop', false);
-            $params = $this->omit($params, array( 'stop' ));
+            $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
             if ($isStop) {
-                $request['orderFilter'] = 'tpslOrder';
+                $request['orderFilter'] = 'StopOrder';
             }
             $response = Async\await($this->privatePostV5OrderCancelAll (array_merge($request, $params)));
             //
@@ -4382,8 +4382,8 @@ class bybit extends Exchange {
             } else {
                 $request['category'] = 'OPTION';
             }
-            $isStop = $this->safe_value($params, 'stop', false);
-            $params = $this->omit($params, array( 'stop' ));
+            $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
             if ($isStop) {
                 $request['orderFilter'] = 'StopOrder';
             }
@@ -4689,8 +4689,8 @@ class bybit extends Exchange {
                 return Async\await($this->fetch_usdc_open_orders($symbol, $since, $limit, $params));
             }
             $request['category'] = $type;
-            $isStop = $this->safe_value($params, 'stop', false);
-            $params = $this->omit($params, array( 'stop' ));
+            $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
             if ($isStop) {
                 if ($type === 'spot') {
                     $request['orderFilter'] = 'tpslOrder';
@@ -4831,7 +4831,7 @@ class bybit extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
-             * @see https://bybit-exchange.github.io/docs/v5/position/execution
+             * @see https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -4864,8 +4864,8 @@ class bybit extends Exchange {
                 return Async\await($this->fetch_my_usdc_trades($symbol, $since, $limit, $params));
             }
             $request['category'] = $type;
-            $isStop = $this->safe_value($params, 'stop', false);
-            $params = $this->omit($params, array( 'stop', 'type' ));
+            $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
+            $params = $this->omit($params, array( 'stop', 'type', 'trigger' ));
             if ($isStop) {
                 if ($type === 'spot') {
                     $request['orderFilter'] = 'tpslOrder';

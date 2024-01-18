@@ -25,7 +25,7 @@ export default class bingx extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': true,
+                'margin': false,
                 'swap': true,
                 'future': false,
                 'option': false,

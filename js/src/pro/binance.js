@@ -145,7 +145,7 @@ export default class binance extends binanceRest {
             }
             const subscriptionsByStream = this.safeInteger(this.options['numSubscriptionsByStream'], stream, 0);
             const newNumSubscriptions = subscriptionsByStream + numSubscriptions;
-            const subscriptionLimitByStream = this.safeInteger(this.options, 'subscriptionLimitByStream', 200);
+            const subscriptionLimitByStream = this.safeInteger(this.options['subscriptionLimitByStream'], type, 200);
             if (newNumSubscriptions > subscriptionLimitByStream) {
                 throw new BadRequest(this.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
@@ -1084,7 +1084,7 @@ export default class binance extends binanceRest {
         const isSpot = ((client.url.indexOf('/stream') > -1) || (client.url.indexOf('/testnet.binance') > -1));
         const marketType = (isSpot) ? 'spot' : 'contract';
         let rawTickers = [];
-        const newTickers = [];
+        const newTickers = {};
         if (Array.isArray(message)) {
             rawTickers = message;
         }
@@ -1096,7 +1096,7 @@ export default class binance extends binanceRest {
             const result = this.parseWsTicker(ticker, marketType);
             const symbol = result['symbol'];
             this.tickers[symbol] = result;
-            newTickers.push(result);
+            newTickers[symbol] = result;
         }
         const messageHashes = this.findMessageHashes(client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
