@@ -33,11 +33,12 @@ async function testFetchTrades_ArrayValues (exchange, skippedProperties, symbol,
     //
     // address accuracy issues: https://github.com/ccxt/ccxt/issues/18986
     //
+    const sidesArray = [ 'buy', 'sell' ];
     const collectedSides = {};
     for (let i = 0; i < trades.length; i++) {
         const trade = trades[i];
         testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'takerOrMaker', [ 'taker', undefined ]);
-        testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'side', [ 'buy', 'sell' ]);
+        testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'side', sidesArray);
         collectedSides[trade['side']] = true;
     }
     // ensure both 'buy' & 'sell' are returned
@@ -45,8 +46,11 @@ async function testFetchTrades_ArrayValues (exchange, skippedProperties, symbol,
     if (trades.length >= 100) {
         if (!('side' in skippedProperties)) {
             const msg = 'side of trades are not being returned, if this error happens consistently, then it might be an implementation issue';
-            assert (collectedSides['buy'], 'buy ' + msg + testSharedMethods.logTemplate (exchange, method, trades));
-            assert (collectedSides['sell'], 'sell ' + msg + testSharedMethods.logTemplate (exchange, method, trades));
+            for (let i = 0; i < sidesArray.length; i++) {
+                const side = sidesArray[i];
+                const hasSide = (side in collectedSides);
+                assert (hasSide, side + ' ' + msg + testSharedMethods.logTemplate (exchange, method, trades));
+            }
         }
     }
 }
