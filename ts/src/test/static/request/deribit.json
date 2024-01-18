@@ -236,14 +236,14 @@
         ],
         "fetchMyTrades": [
             {
-                "description": "fetch My Trades",
+                "description": "fetch all of my trades",
                 "method": "fetchMyTrades",
                 "url": "https://www.deribit.com/api/v2/private/get_user_trades_by_currency?include_old=true&currency=BTC",
                 "input": [
                 ]
             },
             {
-                "description": "fetch My Trades",
+                "description": "Spot fetch my trades",
                 "method": "fetchMyTrades",
                 "url": "https://www.deribit.com/api/v2/private/get_user_trades_by_instrument?include_old=true&instrument_name=BTC_USDT",
                 "input": [
@@ -251,7 +251,7 @@
                 ]
             },
             {
-                "description": "fetch My Trades",
+                "description": "fetch all of my trades with a since argument",
                 "method": "fetchMyTrades",
                 "url": "https://www.deribit.com/api/v2/private/get_user_trades_by_currency_and_time?include_old=true&currency=BTC&start_timestamp=1703665611074",
                 "input": [
@@ -260,12 +260,28 @@
                 ]
             },
             {
-                "description": "fetch My Trades",
+                "description": "Spot fetch my trades with a since argument",
                 "method": "fetchMyTrades",
                 "url": "https://www.deribit.com/api/v2/private/get_user_trades_by_instrument_and_time?include_old=true&instrument_name=BTC_USDT&start_timestamp=1703665611074",
                 "input": [
                     "BTC/USDT",
                     1703665611074
+                ]
+            },
+            {
+                "description": "Swap fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://test.deribit.com/api/v2/private/get_user_trades_by_instrument?include_old=true&instrument_name=BTC_USDT-PERPETUAL",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://test.deribit.com/api/v2/private/get_user_trades_by_instrument?include_old=true&instrument_name=BTC-26JAN24-39000-C",
+                "input": [
+                  "BTC/USD:BTC-240126-39000-C"
                 ]
             }
         ],
