@@ -9,9 +9,9 @@ import binanceusRest from '../binanceus.js';
 export default class binanceus extends binance {
     describe () {
         // eslint-disable-next-line new-cap
-        const binanceusRestInstance = new binanceusRest ();
-        const binanceusDescribe = binanceusRestInstance.describe ();
-        const extended = this.deepExtend (super.describe (), binanceusDescribe);
+        const restInstance = new binanceusRest ();
+        const restDescribe = restInstance.describe ();
+        const extended = this.deepExtend (super.describe (), restDescribe);
         return this.deepExtend (extended, {
             'id': 'binanceus',
             'name': 'Binance US',
