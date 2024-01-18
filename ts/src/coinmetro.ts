@@ -131,7 +131,7 @@ export default class coinmetro extends Exchange {
                 '1d': '86400000',
             },
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/8c0ad35d-dec4-474a-af7a-1c0120acf664',
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/e86f87ec-6ba3-4410-962b-f7988c5db539',
                 'api': {
                     'public': 'https://api.coinmetro.com',
                     'private': 'https://api.coinmetro.com',
