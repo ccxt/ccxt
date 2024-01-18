@@ -54,8 +54,8 @@ except ImportError:
     eddsa = None
 
 # eth signing
-from ccxt.static_dependencies import ethabi
-from ccxt.static_dependencies import ethaccount
+from ccxt.static_dependencies.ethereum import abi
+from ccxt.static_dependencies.ethereum import account
 
 # -----------------------------------------------------------------------------
 
@@ -1336,11 +1336,11 @@ class Exchange(object):
 
     @staticmethod
     def eth_abi_encode(types, args):
-        return ethabi.encode(types, args)
+        return abi.encode(types, args)
 
     @staticmethod
     def eth_encode_structured_data(domain, messageTypes, message):
-        encodedData = ethaccount.messages.encode_typed_data(domain, messageTypes, message)
+        encodedData = account.messages.encode_typed_data(domain, messageTypes, message)
         return [encodedData.header, encodedData.body]
 
     @staticmethod
