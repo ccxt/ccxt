@@ -225,6 +225,32 @@
                   "BTC/USD:BTC-240126-39000-C"
                 ]
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Spot fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://test.deribit.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC_USDT&resolution=1&start_timestamp=1705497510518&end_timestamp=1705557450518",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://test.deribit.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC_USDT-PERPETUAL&resolution=1&start_timestamp=1705497597822&end_timestamp=1705557537822",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://test.deribit.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC-26JAN24-39000-C&resolution=1&start_timestamp=1705497642549&end_timestamp=1705557582549",
+                "input": [
+                  "BTC/USD:BTC-240126-39000-C"
+                ]
+            }
         ]
     }
 }
