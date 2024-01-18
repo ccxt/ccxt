@@ -189,6 +189,16 @@
                   "BTC"
                 ]
             }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch a BTC deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://test.deribit.com/api/v2/private/get_current_deposit_address?currency=BTC",
+                "input": [
+                  "BTC"
+                ]
+            }
         ]
     }
 }
