@@ -179,6 +179,16 @@
                   }
                 ]
             }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "create a BTC deposit address",
+                "method": "createDepositAddress",
+                "url": "https://test.deribit.com/api/v2/private/create_deposit_address?currency=BTC",
+                "input": [
+                  "BTC"
+                ]
+            }
         ]
     }
 }
