@@ -4462,11 +4462,7 @@ export default class bybit extends Exchange {
         const isStop = this.safeValueN (params, [ 'trigger', 'stop' ], false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
         if (isStop) {
-            if (type === 'spot') {
-                request['orderFilter'] = 'tpslOrder';
-            } else {
-                request['orderFilter'] = 'StopOrder';
-            }
+            request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {
             request['limit'] = limit;
