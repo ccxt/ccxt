@@ -1119,7 +1119,7 @@ export default class coinmetro extends Exchange {
                 ledger.push (rawLedgerEntry);
             }
         }
-        return this.parseLedger (ledger, currency, since, limit); // todo: check - returns an empty array if since = 0. Is it correct?
+        return this.parseLedger (ledger, currency, since, limit);
     }
 
     parseLedgerEntry (item, currency: Currency = undefined) {
@@ -1891,7 +1891,7 @@ export default class coinmetro extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        if ((code !== 200) && (code !== 202)) {
+        if ((code !== 200) && (code !== 201) && (code !== 202)) {
             const feedback = this.id + ' ' + body;
             const message = this.safeString (response, 'message');
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
