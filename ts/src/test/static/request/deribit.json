@@ -365,6 +365,35 @@
                   "BTC/USD:BTC-240126-39000-C"
                 ]
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Spot fetch order",
+                "method": "fetchOrder",
+                "url": "https://test.deribit.com/api/v2/private/get_order_state?order_id=BTC_USDT-6799763",
+                "input": [
+                  "BTC_USDT-6799763",
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch order",
+                "method": "fetchOrder",
+                "url": "https://test.deribit.com/api/v2/private/get_order_state?order_id=USDT-17726949",
+                "input": [
+                  "USDT-17726949",
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option fetch order",
+                "method": "fetchOrder",
+                "url": "https://test.deribit.com/api/v2/private/get_order_state?order_id=20906817839",
+                "input": [
+                  "20906817839",
+                  "BTC/USD:BTC-240126-39000-C"
+                ]
+            }
         ]
     }
 }
