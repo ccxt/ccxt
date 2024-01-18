@@ -1220,9 +1220,9 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'orderType': type,
+        let request = {
         };
+        request['orderType'] = type;
         let precisedAmount = undefined;
         if (amount !== undefined) {
             precisedAmount = this.amountToPrecision (symbol, amount);
@@ -1242,31 +1242,19 @@ export default class coinmetro extends Exchange {
             precisedCost = this.costToPrecision (symbol, cost);
         }
         if (side === 'sell') {
-            this.handleCreateOrderSide (market['baseId'], market['quoteId'], precisedAmount, precisedCost, request);
+            request = this.handleCreateOrderSide (market['baseId'], market['quoteId'], precisedAmount, precisedCost, request);
         } else if (side === 'buy') {
-            this.handleCreateOrderSide (market['quoteId'], market['baseId'], precisedCost, precisedAmount, request);
+            request = this.handleCreateOrderSide (market['quoteId'], market['baseId'], precisedCost, precisedAmount, request);
         }
         const timeInForce = this.safeValue (params, 'timeInForce');
-        // todo: the exchange accepts limit IOC orders and cancels them, should we check it here and throw an exeption?
         if (timeInForce !== undefined) {
             params = this.omit (params, 'timeInForce');
             request['timeInForce'] = this.encodeOrderTimeInForce (timeInForce);
         }
-        const expirationTime = this.safeInteger (params, 'expirationTime');
-        if (expirationTime !== undefined) {
-            params = this.omit (params, 'expirationTime');
-            request['expirationTime'] = expirationTime;
-            // todo: expirationTime works both for GTC and GTD orders, should we check something here?
-        }
         const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         if (stopPrice !== undefined) {
-            params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
+            params = this.omit (params, [ 'triggerPrice' ]);
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-        }
-        const margin = this.safeValue (params, 'margin');
-        params = this.omit (params, 'margin'); // if request has property 'margin' with any value, the exchange counts the order as margin
-        if (margin === true) {
-            request['margin'] = true;
         }
         const userData = this.safeValue (params, 'userData', {});
         const comment = this.safeString2 (params, 'clientOrderId', 'comment');
@@ -1328,6 +1316,7 @@ export default class coinmetro extends Exchange {
         if (buyingQty !== undefined) {
             request['buyingQty'] = buyingQty;
         }
+        return request;
     }
 
     encodeOrderTimeInForce (timeInForce) {
