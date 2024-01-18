@@ -78,7 +78,7 @@ export default class lbank extends lbankRest {
         const watchOHLCVOptions = this.safeValue (this.options, 'watchOHLCV', {});
         const timeframes = this.safeValue (watchOHLCVOptions, 'timeframes', {});
         const timeframeId = this.safeString (timeframes, timeframe, timeframe);
-        const messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
+        const messageHash = 'fetchOHLCV:' + market['symbol'] + ':' + timeframeId;
         const message = {
             'action': 'request',
             'request': 'kbar',
@@ -248,7 +248,7 @@ export default class lbank extends lbankRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
-        const messageHash = 'fetchTicker:' + symbol;
+        const messageHash = 'fetchTicker:' + market['symbol'];
         const message = {
             'action': 'request',
             'request': 'tick',
@@ -272,7 +272,7 @@ export default class lbank extends lbankRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
-        const messageHash = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + market['symbol'];
         const message = {
             'action': 'subscribe',
             'subscribe': 'tick',
@@ -380,7 +380,7 @@ export default class lbank extends lbankRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
-        const messageHash = 'fetchTrades:' + symbol;
+        const messageHash = 'fetchTrades:' + market['symbol'];
         if (limit === undefined) {
             limit = 10;
         }
@@ -410,7 +410,7 @@ export default class lbank extends lbankRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
-        const messageHash = 'trades:' + symbol;
+        const messageHash = 'trades:' + market['symbol'];
         const message = {
             'action': 'subscribe',
             'subscribe': 'trade',
@@ -648,7 +648,7 @@ export default class lbank extends lbankRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
-        const messageHash = 'fetchOrderbook:' + symbol;
+        const messageHash = 'fetchOrderbook:' + market['symbol'];
         if (limit === undefined) {
             limit = 100;
         }
@@ -678,7 +678,7 @@ export default class lbank extends lbankRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
-        const messageHash = 'orderbook:' + symbol;
+        const messageHash = 'orderbook:' + market['symbol'];
         params = this.omit (params, 'aggregation');
         if (limit === undefined) {
             limit = 100;
