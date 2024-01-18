@@ -371,7 +371,6 @@ export default class coinmetro extends Exchange {
         //         ...
         //     ]
         //
-        // todo: check what is precision
         return this.parseMarkets (response);
     }
 
@@ -505,9 +504,6 @@ export default class coinmetro extends Exchange {
         };
         let until = undefined;
         if (since !== undefined) {
-            if ((since < 0) || (!Number.isInteger (since))) {
-                throw new BadRequest (this.id + ' fetchOHLCV() param "since" must be an integer greater than 0 or equal to 0'); // the exchange returns 422 "No more than 1000 candles per call" for float or negative values
-            }
             request['from'] = since;
             if (limit !== undefined) {
                 const duration = this.parseTimeframe (timeframe) * 1000;
@@ -620,7 +616,7 @@ export default class coinmetro extends Exchange {
         //     }
         //
         const tickHistory = this.safeValue (response, 'tickHistory', []);
-        return this.parseTrades (tickHistory, market, since, limit);  // todo: check - returns an empty array if since = 0. Is it correct?
+        return this.parseTrades (tickHistory, market, since, limit);
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
