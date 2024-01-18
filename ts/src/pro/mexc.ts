@@ -361,7 +361,8 @@ export default class mexc extends mexcRest {
         /**
          * @method
          * @name mexc3#watchOrderBook
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#depth
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] 5, 10, or 20
