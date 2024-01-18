@@ -239,7 +239,7 @@ public partial class Exchange
         {
             // tmp fix, not this prevents the Collection was modified; enumeration operation may not execute error wtf
             var ob = (IOrderBook)obj;
-            var copy = ob.GetCopy();
+            var copy = ob.Copy();
             try
             {
                 return Json(copy);
