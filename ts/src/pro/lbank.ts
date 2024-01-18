@@ -825,17 +825,14 @@ export default class lbank extends lbankRest {
             this.checkRequiredCredentials ();
             const response = await this.spotPrivatePostSubscribeGetKey (params);
             //
-            //     {
-            //         "result":"true",
-            //         "subscribeKey":"24d87a4xxxxxd04b78713f42643xxxxf4b6f6378xxxxx35836260"
-            //     }
+            // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
             //
             const result = this.safeString (response, 'result');
             if (result !== 'true') {
                 throw new ExchangeError (this.id + ' failed to get subscribe key');
             }
             client.subscriptions['authenticated'] = {
-                'key': this.safeString (response, 'subscribeKey'),
+                'key': this.safeString (response, 'data'),
                 'expires': this.sum (now, 3300000), // SubscribeKey lasts one hour, refresh it every 55 minutes
             };
         } else {
@@ -855,6 +852,6 @@ export default class lbank extends lbankRest {
                 client['subscriptions']['authenticated']['expires'] = this.sum (now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
             }
         }
-        return client['authenticated']['key'];
+        return client.subscriptions['authenticated']['key'];
     }
 }
