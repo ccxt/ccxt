@@ -1258,12 +1258,12 @@ export default class coinmetro extends Exchange {
             params = this.omit (params, [ 'clientOrderId' ]);
             userData['comment'] = comment;
         }
-        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
         if (stopLossPrice !== undefined) {
             params = this.omit (params, 'stopLossPrice');
             userData['stopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
         }
-        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         if (takeProfitPrice !== undefined) {
             params = this.omit (params, 'takeProfitPrice');
             userData['takeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
