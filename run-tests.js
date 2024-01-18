@@ -179,7 +179,7 @@ const exec = (bin, ...args) => {
 
     })).catch (e => {
         const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
-        if (isTimeout && wsFlag) {
+        if (isTimeout) {
             stderr += '\n' + 'RUNTEST_TIMED_OUT: ';
             return generateResultFromOutput (output, stderr, 0);
         }
