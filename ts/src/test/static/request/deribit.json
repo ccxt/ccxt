@@ -153,18 +153,63 @@
         ],
         "cancelAllOrders": [
             {
-                "description": "cancel All Orders",
+                "description": "cancel all orders",
                 "method": "cancelAllOrders",
                 "url": "https://www.deribit.com/api/v2/private/cancel_all",
                 "input": [
                 ]
             },
             {
-                "description": "cancel All Orders",
+                "description": "Spot cancel all orders",
                 "method": "cancelAllOrders",
                 "url": "https://www.deribit.com/api/v2/private/cancel_all_by_instrument?instrument_name=BTC_USDT",
                 "input": [
                     "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://test.deribit.com/api/v2/private/cancel_all_by_instrument?instrument_name=BTC_USDT-PERPETUAL",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://test.deribit.com/api/v2/private/cancel_all_by_instrument?instrument_name=BTC-26JAN24-39000-C",
+                "input": [
+                  "BTC/USD:BTC-240126-39000-C"
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Spot cancel order",
+                "method": "cancelOrder",
+                "url": "https://test.deribit.com/api/v2/private/cancel?order_id=BTC_USDT-6799763",
+                "input": [
+                  "BTC_USDT-6799763",
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap cancel order",
+                "method": "cancelOrder",
+                "url": "https://test.deribit.com/api/v2/private/cancel?order_id=USDT-17726949",
+                "input": [
+                  "USDT-17726949",
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option cancel order",
+                "method": "cancelOrder",
+                "url": "https://test.deribit.com/api/v2/private/cancel?order_id=20906817839",
+                "input": [
+                  "20906817839",
+                  "BTC/USD:BTC-240126-39000-C"
                 ]
             }
         ],
