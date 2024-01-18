@@ -445,6 +445,21 @@
                 ]
             }
         ],
+        "fetchOrders": [
+            {
+                "description": "Spot fetch trigger orders",
+                "method": "fetchOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/history?symbol=BTCUSDT&category=spot&orderFilter=StopOrder",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "stop": true
+                  }
+                ]
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot fetchMyTrades",
