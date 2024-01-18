@@ -521,6 +521,16 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchGreeks": [
+            {
+                "description": "fetch the greeks of an options contract",
+                "method": "fetchGreeks",
+                "url": "https://test.deribit.com/api/v2/public/ticker?instrument_name=BTC-26JAN24-39000-C",
+                "input": [
+                  "BTC/USD:BTC-240126-39000-C"
+                ]
+            }
         ]
     }
 }
