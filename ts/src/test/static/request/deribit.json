@@ -252,6 +252,32 @@
         ],
         "editOrder": [
             {
+                "description": "Spot edit a limit sell order",
+                "method": "editOrder",
+                "url": "https://test.deribit.com/api/v2/private/edit?order_id=BTC_USDT-6799763&amount=0.0001&price=22000",
+                "input": [
+                  "BTC_USDT-6799763",
+                  "BTC/USDT",
+                  "limit",
+                  "sell",
+                  0.0001,
+                  22000
+                ]
+            },
+            {
+                "description": "Swap edit a limit buy order",
+                "method": "editOrder",
+                "url": "https://test.deribit.com/api/v2/private/edit?order_id=USDT-17726949&amount=0.001&price=34000",
+                "input": [
+                  "USDT-17726949",
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.001,
+                  34000
+                ]
+            },
+            {
                 "description": "Swap edit a trailingAmount order",
                 "method": "editOrder",
                 "url": "https://test.deribit.com/api/v2/private/edit?order_id=USDT-TSTS-32&amount=0.001&trigger_offset=2500&trailingAmount=2500",
@@ -265,6 +291,19 @@
                   {
                     "trailingAmount": 2500
                   }
+                ]
+            },
+            {
+                "description": "Option edit a limit buy order",
+                "method": "editOrder",
+                "url": "https://test.deribit.com/api/v2/private/edit?order_id=20906817839&amount=1&price=0.14",
+                "input": [
+                  "20906817839",
+                  "BTC/USD:BTC-240126-39000-C",
+                  "limit",
+                  "buy",
+                  1,
+                  0.14
                 ]
             }
         ],
