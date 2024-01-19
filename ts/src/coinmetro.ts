@@ -1699,7 +1699,7 @@ export default class coinmetro extends Exchange {
         let status = undefined;
         if (isCanceled === true) {
             if (timestamp === undefined) {
-                timestamp = this.safeInteger (order, 'completionTime'); // todo: check - market orders with bad price gain IOC - should we mark them as 'rejected'?
+                timestamp = this.safeInteger (order, 'completionTime'); // market orders with bad price gain IOC - we mark them as 'rejected'?
                 status = 'rejected'; // these orders don't have the 'creationTime` param and have 'canceled': true
             } else {
                 status = 'canceled';
