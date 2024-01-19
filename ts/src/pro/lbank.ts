@@ -868,8 +868,8 @@ export default class lbank extends lbankRest {
             //
             // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
             //
-            const result = this.safeString (response, 'result');
-            if (result !== 'true') {
+            const result = this.safeValue (response, 'result');
+            if (result !== true) {
                 throw new ExchangeError (this.id + ' failed to get subscribe key');
             }
             client.subscriptions['authenticated'] = {
