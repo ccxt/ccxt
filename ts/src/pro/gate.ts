@@ -1291,7 +1291,7 @@ export default class gate extends gateRest {
             'payload': payload,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        return await this.watchMultiple (url, messageHashes, [ message ], messageHashes);
     }
 
     async subscribePrivate (url, messageHash, payload, channel, params, requiresUid = false) {

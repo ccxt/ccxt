@@ -261,7 +261,7 @@ export default class binance extends binanceRest {
             'params': params,
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
+        const orderbook = await this.watchMultiple (url, messageHashes, [ message ], messageHashes, subscription);
         return orderbook.limit ();
     }
 
@@ -523,7 +523,8 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        const trades = await this.watchMultiple (url, subParams, this.extend (request, query), subParams, subscribe);
+        const message = this.extend (request, query);
+        const trades = await this.watchMultiple (url, subParams, [ message ], subParams, subscribe);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');

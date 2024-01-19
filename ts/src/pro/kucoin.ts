@@ -152,7 +152,7 @@ export default class kucoin extends kucoinRest {
                 client.subscriptions[requestId] = subscriptionHash;
             }
         }
-        return await this.watchMultiple (url, messageHashes, message, subscriptionHashes, subscription);
+        return await this.watchMultiple (url, messageHashes, [ message ], subscriptionHashes, subscription);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
