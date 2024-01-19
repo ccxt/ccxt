@@ -484,10 +484,13 @@ export default class lbank extends lbankRest {
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
-        const timestamp = this.safeInteger (trade, 0);
-        const datetime = (timestamp !== undefined) ? this.iso8601 (timestamp) : this.safeString (trade, 'TS');
+        let timestamp = this.safeInteger (trade, 0);
+        const datetime = (timestamp !== undefined) ? (this.iso8601 (timestamp)) : (this.safeString (trade, 'TS'));
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (datetime);
+        }
         return this.safeTrade ({
-            'timestamp': (timestamp !== undefined) ? timestamp : this.parse8601 (datetime),
+            'timestamp': timestamp,
             'datetime': datetime,
             'symbol': undefined,
             'id': undefined,
