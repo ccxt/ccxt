@@ -499,8 +499,8 @@ export default class lbank extends lbankRest {
             'takerOrMaker': undefined,
             'side': this.safeString2 (trade, 'direction', 3),
             'price': this.safeString2 (trade, 'price', 1),
-            'amount': this.safeString2 (trade, 'amount', 2),
-            'cost': undefined,
+            'amount': this.safeString2 (trade, 'volume', 2),
+            'cost': this.safeString (trade, 'amount'),
             'fee': undefined,
             'info': trade,
         }, market);
