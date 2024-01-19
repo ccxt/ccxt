@@ -2913,7 +2913,7 @@ export default class deribit extends Exchange {
         }
         const request = {
             'instrument_name': market['id'],
-            'start_timestamp': since,
+            'start_timestamp': since - 1,
             'end_timestamp': time,
         };
         const response = await this.publicGetGetFundingRateHistory (this.extend (request, params));
