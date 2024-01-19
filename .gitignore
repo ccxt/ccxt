@@ -39,5 +39,4 @@ __pycache__
 *.pyc
 
 # docs
-wiki/spec.md
 wiki/examples/**/*.md
