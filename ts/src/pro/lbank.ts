@@ -593,33 +593,67 @@ export default class lbank extends lbankRest {
         //         "SERVER":"V2",
         //         "TS":"2019-06-28T14:49:37.816"
         //     }
+        //     {
+        //         "SERVER": "V2",
+        //         "orderUpdate": {
+        //            "accAmt": "0",
+        //            "amount": "0",
+        //            "avgPrice": "0",
+        //            "customerID": "",
+        //            "orderAmt": "5",
+        //            "orderPrice": "0.009834",
+        //            "orderStatus": 0,
+        //            "price": "0.009834",
+        //            "remainAmt": "5",
+        //            "role": "taker",
+        //            "symbol": "lbk_usdt",
+        //            "type": "buy_market",
+        //            "updateTime": 1705676718532,
+        //            "uuid": "9b94ab2d-a510-4abe-a784-44a9d9c38ec7",
+        //            "volumePrice": "0"
+        //         },
+        //         "type": "orderUpdate",
+        //         "pair": "lbk_usdt",
+        //         "TS": "2024-01-19T23:05:18.548"
+        //     }
         //
+
         const orderUpdate = this.safeValue (order, 'orderUpdate', {});
+        const rawType = this.safeString (orderUpdate, 'type', '');
+        const typeParts = rawType.split ('_');
+        const side = this.safeString (typeParts, 0);
+        const exchangeType = this.safeString (typeParts, 1);
+        const type = (exchangeType === 'market') ? 'market' : 'limit';
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeInteger (orderUpdate, 'updateTime');
         const status = this.safeString (orderUpdate, 'orderStatus');
-        const tradeId = this.safeString (orderUpdate, 'txUuid');
+        const orderAmount = this.safeString (orderUpdate, 'orderAmt');
+        let cost = undefined;
+        if ((type === 'market') && (side === 'buy')) {
+            cost = orderAmount;
+        }
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (orderUpdate, 'uuid'),
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString (orderUpdate, 'customerID'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (orderUpdate, 'updateTime'),
             'symbol': symbol,
-            'type': undefined,
-            'side': undefined,
+            'type': type,
+            'side': side,
             'price': this.safeString (orderUpdate, 'price'),
             'stopPrice': undefined,
-            'average': undefined,
+            'average': this.safeString (orderUpdate, 'avgPrice'),
             'amount': this.safeString (orderUpdate, 'amount'),
-            'remaining': undefined,
+            'remaining': this.safeString (orderUpdate, 'remainAmt'),
             'filled': undefined,
             'status': this.parseWsOrderStatus (status),
             'fee': undefined,
-            'cost': undefined,
-            'trades': [ tradeId ],
+            'cost': cost,
+            'trades': undefined,
         }, market);
     }
 
