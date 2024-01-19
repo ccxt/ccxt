@@ -217,7 +217,7 @@ export default class coinmetro extends Exchange {
                     'Both buyingCurrency and sellingCurrency are required': InvalidOrder, // 422 - "Both buyingCurrency and sellingCurrency are required"
                     'One and only one of buyingQty and sellingQty is required': InvalidOrder, // 422 - "One and only one of buyingQty and sellingQty is required"
                     'Invalid buyingCurrency': InvalidOrder, // 422 - "Invalid buyingCurrency"
-                    // todo: add this one - 422 Unprocessable Entity {"message":"Invalid 'from'"}
+                    'Invalid \'from\'': BadRequest, // 422 Unprocessable Entity {"message":"Invalid 'from'"}
                     'Invalid sellingCurrency': InvalidOrder, // 422 - "Invalid sellingCurrency"
                     'Invalid buyingQty': InvalidOrder, // 422 - "Invalid buyingQty"
                     'Invalid sellingQty': InvalidOrder, // 422 - "Invalid sellingQty"
@@ -230,18 +230,18 @@ export default class coinmetro extends Exchange {
                 },
                 'broad': {
                     'accessing from a new IP': PermissionDenied, // 403 Forbidden {"message":"You're accessing from a new IP. Please check your email."}
-                    'available to allocate as collateral': InsufficientFunds, // todo: check 403 Forbidden {"message":"Insufficient EUR available to allocate as collateral"}
+                    'available to allocate as collateral': InsufficientFunds, // 403 Forbidden {"message":"Insufficient EUR available to allocate as collateral"}
                     'At least': BadRequest, // 422 Unprocessable Entity {"message":"At least 5 EUR per operation"}
                     'collateral is not allowed': BadRequest, // 422 Unprocessable Entity {"message":"DOGE collateral is not allowed"}
-                    'Insufficient liquidity': InvalidOrder, // todo: check 503 Service Unavailable {"message":"Insufficient liquidity to fill the FOK order completely."}
+                    'Insufficient liquidity': InvalidOrder, // 503 Service Unavailable {"message":"Insufficient liquidity to fill the FOK order completely."}
                     'Insufficient order size': InvalidOrder, // 422 Unprocessable Entity {"message":"Insufficient order size - min 0.002 ETH"}
                     'Invalid quantity': InvalidOrder, // 422 Unprocessable Entity {"message":"Invalid quantity!"}
                     'Invalid Stop Loss': InvalidOrder, // 422 Unprocessable Entity {"message":"Invalid Stop Loss!"}
                     'Invalid stop price!': InvalidOrder, // 422 Unprocessable Entity {"message":"Invalid stop price!"}
                     'Not enough balance': InsufficientFunds, // 422 Unprocessable Entity {"message":"Not enough balance!"}
-                    'Not enough margin': InsufficientFunds, // todo: check 422 Unprocessable Entity {"message":"Not enough margin!"}
+                    'Not enough margin': InsufficientFunds, // Unprocessable Entity {"message":"Not enough margin!"}
                     'orderType missing': BadRequest, // 422 Unprocessable Entity {"message":"orderType missing!"}
-                    'Server Timeout': ExchangeError, // todo: check 503 Service Unavailable {"message":"Server Timeout!"}
+                    'Server Timeout': ExchangeError, // 503 Service Unavailable {"message":"Server Timeout!"}
                     'Time in force has to be IOC or FOK for market orders': InvalidOrder, // 422 Unprocessable Entity {"message":"Time in force has to be IOC or FOK for market orders!"}
                     'Too many attempts': RateLimitExceeded, // 429 Too Many Requests {"message":"Too many attempts. Try again in 3 seconds"}
                 },
