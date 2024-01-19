@@ -623,7 +623,10 @@ export default class lbank extends lbankRest {
         const typeParts = rawType.split ('_');
         const side = this.safeString (typeParts, 0);
         const exchangeType = this.safeString (typeParts, 1);
-        const type = (exchangeType === 'market') ? 'market' : 'limit';
+        let type = undefined;
+        if (rawType !== 'buy' && rawType !== 'sell') {
+            type = (exchangeType === 'market') ? 'market' : 'limit';
+        }
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeInteger (orderUpdate, 'updateTime');
