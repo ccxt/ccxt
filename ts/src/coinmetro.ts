@@ -20,7 +20,7 @@ export default class coinmetro extends Exchange {
             'name': 'Coinmetro',
             'countries': [ 'EE' ], // Republic of Estonia
             'version': 'v1',
-            'rateLimit': 200, // 1 request per 200ms, 20 per minute, 300 per hour, 1k per day
+            'rateLimit': 334,
             'certified': false,
             'pro': false,
             'has': {
@@ -151,12 +151,12 @@ export default class coinmetro extends Exchange {
                 'public': {
                     'get': {
                         'demo/temp': 1,
-                        'exchange/candles/{pair}/{timeframe}/{from}/{to}': 1,
+                        'exchange/candles/{pair}/{timeframe}/{from}/{to}': 1.8,
                         'exchange/prices': 1,
-                        'exchange/ticks/{pair}/{from}': 1,
+                        'exchange/ticks/{pair}/{from}': 1.8,
                         'assets': 1,
                         'markets': 1,
-                        'exchange/book/{pair}': 1,
+                        'exchange/book/{pair}': 1.8,
                         'exchange/bookUpdates/{pair}/{from}': 1, // not unified
                     },
                 },
