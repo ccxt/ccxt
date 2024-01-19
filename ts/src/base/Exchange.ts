@@ -1341,7 +1341,7 @@ export default class Exchange {
         return this.clients[url];
     }
 
-    watchMultiple (url, messageHashes, message = undefined, subscribeHashes = undefined, subscription = undefined) {
+    watchMultiple (url, messageHashes, messages = undefined, subscribeHashes = undefined, subscription = undefined) {
         //
         // Without comments the code of this method is short and easy:
         //
@@ -1398,13 +1398,14 @@ export default class Exchange {
             connected.then (() => {
                 const options = this.safeValue (this.options, 'ws');
                 const cost = this.safeValue (options, 'cost', 1);
-                if (message) {
+                if (messages) {
                     if (this.enableRateLimit && client.throttle) {
                         // add cost here |
                         //               |
                         //               V
                         client.throttle (cost).then (() => {
-                            client.send (message);
+                            messages.forEach (message => client.send (message));
+                            // client.send (message);
                         }).catch ((e) => {
                             for (let i = 0; i < missingSubscriptions.length; i++) {
                                 const subscribeHash = missingSubscriptions[i];
@@ -1413,14 +1414,16 @@ export default class Exchange {
                             future.reject (e);
                         });
                     } else {
-                        client.send (message)
-                        .catch ((e) => {
-                            for (let i = 0; i < missingSubscriptions.length; i++) {
-                                const subscribeHash = missingSubscriptions[i];
-                                delete client.subscriptions[subscribeHash]
-                            }
-                            future.reject (e);
-                        });
+                        messages.forEach (message => {
+                            client.send (message)
+                            .catch ((e) => {
+                                for (let i = 0; i < missingSubscriptions.length; i++) {
+                                    const subscribeHash = missingSubscriptions[i];
+                                    delete client.subscriptions[subscribeHash]
+                                }
+                                future.reject (e);
+                            })
+                        })
                     }
                 }
             }).catch ((e)=> {
