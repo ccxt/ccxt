@@ -2435,6 +2435,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchPosition
          * @description fetch data on a single open contract trade position
+         * @see https://docs.deribit.com/#private-get_position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -2480,6 +2481,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchPositions
          * @description fetch all open positions
+         * @see https://docs.deribit.com/#private-get_positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.kind] market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
