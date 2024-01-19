@@ -3,6 +3,7 @@ import lbankRest from '../lbank.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, Trade, OrderBook, Order, OHLCV, Ticker } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -822,12 +823,12 @@ export default class lbank extends lbankRest {
         client.reject (error);
     }
 
-    handlePing (client, message) {
+    async handlePing (client: Client, message) {
         //
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
         const pingId = this.safeString (message, 'ping');
-        client.send ({
+        await client.send ({
             'action': 'pong',
             'pong': pingId,
         });
@@ -839,13 +840,16 @@ export default class lbank extends lbankRest {
             return this.handleErrorMessage (client, message);
         }
         const type = this.safeString2 (message, 'type', 'action');
+        if (type === 'ping') {
+            this.spawn (this.handlePing, client, message);
+            return;
+        }
         const handlers = {
             'kbar': this.handleOHLCV,
             'depth': this.handleOrderBook,
             'trade': this.handleTrades,
             'tick': this.handleTicker,
             'orderUpdate': this.handleOrders,
-            'ping': this.handlePing,
         };
         const handler = this.safeValue (handlers, type);
         if (handler !== undefined) {
