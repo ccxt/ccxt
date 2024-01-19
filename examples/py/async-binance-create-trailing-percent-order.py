@@ -12,7 +12,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 
 async def main():
-    exchange = ccxt.binance({
+    exchange = ccxt.binanceusdm({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         # 'verbose': True,  # for debug output
