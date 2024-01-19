@@ -605,6 +605,17 @@
                   "BTC/USD:BTC-240126-39000-C"
                 ]
             }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch funding rate history with a since argument",
+                "method": "fetchFundingRateHistory",
+                "url": "https://test.deribit.com/api/v2/public/get_funding_rate_history?instrument_name=BTC_USDT-PERPETUAL&start_timestamp=1705622399999&end_timestamp=1705631426030",
+                "input": [
+                  "BTC/USDT:USDT",
+                  1705622400000
+                ]
+            }
         ]
     }
 }
