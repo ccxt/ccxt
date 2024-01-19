@@ -20,7 +20,7 @@ export default class coinmetro extends Exchange {
             'name': 'Coinmetro',
             'countries': [ 'EE' ], // Republic of Estonia
             'version': 'v1',
-            'rateLimit': 334,
+            'rateLimit': 200, // 1 request per 200 ms, 20 per minute, 300 per hour, 1k per day
             'certified': false,
             'pro': false,
             'has': {
@@ -151,23 +151,23 @@ export default class coinmetro extends Exchange {
                 'public': {
                     'get': {
                         'demo/temp': 1,
-                        'exchange/candles/{pair}/{timeframe}/{from}/{to}': 1.8,
+                        'exchange/candles/{pair}/{timeframe}/{from}/{to}': 3,
                         'exchange/prices': 1,
-                        'exchange/ticks/{pair}/{from}': 1.8,
+                        'exchange/ticks/{pair}/{from}': 3,
                         'assets': 1,
                         'markets': 1,
-                        'exchange/book/{pair}': 1.8,
+                        'exchange/book/{pair}': 3,
                         'exchange/bookUpdates/{pair}/{from}': 1, // not unified
                     },
                 },
                 'private': {
                     'get': {
                         'users/balances': 1,
-                        'users/wallets/history/{since}': 1,
+                        'users/wallets/history/{since}': 1.67,
                         'exchange/orders/status/{orderID}': 1,
                         'exchange/orders/active': 1,
-                        'exchange/orders/history/{since}': 1,
-                        'exchange/fills/{since}': 1,
+                        'exchange/orders/history/{since}': 1.67,
+                        'exchange/fills/{since}': 1.67,
                         'exchange/margin': 1, // not unified
                     },
                     'post': {
@@ -309,7 +309,6 @@ export default class coinmetro extends Exchange {
             const withdraw = this.safeValue (currency, 'canWithdraw');
             const deposit = this.safeValue (currency, 'canDeposit');
             const canTrade = this.safeValue (currency, 'canTrade');
-            // todo: check active limits and precision (what are notabeneDecimals, digits and bookDigits?)
             const active = canTrade ? withdraw : true;
             const precision = this.safeInteger (currency, 'digits');
             const minAmount = this.safeNumber (currency, 'minQty');
