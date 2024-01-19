@@ -588,6 +588,28 @@
                 ]
             }
         ],
+        "fetchPositions": [
+            {
+                "description": "Swap fetch positions",
+                "method": "fetchPositions",
+                "url": "https://test.deribit.com/api/v2/private/get_positions?currency=USDT&kind=future",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "Option fetch positions",
+                "method": "fetchPositions",
+                "url": "https://test.deribit.com/api/v2/private/get_positions?currency=BTC&kind=option",
+                "input": [
+                  [
+                    "BTC/USD:BTC-240126-39000-C"
+                  ]
+                ]
+            }
+        ],
         "fetchPosition": [
             {
                 "description": "Swap fetch position",
