@@ -40,6 +40,7 @@ export default class protondex extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
@@ -626,6 +627,51 @@ export default class protondex extends Exchange {
             }
         }
         return this.parseOrders (closedOrders, market, 1, 100, { 'allMarkets': marketIds });
+    }
+
+    async fetchCanceledOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name proton#fetchCanceledOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the proton api endpoint
+         * @param {int|undefined} params.account user account to fetch orders for
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (params['account'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a account argument in params');
+        }
+        const request = {
+            'account': params['account'],
+            'status': 'cancel',
+        };
+        if (symbol !== null) {
+            market = this.market (symbol);
+            request['symbol'] = market['symbol'];
+        }
+        request['offset'] = (params['offset'] !== undefined) ? params['offset'] : 0;
+        request['limit'] = (limit !== undefined) ? limit : 100;
+        const response = await this.publicGetOrdersHistory (this.extend (request, params));
+        //
+        //      {
+        //          "data":[
+        //              {
+        //                  "id":"5ec36295-5c8d-4874-8d66-2609d4938557",
+        //                  "price":"4050.06","size":"0.0044",
+        //                  "market_name":"ETH-USDT",
+        //                  "side":"sell",
+        //                  "created_at":"2021-12-07T17:47:36.811000Z"
+        //              },
+        //          ]
+        //      }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market);
     }
 
     async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
