@@ -617,7 +617,6 @@ export default class lbank extends lbankRest {
         //         "TS": "2024-01-19T23:05:18.548"
         //     }
         //
-
         const orderUpdate = this.safeValue (order, 'orderUpdate', {});
         const rawType = this.safeString (orderUpdate, 'type', '');
         const typeParts = rawType.split ('_');
