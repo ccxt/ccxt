@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -297,9 +297,10 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'symbols': [market['id']],
             },
         }
-        return await self.subscribe_public(name, [symbol], self.deep_extend(request, params))
+        result = await self.subscribe_public(name, [symbol], self.deep_extend(request, params))
+        return self.safe_value(result, symbol)
 
-    async def watch_tickers(self, symbols=None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -374,16 +375,16 @@ class hitbtc(ccxt.async_support.hitbtc):
         data = self.safe_value(message, 'data', {})
         marketIds = list(data.keys())
         channel = self.safe_string(message, 'ch')
-        newTickers = []
+        newTickers = {}
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
             symbol = market['symbol']
             ticker = self.parse_ws_ticker(data[marketId], market)
             self.tickers[symbol] = ticker
-            newTickers.append(ticker)
+            newTickers[symbol] = ticker
             messageHash = channel + '::' + symbol
-            client.resolve(self.tickers[symbol], messageHash)
+            client.resolve(newTickers, messageHash)
         messageHashes = self.find_message_hashes(client, channel + '::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]

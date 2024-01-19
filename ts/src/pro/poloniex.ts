@@ -3,7 +3,7 @@
 import poloniexRest from '../poloniex.js';
 import { BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
@@ -372,7 +372,7 @@ export default class poloniex extends poloniexRest {
         return this.safeValue (tickers, symbol);
     }
 
-    async watchTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name poloniex#watchTicker
@@ -961,7 +961,7 @@ export default class poloniex extends poloniexRest {
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        const newTickers = [];
+        const newTickers = {};
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
             const marketId = this.safeString (item, 'symbol');
@@ -969,7 +969,7 @@ export default class poloniex extends poloniexRest {
                 const ticker = this.parseTicker (item);
                 const symbol = ticker['symbol'];
                 this.tickers[symbol] = ticker;
-                newTickers.push (ticker);
+                newTickers[symbol] = ticker;
             }
         }
         const messageHashes = this.findMessageHashes (client, 'ticker::');

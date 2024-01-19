@@ -2128,7 +2128,7 @@ class wavesexchange extends Exchange {
                 'priceAsset' => $market['quoteId'],
             );
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 100);
             }
             if ($since !== null) {
                 $request['timeStart'] = $since;

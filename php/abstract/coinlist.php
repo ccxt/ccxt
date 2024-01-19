@@ -40,6 +40,15 @@ abstract class coinlist extends \ccxt\Exchange {
     public function public_get_v1_assets($params = array()) {
         return $this->request('v1/assets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_v1_leaderboard($params = array()) {
+        return $this->request('v1/leaderboard', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_v1_affiliate_competition_code($params = array()) {
+        return $this->request('v1/affiliate/{competition_code}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_v1_competition_competition_id($params = array()) {
+        return $this->request('v1/competition/{competition_id}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_v1_fees($params = array()) {
         return $this->request('v1/fees', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -48,6 +57,9 @@ abstract class coinlist extends \ccxt\Exchange {
     }
     public function private_get_v1_accounts_trader_id($params = array()) {
         return $this->request('v1/accounts/{trader_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_v1_accounts_trader_id_alias($params = array()) {
+        return $this->request('v1/accounts/{trader_id}/alias', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_v1_accounts_trader_id_ledger($params = array()) {
         return $this->request('v1/accounts/{trader_id}/ledger', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -88,6 +100,12 @@ abstract class coinlist extends \ccxt\Exchange {
     public function private_get_v1_credits($params = array()) {
         return $this->request('v1/credits', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_v1_positions($params = array()) {
+        return $this->request('v1/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_v1_accounts_trader_id_competitions($params = array()) {
+        return $this->request('v1/accounts/{trader_id}/competitions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_post_v1_keys($params = array()) {
         return $this->request('v1/keys', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -114,6 +132,12 @@ abstract class coinlist extends \ccxt\Exchange {
     }
     public function private_post_v1_orders_bulk($params = array()) {
         return $this->request('v1/orders/bulk', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_accounts_trader_id_competitions($params = array()) {
+        return $this->request('v1/accounts/{trader_id}/competitions', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_accounts_trader_id_create_competition($params = array()) {
+        return $this->request('v1/accounts/{trader_id}/create-competition', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_patch_v1_orders_order_id($params = array()) {
         return $this->request('v1/orders/{order_id}', 'private', 'PATCH', $params, null, null, array("cost" => 1));
@@ -166,6 +190,15 @@ abstract class coinlist extends \ccxt\Exchange {
     public function publicGetV1Assets($params = array()) {
         return $this->request('v1/assets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicGetV1Leaderboard($params = array()) {
+        return $this->request('v1/leaderboard', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetV1AffiliateCompetitionCode($params = array()) {
+        return $this->request('v1/affiliate/{competition_code}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetV1CompetitionCompetitionId($params = array()) {
+        return $this->request('v1/competition/{competition_id}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetV1Fees($params = array()) {
         return $this->request('v1/fees', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -174,6 +207,9 @@ abstract class coinlist extends \ccxt\Exchange {
     }
     public function privateGetV1AccountsTraderId($params = array()) {
         return $this->request('v1/accounts/{trader_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetV1AccountsTraderIdAlias($params = array()) {
+        return $this->request('v1/accounts/{trader_id}/alias', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetV1AccountsTraderIdLedger($params = array()) {
         return $this->request('v1/accounts/{trader_id}/ledger', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -214,6 +250,12 @@ abstract class coinlist extends \ccxt\Exchange {
     public function privateGetV1Credits($params = array()) {
         return $this->request('v1/credits', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetV1Positions($params = array()) {
+        return $this->request('v1/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetV1AccountsTraderIdCompetitions($params = array()) {
+        return $this->request('v1/accounts/{trader_id}/competitions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privatePostV1Keys($params = array()) {
         return $this->request('v1/keys', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -240,6 +282,12 @@ abstract class coinlist extends \ccxt\Exchange {
     }
     public function privatePostV1OrdersBulk($params = array()) {
         return $this->request('v1/orders/bulk', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1AccountsTraderIdCompetitions($params = array()) {
+        return $this->request('v1/accounts/{trader_id}/competitions', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1AccountsTraderIdCreateCompetition($params = array()) {
+        return $this->request('v1/accounts/{trader_id}/create-competition', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePatchV1OrdersOrderId($params = array()) {
         return $this->request('v1/orders/{order_id}', 'private', 'PATCH', $params, null, null, array("cost" => 1));

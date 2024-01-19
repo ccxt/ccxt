@@ -44,7 +44,12 @@ export default class bitget extends Exchange {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createReduceOnlyOrder': false,
+                'createStopLossOrder': true,
+                'createTakeProfitOrder': true,
+                'createTrailingPercentOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -2954,7 +2959,11 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            if (market['contract']) {
+                request['limit'] = Math.min (limit, 1000);
+            } else {
+                request['limit'] = limit;
+            }
         }
         const options = this.safeValue (this.options, 'fetchTrades', {});
         let response = undefined;
@@ -3262,11 +3271,12 @@ export default class bitget extends Exchange {
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
         const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
-        let request = {
+        const request = {
             'symbol': market['id'],
             'granularity': selectedTimeframe,
         };
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -3279,14 +3289,15 @@ export default class bitget extends Exchange {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
+            if (until !== undefined) {
+                request['endTime'] = until;
+            }
         }
         let response = undefined;
         if (market['spot']) {
             if (method === 'publicSpotGetV2SpotMarketCandles') {
                 response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
             } else if (method === 'publicSpotGetV2SpotMarketHistoryCandles') {
-                const until = this.safeInteger2 (params, 'until', 'till');
-                params = this.omit (params, [ 'until', 'till' ]);
                 if (since !== undefined) {
                     if (limit === undefined) {
                         limit = 100; // exchange default

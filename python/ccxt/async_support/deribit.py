@@ -53,6 +53,7 @@ class deribit(Exchange, ImplicitAPI):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'createTrailingAmountOrder': True,
                 'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
@@ -1626,6 +1627,9 @@ class deribit(Exchange, ImplicitAPI):
         request = {
             'order_id': id,
         }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         response = await self.privateGetGetOrderState(self.extend(request, params))
         #
         #     {
@@ -1656,7 +1660,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result')
-        return self.parse_order(result)
+        return self.parse_order(result, market)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """

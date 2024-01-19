@@ -880,11 +880,16 @@ class htx(ccxt.async_support.htx):
                 # inject trade in existing order by faking an order object
                 orderId = self.safe_string(parsedTrade, 'order')
                 trades = [parsedTrade]
+                status = self.parse_order_status(self.safe_string_2(data, 'orderStatus', 'status', 'closed'))
+                filled = self.safe_string(data, 'execAmt')
+                remaining = self.safe_string(data, 'remainAmt')
                 order = {
                     'id': orderId,
                     'trades': trades,
-                    'status': 'closed',
+                    'status': status,
                     'symbol': market['symbol'],
+                    'filled': self.parse_number(filled),
+                    'remaining': self.parse_number(remaining),
                 }
                 parsedOrder = order
             else:

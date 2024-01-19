@@ -80,41 +80,47 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     async def negotiate_helper(self, privateChannel, params={}):
         response = None
         connectId = 'private' if privateChannel else 'public'
-        if privateChannel:
-            response = await self.futuresPrivatePostBulletPrivate(params)
-            #
-            #     {
-            #         "code": "200000",
-            #         "data": {
-            #             "instanceServers": [
-            #                 {
-            #                     "pingInterval":  50000,
-            #                     "endpoint": "wss://push-private.kucoin.com/endpoint",
-            #                     "protocol": "websocket",
-            #                     "encrypt": True,
-            #                     "pingTimeout": 10000
-            #                 }
-            #             ],
-            #             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
-            #         }
-            #     }
-            #
-        else:
-            response = await self.futuresPublicPostBulletPublic(params)
-        data = self.safe_value(response, 'data', {})
-        instanceServers = self.safe_value(data, 'instanceServers', [])
-        firstInstanceServer = self.safe_value(instanceServers, 0)
-        pingInterval = self.safe_integer(firstInstanceServer, 'pingInterval')
-        endpoint = self.safe_string(firstInstanceServer, 'endpoint')
-        token = self.safe_string(data, 'token')
-        result = endpoint + '?' + self.urlencode({
-            'token': token,
-            'privateChannel': privateChannel,
-            'connectId': connectId,
-        })
-        client = self.client(result)
-        client.keepAlive = pingInterval
-        return result
+        try:
+            if privateChannel:
+                response = await self.futuresPrivatePostBulletPrivate(params)
+                #
+                #     {
+                #         "code": "200000",
+                #         "data": {
+                #             "instanceServers": [
+                #                 {
+                #                     "pingInterval":  50000,
+                #                     "endpoint": "wss://push-private.kucoin.com/endpoint",
+                #                     "protocol": "websocket",
+                #                     "encrypt": True,
+                #                     "pingTimeout": 10000
+                #                 }
+                #             ],
+                #             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                #         }
+                #     }
+                #
+            else:
+                response = await self.futuresPublicPostBulletPublic(params)
+            data = self.safe_value(response, 'data', {})
+            instanceServers = self.safe_value(data, 'instanceServers', [])
+            firstInstanceServer = self.safe_value(instanceServers, 0)
+            pingInterval = self.safe_integer(firstInstanceServer, 'pingInterval')
+            endpoint = self.safe_string(firstInstanceServer, 'endpoint')
+            token = self.safe_string(data, 'token')
+            result = endpoint + '?' + self.urlencode({
+                'token': token,
+                'privateChannel': privateChannel,
+                'connectId': connectId,
+            })
+            client = self.client(result)
+            client.keepAlive = pingInterval
+            return result
+        except Exception as e:
+            future = self.safe_value(self.options['urls'], connectId)
+            future.reject(e)
+            del self.options['urls'][connectId]
+        return None
 
     def request_id(self):
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)

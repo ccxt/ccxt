@@ -147,7 +147,7 @@ export default class binance extends binanceRest {
             }
             const subscriptionsByStream = this.safeInteger (this.options['numSubscriptionsByStream'], stream, 0);
             const newNumSubscriptions = subscriptionsByStream + numSubscriptions;
-            const subscriptionLimitByStream = this.safeInteger (this.options, 'subscriptionLimitByStream', 200);
+            const subscriptionLimitByStream = this.safeInteger (this.options['subscriptionLimitByStream'], type, 200);
             if (newNumSubscriptions > subscriptionLimitByStream) {
                 throw new BadRequest (this.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
@@ -1002,30 +1002,30 @@ export default class binance extends binanceRest {
         }
         const marketId = this.safeString (message, 's');
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
-        const last = this.safeFloat (message, 'c');
-        const ticker = {
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
+        const last = this.safeString (message, 'c');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (message, 'h'),
-            'low': this.safeFloat (message, 'l'),
-            'bid': this.safeFloat (message, 'b'),
-            'bidVolume': this.safeFloat (message, 'B'),
-            'ask': this.safeFloat (message, 'a'),
-            'askVolume': this.safeFloat (message, 'A'),
-            'vwap': this.safeFloat (message, 'w'),
-            'open': this.safeFloat (message, 'o'),
+            'high': this.safeString (message, 'h'),
+            'low': this.safeString (message, 'l'),
+            'bid': this.safeString (message, 'b'),
+            'bidVolume': this.safeString (message, 'B'),
+            'ask': this.safeString (message, 'a'),
+            'askVolume': this.safeString (message, 'A'),
+            'vwap': this.safeString (message, 'w'),
+            'open': this.safeString (message, 'o'),
             'close': last,
             'last': last,
-            'previousClose': this.safeFloat (message, 'x'), // previous day close
-            'change': this.safeFloat (message, 'p'),
-            'percentage': this.safeFloat (message, 'P'),
+            'previousClose': this.safeString (message, 'x'), // previous day close
+            'change': this.safeString (message, 'p'),
+            'percentage': this.safeString (message, 'P'),
             'average': undefined,
-            'baseVolume': this.safeFloat (message, 'v'),
-            'quoteVolume': this.safeFloat (message, 'q'),
+            'baseVolume': this.safeString (message, 'v'),
+            'quoteVolume': this.safeString (message, 'q'),
             'info': message,
-        };
-        return ticker;
+        }, market);
     }
 
     handleTicker (client: Client, message) {
@@ -1094,7 +1094,7 @@ export default class binance extends binanceRest {
         const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
         const marketType = (isSpot) ? 'spot' : 'contract';
         let rawTickers = [];
-        const newTickers = [];
+        const newTickers = {};
         if (Array.isArray (message)) {
             rawTickers = message;
         } else {
@@ -1105,7 +1105,7 @@ export default class binance extends binanceRest {
             const result = this.parseWsTicker (ticker, marketType);
             const symbol = result['symbol'];
             this.tickers[symbol] = result;
-            newTickers.push (result);
+            newTickers[symbol] = result;
         }
         const messageHashes = this.findMessageHashes (client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
@@ -2293,7 +2293,8 @@ export default class binance extends binanceRest {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
         }
-        let type = this.handleMarketTypeAndParams ('watchPositions', market, params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
         if (type === 'spot' || type === 'margin') {
             type = 'future';
         }

@@ -161,6 +161,16 @@
                 ]
             }
         ],
+        "fetchPosition": [
+            {
+                "description": "Fetch a linear swap position",
+                "method": "fetchPosition",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/positions/BTC_USDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",
@@ -976,6 +986,16 @@
                 ],
                 "output": "{\"contract\":\"XRP_USDT\",\"size\":0,\"price\":0,\"tif\":\"ioc\",\"close\":true}"
               }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "fetchMarketLeverageTiers",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/risk_limit_tiers?contract=BTC_USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

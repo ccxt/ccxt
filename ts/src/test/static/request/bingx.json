@@ -2,7 +2,9 @@
     "exchange": "bingx",
     "skipKeys": [
         "timestamp",
-        "signature"
+        "signature",
+        "startTs",
+        "endTs"
     ],
     "outputType": "urlencoded",
     "methods": {
@@ -376,6 +378,46 @@
                 ]
             }
         ],
+        "createTrailingAmountOrder": [
+            {
+                "description": "Swap create a trailing amount order",
+                "method": "createTrailingAmountOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&price=1000&quantity=0.0001&side=SELL&symbol=BTC-USDT&timestamp=1704859549691&type=TRAILING_STOP_MARKET&signature=f026f00618ba73fdc6f07d69601e8d6d66f861cfaa0d46d08b6bb7eaaa5eb194",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  1000,
+                  null,
+                  {
+                    "reduceOnly": true,
+                    "trailingAmount": 1000
+                  }
+                ]
+            }
+        ],
+        "createTrailingPercentOrder": [
+            {
+                "description": "Swap create a trailing percent order",
+                "method": "createTrailingPercentOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&priceRate=0.05&quantity=0.0001&side=SELL&symbol=BTC-USDT&timestamp=1704859767615&type=TRAILING_STOP_MARKET&signature=682c1e28fea424756445d9c41f4ff1c864293ca1f77b3eec31ca847402afa426",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  5,
+                  null,
+                  {
+                    "reduceOnly": true,
+                    "trailingPercent": 5
+                  }
+                ]
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "Spot cancel order",
@@ -640,6 +682,25 @@
                 "url": "https://open-api.bingx.com/openApi/swap/v1/positionSide/dual?dualSidePosition=true&timestamp=1698777135343&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0",
                 "input": [
                     true
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades - spot",
+                "method": "fetchMyTrades",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/myTrades?symbol=LTC-USDT&timestamp=1699460638640&signature=e5942598ddd9d11cceec8f7e2acb3269c8c2dfe237642314eca3b5d8a5c308e0",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch my trades - swap",
+                "method": "fetchMyTrades",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allFillOrders?endTs=1705040628035&startTs=1687964205000&symbol=LTC-USDT&tradingUnit=CONT&timestamp=1699460638640&signature=e5942598ddd9d11cceec8f7e2acb3269c8c2dfe237642314eca3b5d8a5c308e0",
+                "input": [
+                    "LTC/USDT:USDT",
+                    1687964205000
                 ]
             }
         ]

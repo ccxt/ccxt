@@ -43,6 +43,7 @@ export default class deribit extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createTrailingAmountOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -1685,6 +1686,10 @@ export default class deribit extends Exchange {
         const request = {
             'order_id': id,
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
         const response = await this.privateGetGetOrderState(this.extend(request, params));
         //
         //     {
@@ -1715,7 +1720,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue(response, 'result');
-        return this.parseOrder(result);
+        return this.parseOrder(result, market);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**

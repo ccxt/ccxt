@@ -255,11 +255,11 @@ class upbit extends Exchange {
         } elseif (($locked !== null) && $locked) {
             $active = false;
         }
-        $maxOnetimeWithdrawal = $this->safe_number($withdrawLimits, 'onetime');
-        $maxDailyWithdrawal = $this->safe_number($withdrawLimits, 'daily', $maxOnetimeWithdrawal);
-        $remainingDailyWithdrawal = $this->safe_number($withdrawLimits, 'remaining_daily', $maxDailyWithdrawal);
+        $maxOnetimeWithdrawal = $this->safe_string($withdrawLimits, 'onetime');
+        $maxDailyWithdrawal = $this->safe_string($withdrawLimits, 'daily', $maxOnetimeWithdrawal);
+        $remainingDailyWithdrawal = $this->safe_string($withdrawLimits, 'remaining_daily', $maxDailyWithdrawal);
         $maxWithdrawLimit = null;
-        if ($remainingDailyWithdrawal > 0) {
+        if (Precise::string_gt($remainingDailyWithdrawal, '0')) {
             $maxWithdrawLimit = $remainingDailyWithdrawal;
         } else {
             $maxWithdrawLimit = $maxDailyWithdrawal;
@@ -277,7 +277,7 @@ class upbit extends Exchange {
             'limits' => array(
                 'withdraw' => array(
                     'min' => $this->safe_number($withdrawLimits, 'minimum'),
-                    'max' => $maxWithdrawLimit,
+                    'max' => $this->parse_number($maxWithdrawLimit),
                 ),
             ),
         );
@@ -339,10 +339,10 @@ class upbit extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $state = $this->safe_string($marketInfo, 'state');
-        $bidFee = $this->safe_number($response, 'bid_fee');
-        $askFee = $this->safe_number($response, 'ask_fee');
-        $fee = max ($bidFee, $askFee);
-        return array(
+        $bidFee = $this->safe_string($response, 'bid_fee');
+        $askFee = $this->safe_string($response, 'ask_fee');
+        $fee = $this->parse_number(Precise::string_max($bidFee, $askFee));
+        return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $base . '/' . $quote,
             'base' => $base,
@@ -391,7 +391,7 @@ class upbit extends Exchange {
                 ),
                 'info' => $response,
             ),
-        );
+        ));
     }
 
     public function fetch_markets($params = array ()) {
@@ -420,7 +420,7 @@ class upbit extends Exchange {
         list($quoteId, $baseId) = explode('-', $id);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
             'base' => $base,
@@ -470,7 +470,7 @@ class upbit extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function parse_balance($response): array {
