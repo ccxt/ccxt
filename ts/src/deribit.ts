@@ -2482,9 +2482,11 @@ export default class deribit extends Exchange {
          * @description fetch all open positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.kind] market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
+        let kind = this.safeString (params, 'kind');
         let code = undefined;
         if (symbols === undefined) {
             code = this.codeFromOptions ('fetchPositions', params);
@@ -2498,14 +2500,18 @@ export default class deribit extends Exchange {
                     throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
                 const market = this.market (symbols[0]);
-                code = market['base'];
+                const settle = market['settle'];
+                code = (settle !== undefined) ? settle : market['base'];
+                kind = market['info']['kind'];
             }
         }
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
-            // "kind" : "future", "option"
         };
+        if (kind !== undefined) {
+            request['kind'] = kind;
+        }
         const response = await this.privateGetGetPositions (this.extend (request, params));
         //
         //     {
