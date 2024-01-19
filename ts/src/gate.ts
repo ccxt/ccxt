@@ -119,7 +119,7 @@ export default class gate extends Exchange {
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': true,
                 'fetchMarginMode': false,
-                'fetchMarketLeverageTiers': 'emulated',
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyLiquidations': true,
@@ -416,6 +416,7 @@ export default class gate extends Exchange {
                             '{settle}/liquidates': 1,
                             '{settle}/auto_deleverages': 1,
                             '{settle}/fee': 1,
+                            '{settle}/risk_limit_tiers': 1,
                             '{settle}/price_orders': 1,
                             '{settle}/price_orders/{order_id}': 1,
                         },
@@ -5653,125 +5654,65 @@ export default class gate extends Exchange {
         return this.parseLeverageTiers (response, symbols, 'name');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}) {
         /**
-         * @ignore
          * @method
-         * @description https://www.gate.io/help/futures/perpetual/22162/instrctions-of-risk-limit
-         * @param {object} info Exchange market response for 1 market
-         * @param {object} market CCXT market
+         * @name gate#fetchMarketLeverageTiers
+         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-risk-limit-tiers
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
          */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarketLeverageTiers', market, params);
+        const [ request, requestParams ] = this.prepareRequest (market, type, query);
+        if (type !== 'future' && type !== 'swap') {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers only supports swap and future');
+        }
+        const response = await this.privateFuturesGetSettleRiskLimitTiers (this.extend (request, requestParams));
         //
-        // Perpetual swap
+        //     [
+        //         {
+        //             "maintenance_rate": "0.004",
+        //             "tier": 1,
+        //             "initial_rate": "0.008",
+        //             "leverage_max": "125",
+        //             "risk_limit": "1000000"
+        //         }
+        //     ]
         //
-        //    {
-        //        "name": "BTC_USDT",
-        //        "type": "direct",
-        //        "quanto_multiplier": "0.0001",
-        //        "ref_discount_rate": "0",
-        //        "order_price_deviate": "0.5",
-        //        "maintenance_rate": "0.005",
-        //        "mark_type": "index",
-        //        "last_price": "38026",
-        //        "mark_price": "37985.6",
-        //        "index_price": "37954.92",
-        //        "funding_rate_indicative": "0.000219",
-        //        "mark_price_round": "0.01",
-        //        "funding_offset": 0,
-        //        "in_delisting": false,
-        //        "risk_limit_base": "1000000",
-        //        "interest_rate": "0.0003",
-        //        "order_price_round": "0.1",
-        //        "order_size_min": 1,
-        //        "ref_rebate_rate": "0.2",
-        //        "funding_interval": 28800,
-        //        "risk_limit_step": "1000000",
-        //        "leverage_min": "1",
-        //        "leverage_max": "100",
-        //        "risk_limit_max": "8000000",
-        //        "maker_fee_rate": "-0.00025",
-        //        "taker_fee_rate": "0.00075",
-        //        "funding_rate": "0.002053",
-        //        "order_size_max": 1000000,
-        //        "funding_next_apply": 1610035200,
-        //        "short_users": 977,
-        //        "config_change_time": 1609899548,
-        //        "trade_size": 28530850594,
-        //        "position_size": 5223816,
-        //        "long_users": 455,
-        //        "funding_impact_value": "60000",
-        //        "orders_limit": 50,
-        //        "trade_id": 10851092,
-        //        "orderbook_id": 2129638396
-        //    }
+        return this.parseMarketLeverageTiers (response, market);
+    }
+
+    parseMarketLeverageTiers (info, market: Market = undefined) {
         //
-        // Delivery Futures
+        //     [
+        //         {
+        //             "maintenance_rate": "0.004",
+        //             "tier": 1,
+        //             "initial_rate": "0.008",
+        //             "leverage_max": "125",
+        //             "risk_limit": "1000000"
+        //         }
+        //     ]
         //
-        //    {
-        //        "name": "BTC_USDT_20200814",
-        //        "underlying": "BTC_USDT",
-        //        "cycle": "WEEKLY",
-        //        "type": "direct",
-        //        "quanto_multiplier": "0.0001",
-        //        "mark_type": "index",
-        //        "last_price": "9017",
-        //        "mark_price": "9019",
-        //        "index_price": "9005.3",
-        //        "basis_rate": "0.185095",
-        //        "basis_value": "13.7",
-        //        "basis_impact_value": "100000",
-        //        "settle_price": "0",
-        //        "settle_price_interval": 60,
-        //        "settle_price_duration": 1800,
-        //        "settle_fee_rate": "0.0015",
-        //        "expire_time": 1593763200,
-        //        "order_price_round": "0.1",
-        //        "mark_price_round": "0.1",
-        //        "leverage_min": "1",
-        //        "leverage_max": "100",
-        //        "maintenance_rate": "1000000",
-        //        "risk_limit_base": "140.726652109199",
-        //        "risk_limit_step": "1000000",
-        //        "risk_limit_max": "8000000",
-        //        "maker_fee_rate": "-0.00025",
-        //        "taker_fee_rate": "0.00075",
-        //        "ref_discount_rate": "0",
-        //        "ref_rebate_rate": "0.2",
-        //        "order_price_deviate": "0.5",
-        //        "order_size_min": 1,
-        //        "order_size_max": 1000000,
-        //        "orders_limit": 50,
-        //        "orderbook_id": 63,
-        //        "trade_id": 26,
-        //        "trade_size": 435,
-        //        "position_size": 130,
-        //        "config_change_time": 1593158867,
-        //        "in_delisting": false
-        //    }
-        //
-        const maintenanceMarginUnit = this.safeString (info, 'maintenance_rate'); // '0.005',
-        const leverageMax = this.safeString (info, 'leverage_max'); // '100',
-        const riskLimitStep = this.safeString (info, 'risk_limit_step'); // '1000000',
-        const riskLimitMax = this.safeString (info, 'risk_limit_max'); // '16000000',
-        const initialMarginUnit = Precise.stringDiv ('1', leverageMax);
-        let maintenanceMarginRate = maintenanceMarginUnit;
-        let initialMarginRatio = initialMarginUnit;
-        let floor = '0';
+        let minNotional = 0;
         const tiers = [];
-        while (Precise.stringLt (floor, riskLimitMax)) {
-            const cap = Precise.stringAdd (floor, riskLimitStep);
+        for (let i = 0; i < info.length; i++) {
+            const item = info[i];
+            const maxNotional = this.safeNumber (item, 'risk_limit');
             tiers.push ({
-                'tier': this.parseNumber (Precise.stringDiv (cap, riskLimitStep)),
-                'currency': this.safeString (market, 'settle'),
-                'minNotional': this.parseNumber (floor),
-                'maxNotional': this.parseNumber (cap),
-                'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
-                'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRatio)),
-                'info': info,
+                'tier': this.sum (i, 1),
+                'currency': market['base'],
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
+                'maintenanceMarginRate': this.safeNumber (item, 'maintenance_rate'),
+                'maxLeverage': this.safeNumber (item, 'leverage_max'),
+                'info': item,
             });
-            maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, maintenanceMarginUnit);
-            initialMarginRatio = Precise.stringAdd (initialMarginRatio, initialMarginUnit);
-            floor = cap;
+            minNotional = maxNotional;
         }
         return tiers;
     }
