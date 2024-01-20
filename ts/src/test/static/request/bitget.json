@@ -725,6 +725,12 @@
                     "BTC/USDT:USDT"
                   ]
                 ]
+            },
+            {
+              "description": "Fetch linear positions without symbol",
+              "method": "fetchPositions",
+              "url": "https://api.bitget.com/api/v2/mix/position/all-position?marginCoin=USDT&productType=USDT-FUTURES",
+              "input": []
             }
         ],
         "setLeverage": [

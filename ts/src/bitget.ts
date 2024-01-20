@@ -6137,6 +6137,7 @@ export default class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
          * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -6168,10 +6169,23 @@ export default class bitget extends Exchange {
         let response = undefined;
         let isHistory = false;
         if (method === 'privateMixGetV2MixPositionAllPosition') {
-            if (symbols === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions() requires a symbols argument');
+            let marginCoin = this.safeString (params, 'marginCoin', 'USDT');
+            if (symbols !== undefined) {
+                marginCoin = market['settleId'];
+            } else if (productType === 'USDT-FUTURES') {
+                marginCoin = 'USDT';
+            } else if (productType === 'USDC-FUTURES') {
+                marginCoin = 'USDC';
+            } else if (productType === 'SUSDT-FUTURES') {
+                marginCoin = 'SUSDT';
+            } else if (productType === 'SUSDC-FUTURES') {
+                marginCoin = 'SUSDC';
+            } else if ((productType === 'SCOIN-FUTURES') || (productType === 'COIN-FUTURES')) {
+                if (marginCoin === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchPositions() requires a marginCoin parameter that matches the productType');
+                }
             }
-            request['marginCoin'] = market['settleId'];
+            request['marginCoin'] = marginCoin;
             response = await this.privateMixGetV2MixPositionAllPosition (this.extend (request, params));
         } else {
             isHistory = true;
