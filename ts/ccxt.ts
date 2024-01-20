@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.2.18';
+const version = '4.2.19';
 
 (Exchange as any).ccxtVersion = version
 
@@ -70,6 +70,7 @@ import bithumb from  './src/bithumb.js'
 import bitmart from  './src/bitmart.js'
 import bitmex from  './src/bitmex.js'
 import bitopro from  './src/bitopro.js'
+import bitpanda from  './src/bitpanda.js'
 import bitrue from  './src/bitrue.js'
 import bitso from  './src/bitso.js'
 import bitstamp from  './src/bitstamp.js'
@@ -162,6 +163,7 @@ import bitgetPro from  './src/pro/bitget.js'
 import bitmartPro from  './src/pro/bitmart.js'
 import bitmexPro from  './src/pro/bitmex.js'
 import bitoproPro from  './src/pro/bitopro.js'
+import bitpandaPro from  './src/pro/bitpanda.js'
 import bitruePro from  './src/pro/bitrue.js'
 import bitstampPro from  './src/pro/bitstamp.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
@@ -191,6 +193,7 @@ import krakenPro from  './src/pro/kraken.js'
 import krakenfuturesPro from  './src/pro/krakenfutures.js'
 import kucoinPro from  './src/pro/kucoin.js'
 import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
+import lbankPro from  './src/pro/lbank.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
 import ndaxPro from  './src/pro/ndax.js'
@@ -231,6 +234,7 @@ const exchanges = {
     'bitmart':                bitmart,
     'bitmex':                 bitmex,
     'bitopro':                bitopro,
+    'bitpanda':               bitpanda,
     'bitrue':                 bitrue,
     'bitso':                  bitso,
     'bitstamp':               bitstamp,
@@ -323,6 +327,7 @@ const pro = {
     'bitmart':                bitmartPro,
     'bitmex':                 bitmexPro,
     'bitopro':                bitoproPro,
+    'bitpanda':               bitpandaPro,
     'bitrue':                 bitruePro,
     'bitstamp':               bitstampPro,
     'bitvavo':                bitvavoPro,
@@ -352,6 +357,7 @@ const pro = {
     'krakenfutures':          krakenfuturesPro,
     'kucoin':                 kucoinPro,
     'kucoinfutures':          kucoinfuturesPro,
+    'lbank':                  lbankPro,
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
     'ndax':                   ndaxPro,
@@ -470,6 +476,7 @@ export {
     bitmart,
     bitmex,
     bitopro,
+    bitpanda,
     bitrue,
     bitso,
     bitstamp,

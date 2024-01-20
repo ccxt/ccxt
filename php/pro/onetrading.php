@@ -11,7 +11,7 @@ use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 
-class bitpanda extends \ccxt\async\bitpanda {
+class onetrading extends \ccxt\async\onetrading {
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -27,11 +27,8 @@ class bitpanda extends \ccxt\async\bitpanda {
                 'watchOHLCV' => true,
             ),
             'urls' => array(
-                'test' => array(
-                    'ws' => 'wss://test.bitpanda.com/ws/api/v2',
-                ),
                 'api' => array(
-                    'ws' => 'wss://streams.exchange.bitpanda.com',
+                    'ws' => 'wss://streams.onetrading.com/',
                 ),
             ),
             'options' => array(

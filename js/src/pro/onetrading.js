@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import bitpandaRest from '../bitpanda.js';
+import onetradingRest from '../onetrading.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
-export default class bitpanda extends bitpandaRest {
+export default class onetrading extends onetradingRest {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -24,11 +24,8 @@ export default class bitpanda extends bitpandaRest {
                 'watchOHLCV': true,
             },
             'urls': {
-                'test': {
-                    'ws': 'wss://test.bitpanda.com/ws/api/v2',
-                },
                 'api': {
-                    'ws': 'wss://streams.exchange.bitpanda.com',
+                    'ws': 'wss://streams.onetrading.com/',
                 },
             },
             'options': {

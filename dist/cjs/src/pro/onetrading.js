@@ -1,12 +1,12 @@
 'use strict';
 
-var bitpanda$1 = require('../bitpanda.js');
+var onetrading$1 = require('../onetrading.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitpanda extends bitpanda$1 {
+class onetrading extends onetrading$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -21,11 +21,8 @@ class bitpanda extends bitpanda$1 {
                 'watchOHLCV': true,
             },
             'urls': {
-                'test': {
-                    'ws': 'wss://test.bitpanda.com/ws/api/v2',
-                },
                 'api': {
-                    'ws': 'wss://streams.exchange.bitpanda.com',
+                    'ws': 'wss://streams.onetrading.com/',
                 },
             },
             'options': {
@@ -1338,4 +1335,4 @@ class bitpanda extends bitpanda$1 {
     }
 }
 
-module.exports = bitpanda;
+module.exports = onetrading;

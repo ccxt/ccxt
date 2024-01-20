@@ -6,14 +6,14 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\abstract\bitpanda as Exchange;
+use ccxt\abstract\onetrading as Exchange;
 
-class bitpanda extends Exchange {
+class onetrading extends Exchange {
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
-            'id' => 'bitpanda',
-            'name' => 'Bitpanda Pro',
+            'id' => 'onetrading',
+            'name' => 'One Trading',
             'countries' => array( 'AT' ), // Austria
             'rateLimit' => 300,
             'version' => 'v1',
@@ -109,16 +109,16 @@ class bitpanda extends Exchange {
                 '1M' => '1/MONTHS',
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg',
+                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c',
                 'api' => array(
-                    'public' => 'https://api.exchange.bitpanda.com/public',
-                    'private' => 'https://api.exchange.bitpanda.com/public',
+                    'public' => 'https://api.onetrading.com/public',
+                    'private' => 'https://api.onetrading.com/public',
                 ),
-                'www' => 'https://www.bitpanda.com/en/pro',
+                'www' => 'https://onetrading.com/',
                 'doc' => array(
-                    'https://developers.bitpanda.com/exchange/',
+                    'https://docs.onetrading.com',
                 ),
-                'fees' => 'https://www.bitpanda.com/en/pro/fees',
+                'fees' => 'https://onetrading.com/fees',
             ),
             'api' => array(
                 'public' => array(
@@ -355,7 +355,7 @@ class bitpanda extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
-         * retrieves data on all markets for bitpanda
+         * retrieves data on all markets for onetrading
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -1494,7 +1494,7 @@ class bitpanda extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->triggerPrice] bitpanda only does stop limit orders and does not do stop $market
+         * @param {float} [$params->triggerPrice] onetrading only does stop limit orders and does not do stop $market
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -1626,7 +1626,7 @@ class bitpanda extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
-         * @param {string} $symbol not used by bitpanda fetchOrder
+         * @param {string} $symbol not used by onetrading fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */

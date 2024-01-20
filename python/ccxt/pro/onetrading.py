@@ -12,10 +12,10 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
 
-class bitpanda(ccxt.async_support.bitpanda):
+class onetrading(ccxt.async_support.onetrading):
 
     def describe(self):
-        return self.deep_extend(super(bitpanda, self).describe(), {
+        return self.deep_extend(super(onetrading, self).describe(), {
             'has': {
                 'ws': True,
                 'watchBalance': True,
@@ -28,11 +28,8 @@ class bitpanda(ccxt.async_support.bitpanda):
                 'watchOHLCV': True,
             },
             'urls': {
-                'test': {
-                    'ws': 'wss://test.bitpanda.com/ws/api/v2',
-                },
                 'api': {
-                    'ws': 'wss://streams.exchange.bitpanda.com',
+                    'ws': 'wss://streams.onetrading.com/',
                 },
             },
             'options': {
