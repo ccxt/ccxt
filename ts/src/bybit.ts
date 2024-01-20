@@ -3036,11 +3036,37 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const method = 'privateGetV5AssetTransferQueryAccountCoinsBalance';
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const isSpot = (type === 'spot');
+        const isSwap = (type === 'swap');
+        if (isUnifiedAccount) {
+            if (isSpot || isSwap) {
+                type = 'unified';
+            }
+        } else {
+            if (isSwap) {
+                type = 'contract';
+            }
+        }
         const accountTypes = this.safeValue (this.options, 'accountsByType', {});
-        const accountType = this.safeString (accountTypes, params['accountType'], 'SPOT');
-        params['accountType'] = accountType;
-        const response = await this[method] (this.extend (request, params));
+        const unifiedType = this.safeStringUpper (accountTypes, type, type);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        let response = undefined;
+        if (isSpot && (marginMode !== undefined)) {
+            response = await this.privateGetV5SpotCrossMarginTradeAccount (this.extend (request, params));
+        } else if (unifiedType === 'FUND') {
+            // use this endpoint only we have no other choice
+            // because it requires transfer permission
+            request['accountType'] = unifiedType;
+            response = await this.privateGetV5AssetTransferQueryAccountCoinsBalance (this.extend (request, params));
+        } else {
+            request['accountType'] = unifiedType;
+            response = await this.privateGetV5AccountWalletBalance (this.extend (request, params));
+        }
         //
         // cross
         //     {
