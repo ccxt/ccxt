@@ -353,6 +353,7 @@
         }
     },
     "bitpanda": {
+        "skip": "migrated to onetrading",
         "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "some bid might be lower than next bid",
