@@ -7,7 +7,8 @@ import type { Tickers, Int, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { AuthenticationError, ExchangeError } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, InvalidNonce } from '../base/errors.js';
+import { CountedOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -167,13 +168,76 @@ export default class zonda extends zondaRest {
         if (limit !== undefined) {
             name = 'orderbook-limited/' + market['id'] + '/' + limit;
         }
-        const orderbook = await this.subscribePublic (name, true, params);
+        const url = this.urls['api']['ws'];
+        const subscribe = {
+            'action': 'subscribe-public',
+            'module': 'trading',
+            'path': name,
+        };
+        name = name.toLowerCase ();
+        const messageHash = name;
+        const subscription = {
+            'requestId': this.uuid (),
+            'name': name,
+            'symbol': symbol,
+            'method': this.handleOrderBookSubscription,
+            'limit': limit,
+            'params': params,
+        };
+        const message = this.extend (subscribe, params);
+        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit ();
     }
 
+    handleOrderBookSubscription (client: Client, message, subscription) {
+        const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+        this.orderbooks[symbol] = new CountedOrderBook ({}, limit);
+        subscription = this.extend (subscription, { 'symbol': symbol });
+        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+    }
+
+    async fetchOrderBookSnapshot (client, message, subscription) {
+        const name = this.safeString (subscription, 'name');
+        const requestId = this.safeString (subscription, 'requestId');
+        const symbol = this.safeString (subscription, 'symbol');
+        const url = this.urls['api']['ws'];
+        const request = {
+            'requestId': requestId,
+            'action': 'proxy',
+            'module': 'trading',
+            'path': name,
+        };
+        const messageHash = name;
+        try {
+            const snapshot = await this.watch (url, requestId, request, requestId, subscription);
+            const orderbook = this.safeValue (this.orderbooks, symbol);
+            if (orderbook === undefined) {
+                // if the orderbook is dropped before the snapshot is received
+                return;
+            }
+            orderbook.reset (snapshot);
+            // unroll the accumulated deltas
+            const messages = orderbook.cache;
+            for (let i = 0; i < messages.length; i++) {
+                const messageItem = messages[i];
+                const nonce = this.safeInteger (messageItem, 'seqNo');
+                // Drop any event where u is <= lastUpdateId in the snapshot
+                if (nonce <= orderbook['nonce']) {
+                    continue;
+                }
+                this.handleOrderBookMessage (client, messageItem, orderbook);
+            }
+            this.orderbooks[symbol] = orderbook;
+            client.resolve (orderbook, messageHash);
+        } catch (e) {
+            delete client.subscriptions[messageHash];
+            client.reject (e, messageHash);
+        }
+    }
+
     handleOrderBook (client: Client, message) {
-        //
-        // update
         //
         //   {
         //       action: 'push',
@@ -200,48 +264,98 @@ export default class zonda extends zondaRest {
         //       seqNo: 943857832
         //   }
         //
-        const data = this.safeValue2 (message, 'snapshot', 'update', {});
-        const marketIds = Object.keys (data);
-        const channel = this.safeString (message, 'ch');
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
-            const item = data[marketId];
-            const messageHash = channel + '::' + symbol;
-            if (!(symbol in this.orderbooks)) {
-                const subscription = this.safeValue (client.subscriptions, messageHash, {});
-                const limit = this.safeInteger (subscription, 'limit');
-                this.orderbooks[symbol] = this.orderBook ({}, limit);
-            }
-            const timestamp = this.safeInteger (item, 't');
-            const nonce = this.safeInteger (item, 's');
-            const orderbook = this.orderbooks[symbol];
-            const asks = this.safeValue (item, 'a', []);
-            const bids = this.safeValue (item, 'b', []);
-            this.handleDeltas (orderbook['asks'], asks);
-            this.handleDeltas (orderbook['bids'], bids);
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
-            orderbook['nonce'] = nonce;
-            orderbook['symbol'] = symbol;
-            this.orderbooks[symbol] = orderbook;
-            client.resolve (orderbook, messageHash);
+        const topic = this.safeString (message, 'topic');
+        const parts = topic.split ('/');
+        const marketId = this.safeString (parts, 2);
+        const market = this.safeMarket (marketId, undefined, '-');
+        const symbol = market['symbol'];
+        const messageHash = 'orderbook/' + marketId;
+        const orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            // Sometimes Binance sends the first delta before the subscription
+            // confirmation arrives. At that point the orderbook is not
+            // initialized yet and the snapshot has not been requested yet
+            // therefore it is safe to drop these premature messages.
+            //
+            return;
         }
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        if (nonce === undefined) {
+            // 2. Buffer the events you receive from the stream.
+            orderbook.cache.push (message);
+            return;
+        }
+        try {
+            this.handleOrderBookMessage (client, message, orderbook);
+            client.resolve (orderbook, messageHash);
+        } catch (e) {
+            delete this.orderbooks[symbol];
+            delete client.subscriptions[messageHash];
+            client.reject (e, messageHash);
+        }
+    }
+
+    handleOrderBookMessage (client: Client, message, orderbook) {
+        //
+        //   {
+        //       action: 'push',
+        //       topic: 'trading/orderbook/btc-usdt',
+        //       message: {
+        //            changes: [
+        //                {
+        //                    "marketCode": "BTC-PLN",
+        //                    "entryType": "Buy",
+        //                    "rate": "27601.35",
+        //                    "action": "update",
+        //                    "state": {
+        //                        "ra": "27601.35",
+        //                        "ca": "0.46205049",
+        //                        "sa": "0.46205049",
+        //                        "pa": "0.46205049",
+        //                        "co": 4
+        //                    }
+        //                }
+        //            ],
+        //            timestamp: '1705448464172'
+        //       },
+        //       timestamp: '1705448464172',
+        //       seqNo: 943857832
+        //   }
+        //
+        const nonce = this.safeInteger (message, 'seqNo');
+        if (nonce !== orderbook['nonce'] + 1) {
+            throw new InvalidNonce (this.id + ' watchOrderBook received an out-of-order nonce');
+        }
+        const data = this.safeValue (message, 'message');
+        const changes = this.safeValue (data, 'changes');
+        const timestamp = this.safeInteger (data, 'timestamp');
+        for (let i = 0; i < changes.length; i++) {
+            const change = changes[i];
+            const sideId = this.safeString (change, 'sideEntry');
+            const side = (sideId === 'Buy') ? 'asks' : 'bids';
+            const state = this.safeValue (change, 'state');
+            this.handleDelta (orderbook[side], state);
+        }
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['nonce'] = nonce;
+        return orderbook;
     }
 
     handleDelta (bookside, delta) {
-        // TODO
-        const price = this.safeNumber (delta, 0);
-        const amount = this.safeNumber (delta, 1);
-        bookside.store (price, amount);
-    }
-
-    handleDeltas (bookside, deltas) {
-        // TODO
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i]);
-        }
+        //
+        //    {
+        //        "ra": "27601.35",
+        //        "ca": "0.46205049",
+        //        "sa": "0.46205049",
+        //        "pa": "0.46205049",
+        //        "co": 4
+        //    }
+        //
+        const price = this.safeNumber (delta, 'ra');
+        const amount = this.safeNumber (delta, 'ca');
+        const count = this.safeInteger (delta, 'co');
+        bookside.store (price, amount, count);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -262,10 +376,7 @@ export default class zonda extends zondaRest {
         params = this.omit (params, [ 'method', 'defaultMethod' ]);
         const market = this.market (symbol);
         const name = method + '/' + market['id'];
-        const url = this.urls['api']['ws'];
-        const snapshot = await this.subscribePublic (name, true, params);
-        const snapshotResponse = this.handleTicker (client, message);
-        return await this.subscribePublic (name, true, params);
+        return await this.subscribePublic (name, false, params);
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -884,8 +995,82 @@ export default class zonda extends zondaRest {
         return message;
     }
 
+    handleSubscriptionStatus (client: Client, message) {
+        //
+        //    {
+        //        action: 'subscribe-public-confirm',
+        //        module: 'trading',
+        //        path: 'orderbook/btc-usdt'
+        //    }
+        //
+        const name = this.safeString (message, 'path', '');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'name');
+        const subscription = this.safeValue (subscriptionsById, name, {});
+        const method = this.safeValue (subscription, 'method');
+        if (method !== undefined) {
+            method.call (this, client, message, subscription);
+        }
+        return message;
+    }
+
+    handleSnapshot (client: Client, message) {
+        //
+        //    {
+        //        "action": "proxy-response",
+        //        "requestId": "78539fe0-e9b0-4e4e-8c86-70b36aa93d4f",
+        //        "statusCode": 200,
+        //        "body": {
+        //          "status": "Ok",
+        //          "sell": [
+        //            {
+        //              "ra": "27779.61",
+        //              "ca": "2.02",
+        //              "sa": "2.02",
+        //              "pa": "2.02",
+        //              "co": 1
+        //            }
+        //          ],
+        //          "buy": [
+        //            {
+        //              "ra": "27300",
+        //              "ca": "0.0531304",
+        //              "sa": "0.0531304",
+        //              "pa": "0.0531304",
+        //              "co": 2
+        //            }
+        //          ],
+        //          "timestamp": "1576847127883",
+        //          "seqNo": "40019280"
+        //        }
+        //    }
+        //
+        const messageHash = this.safeString (message, 'requestId');
+        const body = this.safeValue (message, 'body');
+        const rawBids = this.safeValue (body, 'buy', []);
+        const rawAsks = this.safeValue (body, 'sell', []);
+        const timestamp = this.safeInteger (body, 'timestamp');
+        const subscription = this.safeValue (client.subscriptions, messageHash);
+        const symbol = this.safeString (subscription, 'symbol');
+        const orderbook = {
+            'symbol': symbol,
+            'bids': this.parseBidsAsks (rawBids, 'ra', 'ca', 'co'),
+            'asks': this.parseBidsAsks (rawAsks, 'ra', 'ca', 'co'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': this.safeInteger (body, 'seqNo'),
+        };
+        client.resolve (orderbook, messageHash);
+    }
+
     handleMessage (client: Client, message) {
         this.handleError (client, message);
+        const action = this.safeString (message, 'action');
+        if (action === 'subscribe-public-confirm') {
+            return this.handleSubscriptionStatus (client, message);
+        }
+        if (action === 'proxy-response') {
+            return this.handleSnapshot (client, message);
+        }
         const topic = this.safeString (message, 'topic');
         let splitTopic = undefined;
         if (topic !== undefined) {
