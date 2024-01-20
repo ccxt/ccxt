@@ -1880,10 +1880,10 @@ export default class kucoinfutures extends kucoin {
             'fundingRate': this.safeNumber (data, 'value'),
             'fundingTimestamp': undefined,
             'fundingDatetime': undefined,
-            'nextFundingRate': undefined,
+            'nextFundingRate': this.safeNumber (data, 'predictedValue'),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
-            'previousFundingRate': this.safeNumber (data, 'predictedValue'),
+            'previousFundingRate': undefined,
             'previousFundingTimestamp': fundingTimestamp,
             'previousFundingDatetime': this.iso8601 (fundingTimestamp),
         };
