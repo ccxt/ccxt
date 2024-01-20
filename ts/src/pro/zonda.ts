@@ -109,33 +109,18 @@ export default class zonda extends zondaRest {
          */
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
-        const messageHashes = [
-            name + '::snapshot',
-            name,
-        ];
-        const subscribeSnapshot = {
-            'action': 'proxy',
-            'module': 'trading',
-            'path': name,
-            'requestId': this.milliseconds (),
-        };
         const subscribe = {
-            'action': 'subscribe-public',
+            'action': snapshot ? 'proxy' : 'subscribe-public',
             'module': 'trading',
             'path': name,
         };
-        const messages = [
-            this.extend (subscribeSnapshot, params),
-            this.extend (subscribe, params),
-        ];
-        // const client = this.client (url);
-        // for (let i = 0; i < subscriptionHashes.length; i++) {
-        //     const subscriptionHash = subscriptionHashes[i];
-        //     if (!(subscriptionHash in client.subscriptions)) {
-        //         client.subscriptions[requestId] = subscriptionHash;
-        //     }
-        // }
-        return await this.watchMultiple (url, messageHashes, messages, messageHashes);
+        let messageHash = name;
+        if (snapshot) {
+            subscribe['requestId'] = this.milliseconds ();
+            messageHash += '::snapshot';
+        }
+        const message = this.extend (subscribe, params);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     async subscribePrivate (name: string, symbol: Str = undefined, params = {}) {
@@ -277,6 +262,9 @@ export default class zonda extends zondaRest {
         params = this.omit (params, [ 'method', 'defaultMethod' ]);
         const market = this.market (symbol);
         const name = method + '/' + market['id'];
+        const url = this.urls['api']['ws'];
+        const snapshot = await this.subscribePublic (name, true, params);
+        const snapshotResponse = this.handleTicker (client, message);
         return await this.subscribePublic (name, true, params);
     }
 
