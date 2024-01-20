@@ -9,6 +9,7 @@ interface Exchange {
     spotV1PrivateGetTradeQuery(params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetTradeOpenOrders(params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetTradeHistoryOrders(params?: {}): Promise<implicitReturnType>;
+    spotV1PrivateGetTradeMyTrades(params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetUserCommissionRate(params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetAccountBalance(params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeOrder(params?: {}): Promise<implicitReturnType>;
@@ -38,6 +39,7 @@ interface Exchange {
     swapV2PrivateGetUserPositions(params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetUserIncome(params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetTradeOpenOrders(params?: {}): Promise<implicitReturnType>;
+    swapV2PrivateGetTradeOpenOrder(params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetTradeOrder(params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetTradeMarginType(params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetTradeLeverage(params?: {}): Promise<implicitReturnType>;

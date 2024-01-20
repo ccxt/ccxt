@@ -2098,7 +2098,12 @@ class delta extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($method === 'privateGetOrders') {
+                $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+            } elseif ($method === 'privateGetOrdersHistory') {
+                $response = Async\await($this->privateGetOrdersHistory (array_merge($request, $params)));
+            }
             //
             //     {
             //         "success" => true,

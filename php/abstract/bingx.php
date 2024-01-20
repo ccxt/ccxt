@@ -31,6 +31,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function spot_v1_private_get_trade_historyorders($params = array()) {
         return $this->request('trade/historyOrders', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function spot_v1_private_get_trade_mytrades($params = array()) {
+        return $this->request('trade/myTrades', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function spot_v1_private_get_user_commissionrate($params = array()) {
         return $this->request('user/commissionRate', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -117,6 +120,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swap_v2_private_get_trade_openorders($params = array()) {
         return $this->request('trade/openOrders', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function swap_v2_private_get_trade_openorder($params = array()) {
+        return $this->request('trade/openOrder', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
     public function swap_v2_private_get_trade_order($params = array()) {
         return $this->request('trade/order', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
@@ -298,6 +304,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function spotV1PrivateGetTradeHistoryOrders($params = array()) {
         return $this->request('trade/historyOrders', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function spotV1PrivateGetTradeMyTrades($params = array()) {
+        return $this->request('trade/myTrades', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function spotV1PrivateGetUserCommissionRate($params = array()) {
         return $this->request('user/commissionRate', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -384,6 +393,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swapV2PrivateGetTradeOpenOrders($params = array()) {
         return $this->request('trade/openOrders', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function swapV2PrivateGetTradeOpenOrder($params = array()) {
+        return $this->request('trade/openOrder', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
     public function swapV2PrivateGetTradeOrder($params = array()) {
         return $this->request('trade/order', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));

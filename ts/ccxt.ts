@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.2.10';
+const version = '4.2.18';
 
 (Exchange as any).ccxtVersion = version
 
@@ -170,7 +170,9 @@ import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
 import coinbaseproPro from  './src/pro/coinbasepro.js'
+import coincheckPro from  './src/pro/coincheck.js'
 import coinexPro from  './src/pro/coinex.js'
+import coinonePro from  './src/pro/coinone.js'
 import cryptocomPro from  './src/pro/cryptocom.js'
 import currencycomPro from  './src/pro/currencycom.js'
 import deribitPro from  './src/pro/deribit.js'
@@ -329,7 +331,9 @@ const pro = {
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
     'coinbasepro':            coinbaseproPro,
+    'coincheck':              coincheckPro,
     'coinex':                 coinexPro,
+    'coinone':                coinonePro,
     'cryptocom':              cryptocomPro,
     'currencycom':            currencycomPro,
     'deribit':                deribitPro,

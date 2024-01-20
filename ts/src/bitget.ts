@@ -44,7 +44,12 @@ export default class bitget extends Exchange {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createReduceOnlyOrder': false,
+                'createStopLossOrder': true,
+                'createTakeProfitOrder': true,
+                'createTrailingPercentOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -2954,7 +2959,11 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            if (market['contract']) {
+                request['limit'] = Math.min (limit, 1000);
+            } else {
+                request['limit'] = limit;
+            }
         }
         const options = this.safeValue (this.options, 'fetchTrades', {});
         let response = undefined;
@@ -3262,30 +3271,42 @@ export default class bitget extends Exchange {
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
         const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
-        let request = {
+        const request = {
             'symbol': market['id'],
             'granularity': selectedTimeframe,
         };
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        if (since !== undefined) {
-            request['startTime'] = limit;
-        }
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const spotOptions = this.safeValue (options, 'spot', {});
+        const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
+        const method = this.safeString (params, 'method', defaultSpotMethod);
+        params = this.omit (params, 'method');
+        if (method !== 'publicSpotGetV2SpotMarketHistoryCandles') {
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if (until !== undefined) {
+                request['endTime'] = until;
+            }
+        }
         let response = undefined;
         if (market['spot']) {
-            const spotOptions = this.safeValue (options, 'spot', {});
-            const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
-            const method = this.safeString (params, 'method', defaultSpotMethod);
-            params = this.omit (params, 'method');
             if (method === 'publicSpotGetV2SpotMarketCandles') {
                 response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
             } else if (method === 'publicSpotGetV2SpotMarketHistoryCandles') {
-                const until = this.safeInteger2 (params, 'until', 'till');
-                params = this.omit (params, [ 'until', 'till' ]);
-                if (until === undefined) {
+                if (since !== undefined) {
+                    if (limit === undefined) {
+                        limit = 100; // exchange default
+                    }
+                    const duration = this.parseTimeframe (timeframe) * 1000;
+                    request['endTime'] = this.sum (since, duration * limit);
+                } else if (until !== undefined) {
+                    request['endTime'] = until;
+                } else {
                     request['endTime'] = this.milliseconds ();
                 }
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
@@ -6116,6 +6137,7 @@ export default class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
          * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -6147,10 +6169,23 @@ export default class bitget extends Exchange {
         let response = undefined;
         let isHistory = false;
         if (method === 'privateMixGetV2MixPositionAllPosition') {
-            if (symbols === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions() requires a symbols argument');
+            let marginCoin = this.safeString (params, 'marginCoin', 'USDT');
+            if (symbols !== undefined) {
+                marginCoin = market['settleId'];
+            } else if (productType === 'USDT-FUTURES') {
+                marginCoin = 'USDT';
+            } else if (productType === 'USDC-FUTURES') {
+                marginCoin = 'USDC';
+            } else if (productType === 'SUSDT-FUTURES') {
+                marginCoin = 'SUSDT';
+            } else if (productType === 'SUSDC-FUTURES') {
+                marginCoin = 'SUSDC';
+            } else if ((productType === 'SCOIN-FUTURES') || (productType === 'COIN-FUTURES')) {
+                if (marginCoin === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchPositions() requires a marginCoin parameter that matches the productType');
+                }
             }
-            request['marginCoin'] = market['settleId'];
+            request['marginCoin'] = marginCoin;
             response = await this.privateMixGetV2MixPositionAllPosition (this.extend (request, params));
         } else {
             isHistory = true;

@@ -2093,7 +2093,12 @@ export default class delta extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'privateGetOrders') {
+            response = await this.privateGetOrders (this.extend (request, params));
+        } else if (method === 'privateGetOrdersHistory') {
+            response = await this.privateGetOrdersHistory (this.extend (request, params));
+        }
         //
         //     {
         //         "success": true,

@@ -1996,7 +1996,11 @@ class delta(Exchange, ImplicitAPI):
             request['start_time'] = str(since) + '000'
         if limit is not None:
             request['page_size'] = limit
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetOrders':
+            response = self.privateGetOrders(self.extend(request, params))
+        elif method == 'privateGetOrdersHistory':
+            response = self.privateGetOrdersHistory(self.extend(request, params))
         #
         #     {
         #         "success": True,

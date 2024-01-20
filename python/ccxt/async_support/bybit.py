@@ -57,11 +57,16 @@ class bybit(Exchange, ImplicitAPI):
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,
+                'createOrderWithTakeProfitAndStopLoss': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
+                'createStopLossOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'createTakeProfitOrder': True,
+                'createTrailingAmountOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,  # temporarily disabled, doesn't work
@@ -308,6 +313,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/wallet-balance': 1,
                         'v5/account/borrow-history': 1,
                         'v5/account/set-collateral-switch': 5,
+                        'v5/account/set-collateral-switch-batch': 5,
                         'v5/account/collateral-info': 1,
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
@@ -332,7 +338,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/asset/deposit/query-internal-record': 5,
                         'v5/asset/deposit/query-address': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-sub-member-address': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/asset/coin/query-info': 25,  # 2/s => cost = 50 / 2 = 25
+                        'v5/asset/coin/query-info': 28,  # should be 25 but exceeds ratelimit unless the weight is 28 or higher
                         'v5/asset/withdraw/query-record': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount': 5,
                         # user
@@ -3719,7 +3725,7 @@ class bybit(Exchange, ImplicitAPI):
         if market['option']:
             response = await self.privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder(self.extend(request, params))
         else:
-            isStop = self.safe_value(params, 'stop', False)
+            isStop = self.safe_value_2(params, 'stop', 'trigger', False)
             triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
             stopLossPrice = self.safe_value(params, 'stopLossPrice')
             isStopLossOrder = stopLossPrice is not None
@@ -3875,8 +3881,8 @@ class bybit(Exchange, ImplicitAPI):
             # 'orderLinkId': 'string',  # one of order_id, stop_order_id or order_link_id is required
             # 'orderId': id,
         }
-        isStop = self.safe_value(params, 'stop', False)
-        params = self.omit(params, ['stop'])
+        isStop = self.safe_value_2(params, 'stop', 'trigger', False)
+        params = self.omit(params, ['stop', 'trigger'])
         if id is not None:  # The user can also use argument params["order_link_id"]
             request['orderId'] = id
         response = None
@@ -3930,9 +3936,9 @@ class bybit(Exchange, ImplicitAPI):
         }
         if market['spot']:
             # only works for spot market
-            isStop = self.safe_value(params, 'stop', False)
-            params = self.omit(params, ['stop'])
-            request['orderFilter'] = 'tpslOrder' if isStop else 'Order'
+            isStop = self.safe_value_2(params, 'stop', 'trigger', False)
+            params = self.omit(params, ['stop', 'trigger'])
+            request['orderFilter'] = 'StopOrder' if isStop else 'Order'
         if id is not None:  # The user can also use argument params["orderLinkId"]
             request['orderId'] = id
         if market['spot']:
@@ -3971,12 +3977,12 @@ class bybit(Exchange, ImplicitAPI):
         if market['option']:
             response = await self.privatePostOptionUsdcOpenapiPrivateV1CancelAll(self.extend(request, params))
         else:
-            isStop = self.safe_value(params, 'stop', False)
+            isStop = self.safe_value_2(params, 'stop', 'trigger', False)
             if isStop:
                 request['orderFilter'] = 'StopOrder'
             else:
                 request['orderFilter'] = 'Order'
-            params = self.omit(params, ['stop'])
+            params = self.omit(params, ['stop', 'trigger'])
             response = await self.privatePostPerpetualUsdcOpenapiPrivateV1CancelAll(self.extend(request, params))
         #
         #     {
@@ -4034,10 +4040,10 @@ class bybit(Exchange, ImplicitAPI):
             if symbol is None and baseCoin is None:
                 defaultSettle = self.safe_string(self.options, 'defaultSettle', 'USDT')
                 request['settleCoin'] = self.safe_string(params, 'settleCoin', defaultSettle)
-        isStop = self.safe_value(params, 'stop', False)
-        params = self.omit(params, ['stop'])
+        isStop = self.safe_value_2(params, 'stop', 'trigger', False)
+        params = self.omit(params, ['stop', 'trigger'])
         if isStop:
-            request['orderFilter'] = 'tpslOrder'
+            request['orderFilter'] = 'StopOrder'
         response = await self.privatePostV5OrderCancelAll(self.extend(request, params))
         #
         # linear / inverse / option
@@ -4097,8 +4103,8 @@ class bybit(Exchange, ImplicitAPI):
             request['category'] = 'PERPETUAL'
         else:
             request['category'] = 'OPTION'
-        isStop = self.safe_value(params, 'stop', False)
-        params = self.omit(params, ['stop'])
+        isStop = self.safe_value_2(params, 'stop', 'trigger', False)
+        params = self.omit(params, ['stop', 'trigger'])
         if isStop:
             request['orderFilter'] = 'StopOrder'
         if limit is not None:
@@ -4193,10 +4199,7 @@ class bybit(Exchange, ImplicitAPI):
         isStop = self.safe_value_n(params, ['trigger', 'stop'], False)
         params = self.omit(params, ['trigger', 'stop'])
         if isStop:
-            if type == 'spot':
-                request['orderFilter'] = 'tpslOrder'
-            else:
-                request['orderFilter'] = 'StopOrder'
+            request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
         if since is not None:
@@ -4344,7 +4347,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: True if stop order
+        :param boolean [params.stop]: set to True for fetching open stop orders
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param str [params.baseCoin]: Base coin. Supports linear, inverse & option
@@ -4374,13 +4377,10 @@ class bybit(Exchange, ImplicitAPI):
         if ((type == 'option') or isUsdcSettled) and not isUnifiedAccount:
             return await self.fetch_usdc_open_orders(symbol, since, limit, params)
         request['category'] = type
-        isStop = self.safe_value(params, 'stop', False)
-        params = self.omit(params, ['stop'])
+        isStop = self.safe_value_2(params, 'stop', 'trigger', False)
+        params = self.omit(params, ['stop', 'trigger'])
         if isStop:
-            if type == 'spot':
-                request['orderFilter'] = 'tpslOrder'
-            else:
-                request['orderFilter'] = 'StopOrder'
+            request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetV5OrderRealtime(self.extend(request, params))
@@ -4502,12 +4502,11 @@ class bybit(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://bybit-exchange.github.io/docs/v5/position/execution
+        :see: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: True if stop order
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -4532,22 +4531,11 @@ class bybit(Exchange, ImplicitAPI):
         if ((type == 'option') or isUsdcSettled) and not isUnifiedAccount:
             return await self.fetch_my_usdc_trades(symbol, since, limit, params)
         request['category'] = type
-        isStop = self.safe_value(params, 'stop', False)
-        params = self.omit(params, ['stop', 'type'])
-        if isStop:
-            if type == 'spot':
-                request['orderFilter'] = 'tpslOrder'
-            else:
-                request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
-        endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till', 'until'])
-        if endTime is not None:
-            request['endTime'] = endTime
+        request, params = self.handle_until_option('endTime', request, params)
         response = await self.privateGetV5ExecutionList(self.extend(request, params))
         #
         #     {

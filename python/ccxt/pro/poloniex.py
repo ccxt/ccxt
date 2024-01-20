@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -341,7 +341,7 @@ class poloniex(ccxt.async_support.poloniex):
         tickers = await self.watch_tickers([symbol], params)
         return self.safe_value(tickers, symbol)
 
-    async def watch_tickers(self, symbols=None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.poloniex.com/#public-channels-market-data-ticker
@@ -880,7 +880,7 @@ class poloniex(ccxt.async_support.poloniex):
         #    }
         #
         data = self.safe_value(message, 'data', [])
-        newTickers = []
+        newTickers = {}
         for i in range(0, len(data)):
             item = data[i]
             marketId = self.safe_string(item, 'symbol')
@@ -888,7 +888,7 @@ class poloniex(ccxt.async_support.poloniex):
                 ticker = self.parse_ticker(item)
                 symbol = ticker['symbol']
                 self.tickers[symbol] = ticker
-                newTickers.append(ticker)
+                newTickers[symbol] = ticker
         messageHashes = self.find_message_hashes(client, 'ticker::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]

@@ -32,6 +32,7 @@ export default class bingx extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     }>;
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<any[]>;
     parseFundingRate(contract: any, market?: Market): {
         info: any;
         symbol: string;
@@ -66,7 +67,6 @@ export default class bingx extends Exchange {
     createMarketSellOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    fixStringifiedJsonMembers(content: any): any;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     parseOrderSide(side: any): string;
     parseOrder(order: any, market?: Market): Order;
@@ -144,5 +144,6 @@ export default class bingx extends Exchange {
         headers: any;
     };
     nonce(): number;
+    setSandboxMode(enable: any): void;
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

@@ -320,11 +320,12 @@ class hitbtc extends \ccxt\async\hitbtc {
                     'symbols' => [ $market['id'] ],
                 ),
             );
-            return Async\await($this->subscribe_public($name, array( $symbol ), $this->deep_extend($request, $params)));
+            $result = Async\await($this->subscribe_public($name, array( $symbol ), $this->deep_extend($request, $params)));
+            return $this->safe_value($result, $symbol);
         }) ();
     }
 
-    public function watch_tickers($symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -412,9 +413,9 @@ class hitbtc extends \ccxt\async\hitbtc {
             $symbol = $market['symbol'];
             $ticker = $this->parse_ws_ticker($data[$marketId], $market);
             $this->tickers[$symbol] = $ticker;
-            $newTickers[] = $ticker;
+            $newTickers[$symbol] = $ticker;
             $messageHash = $channel . '::' . $symbol;
-            $client->resolve ($this->tickers[$symbol], $messageHash);
+            $client->resolve ($newTickers, $messageHash);
         }
         $messageHashes = $this->find_message_hashes($client, $channel . '::');
         for ($i = 0; $i < count($messageHashes); $i++) {

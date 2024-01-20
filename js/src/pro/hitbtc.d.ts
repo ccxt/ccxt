@@ -1,5 +1,5 @@
 import hitbtcRest from '../hitbtc.js';
-import type { Int, OHLCV, OrderSide, OrderType, Strings } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types';
 export default class hitbtc extends hitbtcRest {
@@ -13,7 +13,7 @@ export default class hitbtc extends hitbtcRest {
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    watchTickers(symbols?: any, params?: {}): Promise<any>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): any;
     parseWsTicker(ticker: any, market?: any): Ticker;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

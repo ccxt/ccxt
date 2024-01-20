@@ -66,6 +66,111 @@
                     }
                 ]
             }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch positions",
+                "method": "fetchPositions",
+                "input": [
+                  [
+                    "LTC/USDT:USDT"
+                  ]
+                ],
+                "httpResponse": [
+                  {
+                    "value": "7.443",
+                    "leverage": "5",
+                    "mode": "single",
+                    "realised_point": "0",
+                    "contract": "LTC_USDT",
+                    "entry_price": "74.35",
+                    "mark_price": "74.43",
+                    "history_point": "0",
+                    "realised_pnl": "-0.0037175",
+                    "close_order": null,
+                    "size": "1",
+                    "cross_leverage_limit": "1",
+                    "pending_orders": "0",
+                    "adl_ranking": "5",
+                    "maintenance_rate": "0.01",
+                    "unrealised_pnl": "0.008",
+                    "user": "10406147",
+                    "leverage_max": "50",
+                    "history_pnl": "-5.50521537",
+                    "risk_limit": "500000",
+                    "margin": "1.49257625",
+                    "last_close_pnl": "-5.547508534",
+                    "liq_price": "60.07",
+                    "update_time": "1705052585",
+                    "update_id": "10",
+                    "initial_margin": "0",
+                    "maintenance_margin": "0",
+                    "open_time": "1705052585",
+                    "trade_max_size": "0"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "value": "7.443",
+                      "leverage": "5",
+                      "mode": "single",
+                      "realised_point": "0",
+                      "contract": "LTC_USDT",
+                      "entry_price": "74.35",
+                      "mark_price": "74.43",
+                      "history_point": "0",
+                      "realised_pnl": "-0.0037175",
+                      "close_order": null,
+                      "size": "1",
+                      "cross_leverage_limit": "1",
+                      "pending_orders": "0",
+                      "adl_ranking": "5",
+                      "maintenance_rate": "0.01",
+                      "unrealised_pnl": "0.008",
+                      "user": "10406147",
+                      "leverage_max": "50",
+                      "history_pnl": "-5.50521537",
+                      "risk_limit": "500000",
+                      "margin": "1.49257625",
+                      "last_close_pnl": "-5.547508534",
+                      "liq_price": "60.07",
+                      "update_time": "1705052585",
+                      "update_id": "10",
+                      "initial_margin": "0",
+                      "maintenance_margin": "0",
+                      "open_time": "1705052585",
+                      "trade_max_size": "0"
+                    },
+                    "id": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "timestamp": 1705052585000,
+                    "datetime": "2024-01-12T09:43:05.000Z",
+                    "lastUpdateTimestamp": 1705052585000,
+                    "initialMargin": 1.49418225,
+                    "initialMarginPercentage": 0.20075,
+                    "maintenanceMargin": 0.07443,
+                    "maintenanceMarginPercentage": 0.01,
+                    "entryPrice": 74.35,
+                    "notional": 7.443,
+                    "leverage": 5,
+                    "unrealizedPnl": 0.008,
+                    "realizedPnl": -0.0037175,
+                    "contracts": 1,
+                    "contractSize": 0.1,
+                    "marginRatio": null,
+                    "liquidationPrice": 60.07,
+                    "markPrice": 74.43,
+                    "lastPrice": null,
+                    "collateral": 1.49257625,
+                    "marginMode": "isolated",
+                    "side": "long",
+                    "percentage": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                  }
+                ]
+            }
         ]
     }
 }

@@ -20,9 +20,13 @@ interface Exchange {
     publicGetV1SymbolsSymbolAuctionsAuctionCode (params?: {}): Promise<implicitReturnType>;
     publicGetV1Time (params?: {}): Promise<implicitReturnType>;
     publicGetV1Assets (params?: {}): Promise<implicitReturnType>;
+    publicGetV1Leaderboard (params?: {}): Promise<implicitReturnType>;
+    publicGetV1AffiliateCompetitionCode (params?: {}): Promise<implicitReturnType>;
+    publicGetV1CompetitionCompetitionId (params?: {}): Promise<implicitReturnType>;
     privateGetV1Fees (params?: {}): Promise<implicitReturnType>;
     privateGetV1Accounts (params?: {}): Promise<implicitReturnType>;
     privateGetV1AccountsTraderId (params?: {}): Promise<implicitReturnType>;
+    privateGetV1AccountsTraderIdAlias (params?: {}): Promise<implicitReturnType>;
     privateGetV1AccountsTraderIdLedger (params?: {}): Promise<implicitReturnType>;
     privateGetV1AccountsTraderIdWallets (params?: {}): Promise<implicitReturnType>;
     privateGetV1AccountsTraderIdWalletLedger (params?: {}): Promise<implicitReturnType>;
@@ -36,6 +40,8 @@ interface Exchange {
     privateGetV1Transfers (params?: {}): Promise<implicitReturnType>;
     privateGetV1User (params?: {}): Promise<implicitReturnType>;
     privateGetV1Credits (params?: {}): Promise<implicitReturnType>;
+    privateGetV1Positions (params?: {}): Promise<implicitReturnType>;
+    privateGetV1AccountsTraderIdCompetitions (params?: {}): Promise<implicitReturnType>;
     privatePostV1Keys (params?: {}): Promise<implicitReturnType>;
     privatePostV1Orders (params?: {}): Promise<implicitReturnType>;
     privatePostV1OrdersCancelAllAfter (params?: {}): Promise<implicitReturnType>;
@@ -45,6 +51,8 @@ interface Exchange {
     privatePostV1TransfersInternalTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostV1TransfersWithdrawalRequest (params?: {}): Promise<implicitReturnType>;
     privatePostV1OrdersBulk (params?: {}): Promise<implicitReturnType>;
+    privatePostV1AccountsTraderIdCompetitions (params?: {}): Promise<implicitReturnType>;
+    privatePostV1AccountsTraderIdCreateCompetition (params?: {}): Promise<implicitReturnType>;
     privatePatchV1OrdersOrderId (params?: {}): Promise<implicitReturnType>;
     privatePatchV1OrdersBulk (params?: {}): Promise<implicitReturnType>;
     privateDeleteV1KeysKey (params?: {}): Promise<implicitReturnType>;

@@ -85,8 +85,5 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
             assert_greater($exchange, $skipped_properties, $method, $entry, 'ask', $exchange->safe_string($entry, 'bid'));
         }
     }
-    // if singular fetchTicker was called, then symbol needs to be asserted
-    if ($method === 'fetchTicker') {
-        assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
-    }
+    assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
 }
