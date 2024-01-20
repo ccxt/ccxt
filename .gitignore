@@ -39,5 +39,7 @@ __pycache__
 *.pyc
 
 # docs
-wiki/spec.md
+wiki/baseSpec.md
 wiki/examples/**/*.md
+wiki/exchanges/**/*.md
+wiki/_sidebar.md
