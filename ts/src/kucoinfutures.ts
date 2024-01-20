@@ -1842,7 +1842,7 @@ export default class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchFundingRate
          * @description fetch the current funding rate
-         * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-funding-rate
+         * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
