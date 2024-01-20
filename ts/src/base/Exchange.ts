@@ -3811,6 +3811,11 @@ export default class Exchange {
     }
 
     safeMarket (marketId: Str, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+        const isOption = (marketId !== undefined) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')) || (marketId.startsWith ('C-')) || (marketId.startsWith ('P-')));
+        if (isOption && !(marketId in this.markets_by_id)) {
+            // handle expired option contracts
+            return this.createExpiredOptionMarket (marketId);
+        }
         const result = this.safeMarketStructure ({
             'symbol': marketId,
             'marketId': marketId,
@@ -4659,8 +4664,14 @@ export default class Exchange {
                 }
             }
             return markets[0];
+        } else if ((symbol.endsWith ('-C')) || (symbol.endsWith ('-P')) || (symbol.startsWith ('C-')) || (symbol.startsWith ('P-'))) {
+            return this.createExpiredOptionMarket (symbol);
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+    }
+
+    createExpiredOptionMarket (symbol: string): MarketInterface {
+        throw new NotSupported (this.id + ' createExpiredOptionMarket () is not supported yet');
     }
 
     handleWithdrawTagAndParams (tag, params): any {
