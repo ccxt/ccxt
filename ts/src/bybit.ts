@@ -1247,6 +1247,15 @@ export default class bybit extends Exchange {
         } as MarketInterface;
     }
 
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        const isOption = (marketId !== undefined) && ((marketId.indexOf ('-C') > -1) || (marketId.indexOf ('-P') > -1));
+        if (isOption && !(marketId in this.markets_by_id)) {
+            // handle expired option contracts
+            return this.createExpiredOptionMarket (marketId);
+        }
+        return super.safeMarket (marketId, market, delimiter, marketType);
+    }
+
     getBybitType (method, market, params = {}) {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (method, market, params);

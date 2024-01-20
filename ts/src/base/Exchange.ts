@@ -3811,11 +3811,6 @@ export default class Exchange {
     }
 
     safeMarket (marketId: Str, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
-        const isOption = (marketId !== undefined) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')) || (marketId.startsWith ('C-')) || (marketId.startsWith ('P-')));
-        if (isOption && !(marketId in this.markets_by_id)) {
-            // handle expired option contracts
-            return this.createExpiredOptionMarket (marketId);
-        }
         const result = this.safeMarketStructure ({
             'symbol': marketId,
             'marketId': marketId,
