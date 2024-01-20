@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import Exchange from './abstract/bitpanda.js';
+import Exchange from './abstract/onetrading.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -10,14 +10,14 @@ import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSid
 //  ---------------------------------------------------------------------------
 
 /**
- * @class bitpanda
+ * @class onetrading
  * @augments Exchange
  */
-export default class bitpanda extends Exchange {
+export default class onetrading extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bitpanda',
-            'name': 'Bitpanda Pro',
+            'id': 'onetrading',
+            'name': 'One Trading',
             'countries': [ 'AT' ], // Austria
             'rateLimit': 300,
             'version': 'v1',
@@ -113,16 +113,16 @@ export default class bitpanda extends Exchange {
                 '1M': '1/MONTHS',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg',
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c',
                 'api': {
-                    'public': 'https://api.exchange.bitpanda.com/public',
-                    'private': 'https://api.exchange.bitpanda.com/public',
+                    'public': 'https://api.onetrading.com/public',
+                    'private': 'https://api.onetrading.com/public',
                 },
-                'www': 'https://www.bitpanda.com/en/pro',
+                'www': 'https://onetrading.com/',
                 'doc': [
-                    'https://developers.bitpanda.com/exchange/',
+                    'https://docs.onetrading.com',
                 ],
-                'fees': 'https://www.bitpanda.com/en/pro/fees',
+                'fees': 'https://onetrading.com/fees',
             },
             'api': {
                 'public': {
@@ -304,7 +304,7 @@ export default class bitpanda extends Exchange {
     async fetchTime (params = {}) {
         /**
          * @method
-         * @name bitpanda#fetchTime
+         * @name onetrading#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -322,7 +322,7 @@ export default class bitpanda extends Exchange {
     async fetchCurrencies (params = {}) {
         /**
          * @method
-         * @name bitpanda#fetchCurrencies
+         * @name onetrading#fetchCurrencies
          * @description fetches all available currencies on an exchange
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
@@ -364,8 +364,8 @@ export default class bitpanda extends Exchange {
     async fetchMarkets (params = {}) {
         /**
          * @method
-         * @name bitpanda#fetchMarkets
-         * @description retrieves data on all markets for bitpanda
+         * @name onetrading#fetchMarkets
+         * @description retrieves data on all markets for onetrading
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -448,7 +448,7 @@ export default class bitpanda extends Exchange {
     async fetchTradingFees (params = {}) {
         /**
          * @method
-         * @name bitpanda#fetchTradingFees
+         * @name onetrading#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
@@ -626,7 +626,7 @@ export default class bitpanda extends Exchange {
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
-         * @name bitpanda#fetchTicker
+         * @name onetrading#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -662,7 +662,7 @@ export default class bitpanda extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
-         * @name bitpanda#fetchTickers
+         * @name onetrading#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -703,7 +703,7 @@ export default class bitpanda extends Exchange {
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
-         * @name bitpanda#fetchOrderBook
+         * @name onetrading#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -830,7 +830,7 @@ export default class bitpanda extends Exchange {
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
-         * @name bitpanda#fetchOHLCV
+         * @name onetrading#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -959,7 +959,7 @@ export default class bitpanda extends Exchange {
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name bitpanda#fetchTrades
+         * @name onetrading#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -1016,7 +1016,7 @@ export default class bitpanda extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
-         * @name bitpanda#fetchBalance
+         * @name onetrading#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -1062,7 +1062,7 @@ export default class bitpanda extends Exchange {
     async createDepositAddress (code: string, params = {}) {
         /**
          * @method
-         * @name bitpanda#createDepositAddress
+         * @name onetrading#createDepositAddress
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1088,7 +1088,7 @@ export default class bitpanda extends Exchange {
     async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
-         * @name bitpanda#fetchDepositAddress
+         * @name onetrading#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1115,7 +1115,7 @@ export default class bitpanda extends Exchange {
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
-         * @name bitpanda#fetchDeposits
+         * @name onetrading#fetchDeposits
          * @description fetch all deposits made to an account
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
@@ -1180,7 +1180,7 @@ export default class bitpanda extends Exchange {
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
-         * @name bitpanda#fetchWithdrawals
+         * @name onetrading#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
@@ -1246,7 +1246,7 @@ export default class bitpanda extends Exchange {
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
-         * @name bitpanda#withdraw
+         * @name onetrading#withdraw
          * @description make a withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
@@ -1521,7 +1521,7 @@ export default class bitpanda extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
-         * @name bitpanda#createOrder
+         * @name onetrading#createOrder
          * @description create a trade order
          * @see https://docs.onetrading.com/#create-order
          * @param {string} symbol unified symbol of the market to create an order in
@@ -1530,7 +1530,7 @@ export default class bitpanda extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.triggerPrice] bitpanda only does stop limit orders and does not do stop market
+         * @param {float} [params.triggerPrice] onetrading only does stop limit orders and does not do stop market
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1593,7 +1593,7 @@ export default class bitpanda extends Exchange {
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name bitpanda#cancelOrder
+         * @name onetrading#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol not used by bitmex cancelOrder ()
@@ -1621,7 +1621,7 @@ export default class bitpanda extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name bitpanda#cancelAllOrders
+         * @name onetrading#cancelAllOrders
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1645,7 +1645,7 @@ export default class bitpanda extends Exchange {
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name bitpanda#cancelOrders
+         * @name onetrading#cancelOrders
          * @description cancel multiple orders
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
@@ -1668,9 +1668,9 @@ export default class bitpanda extends Exchange {
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name bitpanda#fetchOrder
+         * @name onetrading#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string} symbol not used by bitpanda fetchOrder
+         * @param {string} symbol not used by onetrading fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1726,7 +1726,7 @@ export default class bitpanda extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name bitpanda#fetchOpenOrders
+         * @name onetrading#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -1847,7 +1847,7 @@ export default class bitpanda extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name bitpanda#fetchClosedOrders
+         * @name onetrading#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -1864,7 +1864,7 @@ export default class bitpanda extends Exchange {
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name bitpanda#fetchOrderTrades
+         * @name onetrading#fetchOrderTrades
          * @description fetch all the trades made from a single order
          * @param {string} id order id
          * @param {string} symbol unified market symbol
@@ -1924,7 +1924,7 @@ export default class bitpanda extends Exchange {
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name bitpanda#fetchMyTrades
+         * @name onetrading#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
