@@ -42,9 +42,14 @@ class coinex extends Exchange {
                 'cancelOrders' => true,
                 'createDepositAddress' => true,
                 'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createReduceOnlyOrder' => true,
+                'createStopLossOrder' => true,
+                'createTakeProfitOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => true,
@@ -202,6 +207,8 @@ class coinex extends Exchange {
                     ),
                     'put' => array(
                         'balance/deposit/address/{coin_type}' => 40,
+                        'sub_account/unfrozen' => 40,
+                        'sub_account/frozen' => 40,
                         'sub_account/auth/api/{user_auth_id}' => 40,
                         'v1/account/settings' => 40,
                     ),
@@ -211,7 +218,10 @@ class coinex extends Exchange {
                         'order/pending' => 13.334,
                         'order/stop/pending' => 40,
                         'order/stop/pending/{id}' => 13.334,
+                        'order/pending/by_client_id' => 40,
+                        'order/stop/pending/by_client_id' => 40,
                         'sub_account/auth/api/{user_auth_id}' => 40,
+                        'sub_account/authorize/{id}' => 40,
                     ),
                 ),
                 'perpetualPublic' => array(
@@ -225,12 +235,12 @@ class coinex extends Exchange {
                         'market/depth' => 1,
                         'market/deals' => 1,
                         'market/funding_history' => 1,
-                        'market/user_deals' => 1,
                         'market/kline' => 1,
                     ),
                 ),
                 'perpetualPrivate' => array(
                     'get' => array(
+                        'market/user_deals' => 1,
                         'asset/query' => 40,
                         'order/pending' => 8,
                         'order/finished' => 40,
@@ -238,8 +248,13 @@ class coinex extends Exchange {
                         'order/stop_pending' => 8,
                         'order/status' => 8,
                         'order/stop_status' => 8,
+                        'position/finished' => 40,
                         'position/pending' => 40,
                         'position/funding' => 40,
+                        'position/adl_history' => 40,
+                        'market/preference' => 40,
+                        'position/margin_history' => 40,
+                        'position/settle_history' => 40,
                     ),
                     'post' => array(
                         'market/adjust_leverage' => 1,
@@ -261,6 +276,9 @@ class coinex extends Exchange {
                         'position/stop_loss' => 20,
                         'position/take_profit' => 20,
                         'position/market_close' => 20,
+                        'order/cancel/by_client_id' => 20,
+                        'order/cancel_stop/by_client_id' => 20,
+                        'market/preference' => 20,
                     ),
                 ),
             ),
@@ -1078,9 +1096,10 @@ class coinex extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $marketId = $this->safe_string($trade, 'market');
-        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $marketType = $this->safe_string($trade, 'market_type');
+        $defaultType = ($marketType === null) ? 'spot' : 'swap';
         $market = $this->safe_market($marketId, $market, null, $defaultType);
-        $symbol = $this->safe_symbol($marketId, $market, null, $defaultType);
+        $symbol = $market['symbol'];
         $costString = $this->safe_string($trade, 'deal_money');
         $fee = null;
         $feeCostString = $this->safe_string_2($trade, 'fee', 'deal_fee');
@@ -1909,12 +1928,18 @@ class coinex extends Exchange {
 
     public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
         /**
-         * create a market buy order by providing the $symbol and $cost
-         * @param {string} $symbol unified $symbol of the market to create an order in
+         * create a $market buy order by providing the $symbol and $cost
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order
+         * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
         $params['createMarketBuyOrderRequiresPrice'] = false;
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
@@ -2066,6 +2091,11 @@ class coinex extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade001_limit_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade004_IOC_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade005_stop_limit_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade006_stop_market_order
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
@@ -2227,7 +2257,7 @@ class coinex extends Exchange {
         /**
          * create a list of trade $orders (all $orders should be of the same $symbol)
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade002_batch_limit_orders
-         * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
@@ -2524,11 +2554,17 @@ class coinex extends Exchange {
          * cancels an open order
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade024_cancel_order_by_client_id
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade025_cancel_stop_order_by_client_id
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http023_cancel_stop_order
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021_cancel_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http042_cancel_order_by_client_id
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http043_cancel_stop_order_by_client_id
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] client order $id, defaults to $id if not passed
+         * @param {boolean} [$params->stop] if $stop order = true, default = false
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
@@ -2541,29 +2577,47 @@ class coinex extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $idRequest = $swap ? 'order_id' : 'id';
-        $request[$idRequest] = $id;
         $accountId = $this->safe_integer($params, 'account_id');
         $defaultType = $this->safe_string($this->options, 'defaultType');
+        $clientOrderId = $this->safe_string_2($params, 'client_id', 'clientOrderId');
         if ($defaultType === 'margin') {
             if ($accountId === null) {
                 throw new BadRequest($this->id . ' cancelOrder() requires an account_id parameter for margin orders');
             }
             $request['account_id'] = $accountId;
         }
-        $query = $this->omit($params, array( 'stop', 'account_id' ));
+        $query = $this->omit($params, array( 'stop', 'account_id', 'clientOrderId' ));
         $response = null;
-        if ($stop) {
-            if ($swap) {
-                $response = $this->perpetualPrivatePostOrderCancelStop (array_merge($request, $query));
+        if ($clientOrderId !== null) {
+            $request['client_id'] = $clientOrderId;
+            if ($stop) {
+                if ($swap) {
+                    $response = $this->perpetualPrivatePostOrderCancelStopByClientId (array_merge($request, $query));
+                } else {
+                    $response = $this->privateDeleteOrderStopPendingByClientId (array_merge($request, $query));
+                }
             } else {
-                $response = $this->privateDeleteOrderStopPendingId (array_merge($request, $query));
+                if ($swap) {
+                    $response = $this->perpetualPrivatePostOrderCancelByClientId (array_merge($request, $query));
+                } else {
+                    $response = $this->privateDeleteOrderPendingByClientId (array_merge($request, $query));
+                }
             }
         } else {
-            if ($swap) {
-                $response = $this->perpetualPrivatePostOrderCancel (array_merge($request, $query));
+            $idRequest = $swap ? 'order_id' : 'id';
+            $request[$idRequest] = $id;
+            if ($stop) {
+                if ($swap) {
+                    $response = $this->perpetualPrivatePostOrderCancelStop (array_merge($request, $query));
+                } else {
+                    $response = $this->privateDeleteOrderStopPendingId (array_merge($request, $query));
+                }
             } else {
-                $response = $this->privateDeleteOrderPending (array_merge($request, $query));
+                if ($swap) {
+                    $response = $this->perpetualPrivatePostOrderCancel (array_merge($request, $query));
+                } else {
+                    $response = $this->privateDeleteOrderPending (array_merge($request, $query));
+                }
             }
         }
         //
@@ -3109,7 +3163,7 @@ class coinex extends Exchange {
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade012_finished_order
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -3289,16 +3343,11 @@ class coinex extends Exchange {
         }
         $response = null;
         if ($swap) {
-            $side = $this->safe_integer($params, 'side');
-            if ($side === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $side parameter for $swap markets');
-            }
             if ($since !== null) {
                 $request['start_time'] = $since;
             }
-            $request['side'] = $side;
-            $params = $this->omit($params, 'side');
-            $response = $this->perpetualPublicGetMarketUserDeals (array_merge($request, $params));
+            $request['side'] = 0;
+            $response = $this->perpetualPrivateGetMarketUserDeals (array_merge($request, $params));
         } else {
             $request['page'] = 1;
             $response = $this->privateGetOrderUserDeals (array_merge($request, $params));
@@ -5211,7 +5260,7 @@ class coinex extends Exchange {
                 }
             }
         }
-        if ($api === 'perpetualPrivate' || $url === 'https://api->coinex.com/perpetual/v1/market/user_deals') {
+        if ($api === 'perpetualPrivate') {
             $this->check_required_credentials();
             $query = array_merge(array(
                 'access_id' => $this->apiKey,

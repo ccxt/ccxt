@@ -1,8 +1,8 @@
 import Exchange from './abstract/bitmart.js';
-import { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
 /**
  * @class bitmart
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitmart extends Exchange {
     describe(): any;
@@ -109,8 +109,8 @@ export default class bitmart extends Exchange {
         currency: string;
         amount: any;
         symbol: any;
-        timestamp: number;
-        datetime: string;
+        timestamp: any;
+        datetime: any;
         info: any;
     };
     fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<{

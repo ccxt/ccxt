@@ -53,8 +53,9 @@ export default class kucoin extends kucoinRest {
     negotiate(privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue(this.options, 'urls', {});
-        if (connectId in urls) {
-            return urls[connectId];
+        const spawaned = this.safeValue(urls, connectId);
+        if (spawaned !== undefined) {
+            return spawaned;
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
@@ -66,43 +67,51 @@ export default class kucoin extends kucoinRest {
     async negotiateHelper(privateChannel, params = {}) {
         let response = undefined;
         const connectId = privateChannel ? 'private' : 'public';
-        if (privateChannel) {
-            response = await this.privatePostBulletPrivate(params);
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "instanceServers": [
-            //                 {
-            //                     "pingInterval":  50000,
-            //                     "endpoint": "wss://push-private.kucoin.com/endpoint",
-            //                     "protocol": "websocket",
-            //                     "encrypt": true,
-            //                     "pingTimeout": 10000
-            //                 }
-            //             ],
-            //             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
-            //         }
-            //     }
-            //
+        try {
+            if (privateChannel) {
+                response = await this.privatePostBulletPrivate(params);
+                //
+                //     {
+                //         "code": "200000",
+                //         "data": {
+                //             "instanceServers": [
+                //                 {
+                //                     "pingInterval":  50000,
+                //                     "endpoint": "wss://push-private.kucoin.com/endpoint",
+                //                     "protocol": "websocket",
+                //                     "encrypt": true,
+                //                     "pingTimeout": 10000
+                //                 }
+                //             ],
+                //             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                //         }
+                //     }
+                //
+            }
+            else {
+                response = await this.publicPostBulletPublic(params);
+            }
+            const data = this.safeValue(response, 'data', {});
+            const instanceServers = this.safeValue(data, 'instanceServers', []);
+            const firstInstanceServer = this.safeValue(instanceServers, 0);
+            const pingInterval = this.safeInteger(firstInstanceServer, 'pingInterval');
+            const endpoint = this.safeString(firstInstanceServer, 'endpoint');
+            const token = this.safeString(data, 'token');
+            const result = endpoint + '?' + this.urlencode({
+                'token': token,
+                'privateChannel': privateChannel,
+                'connectId': connectId,
+            });
+            const client = this.client(result);
+            client.keepAlive = pingInterval;
+            return result;
         }
-        else {
-            response = await this.publicPostBulletPublic(params);
+        catch (e) {
+            const future = this.safeValue(this.options['urls'], connectId);
+            future.reject(e);
+            delete this.options['urls'][connectId];
         }
-        const data = this.safeValue(response, 'data', {});
-        const instanceServers = this.safeValue(data, 'instanceServers', []);
-        const firstInstanceServer = this.safeValue(instanceServers, 0);
-        const pingInterval = this.safeInteger(firstInstanceServer, 'pingInterval');
-        const endpoint = this.safeString(firstInstanceServer, 'endpoint');
-        const token = this.safeString(data, 'token');
-        const result = endpoint + '?' + this.urlencode({
-            'token': token,
-            'privateChannel': privateChannel,
-            'connectId': connectId,
-        });
-        const client = this.client(result);
-        client.keepAlive = pingInterval;
-        return result;
+        return undefined;
     }
     requestId() {
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
@@ -123,6 +132,24 @@ export default class kucoin extends kucoinRest {
             client.subscriptions[requestId] = subscriptionHash;
         }
         return await this.watch(url, messageHash, message, subscriptionHash, subscription);
+    }
+    async subscribeMultiple(url, messageHashes, topic, subscriptionHashes, params = {}, subscription = undefined) {
+        const requestId = this.requestId().toString();
+        const request = {
+            'id': requestId,
+            'type': 'subscribe',
+            'topic': topic,
+            'response': true,
+        };
+        const message = this.extend(request, params);
+        const client = this.client(url);
+        for (let i = 0; i < subscriptionHashes.length; i++) {
+            const subscriptionHash = subscriptionHashes[i];
+            if (!(subscriptionHash in client.subscriptions)) {
+                client.subscriptions[requestId] = subscriptionHash;
+            }
+        }
+        return await this.watchMultiple(url, messageHashes, message, subscriptionHashes, subscription);
     }
     async watchTicker(symbol, params = {}) {
         /**
@@ -242,7 +269,9 @@ export default class kucoin extends kucoinRest {
         const messageHash = 'ticker:' + symbol;
         client.resolve(ticker, messageHash);
         // watchTickers
-        client.resolve(ticker, 'tickers');
+        const allTickers = {};
+        allTickers[symbol] = ticker;
+        client.resolve(allTickers, 'tickers');
         const messageHashes = this.findMessageHashes(client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
             const currentMessageHash = messageHashes[i];
@@ -336,17 +365,7 @@ export default class kucoin extends kucoinRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets();
-        const url = await this.negotiate(false);
-        const market = this.market(symbol);
-        symbol = market['symbol'];
-        const topic = '/market/match:' + market['id'];
-        const messageHash = 'trades:' + symbol;
-        const trades = await this.subscribe(url, messageHash, topic, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
-        }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         /**
@@ -365,12 +384,18 @@ export default class kucoin extends kucoinRest {
         }
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const url = await this.negotiate(false);
-        symbols = this.marketSymbols(symbols);
         const marketIds = this.marketIds(symbols);
+        const url = await this.negotiate(false);
+        const messageHashes = [];
+        const subscriptionHashes = [];
         const topic = '/market/match:' + marketIds.join(',');
-        const messageHash = 'multipleTrades::' + symbols.join(',');
-        const trades = await this.subscribe(url, messageHash, topic, params);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push('trades:' + symbol);
+            const marketId = marketIds[i];
+            subscriptionHashes.push('/market/match:' + marketId);
+        }
+        const trades = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, params);
         if (this.newUpdates) {
             const first = this.safeValue(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
@@ -410,8 +435,6 @@ export default class kucoin extends kucoinRest {
         }
         trades.append(trade);
         client.resolve(trades, messageHash);
-        // watchMultipleTrades
-        this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, trades);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -438,24 +461,7 @@ export default class kucoin extends kucoinRest {
         // If the size=0, update the sequence and remove the price of which the
         // size is 0 out of level 2. Fr other cases, please update the price.
         //
-        if (limit !== undefined) {
-            if ((limit !== 20) && (limit !== 100)) {
-                throw new ExchangeError(this.id + " watchOrderBook 'limit' argument must be undefined, 20 or 100");
-            }
-        }
-        await this.loadMarkets();
-        const url = await this.negotiate(false);
-        const market = this.market(symbol);
-        symbol = market['symbol'];
-        const topic = '/market/level2:' + market['id'];
-        const messageHash = 'orderbook:' + symbol;
-        const subscription = {
-            'method': this.handleOrderBookSubscription,
-            'symbol': symbol,
-            'limit': limit,
-        };
-        const orderbook = await this.subscribe(url, messageHash, topic, params, subscription);
-        return orderbook.limit();
+        return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         /**
@@ -481,13 +487,20 @@ export default class kucoin extends kucoinRest {
         const marketIds = this.marketIds(symbols);
         const url = await this.negotiate(false);
         const topic = '/market/level2:' + marketIds.join(',');
-        const messageHash = 'multipleOrderbook::' + symbols.join(',');
+        const messageHashes = [];
+        const subscriptionHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push('orderbook:' + symbol);
+            const marketId = marketIds[i];
+            subscriptionHashes.push('/market/level2:' + marketId);
+        }
         const subscription = {
             'method': this.handleOrderBookSubscription,
             'symbols': symbols,
             'limit': limit,
         };
-        const orderbook = await this.subscribe(url, messageHash, topic, params, subscription);
+        const orderbook = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, params, subscription);
         return orderbook.limit();
     }
     handleOrderBook(client, message) {
@@ -545,8 +558,6 @@ export default class kucoin extends kucoinRest {
         }
         this.handleDelta(storedOrderBook, data);
         client.resolve(storedOrderBook, messageHash);
-        // watchMultipleOrderBook
-        this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbook::', symbol, storedOrderBook);
     }
     getCacheIndex(orderbook, cache) {
         const firstDelta = this.safeValue(cache, 0);
@@ -1025,6 +1036,13 @@ export default class kucoin extends kucoinRest {
         //    }
         //
         const data = this.safeString(message, 'data', '');
+        if (data === 'token is expired') {
+            let type = 'public';
+            if (client.url.indexOf('connectId=private') >= 0) {
+                type = 'private';
+            }
+            this.options['urls'][type] = undefined;
+        }
         this.handleErrors(undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
     }
     handleMessage(client, message) {

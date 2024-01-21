@@ -45,7 +45,7 @@ class alpaca(Exchange, ImplicitAPI):
                     'market': 'https://data.sandbox.{hostname}',
                 },
                 'doc': 'https://alpaca.markets/docs/',
-                'fees': 'https://alpaca.markets/support/what-are-the-fees-associated-with-crypto-trading/',
+                'fees': 'https://docs.alpaca.markets/docs/crypto-fees',
             },
             'has': {
                 'CORS': False,
@@ -59,7 +59,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createOrder': True,
-                'fetchBalance': True,
+                'fetchBalance': False,
                 'fetchBidsAsks': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,
@@ -217,28 +217,28 @@ class alpaca(Exchange, ImplicitAPI):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'maker': self.parse_number('0.003'),
-                    'taker': self.parse_number('0.003'),
+                    'maker': self.parse_number('0.0015'),
+                    'taker': self.parse_number('0.0025'),
                     'tiers': {
                         'taker': [
-                            [self.parse_number('0'), self.parse_number('0.003')],
-                            [self.parse_number('500000'), self.parse_number('0.0028')],
-                            [self.parse_number('1000000'), self.parse_number('0.0025')],
-                            [self.parse_number('5000000'), self.parse_number('0.002')],
-                            [self.parse_number('10000000'), self.parse_number('0.0018')],
-                            [self.parse_number('25000000'), self.parse_number('0.0015')],
-                            [self.parse_number('50000000'), self.parse_number('0.00125')],
+                            [self.parse_number('0'), self.parse_number('0.0025')],
+                            [self.parse_number('100000'), self.parse_number('0.0022')],
+                            [self.parse_number('500000'), self.parse_number('0.0020')],
+                            [self.parse_number('1000000'), self.parse_number('0.0018')],
+                            [self.parse_number('10000000'), self.parse_number('0.0015')],
+                            [self.parse_number('25000000'), self.parse_number('0.0013')],
+                            [self.parse_number('50000000'), self.parse_number('0.0012')],
                             [self.parse_number('100000000'), self.parse_number('0.001')],
                         ],
                         'maker': [
-                            [self.parse_number('0'), self.parse_number('0.003')],
-                            [self.parse_number('500000'), self.parse_number('0.0028')],
-                            [self.parse_number('1000000'), self.parse_number('0.0025')],
-                            [self.parse_number('5000000'), self.parse_number('0.002')],
-                            [self.parse_number('10000000'), self.parse_number('0.0018')],
-                            [self.parse_number('25000000'), self.parse_number('0.0015')],
-                            [self.parse_number('50000000'), self.parse_number('0.00125')],
-                            [self.parse_number('100000000'), self.parse_number('0.001')],
+                            [self.parse_number('0'), self.parse_number('0.0015')],
+                            [self.parse_number('100000'), self.parse_number('0.0012')],
+                            [self.parse_number('500000'), self.parse_number('0.001')],
+                            [self.parse_number('1000000'), self.parse_number('0.0008')],
+                            [self.parse_number('10000000'), self.parse_number('0.0005')],
+                            [self.parse_number('25000000'), self.parse_number('0.0002')],
+                            [self.parse_number('50000000'), self.parse_number('0.0002')],
+                            [self.parse_number('100000000'), self.parse_number('0.00')],
                         ],
                     },
                 },
@@ -355,10 +355,15 @@ class alpaca(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(asset, 'symbol')
         parts = marketId.split('/')
+        assetClass = self.safe_string(asset, 'class')
         baseId = self.safe_string(parts, 0)
         quoteId = self.safe_string(parts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        # Us equity markets do not include quote in symbol.
+        # We can safely coerce us_equity quote to USD
+        if quote is None and assetClass == 'us_equity':
+            quote = 'USD'
         symbol = base + '/' + quote
         status = self.safe_string(asset, 'status')
         active = (status == 'active')
@@ -492,7 +497,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.loc]: crypto location, default: us
         :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
-       """
+        """
         self.load_markets()
         market = self.market(symbol)
         id = market['id']

@@ -1,0 +1,43 @@
+{
+    "BTC/USDT": {
+        "id": "BTCUSDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "c3e8b0bd-072c-42a0-b4fe-4af9f7c72214",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "active": true,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {
+                "min": 1
+            },
+            "leverage": {}
+        },
+        "info": {
+            "assetPairId": "BTCUSDT",
+            "baseAssetId": "BTC",
+            "quoteAssetId": "c3e8b0bd-072c-42a0-b4fe-4af9f7c72214",
+            "name": "BTC/USDT",
+            "priceAccuracy": "5",
+            "baseAssetAccuracy": "8",
+            "quoteAssetAccuracy": "6",
+            "minVolume": "0.0001",
+            "minOppositeVolume": "1.0"
+        }
+    }
+}

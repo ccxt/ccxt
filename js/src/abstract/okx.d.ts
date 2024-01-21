@@ -73,6 +73,7 @@ interface Exchange {
     publicGetCopytradingPublicSubpositionsHistory(params?: {}): Promise<implicitReturnType>;
     privateGetRfqCounterparties(params?: {}): Promise<implicitReturnType>;
     privateGetRfqMakerInstrumentSettings(params?: {}): Promise<implicitReturnType>;
+    privateGetRfqMmpConfig(params?: {}): Promise<implicitReturnType>;
     privateGetRfqRfqs(params?: {}): Promise<implicitReturnType>;
     privateGetRfqQuotes(params?: {}): Promise<implicitReturnType>;
     privateGetRfqTrades(params?: {}): Promise<implicitReturnType>;
@@ -80,6 +81,7 @@ interface Exchange {
     privateGetSprdOrder(params?: {}): Promise<implicitReturnType>;
     privateGetSprdOrdersPending(params?: {}): Promise<implicitReturnType>;
     privateGetSprdOrdersHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetSprdOrdersHistoryArchive(params?: {}): Promise<implicitReturnType>;
     privateGetSprdTrades(params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrder(params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersPending(params?: {}): Promise<implicitReturnType>;
@@ -198,6 +200,7 @@ interface Exchange {
     privatePostRfqExecuteQuote(params?: {}): Promise<implicitReturnType>;
     privatePostRfqMakerInstrumentSettings(params?: {}): Promise<implicitReturnType>;
     privatePostRfqMmpReset(params?: {}): Promise<implicitReturnType>;
+    privatePostRfqMmpConfig(params?: {}): Promise<implicitReturnType>;
     privatePostRfqCreateQuote(params?: {}): Promise<implicitReturnType>;
     privatePostRfqCancelQuote(params?: {}): Promise<implicitReturnType>;
     privatePostRfqCancelBatchQuotes(params?: {}): Promise<implicitReturnType>;

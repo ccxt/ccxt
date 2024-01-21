@@ -6,13 +6,13 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
 /**
  * @class bitvavo
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitvavo extends Exchange {
     describe () {
@@ -1208,15 +1208,17 @@ export default class bitvavo extends Exchange {
         let request = {};
         const market = this.market (symbol);
         const amountRemaining = this.safeNumber (params, 'amountRemaining');
-        params = this.omit (params, 'amountRemaining');
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
+        params = this.omit (params, [ 'amountRemaining', 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
+        const updateRequest = {};
         if (price !== undefined) {
-            request['price'] = this.priceToPrecision (symbol, price);
+            updateRequest['price'] = this.priceToPrecision (symbol, price);
         }
         if (amount !== undefined) {
-            request['amount'] = this.amountToPrecision (symbol, amount);
+            updateRequest['amount'] = this.amountToPrecision (symbol, amount);
         }
         if (amountRemaining !== undefined) {
-            request['amountRemaining'] = this.amountToPrecision (symbol, amountRemaining);
+            updateRequest['amountRemaining'] = this.amountToPrecision (symbol, amountRemaining);
         }
         request = this.extend (request, params);
         if (this.isEmpty (request)) {
@@ -1267,6 +1269,7 @@ export default class bitvavo extends Exchange {
          * @name bitvavo#cancelOrder
          * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
          * @description cancels an open order
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/delete
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1317,6 +1320,7 @@ export default class bitvavo extends Exchange {
          * @method
          * @name bitvavo#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1327,9 +1331,12 @@ export default class bitvavo extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'orderId': id,
             'market': market['id'],
         };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['orderId'] = id;
+        }
         const response = await this.privateGetOrder (this.extend (request, params));
         //
         //     {
@@ -1392,11 +1399,11 @@ export default class bitvavo extends Exchange {
         /**
          * @method
          * @name bitvavo#fetchOrders
-         * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {int} [params.until] the latest time in ms to fetch entries for

@@ -9,7 +9,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 // ---------------------------------------------------------------------------
 /**
  * @class bl3p
- * @extends Exchange
+ * @augments Exchange
  */
 class bl3p extends bl3p$1 {
     describe() {
@@ -146,7 +146,7 @@ class bl3p extends bl3p$1 {
         const response = await this.privatePostGENMKTMoneyInfo(params);
         return this.parseBalance(response);
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeString(bidask, priceKey);
         const size = this.safeString(bidask, amountKey);
         return [

@@ -10,7 +10,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bit2c
- * @extends Exchange
+ * @augments Exchange
  */
 class bit2c extends bit2c$1 {
     describe() {
@@ -276,14 +276,13 @@ class bit2c extends bit2c$1 {
     }
     parseTicker(ticker, market = undefined) {
         const symbol = this.safeSymbol(undefined, market);
-        const timestamp = this.milliseconds();
         const averagePrice = this.safeString(ticker, 'av');
         const baseVolume = this.safeString(ticker, 'a');
         const last = this.safeString(ticker, 'll');
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': undefined,
             'low': undefined,
             'bid': this.safeString(ticker, 'h'),
@@ -343,7 +342,13 @@ class bit2c extends bit2c$1 {
         if (limit !== undefined) {
             request['limit'] = limit; // max 100000
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'public_get_exchanges_pair_trades') {
+            response = await this.publicGetExchangesPairTrades(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetExchangesPairLasttrades(this.extend(request, params));
+        }
         //
         //     [
         //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
@@ -431,7 +436,7 @@ class bit2c extends bit2c$1 {
             request['Price'] = price;
             const amountString = this.numberToString(amount);
             const priceString = this.numberToString(price);
-            request['Total'] = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
+            request['Total'] = this.parseToNumeric(Precise["default"].stringMul(amountString, priceString));
             request['IsBid'] = (side === 'buy');
         }
         const response = await this[method](this.extend(request, params));

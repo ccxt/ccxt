@@ -1,14 +1,14 @@
 import Exchange from './abstract/bl3p.js';
-import { Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import type { Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, IndexType } from './base/types.js';
 /**
  * @class bl3p
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bl3p extends Exchange {
     describe(): any;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    parseBidAsk(bidask: any, priceKey?: number, amountKey?: number): number[];
+    parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): number[];
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;

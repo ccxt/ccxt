@@ -11,7 +11,7 @@ var totp = require('./base/functions/totp.js');
 // ---------------------------------------------------------------------------
 /**
  * @class ndax
- * @extends Exchange
+ * @augments Exchange
  */
 class ndax extends ndax$1 {
     describe() {
@@ -518,7 +518,7 @@ class ndax extends ndax$1 {
             'info': market,
         };
     }
-    parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8) {
+    parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8, countOrIdKey = 2) {
         let nonce = undefined;
         const result = {
             'symbol': symbol,
@@ -1681,7 +1681,7 @@ class ndax extends ndax$1 {
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

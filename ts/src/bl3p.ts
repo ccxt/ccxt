@@ -5,13 +5,13 @@ import Exchange from './abstract/bl3p.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import type { Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, IndexType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
 /**
  * @class bl3p
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bl3p extends Exchange {
     describe () {
@@ -151,7 +151,7 @@ export default class bl3p extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const price = this.safeString (bidask, priceKey);
         const size = this.safeString (bidask, amountKey);
         return [

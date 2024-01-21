@@ -9,7 +9,7 @@ var number = require('./base/functions/number.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class luno
- * @extends Exchange
+ * @augments Exchange
  */
 class luno extends luno$1 {
     describe() {
@@ -54,7 +54,7 @@ class luno extends luno$1 {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -82,6 +82,7 @@ class luno extends luno$1 {
                     'public': 'https://api.luno.com/api',
                     'private': 'https://api.luno.com/api',
                     'exchange': 'https://api.luno.com/api/exchange',
+                    'exchangePrivate': 'https://api.luno.com/api/exchange',
                 },
                 'www': 'https://www.luno.com',
                 'doc': [
@@ -94,6 +95,11 @@ class luno extends luno$1 {
                 'exchange': {
                     'get': {
                         'markets': 1,
+                    },
+                },
+                'exchangePrivate': {
+                    'get': {
+                        'candles': 1,
                     },
                 },
                 'public': {
@@ -147,6 +153,18 @@ class luno extends luno$1 {
                         'withdrawals/{id}': 1,
                     },
                 },
+            },
+            'timeframes': {
+                '1m': 60,
+                '5m': 300,
+                '15m': 900,
+                '30m': 1800,
+                '1h': 3600,
+                '3h': 10800,
+                '4h': 14400,
+                '1d': 86400,
+                '3d': 259200,
+                '1w': 604800,
             },
             'fees': {
                 'trading': {
@@ -471,7 +489,7 @@ class luno extends luno$1 {
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -497,7 +515,7 @@ class luno extends luno$1 {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -720,6 +738,70 @@ class luno extends luno$1 {
         //
         const trades = this.safeValue(response, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
+    }
+    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name luno#fetchOHLCV
+         * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetCandles
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the luno api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'duration': this.safeValue(this.timeframes, timeframe, timeframe),
+            'pair': market['id'],
+        };
+        if (since !== undefined) {
+            request['since'] = parseInt(since);
+        }
+        else {
+            const duration = 1000 * 1000 * this.parseTimeframe(timeframe);
+            request['since'] = this.milliseconds() - duration;
+        }
+        const response = await this.exchangePrivateGetCandles(this.extend(request, params));
+        //
+        //     {
+        //          "candles": [
+        //              {
+        //                  "timestamp": 1664055240000,
+        //                  "open": "19612.65",
+        //                  "close": "19612.65",
+        //                  "high": "19612.65",
+        //                  "low": "19612.65",
+        //                  "volume": "0.00"
+        //              },...
+        //          ],
+        //          "duration": 60,
+        //          "pair": "XBTEUR"
+        //     }
+        //
+        const ohlcvs = this.safeValue(response, 'candles', []);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
+    }
+    parseOHLCV(ohlcv, market = undefined) {
+        // {
+        //     "timestamp": 1664055240000,
+        //     "open": "19612.65",
+        //     "close": "19612.65",
+        //     "high": "19612.65",
+        //     "low": "19612.65",
+        //     "volume": "0.00"
+        // }
+        return [
+            this.safeInteger(ohlcv, 'timestamp'),
+            this.safeNumber(ohlcv, 'open'),
+            this.safeNumber(ohlcv, 'high'),
+            this.safeNumber(ohlcv, 'low'),
+            this.safeNumber(ohlcv, 'close'),
+            this.safeNumber(ohlcv, 'volume'),
+        ];
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1020,7 +1102,7 @@ class luno extends luno$1 {
         if (Object.keys(query).length) {
             url += '?' + this.urlencode(query);
         }
-        if (api === 'private') {
+        if ((api === 'private') || (api === 'exchangePrivate')) {
             this.checkRequiredCredentials();
             const auth = this.stringToBase64(this.apiKey + ':' + this.secret);
             headers = {

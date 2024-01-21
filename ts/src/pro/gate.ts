@@ -5,7 +5,7 @@ import gateRest from '../gate.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import { Int, Str, Strings } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -94,7 +94,7 @@ export default class gate extends gateRest {
         });
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name gate#watchOrderBook
@@ -274,7 +274,7 @@ export default class gate extends gateRest {
         this.handleBidAsks (storedAsks, asks);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name gate#watchTicker
@@ -296,7 +296,7 @@ export default class gate extends gateRest {
         return await this.subscribePublic (url, messageHash, payload, channel, query);
     }
 
-    async watchTickers (symbols: Strings = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name gate#watchTickers
@@ -382,7 +382,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name gate#watchTrades
@@ -393,23 +393,10 @@ export default class gate extends gateRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const marketId = market['id'];
-        const messageType = this.getTypeByMarket (market);
-        const channel = messageType + '.trades';
-        const messageHash = 'trades:' + symbol;
-        const url = this.getUrlByMarket (market);
-        const payload = [ marketId ];
-        const trades = await this.subscribePublic (url, messageHash, payload, channel, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name gate#watchTradesForSymbols
@@ -426,9 +413,13 @@ export default class gate extends gateRest {
         const market = this.market (symbols[0]);
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.trades';
-        const messageHash = 'multipleTrades::' + symbols.join (',');
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push ('trades:' + symbol);
+        }
         const url = this.getUrlByMarket (market);
-        const trades = await this.subscribePublic (url, messageHash, marketIds, channel, params);
+        const trades = await this.subscribePublicMultiple (url, messageHashes, marketIds, channel, params);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -471,11 +462,10 @@ export default class gate extends gateRest {
             cachedTrades.append (trade);
             const hash = 'trades:' + symbol;
             client.resolve (cachedTrades, hash);
-            this.resolvePromiseIfMessagehashMatches (client, 'multipleTrades::', symbol, cachedTrades);
         }
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name gate#watchOHLCV
@@ -561,7 +551,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name gate#watchMyTrades
@@ -656,7 +646,7 @@ export default class gate extends gateRest {
         client.resolve (cachedTrades, 'myTrades');
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name gate#watchBalance
@@ -746,7 +736,7 @@ export default class gate extends gateRest {
         //   }
         //
         const result = this.safeValue (message, 'result', []);
-        const timestamp = this.safeInteger (message, 'time');
+        const timestamp = this.safeInteger (message, 'time_ms');
         this.balance['info'] = result;
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);
@@ -772,7 +762,7 @@ export default class gate extends gateRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name gate#watchPositions
@@ -823,7 +813,7 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions[type], symbols, since, limit, true);
     }
 
     setPositionsCache (client: Client, type, symbols: Strings = undefined) {
@@ -914,14 +904,14 @@ export default class gate extends gateRest {
         client.resolve (newPositions, type + ':positions');
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name gate#watchOrders
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
          * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
@@ -1288,6 +1278,20 @@ export default class gate extends gateRest {
         }
         const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    async subscribePublicMultiple (url, messageHashes, payload, channel, params = {}) {
+        const requestId = this.requestId ();
+        const time = this.seconds ();
+        const request = {
+            'id': requestId,
+            'time': time,
+            'channel': channel,
+            'event': 'subscribe',
+            'payload': payload,
+        };
+        const message = this.extend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
     async subscribePrivate (url, messageHash, payload, channel, params, requiresUid = false) {

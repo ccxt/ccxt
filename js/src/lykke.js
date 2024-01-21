@@ -12,7 +12,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class lykke
- * @extends Exchange
+ * @augments Exchange
  */
 export default class lykke extends Exchange {
     describe() {
@@ -435,7 +435,13 @@ export default class lykke extends Exchange {
         };
         // publicGetTickers or publicGetPrices
         const method = this.safeString(this.options, 'fetchTickerMethod', 'publicGetTickers');
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'publicGetPrices') {
+            response = await this.publicGetPrices(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetTickers(this.extend(request, params));
+        }
         const ticker = this.safeValue(response, 'payload', []);
         //
         // publicGetTickers
@@ -789,8 +795,13 @@ export default class lykke extends Exchange {
         if (type === 'limit') {
             query['price'] = parseFloat(this.priceToPrecision(market['symbol'], price));
         }
-        const method = 'privatePostOrders' + this.capitalize(type);
-        const result = await this[method](this.extend(query, params));
+        let result = undefined;
+        if (this.capitalize(type) === 'Market') {
+            result = await this.privatePostOrdersMarket(this.extend(query, params));
+        }
+        else {
+            result = await this.privatePostOrdersLimit(this.extend(query, params));
+        }
         //
         // market
         //
@@ -975,7 +986,7 @@ export default class lykke extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1070,7 +1081,7 @@ export default class lykke extends Exchange {
         //
         return this.parseTrades(payload, market, since, limit);
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeString(bidask, priceKey);
         const amount = Precise.stringAbs(this.safeString(bidask, amountKey));
         return [this.parseNumber(price), this.parseNumber(amount)];

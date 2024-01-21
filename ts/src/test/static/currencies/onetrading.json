@@ -1,0 +1,114 @@
+{
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "info": {
+            "code": "BTC",
+            "precision": "8"
+        },
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "ETH": {
+        "id": "ETH",
+        "code": "ETH",
+        "info": {
+            "code": "ETH",
+            "precision": "8"
+        },
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "USDT": {
+        "id": "USDT",
+        "code": "USDT",
+        "info": {
+            "code": "USDT",
+            "precision": "6"
+        },
+        "precision": 0.000001,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": {
+            "code": "USDC",
+            "precision": "6"
+        },
+        "precision": 0.000001,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "EUR": {
+        "id": "EUR",
+        "code": "EUR",
+        "info": {
+            "code": "EUR",
+            "precision": "2"
+        },
+        "precision": 0.01,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "LTC": {
+        "id": "LTC",
+        "code": "LTC",
+        "info": {
+            "code": "LTC",
+            "precision": "8"
+        },
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "DOGE": {
+        "id": "DOGE",
+        "code": "DOGE",
+        "info": {
+            "code": "DOGE",
+            "precision": "8"
+        },
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "ADA": {
+        "id": "ADA",
+        "code": "ADA",
+        "info": {
+            "code": "ADA",
+            "precision": "8"
+        },
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    }
+}

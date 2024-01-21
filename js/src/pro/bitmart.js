@@ -51,10 +51,10 @@ export default class bitmart extends bitmartRest {
                 'defaultType': 'spot',
                 'watchBalance': {
                     'fetchBalanceSnapshot': true,
-                    'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
+                    'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
                 },
                 'watchOrderBook': {
-                    'depth': 'depth50', // depth5, depth20, depth50
+                    'depth': 'depth/increase100', // depth/increase100, depth5, depth20, depth50
                 },
                 'ws': {
                     'inflate': true,
@@ -131,30 +131,31 @@ export default class bitmart extends bitmartRest {
         const messageHash = 'balance:' + type;
         const url = this.implodeHostname(this.urls['api']['ws'][type]['private']);
         const client = this.client(url);
-        this.setBalanceCache(client, type);
-        const fetchBalanceSnapshot = this.handleOptionAndParams(this.options, 'watchBalance', 'fetchBalanceSnapshot', true);
-        const awaitBalanceSnapshot = this.handleOptionAndParams(this.options, 'watchBalance', 'awaitBalanceSnapshot', false);
+        this.setBalanceCache(client, type, messageHash);
+        let fetchBalanceSnapshot = undefined;
+        let awaitBalanceSnapshot = undefined;
+        [fetchBalanceSnapshot, params] = this.handleOptionAndParams(this.options, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [awaitBalanceSnapshot, params] = this.handleOptionAndParams(this.options, 'watchBalance', 'awaitBalanceSnapshot', false);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future(type + ':fetchBalanceSnapshot');
         }
         return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
     }
-    setBalanceCache(client, type) {
-        if (type in client.subscriptions) {
-            return undefined;
+    setBalanceCache(client, type, subscribeHash) {
+        if (subscribeHash in client.subscriptions) {
+            return;
         }
         const options = this.safeValue(this.options, 'watchBalance');
-        const fetchBalanceSnapshot = this.handleOptionAndParams(options, 'watchBalance', 'fetchBalanceSnapshot', true);
-        if (fetchBalanceSnapshot) {
-            const messageHash = type + ':fetchBalanceSnapshot';
+        const snapshot = this.safeValue(options, 'fetchBalanceSnapshot', true);
+        if (snapshot) {
+            const messageHash = type + ':' + 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, client, messageHash, type);
             }
         }
-        else {
-            this.balance[type] = {};
-        }
+        this.balance[type] = {};
+        // without this comment, transpilation breaks for some reason...
     }
     async loadBalanceSnapshot(client, messageHash, type) {
         const response = await this.fetchBalance({ 'type': type });
@@ -201,15 +202,15 @@ export default class bitmart extends bitmartRest {
         }
         const isSpot = (channel.indexOf('spot') >= 0);
         const type = isSpot ? 'spot' : 'swap';
-        this.balance['info'] = message;
+        this.balance[type]['info'] = message;
         if (isSpot) {
             if (!Array.isArray(data)) {
                 return;
             }
             for (let i = 0; i < data.length; i++) {
                 const timestamp = this.safeInteger(message, 'event_time');
-                this.balance['timestamp'] = timestamp;
-                this.balance['datetime'] = this.iso8601(timestamp);
+                this.balance[type]['timestamp'] = timestamp;
+                this.balance[type]['datetime'] = this.iso8601(timestamp);
                 const balanceDetails = this.safeValue(data[i], 'balance_details', []);
                 for (let ii = 0; ii < balanceDetails.length; ii++) {
                     const rawBalance = balanceDetails[i];
@@ -217,8 +218,8 @@ export default class bitmart extends bitmartRest {
                     const currencyId = this.safeString(rawBalance, 'ccy');
                     const code = this.safeCurrencyCode(currencyId);
                     account['free'] = this.safeString(rawBalance, 'av_bal');
-                    account['total'] = this.safeString(rawBalance, 'fz_bal');
-                    this.balance[code] = account;
+                    account['used'] = this.safeString(rawBalance, 'fz_bal');
+                    this.balance[type][code] = account;
                 }
             }
         }
@@ -292,25 +293,39 @@ export default class bitmart extends bitmartRest {
         const market = this.getMarketFromSymbols(symbols);
         let type = 'spot';
         [type, params] = this.handleMarketTypeAndParams('watchTickers', market, params);
-        symbols = this.marketSymbols(symbols);
-        if (type === 'spot') {
-            throw new NotSupported(this.id + ' watchTickers() does not support ' + type + ' markets. Use watchTicker() instead');
-        }
         const url = this.implodeHostname(this.urls['api']['ws'][type]['public']);
-        if (type === 'swap') {
-            type = 'futures';
-        }
-        let messageHash = 'tickers';
+        symbols = this.marketSymbols(symbols);
+        let messageHash = 'tickers::' + type;
         if (symbols !== undefined) {
             messageHash += '::' + symbols.join(',');
         }
-        const request = {
-            'action': 'subscribe',
-            'args': ['futures/ticker'],
-        };
-        const newTickers = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
+        let request = undefined;
+        let tickers = undefined;
+        const isSpot = (type === 'spot');
+        if (isSpot) {
+            if (symbols === undefined) {
+                throw new ArgumentsRequired(this.id + ' watchTickers() for ' + type + ' market type requires symbols argument to be provided');
+            }
+            const marketIds = this.marketIds(symbols);
+            const finalArray = [];
+            for (let i = 0; i < marketIds.length; i++) {
+                finalArray.push('spot/ticker:' + marketIds[i]);
+            }
+            request = {
+                'op': 'subscribe',
+                'args': finalArray,
+            };
+            tickers = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
+        }
+        else {
+            request = {
+                'action': 'subscribe',
+                'args': ['futures/ticker'],
+            };
+            tickers = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
+        }
         if (this.newUpdates) {
-            return newTickers;
+            return tickers;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
     }
@@ -436,12 +451,14 @@ export default class bitmart extends bitmartRest {
                 symbols[symbol] = true;
             }
         }
-        const newOrderSymbols = Object.keys(symbols);
-        for (let i = 0; i < newOrderSymbols.length; i++) {
-            const symbol = newOrderSymbols[i];
-            this.resolvePromiseIfMessagehashMatches(client, 'orders::', symbol, newOrders);
+        const messageHash = 'orders';
+        const symbolKeys = Object.keys(symbols);
+        for (let i = 0; i < symbolKeys.length; i++) {
+            const symbol = symbolKeys[i];
+            const symbolSpecificMessageHash = messageHash + '::' + symbol;
+            client.resolve(newOrders, symbolSpecificMessageHash);
         }
-        client.resolve(newOrders, 'orders');
+        client.resolve(newOrders, messageHash);
     }
     parseWsOrder(order, market = undefined) {
         //
@@ -707,7 +724,7 @@ export default class bitmart extends bitmartRest {
         //    }
         //
         const marketId = this.safeString(position, 'symbol');
-        market = this.safeMarket(marketId, market, '', 'swap');
+        market = this.safeMarket(marketId, market, undefined, 'swap');
         const symbol = market['symbol'];
         const openTimestamp = this.safeInteger(position, 'create_time');
         const timestamp = this.safeInteger(position, 'update_time');
@@ -893,16 +910,35 @@ export default class bitmart extends bitmartRest {
                 const messageHash = table + ':' + marketId;
                 this.tickers[symbol] = ticker;
                 client.resolve(ticker, messageHash);
+                this.resolveMessageHashesForSymbol(client, symbol, ticker, 'tickers::');
             }
         }
         else {
+            // on each update for contract markets, single ticker is provided
             const ticker = this.parseWsSwapTicker(data);
             const symbol = this.safeString(ticker, 'symbol');
             this.tickers[symbol] = ticker;
-            client.resolve(ticker, 'tickers');
-            this.resolvePromiseIfMessagehashMatches(client, 'tickers::', symbol, ticker);
+            client.resolve(ticker, 'tickers::swap');
+            this.resolveMessageHashesForSymbol(client, symbol, ticker, 'tickers::');
         }
         return message;
+    }
+    resolveMessageHashesForSymbol(client, symbol, result, prexif) {
+        const prefixSeparator = '::';
+        const symbolsSeparator = ',';
+        const messageHashes = this.findMessageHashes(client, prexif);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split(prefixSeparator);
+            const length = parts.length;
+            const symbolsString = parts[length - 1];
+            const symbols = symbolsString.split(symbolsSeparator);
+            if (this.inArray(symbol, symbols)) {
+                const response = {};
+                response[symbol] = result;
+                client.resolve(response, messageHash);
+            }
+        }
     }
     parseWsSwapTicker(ticker, market = undefined) {
         //
@@ -1050,7 +1086,7 @@ export default class bitmart extends bitmartRest {
         }
         else {
             const marketId = this.safeString(data, 'symbol');
-            const market = this.safeMarket(marketId, undefined, '', 'swap');
+            const market = this.safeMarket(marketId, undefined, undefined, 'swap');
             const symbol = market['symbol'];
             const items = this.safeValue(data, 'items', []);
             this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
@@ -1073,6 +1109,7 @@ export default class bitmart extends bitmartRest {
          * @method
          * @name bitmart#watchOrderBook
          * @see https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
+         * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
          * @see https://developer-pro.bitmart.com/en/futures/#public-depth-channel
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -1082,11 +1119,14 @@ export default class bitmart extends bitmartRest {
          */
         await this.loadMarkets();
         const options = this.safeValue(this.options, 'watchOrderBook', {});
-        const depth = this.safeString(options, 'depth', 'depth50');
+        let depth = this.safeString(options, 'depth', 'depth/increase100');
         symbol = this.symbol(symbol);
         const market = this.market(symbol);
         let type = 'spot';
         [type, params] = this.handleMarketTypeAndParams('watchOrderBook', market, params);
+        if (type === 'swap' && depth === 'depth/increase100') {
+            depth = 'depth50';
+        }
         const orderbook = await this.subscribe(depth, symbol, type, params);
         return orderbook.limit();
     }
@@ -1135,46 +1175,72 @@ export default class bitmart extends bitmartRest {
     }
     handleOrderBook(client, message) {
         //
-        // spot
-        //     {
-        //         "data": [
-        //             {
-        //                 "asks": [
-        //                     [ '46828.38', "0.21847" ],
-        //                     [ '46830.68', "0.08232" ],
-        //                     ...
+        // spot depth-all
+        //    {
+        //        "data": [
+        //            {
+        //                "asks": [
+        //                    [ '46828.38', "0.21847" ],
+        //                    [ '46830.68', "0.08232" ],
+        //                    ...
+        //                ],
+        //                "bids": [
+        //                    [ '46820.78', "0.00444" ],
+        //                    [ '46814.33', "0.00234" ],
+        //                    ...
+        //                ],
+        //                "ms_t": 1631044962431,
+        //                "symbol": "BTC_USDT"
+        //            }
+        //        ],
+        //        "table": "spot/depth5"
+        //    }
+        // spot increse depth snapshot
+        //    {
+        //        "data":[
+        //           {
+        //              "asks":[
+        //                 [
+        //                    "43652.52",
+        //                    "0.02039"
         //                 ],
-        //                 "bids": [
-        //                     [ '46820.78', "0.00444" ],
-        //                     [ '46814.33', "0.00234" ],
-        //                     ...
-        //                 ],
-        //                 "ms_t": 1631044962431,
-        //                 "symbol": "BTC_USDT"
-        //             }
-        //         ],
-        //         "table": "spot/depth5"
-        //     }
+        //                 ...
+        //              ],
+        //              "bids":[
+        //                [
+        //                   "43652.51",
+        //                   "0.00500"
+        //                ],
+        //                ...
+        //              ],
+        //              "ms_t":1703376836487,
+        //              "symbol":"BTC_USDT",
+        //              "type":"snapshot", // or update
+        //              "version":2141731
+        //           }
+        //        ],
+        //        "table":"spot/depth/increase100"
+        //    }
         // swap
-        //     {
-        //         "group":"futures/depth50:BTCUSDT",
-        //         "data":{
-        //            "symbol":"BTCUSDT",
-        //            "way":1,
-        //            "depths":[
-        //               {
-        //                  "price":"39509.8",
-        //                  "vol":"2379"
-        //               },
-        //               {
-        //                  "price":"39509.6",
-        //                  "vol":"6815"
-        //               },
-        //               ...
-        //            ],
-        //            "ms_t":1701566021194
-        //         }
-        //     }
+        //    {
+        //        "group":"futures/depth50:BTCUSDT",
+        //        "data":{
+        //           "symbol":"BTCUSDT",
+        //           "way":1,
+        //           "depths":[
+        //              {
+        //                 "price":"39509.8",
+        //                 "vol":"2379"
+        //              },
+        //              {
+        //                 "price":"39509.6",
+        //                 "vol":"6815"
+        //              },
+        //              ...
+        //           ],
+        //           "ms_t":1701566021194
+        //        }
+        //    }
         //
         const data = this.safeValue(message, 'data');
         if (data === undefined) {
@@ -1183,12 +1249,16 @@ export default class bitmart extends bitmartRest {
         const depths = this.safeValue(data, 'depths');
         const isSpot = (depths === undefined);
         const table = this.safeString2(message, 'table', 'group');
-        const parts = table.split('/');
-        const lastPart = this.safeString(parts, 1);
-        let limitString = lastPart.replace('depth', '');
-        const dotsIndex = limitString.indexOf(':');
-        limitString = limitString.slice(0, dotsIndex);
-        const limit = this.parseToInt(limitString);
+        // find limit subscribed to
+        const limitsToCheck = ['100', '50', '20', '10', '5'];
+        let limit = 0;
+        for (let i = 0; i < limitsToCheck.length; i++) {
+            const limitString = limitsToCheck[i];
+            if (table.indexOf(limitString) >= 0) {
+                limit = this.parseToInt(limitString);
+                break;
+            }
+        }
         if (isSpot) {
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
@@ -1200,7 +1270,10 @@ export default class bitmart extends bitmartRest {
                     orderbook['symbol'] = symbol;
                     this.orderbooks[symbol] = orderbook;
                 }
-                orderbook.reset({});
+                const type = this.safeValue(update, 'type');
+                if ((type === 'snapshot') || (!(table.indexOf('increase') >= 0))) {
+                    orderbook.reset({});
+                }
                 this.handleOrderBookMessage(client, update, orderbook);
                 const timestamp = this.safeInteger(update, 'ms_t');
                 orderbook['timestamp'] = timestamp;
@@ -1392,9 +1465,7 @@ export default class bitmart extends bitmartRest {
         }
         else {
             const methods = {
-                'depth5': this.handleOrderBook,
-                'depth20': this.handleOrderBook,
-                'depth50': this.handleOrderBook,
+                'depth': this.handleOrderBook,
                 'ticker': this.handleTicker,
                 'trade': this.handleTrade,
                 'kline': this.handleOHLCV,

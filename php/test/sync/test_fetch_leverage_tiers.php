@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,7 +7,7 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/../base/test_leverage_tier.php';
+include_once PATH_TO_CCXT . '/test/base/test_leverage_tier.php';
 
 function test_fetch_leverage_tiers($exchange, $skipped_properties, $symbol) {
     $method = 'fetchLeverageTiers';

@@ -74,6 +74,8 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -800,12 +802,14 @@ class ascendex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         await self.load_accounts()
-        query = None
         marketType = None
-        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
+        marginMode = None
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
         isMargin = self.safe_value(params, 'margin', False)
-        marketType = 'margin' if isMargin else marketType
-        query = self.omit(query, 'margin')
+        isCross = marginMode == 'cross'
+        marketType = 'margin' if (isMargin or isCross) else marketType
+        params = self.omit(params, 'margin')
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         accountCategory = self.safe_string(accountsByType, marketType, 'cash')
         account = self.safe_value(self.accounts, 0, {})
@@ -813,13 +817,15 @@ class ascendex(Exchange, ImplicitAPI):
         request = {
             'account-group': accountGroup,
         }
+        if (marginMode == 'isolated') and (marketType != 'swap'):
+            raise BadRequest(self.id + ' does not supported isolated margin trading')
         if (accountCategory == 'cash') or (accountCategory == 'margin'):
             request['account-category'] = accountCategory
         response = None
         if (marketType == 'spot') or (marketType == 'margin'):
-            response = await self.v1PrivateAccountCategoryGetBalance(self.extend(request, query))
+            response = await self.v1PrivateAccountCategoryGetBalance(self.extend(request, params))
         elif marketType == 'swap':
-            response = await self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, query))
+            response = await self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchBalance() is not currently supported for ' + marketType + ' markets')
         #
@@ -1593,7 +1599,7 @@ class ascendex(Exchange, ImplicitAPI):
         create a list of trade orders
         :see: https://ascendex.github.io/ascendex-pro-api/#place-batch-orders
         :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#place-batch-orders
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :param bool [params.postOnly]: True or False
@@ -1894,7 +1900,7 @@ class ascendex(Exchange, ImplicitAPI):
         :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-current-history-orders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`

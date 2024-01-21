@@ -6,13 +6,13 @@ import { AuthenticationError, BadRequest, ExchangeError, NotSupported, Permissio
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class bitstamp
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitstamp extends Exchange {
     describe () {
@@ -342,6 +342,14 @@ export default class bitstamp extends Exchange {
                         'earn/subscribe/': 1,
                         'earn/subscriptions/setting/': 1,
                         'earn/unsubscribe': 1,
+                        'wecan_withdrawal/': 1,
+                        'wecan_address/': 1,
+                        'trac_withdrawal/': 1,
+                        'trac_address/': 1,
+                        'eurcv_withdrawal/': 1,
+                        'eurcv_address/': 1,
+                        'pyusd_withdrawal/': 1,
+                        'pyusd_address/': 1,
                     },
                 },
             },
@@ -1352,6 +1360,12 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#createOrder
          * @description create a trade order
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantBuyOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketBuyOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitBuyOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantSellOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketSellOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitSellOrder
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1362,25 +1376,37 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'privatePost' + this.capitalize (side);
         const request = {
             'pair': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'market') {
-            method += 'Market';
-        } else if (type === 'instant') {
-            method += 'Instant';
-        } else {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        method += 'Pair';
         const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+            params = this.omit (params, [ 'clientOrderId' ]);
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        const capitalizedSide = this.capitalize (side);
+        if (type === 'market') {
+            if (capitalizedSide === 'Buy') {
+                response = await this.privatePostBuyMarketPair (this.extend (request, params));
+            } else {
+                response = await this.privatePostSellMarketPair (this.extend (request, params));
+            }
+        } else if (type === 'instant') {
+            if (capitalizedSide === 'Buy') {
+                response = await this.privatePostBuyInstantPair (this.extend (request, params));
+            } else {
+                response = await this.privatePostSellInstantPair (this.extend (request, params));
+            }
+        } else {
+            request['price'] = this.priceToPrecision (symbol, price);
+            if (capitalizedSide === 'Buy') {
+                response = await this.privatePostBuyPair (this.extend (request, params));
+            } else {
+                response = await this.privatePostSellPair (this.extend (request, params));
+            }
+        }
         const order = this.parseOrder (response, market);
         order['type'] = type;
         return order;
@@ -1415,13 +1441,15 @@ export default class bitstamp extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
-        let method = 'privatePostCancelAllOrders';
+        let response = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
-            method = 'privatePostCancelAllOrdersPair';
+            response = await this.privatePostCancelAllOrdersPair (this.extend (request, params));
+        } else {
+            response = await this.privatePostCancelAllOrders (this.extend (request, params));
         }
-        return await this[method] (this.extend (request, params));
+        return response;
     }
 
     parseOrderStatus (status) {

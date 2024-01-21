@@ -1,8 +1,8 @@
 import Exchange from './abstract/hitbtc.js';
-import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency } from './base/types.js';
 /**
  * @class hitbtc
- * @extends Exchange
+ * @augments Exchange
  */
 export default class hitbtc extends Exchange {
     describe(): any;
@@ -72,8 +72,8 @@ export default class hitbtc extends Exchange {
     fetchMarginMode(symbol?: Str, params?: {}): Promise<MarginMode>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         id: string;
-        timestamp: number;
-        datetime: string;
+        timestamp: any;
+        datetime: any;
         currency: string;
         amount: any;
         fromAccount: any;
@@ -83,8 +83,8 @@ export default class hitbtc extends Exchange {
     }>;
     parseTransfer(transfer: any, currency?: Currency): {
         id: string;
-        timestamp: number;
-        datetime: string;
+        timestamp: any;
+        datetime: any;
         currency: string;
         amount: any;
         fromAccount: any;
@@ -156,6 +156,7 @@ export default class hitbtc extends Exchange {
     setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

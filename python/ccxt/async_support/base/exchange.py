@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.85'
+__version__ = '4.2.19'
 
 # -----------------------------------------------------------------------------
 
@@ -89,7 +89,7 @@ class Exchange(BaseExchange):
         return self.session
 
     def __del__(self):
-        if self.session is not None:
+        if self.session is not None or self.socks_proxy_sessions is not None:
             self.logger.warning(self.id + " requires to release all resources with an explicit call to the .close() coroutine. If you are using the exchange instance with async coroutines, add `await exchange.close()` to your code into a place when you're done with the exchange and don't need the exchange instance anymore (at the end of your async coroutine).")
 
     if sys.version_info >= (3, 5):
@@ -107,11 +107,14 @@ class Exchange(BaseExchange):
             else:
                 self.asyncio_loop = asyncio.get_event_loop()
             self.throttle.loop = self.asyncio_loop
-        if self.own_session and self.session is None:
+
+        if self.ssl_context is None:
             # Create our SSL context object with our CA cert file
-            context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+            self.ssl_context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+
+        if self.own_session and self.session is None:
             # Pass this SSL context to aiohttp and create a TCPConnector
-            connector = aiohttp.TCPConnector(ssl=context, loop=self.asyncio_loop, enable_cleanup_closed=True)
+            connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True)
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
@@ -120,6 +123,13 @@ class Exchange(BaseExchange):
             if self.own_session:
                 await self.session.close()
             self.session = None
+        await self.close_proxy_sessions()
+
+    async def close_proxy_sessions(self):
+        if self.socks_proxy_sessions is not None:
+            for url in self.socks_proxy_sessions:
+                await self.socks_proxy_sessions[url].close()
+            self.socks_proxy_sessions = None
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -134,7 +144,7 @@ class Exchange(BaseExchange):
             url = proxyUrl + url
         # proxy agents
         final_proxy = None  # set default
-        final_session = None
+        proxy_session = None
         httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
         if httpProxy:
             final_proxy = httpProxy
@@ -144,17 +154,20 @@ class Exchange(BaseExchange):
             if ProxyConnector is None:
                 raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
             # Create our SSL context object with our CA cert file
-            context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
             self.open()  # ensure `asyncio_loop` is set
             connector = ProxyConnector.from_url(
                 socksProxy,
                 # extra args copied from self.open()
-                ssl=context,
+                ssl=self.ssl_context,
                 loop=self.asyncio_loop,
                 enable_cleanup_closed=True
             )
             # override session
-            final_session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
+            if (self.socks_proxy_sessions is None):
+                self.socks_proxy_sessions = {}
+            if (socksProxy not in self.socks_proxy_sessions):
+                self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
+            proxy_session = self.socks_proxy_sessions[socksProxy]
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
             final_proxy = self.aiohttp_proxy
@@ -175,7 +188,8 @@ class Exchange(BaseExchange):
         request_body = body
         encoded_body = body.encode() if body else None
         self.open()
-        session_method = getattr(final_session if final_session is not None else self.session, method.lower())
+        final_session = proxy_session if proxy_session is not None else self.session
+        session_method = getattr(final_session, method.lower())
 
         http_response = None
         http_status_code = None
@@ -365,20 +379,18 @@ class Exchange(BaseExchange):
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
-        self.set_client_session_proxy(url)
+            self.clients[url].proxy = self.get_ws_proxy()
         return self.clients[url]
 
-    def set_client_session_proxy(self, url):
-        final_proxy = None  # set default
-        httpProxy, httpsProxy = self.check_ws_proxy_settings()
+    def get_ws_proxy(self):
+        httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
         if httpProxy:
-            final_proxy = httpProxy
+            return httpProxy
         elif httpsProxy:
-            final_proxy = httpsProxy
-        if (final_proxy):
-            self.clients[url].proxy = final_proxy
-        else:
-            self.clients[url].proxy = None
+            return httpsProxy
+        elif socksProxy:
+            return socksProxy
+        return None
 
     def delay(self, timeout, method, *args):
         return self.asyncio_loop.call_later(timeout / 1000, self.spawn, method, *args)
@@ -388,6 +400,45 @@ class Exchange(BaseExchange):
         if always:
             raise NotSupported(self.id + '.handle_message() not implemented yet')
         return {}
+
+    def watch_multiple(self, url, message_hashes, message=None, subscribe_hashes=None, subscription=None):
+        # base exchange self.open starts the aiohttp Session in an async context
+        self.open()
+        backoff_delay = 0
+        client = self.client(url)
+
+        future = Future.race([client.future(message_hash) for message_hash in message_hashes])
+
+        missing_subscriptions = []
+        if subscribe_hashes is not None:
+            for subscribe_hash in subscribe_hashes:
+                if subscribe_hash not in client.subscriptions:
+                    missing_subscriptions.append(subscribe_hash)
+                    client.subscriptions[subscribe_hash] = subscription or True
+
+        connected = client.connected if client.connected.done() \
+            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+
+        def after(fut):
+            # todo: decouple signing from subscriptions
+            options = self.safe_value(self.options, 'ws')
+            cost = self.safe_value(options, 'cost', 1)
+            if message:
+                async def send_message():
+                    if self.enableRateLimit:
+                        await client.throttle(cost)
+                    try:
+                        await client.send(message)
+                    except ConnectionError as e:
+                        for subscribe_hash in missing_subscriptions:
+                            del client.subscriptions[subscribe_hash]
+                        future.reject(e)
+                asyncio.ensure_future(send_message())
+
+        if missing_subscriptions:
+            connected.add_done_callback(after)
+
+        return future
 
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         # base exchange self.open starts the aiohttp Session in an async context
@@ -422,11 +473,7 @@ class Exchange(BaseExchange):
                 asyncio.ensure_future(send_message())
 
         if not subscribed:
-            try:
-                connected.add_done_callback(after)
-            except Exception as e:
-                del client.subscriptions[subscribe_hash]
-                future.reject(e)
+            connected.add_done_callback(after)
 
         return future
 
@@ -441,7 +488,7 @@ class Exchange(BaseExchange):
 
     def on_close(self, client, error):
         if client.error:
-            # connection closed due to an error
+            # connection closed by the user or due to an error
             pass
         else:
             # server disconnected a working connection
@@ -884,6 +931,50 @@ class Exchange(BaseExchange):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
+    async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, trailingAmount=None, trailingTriggerPrice=None, params={}):
+        """
+        create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency, or number of contracts
+        :param float [price]: the price for the order to be filled at, in units of the quote currency, ignored in market orders
+        :param float trailingAmount: the quote amount to trail away from the current market price
+        :param float [trailingTriggerPrice]: the price to activate a trailing order, default uses the price argument
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if trailingAmount is None:
+            raise ArgumentsRequired(self.id + ' createTrailingAmountOrder() requires a trailingAmount argument')
+        params['trailingAmount'] = trailingAmount
+        if trailingTriggerPrice is not None:
+            params['trailingTriggerPrice'] = trailingTriggerPrice
+        if self.has['createTrailingAmountOrder']:
+            return await self.create_order(symbol, type, side, amount, price, params)
+        raise NotSupported(self.id + ' createTrailingAmountOrder() is not supported yet')
+
+    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, trailingPercent=None, trailingTriggerPrice=None, params={}):
+        """
+        create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency, or number of contracts
+        :param float [price]: the price for the order to be filled at, in units of the quote currency, ignored in market orders
+        :param float trailingPercent: the percent to trail away from the current market price
+        :param float [trailingTriggerPrice]: the price to activate a trailing order, default uses the price argument
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if trailingPercent is None:
+            raise ArgumentsRequired(self.id + ' createTrailingPercentOrder() requires a trailingPercent argument')
+        params['trailingPercent'] = trailingPercent
+        if trailingTriggerPrice is not None:
+            params['trailingTriggerPrice'] = trailingTriggerPrice
+        if self.has['createTrailingPercentOrder']:
+            return await self.create_order(symbol, type, side, amount, price, params)
+        raise NotSupported(self.id + ' createTrailingPercentOrder() is not supported yet')
+
     async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost, params={}):
         """
         create a market order by providing the symbol, side and cost
@@ -893,7 +984,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if self.options['createMarketOrderWithCost'] or (self.options['createMarketBuyOrderWithCost'] and self.options['createMarketSellOrderWithCost']):
+        if self.has['createMarketOrderWithCost'] or (self.has['createMarketBuyOrderWithCost'] and self.has['createMarketSellOrderWithCost']):
             return await self.create_order(symbol, 'market', side, cost, 1, params)
         raise NotSupported(self.id + ' createMarketOrderWithCost() is not supported yet')
 
@@ -905,7 +996,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if self.options['createMarketBuyOrderRequiresPrice'] or self.options['createMarketBuyOrderWithCost']:
+        if self.options['createMarketBuyOrderRequiresPrice'] or self.has['createMarketBuyOrderWithCost']:
             return await self.create_order(symbol, 'market', 'buy', cost, 1, params)
         raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is not supported yet')
 
@@ -917,9 +1008,126 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if self.options['createMarketSellOrderRequiresPrice'] or self.options['createMarketSellOrderWithCost']:
+        if self.options['createMarketSellOrderRequiresPrice'] or self.has['createMarketSellOrderWithCost']:
             return await self.create_order(symbol, 'market', 'sell', cost, 1, params)
         raise NotSupported(self.id + ' createMarketSellOrderWithCost() is not supported yet')
+
+    async def create_trigger_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, triggerPrice=None, params={}):
+        """
+        create a trigger stop order(type 1)
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency or the number of contracts
+        :param float [price]: the price to fulfill the order, in units of the quote currency, ignored in market orders
+        :param float triggerPrice: the price to trigger the stop order, in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if triggerPrice is None:
+            raise ArgumentsRequired(self.id + ' createTriggerOrder() requires a triggerPrice argument')
+        params['triggerPrice'] = triggerPrice
+        if self.has['createTriggerOrder']:
+            return await self.create_order(symbol, type, side, amount, price, params)
+        raise NotSupported(self.id + ' createTriggerOrder() is not supported yet')
+
+    async def create_stop_loss_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, stopLossPrice=None, params={}):
+        """
+        create a trigger stop loss order(type 2)
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency or the number of contracts
+        :param float [price]: the price to fulfill the order, in units of the quote currency, ignored in market orders
+        :param float stopLossPrice: the price to trigger the stop loss order, in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if stopLossPrice is None:
+            raise ArgumentsRequired(self.id + ' createStopLossOrder() requires a stopLossPrice argument')
+        params['stopLossPrice'] = stopLossPrice
+        if self.has['createStopLossOrder']:
+            return await self.create_order(symbol, type, side, amount, price, params)
+        raise NotSupported(self.id + ' createStopLossOrder() is not supported yet')
+
+    async def create_take_profit_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, takeProfitPrice=None, params={}):
+        """
+        create a trigger take profit order(type 2)
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency or the number of contracts
+        :param float [price]: the price to fulfill the order, in units of the quote currency, ignored in market orders
+        :param float takeProfitPrice: the price to trigger the take profit order, in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if takeProfitPrice is None:
+            raise ArgumentsRequired(self.id + ' createTakeProfitOrder() requires a takeProfitPrice argument')
+        params['takeProfitPrice'] = takeProfitPrice
+        if self.has['createTakeProfitOrder']:
+            return await self.create_order(symbol, type, side, amount, price, params)
+        raise NotSupported(self.id + ' createTakeProfitOrder() is not supported yet')
+
+    async def create_order_with_take_profit_and_stop_loss(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, takeProfit=None, stopLoss=None, params={}):
+        """
+        create an order with a stop loss or take profit attached(type 3)
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency or the number of contracts
+        :param float [price]: the price to fulfill the order, in units of the quote currency, ignored in market orders
+        :param float [takeProfit]: the take profit price, in units of the quote currency
+        :param float [stopLoss]: the stop loss price, in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.takeProfitType]: *not available on all exchanges* 'limit' or 'market'
+        :param str [params.stopLossType]: *not available on all exchanges* 'limit' or 'market'
+        :param str [params.takeProfitPriceType]: *not available on all exchanges* 'last', 'mark' or 'index'
+        :param str [params.stopLossPriceType]: *not available on all exchanges* 'last', 'mark' or 'index'
+        :param float [params.takeProfitLimitPrice]: *not available on all exchanges* limit price for a limit take profit order
+        :param float [params.stopLossLimitPrice]: *not available on all exchanges* stop loss for a limit stop loss order
+        :param float [params.takeProfitAmount]: *not available on all exchanges* the amount for a take profit
+        :param float [params.stopLossAmount]: *not available on all exchanges* the amount for a stop loss
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if (takeProfit is None) and (stopLoss is None):
+            raise ArgumentsRequired(self.id + ' createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument')
+        if takeProfit is not None:
+            params['takeProfit'] = {
+                'triggerPrice': takeProfit,
+            }
+        if stopLoss is not None:
+            params['stopLoss'] = {
+                'triggerPrice': stopLoss,
+            }
+        takeProfitType = self.safe_string(params, 'takeProfitType')
+        takeProfitPriceType = self.safe_string(params, 'takeProfitPriceType')
+        takeProfitLimitPrice = self.safe_string(params, 'takeProfitLimitPrice')
+        takeProfitAmount = self.safe_string(params, 'takeProfitAmount')
+        stopLossType = self.safe_string(params, 'stopLossType')
+        stopLossPriceType = self.safe_string(params, 'stopLossPriceType')
+        stopLossLimitPrice = self.safe_string(params, 'stopLossLimitPrice')
+        stopLossAmount = self.safe_string(params, 'stopLossAmount')
+        if takeProfitType is not None:
+            params['takeProfit']['type'] = takeProfitType
+        if takeProfitPriceType is not None:
+            params['takeProfit']['priceType'] = takeProfitPriceType
+        if takeProfitLimitPrice is not None:
+            params['takeProfit']['price'] = self.parse_to_numeric(takeProfitLimitPrice)
+        if takeProfitAmount is not None:
+            params['takeProfit']['amount'] = self.parse_to_numeric(takeProfitAmount)
+        if stopLossType is not None:
+            params['stopLoss']['type'] = stopLossType
+        if stopLossPriceType is not None:
+            params['stopLoss']['priceType'] = stopLossPriceType
+        if stopLossLimitPrice is not None:
+            params['stopLoss']['price'] = self.parse_to_numeric(stopLossLimitPrice)
+        if stopLossAmount is not None:
+            params['stopLoss']['amount'] = self.parse_to_numeric(stopLossAmount)
+        params = self.omit(params, ['takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount'])
+        if self.has['createOrderWithTakeProfitAndStopLoss']:
+            return await self.create_order(symbol, type, side, amount, price, params)
+        raise NotSupported(self.id + ' createOrderWithTakeProfitAndStopLoss() is not supported yet')
 
     async def create_orders(self, orders: List[OrderRequest], params={}):
         raise NotSupported(self.id + ' createOrders() is not supported yet')
@@ -948,6 +1156,9 @@ class Exchange(BaseExchange):
     async def fetch_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
+    async def fetch_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchOrdersWs() is not supported yet')
+
     async def fetch_order_trades(self, id: str, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderTrades() is not supported yet')
 
@@ -955,13 +1166,28 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' watchOrders() is not supported yet')
 
     async def fetch_open_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrders']:
+            orders = await self.fetch_orders(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'open')
         raise NotSupported(self.id + ' fetchOpenOrders() is not supported yet')
 
     async def fetch_open_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrdersWs']:
+            orders = await self.fetchOrdersWs(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'open')
         raise NotSupported(self.id + ' fetchOpenOrdersWs() is not supported yet')
 
     async def fetch_closed_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrders']:
+            orders = await self.fetch_orders(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'closed')
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
+
+    async def fetch_closed_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOrdersWs']:
+            orders = await self.fetchOrdersWs(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'closed')
+        raise NotSupported(self.id + ' fetchClosedOrdersWs() is not supported yet')
 
     async def fetch_my_trades(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
@@ -1011,7 +1237,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
 
     async def close_position(self, symbol: str, side: OrderSide = None, params={}):
-        raise NotSupported(self.id + ' closePositions() is not supported yet')
+        raise NotSupported(self.id + ' closePosition() is not supported yet')
 
     async def close_all_positions(self, params={}):
         raise NotSupported(self.id + ' closeAllPositions() is not supported yet')

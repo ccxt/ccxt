@@ -35,7 +35,7 @@ class alpaca extends Exchange {
                     'market' => 'https://data.sandbox.{hostname}',
                 ),
                 'doc' => 'https://alpaca.markets/docs/',
-                'fees' => 'https://alpaca.markets/support/what-are-the-fees-associated-with-crypto-trading/',
+                'fees' => 'https://docs.alpaca.markets/docs/crypto-fees',
             ),
             'has' => array(
                 'CORS' => false,
@@ -49,7 +49,7 @@ class alpaca extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createOrder' => true,
-                'fetchBalance' => true,
+                'fetchBalance' => false,
                 'fetchBidsAsks' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
@@ -207,28 +207,28 @@ class alpaca extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'maker' => $this->parse_number('0.003'),
-                    'taker' => $this->parse_number('0.003'),
+                    'maker' => $this->parse_number('0.0015'),
+                    'taker' => $this->parse_number('0.0025'),
                     'tiers' => array(
                         'taker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.003') ),
-                            array( $this->parse_number('500000'), $this->parse_number('0.0028') ),
-                            array( $this->parse_number('1000000'), $this->parse_number('0.0025') ),
-                            array( $this->parse_number('5000000'), $this->parse_number('0.002') ),
-                            array( $this->parse_number('10000000'), $this->parse_number('0.0018') ),
-                            array( $this->parse_number('25000000'), $this->parse_number('0.0015') ),
-                            array( $this->parse_number('50000000'), $this->parse_number('0.00125') ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0025') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0022') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0020') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0.0013') ),
+                            array( $this->parse_number('50000000'), $this->parse_number('0.0012') ),
                             array( $this->parse_number('100000000'), $this->parse_number('0.001') ),
                         ),
                         'maker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.003') ),
-                            array( $this->parse_number('500000'), $this->parse_number('0.0028') ),
-                            array( $this->parse_number('1000000'), $this->parse_number('0.0025') ),
-                            array( $this->parse_number('5000000'), $this->parse_number('0.002') ),
-                            array( $this->parse_number('10000000'), $this->parse_number('0.0018') ),
-                            array( $this->parse_number('25000000'), $this->parse_number('0.0015') ),
-                            array( $this->parse_number('50000000'), $this->parse_number('0.00125') ),
-                            array( $this->parse_number('100000000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('50000000'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0.00') ),
                         ),
                     ),
                 ),
@@ -348,10 +348,16 @@ class alpaca extends Exchange {
         //
         $marketId = $this->safe_string($asset, 'symbol');
         $parts = explode('/', $marketId);
+        $assetClass = $this->safe_string($asset, 'class');
         $baseId = $this->safe_string($parts, 0);
         $quoteId = $this->safe_string($parts, 1);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        // Us equity markets do not include $quote in $symbol->
+        // We can safely coerce us_equity $quote to USD
+        if ($quote === null && $assetClass === 'us_equity') {
+            $quote = 'USD';
+        }
         $symbol = $base . '/' . $quote;
         $status = $this->safe_string($asset, 'status');
         $active = ($status === 'active');
@@ -491,7 +497,7 @@ class alpaca extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->loc] crypto location, default => us
          * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
-        */
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $id = $market['id'];

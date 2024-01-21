@@ -777,12 +777,11 @@ class bitfinex(Exchange, ImplicitAPI):
         #         "message": "0.0001 Bitcoin transfered from Margin to Exchange"
         #     }
         #
-        timestamp = self.milliseconds()
         return {
             'info': transfer,
             'id': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'currency': self.safe_currency_code(None, currency),
             'amount': None,
             'fromAccount': None,
@@ -1181,7 +1180,7 @@ class bitfinex(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """

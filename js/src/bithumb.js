@@ -13,7 +13,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bithumb
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bithumb extends Exchange {
     describe() {
