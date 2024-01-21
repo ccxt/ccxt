@@ -361,6 +361,8 @@ export default class bingx extends Exchange {
                     '100440': ExchangeError,
                     '100500': ExchangeError,
                     '100503': ExchangeError,
+                    '101211': BadRequest, // {"code":101211,"msg":"checkPriceLimit entrustPrice must greater than minPrice","data":{}}
+                    // '101204': BadRequest, // {"code":101204,"msg":"","data":{}}
                     '80001': BadRequest,
                     '80012': ExchangeNotAvailable,
                     '80014': BadRequest,
