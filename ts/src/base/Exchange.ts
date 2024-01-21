@@ -507,6 +507,7 @@ export default class Exchange {
                 'fetchBorrowInterest': undefined,
                 'fetchBorrowRateHistory': undefined,
                 'fetchCanceledOrders': undefined,
+                'fetchCanceledAndClosedOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
                 'fetchCrossBorrowRate': undefined,
