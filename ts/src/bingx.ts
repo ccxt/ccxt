@@ -1852,16 +1852,19 @@ export default class bingx extends Exchange {
                     request['priceRate'] = this.parseToNumeric (requestTrailingPercent);
                 }
             }
-            if (isStopLoss || isTakeProfit) {
+            if (market['contract']) {
                 if (isStopLoss) {
                     const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                    const slWorkingType = this.safeString (stopLoss, 'workingType', 'MARK_PRICE');
-                    const slType = this.safeString (stopLoss, 'type', 'STOP_MARKET');
+                    const slWorkingType = this.safeString (stopLoss, 'workingType');
                     const slRequest = {
-                        'stopPrice': this.parseToNumeric (this.priceToPrecision (symbol, slTriggerPrice)),
-                        'workingType': slWorkingType,
-                        'type': slType,
+                        'type': this.setEmbeddeOrderType (stopLoss, true),
                     };
+                    if (slTriggerPrice !== undefined) {
+                        slRequest['stopPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, slTriggerPrice));
+                    }
+                    if (slWorkingType !== undefined) {
+                        slRequest['workingType'] = slWorkingType;
+                    }
                     const slPrice = this.safeString (stopLoss, 'price');
                     if (slPrice !== undefined) {
                         slRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
@@ -1872,16 +1875,19 @@ export default class bingx extends Exchange {
                 }
                 if (isTakeProfit) {
                     const tkTriggerPrice = this.safeString2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                    const tkWorkingType = this.safeString (takeProfit, 'workingType', 'MARK_PRICE');
-                    const tpType = this.safeString (takeProfit, 'type', 'TAKE_PROFIT_MARKET');
+                    const tkWorkingType = this.safeString (takeProfit, 'workingType');
                     const tpRequest = {
-                        'stopPrice': this.parseToNumeric (this.priceToPrecision (symbol, tkTriggerPrice)),
-                        'workingType': tkWorkingType,
-                        'type': tpType,
+                        'type': this.setEmbeddeOrderType (takeProfit, false),
                     };
-                    const slPrice = this.safeString (takeProfit, 'price');
-                    if (slPrice !== undefined) {
-                        tpRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
+                    if (tkTriggerPrice !== undefined) {
+                        tpRequest['stopPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, tkTriggerPrice));
+                    }
+                    if (tkWorkingType !== undefined) {
+                        tpRequest['workingType'] = tkWorkingType;
+                    }
+                    const tpPrice = this.safeString (takeProfit, 'price');
+                    if (tpPrice !== undefined) {
+                        tpRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, tpPrice));
                     }
                     const tkQuantity = this.safeString (takeProfit, 'quantity', amount);
                     tpRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, tkQuantity));
