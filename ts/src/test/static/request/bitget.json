@@ -1088,6 +1088,24 @@
               }
             ]
         }
+        ],
+        "fetchCanceledAndClosedOrders": [
+          {
+            "description": "spot canceled and closed orders",
+            "method": "fetchCanceledAndClosedOrders",
+            "url": "https://api.bitget.com/api/v2/spot/trade/history-orders?symbol=LTCUSDT",
+            "input": [
+              "LTC/USDT"
+            ]
+          },
+          {
+            "description": "swap canceled and closed orders",
+            "method": "fetchCanceledAndClosedOrders",
+            "url": "https://api.bitget.com/api/v2/mix/order/orders-history?productType=USDT-FUTURES&symbol=LTCUSDT",
+            "input": [
+              "LTC/USDT:USDT"
+            ]
+          }
         ]
     }
 }

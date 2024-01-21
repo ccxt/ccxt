@@ -507,6 +507,7 @@ export default class Exchange {
                 'fetchBorrowInterest': undefined,
                 'fetchBorrowRateHistory': undefined,
                 'fetchCanceledOrders': undefined,
+                'fetchCanceledAndClosedOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
                 'fetchCrossBorrowRate': undefined,
@@ -4512,6 +4513,10 @@ export default class Exchange {
             return this.filterBy (orders, 'status', 'closed') as Order[];
         }
         throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
+    }
+
+    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' fetchCanceledAndClosedOrders() is not supported yet');
     }
 
     async fetchClosedOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
