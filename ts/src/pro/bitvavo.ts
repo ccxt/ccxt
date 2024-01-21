@@ -5,7 +5,7 @@ import bitvavoRest from '../bitvavo.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, MarketInterface, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -550,7 +550,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitvavo#createOrderWs
@@ -581,7 +581,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('privateCreateOrder', request);
     }
 
-    async editOrderWs (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrderWs (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitvavo#editOrderWs
@@ -660,7 +660,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (orders, messageHash);
     }
 
-    async fetchOrderWs (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrderWs (id: string, symbol: string = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitvavo#fetchOrderWs
@@ -683,7 +683,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('privateGetOrder', this.extend (request, params));
     }
 
-    async fetchOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitvavo#fetchOrdersWs
@@ -713,7 +713,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async fetchOpenOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitvavo#fetchOpenOrdersWs
@@ -738,7 +738,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    async fetchMyTradesWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTradesWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitvavo#fetchMyTradesWs
@@ -871,7 +871,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (withdrawals, messageHash);
     }
 
-    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitvavo#fetchOHLCVWs
@@ -947,7 +947,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('privateGetAccount', params);
     }
 
-    async fetchMarketsWs (params = {}) {
+    async fetchMarketsWs (params = {}): Promise<MarketInterface[]> {
         /**
          * @method
          * @name bitvavo#fetchMarketsWs
@@ -1020,7 +1020,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (fees, messageHash);
     }
 
-    async fetchBalanceWs (params = {}) {
+    async fetchBalanceWs (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitvavo#fetchBalanceWs
