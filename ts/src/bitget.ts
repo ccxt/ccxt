@@ -5316,20 +5316,8 @@ export default class bitget extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const response = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const status = this.parseOrderStatus (this.safeStringN (entry, [ 'state', 'status', 'planStatus' ]));
-            if (status === 'closed') {
-                result.push (entry);
-            }
-        }
-        return this.parseOrders (result, market, since, limit);
+        const orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed') as Order[];
     }
 
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -5355,20 +5343,8 @@ export default class bitget extends Exchange {
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const response = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const status = this.parseOrderStatus (this.safeStringN (entry, [ 'state', 'status', 'planStatus' ]));
-            if (status === 'canceled') {
-                result.push (entry);
-            }
-        }
-        return this.parseOrders (result, market, since, limit);
+        const orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'canceled') as Order[];
     }
 
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -5673,7 +5649,8 @@ export default class bitget extends Exchange {
         if (typeof response === 'string') {
             response = JSON.parse (response);
         }
-        return this.safeValue (response, 'data', []);
+        const orders = this.safeValue (response, 'data', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
