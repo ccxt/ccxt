@@ -5375,6 +5375,12 @@ export default class bitget extends Exchange {
         /**
          * @method
          * @name bitget#fetchCanceledAndClosedOrders
+         * @see https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+         * @see https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+         * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+         * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+         * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+         * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
          * @description fetches information on multiple canceled and closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
