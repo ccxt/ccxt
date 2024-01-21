@@ -5642,10 +5642,10 @@ export default class bitget extends Exchange {
         const data = this.safeValue (response, 'data', {});
         if (marketType === 'spot') {
             if ((marginMode !== undefined) || stop) {
-                return this.safeValue (data, 'orderList', []);
+                return this.parseOrders (this.safeValue (data, 'orderList', []), market, since, limit);
             }
         } else {
-            return this.safeValue (data, 'entrustedList', []);
+            return this.parseOrders (this.safeValue (data, 'entrustedList', []), market, since, limit);
         }
         if (typeof response === 'string') {
             response = JSON.parse (response);
