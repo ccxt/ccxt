@@ -1367,7 +1367,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const error = this.safeString (message, 'error');
         if (error !== undefined) {
-            return this.handleErrorMessage (client, message);
+            this.handleErrorMessage (client, message);
         }
         const methods = {
             'subscribed': this.handleSubscriptionStatus,
@@ -1399,7 +1399,7 @@ export default class bitvavo extends bitvavoRest {
         const event = this.safeString2 (message, 'event', 'action');
         const method = this.safeValue (methods, event);
         if (method !== undefined) {
-            return method.call (this, client, message);
+            method.call (this, client, message);
         }
     }
 }
