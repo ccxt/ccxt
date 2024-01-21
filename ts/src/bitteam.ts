@@ -126,7 +126,7 @@ export default class bitteam extends Exchange {
                 '1d': '1D',
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/cf71fe3d-b8b4-40f2-a906-907661b28793',
                 'api': {
                     'history': 'https://history.bit.team',
                     'public': 'https://bit.team',
