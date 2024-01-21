@@ -1907,6 +1907,27 @@ export default class bingx extends Exchange {
         return this.extend (request, params);
     }
 
+    setEmbeddeOrderType (embeddedOrder, isStopLoss: boolean) {
+        // because bingx also has `type` keyname in the embedded order, it
+        // conflicts with the CCXT's unified key name 'type' inside embedded order
+        // so, we have to handle that thoroughly
+        const rawType = this.safeString (embeddedOrder, 'type');
+        const price = this.safeString (embeddedOrder, 'price');
+        if (rawType === 'limit' && price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for an embedded limit TP & SL order');
+        }
+        // if price is not defined, it means market order
+        const isMarketEmbeddedOrder = (rawType === 'market') || (price === undefined);
+        let finalOrderType = undefined;
+        // only convert if unified strings were set 'market' or 'limit'
+        if (isMarketEmbeddedOrder) {
+            finalOrderType = isStopLoss ? 'STOP_MARKET' : 'TAKE_PROFIT_MARKET';
+        } else {
+            finalOrderType = isStopLoss ? 'STOP' : 'TAKE_PROFIT';
+        }
+        return finalOrderType;
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -1978,7 +1999,8 @@ export default class bingx extends Exchange {
         //                 "positionSide": "LONG",
         //                 "type": "TRIGGER_LIMIT",
         //                 "clientOrderID": "",
-        //                 "workingType": ""
+        //                 "workingType": "",
+        //                 "stopLoss":"{\"type\":\"STOP\",\"stopPrice\":"43320.1",\"price\":"43230.1",\"quantity\":"0.001"}"   // this field present is when SL order attached
         //             }
         //         }
         //     }
@@ -2573,7 +2595,7 @@ export default class bingx extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
