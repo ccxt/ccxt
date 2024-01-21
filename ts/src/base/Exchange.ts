@@ -4659,8 +4659,14 @@ export default class Exchange {
                 }
             }
             return markets[0];
+        } else if ((symbol.endsWith ('-C')) || (symbol.endsWith ('-P')) || (symbol.startsWith ('C-')) || (symbol.startsWith ('P-'))) {
+            return this.createExpiredOptionMarket (symbol);
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+    }
+
+    createExpiredOptionMarket (symbol: string): MarketInterface {
+        throw new NotSupported (this.id + ' createExpiredOptionMarket () is not supported yet');
     }
 
     handleWithdrawTagAndParams (tag, params): any {
