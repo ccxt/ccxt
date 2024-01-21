@@ -11,7 +11,7 @@
                 "input": []
             },
             {
-                "description": "Fill this with a description of the method call",
+                "description": "fetch usdt deposits",
                 "method": "fetchDeposits",
                 "url": "https://api.bitvavo.com/v2/depositHistory?symbol=USDT&limit=2",
                 "input": [
@@ -135,7 +135,7 @@
                 "output": "{\"price\":\"32000\",\"orderId\":\"24bcd0e3-43f7-43f3-97f0-04df043e2d45\",\"market\":\"BTC-EUR\"}"
             },
             {
-                "description": "Edit Order, edit price",
+                "description": "Edit Order, edit price with clientOrderId",
                 "method": "editOrder",
                 "url": "https://api.bitvavo.com/v2/order",
                 "input": [
@@ -177,7 +177,7 @@
         ],
         "fetchOrders": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "fetch orders",
                 "method": "fetchOrders",
                 "url": "https://api.bitvavo.com/v2/orders?market=BTC-EUR",
                 "input": [
@@ -223,7 +223,7 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "fetch ohlcv",
                 "method": "fetchOHLCV",
                 "url": "https://api.bitvavo.com/v2/BTC-EUR/candles?interval=1m&limit=5",
                 "input": [

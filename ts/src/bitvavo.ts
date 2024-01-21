@@ -1210,21 +1210,26 @@ export default class bitvavo extends Exchange {
         const amountRemaining = this.safeNumber (params, 'amountRemaining');
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
         params = this.omit (params, [ 'amountRemaining', 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
-        const updateRequest = {};
         if (price !== undefined) {
-            updateRequest['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         if (amount !== undefined) {
-            updateRequest['amount'] = this.amountToPrecision (symbol, amount);
+            request['amount'] = this.amountToPrecision (symbol, amount);
         }
         if (amountRemaining !== undefined) {
-            updateRequest['amountRemaining'] = this.amountToPrecision (symbol, amountRemaining);
+            request['amountRemaining'] = this.amountToPrecision (symbol, amountRemaining);
+        }
+        if (triggerPrice !== undefined) {
+            request['triggerAmount'] = this.priceToPrecision (symbol, triggerPrice);
         }
         request = this.extend (request, params);
         if (this.isEmpty (request)) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument, or a price argument, or non-empty params');
         }
-        request['orderId'] = id;
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['orderId'] = id;
+        }
         request['market'] = market['id'];
         return request;
     }
@@ -1257,9 +1262,12 @@ export default class bitvavo extends Exchange {
         }
         const market = this.market (symbol);
         const request = {
-            'orderId': id,
             'market': market['id'],
         };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['orderId'] = id;
+        }
         return this.extend (request, params);
     }
 
@@ -1788,7 +1796,10 @@ export default class bitvavo extends Exchange {
          */
         await this.loadMarkets ();
         const request = this.fetchWithdrawalsRequest (code, since, limit, params);
-        const currency = this.currency (code);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         const response = await this.privateGetWithdrawalHistory (request);
         //
         //     [
@@ -1842,7 +1853,10 @@ export default class bitvavo extends Exchange {
          */
         await this.loadMarkets ();
         const request = this.fetchDepositsRequest (code, since, limit, params);
-        const currency = this.currency (code);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         const response = await this.privateGetDepositHistory (request);
         //
         //     [
