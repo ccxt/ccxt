@@ -1,0 +1,6 @@
+{
+    "exchange": "ndax",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {}
+}

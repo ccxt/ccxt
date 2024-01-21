@@ -42,6 +42,7 @@ class Argv(object):
     spot = False
     swap = False
     future = False
+    signIn = False
     args = []
 
 
@@ -60,6 +61,7 @@ parser.add_argument('--spot', action='store_true', help='enable spot markets')
 parser.add_argument('--swap', action='store_true', help='enable swap markets')
 parser.add_argument('--future', action='store_true', help='enable future markets')
 parser.add_argument('--option', action='store_true', help='enable option markets')
+parser.add_argument('--signIn', action='store_true', help='sign in')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
 parser.add_argument('args', type=str, help='arguments', nargs='*')
@@ -177,6 +179,10 @@ async def main():
             args.append(json.loads(arg))
         elif arg == 'None':
             args.append(None)
+        elif re.match(r'^\'(.)+\'$', arg):
+            args.append(str(arg.replace('\'', '')))
+        elif re.match(r'^"(.)+"$', arg):
+            args.append(str(arg.replace('"', '')))
         elif re.match(r'^[0-9+-]+$', arg):
             args.append(int(arg))
         elif re.match(r'^[.eE0-9+-]+$', arg):
@@ -200,6 +206,9 @@ async def main():
         await exchange.load_markets()
 
     exchange.verbose = argv.verbose  # now set verbose mode
+
+    if argv.signIn:
+        await exchange.sign_in()
 
     is_ws_method = False
 

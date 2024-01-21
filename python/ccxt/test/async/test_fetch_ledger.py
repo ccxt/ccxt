@@ -12,10 +12,8 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_shared_methods  # noqa E402
 from ccxt.test.base import test_ledger_entry  # noqa E402
-
 
 async def test_fetch_ledger(exchange, skipped_properties, code):
     method = 'fetchLedger'

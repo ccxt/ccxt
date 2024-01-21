@@ -54,6 +54,7 @@ interface Exchange {
     v1PrivateDeleteOrders (params?: {}): Promise<implicitReturnType>;
     v1PrivateDeleteAssetWithdraw (params?: {}): Promise<implicitReturnType>;
     v2PrivateGetClientHolding (params?: {}): Promise<implicitReturnType>;
+    v3PublicGetInsuranceFund (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetAlgoOrderOid (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetAlgoOrders (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBalances (params?: {}): Promise<implicitReturnType>;

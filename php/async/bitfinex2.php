@@ -15,6 +15,7 @@ use ccxt\NotSupported;
 use ccxt\RateLimitExceeded;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitfinex2 extends Exchange {
 
@@ -443,8 +444,8 @@ class bitfinex2 extends Exchange {
             /**
              * the latest known information on the availability of the exchange API
              * @see https://docs.bitfinex.com/reference/rest-public-platform-status
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure status structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
              */
             //
             //    [1] // operative
@@ -467,7 +468,7 @@ class bitfinex2 extends Exchange {
             /**
              * retrieves data on all $markets for bitfinex2
              * @see https://docs.bitfinex.com/reference/rest-public-conf
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
             $spotMarketsInfo = Async\await($this->publicGetConfPubInfoPair ($params));
@@ -597,7 +598,7 @@ class bitfinex2 extends Exchange {
             /**
              * fetches all available currencies on an exchange
              * @see https://docs.bitfinex.com/reference/rest-public-conf
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
             $labels = array(
@@ -625,58 +626,58 @@ class bitfinex2 extends Exchange {
             //         // sym
             //         // maps symbols to their API symbols, BAB > BCH
             //         array(
-            //             array( 'BAB', 'BCH' ),
-            //             array( 'CNHT', 'CNHt' ),
-            //             array( 'DSH', 'DASH' ),
-            //             array( 'IOT', 'IOTA' ),
-            //             array( 'LES', 'LEO-EOS' ),
-            //             array( 'LET', 'LEO-ERC20' ),
-            //             array( 'STJ', 'STORJ' ),
-            //             array( 'TSD', 'TUSD' ),
-            //             array( 'UDC', 'USDC' ),
-            //             array( 'USK', 'USDK' ),
-            //             array( 'UST', 'USDt' ),
-            //             array( 'USTF0', 'USDt0' ),
-            //             array( 'XCH', 'XCHF' ),
-            //             array( 'YYW', 'YOYOW' ),
+            //             array( "BAB", "BCH" ),
+            //             array( "CNHT", "CNHt" ),
+            //             array( "DSH", "DASH" ),
+            //             array( "IOT", "IOTA" ),
+            //             array( "LES", "LEO-EOS" ),
+            //             array( "LET", "LEO-ERC20" ),
+            //             array( "STJ", "STORJ" ),
+            //             array( "TSD", "TUSD" ),
+            //             array( "UDC", "USDC" ),
+            //             array( "USK", "USDK" ),
+            //             array( "UST", "USDt" ),
+            //             array( "USTF0", "USDt0" ),
+            //             array( "XCH", "XCHF" ),
+            //             array( "YYW", "YOYOW" ),
             //             // ...
             //         ),
             //         // $label
             //         // verbose friendly names, BNT > Bancor
             //         array(
-            //             array( 'BAB', 'Bitcoin Cash' ),
-            //             array( 'BCH', 'Bitcoin Cash' ),
-            //             array( 'LEO', 'Unus Sed LEO' ),
-            //             array( 'LES', 'Unus Sed LEO (EOS)' ),
-            //             array( 'LET', 'Unus Sed LEO (ERC20)' ),
+            //             array( "BAB", "Bitcoin Cash" ),
+            //             array( "BCH", "Bitcoin Cash" ),
+            //             array( "LEO", "Unus Sed LEO" ),
+            //             array( "LES", "Unus Sed LEO (EOS)" ),
+            //             array( "LET", "Unus Sed LEO (ERC20)" ),
             //             // ...
             //         ),
             //         // unit
             //         // maps symbols to unit of measure where applicable
             //         array(
-            //             array( 'IOT', 'Mi|MegaIOTA' ),
+            //             array( "IOT", "Mi|MegaIOTA" ),
             //         ),
             //         // $undl
             //         // maps derivatives symbols to their underlying currency
             //         array(
-            //             array( 'USTF0', 'UST' ),
-            //             array( 'BTCF0', 'BTC' ),
-            //             array( 'ETHF0', 'ETH' ),
+            //             array( "USTF0", "UST" ),
+            //             array( "BTCF0", "BTC" ),
+            //             array( "ETHF0", "ETH" ),
             //         ),
             //         // $pool
             //         // maps symbols to underlying network/protocol they operate on
             //         array(
-            //             array( 'SAN', 'ETH' ), array( 'OMG', 'ETH' ), array( 'AVT', 'ETH' ), array( 'EDO', 'ETH' ),
-            //             array( 'ESS', 'ETH' ), array( 'ATD', 'EOS' ), array( 'ADD', 'EOS' ), array( 'MTO', 'EOS' ),
-            //             array( 'PNK', 'ETH' ), array( 'BAB', 'BCH' ), array( 'WLO', 'XLM' ), array( 'VLD', 'ETH' ),
-            //             array( 'BTT', 'TRX' ), array( 'IMP', 'ETH' ), array( 'SCR', 'ETH' ), array( 'GNO', 'ETH' ),
+            //             array( 'SAN', 'ETH' ), array( 'OMG', 'ETH' ), array( 'AVT', 'ETH' ), array( "EDO", "ETH" ),
+            //             array( 'ESS', 'ETH' ), array( 'ATD', 'EOS' ), array( 'ADD', 'EOS' ), array( "MTO", "EOS" ),
+            //             array( 'PNK', 'ETH' ), array( 'BAB', 'BCH' ), array( 'WLO', 'XLM' ), array( "VLD", "ETH" ),
+            //             array( 'BTT', 'TRX' ), array( 'IMP', 'ETH' ), array( 'SCR', 'ETH' ), array( "GNO", "ETH" ),
             //             // ...
             //         ),
             //         // explorer
             //         // maps symbols to their recognised block explorer URLs
             //         array(
             //             array(
-            //                 'AIO',
+            //                 "AIO",
             //                 array(
             //                     "https://mainnet.aion.network",
             //                     "https://mainnet.aion.network/#/account/VAL",
@@ -805,13 +806,13 @@ class bitfinex2 extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * $query for $balance and get the amount of funds available for trading or funds locked in orders
              * @see https://docs.bitfinex.com/reference/rest-auth-wallets
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$balance-structure $balance structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
              */
             // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
             // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
@@ -856,8 +857,8 @@ class bitfinex2 extends Exchange {
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
             // transferring between derivatives wallet and regular wallet is not documented in their API
             // however we support it in CCXT (from just looking at web inspector)
@@ -918,7 +919,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //
@@ -973,9 +974,9 @@ class bitfinex2 extends Exchange {
     public function convert_derivatives_id($currency, $type) {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
-        //   id => 'fUSTF0',
-        //   code => 'USTF0',
-        //   $info => array( 'USTF0', array(), array(), array(), array( 'USTF0', 'UST' ) ),
+        //   "id" => "fUSTF0",
+        //   "code" => "USTF0",
+        //   "info" => array( 'USTF0', array(), array(), array(), array( "USTF0", "UST" ) ),
         $info = $this->safe_value($currency, 'info');
         $transferId = $this->safe_string($info, 0);
         $underlying = $this->safe_value($info, 4, array());
@@ -995,15 +996,15 @@ class bitfinex2 extends Exchange {
         return $currencyId;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://docs.bitfinex.com/reference/rest-public-book
              * @param {string} $symbol unified $symbol of the $market to fetch the $order book for
              * @param {int} [$limit] the maximum $amount of $order book entries to return
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-book-structure $order book structures} indexed by $market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=$order-book-structure $order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $precision = $this->safe_value($this->options, 'precision', 'R0');
@@ -1041,7 +1042,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // on trading pairs (ex. tBTCUSD)
         //
@@ -1081,15 +1082,14 @@ class bitfinex2 extends Exchange {
         //         FRR_AMOUNT_AVAILABLE
         //     )
         //
-        $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
         $length = count($ticker);
         $last = $this->safe_string($ticker, $length - 4);
         $percentage = $this->safe_string($ticker, $length - 5);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $this->safe_string($ticker, $length - 2),
             'low' => $this->safe_string($ticker, $length - 1),
             'bid' => $this->safe_string($ticker, $length - 10),
@@ -1110,14 +1110,14 @@ class bitfinex2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
              * @see https://docs.bitfinex.com/reference/rest-public-$tickers
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1180,14 +1180,14 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @see https://docs.bitfinex.com/reference/rest-public-$ticker
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1199,7 +1199,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1282,7 +1282,7 @@ class bitfinex2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -1290,10 +1290,10 @@ class bitfinex2 extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -1331,7 +1331,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, $limit = 100, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, $limit = 100, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1340,7 +1340,7 @@ class bitfinex2 extends Exchange {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -1375,7 +1375,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1457539800000,
@@ -1441,7 +1441,7 @@ class bitfinex2 extends Exchange {
         return $this->safe_string($orderTypes, $orderType, 'GTC');
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         $id = $this->safe_string($order, 0);
         $marketId = $this->safe_string($order, 3);
         $symbol = $this->safe_symbol($marketId);
@@ -1518,7 +1518,7 @@ class bitfinex2 extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount the $amount of currency to trade
              * @param {float} [$price] $price of $order
-             * @param {array} [$params]  Extra parameters specific to the exchange API endpoint
+             * @param {array} [$params]  extra parameters specific to the exchange API endpoint
              * @param {float} [$params->stopPrice] The $price at which a trigger $order is triggered at
              * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
              * @param {bool} $params->postOnly
@@ -1528,7 +1528,7 @@ class bitfinex2 extends Exchange {
              * @param {string} [$params->price_traling] The trailing $price for a trailing stop $order
              * @param {string} [$params->price_aux_limit] Order $price for stop limit $orders
              * @param {string} [$params->price_oco_stop] OCO stop $price
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1616,7 +1616,7 @@ class bitfinex2 extends Exchange {
             //
             //      array(
             //          1653325121,   // Timestamp in milliseconds
-            //          "on-req",     // Purpose of notification ('on-req', 'oc-req', 'uca', 'fon-req', 'foc-req')
+            //          "on-req",     // Purpose of notification ('on-req', 'oc-req', "uca", 'fon-req', "foc-req")
             //          null,         // unique ID of the message
             //          null,
             //              array(
@@ -1678,8 +1678,8 @@ class bitfinex2 extends Exchange {
              * cancel all open $orders
              * @see https://docs.bitfinex.com/reference/rest-auth-cancel-$orders-multiple
              * @param {string} $symbol unified market $symbol, only $orders in the market of this $symbol are cancelled when $symbol is not null
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $request = array(
                 'all' => 1,
@@ -1697,8 +1697,8 @@ class bitfinex2 extends Exchange {
              * @see https://docs.bitfinex.com/reference/rest-auth-cancel-$order
              * @param {string} $id $order $id
              * @param {string} $symbol Not used by bitfinex2 cancelOrder ()
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             $cid = $this->safe_value_2($params, 'cid', 'clientOrderId'); // client $order $id
             $request = null;
@@ -1731,8 +1731,8 @@ class bitfinex2 extends Exchange {
              * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-$orders-by-$symbol
              * @param {string} $id $order $id
              * @param {string} $symbol unified market $symbol, default is null
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             $request = array(
                 'id' => array( intval($id) ),
@@ -1754,8 +1754,8 @@ class bitfinex2 extends Exchange {
              * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-$orders-by-$symbol
              * @param {string} $id $order $id
              * @param {string} $symbol unified market $symbol, default is null
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             $request = array(
                 'id' => array( intval($id) ),
@@ -1769,7 +1769,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1778,8 +1778,8 @@ class bitfinex2 extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1834,7 +1834,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1842,11 +1842,11 @@ class bitfinex2 extends Exchange {
              * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-$symbol
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             // returns the most recent closed or canceled orders up to circa two weeks ago
             Async\await($this->load_markets());
@@ -1923,8 +1923,8 @@ class bitfinex2 extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades to retrieve
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
@@ -1951,8 +1951,8 @@ class bitfinex2 extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1983,8 +1983,8 @@ class bitfinex2 extends Exchange {
              * create a currency deposit address
              * @see https://docs.bitfinex.com/reference/rest-auth-deposit-address
              * @param {string} $code unified currency $code of the currency for the deposit address
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -2000,8 +2000,8 @@ class bitfinex2 extends Exchange {
              * fetch the deposit $address for a $currency associated with this account
              * @see https://docs.bitfinex.com/reference/rest-auth-deposit-$address
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2024,20 +2024,20 @@ class bitfinex2 extends Exchange {
             //
             //     array(
             //         1582269616687, // MTS Millisecond Time Stamp of the update
-            //         'acc_dep', // TYPE Purpose of notification 'acc_dep' for account deposit
+            //         "acc_dep", // TYPE Purpose of notification "acc_dep" for account deposit
             //         null, // MESSAGE_ID unique ID of the message
             //         null, // not documented
             //         array(
             //             null, // PLACEHOLDER
-            //             'BITCOIN', // METHOD Method of deposit
-            //             'BTC', // CURRENCY_CODE Currency $code of new $address
+            //             "BITCOIN", // METHOD Method of deposit
+            //             "BTC", // CURRENCY_CODE Currency $code of new $address
             //             null, // PLACEHOLDER
-            //             '1BC9PZqpUmjyEB54uggn8TFKj49zSDYzqG', // ADDRESS
+            //             "1BC9PZqpUmjyEB54uggn8TFKj49zSDYzqG", // ADDRESS
             //             null, // POOL_ADDRESS
             //         ),
             //         null, // CODE null or integer work in progress
-            //         'SUCCESS', // STATUS Status of the notification, SUCCESS, ERROR, FAILURE
-            //         'success', // TEXT Text of the notification
+            //         "SUCCESS", // STATUS Status of the notification, SUCCESS, ERROR, FAILURE
+            //         "success", // TEXT Text of the notification
             //     )
             //
             $result = $this->safe_value($response, 4, array());
@@ -2072,13 +2072,13 @@ class bitfinex2 extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // withdraw
         //
         //     array(
         //         1582271520931, // MTS Millisecond Time Stamp of the update
-        //         "acc_wd-req", // TYPE Purpose of notification 'acc_wd-req' account withdrawal request
+        //         "acc_wd-req", // TYPE Purpose of notification "acc_wd-req" account withdrawal request
         //         null, // MESSAGE_ID unique ID of the message
         //         null, // not documented
         //         array(
@@ -2101,26 +2101,26 @@ class bitfinex2 extends Exchange {
         //
         //     array(
         //         13293039, // ID
-        //         'ETH', // CURRENCY
-        //         'ETHEREUM', // CURRENCY_NAME
+        //         "ETH", // CURRENCY
+        //         "ETHEREUM", // CURRENCY_NAME
         //         null,
         //         null,
         //         1574175052000, // MTS_STARTED
         //         1574181326000, // MTS_UPDATED
         //         null,
         //         null,
-        //         'CANCELED', // STATUS
+        //         "CANCELED", // STATUS
         //         null,
         //         null,
         //         -0.24, // AMOUNT, negative for withdrawals
         //         -0.00135, // FEES
         //         null,
         //         null,
-        //         '0x38110e0Fc932CB2BE...........', // DESTINATION_ADDRESS
+        //         "0x38110e0Fc932CB2BE...........", // DESTINATION_ADDRESS
         //         null,
         //         null,
         //         null,
-        //         '0x523ec8945500.....................................', // TRANSACTION_ID
+        //         "0x523ec8945500.....................................", // TRANSACTION_ID
         //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be => null
         //     )
         //
@@ -2202,6 +2202,7 @@ class bitfinex2 extends Exchange {
             'tagTo' => $tag,
             'updated' => $updated,
             'comment' => $comment,
+            'internal' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCost),
@@ -2215,8 +2216,8 @@ class bitfinex2 extends Exchange {
             /**
              * fetch the trading fees for multiple markets
              * @see https://docs.bitfinex.com/reference/rest-auth-summary
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$fee-structure $fee structures} indexed by $market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostAuthRSummary ($params));
@@ -2269,13 +2270,13 @@ class bitfinex2 extends Exchange {
             //         array(
             //          array(
             //              {
-            //              curr => 'Total (USD)',
-            //              vol => '0',
-            //              vol_safe => '0',
-            //              vol_maker => '0',
-            //              vol_BFX => '0',
-            //              vol_BFX_safe => '0',
-            //              vol_BFX_maker => '0'
+            //              "curr" => "Total (USD)",
+            //              "vol" => "0",
+            //              "vol_safe" => "0",
+            //              "vol_maker" => "0",
+            //              "vol_BFX" => "0",
+            //              "vol_BFX_safe" => "0",
+            //              "vol_BFX_maker" => "0"
             //              }
             //          ),
             //          array(),
@@ -2284,7 +2285,7 @@ class bitfinex2 extends Exchange {
             //         array( null, array(), 0 ),
             //         null,
             //         null,
-            //         array( leo_lev => '0', leo_amount_avg => '0' )
+            //         array( leo_lev => "0", leo_amount_avg => "0" )
             //     )
             //
             $result = array();
@@ -2323,7 +2324,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -2332,8 +2333,8 @@ class bitfinex2 extends Exchange {
              * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -2356,26 +2357,26 @@ class bitfinex2 extends Exchange {
             //     array(
             //         array(
             //             13293039, // ID
-            //             'ETH', // CURRENCY
-            //             'ETHEREUM', // CURRENCY_NAME
+            //             "ETH", // CURRENCY
+            //             "ETHEREUM", // CURRENCY_NAME
             //             null,
             //             null,
             //             1574175052000, // MTS_STARTED
             //             1574181326000, // MTS_UPDATED
             //             null,
             //             null,
-            //             'CANCELED', // STATUS
+            //             "CANCELED", // STATUS
             //             null,
             //             null,
             //             -0.24, // AMOUNT, negative for withdrawals
             //             -0.00135, // FEES
             //             null,
             //             null,
-            //             '0x38110e0Fc932CB2BE...........', // DESTINATION_ADDRESS
+            //             "0x38110e0Fc932CB2BE...........", // DESTINATION_ADDRESS
             //             null,
             //             null,
             //             null,
-            //             '0x523ec8945500.....................................', // TRANSACTION_ID
+            //             "0x523ec8945500.....................................", // TRANSACTION_ID
             //             "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be => null
             //         )
             //     )
@@ -2393,8 +2394,8 @@ class bitfinex2 extends Exchange {
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$transaction-structure $transaction structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transaction-structure $transaction structure~
              */
             $this->check_address($address);
             Async\await($this->load_markets());
@@ -2428,7 +2429,7 @@ class bitfinex2 extends Exchange {
             //
             //     array(
             //         1582271520931, // MTS Millisecond Time Stamp of the update
-            //         "acc_wd-req", // TYPE Purpose of notification 'acc_wd-req' account withdrawal $request
+            //         "acc_wd-req", // TYPE Purpose of notification "acc_wd-req" account withdrawal $request
             //         null, // MESSAGE_ID unique ID of the $message
             //         null, // not documented
             //         array(
@@ -2481,8 +2482,8 @@ class bitfinex2 extends Exchange {
              * fetch all open positions
              * @see https://docs.bitfinex.com/reference/rest-auth-positions
              * @param {string[]|null} $symbols list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -2525,7 +2526,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //    array(
         //        "tBTCUSD",                    // SYMBOL
@@ -2630,7 +2631,7 @@ class bitfinex2 extends Exchange {
     }
 
     public function handle_errors($statusCode, $statusText, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
-        // ['error', 11010, 'ratelimit => error']
+        // ["error", 11010, "ratelimit => error"]
         if ($response !== null) {
             if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
                 $message = $this->safe_string_2($response, 'message', 'error');
@@ -2678,7 +2679,7 @@ class bitfinex2 extends Exchange {
         }
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         //     array(
         //         array(
@@ -2734,10 +2735,10 @@ class bitfinex2 extends Exchange {
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entrys to return, default is null
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
              */
             Async\await($this->load_markets());
             Async\await($this->load_markets());
@@ -2787,8 +2788,8 @@ class bitfinex2 extends Exchange {
          * fetch the current funding rate
          * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
          * @param {string} $symbol unified market $symbol
-         * @param {array} [$params] extra parameters specific to the bingx api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
          */
         return $this->fetch_funding_rates(array( $symbol ), $params);
     }
@@ -2799,8 +2800,8 @@ class bitfinex2 extends Exchange {
              * fetch the current funding rate
              * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
              * @param {string[]} $symbols list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
              */
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRates() requires a $symbols argument');
@@ -2851,13 +2852,15 @@ class bitfinex2 extends Exchange {
              * fetches historical funding $rate prices
              * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the bingx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest funding $rate
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-$rate-structure funding $rate structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-$rate-structure funding $rate structure~
              */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
-            $this->check_required_symbol('fetchFundingRateHistory', $symbol);
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
             if ($paginate) {
@@ -2912,7 +2915,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //       array(
         //          "tBTCF0:USTF0",
@@ -2965,7 +2968,7 @@ class bitfinex2 extends Exchange {
         );
     }
 
-    public function parse_funding_rate_history($contract, $market = null) {
+    public function parse_funding_rate_history($contract, ?array $market = null) {
         //
         // array(
         //     1691165494000,

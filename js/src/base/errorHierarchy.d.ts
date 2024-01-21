@@ -17,7 +17,6 @@ declare const errorHierarchy: {
             BadResponse: {
                 NullResponse: {};
             };
-            OperationFailed: {};
             InsufficientFunds: {};
             InvalidAddress: {
                 AddressPending: {};
@@ -32,17 +31,21 @@ declare const errorHierarchy: {
                 ContractUnavailable: {};
             };
             NotSupported: {};
+            ProxyError: {};
         };
-        NetworkError: {
-            DDoSProtection: {
-                RateLimitExceeded: {};
+        OperationFailed: {
+            NetworkError: {
+                DDoSProtection: {
+                    RateLimitExceeded: {};
+                };
+                ExchangeNotAvailable: {
+                    OnMaintenance: {};
+                };
+                InvalidNonce: {};
+                RequestTimeout: {};
             };
-            ExchangeNotAvailable: {
-                OnMaintenance: {};
-            };
-            InvalidNonce: {};
-            RequestTimeout: {};
         };
+        ExchangeClosedByUser: {};
     };
 };
 export default errorHierarchy;

@@ -1,0 +1,214 @@
+{
+    "exchange": "bigone",
+    "skipKeys": ["guid"],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://big.one/api/v3/viewer/orders",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0005,
+                    25000
+                ],
+                "output": "{\"asset_pair_name\":\"BTC-USDT\",\"side\":\"BID\",\"amount\":\"0.0005\",\"price\":\"25000\",\"type\":\"LIMIT\"}"
+            },
+            {
+                "description": "Spot limit sell",
+                "method": "createOrder",
+                "url": "https://big.one/api/v3/viewer/orders",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "sell",
+                    0.000262,
+                    39000
+                ],
+                "output": "{\"asset_pair_name\":\"BTC-USDT\",\"side\":\"ASK\",\"amount\":\"0.000262\",\"price\":\"39000\",\"type\":\"LIMIT\"}"
+            },
+            {
+                "description": "Spot market sell",
+                "method": "createOrder",
+                "url": "https://big.one/api/v3/viewer/orders",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.000262,
+                    null
+                ],
+                "output": "{\"asset_pair_name\":\"BTC-USDT\",\"side\":\"ASK\",\"amount\":\"0.000262\",\"type\":\"MARKET\"}"
+            },
+            {
+                "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://big.one/api/v3/viewer/orders",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    10,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
+                ],
+                "output": "{\"asset_pair_name\":\"BTC-USDT\",\"side\":\"BID\",\"amount\":\"10\",\"type\":\"MARKET\"}"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "Spot market buy order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://big.one/api/v3/viewer/orders",
+                "input": [
+                  "LTC/USDT",
+                  11
+                ],
+                "output": "{\"asset_pair_name\":\"LTC-USDT\",\"side\":\"BID\",\"amount\":\"11\",\"type\":\"MARKET\"}"
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Spot orders",
+                "method": "fetchOrders",
+                "url": "https://big.one/api/v3/viewer/orders?asset_pair_name=LTC-USDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Spot private trades",
+                "method": "fetchMyTrades",
+                "url": "https://big.one/api/v3/viewer/trades?asset_pair_name=LTC-USDT&limit=5",
+                "input": [
+                    "LTC/USDT",
+                    1699457638000,
+                    5
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://big.one/api/v3/viewer/orders?asset_pair_name=LTC-USDT&state=PENDING",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Spot closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://big.one/api/v3/viewer/orders?asset_pair_name=LTC-USDT&state=FILLED",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel spot orders",
+                "method": "cancelAllOrders",
+                "url": "https://big.one/api/v3/viewer/orders/cancel",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "output": "{\"asset_pair_name\":\"LTC-USDT\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://big.one/api/v3/viewer/accounts",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://big.one/api/v3/viewer/accounts",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://big.one/api/v3/viewer/deposits",
+                "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://big.one/api/v3/viewer/withdrawals",
+                "input": []
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://big.one/api/v3/viewer/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "swap"
+                ],
+                "output": "{\"symbol\":\"USDT\",\"amount\":\"1\",\"from\":\"SPOT\",\"to\":\"CONTRACT\",\"guid\":\"e4514628-c33b-4a91-bac7-75ace392c469\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://big.one/api/v3/viewer/assets/USDT/address",
+                "input": [
+                    "USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://big.one/api/v3/asset_pairs/tickers?pair_names=BTC-USDT",
+                "input": [
+                  [
+                    "BTC/USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://big.one/api/contract/v2/instruments",
+                "input": [
+                  [
+                    "BTC/USDT:USDT",
+                    "XRP/USDT:USDT"
+                  ]
+                ]
+            }
+        ]
+    }
+}

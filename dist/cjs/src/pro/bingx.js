@@ -3,6 +3,7 @@
 var bingx$1 = require('../bingx.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var Precise = require('../base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -29,6 +30,7 @@ class bingx extends bingx$1 {
                 },
             },
             'options': {
+                'listenKeyRefreshRate': 3540000,
                 'ws': {
                     'gunzip': true,
                 },
@@ -60,6 +62,10 @@ class bingx extends bingx$1 {
                         '1d': '1day',
                     },
                 },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': true,
+                    'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
+                },
             },
             'streaming': {
                 'keepAlive': 1800000, // 30 minutes
@@ -75,8 +81,8 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
@@ -107,28 +113,28 @@ class bingx extends bingx$1 {
         // first snapshot
         //
         //    {
-        //      id: 'd83b78ce-98be-4dc2-b847-12fe471b5bc5',
-        //      code: 0,
-        //      msg: 'SUCCESS',
-        //      timestamp: 1690214699854
+        //      "id": "d83b78ce-98be-4dc2-b847-12fe471b5bc5",
+        //      "code": 0,
+        //      "msg": "SUCCESS",
+        //      "timestamp": 1690214699854
         //    }
         //
         // subsequent updates
         //
         //     {
-        //         code: 0,
-        //         data: {
-        //           E: 1690214529432,
-        //           T: 1690214529386,
-        //           e: 'trade',
-        //           m: true,
-        //           p: '29110.19',
-        //           q: '0.1868',
-        //           s: 'BTC-USDT',
-        //           t: '57903921'
+        //         "code": 0,
+        //         "data": {
+        //           "E": 1690214529432,
+        //           "T": 1690214529386,
+        //           "e": "trade",
+        //           "m": true,
+        //           "p": "29110.19",
+        //           "q": "0.1868",
+        //           "s": "BTC-USDT",
+        //           "t": "57903921"
         //         },
-        //         dataType: 'BTC-USDT@trade',
-        //         success: true
+        //         "dataType": "BTC-USDT@trade",
+        //         "success": true
         //     }
         //
         //
@@ -136,26 +142,26 @@ class bingx extends bingx$1 {
         // first snapshot
         //
         //    {
-        //        id: '2aed93b1-6e1e-4038-aeba-f5eeaec2ca48',
-        //        code: 0,
-        //        msg: '',
-        //        dataType: '',
-        //        data: null
+        //        "id": "2aed93b1-6e1e-4038-aeba-f5eeaec2ca48",
+        //        "code": 0,
+        //        "msg": '',
+        //        "dataType": '',
+        //        "data": null
         //    }
         //
         // subsequent updates
         //
         //
         //    {
-        //        code: 0,
-        //        dataType: 'BTC-USDT@trade',
-        //        data: [
+        //        "code": 0,
+        //        "dataType": "BTC-USDT@trade",
+        //        "data": [
         //            {
-        //                q: '0.0421',
-        //                p: '29023.5',
-        //                T: 1690221401344,
-        //                m: false,
-        //                s: 'BTC-USDT'
+        //                "q": "0.0421",
+        //                "p": "29023.5",
+        //                "T": 1690221401344,
+        //                "m": false,
+        //                "s": "BTC-USDT"
         //            },
         //            ...
         //        ]
@@ -164,7 +170,8 @@ class bingx extends bingx$1 {
         const data = this.safeValue(message, 'data', []);
         const messageHash = this.safeString(message, 'dataType');
         const marketId = messageHash.split('@')[0];
-        const marketType = client.url.indexOf('swap') >= 0 ? 'swap' : 'spot';
+        const isSwap = client.url.indexOf('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         let trades = undefined;
@@ -194,7 +201,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -242,35 +249,35 @@ class bingx extends bingx$1 {
         //
         //
         //    {
-        //        code: 0,
-        //        dataType: 'BTC-USDT@depth20',
-        //        data: {
-        //          bids: [
-        //            [ '28852.9', '34.2621' ],
+        //        "code": 0,
+        //        "dataType": "BTC-USDT@depth20",
+        //        "data": {
+        //          "bids": [
+        //            [ '28852.9', "34.2621" ],
         //            ...
         //          ],
-        //          asks: [
-        //            [ '28864.9', '23.4079' ],
+        //          "asks": [
+        //            [ '28864.9', "23.4079" ],
         //            ...
         //          ]
         //        },
-        //        dataType: 'BTC-USDT@depth20',
-        //        success: true
+        //        "dataType": "BTC-USDT@depth20",
+        //        "success": true
         //    }
         //
         // swap
         //
         //
         //    {
-        //        code: 0,
-        //        dataType: 'BTC-USDT@depth20',
-        //        data: {
-        //          bids: [
-        //            [ '28852.9', '34.2621' ],
+        //        "code": 0,
+        //        "dataType": "BTC-USDT@depth20",
+        //        "data": {
+        //          "bids": [
+        //            [ '28852.9', "34.2621" ],
         //            ...
         //          ],
-        //          asks: [
-        //            [ '28864.9', '23.4079' ],
+        //          "asks": [
+        //            [ '28864.9', "23.4079" ],
         //            ...
         //          ]
         //        }
@@ -279,7 +286,8 @@ class bingx extends bingx$1 {
         const data = this.safeValue(message, 'data', []);
         const messageHash = this.safeString(message, 'dataType');
         const marketId = messageHash.split('@')[0];
-        const marketType = client.url.indexOf('swap') >= 0 ? 'swap' : 'spot';
+        const isSwap = client.url.indexOf('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         let orderbook = this.safeValue(this.orderbooks, symbol);
@@ -294,16 +302,20 @@ class bingx extends bingx$1 {
     parseWsOHLCV(ohlcv, market = undefined) {
         //
         //    {
-        //        c: '28909.0',
-        //        o: '28915.4',
-        //        h: '28915.4',
-        //        l: '28896.1',
-        //        v: '27.6919',
-        //        T: 1690907580000
+        //        "c": "28909.0",
+        //        "o": "28915.4",
+        //        "h": "28915.4",
+        //        "l": "28896.1",
+        //        "v": "27.6919",
+        //        "T": 1696687499999,
+        //        "t": 1696687440000
         //    }
         //
+        // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
+        // for swap, (T) is the opening time
+        const timestamp = (market['spot']) ? 't' : 'T';
         return [
-            this.safeInteger(ohlcv, 'T'),
+            this.safeInteger(ohlcv, timestamp),
             this.safeNumber(ohlcv, 'o'),
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),
@@ -316,42 +328,42 @@ class bingx extends bingx$1 {
         // spot
         //
         //   {
-        //       code: 0,
-        //       data: {
-        //         E: 1696687498608,
-        //         K: {
-        //           T: 1696687499999,
-        //           c: '27917.829',
-        //           h: '27918.427',
-        //           i: '1min',
-        //           l: '27917.7',
-        //           n: 262,
-        //           o: '27917.91',
-        //           q: '25715.359197',
-        //           s: 'BTC-USDT',
-        //           t: 1696687440000,
-        //           v: '0.921100'
+        //       "code": 0,
+        //       "data": {
+        //         "E": 1696687498608,
+        //         "K": {
+        //           "T": 1696687499999,
+        //           "c": "27917.829",
+        //           "h": "27918.427",
+        //           "i": "1min",
+        //           "l": "27917.7",
+        //           "n": 262,
+        //           "o": "27917.91",
+        //           "q": "25715.359197",
+        //           "s": "BTC-USDT",
+        //           "t": 1696687440000,
+        //           "v": "0.921100"
         //         },
-        //         e: 'kline',
-        //         s: 'BTC-USDT'
+        //         "e": "kline",
+        //         "s": "BTC-USDT"
         //       },
-        //       dataType: 'BTC-USDT@kline_1min',
-        //       success: true
+        //       "dataType": "BTC-USDT@kline_1min",
+        //       "success": true
         //   }
         //
         // swap
         //    {
-        //        code: 0,
-        //        dataType: 'BTC-USDT@kline_1m',
-        //        s: 'BTC-USDT',
-        //        data: [
+        //        "code": 0,
+        //        "dataType": "BTC-USDT@kline_1m",
+        //        "s": "BTC-USDT",
+        //        "data": [
         //            {
-        //            c: '28909.0',
-        //            o: '28915.4',
-        //            h: '28915.4',
-        //            l: '28896.1',
-        //            v: '27.6919',
-        //            T: 1690907580000
+        //            "c": "28909.0",
+        //            "o": "28915.4",
+        //            "h": "28915.4",
+        //            "l": "28896.1",
+        //            "v": "27.6919",
+        //            "T": 1690907580000
         //            }
         //        ]
         //    }
@@ -367,7 +379,8 @@ class bingx extends bingx$1 {
         const messageHash = this.safeString(message, 'dataType');
         const timeframeId = messageHash.split('_')[1];
         const marketId = messageHash.split('@')[0];
-        const marketType = client.url.indexOf('swap') >= 0 ? 'swap' : 'spot';
+        const isSwap = client.url.indexOf('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
@@ -395,7 +408,7 @@ class bingx extends bingx$1 {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const market = this.market(symbol);
@@ -431,8 +444,8 @@ class bingx extends bingx$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -479,8 +492,8 @@ class bingx extends bingx$1 {
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to trades orders for
          * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -523,8 +536,8 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
          * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -546,17 +559,50 @@ class bingx extends bingx$1 {
                 'dataType': 'ACCOUNT_UPDATE',
             };
         }
+        const client = this.client(url);
+        this.setBalanceCache(client, type, subscriptionHash, params);
+        let fetchBalanceSnapshot = undefined;
+        let awaitBalanceSnapshot = undefined;
+        [fetchBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [awaitBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'awaitBalanceSnapshot', false);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future(type + ':fetchBalanceSnapshot');
+        }
         return await this.watch(url, messageHash, request, subscriptionHash);
+    }
+    setBalanceCache(client, type, subscriptionHash, params) {
+        if (subscriptionHash in client.subscriptions) {
+            return undefined;
+        }
+        const fetchBalanceSnapshot = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        if (fetchBalanceSnapshot) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future(messageHash);
+                this.spawn(this.loadBalanceSnapshot, client, messageHash, type);
+            }
+        }
+        else {
+            this.balance[type] = {};
+        }
+    }
+    async loadBalanceSnapshot(client, messageHash, type) {
+        const response = await this.fetchBalance({ 'type': type });
+        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve();
+        client.resolve(this.balance[type], type + ':balance');
     }
     handleErrorMessage(client, message) {
         //
         // { code: 100400, msg: '', timestamp: 1696245808833 }
         //
         // {
-        //     code: 100500,
-        //     id: '9cd37d32-da98-440b-bd04-37e7dbcf51ad',
-        //     msg: '',
-        //     timestamp: 1696245842307
+        //     "code": 100500,
+        //     "id": "9cd37d32-da98-440b-bd04-37e7dbcf51ad",
+        //     "msg": '',
+        //     "timestamp": 1696245842307
         // }
         const code = this.safeString(message, 'code');
         try {
@@ -582,7 +628,7 @@ class bingx extends bingx$1 {
         const lastAuthenticatedTime = this.safeInteger(this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            const response = await this.userAuthPrivatePostUserDataStream({ 'listenKey': listenKey }); // extend the expiry
+            const response = await this.userAuthPrivatePutUserDataStream({ 'listenKey': listenKey }); // extend the expiry
             this.options['listenKey'] = this.safeString(response, 'listenKey');
             this.options['lastAuthenticatedTime'] = time;
         }
@@ -591,22 +637,28 @@ class bingx extends bingx$1 {
         //
         // spot
         // {
-        //     ping: '5963ba3db76049b2870f9a686b2ebaac',
-        //     time: '2023-10-02T18:51:55.089+0800'
+        //     "ping": "5963ba3db76049b2870f9a686b2ebaac",
+        //     "time": "2023-10-02T18:51:55.089+0800"
         // }
         // swap
         // Ping
         //
-        if (message === 'Ping') {
-            await client.send('Pong');
+        try {
+            if (message === 'Ping') {
+                await client.send('Pong');
+            }
+            else {
+                const ping = this.safeString(message, 'ping');
+                const time = this.safeString(message, 'time');
+                await client.send({
+                    'pong': ping,
+                    'time': time,
+                });
+            }
         }
-        else {
-            const ping = this.safeString(message, 'ping');
-            const time = this.safeString(message, 'time');
-            await client.send({
-                'pong': ping,
-                'time': time,
-            });
+        catch (e) {
+            const error = new errors.NetworkError(this.id + ' pong failed with error ' + this.json(e));
+            client.reset(error);
         }
     }
     handleOrder(client, message) {
@@ -641,31 +693,31 @@ class bingx extends bingx$1 {
         //      }
         //
         //      {
-        //         code: 0,
-        //         dataType: 'spot.executionReport',
-        //         data: {
-        //           e: 'executionReport',
-        //           E: 1694681809302,
-        //           s: 'LTC-USDT',
-        //           S: 'BUY',
-        //           o: 'MARKET',
-        //           q: 0,
-        //           p: 62.29,
-        //           x: 'TRADE',
-        //           X: 'FILLED',
-        //           i: '1702245001712369664',
-        //           l: 0.0802,
-        //           z: 0.0802,
-        //           L: 62.308,
-        //           n: -0.0000802,
-        //           N: 'LTC',
-        //           T: 1694681809256,
-        //           t: 38259147,
-        //           O: 1694681809248,
-        //           Z: 4.9971016,
-        //           Y: 4.9971016,
-        //           Q: 5,
-        //           m: false
+        //         "code": 0,
+        //         "dataType": "spot.executionReport",
+        //         "data": {
+        //           "e": "executionReport",
+        //           "E": 1694681809302,
+        //           "s": "LTC-USDT",
+        //           "S": "BUY",
+        //           "o": "MARKET",
+        //           "q": 0,
+        //           "p": 62.29,
+        //           "x": "TRADE",
+        //           "X": "FILLED",
+        //           "i": "1702245001712369664",
+        //           "l": 0.0802,
+        //           "z": 0.0802,
+        //           "L": 62.308,
+        //           "n": -0.0000802,
+        //           "N": "LTC",
+        //           "T": 1694681809256,
+        //           "t": 38259147,
+        //           "O": 1694681809248,
+        //           "Z": 4.9971016,
+        //           "Y": 4.9971016,
+        //           "Q": 5,
+        //           "m": false
         //         }
         //       }
         // swap
@@ -713,31 +765,31 @@ class bingx extends bingx$1 {
         //
         //
         //      {
-        //         code: 0,
-        //         dataType: 'spot.executionReport',
-        //         data: {
-        //           e: 'executionReport',
-        //           E: 1694681809302,
-        //           s: 'LTC-USDT',
-        //           S: 'BUY',
-        //           o: 'MARKET',
-        //           q: 0,
-        //           p: 62.29,
-        //           x: 'TRADE',
-        //           X: 'FILLED',
-        //           i: '1702245001712369664',
-        //           l: 0.0802,
-        //           z: 0.0802,
-        //           L: 62.308,
-        //           n: -0.0000802,
-        //           N: 'LTC',
-        //           T: 1694681809256,
-        //           t: 38259147,
-        //           O: 1694681809248,
-        //           Z: 4.9971016,
-        //           Y: 4.9971016,
-        //           Q: 5,
-        //           m: false
+        //         "code": 0,
+        //         "dataType": "spot.executionReport",
+        //         "data": {
+        //           "e": "executionReport",
+        //           "E": 1694681809302,
+        //           "s": "LTC-USDT",
+        //           "S": "BUY",
+        //           "o": "MARKET",
+        //           "q": 0,
+        //           "p": 62.29,
+        //           "x": "TRADE",
+        //           "X": "FILLED",
+        //           "i": "1702245001712369664",
+        //           "l": 0.0802,
+        //           "z": 0.0802,
+        //           "L": 62.308,
+        //           "n": -0.0000802,
+        //           "N": "LTC",
+        //           "T": 1694681809256,
+        //           "t": 38259147,
+        //           "O": 1694681809248,
+        //           "Z": 4.9971016,
+        //           "Y": 4.9971016,
+        //           "Q": 5,
+        //           "m": false
         //         }
         //       }
         //
@@ -824,9 +876,6 @@ class bingx extends bingx$1 {
         const data = this.safeValue(a, 'B', []);
         const timestamp = this.safeInteger2(message, 'T', 'E');
         const type = ('P' in a) ? 'swap' : 'spot';
-        if (!(type in this.balance)) {
-            this.balance[type] = {};
-        }
         this.balance[type]['info'] = data;
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601(timestamp);
@@ -834,8 +883,12 @@ class bingx extends bingx$1 {
             const balance = data[i];
             const currencyId = this.safeString(balance, 'a');
             const code = this.safeCurrencyCode(currencyId);
-            const account = (code in this.balance) ? this.balance[code] : this.account();
-            account['total'] = this.safeString(balance, 'wb');
+            const account = (code in this.balance[type]) ? this.balance[type][code] : this.account();
+            account['free'] = this.safeString(balance, 'wb');
+            const balanceChange = this.safeString(balance, 'bc');
+            if (account['used'] !== undefined) {
+                account['used'] = Precise["default"].stringSub(this.safeString(account, 'used'), balanceChange);
+            }
             this.balance[type][code] = account;
         }
         this.balance[type] = this.safeBalance(this.balance[type]);

@@ -2,10 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import bingxRest from '../bingx.js';
-import { BadRequest } from '../base/errors.js';
+import { BadRequest, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import Precise from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -32,6 +33,7 @@ export default class bingx extends bingxRest {
                 },
             },
             'options': {
+                'listenKeyRefreshRate': 3540000, // 1 hour (59 mins so we have 1min to renew the token)
                 'ws': {
                     'gunzip': true,
                 },
@@ -63,6 +65,10 @@ export default class bingx extends bingxRest {
                         '1d': '1day',
                     },
                 },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': true, // needed to be true to keep track of used and free balance
+                    'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
+                },
             },
             'streaming': {
                 'keepAlive': 1800000, // 30 minutes
@@ -70,7 +76,7 @@ export default class bingx extends bingxRest {
         });
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bingx#watchTrades
@@ -79,8 +85,8 @@ export default class bingx extends bingxRest {
          * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
@@ -112,28 +118,28 @@ export default class bingx extends bingxRest {
         // first snapshot
         //
         //    {
-        //      id: 'd83b78ce-98be-4dc2-b847-12fe471b5bc5',
-        //      code: 0,
-        //      msg: 'SUCCESS',
-        //      timestamp: 1690214699854
+        //      "id": "d83b78ce-98be-4dc2-b847-12fe471b5bc5",
+        //      "code": 0,
+        //      "msg": "SUCCESS",
+        //      "timestamp": 1690214699854
         //    }
         //
         // subsequent updates
         //
         //     {
-        //         code: 0,
-        //         data: {
-        //           E: 1690214529432,
-        //           T: 1690214529386,
-        //           e: 'trade',
-        //           m: true,
-        //           p: '29110.19',
-        //           q: '0.1868',
-        //           s: 'BTC-USDT',
-        //           t: '57903921'
+        //         "code": 0,
+        //         "data": {
+        //           "E": 1690214529432,
+        //           "T": 1690214529386,
+        //           "e": "trade",
+        //           "m": true,
+        //           "p": "29110.19",
+        //           "q": "0.1868",
+        //           "s": "BTC-USDT",
+        //           "t": "57903921"
         //         },
-        //         dataType: 'BTC-USDT@trade',
-        //         success: true
+        //         "dataType": "BTC-USDT@trade",
+        //         "success": true
         //     }
         //
         //
@@ -141,26 +147,26 @@ export default class bingx extends bingxRest {
         // first snapshot
         //
         //    {
-        //        id: '2aed93b1-6e1e-4038-aeba-f5eeaec2ca48',
-        //        code: 0,
-        //        msg: '',
-        //        dataType: '',
-        //        data: null
+        //        "id": "2aed93b1-6e1e-4038-aeba-f5eeaec2ca48",
+        //        "code": 0,
+        //        "msg": '',
+        //        "dataType": '',
+        //        "data": null
         //    }
         //
         // subsequent updates
         //
         //
         //    {
-        //        code: 0,
-        //        dataType: 'BTC-USDT@trade',
-        //        data: [
+        //        "code": 0,
+        //        "dataType": "BTC-USDT@trade",
+        //        "data": [
         //            {
-        //                q: '0.0421',
-        //                p: '29023.5',
-        //                T: 1690221401344,
-        //                m: false,
-        //                s: 'BTC-USDT'
+        //                "q": "0.0421",
+        //                "p": "29023.5",
+        //                "T": 1690221401344,
+        //                "m": false,
+        //                "s": "BTC-USDT"
         //            },
         //            ...
         //        ]
@@ -169,7 +175,8 @@ export default class bingx extends bingxRest {
         const data = this.safeValue (message, 'data', []);
         const messageHash = this.safeString (message, 'dataType');
         const marketId = messageHash.split ('@')[0];
-        const marketType = client.url.indexOf ('swap') >= 0 ? 'swap' : 'spot';
+        const isSwap = client.url.indexOf ('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         let trades = undefined;
@@ -190,7 +197,7 @@ export default class bingx extends bingxRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bingx#watchOrderBook
@@ -199,7 +206,7 @@ export default class bingx extends bingxRest {
          * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -247,35 +254,35 @@ export default class bingx extends bingxRest {
         //
         //
         //    {
-        //        code: 0,
-        //        dataType: 'BTC-USDT@depth20',
-        //        data: {
-        //          bids: [
-        //            [ '28852.9', '34.2621' ],
+        //        "code": 0,
+        //        "dataType": "BTC-USDT@depth20",
+        //        "data": {
+        //          "bids": [
+        //            [ '28852.9', "34.2621" ],
         //            ...
         //          ],
-        //          asks: [
-        //            [ '28864.9', '23.4079' ],
+        //          "asks": [
+        //            [ '28864.9', "23.4079" ],
         //            ...
         //          ]
         //        },
-        //        dataType: 'BTC-USDT@depth20',
-        //        success: true
+        //        "dataType": "BTC-USDT@depth20",
+        //        "success": true
         //    }
         //
         // swap
         //
         //
         //    {
-        //        code: 0,
-        //        dataType: 'BTC-USDT@depth20',
-        //        data: {
-        //          bids: [
-        //            [ '28852.9', '34.2621' ],
+        //        "code": 0,
+        //        "dataType": "BTC-USDT@depth20",
+        //        "data": {
+        //          "bids": [
+        //            [ '28852.9', "34.2621" ],
         //            ...
         //          ],
-        //          asks: [
-        //            [ '28864.9', '23.4079' ],
+        //          "asks": [
+        //            [ '28864.9', "23.4079" ],
         //            ...
         //          ]
         //        }
@@ -284,7 +291,8 @@ export default class bingx extends bingxRest {
         const data = this.safeValue (message, 'data', []);
         const messageHash = this.safeString (message, 'dataType');
         const marketId = messageHash.split ('@')[0];
-        const marketType = client.url.indexOf ('swap') >= 0 ? 'swap' : 'spot';
+        const isSwap = client.url.indexOf ('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -297,19 +305,23 @@ export default class bingx extends bingxRest {
         client.resolve (orderbook, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //    {
-        //        c: '28909.0',
-        //        o: '28915.4',
-        //        h: '28915.4',
-        //        l: '28896.1',
-        //        v: '27.6919',
-        //        T: 1690907580000
+        //        "c": "28909.0",
+        //        "o": "28915.4",
+        //        "h": "28915.4",
+        //        "l": "28896.1",
+        //        "v": "27.6919",
+        //        "T": 1696687499999,
+        //        "t": 1696687440000
         //    }
         //
+        // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
+        // for swap, (T) is the opening time
+        const timestamp = (market['spot']) ? 't' : 'T';
         return [
-            this.safeInteger (ohlcv, 'T'),
+            this.safeInteger (ohlcv, timestamp),
             this.safeNumber (ohlcv, 'o'),
             this.safeNumber (ohlcv, 'h'),
             this.safeNumber (ohlcv, 'l'),
@@ -323,42 +335,42 @@ export default class bingx extends bingxRest {
         // spot
         //
         //   {
-        //       code: 0,
-        //       data: {
-        //         E: 1696687498608,
-        //         K: {
-        //           T: 1696687499999,
-        //           c: '27917.829',
-        //           h: '27918.427',
-        //           i: '1min',
-        //           l: '27917.7',
-        //           n: 262,
-        //           o: '27917.91',
-        //           q: '25715.359197',
-        //           s: 'BTC-USDT',
-        //           t: 1696687440000,
-        //           v: '0.921100'
+        //       "code": 0,
+        //       "data": {
+        //         "E": 1696687498608,
+        //         "K": {
+        //           "T": 1696687499999,
+        //           "c": "27917.829",
+        //           "h": "27918.427",
+        //           "i": "1min",
+        //           "l": "27917.7",
+        //           "n": 262,
+        //           "o": "27917.91",
+        //           "q": "25715.359197",
+        //           "s": "BTC-USDT",
+        //           "t": 1696687440000,
+        //           "v": "0.921100"
         //         },
-        //         e: 'kline',
-        //         s: 'BTC-USDT'
+        //         "e": "kline",
+        //         "s": "BTC-USDT"
         //       },
-        //       dataType: 'BTC-USDT@kline_1min',
-        //       success: true
+        //       "dataType": "BTC-USDT@kline_1min",
+        //       "success": true
         //   }
         //
         // swap
         //    {
-        //        code: 0,
-        //        dataType: 'BTC-USDT@kline_1m',
-        //        s: 'BTC-USDT',
-        //        data: [
+        //        "code": 0,
+        //        "dataType": "BTC-USDT@kline_1m",
+        //        "s": "BTC-USDT",
+        //        "data": [
         //            {
-        //            c: '28909.0',
-        //            o: '28915.4',
-        //            h: '28915.4',
-        //            l: '28896.1',
-        //            v: '27.6919',
-        //            T: 1690907580000
+        //            "c": "28909.0",
+        //            "o": "28915.4",
+        //            "h": "28915.4",
+        //            "l": "28896.1",
+        //            "v": "27.6919",
+        //            "T": 1690907580000
         //            }
         //        ]
         //    }
@@ -373,7 +385,8 @@ export default class bingx extends bingxRest {
         const messageHash = this.safeString (message, 'dataType');
         const timeframeId = messageHash.split ('_')[1];
         const marketId = messageHash.split ('@')[0];
-        const marketType = client.url.indexOf ('swap') >= 0 ? 'swap' : 'spot';
+        const isSwap = client.url.indexOf ('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
@@ -391,7 +404,7 @@ export default class bingx extends bingxRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bingx#watchOHLCV
@@ -402,7 +415,7 @@ export default class bingx extends bingxRest {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const market = this.market (symbol);
@@ -430,7 +443,7 @@ export default class bingx extends bingxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bingx#watchOrders
@@ -439,8 +452,8 @@ export default class bingx extends bingxRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -478,7 +491,7 @@ export default class bingx extends bingxRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bingx#watchMyTrades
@@ -488,8 +501,8 @@ export default class bingx extends bingxRest {
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to trades orders for
          * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets ();
         await this.authenticate ();
@@ -526,15 +539,15 @@ export default class bingx extends bingxRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bingx#watchBalance
          * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
          * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         await this.authenticate ();
@@ -556,7 +569,41 @@ export default class bingx extends bingxRest {
                 'dataType': 'ACCOUNT_UPDATE',
             };
         }
+        const client = this.client (url);
+        this.setBalanceCache (client, type, subscriptionHash, params);
+        let fetchBalanceSnapshot = undefined;
+        let awaitBalanceSnapshot = undefined;
+        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [ awaitBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'awaitBalanceSnapshot', false);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future (type + ':fetchBalanceSnapshot');
+        }
         return await this.watch (url, messageHash, request, subscriptionHash);
+    }
+
+    setBalanceCache (client: Client, type, subscriptionHash, params) {
+        if (subscriptionHash in client.subscriptions) {
+            return undefined;
+        }
+        const fetchBalanceSnapshot = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        if (fetchBalanceSnapshot) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
+            }
+        } else {
+            this.balance[type] = {};
+        }
+    }
+
+    async loadBalanceSnapshot (client, messageHash, type) {
+        const response = await this.fetchBalance ({ 'type': type });
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve ();
+        client.resolve (this.balance[type], type + ':balance');
     }
 
     handleErrorMessage (client, message) {
@@ -564,10 +611,10 @@ export default class bingx extends bingxRest {
         // { code: 100400, msg: '', timestamp: 1696245808833 }
         //
         // {
-        //     code: 100500,
-        //     id: '9cd37d32-da98-440b-bd04-37e7dbcf51ad',
-        //     msg: '',
-        //     timestamp: 1696245842307
+        //     "code": 100500,
+        //     "id": "9cd37d32-da98-440b-bd04-37e7dbcf51ad",
+        //     "msg": '',
+        //     "timestamp": 1696245842307
         // }
         const code = this.safeString (message, 'code');
         try {
@@ -593,7 +640,7 @@ export default class bingx extends bingxRest {
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            const response = await this.userAuthPrivatePostUserDataStream ({ 'listenKey': listenKey }); // extend the expiry
+            const response = await this.userAuthPrivatePutUserDataStream ({ 'listenKey': listenKey }); // extend the expiry
             this.options['listenKey'] = this.safeString (response, 'listenKey');
             this.options['lastAuthenticatedTime'] = time;
         }
@@ -603,21 +650,26 @@ export default class bingx extends bingxRest {
         //
         // spot
         // {
-        //     ping: '5963ba3db76049b2870f9a686b2ebaac',
-        //     time: '2023-10-02T18:51:55.089+0800'
+        //     "ping": "5963ba3db76049b2870f9a686b2ebaac",
+        //     "time": "2023-10-02T18:51:55.089+0800"
         // }
         // swap
         // Ping
         //
-        if (message === 'Ping') {
-            await client.send ('Pong');
-        } else {
-            const ping = this.safeString (message, 'ping');
-            const time = this.safeString (message, 'time');
-            await client.send ({
-                'pong': ping,
-                'time': time,
-            });
+        try {
+            if (message === 'Ping') {
+                await client.send ('Pong');
+            } else {
+                const ping = this.safeString (message, 'ping');
+                const time = this.safeString (message, 'time');
+                await client.send ({
+                    'pong': ping,
+                    'time': time,
+                });
+            }
+        } catch (e) {
+            const error = new NetworkError (this.id + ' pong failed with error ' + this.json (e));
+            client.reset (error);
         }
     }
 
@@ -653,31 +705,31 @@ export default class bingx extends bingxRest {
         //      }
         //
         //      {
-        //         code: 0,
-        //         dataType: 'spot.executionReport',
-        //         data: {
-        //           e: 'executionReport',
-        //           E: 1694681809302,
-        //           s: 'LTC-USDT',
-        //           S: 'BUY',
-        //           o: 'MARKET',
-        //           q: 0,
-        //           p: 62.29,
-        //           x: 'TRADE',
-        //           X: 'FILLED',
-        //           i: '1702245001712369664',
-        //           l: 0.0802,
-        //           z: 0.0802,
-        //           L: 62.308,
-        //           n: -0.0000802,
-        //           N: 'LTC',
-        //           T: 1694681809256,
-        //           t: 38259147,
-        //           O: 1694681809248,
-        //           Z: 4.9971016,
-        //           Y: 4.9971016,
-        //           Q: 5,
-        //           m: false
+        //         "code": 0,
+        //         "dataType": "spot.executionReport",
+        //         "data": {
+        //           "e": "executionReport",
+        //           "E": 1694681809302,
+        //           "s": "LTC-USDT",
+        //           "S": "BUY",
+        //           "o": "MARKET",
+        //           "q": 0,
+        //           "p": 62.29,
+        //           "x": "TRADE",
+        //           "X": "FILLED",
+        //           "i": "1702245001712369664",
+        //           "l": 0.0802,
+        //           "z": 0.0802,
+        //           "L": 62.308,
+        //           "n": -0.0000802,
+        //           "N": "LTC",
+        //           "T": 1694681809256,
+        //           "t": 38259147,
+        //           "O": 1694681809248,
+        //           "Z": 4.9971016,
+        //           "Y": 4.9971016,
+        //           "Q": 5,
+        //           "m": false
         //         }
         //       }
         // swap
@@ -726,31 +778,31 @@ export default class bingx extends bingxRest {
         //
         //
         //      {
-        //         code: 0,
-        //         dataType: 'spot.executionReport',
-        //         data: {
-        //           e: 'executionReport',
-        //           E: 1694681809302,
-        //           s: 'LTC-USDT',
-        //           S: 'BUY',
-        //           o: 'MARKET',
-        //           q: 0,
-        //           p: 62.29,
-        //           x: 'TRADE',
-        //           X: 'FILLED',
-        //           i: '1702245001712369664',
-        //           l: 0.0802,
-        //           z: 0.0802,
-        //           L: 62.308,
-        //           n: -0.0000802,
-        //           N: 'LTC',
-        //           T: 1694681809256,
-        //           t: 38259147,
-        //           O: 1694681809248,
-        //           Z: 4.9971016,
-        //           Y: 4.9971016,
-        //           Q: 5,
-        //           m: false
+        //         "code": 0,
+        //         "dataType": "spot.executionReport",
+        //         "data": {
+        //           "e": "executionReport",
+        //           "E": 1694681809302,
+        //           "s": "LTC-USDT",
+        //           "S": "BUY",
+        //           "o": "MARKET",
+        //           "q": 0,
+        //           "p": 62.29,
+        //           "x": "TRADE",
+        //           "X": "FILLED",
+        //           "i": "1702245001712369664",
+        //           "l": 0.0802,
+        //           "z": 0.0802,
+        //           "L": 62.308,
+        //           "n": -0.0000802,
+        //           "N": "LTC",
+        //           "T": 1694681809256,
+        //           "t": 38259147,
+        //           "O": 1694681809248,
+        //           "Z": 4.9971016,
+        //           "Y": 4.9971016,
+        //           "Q": 5,
+        //           "m": false
         //         }
         //       }
         //
@@ -838,9 +890,6 @@ export default class bingx extends bingxRest {
         const data = this.safeValue (a, 'B', []);
         const timestamp = this.safeInteger2 (message, 'T', 'E');
         const type = ('P' in a) ? 'swap' : 'spot';
-        if (!(type in this.balance)) {
-            this.balance[type] = {};
-        }
         this.balance[type]['info'] = data;
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601 (timestamp);
@@ -848,8 +897,12 @@ export default class bingx extends bingxRest {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'a');
             const code = this.safeCurrencyCode (currencyId);
-            const account = (code in this.balance) ? this.balance[code] : this.account ();
-            account['total'] = this.safeString (balance, 'wb');
+            const account = (code in this.balance[type]) ? this.balance[type][code] : this.account ();
+            account['free'] = this.safeString (balance, 'wb');
+            const balanceChange = this.safeString (balance, 'bc');
+            if (account['used'] !== undefined) {
+                account['used'] = Precise.stringSub (this.safeString (account, 'used'), balanceChange);
+            }
             this.balance[type][code] = account;
         }
         this.balance[type] = this.safeBalance (this.balance[type]);

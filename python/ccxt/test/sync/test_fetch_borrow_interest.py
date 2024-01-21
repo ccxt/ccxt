@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_borrow_interest  # noqa E402
-
 
 def test_fetch_borrow_interest(exchange, skipped_properties, code, symbol):
     method = 'fetchBorrowInterest'
