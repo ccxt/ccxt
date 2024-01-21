@@ -38,8 +38,3 @@ __pycache__
 *.un~
 *.pyc
 
-# docs
-wiki/baseSpec.md
-wiki/examples/**/*.md
-wiki/exchanges/**/*.md
-wiki/_sidebar.md
