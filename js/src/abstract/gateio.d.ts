@@ -165,6 +165,7 @@ interface gate {
     privateFuturesGetSettleLiquidates(params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettleAutoDeleverages(params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettleFee(params?: {}): Promise<implicitReturnType>;
+    privateFuturesGetSettleRiskLimitTiers(params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettlePriceOrders(params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettlePriceOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettlePositionsContractMargin(params?: {}): Promise<implicitReturnType>;

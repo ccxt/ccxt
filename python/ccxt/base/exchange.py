@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.15'
+__version__ = '4.2.19'
 
 # -----------------------------------------------------------------------------
 
@@ -343,7 +343,7 @@ class Exchange(object):
         'fetchPositions': None,
         'fetchPositionsRisk': None,
         'fetchPremiumIndexOHLCV': None,
-        'fetchStatus': 'emulated',
+        'fetchStatus': None,
         'fetchTicker': True,
         'fetchTickers': None,
         'fetchTime': None,

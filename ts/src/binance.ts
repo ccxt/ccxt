@@ -224,6 +224,7 @@ export default class binance extends Exchange {
                         'margin/allPairs': 0.1,
                         'margin/priceIndex': 1,
                         // these endpoints require this.apiKey + this.secret
+                        'spot/delist-schedule': 10,
                         'asset/assetDividend': 1,
                         'asset/dribblet': 0.1,
                         'asset/transfer': 0.1,
@@ -953,6 +954,7 @@ export default class binance extends Exchange {
                 },
                 'papi': {
                     'get': {
+                        'ping': 1,
                         'um/order': 1, // 1
                         'um/openOrder': 1, // 1
                         'um/openOrders': 1, // 1
@@ -5499,6 +5501,7 @@ export default class binance extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch my dust trades for
          * @param {int} [limit] the maximum number of dust trades to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'margin', default spot
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         //
@@ -5512,6 +5515,11 @@ export default class binance extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
             request['endTime'] = this.sum (since, 7776000000);
+        }
+        const accountType = this.safeStringUpper (params, 'type');
+        params = this.omit (params, 'type');
+        if (accountType !== undefined) {
+            request['accountType'] = accountType;
         }
         const response = await this.sapiGetAssetDribblet (this.extend (request, params));
         //     {
@@ -8597,7 +8605,7 @@ export default class binance extends Exchange {
             } else {
                 throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
-        } else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2') || (api === 'papi')) {
+        } else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2') || (api === 'papi' && path !== 'ping')) {
             this.checkRequiredCredentials ();
             if (method === 'POST' && ((path === 'order') || (path === 'sor/order'))) {
                 // inject in implicit API calls

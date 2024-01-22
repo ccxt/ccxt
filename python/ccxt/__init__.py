@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.2.15'
+__version__ = '4.2.19'
 
 # ----------------------------------------------------------------------------
 
@@ -161,6 +161,7 @@ from ccxt.novadax import novadax                                      # noqa: F4
 from ccxt.oceanex import oceanex                                      # noqa: F401
 from ccxt.okcoin import okcoin                                        # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
+from ccxt.onetrading import onetrading                                # noqa: F401
 from ccxt.p2b import p2b                                              # noqa: F401
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
@@ -261,6 +262,7 @@ exchanges = [
     'oceanex',
     'okcoin',
     'okx',
+    'onetrading',
     'p2b',
     'paymium',
     'phemex',

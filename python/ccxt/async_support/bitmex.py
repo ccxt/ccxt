@@ -1428,8 +1428,8 @@ class bitmex(Exchange, ImplicitAPI):
             timestamp = since
             if fetchOHLCVOpenTimestamp:
                 timestamp = self.sum(timestamp, duration)
-            ymdhms = self.ymdhms(timestamp)
-            request['startTime'] = ymdhms  # starting date filter for results
+            startTime = self.iso8601(timestamp)
+            request['startTime'] = startTime  # starting date filter for results
         else:
             request['reverse'] = True
         response = await self.publicGetTradeBucketed(self.extend(request, params))
@@ -2441,12 +2441,9 @@ class bitmex(Exchange, ImplicitAPI):
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress requires params["network"]')
         currency = self.currency(code)
-        currencyId = currency['id']
-        idLength = len(currencyId)
-        currencyId = currencyId[0:idLength - 1] + currencyId[idLength - 1:idLength].lower()  # make the last letter lowercase
         params = self.omit(params, 'network')
         request = {
-            'currency': currencyId,
+            'currency': currency['id'],
             'network': self.network_code_to_id(networkCode, currency['code']),
         }
         response = await self.privateGetUserDepositAddress(self.extend(request, params))

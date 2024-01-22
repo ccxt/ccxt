@@ -147,7 +147,7 @@ class binance extends \ccxt\async\binance {
             }
             $subscriptionsByStream = $this->safe_integer($this->options['numSubscriptionsByStream'], $stream, 0);
             $newNumSubscriptions = $subscriptionsByStream . $numSubscriptions;
-            $subscriptionLimitByStream = $this->safe_integer($this->options, 'subscriptionLimitByStream', 200);
+            $subscriptionLimitByStream = $this->safe_integer($this->options['subscriptionLimitByStream'], $type, 200);
             if ($newNumSubscriptions > $subscriptionLimitByStream) {
                 throw new BadRequest($this->id . ' reached the limit of subscriptions by $stream-> Increase the number of streams, or increase the $stream limit or subscription limit by $stream if the exchange allows.');
             }
@@ -1107,7 +1107,7 @@ class binance extends \ccxt\async\binance {
             $result = $this->parse_ws_ticker($ticker, $marketType);
             $symbol = $result['symbol'];
             $this->tickers[$symbol] = $result;
-            $newTickers[] = $result;
+            $newTickers[$symbol] = $result;
         }
         $messageHashes = $this->find_message_hashes($client, 'tickers::');
         for ($i = 0; $i < count($messageHashes); $i++) {
@@ -2291,7 +2291,6 @@ class binance extends \ccxt\async\binance {
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
-            Async\await($this->authenticate($params));
             $market = null;
             $messageHash = '';
             $symbols = $this->market_symbols($symbols);
@@ -2299,6 +2298,12 @@ class binance extends \ccxt\async\binance {
                 $market = $this->get_market_from_symbols($symbols);
                 $messageHash = '::' . implode(',', $symbols);
             }
+            $marketTypeObject = array();
+            if ($market !== null) {
+                $marketTypeObject['type'] = $market['type'];
+                $marketTypeObject['subType'] = $market['subType'];
+            }
+            Async\await($this->authenticate(array_merge($marketTypeObject, $params)));
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchPositions', $market, $params);
             if ($type === 'spot' || $type === 'margin') {

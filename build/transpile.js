@@ -2448,6 +2448,7 @@ class Transpiler {
             const usesNumber = pythonAsync.indexOf ('numbers.') >= 0;
             const usesTickSize = pythonAsync.indexOf ('TICK_SIZE') >= 0;
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
+            const usesAsyncio = pythonAsync.indexOf ('asyncio.') >= 0;
 
             let importedExceptionTypes = imports.filter(x => Object.keys(errors).includes(x.name)).map(x => x.name); // returns 'OnMaintenance,ExchangeNotAvailable', etc...
 
@@ -2490,6 +2491,9 @@ class Transpiler {
                 pythonHeaderSync.push ('from ccxt.base.precise import Precise  # noqa E402')
                 phpHeaderAsync.push ('use \\ccxt\\Precise;')
                 phpHeaderSync.push ('use \\ccxt\\Precise;')
+            }
+            if (usesAsyncio) {
+                pythonHeaderAsync.push ('import asyncio')
             }
             if (test.pyHeaders) {
                 pythonHeaderAsync = pythonHeaderAsync.concat (test.pyHeaders);

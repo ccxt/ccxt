@@ -24,7 +24,7 @@ export default class bingx extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': true,
+                'margin': false,
                 'swap': true,
                 'future': false,
                 'option': false,
@@ -53,6 +53,7 @@ export default class bingx extends Exchange {
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchFundingRates': true,
                 'fetchLeverage': true,
                 'fetchLiquidations': false,
                 'fetchMarkets': true,
@@ -368,6 +369,7 @@ export default class bingx extends Exchange {
                     '100414': AccountSuspended, // {"code":100414,"msg":"Code: 100414, Msg: risk control check fail,code(1)","debugMsg":""}
                     '100419': PermissionDenied, // {"code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347}
                     '100437': BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
+                    '101204': InsufficientFunds, // bingx {"code":101204,"msg":"","data":{}}
                 },
                 'broad': {},
             },
@@ -1121,6 +1123,32 @@ export default class bingx extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseFundingRate (data, market);
+    }
+
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
+         * @param {string[]} [symbols] list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, 'swap', true);
+        const response = await this.swapV2PublicGetQuotePremiumIndex (this.extend (params));
+        const data = this.safeValue (response, 'data', []);
+        const filteredResponse = [];
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            const marketId = this.safeString (item, 'symbol');
+            const market = this.safeMarket (marketId, undefined, undefined, 'swap');
+            if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
+                filteredResponse.push (this.parseFundingRate (item, market));
+            }
+        }
+        return filteredResponse;
     }
 
     parseFundingRate (contract, market: Market = undefined) {

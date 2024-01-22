@@ -146,7 +146,7 @@ class binance(ccxt.async_support.binance):
                 self.options['numSubscriptionsByStream'] = {}
             subscriptionsByStream = self.safe_integer(self.options['numSubscriptionsByStream'], stream, 0)
             newNumSubscriptions = subscriptionsByStream + numSubscriptions
-            subscriptionLimitByStream = self.safe_integer(self.options, 'subscriptionLimitByStream', 200)
+            subscriptionLimitByStream = self.safe_integer(self.options['subscriptionLimitByStream'], type, 200)
             if newNumSubscriptions > subscriptionLimitByStream:
                 raise BadRequest(self.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.')
             self.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions
@@ -998,7 +998,7 @@ class binance(ccxt.async_support.binance):
         isSpot = ((client.url.find('/stream') > -1) or (client.url.find('/testnet.binance') > -1))
         marketType = 'spot' if (isSpot) else 'contract'
         rawTickers = []
-        newTickers = []
+        newTickers = {}
         if isinstance(message, list):
             rawTickers = message
         else:
@@ -1008,7 +1008,7 @@ class binance(ccxt.async_support.binance):
             result = self.parse_ws_ticker(ticker, marketType)
             symbol = result['symbol']
             self.tickers[symbol] = result
-            newTickers.append(result)
+            newTickers[symbol] = result
         messageHashes = self.find_message_hashes(client, 'tickers::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
@@ -2090,13 +2090,17 @@ class binance(ccxt.async_support.binance):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
-        await self.authenticate(params)
         market = None
         messageHash = ''
         symbols = self.market_symbols(symbols)
         if not self.is_empty(symbols):
             market = self.get_market_from_symbols(symbols)
             messageHash = '::' + ','.join(symbols)
+        marketTypeObject = {}
+        if market is not None:
+            marketTypeObject['type'] = market['type']
+            marketTypeObject['subType'] = market['subType']
+        await self.authenticate(self.extend(marketTypeObject, params))
         type = None
         type, params = self.handle_market_type_and_params('watchPositions', market, params)
         if type == 'spot' or type == 'margin':

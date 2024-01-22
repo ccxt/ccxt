@@ -38,6 +38,7 @@ class poloniexfutures extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
                 'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => false,
                 'fetchL3OrderBook' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,

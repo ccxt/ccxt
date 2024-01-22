@@ -499,6 +499,9 @@ abstract class gate extends \ccxt\async\Exchange {
     public function private_futures_get_settle_fee($params = array()) {
         return $this->request('{settle}/fee', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_futures_get_settle_risk_limit_tiers($params = array()) {
+        return $this->request('{settle}/risk_limit_tiers', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_futures_get_settle_price_orders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1260,6 +1263,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function privateFuturesGetSettleFee($params = array()) {
         return $this->request('{settle}/fee', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateFuturesGetSettleRiskLimitTiers($params = array()) {
+        return $this->request('{settle}/risk_limit_tiers', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateFuturesGetSettlePriceOrders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));

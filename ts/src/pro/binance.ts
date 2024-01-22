@@ -147,7 +147,7 @@ export default class binance extends binanceRest {
             }
             const subscriptionsByStream = this.safeInteger (this.options['numSubscriptionsByStream'], stream, 0);
             const newNumSubscriptions = subscriptionsByStream + numSubscriptions;
-            const subscriptionLimitByStream = this.safeInteger (this.options, 'subscriptionLimitByStream', 200);
+            const subscriptionLimitByStream = this.safeInteger (this.options['subscriptionLimitByStream'], type, 200);
             if (newNumSubscriptions > subscriptionLimitByStream) {
                 throw new BadRequest (this.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
@@ -1094,7 +1094,7 @@ export default class binance extends binanceRest {
         const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
         const marketType = (isSpot) ? 'spot' : 'contract';
         let rawTickers = [];
-        const newTickers = [];
+        const newTickers = {};
         if (Array.isArray (message)) {
             rawTickers = message;
         } else {
@@ -1105,7 +1105,7 @@ export default class binance extends binanceRest {
             const result = this.parseWsTicker (ticker, marketType);
             const symbol = result['symbol'];
             this.tickers[symbol] = result;
-            newTickers.push (result);
+            newTickers[symbol] = result;
         }
         const messageHashes = this.findMessageHashes (client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
@@ -2285,7 +2285,6 @@ export default class binance extends binanceRest {
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        await this.authenticate (params);
         let market = undefined;
         let messageHash = '';
         symbols = this.marketSymbols (symbols);
@@ -2293,6 +2292,12 @@ export default class binance extends binanceRest {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
         }
+        const marketTypeObject = {};
+        if (market !== undefined) {
+            marketTypeObject['type'] = market['type'];
+            marketTypeObject['subType'] = market['subType'];
+        }
+        await this.authenticate (this.extend (marketTypeObject, params));
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
         if (type === 'spot' || type === 'margin') {

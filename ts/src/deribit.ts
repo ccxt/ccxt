@@ -1699,6 +1699,10 @@ export default class deribit extends Exchange {
         const request = {
             'order_id': id,
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const response = await this.privateGetGetOrderState (this.extend (request, params));
         //
         //     {
@@ -1729,7 +1733,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result');
-        return this.parseOrder (result);
+        return this.parseOrder (result, market);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
@@ -2431,6 +2435,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchPosition
          * @description fetch data on a single open contract trade position
+         * @see https://docs.deribit.com/#private-get_position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -2476,11 +2481,14 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchPositions
          * @description fetch all open positions
+         * @see https://docs.deribit.com/#private-get_positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.kind] market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
+        let kind = this.safeString (params, 'kind');
         let code = undefined;
         if (symbols === undefined) {
             code = this.codeFromOptions ('fetchPositions', params);
@@ -2494,14 +2502,18 @@ export default class deribit extends Exchange {
                     throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
                 const market = this.market (symbols[0]);
-                code = market['base'];
+                const settle = market['settle'];
+                code = (settle !== undefined) ? settle : market['base'];
+                kind = market['info']['kind'];
             }
         }
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
-            // "kind" : "future", "option"
         };
+        if (kind !== undefined) {
+            request['kind'] = kind;
+        }
         const response = await this.privateGetGetPositions (this.extend (request, params));
         //
         //     {
@@ -2909,7 +2921,7 @@ export default class deribit extends Exchange {
         }
         const request = {
             'instrument_name': market['id'],
-            'start_timestamp': since,
+            'start_timestamp': since - 1,
             'end_timestamp': time,
         };
         const response = await this.publicGetGetFundingRateHistory (this.extend (request, params));

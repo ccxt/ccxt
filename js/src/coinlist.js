@@ -151,6 +151,9 @@ export default class coinlist extends Exchange {
                         'v1/symbols/{symbol}/auctions/{auction_code}': 1,
                         'v1/time': 1,
                         'v1/assets': 1,
+                        'v1/leaderboard': 1,
+                        'v1/affiliate/{competition_code}': 1,
+                        'v1/competition/{competition_id}': 1,
                     },
                 },
                 'private': {
@@ -158,6 +161,7 @@ export default class coinlist extends Exchange {
                         'v1/fees': 1,
                         'v1/accounts': 1,
                         'v1/accounts/{trader_id}': 1,
+                        'v1/accounts/{trader_id}/alias': 1,
                         'v1/accounts/{trader_id}/ledger': 1,
                         'v1/accounts/{trader_id}/wallets': 1,
                         'v1/accounts/{trader_id}/wallet-ledger': 1,
@@ -170,7 +174,9 @@ export default class coinlist extends Exchange {
                         'v1/balances': 1,
                         'v1/transfers': 1,
                         'v1/user': 1,
-                        'v1/credits': 1, // not unified
+                        'v1/credits': 1,
+                        'v1/positions': 1,
+                        'v1/accounts/{trader_id}/competitions': 1,
                     },
                     'post': {
                         'v1/keys': 1,
@@ -181,7 +187,9 @@ export default class coinlist extends Exchange {
                         'v1/transfers/from-wallet': 1,
                         'v1/transfers/internal-transfer': 1,
                         'v1/transfers/withdrawal-request': 1,
-                        'v1/orders/bulk': 1, // not unified
+                        'v1/orders/bulk': 1,
+                        'v1/accounts/{trader_id}/competitions': 1,
+                        'v1/accounts/{trader_id}/create-competition': 1,
                     },
                     'patch': {
                         'v1/orders/{order_id}': 1,

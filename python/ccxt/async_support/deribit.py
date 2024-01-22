@@ -1627,6 +1627,9 @@ class deribit(Exchange, ImplicitAPI):
         request = {
             'order_id': id,
         }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         response = await self.privateGetGetOrderState(self.extend(request, params))
         #
         #     {
@@ -1657,7 +1660,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result')
-        return self.parse_order(result)
+        return self.parse_order(result, market)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
@@ -2295,6 +2298,7 @@ class deribit(Exchange, ImplicitAPI):
     async def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
+        :see: https://docs.deribit.com/#private-get_position
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -2337,11 +2341,14 @@ class deribit(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
+        :see: https://docs.deribit.com/#private-get_positions
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.kind]: market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
+        kind = self.safe_string(params, 'kind')
         code = None
         if symbols is None:
             code = self.code_from_options('fetchPositions', params)
@@ -2354,12 +2361,15 @@ class deribit(Exchange, ImplicitAPI):
                 if length != 1:
                     raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
                 market = self.market(symbols[0])
-                code = market['base']
+                settle = market['settle']
+                code = settle if (settle is not None) else market['base']
+                kind = market['info']['kind']
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
-            # "kind" : "future", "option"
         }
+        if kind is not None:
+            request['kind'] = kind
         response = await self.privateGetGetPositions(self.extend(request, params))
         #
         #     {
@@ -2734,7 +2744,7 @@ class deribit(Exchange, ImplicitAPI):
             since = time - month
         request = {
             'instrument_name': market['id'],
-            'start_timestamp': since,
+            'start_timestamp': since - 1,
             'end_timestamp': time,
         }
         response = await self.publicGetGetFundingRateHistory(self.extend(request, params))

@@ -166,6 +166,7 @@ class ImplicitAPI:
     private_futures_get_settle_liquidates = privateFuturesGetSettleLiquidates = Entry('{settle}/liquidates', ['private', 'futures'], 'GET', {'cost': 1})
     private_futures_get_settle_auto_deleverages = privateFuturesGetSettleAutoDeleverages = Entry('{settle}/auto_deleverages', ['private', 'futures'], 'GET', {'cost': 1})
     private_futures_get_settle_fee = privateFuturesGetSettleFee = Entry('{settle}/fee', ['private', 'futures'], 'GET', {'cost': 1})
+    private_futures_get_settle_risk_limit_tiers = privateFuturesGetSettleRiskLimitTiers = Entry('{settle}/risk_limit_tiers', ['private', 'futures'], 'GET', {'cost': 1})
     private_futures_get_settle_price_orders = privateFuturesGetSettlePriceOrders = Entry('{settle}/price_orders', ['private', 'futures'], 'GET', {'cost': 1})
     private_futures_get_settle_price_orders_order_id = privateFuturesGetSettlePriceOrdersOrderId = Entry('{settle}/price_orders/{order_id}', ['private', 'futures'], 'GET', {'cost': 1})
     private_futures_post_settle_positions_contract_margin = privateFuturesPostSettlePositionsContractMargin = Entry('{settle}/positions/{contract}/margin', ['private', 'futures'], 'POST', {'cost': 1})

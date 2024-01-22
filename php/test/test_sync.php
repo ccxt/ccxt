@@ -621,6 +621,7 @@ class testMainClass extends baseMainTestClass {
             $tests = array(
                 'watchOHLCV' => [$symbol],
                 'watchTicker' => [$symbol],
+                'watchTickers' => [$symbol],
                 'watchOrderBook' => [$symbol],
                 'watchTrades' => [$symbol],
             );
