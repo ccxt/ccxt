@@ -947,7 +947,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('privateGetAccount', params);
     }
 
-    async fetchMarketsWs (params = {}): Promise<MarketInterface[]> {
+    async fetchMarketsWs (params = {}) {
         /**
          * @method
          * @name bitvavo#fetchMarketsWs
