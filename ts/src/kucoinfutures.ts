@@ -1866,7 +1866,7 @@ export default class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const fundingTimestamp = this.safeNumber (data, 'timePoint');
+        const fundingTimestamp = this.safeInteger (data, 'timePoint');
         // the website displayes the previous funding rate as "funding rate"
         return {
             'info': data,
