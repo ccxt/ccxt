@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.19';
+$version = '4.2.20';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.19';
+    const VERSION = '4.2.20';
 
     public $browser;
     public $marketsLoading = null;
@@ -3232,6 +3232,10 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() is not supported yet');
+    }
+
     public function fetch_closed_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             if ($this->has['fetchOrdersWs']) {
@@ -3379,8 +3383,14 @@ class Exchange extends \ccxt\Exchange {
                 }
             }
             return $markets[0];
+        } elseif ((str_ends_with($symbol, '-C')) || (str_ends_with($symbol, '-P')) || (str_starts_with($symbol, 'C-')) || (str_starts_with($symbol, 'P-'))) {
+            return $this->createExpiredOptionMarket ($symbol);
         }
         throw new BadSymbol($this->id . ' does not have $market $symbol ' . $symbol);
+    }
+
+    public function create_expired_option_market(string $symbol) {
+        throw new NotSupported($this->id . ' createExpiredOptionMarket () is not supported yet');
     }
 
     public function handle_withdraw_tag_and_params($tag, $params) {

@@ -1804,6 +1804,9 @@ abstract class binanceus extends \ccxt\async\binance {
     public function private_delete_order($params = array()) {
         return $this->request('order', 'private', 'DELETE', $params, null, null, array("cost" => 0.2));
     }
+    public function papi_get_ping($params = array()) {
+        return $this->request('ping', 'papi', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function papi_get_um_order($params = array()) {
         return $this->request('um/order', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -3849,6 +3852,9 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function privateDeleteOrder($params = array()) {
         return $this->request('order', 'private', 'DELETE', $params, null, null, array("cost" => 0.2));
+    }
+    public function papiGetPing($params = array()) {
+        return $this->request('ping', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papiGetUmOrder($params = array()) {
         return $this->request('um/order', 'papi', 'GET', $params, null, null, array("cost" => 1));

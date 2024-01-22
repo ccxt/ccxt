@@ -85,7 +85,24 @@ class binanceus(binance, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
+                        'exchangeInfo': 10,
+                        'ping': 1,
+                        'time': 1,
+                        'depth': {'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10], [5000, 50]]},
+                        'trades': 1,
+                        'aggTrades': 1,
+                        'historicalTrades': 5,
+                        'klines': 1,
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
+                        'avgPrice': 1,
+                        'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
+                        'ticker/24hr': {'cost': 1, 'noSymbol': 40},
+                        'ticker': {'cost': 2, 'noSymbol': 100},
+                    },
+                },
+                'private': {
+                    'get': {
+                        'status': 1,
                     },
                 },
             },

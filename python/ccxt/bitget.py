@@ -75,6 +75,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchBorrowInterest': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchCanceledAndClosedOrders': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': True,
@@ -5038,17 +5039,8 @@ class bitget(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        response = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
-        result = []
-        for i in range(0, len(response)):
-            entry = response[i]
-            status = self.parse_order_status(self.safe_string_n(entry, ['state', 'status', 'planStatus']))
-            if status == 'closed':
-                result.append(entry)
-        return self.parse_orders(result, market, since, limit)
+        orders = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'closed')
 
     def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -5071,19 +5063,24 @@ class bitget(Exchange, ImplicitAPI):
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        response = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
-        result = []
-        for i in range(0, len(response)):
-            entry = response[i]
-            status = self.parse_order_status(self.safe_string_n(entry, ['state', 'status', 'planStatus']))
-            if status == 'canceled':
-                result.append(entry)
-        return self.parse_orders(result, market, since, limit)
+        orders = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'canceled')
 
     def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        :see: https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+        :see: https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+        :see: https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+        :see: https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+        :see: https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+        :see: https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+        fetches information on multiple canceled and closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         self.load_markets()
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         market = None
@@ -5342,12 +5339,13 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         if marketType == 'spot':
             if (marginMode is not None) or stop:
-                return self.safe_value(data, 'orderList', [])
+                return self.parse_orders(self.safe_value(data, 'orderList', []), market, since, limit)
         else:
-            return self.safe_value(data, 'entrustedList', [])
+            return self.parse_orders(self.safe_value(data, 'entrustedList', []), market, since, limit)
         if isinstance(response, str):
             response = json.loads(response)
-        return self.safe_value(response, 'data', [])
+        orders = self.safe_value(response, 'data', [])
+        return self.parse_orders(orders, market, since, limit)
 
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """

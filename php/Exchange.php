@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.19';
+$version = '4.2.20';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.19';
+    const VERSION = '4.2.20';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4989,6 +4989,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchClosedOrders() is not supported yet');
     }
 
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() is not supported yet');
+    }
+
     public function fetch_closed_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         if ($this->has['fetchOrdersWs']) {
             $orders = $this->fetchOrdersWs ($symbol, $since, $limit, $params);
@@ -5132,8 +5136,14 @@ class Exchange {
                 }
             }
             return $markets[0];
+        } elseif ((str_ends_with($symbol, '-C')) || (str_ends_with($symbol, '-P')) || (str_starts_with($symbol, 'C-')) || (str_starts_with($symbol, 'P-'))) {
+            return $this->createExpiredOptionMarket ($symbol);
         }
         throw new BadSymbol($this->id . ' does not have $market $symbol ' . $symbol);
+    }
+
+    public function create_expired_option_market(string $symbol) {
+        throw new NotSupported($this->id . ' createExpiredOptionMarket () is not supported yet');
     }
 
     public function handle_withdraw_tag_and_params($tag, $params) {

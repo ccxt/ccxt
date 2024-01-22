@@ -86,7 +86,24 @@ class binanceus extends binance {
             'api' => array(
                 'public' => array(
                     'get' => array(
+                        'exchangeInfo' => 10,
+                        'ping' => 1,
+                        'time' => 1,
+                        'depth' => array( 'cost' => 1, 'byLimit' => array( array( 100, 1 ), array( 500, 5 ), array( 1000, 10 ), array( 5000, 50 ) ) ),
+                        'trades' => 1,
+                        'aggTrades' => 1,
+                        'historicalTrades' => 5,
+                        'klines' => 1,
                         'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
+                        'avgPrice' => 1,
+                        'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
+                        'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
+                        'ticker' => array( 'cost' => 2, 'noSymbol' => 100 ),
+                    ),
+                ),
+                'private' => array(
+                    'get' => array(
+                        'status' => 1,
                     ),
                 ),
             ),

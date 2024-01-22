@@ -331,6 +331,7 @@ export default class Exchange {
             fetchBorrowInterest: any;
             fetchBorrowRateHistory: any;
             fetchCanceledOrders: any;
+            fetchCanceledAndClosedOrders: any;
             fetchClosedOrder: any;
             fetchClosedOrders: any;
             fetchCrossBorrowRate: any;
@@ -800,6 +801,7 @@ export default class Exchange {
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrdersWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCanceledAndClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrdersWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
@@ -823,6 +825,7 @@ export default class Exchange {
     commonCurrencyCode(currency: string): string;
     currency(code: any): any;
     market(symbol: string): MarketInterface;
+    createExpiredOptionMarket(symbol: string): MarketInterface;
     handleWithdrawTagAndParams(tag: any, params: any): any;
     createLimitOrder(symbol: string, side: OrderSide, amount: any, price: any, params?: {}): Promise<Order>;
     createMarketOrder(symbol: string, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;

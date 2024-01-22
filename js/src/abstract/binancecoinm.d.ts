@@ -600,6 +600,7 @@ interface binance {
     privateDeleteOpenOrders(params?: {}): Promise<implicitReturnType>;
     privateDeleteOrderList(params?: {}): Promise<implicitReturnType>;
     privateDeleteOrder(params?: {}): Promise<implicitReturnType>;
+    papiGetPing(params?: {}): Promise<implicitReturnType>;
     papiGetUmOrder(params?: {}): Promise<implicitReturnType>;
     papiGetUmOpenOrder(params?: {}): Promise<implicitReturnType>;
     papiGetUmOpenOrders(params?: {}): Promise<implicitReturnType>;
