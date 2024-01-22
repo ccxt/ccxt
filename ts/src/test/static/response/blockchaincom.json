@@ -1,0 +1,30 @@
+{
+  "exchange": "blockchaincom",
+  "skipKeys": [],
+  "options": {
+  },
+  "methods": {
+    "fetchDepositAddress": [
+      {
+        "description": "fetch btc address",
+        "method": "fetchDepositAddress",
+        "input": [
+          "BTC"
+        ],
+        "httpResponse": {
+          "type": "crypto",
+          "address": "btcaddress"
+        },
+        "parsedResponse": {
+          "info": {
+            "type": "crypto",
+            "address": "btcaddress"
+          },
+          "currency": "BTC",
+          "address": null,
+          "tag": "btcaddress"
+        }
+      }
+    ]
+  }
+}
