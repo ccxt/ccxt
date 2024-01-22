@@ -2902,6 +2902,12 @@ class Exchange(object):
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file'
         raise NotSupported(self.id + ' fetchOHLCV() is not supported yet' + message)
 
+    def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+        message = ''
+        if self.has['fetchTradesWs']:
+            message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file'
+        raise NotSupported(self.id + ' fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.' + message)
+
     def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
@@ -4050,9 +4056,6 @@ class Exchange(object):
     def watch_my_trades(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
 
-    def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
-        raise NotSupported(self.id + ' fetchOHLCVWs() is not supported yet')
-
     def fetch_greeks(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
 
@@ -4070,8 +4073,14 @@ class Exchange(object):
     def fetch_deposits(self, code: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchDeposits() is not supported yet')
 
+    def fetch_deposits_ws(self, code: str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchDepositsWs() is not supported yet')
+
     def fetch_withdrawals(self, code: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchWithdrawals() is not supported yet')
+
+    def fetch_withdrawals_ws(self, code: str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchWithdrawalsWs() is not supported yet')
 
     def fetch_open_interest(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
@@ -4487,6 +4496,9 @@ class Exchange(object):
 
     def fetch_trading_fees(self, params={}):
         raise NotSupported(self.id + ' fetchTradingFees() is not supported yet')
+
+    def fetch_trading_fees_ws(self, params={}):
+        raise NotSupported(self.id + ' fetchTradingFeesWs() is not supported yet')
 
     def fetch_trading_fee(self, symbol: str, params={}):
         if not self.has['fetchTradingFees']:
