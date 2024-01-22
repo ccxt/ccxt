@@ -70,6 +70,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
+                'fetchFundingRates': True,
                 'fetchLeverage': True,
                 'fetchLiquidations': False,
                 'fetchMarkets': True,
@@ -1085,6 +1086,27 @@ class bingx(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_funding_rate(data, market)
+
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
+        """
+        fetch the current funding rate
+        :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, 'swap', True)
+        response = await self.swapV2PublicGetQuotePremiumIndex(self.extend(params))
+        data = self.safe_value(response, 'data', [])
+        filteredResponse = []
+        for i in range(0, len(data)):
+            item = data[i]
+            marketId = self.safe_string(item, 'symbol')
+            market = self.safe_market(marketId, None, None, 'swap')
+            if (symbols is None) or self.in_array(market['symbol'], symbols):
+                filteredResponse.append(self.parse_funding_rate(item, market))
+        return filteredResponse
 
     def parse_funding_rate(self, contract, market: Market = None):
         #

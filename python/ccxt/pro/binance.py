@@ -2090,13 +2090,17 @@ class binance(ccxt.async_support.binance):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
-        await self.authenticate(params)
         market = None
         messageHash = ''
         symbols = self.market_symbols(symbols)
         if not self.is_empty(symbols):
             market = self.get_market_from_symbols(symbols)
             messageHash = '::' + ','.join(symbols)
+        marketTypeObject = {}
+        if market is not None:
+            marketTypeObject['type'] = market['type']
+            marketTypeObject['subType'] = market['subType']
+        await self.authenticate(self.extend(marketTypeObject, params))
         type = None
         type, params = self.handle_market_type_and_params('watchPositions', market, params)
         if type == 'spot' or type == 'margin':

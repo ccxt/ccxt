@@ -1158,23 +1158,6 @@ export default class okx extends Exchange {
         } as MarketInterface;
     }
 
-    market (symbol) {
-        if (this.markets === undefined) {
-            throw new ExchangeError (this.id + ' markets not loaded');
-        }
-        if (typeof symbol === 'string') {
-            if (symbol in this.markets) {
-                return this.markets[symbol];
-            } else if (symbol in this.markets_by_id) {
-                const markets = this.markets_by_id[symbol];
-                return markets[0];
-            } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1)) {
-                return this.createExpiredOptionMarket (symbol);
-            }
-        }
-        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
-    }
-
     safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = (marketId !== undefined) && ((marketId.indexOf ('-C') > -1) || (marketId.indexOf ('-P') > -1));
         if (isOption && !(marketId in this.markets_by_id)) {

@@ -35,6 +35,7 @@ class poloniexfutures extends poloniexfutures$1 {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchFundingRate': true,
+                'fetchFundingRateHistory': false,
                 'fetchL3OrderBook': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,

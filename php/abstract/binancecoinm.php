@@ -29,7 +29,7 @@ abstract class binancecoinm extends \ccxt\binance {
         return $this->request('margin/priceIndex', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function sapi_get_spot_delist_schedule($params = array()) {
-        return $this->request('spot/delist-schedule', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('spot/delist-schedule', 'sapi', 'GET', $params, null, null, array("cost" => 10));
     }
     public function sapi_get_asset_assetdividend($params = array()) {
         return $this->request('asset/assetDividend', 'sapi', 'GET', $params, null, null, array("cost" => 1));
@@ -2075,7 +2075,7 @@ abstract class binancecoinm extends \ccxt\binance {
         return $this->request('margin/priceIndex', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function sapiGetSpotDelistSchedule($params = array()) {
-        return $this->request('spot/delist-schedule', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('spot/delist-schedule', 'sapi', 'GET', $params, null, null, array("cost" => 10));
     }
     public function sapiGetAssetAssetDividend($params = array()) {
         return $this->request('asset/assetDividend', 'sapi', 'GET', $params, null, null, array("cost" => 1));

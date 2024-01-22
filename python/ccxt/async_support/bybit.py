@@ -4199,10 +4199,7 @@ class bybit(Exchange, ImplicitAPI):
         isStop = self.safe_value_n(params, ['trigger', 'stop'], False)
         params = self.omit(params, ['trigger', 'stop'])
         if isStop:
-            if type == 'spot':
-                request['orderFilter'] = 'tpslOrder'
-            else:
-                request['orderFilter'] = 'StopOrder'
+            request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
         if since is not None:
@@ -4350,7 +4347,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: True if stop order
+        :param boolean [params.stop]: set to True for fetching open stop orders
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param str [params.baseCoin]: Base coin. Supports linear, inverse & option
@@ -4383,10 +4380,7 @@ class bybit(Exchange, ImplicitAPI):
         isStop = self.safe_value_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
         if isStop:
-            if type == 'spot':
-                request['orderFilter'] = 'tpslOrder'
-            else:
-                request['orderFilter'] = 'StopOrder'
+            request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetV5OrderRealtime(self.extend(request, params))
@@ -4513,7 +4507,6 @@ class bybit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: True if stop order
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -4538,22 +4531,11 @@ class bybit(Exchange, ImplicitAPI):
         if ((type == 'option') or isUsdcSettled) and not isUnifiedAccount:
             return await self.fetch_my_usdc_trades(symbol, since, limit, params)
         request['category'] = type
-        isStop = self.safe_value_2(params, 'stop', 'trigger', False)
-        params = self.omit(params, ['stop', 'type', 'trigger'])
-        if isStop:
-            if type == 'spot':
-                request['orderFilter'] = 'tpslOrder'
-            else:
-                request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
-        endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till', 'until'])
-        if endTime is not None:
-            request['endTime'] = endTime
+        request, params = self.handle_until_option('endTime', request, params)
         response = await self.privateGetV5ExecutionList(self.extend(request, params))
         #
         #     {

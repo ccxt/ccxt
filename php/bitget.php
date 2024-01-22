@@ -6068,6 +6068,7 @@ class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginCoin] the settle currency of the positions, needs to match the $productType
          * @param {string} [$params->productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
@@ -6099,10 +6100,23 @@ class bitget extends Exchange {
         $response = null;
         $isHistory = false;
         if ($method === 'privateMixGetV2MixPositionAllPosition') {
-            if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' fetchPositions() requires a $symbols argument');
+            $marginCoin = $this->safe_string($params, 'marginCoin', 'USDT');
+            if ($symbols !== null) {
+                $marginCoin = $market['settleId'];
+            } elseif ($productType === 'USDT-FUTURES') {
+                $marginCoin = 'USDT';
+            } elseif ($productType === 'USDC-FUTURES') {
+                $marginCoin = 'USDC';
+            } elseif ($productType === 'SUSDT-FUTURES') {
+                $marginCoin = 'SUSDT';
+            } elseif ($productType === 'SUSDC-FUTURES') {
+                $marginCoin = 'SUSDC';
+            } elseif (($productType === 'SCOIN-FUTURES') || ($productType === 'COIN-FUTURES')) {
+                if ($marginCoin === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchPositions() requires a $marginCoin parameter that matches the productType');
+                }
             }
-            $request['marginCoin'] = $market['settleId'];
+            $request['marginCoin'] = $marginCoin;
             $response = $this->privateMixGetV2MixPositionAllPosition (array_merge($request, $params));
         } else {
             $isHistory = true;

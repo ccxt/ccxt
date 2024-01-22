@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/bybit.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, BadSymbol, MarginModeAlreadySet, NoChange } from './base/errors.js';
+import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, MarginModeAlreadySet, NoChange } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -1245,33 +1245,6 @@ export default class bybit extends Exchange {
             },
             'info': undefined,
         } as MarketInterface;
-    }
-
-    market (symbol) {
-        if (this.markets === undefined) {
-            throw new ExchangeError (this.id + ' markets not loaded');
-        }
-        if (typeof symbol === 'string') {
-            if (symbol in this.markets) {
-                return this.markets[symbol];
-            } else if (symbol in this.markets_by_id) {
-                const markets = this.markets_by_id[symbol];
-                let defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
-                if (defaultType === 'future') {
-                    defaultType = 'contract';
-                }
-                for (let i = 0; i < markets.length; i++) {
-                    const market = markets[i];
-                    if (market[defaultType]) {
-                        return market;
-                    }
-                }
-                return markets[0];
-            } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1)) {
-                return this.createExpiredOptionMarket (symbol);
-            }
-        }
-        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
     }
 
     safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
