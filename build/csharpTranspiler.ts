@@ -298,7 +298,13 @@ class NewTranspiler {
         return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType')
     }
 
-    convertJavascriptTypeToCsharpType(type: string, isReturn = false): string | undefined {
+    convertJavascriptTypeToCsharpType(name: string, type: string, isReturn = false): string | undefined {
+
+        // handle watchOrderBook exception here (watchOrderBook and watchOrderBookForSymbols)
+        if (name.startsWith('watchOrderBook')) { 
+            return `Task<IOrderBook>`;
+        }
+
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
         let isList = false;
@@ -358,7 +364,7 @@ class NewTranspiler {
         if (wrappedType.startsWith('Dictionary<')) {
             let type = wrappedType.substring(11, wrappedType.length - 1);
             if (type.startsWith('Dictionary<')) {
-                type = this.convertJavascriptTypeToCsharpType(type) as any;
+                type = this.convertJavascriptTypeToCsharpType(name, type) as any;
             }
             return addTaskIfNeeded(`Dictionary<string, ${type}>`);
         }
@@ -383,7 +389,7 @@ class NewTranspiler {
         if (param.type == undefined) {
             paramType = 'object';
         } else {
-            paramType = this.convertJavascriptTypeToCsharpType(param.type);
+            paramType = this.convertJavascriptTypeToCsharpType(name, param.type);
         }
         const isNonNullableType = this.isNumberType(param.type) || this.isBooleanType(param.type) || this.isIntegerType(param.type);
         if (isNonNullableType) {
@@ -474,7 +480,13 @@ class NewTranspiler {
         return type.startsWith('Dictionary<string,') && type.endsWith('>') ? type.substring(19, type.length - 1) : type;
     }
 
-    createReturnStatement( unwrappedType:string ) {
+    createReturnStatement(methodName: string,  unwrappedType:string ) {
+        // handle watchOrderBook exception here
+        if (methodName.startsWith('watchOrderBook')) {
+            return `return ((IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
+        }
+
+
         const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';
         let returnStatement = "";
         if (unwrappedType.startsWith('List<')) {
@@ -527,7 +539,7 @@ class NewTranspiler {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
         }
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
-        const returnType = this.convertJavascriptTypeToCsharpType(methodWrapper.returnType, true);
+        const returnType = this.convertJavascriptTypeToCsharpType(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         const args = methodWrapper.parameters.map(param => this.convertJavascriptParamToCsharpParam(param));
         const stringArgs = args.filter(arg => arg !== undefined).join(', ');
@@ -544,7 +556,7 @@ class NewTranspiler {
             `${one}{`,
             this.getDefaultParamsWrappers(methodWrapper.parameters),
             `${two}var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
-            `${two}${this.createReturnStatement(unwrappedType)}`,
+            `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
             `${one}}`
         ];
         return methodDoc.concat(method).filter(e => !!e).join('\n')
