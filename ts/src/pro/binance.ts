@@ -2286,7 +2286,6 @@ export default class binance extends binanceRest {
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        await this.authenticate (params);
         let market = undefined;
         let messageHash = '';
         symbols = this.marketSymbols (symbols);
@@ -2294,6 +2293,12 @@ export default class binance extends binanceRest {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
         }
+        const marketTypeObject = {};
+        if (market !== undefined) {
+            marketTypeObject['type'] = market['type'];
+            marketTypeObject['subType'] = market['subType'];
+        }
+        await this.authenticate (this.extend (marketTypeObject, params));
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
         if (type === 'spot' || type === 'margin') {

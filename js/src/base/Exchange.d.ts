@@ -377,7 +377,7 @@ export default class Exchange {
             fetchPositionsForSymbol: any;
             fetchPositionsRisk: any;
             fetchPremiumIndexOHLCV: any;
-            fetchStatus: string;
+            fetchStatus: any;
             fetchTicker: boolean;
             fetchTickers: any;
             fetchTime: any;

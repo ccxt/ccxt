@@ -57,6 +57,7 @@ export default class bitget extends Exchange {
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledOrders': true,
+                'fetchCanceledAndClosedOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
@@ -5316,20 +5317,8 @@ export default class bitget extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const response = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const status = this.parseOrderStatus (this.safeStringN (entry, [ 'state', 'status', 'planStatus' ]));
-            if (status === 'closed') {
-                result.push (entry);
-            }
-        }
-        return this.parseOrders (result, market, since, limit);
+        const orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed') as Order[];
     }
 
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -5355,23 +5344,27 @@ export default class bitget extends Exchange {
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const response = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const status = this.parseOrderStatus (this.safeStringN (entry, [ 'state', 'status', 'planStatus' ]));
-            if (status === 'canceled') {
-                result.push (entry);
-            }
-        }
-        return this.parseOrders (result, market, since, limit);
+        const orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'canceled') as Order[];
     }
 
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchCanceledAndClosedOrders
+         * @see https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+         * @see https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+         * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+         * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+         * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+         * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+         * @description fetches information on multiple canceled and closed orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets ();
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         let market = undefined;
@@ -5649,15 +5642,16 @@ export default class bitget extends Exchange {
         const data = this.safeValue (response, 'data', {});
         if (marketType === 'spot') {
             if ((marginMode !== undefined) || stop) {
-                return this.safeValue (data, 'orderList', []);
+                return this.parseOrders (this.safeValue (data, 'orderList', []), market, since, limit);
             }
         } else {
-            return this.safeValue (data, 'entrustedList', []);
+            return this.parseOrders (this.safeValue (data, 'entrustedList', []), market, since, limit);
         }
         if (typeof response === 'string') {
             response = JSON.parse (response);
         }
-        return this.safeValue (response, 'data', []);
+        const orders = this.safeValue (response, 'data', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -6137,6 +6131,7 @@ export default class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
          * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -6168,10 +6163,23 @@ export default class bitget extends Exchange {
         let response = undefined;
         let isHistory = false;
         if (method === 'privateMixGetV2MixPositionAllPosition') {
-            if (symbols === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions() requires a symbols argument');
+            let marginCoin = this.safeString (params, 'marginCoin', 'USDT');
+            if (symbols !== undefined) {
+                marginCoin = market['settleId'];
+            } else if (productType === 'USDT-FUTURES') {
+                marginCoin = 'USDT';
+            } else if (productType === 'USDC-FUTURES') {
+                marginCoin = 'USDC';
+            } else if (productType === 'SUSDT-FUTURES') {
+                marginCoin = 'SUSDT';
+            } else if (productType === 'SUSDC-FUTURES') {
+                marginCoin = 'SUSDC';
+            } else if ((productType === 'SCOIN-FUTURES') || (productType === 'COIN-FUTURES')) {
+                if (marginCoin === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchPositions() requires a marginCoin parameter that matches the productType');
+                }
             }
-            request['marginCoin'] = market['settleId'];
+            request['marginCoin'] = marginCoin;
             response = await this.privateMixGetV2MixPositionAllPosition (this.extend (request, params));
         } else {
             isHistory = true;

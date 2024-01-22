@@ -229,7 +229,7 @@ class binance extends Exchange {
                         'margin/allPairs' => 0.1,
                         'margin/priceIndex' => 1,
                         // these endpoints require $this->apiKey . $this->secret
-                        'spot/delist-schedule' => 0.1,
+                        'spot/delist-schedule' => 10,
                         'asset/assetDividend' => 1,
                         'asset/dribblet' => 0.1,
                         'asset/transfer' => 0.1,
@@ -5500,6 +5500,7 @@ class binance extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch my dust $trades for
              * @param {int} [$limit] the maximum number of dust $trades to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] 'spot' or 'margin', default spot
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             //
@@ -5513,6 +5514,11 @@ class binance extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
                 $request['endTime'] = $this->sum($since, 7776000000);
+            }
+            $accountType = $this->safe_string_upper($params, 'type');
+            $params = $this->omit($params, 'type');
+            if ($accountType !== null) {
+                $request['accountType'] = $accountType;
             }
             $response = Async\await($this->sapiGetAssetDribblet (array_merge($request, $params)));
             //     {

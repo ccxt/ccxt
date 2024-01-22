@@ -2092,7 +2092,7 @@ class wavesexchange extends wavesexchange$1 {
             'priceAsset': market['quoteId'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 100);
         }
         if (since !== undefined) {
             request['timeStart'] = since;

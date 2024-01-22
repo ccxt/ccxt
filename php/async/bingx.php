@@ -61,6 +61,7 @@ class bingx extends Exchange {
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => true,
                 'fetchLeverage' => true,
                 'fetchLiquidations' => false,
                 'fetchMarkets' => true,
@@ -1132,6 +1133,32 @@ class bingx extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             return $this->parse_funding_rate($data, $market);
+        }) ();
+    }
+
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch the current funding rate
+             * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
+             * @param {string[]} [$symbols] list of unified $market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, 'swap', true);
+            $response = Async\await($this->swapV2PublicGetQuotePremiumIndex (array_merge($params)));
+            $data = $this->safe_value($response, 'data', array());
+            $filteredResponse = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $item = $data[$i];
+                $marketId = $this->safe_string($item, 'symbol');
+                $market = $this->safe_market($marketId, null, null, 'swap');
+                if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
+                    $filteredResponse[] = $this->parse_funding_rate($item, $market);
+                }
+            }
+            return $filteredResponse;
         }) ();
     }
 

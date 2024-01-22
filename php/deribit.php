@@ -1655,7 +1655,7 @@ class deribit extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
-         * @param {string} $symbol unified $symbol of the market the order was made in
+         * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -1663,6 +1663,10 @@ class deribit extends Exchange {
         $request = array(
             'order_id' => $id,
         );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $response = $this->privateGetGetOrderState (array_merge($request, $params));
         //
         //     {
@@ -1693,7 +1697,7 @@ class deribit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result');
-        return $this->parse_order($result);
+        return $this->parse_order($result, $market);
     }
 
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
@@ -2373,6 +2377,7 @@ class deribit extends Exchange {
     public function fetch_position(string $symbol, $params = array ()) {
         /**
          * fetch data on a single open contract trade position
+         * @see https://docs.deribit.com/#private-get_position
          * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -2416,11 +2421,14 @@ class deribit extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
+         * @see https://docs.deribit.com/#private-get_positions
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->kind] $market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
         $this->load_markets();
+        $kind = $this->safe_string($params, 'kind');
         $code = null;
         if ($symbols === null) {
             $code = $this->code_from_options('fetchPositions', $params);
@@ -2434,14 +2442,18 @@ class deribit extends Exchange {
                     throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
                 }
                 $market = $this->market($symbols[0]);
-                $code = $market['base'];
+                $settle = $market['settle'];
+                $code = ($settle !== null) ? $settle : $market['base'];
+                $kind = $market['info']['kind'];
             }
         }
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
-            // "kind" : "future", "option"
         );
+        if ($kind !== null) {
+            $request['kind'] = $kind;
+        }
         $response = $this->privateGetGetPositions (array_merge($request, $params));
         //
         //     {
@@ -2835,7 +2847,7 @@ class deribit extends Exchange {
         }
         $request = array(
             'instrument_name' => $market['id'],
-            'start_timestamp' => $since,
+            'start_timestamp' => $since - 1,
             'end_timestamp' => $time,
         );
         $response = $this->publicGetGetFundingRateHistory (array_merge($request, $params));

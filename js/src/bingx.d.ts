@@ -32,6 +32,7 @@ export default class bingx extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     }>;
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<any[]>;
     parseFundingRate(contract: any, market?: Market): {
         info: any;
         symbol: string;

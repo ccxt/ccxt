@@ -1448,13 +1448,12 @@ class huobijp extends huobijp$1 {
         }
         const method = this.options['createOrderMethod'];
         const response = await this[method](this.extend(request, params));
-        const timestamp = this.milliseconds();
         const id = this.safeString(response, 'data');
         return this.safeOrder({
             'info': response,
             'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastTradeTimestamp': undefined,
             'status': undefined,
             'symbol': symbol,

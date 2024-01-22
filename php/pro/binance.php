@@ -2292,7 +2292,6 @@ class binance extends \ccxt\async\binance {
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
-            Async\await($this->authenticate($params));
             $market = null;
             $messageHash = '';
             $symbols = $this->market_symbols($symbols);
@@ -2300,6 +2299,12 @@ class binance extends \ccxt\async\binance {
                 $market = $this->get_market_from_symbols($symbols);
                 $messageHash = '::' . implode(',', $symbols);
             }
+            $marketTypeObject = array();
+            if ($market !== null) {
+                $marketTypeObject['type'] = $market['type'];
+                $marketTypeObject['subType'] = $market['subType'];
+            }
+            Async\await($this->authenticate(array_merge($marketTypeObject, $params)));
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchPositions', $market, $params);
             if ($type === 'spot' || $type === 'margin') {

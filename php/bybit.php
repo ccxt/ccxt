@@ -4418,11 +4418,7 @@ class bybit extends Exchange {
         $isStop = $this->safe_value_n($params, array( 'trigger', 'stop' ), false);
         $params = $this->omit($params, array( 'trigger', 'stop' ));
         if ($isStop) {
-            if ($type === 'spot') {
-                $request['orderFilter'] = 'tpslOrder';
-            } else {
-                $request['orderFilter'] = 'StopOrder';
-            }
+            $request['orderFilter'] = 'StopOrder';
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -4579,7 +4575,7 @@ class bybit extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] true if stop order
+         * @param {boolean} [$params->stop] set to true for fetching open stop orders
          * @param {string} [$params->type] $market $type, ['swap', 'option', 'spot']
          * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
          * @param {string} [$params->baseCoin] Base coin. Supports linear, inverse & option
@@ -4616,11 +4612,7 @@ class bybit extends Exchange {
         $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         if ($isStop) {
-            if ($type === 'spot') {
-                $request['orderFilter'] = 'tpslOrder';
-            } else {
-                $request['orderFilter'] = 'StopOrder';
-            }
+            $request['orderFilter'] = 'StopOrder';
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -4754,7 +4746,6 @@ class bybit extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] true if stop order
          * @param {string} [$params->type] $market $type, ['swap', 'option', 'spot']
          * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -4782,27 +4773,13 @@ class bybit extends Exchange {
             return $this->fetch_my_usdc_trades($symbol, $since, $limit, $params);
         }
         $request['category'] = $type;
-        $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
-        $params = $this->omit($params, array( 'stop', 'type', 'trigger' ));
-        if ($isStop) {
-            if ($type === 'spot') {
-                $request['orderFilter'] = 'tpslOrder';
-            } else {
-                $request['orderFilter'] = 'StopOrder';
-            }
-        }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
-        $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
-        $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
-        if ($endTime !== null) {
-            $request['endTime'] = $endTime;
-        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->privateGetV5ExecutionList (array_merge($request, $params));
         //
         //     {
