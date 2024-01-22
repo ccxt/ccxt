@@ -3492,7 +3492,7 @@ export default class Exchange {
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const id = this.safeString (item, marketIdKey);
-            const market = this.safeMarket (id, undefined, undefined, this.safeString (this.options, 'defaultType'));
+            const market = this.safeMarket (id, undefined, undefined, 'swap');
             const symbol = market['symbol'];
             const contract = this.safeValue (market, 'contract', false);
             if (contract && ((symbols === undefined) || this.inArray (symbol, symbols))) {
