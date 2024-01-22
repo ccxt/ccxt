@@ -374,7 +374,7 @@
                 "precision": "not provided",
                 "withdraw": "not provided",
                 "deposit": "not provided",
-                "currencyIdAndCode": "broken currencies",
+                "currencyIdAndCode": "broken currencies"
             },
             "fetchTrades": {
                 "side": "not set"
