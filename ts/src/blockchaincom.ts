@@ -832,7 +832,9 @@ export default class blockchaincom extends Exchange {
         let address = undefined;
         if (rawAddress !== undefined) {
             // if a tag or memo is used it is separated by a colon in the 'address' value
-            [ address, tag ] = rawAddress.split (':');
+            const addressParts = rawAddress.split (':');
+            address = this.safeString (addressParts, 0);
+            tag = this.safeString (addressParts, 1);
         }
         const result = { 'info': response };
         result['currency'] = currency['code'];
