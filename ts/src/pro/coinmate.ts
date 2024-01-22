@@ -27,9 +27,6 @@ export default class coinmate extends coinmateRest {
                 },
             },
             'options': {
-                'expiresIn': '',
-                'userId': '',
-                'wsSessionToken': '',
                 'watchOrderBook': {
                     'snapshotDelay': 6,
                     'snapshotMaxRetries': 3,
