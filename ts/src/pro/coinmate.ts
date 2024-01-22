@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import coinmateRest from '../coinmate.js';
-import { AuthenticationError } from '../base/errors.js';
+import { AuthenticationError, BadRequest } from '../base/errors.js';
 import type { Int, Market, OrderBook, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
@@ -37,6 +37,7 @@ export default class coinmate extends coinmateRest {
             'exceptions': {
                 'exact': {
                     '4009': AuthenticationError,
+                    'Websocket error': BadRequest, // {"message":"Websocket error","event":"error"}
                 },
             },
         });
@@ -311,8 +312,15 @@ export default class coinmate extends coinmateRest {
         //         "event": "error"
         //     }
         //
-        const type = this.safeString (message, 'event', '');
-        if (type === 'error') {
+        try {
+            const type = this.safeString (message, 'event', '');
+            if (type === 'error') {
+                const errorMessage = this.safeString (message, 'message');
+                const feedback = this.id + ' ' + this.json (message);
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
+            }
+        } catch (e) {
+            client.reject (e);
             return true;
         }
         return false;
