@@ -3,7 +3,7 @@
 
 import coinmateRest from '../coinmate.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Int, Market, OrderBook, Trade } from '../base/types.js';
+import type { Int, Market, OrderBook, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 
@@ -115,6 +115,92 @@ export default class coinmate extends coinmateRest {
     handleDelta (bookside, delta) {
         const bidAsk = this.parseBidAsk (delta, 'price', 'amount');
         bookside.storeArray (bidAsk);
+    }
+
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name coinmate#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://coinmate.docs.apiary.io/#introduction/public-channels/trade-statistics
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'ticker:' + market['symbol'];
+        const url = this.urls['api']['ws'];
+        const request = {
+            'event': 'subscribe',
+            'data': {
+                'channel': 'statistics-' + market['id'],
+            },
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    handleTicker (client: Client, message) {
+        //
+        //     {
+        //         "channel": "statistics-BTC_CZK",
+        //         "payload": {
+        //             "lastRealizedTrade": 939449,
+        //             "todaysOpen": 950357,
+        //             "dailyChange": -1.14777920,
+        //             "volume24Hours": 2.78398556,
+        //             "high24hours": 954788,
+        //             "low24hours": 928180
+        //         },
+        //         "event": "data"
+        //     }
+        //
+        const data = this.safeValue (message, 'payload', {});
+        const topic = this.safeString (message, 'channel');
+        const part = topic.split ('-');
+        const symbol = this.symbol (this.safeString (part, 1));
+        const market = this.market (symbol);
+        const ticker = this.parseWsTicker (data, market);
+        this.tickers[symbol] = ticker;
+        const messageHash = 'ticker:' + symbol;
+        client.resolve (this.tickers[symbol], messageHash);
+    }
+
+    parseWsTicker (ticker, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "lastRealizedTrade": 939449,
+        //         "todaysOpen": 950357,
+        //         "dailyChange": -1.14777920,
+        //         "volume24Hours": 2.78398556,
+        //         "high24hours": 954788,
+        //         "low24hours": 928180
+        //     }
+        //
+        const last = this.safeNumber (ticker, 'lastRealizedTrade');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': this.safeNumber (ticker, 'high24hours'),
+            'low': this.safeNumber (ticker, 'low24hours'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeNumber (ticker, 'todaysOpen'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeNumber (ticker, 'volume24Hours'),
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -253,8 +339,9 @@ export default class coinmate extends coinmateRest {
             // private-user-transfers-{ACCOUNT_ID}
             const channelSplit = topic.split ('-');
             const methods = {
-                'trades': this.handleTrades,
                 'order_book': this.handleOrderBook,
+                'statistics': this.handleTicker,
+                'trades': this.handleTrades,
             };
             const exacMethod = this.safeValue (methods, this.safeString (channelSplit, 0));
             if (exacMethod !== undefined) {
