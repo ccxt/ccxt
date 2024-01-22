@@ -3,8 +3,9 @@
 
 import coinmateRest from '../coinmate.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Int, OrderBook } from '../base/types.js';
+import type { Int, Market, OrderBook, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +16,7 @@ export default class coinmate extends coinmateRest {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchOrders': false,
-                'watchTrades': false,
+                'watchTrades': true,
                 'watchOHLCV': false,
                 'watchTicker': false,
                 'watchTickers': false,
@@ -116,6 +117,110 @@ export default class coinmate extends coinmateRest {
         bookside.storeArray (bidAsk);
     }
 
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name coinmate#watchTrades
+         * @description watches information on multiple trades made in a market
+         * @see https://coinmate.docs.apiary.io/#introduction/public-channels/new-trades
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'trade:' + market['symbol'];
+        const url = this.urls['api']['ws'];
+        const request = {
+            'event': 'subscribe',
+            'data': {
+                'channel': 'trades-' + market['id'],
+            },
+        };
+        const message = this.extend (request, params);
+        const trades = await this.watch (url, messageHash, message, messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (market['symbol'], limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleTrades (client: Client, message) {
+        //
+        //     {
+        //         "channel": "trades-BTC_CZK",
+        //         "payload": [
+        //             {
+        //                 "date": 1705903916528,
+        //                 "price": 936150,
+        //                 "amount": 0.00050834,
+        //                 "buyOrderId": 2542958233,
+        //                 "sellOrderId": 2542958191,
+        //                 "type": "BUY"
+        //             }
+        //         ],
+        //         "event": "data"
+        //     }
+        //
+        const data = this.safeValue (message, 'payload', []);
+        const topic = this.safeString (message, 'channel');
+        const part = topic.split ('-');
+        const symbol = this.symbol (this.safeString (part, 1));
+        const market = this.market (symbol);
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
+        for (let i = 0; i < data.length; i++) {
+            const trade = this.parseWsTrade (data[i], market);
+            stored.append (trade);
+        }
+        const messageHash = 'trade:' + symbol;
+        client.resolve (stored, messageHash);
+    }
+
+    parseWsTrade (trade, market: Market = undefined): Trade {
+        //
+        //     {
+        //         "date": 1705903916528,
+        //         "price": 936150,
+        //         "amount": 0.00050834,
+        //         "buyOrderId": 2542958233,
+        //         "sellOrderId": 2542958191,
+        //         "type": "BUY"
+        //     }
+        //
+        const timestamp = this.safeInteger (trade, 'date');
+        const side = this.safeStringLower (trade, 'type');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        let orderId = undefined;
+        if (side === 'buy') {
+            orderId = this.safeString (trade, 'buyOrderId');
+        } else {
+            orderId = this.safeString (trade, 'sellOrderId');
+        }
+        return this.safeTrade ({
+            'id': undefined,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'order': orderId,
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         //     {
@@ -148,6 +253,7 @@ export default class coinmate extends coinmateRest {
             // private-user-transfers-{ACCOUNT_ID}
             const channelSplit = topic.split ('-');
             const methods = {
+                'trades': this.handleTrades,
                 'order_book': this.handleOrderBook,
             };
             const exacMethod = this.safeValue (methods, this.safeString (channelSplit, 0));
