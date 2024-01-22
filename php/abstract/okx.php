@@ -223,6 +223,9 @@ abstract class okx extends \ccxt\Exchange {
     public function private_get_rfq_maker_instrument_settings($params = array()) {
         return $this->request('rfq/maker-instrument-settings', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function private_get_rfq_mmp_config($params = array()) {
+        return $this->request('rfq/mmp-config', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function private_get_rfq_rfqs($params = array()) {
         return $this->request('rfq/rfqs', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -243,6 +246,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_get_sprd_orders_history($params = array()) {
         return $this->request('sprd/orders-history', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function private_get_sprd_orders_history_archive($params = array()) {
+        return $this->request('sprd/orders-history-archive', 'private', 'GET', $params, null, null, array("cost" => 0.5));
     }
     public function private_get_sprd_trades($params = array()) {
         return $this->request('sprd/trades', 'private', 'GET', $params, null, null, array("cost" => 0.3333333333333333));
@@ -597,6 +603,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_post_rfq_mmp_reset($params = array()) {
         return $this->request('rfq/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_post_rfq_mmp_config($params = array()) {
+        return $this->request('rfq/mmp-config', 'private', 'POST', $params, null, null, array("cost" => 100));
     }
     public function private_post_rfq_create_quote($params = array()) {
         return $this->request('rfq/create-quote', 'private', 'POST', $params, null, null, array("cost" => 0.4));
@@ -1090,6 +1099,9 @@ abstract class okx extends \ccxt\Exchange {
     public function privateGetRfqMakerInstrumentSettings($params = array()) {
         return $this->request('rfq/maker-instrument-settings', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function privateGetRfqMmpConfig($params = array()) {
+        return $this->request('rfq/mmp-config', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function privateGetRfqRfqs($params = array()) {
         return $this->request('rfq/rfqs', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -1110,6 +1122,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privateGetSprdOrdersHistory($params = array()) {
         return $this->request('sprd/orders-history', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function privateGetSprdOrdersHistoryArchive($params = array()) {
+        return $this->request('sprd/orders-history-archive', 'private', 'GET', $params, null, null, array("cost" => 0.5));
     }
     public function privateGetSprdTrades($params = array()) {
         return $this->request('sprd/trades', 'private', 'GET', $params, null, null, array("cost" => 0.3333333333333333));
@@ -1464,6 +1479,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privatePostRfqMmpReset($params = array()) {
         return $this->request('rfq/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostRfqMmpConfig($params = array()) {
+        return $this->request('rfq/mmp-config', 'private', 'POST', $params, null, null, array("cost" => 100));
     }
     public function privatePostRfqCreateQuote($params = array()) {
         return $this->request('rfq/create-quote', 'private', 'POST', $params, null, null, array("cost" => 0.4));

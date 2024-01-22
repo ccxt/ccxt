@@ -349,6 +349,58 @@
                     }
                 ],
                 "output": "access_id=86AC33D5904F432C9C9DDD4708233F38&market=BTCUSDT&order_id=115940250059&timestamp=1701233531405"
+            },
+            {
+                "description": "Spot cancel order by clientOid",
+                "method": "cancelOrder",
+                "url": "https://api.coinex.com/v1/order/pending/by_client_id?access_id=86AC33D5904F432C9C9DDD4708233F38&client_id=client01&market=BTCUSDT&tonce=1701228187975",
+                "input": [
+                    "",
+                    "BTC/USDT",
+                    {
+                        "clientOrderId": "client01"
+                    }
+                ]
+            },
+            {
+                "description": "Spot cancel trigger order by clientOid",
+                "method": "cancelOrder",
+                "url": "https://api.coinex.com/v1/order/stop/pending/by_client_id?access_id=86AC33D5904F432C9C9DDD4708233F38&client_id=client01&market=BTCUSDT&tonce=1701228118229",
+                "input": [
+                    "",
+                    "BTC/USDT",
+                    {
+                        "stop": true,
+                        "clientOrderId": "client01"
+                    }
+                ]
+            },
+            {
+                "description": "Swap cancel order by clientOid",
+                "method": "cancelOrder",
+                "url": "https://api.coinex.com/perpetual/v1/order/cancel/by_client_id",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "client01"
+                    }
+                ],
+                "output": "access_id=86AC33D5904F432C9C9DDD4708233F38&market=BTCUSDT&client_id=client01&timestamp=1701232671805"
+            },
+            {
+                "description": "Swap cancel trigger order by clientOid",
+                "method": "cancelOrder",
+                "url": "https://api.coinex.com/perpetual/v1/order/cancel_stop/by_client_id",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "stop": true,
+                        "clientOrderId": "client01"
+                    }
+                ],
+                "output": "access_id=86AC33D5904F432C9C9DDD4708233F38&market=BTCUSDT&client_id=client01&timestamp=1701233531405"
             }
         ],
         "fetchIsolatedBorrowRate": [

@@ -11,7 +11,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 /**
  * @class wazirx
- * @extends Exchange
+ * @augments Exchange
  */
 export default class wazirx extends Exchange {
     describe() {
@@ -30,7 +30,6 @@ export default class wazirx extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'closeAllPositions': false,
@@ -91,7 +90,8 @@ export default class wazirx extends Exchange {
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,

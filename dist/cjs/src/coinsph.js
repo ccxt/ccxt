@@ -8,7 +8,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 /**
  * @class coinsph
- * @extends Exchange
+ * @augments Exchange
  */
 class coinsph extends coinsph$1 {
     describe() {
@@ -28,7 +28,6 @@ class coinsph extends coinsph$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -109,7 +108,8 @@ class coinsph extends coinsph$1 {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -628,7 +628,16 @@ class coinsph extends coinsph$1 {
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         const options = this.safeValue(this.options, 'fetchTickers', {});
         const method = this.safeString(options, 'method', defaultMethod);
-        const tickers = await this[method](this.extend(request, params));
+        let tickers = undefined;
+        if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
+            tickers = await this.publicGetOpenapiQuoteV1TickerPrice(this.extend(request, params));
+        }
+        else if (method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
+            tickers = await this.publicGetOpenapiQuoteV1TickerBookTicker(this.extend(request, params));
+        }
+        else {
+            tickers = await this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, params));
+        }
         return this.parseTickers(tickers, symbols, params);
     }
     async fetchTicker(symbol, params = {}) {
@@ -648,7 +657,16 @@ class coinsph extends coinsph$1 {
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         const options = this.safeValue(this.options, 'fetchTicker', {});
         const method = this.safeString(options, 'method', defaultMethod);
-        const ticker = await this[method](this.extend(request, params));
+        let ticker = undefined;
+        if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
+            ticker = await this.publicGetOpenapiQuoteV1TickerPrice(this.extend(request, params));
+        }
+        else if (method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
+            ticker = await this.publicGetOpenapiQuoteV1TickerBookTicker(this.extend(request, params));
+        }
+        else {
+            ticker = await this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, params));
+        }
         return this.parseTicker(ticker, market);
     }
     parseTicker(ticker, market = undefined) {
@@ -978,10 +996,10 @@ class coinsph extends coinsph$1 {
                 'currency': this.safeCurrencyCode(feeCurrencyId),
             };
         }
-        const isBuyer = this.safeString2(trade, 'isBuyer', 'isBuyerMaker', undefined);
+        const isBuyer = this.safeValue2(trade, 'isBuyer', 'isBuyerMaker', undefined);
         let side = undefined;
         if (isBuyer !== undefined) {
-            side = (isBuyer === 'true') ? 'buy' : 'sell';
+            side = (isBuyer === true) ? 'buy' : 'sell';
         }
         const isMaker = this.safeString2(trade, 'isMaker', undefined);
         let takerOrMaker = undefined;
@@ -1043,11 +1061,10 @@ class coinsph extends coinsph$1 {
     }
     parseBalance(response) {
         const balances = this.safeValue(response, 'balances', []);
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1564,35 +1581,6 @@ class coinsph extends coinsph$1 {
         }
         params = this.omit(params, 'network');
         const response = await this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, params));
-        return this.parseTransaction(response, currency);
-    }
-    async deposit(code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#deposit
-         * @description make a deposit from coins_ph account to exchange account
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to deposit
-         * @param {string} address not used by coinsph deposit ()
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
-        const options = this.safeValue(this.options, 'deposit');
-        const warning = this.safeValue(options, 'warning', true);
-        if (warning) {
-            throw new errors.InvalidAddress(this.id + " deposit() makes a deposits only from your coins_ph account, add .options['deposit']['warning'] = false to make a deposit to your exchange account");
-        }
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
-            'coin': currency['id'],
-            'amount': this.numberToString(amount),
-        };
-        if (tag !== undefined) {
-            request['depositOrderId'] = tag;
-        }
-        const response = await this.privatePostOpenapiV1CapitalDepositApply(this.extend(request, params));
         return this.parseTransaction(response, currency);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {

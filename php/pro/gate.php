@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidNonce;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class gate extends \ccxt\async\gate {
 
@@ -95,7 +96,7 @@ class gate extends \ccxt\async\gate {
         ));
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -275,7 +276,7 @@ class gate extends \ccxt\async\gate {
         $this->handle_bid_asks($storedAsks, $asks);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -297,7 +298,7 @@ class gate extends \ccxt\async\gate {
         }) ();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -383,38 +384,25 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent $trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $marketId = $market['id'];
-            $messageType = $this->get_type_by_market($market);
-            $channel = $messageType . '.trades';
-            $messageHash = 'trades:' . $symbol;
-            $url = $this->get_url_by_market($market);
-            $payload = array( $marketId );
-            $trades = Async\await($this->subscribe_public($url, $messageHash, $payload, $channel, $params));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
         }) ();
     }
 
-    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
-             * get the list of most recent $trades for a particular symbol
-             * @param {string} symbol unified symbol of the $market to fetch $trades for
+             * get the list of most recent $trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -426,9 +414,13 @@ class gate extends \ccxt\async\gate {
             $market = $this->market($symbols[0]);
             $messageType = $this->get_type_by_market($market);
             $channel = $messageType . '.trades';
-            $messageHash = 'multipleTrades::' . implode(',', $symbols);
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $messageHashes[] = 'trades:' . $symbol;
+            }
             $url = $this->get_url_by_market($market);
-            $trades = Async\await($this->subscribe_public($url, $messageHash, $marketIds, $channel, $params));
+            $trades = Async\await($this->subscribe_public_multiple($url, $messageHashes, $marketIds, $channel, $params));
             if ($this->newUpdates) {
                 $first = $this->safe_value($trades, 0);
                 $tradeSymbol = $this->safe_string($first, 'symbol');
@@ -472,11 +464,10 @@ class gate extends \ccxt\async\gate {
             $cachedTrades->append ($trade);
             $hash = 'trades:' . $symbol;
             $client->resolve ($cachedTrades, $hash);
-            $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $cachedTrades);
         }
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -562,7 +553,7 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -657,7 +648,7 @@ class gate extends \ccxt\async\gate {
         $client->resolve ($cachedTrades, 'myTrades');
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -747,7 +738,7 @@ class gate extends \ccxt\async\gate {
         //   }
         //
         $result = $this->safe_value($message, 'result', array());
-        $timestamp = $this->safe_integer($message, 'time');
+        $timestamp = $this->safe_integer($message, 'time_ms');
         $this->balance['info'] = $result;
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
@@ -773,7 +764,7 @@ class gate extends \ccxt\async\gate {
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * @see https://www.gate.io/docs/developers/futures/ws/en/#$positions-subscription
@@ -823,7 +814,7 @@ class gate extends \ccxt\async\gate {
             if ($this->newUpdates) {
                 return $positions;
             }
-            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+            return $this->filter_by_symbols_since_limit($this->positions[$type], $symbols, $since, $limit, true);
         }) ();
     }
 
@@ -917,13 +908,13 @@ class gate extends \ccxt\async\gate {
         $client->resolve ($newPositions, $type . ':positions');
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] spot, margin, swap, future, or option. Required if listening to all symbols.
              * @param {boolean} [$params->isInverse] if future, listen to inverse or linear contracts
@@ -1292,6 +1283,22 @@ class gate extends \ccxt\async\gate {
             }
             $message = array_merge($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+        }) ();
+    }
+
+    public function subscribe_public_multiple($url, $messageHashes, $payload, $channel, $params = array ()) {
+        return Async\async(function () use ($url, $messageHashes, $payload, $channel, $params) {
+            $requestId = $this->request_id();
+            $time = $this->seconds();
+            $request = array(
+                'id' => $requestId,
+                'time' => $time,
+                'channel' => $channel,
+                'event' => 'subscribe',
+                'payload' => $payload,
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
         }) ();
     }
 

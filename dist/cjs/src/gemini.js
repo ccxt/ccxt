@@ -10,7 +10,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class gemini
- * @extends Exchange
+ * @augments Exchange
  */
 class gemini extends gemini$1 {
     describe() {
@@ -301,6 +301,7 @@ class gemini extends gemini$1 {
         /**
          * @method
          * @name gemini#fetchCurrenciesFromWeb
+         * @ignore
          * @description fetches all available currencies on an exchange
          * @param {object} [params] extra parameters specific to the endpoint
          * @returns {object} an associative dictionary of currencies
@@ -950,7 +951,7 @@ class gemini extends gemini$1 {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit_trades'] = limit;
+            request['limit_trades'] = Math.min(limit, 500);
         }
         if (since !== undefined) {
             request['timestamp'] = since;

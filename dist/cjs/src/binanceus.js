@@ -10,6 +10,7 @@ class binanceus extends binance {
             'id': 'binanceus',
             'name': 'Binance US',
             'countries': ['US'],
+            'rateLimit': 50,
             'certified': false,
             'pro': true,
             'urls': {
@@ -47,7 +48,6 @@ class binanceus extends binance {
                 'future': undefined,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createReduceOnlyOrder': false,
@@ -73,11 +73,17 @@ class binanceus extends binance {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'reduceMargin': false,
-                'repayMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+            },
+            'api': {
+                'public': {
+                    'get': {
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                    },
+                },
             },
         });
     }

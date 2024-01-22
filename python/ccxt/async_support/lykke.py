@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.lykke import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -432,7 +432,11 @@ class lykke(Exchange, ImplicitAPI):
         }
         # publicGetTickers or publicGetPrices
         method = self.safe_string(self.options, 'fetchTickerMethod', 'publicGetTickers')
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'publicGetPrices':
+            response = await self.publicGetPrices(self.extend(request, params))
+        else:
+            response = await self.publicGetTickers(self.extend(request, params))
         ticker = self.safe_value(response, 'payload', [])
         #
         # publicGetTickers
@@ -771,8 +775,11 @@ class lykke(Exchange, ImplicitAPI):
         }
         if type == 'limit':
             query['price'] = float(self.price_to_precision(market['symbol'], price))
-        method = 'privatePostOrders' + self.capitalize(type)
-        result = await getattr(self, method)(self.extend(query, params))
+        result = None
+        if self.capitalize(type) == 'Market':
+            result = await self.privatePostOrdersMarket(self.extend(query, params))
+        else:
+            result = await self.privatePostOrdersLimit(self.extend(query, params))
         #
         # market
         #
@@ -943,7 +950,7 @@ class lykke(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1031,7 +1038,7 @@ class lykke(Exchange, ImplicitAPI):
         #
         return self.parse_trades(payload, market, since, limit)
 
-    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
+    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         price = self.safe_string(bidask, priceKey)
         amount = Precise.string_abs(self.safe_string(bidask, amountKey))
         return [self.parse_number(price), self.parse_number(amount)]

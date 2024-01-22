@@ -16,6 +16,8 @@ export default [
     plugins: [
       nodeResolve({
         preferBuiltins: true,
+        // node resolve generate dist/cjs/js directory 
+        jail: '/src'
       }),
       json(),
       commonjs({

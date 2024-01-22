@@ -5,7 +5,7 @@
 import poloniexfuturesRest from '../poloniexfutures.js';
 import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, Str } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -82,42 +82,49 @@ export default class poloniexfutures extends poloniexfuturesRest {
     async negotiateHelper (privateChannel, params = {}) {
         let response = undefined;
         const connectId = privateChannel ? 'private' : 'public';
-        if (privateChannel) {
-            response = await this.privatePostBulletPrivate (params);
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "instanceServers": [
-            //                 {
-            //                     "pingInterval":  50000,
-            //                     "endpoint": "wss://push-private.kucoin.com/endpoint",
-            //                     "protocol": "websocket",
-            //                     "encrypt": true,
-            //                     "pingTimeout": 10000
-            //                 }
-            //             ],
-            //             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
-            //         }
-            //     }
-            //
-        } else {
-            response = await this.publicPostBulletPublic (params);
+        try {
+            if (privateChannel) {
+                response = await this.privatePostBulletPrivate (params);
+                //
+                //     {
+                //         "code": "200000",
+                //         "data": {
+                //             "instanceServers": [
+                //                 {
+                //                     "pingInterval":  50000,
+                //                     "endpoint": "wss://push-private.kucoin.com/endpoint",
+                //                     "protocol": "websocket",
+                //                     "encrypt": true,
+                //                     "pingTimeout": 10000
+                //                 }
+                //             ],
+                //             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                //         }
+                //     }
+                //
+            } else {
+                response = await this.publicPostBulletPublic (params);
+            }
+            const data = this.safeValue (response, 'data', {});
+            const instanceServers = this.safeValue (data, 'instanceServers', []);
+            const firstInstanceServer = this.safeValue (instanceServers, 0);
+            const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
+            const endpoint = this.safeString (firstInstanceServer, 'endpoint');
+            const token = this.safeString (data, 'token');
+            const result = endpoint + '?' + this.urlencode ({
+                'token': token,
+                'privateChannel': privateChannel,
+                'connectId': connectId,
+            });
+            const client = this.client (result);
+            client.keepAlive = pingInterval;
+            return result;
+        } catch (e) {
+            const future = this.safeValue (this.options['urls'], connectId);
+            future.reject (e);
+            delete this.options['urls'][connectId];
         }
-        const data = this.safeValue (response, 'data', {});
-        const instanceServers = this.safeValue (data, 'instanceServers', []);
-        const firstInstanceServer = this.safeValue (instanceServers, 0);
-        const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
-        const endpoint = this.safeString (firstInstanceServer, 'endpoint');
-        const token = this.safeString (data, 'token');
-        const result = endpoint + '?' + this.urlencode ({
-            'token': token,
-            'privateChannel': privateChannel,
-            'connectId': connectId,
-        });
-        const client = this.client (result);
-        client.keepAlive = pingInterval;
-        return result;
+        return undefined;
     }
 
     requestId () {
@@ -134,9 +141,9 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {string} name name of the channel and suscriptionHash
          * @param {bool} isPrivate true for the authenticated url, false for the public url
          * @param {string} symbol is required for all public channels, not required for private channels (except position)
-         * @param {Object} subscription subscription parameters
-         * @param {Object} [params] extra parameters specific to the poloniex api
-         * @returns {Object} data from the websocket stream
+         * @param {object} subscription subscription parameters
+         * @param {object} [params] extra parameters specific to the poloniex api
+         * @returns {object} data from the websocket stream
          */
         const url = await this.negotiate (isPrivate);
         if (symbol !== undefined) {
@@ -234,7 +241,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         client.resolve (message, messageHash);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name poloniexfutures#watchTicker
@@ -250,7 +257,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return await this.subscribe (name, false, symbol, undefined, params);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name poloniexfutures#watchTrades
@@ -274,7 +281,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name poloniexfutures#watchOrderBook
@@ -305,7 +312,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return orderbook.limit ();
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name poloniexfutures#watchOrders
@@ -313,7 +320,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @see https://futures-docs.poloniex.com/#private-messages
          * @param {string} symbol filter by unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.method] the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -333,7 +340,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return orders;
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name poloniexfutures#watchBalance

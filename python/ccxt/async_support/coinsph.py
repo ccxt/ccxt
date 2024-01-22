@@ -47,7 +47,6 @@ class coinsph(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
-                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
@@ -128,7 +127,8 @@ class coinsph(Exchange, ImplicitAPI):
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
                 'reduceMargin': False,
-                'repayMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
@@ -628,7 +628,13 @@ class coinsph(Exchange, ImplicitAPI):
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
         options = self.safe_value(self.options, 'fetchTickers', {})
         method = self.safe_string(options, 'method', defaultMethod)
-        tickers = await getattr(self, method)(self.extend(request, params))
+        tickers = None
+        if method == 'publicGetOpenapiQuoteV1TickerPrice':
+            tickers = await self.publicGetOpenapiQuoteV1TickerPrice(self.extend(request, params))
+        elif method == 'publicGetOpenapiQuoteV1TickerBookTicker':
+            tickers = await self.publicGetOpenapiQuoteV1TickerBookTicker(self.extend(request, params))
+        else:
+            tickers = await self.publicGetOpenapiQuoteV1Ticker24hr(self.extend(request, params))
         return self.parse_tickers(tickers, symbols, params)
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -646,7 +652,13 @@ class coinsph(Exchange, ImplicitAPI):
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
         options = self.safe_value(self.options, 'fetchTicker', {})
         method = self.safe_string(options, 'method', defaultMethod)
-        ticker = await getattr(self, method)(self.extend(request, params))
+        ticker = None
+        if method == 'publicGetOpenapiQuoteV1TickerPrice':
+            ticker = await self.publicGetOpenapiQuoteV1TickerPrice(self.extend(request, params))
+        elif method == 'publicGetOpenapiQuoteV1TickerBookTicker':
+            ticker = await self.publicGetOpenapiQuoteV1TickerBookTicker(self.extend(request, params))
+        else:
+            ticker = await self.publicGetOpenapiQuoteV1Ticker24hr(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
@@ -952,10 +964,10 @@ class coinsph(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': self.safe_currency_code(feeCurrencyId),
             }
-        isBuyer = self.safe_string_2(trade, 'isBuyer', 'isBuyerMaker', None)
+        isBuyer = self.safe_value_2(trade, 'isBuyer', 'isBuyerMaker', None)
         side = None
         if isBuyer is not None:
-            side = 'buy' if (isBuyer == 'true') else 'sell'
+            side = 'buy' if (isBuyer is True) else 'sell'
         isMaker = self.safe_string_2(trade, 'isMaker', None)
         takerOrMaker = None
         if isMaker is not None:
@@ -1012,11 +1024,10 @@ class coinsph(Exchange, ImplicitAPI):
 
     def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'balances', [])
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -1486,31 +1497,6 @@ class coinsph(Exchange, ImplicitAPI):
             request['withdrawOrderId'] = tag
         params = self.omit(params, 'network')
         response = await self.privatePostOpenapiWalletV1WithdrawApply(self.extend(request, params))
-        return self.parse_transaction(response, currency)
-
-    async def deposit(self, code: str, amount, address, tag=None, params={}):
-        """
-        make a deposit from coins_ph account to exchange account
-        :param str code: unified currency code
-        :param float amount: the amount to deposit
-        :param str address: not used by coinsph deposit()
-        :param str tag:
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
-        """
-        options = self.safe_value(self.options, 'deposit')
-        warning = self.safe_value(options, 'warning', True)
-        if warning:
-            raise InvalidAddress(self.id + " deposit() makes a deposits only from your coins_ph account, add .options['deposit']['warning'] = False to make a deposit to your exchange account")
-        await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'coin': currency['id'],
-            'amount': self.number_to_string(amount),
-        }
-        if tag is not None:
-            request['depositOrderId'] = tag
-        response = await self.privatePostOpenapiV1CapitalDepositApply(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:

@@ -33,7 +33,6 @@ class coinlist extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
-                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -112,7 +111,8 @@ class coinlist extends Exchange {
                 'fetchWithdrawals' => false,
                 'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => false,
-                'repayMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -153,6 +153,9 @@ class coinlist extends Exchange {
                         'v1/symbols/{symbol}/auctions/{auction_code}' => 1, // not unified
                         'v1/time' => 1,
                         'v1/assets' => 1,
+                        'v1/leaderboard' => 1,
+                        'v1/affiliate/{competition_code}' => 1,
+                        'v1/competition/{competition_id}' => 1,
                     ),
                 ),
                 'private' => array(
@@ -160,6 +163,7 @@ class coinlist extends Exchange {
                         'v1/fees' => 1,
                         'v1/accounts' => 1,
                         'v1/accounts/{trader_id}' => 1, // not unified
+                        'v1/accounts/{trader_id}/alias' => 1,
                         'v1/accounts/{trader_id}/ledger' => 1,
                         'v1/accounts/{trader_id}/wallets' => 1, // not unified
                         'v1/accounts/{trader_id}/wallet-ledger' => 1,
@@ -173,6 +177,8 @@ class coinlist extends Exchange {
                         'v1/transfers' => 1,
                         'v1/user' => 1, // not unified
                         'v1/credits' => 1, // not unified
+                        'v1/positions' => 1,
+                        'v1/accounts/{trader_id}/competitions' => 1,
                     ),
                     'post' => array(
                         'v1/keys' => 1, // not unified
@@ -184,6 +190,8 @@ class coinlist extends Exchange {
                         'v1/transfers/internal-transfer' => 1,
                         'v1/transfers/withdrawal-request' => 1,
                         'v1/orders/bulk' => 1, // not unified
+                        'v1/accounts/{trader_id}/competitions' => 1,
+                        'v1/accounts/{trader_id}/create-competition' => 1,
                     ),
                     'patch' => array(
                         'v1/orders/{order_id}' => 1,
@@ -765,7 +773,7 @@ class coinlist extends Exchange {
                 $request['start_time'] = $this->iso8601($since);
             }
             if ($limit !== null) {
-                $request['count'] = $limit;
+                $request['count'] = min ($limit, 500);
             }
             $until = $this->safe_integer_2($params, 'till', 'until');
             if ($until !== null) {
@@ -1129,11 +1137,10 @@ class coinlist extends Exchange {
         //         "net_liquidation_value_usd" => "string"
         //     }
         //
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         $totalBalances = $this->safe_value($response, 'asset_balances', array());
         $usedBalances = $this->safe_value($response, 'asset_holds', array());
@@ -1239,7 +1246,7 @@ class coinlist extends Exchange {
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$orders
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve (default 200, max 500)
+             * @param {int} [$limit] the maximum number of order structures to retrieve (default 200, max 500)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {string|string[]} [$params->status] the $status of the order - 'accepted', 'done', 'canceled', 'rejected', 'pending' (default array( 'accepted', 'done', 'canceled', 'rejected', 'pending' ))

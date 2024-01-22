@@ -1009,7 +1009,7 @@ class bitvavo extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
-             * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+             * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1027,6 +1027,7 @@ class bitvavo extends Exchange {
              * @param {string} [$params->selfTradePrevention] "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
              * @param {bool} [$params->disableMarketProtection] don't cancel if the next fill $price is 10% worse than the best fill $price
              * @param {bool} [$params->responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
+             * @param {string} [$params->clientOrderId] An ID supplied by the client that must be unique among all open orders for the same $market
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1136,25 +1137,52 @@ class bitvavo extends Exchange {
 
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit a trade order
+             * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/put
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
+             * @param {bool} [$params->postOnly] If true, the order will only be posted to the order book and not executed immediately
+             * @param {float} [$params->stopPrice] The $price at which a trigger order is triggered at
+             * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+             * @param {string} [$params->selfTradePrevention] "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+             * @param {bool} [$params->responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
+             * @param {string} [$params->clientOrderId] An ID supplied by the client
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $request = array();
+            $request = array(
+                'market' => $market['id'],
+            );
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            if ($clientOrderId === null) {
+                $request['orderId'] = $id;
+            }
             $amountRemaining = $this->safe_number($params, 'amountRemaining');
-            $params = $this->omit($params, 'amountRemaining');
+            $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'triggerAmount' ));
+            $params = $this->omit($params, array( 'amountRemaining', 'triggerPrice', 'stopPrice', 'triggerAmount' ));
+            $updateRequest = array();
             if ($price !== null) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
+                $updateRequest['price'] = $this->price_to_precision($symbol, $price);
             }
             if ($amount !== null) {
-                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                $updateRequest['amount'] = $this->amount_to_precision($symbol, $amount);
             }
             if ($amountRemaining !== null) {
-                $request['amountRemaining'] = $this->amount_to_precision($symbol, $amountRemaining);
+                $updateRequest['amountRemaining'] = $this->amount_to_precision($symbol, $amountRemaining);
             }
-            $request = array_merge($request, $params);
-            if ($request) {
-                $request['orderId'] = $id;
-                $request['market'] = $market['id'];
-                $response = Async\await($this->privatePutOrder (array_merge($request, $params)));
+            if ($triggerPrice !== null) {
+                $updateRequest['triggerAmount'] = $this->price_to_precision($symbol, $triggerPrice);
+            }
+            $updateRequest = array_merge($updateRequest, $params);
+            if ($updateRequest) {
+                $response = Async\await($this->privatePutOrder (array_merge($request, $updateRequest)));
                 return $this->parse_order($response, $market);
             } else {
                 throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument, or a $price argument, or non-empty params');
@@ -1166,6 +1194,7 @@ class bitvavo extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/delete
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1177,9 +1206,12 @@ class bitvavo extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'orderId' => $id,
                 'market' => $market['id'],
             );
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            if ($clientOrderId === null) {
+                $request['orderId'] = $id;
+            }
             $response = Async\await($this->privateDeleteOrder (array_merge($request, $params)));
             //
             //     {
@@ -1221,6 +1253,7 @@ class bitvavo extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1231,9 +1264,12 @@ class bitvavo extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'orderId' => $id,
                 'market' => $market['id'],
             );
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            if ($clientOrderId === null) {
+                $request['orderId'] = $id;
+            }
             $response = Async\await($this->privateGetOrder (array_merge($request, $params)));
             //
             //     {
@@ -1276,11 +1312,11 @@ class bitvavo extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
+             * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get
              * fetches information on multiple orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {int} [$params->until] the latest time in ms to fetch entries for

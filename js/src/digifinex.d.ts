@@ -1,8 +1,8 @@
 import Exchange from './abstract/digifinex.js';
-import { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
 /**
  * @class digifinex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class digifinex extends Exchange {
     describe(): any;

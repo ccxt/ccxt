@@ -1,8 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
-use React\Async;
-use React\Promise;
 
 // ----------------------------------------------------------------------------
 
@@ -10,7 +7,9 @@ use React\Promise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/../base/test_shared_methods.php';
+use React\Async;
+use React\Promise;
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_proxies($exchange, $skipped_properties) {
     return Async\async(function () use ($exchange, $skipped_properties) {
@@ -27,7 +26,7 @@ function test_proxy_url($exchange, $skipped_properties) {
         $method = 'proxyUrl';
         $proxy_server_ip = '5.75.153.75';
         [$proxy_url, $http_proxy, $https_proxy, $socks_proxy] = remove_proxy_options($exchange, $skipped_properties);
-        $exchange->proxy_url = 'http://' . $proxy_server_ip . ':8090/proxy.php?url=';
+        $exchange->proxy_url = 'http://' . $proxy_server_ip . ':8090/proxy_url.php?caller=https://ccxt.com&url=';
         $encoded_colon = '%3A';
         $encoded_slash = '%2F';
         $ip_check_url = 'https' . $encoded_colon . $encoded_slash . $encoded_slash . 'api.ipify.org';
@@ -70,7 +69,7 @@ function test_proxy_for_exceptions($exchange, $skipped_properties) {
                     $exception_caught = false;
                     try {
                         Async\await($exchange->fetch('http://example.com')); // url does not matter, it will not be called
-                    } catch(Exception $e) {
+                    } catch(\Throwable $e) {
                         $exception_caught = true;
                     }
                     assert($exception_caught, $exchange->id . ' ' . $method . ' test failed. No exception was thrown, while ' . $proxy_first . ' and ' . $proxy_second . ' were set together');

@@ -31,6 +31,7 @@ declare const errorHierarchy: {
                 ContractUnavailable: {};
             };
             NotSupported: {};
+            ProxyError: {};
         };
         OperationFailed: {
             NetworkError: {
@@ -44,6 +45,7 @@ declare const errorHierarchy: {
                 RequestTimeout: {};
             };
         };
+        ExchangeClosedByUser: {};
     };
 };
 export default errorHierarchy;

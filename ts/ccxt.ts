@@ -33,14 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import { Market, MarketInterface, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, CurrencyInterface, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, CustomThrottlePriority, FundingRateHistory, Liquidation, FundingHistory, MarginMode, Greeks } from './src/base/types.js'
+import type { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory, MarginMode, Greeks, CurrencyInterface, CustomThrottlePriority, MarketInterface } from './src/base/types.js'
 import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, NoChange }  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.1.84';
+const version = '4.2.19';
 
 (Exchange as any).ccxtVersion = version
 
@@ -74,7 +74,7 @@ import bitpanda from  './src/bitpanda.js'
 import bitrue from  './src/bitrue.js'
 import bitso from  './src/bitso.js'
 import bitstamp from  './src/bitstamp.js'
-import bittrex from  './src/bittrex.js'
+import bitteam from  './src/bitteam.js'
 import bitvavo from  './src/bitvavo.js'
 import bl3p from  './src/bl3p.js'
 import blockchaincom from  './src/blockchaincom.js'
@@ -85,7 +85,6 @@ import btcturk from  './src/btcturk.js'
 import bybit from  './src/bybit.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
-import coinbaseprime from  './src/coinbaseprime.js'
 import coinbasepro from  './src/coinbasepro.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
@@ -129,6 +128,7 @@ import novadax from  './src/novadax.js'
 import oceanex from  './src/oceanex.js'
 import okcoin from  './src/okcoin.js'
 import okx from  './src/okx.js'
+import onetrading from  './src/onetrading.js'
 import p2b from  './src/p2b.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
@@ -166,15 +166,15 @@ import bitoproPro from  './src/pro/bitopro.js'
 import bitpandaPro from  './src/pro/bitpanda.js'
 import bitruePro from  './src/pro/bitrue.js'
 import bitstampPro from  './src/pro/bitstamp.js'
-import bittrexPro from  './src/pro/bittrex.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
 import blockchaincomPro from  './src/pro/blockchaincom.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
-import coinbaseprimePro from  './src/pro/coinbaseprime.js'
 import coinbaseproPro from  './src/pro/coinbasepro.js'
+import coincheckPro from  './src/pro/coincheck.js'
 import coinexPro from  './src/pro/coinex.js'
+import coinonePro from  './src/pro/coinone.js'
 import cryptocomPro from  './src/pro/cryptocom.js'
 import currencycomPro from  './src/pro/currencycom.js'
 import deribitPro from  './src/pro/deribit.js'
@@ -193,11 +193,13 @@ import krakenPro from  './src/pro/kraken.js'
 import krakenfuturesPro from  './src/pro/krakenfutures.js'
 import kucoinPro from  './src/pro/kucoin.js'
 import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
+import lbankPro from  './src/pro/lbank.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
 import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
 import okxPro from  './src/pro/okx.js'
+import onetradingPro from  './src/pro/onetrading.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
 import poloniexfuturesPro from  './src/pro/poloniexfutures.js'
@@ -236,7 +238,7 @@ const exchanges = {
     'bitrue':                 bitrue,
     'bitso':                  bitso,
     'bitstamp':               bitstamp,
-    'bittrex':                bittrex,
+    'bitteam':                bitteam,
     'bitvavo':                bitvavo,
     'bl3p':                   bl3p,
     'blockchaincom':          blockchaincom,
@@ -247,7 +249,6 @@ const exchanges = {
     'bybit':                  bybit,
     'cex':                    cex,
     'coinbase':               coinbase,
-    'coinbaseprime':          coinbaseprime,
     'coinbasepro':            coinbasepro,
     'coincheck':              coincheck,
     'coinex':                 coinex,
@@ -291,6 +292,7 @@ const exchanges = {
     'oceanex':                oceanex,
     'okcoin':                 okcoin,
     'okx':                    okx,
+    'onetrading':             onetrading,
     'p2b':                    p2b,
     'paymium':                paymium,
     'phemex':                 phemex,
@@ -328,15 +330,15 @@ const pro = {
     'bitpanda':               bitpandaPro,
     'bitrue':                 bitruePro,
     'bitstamp':               bitstampPro,
-    'bittrex':                bittrexPro,
     'bitvavo':                bitvavoPro,
     'blockchaincom':          blockchaincomPro,
     'bybit':                  bybitPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
-    'coinbaseprime':          coinbaseprimePro,
     'coinbasepro':            coinbaseproPro,
+    'coincheck':              coincheckPro,
     'coinex':                 coinexPro,
+    'coinone':                coinonePro,
     'cryptocom':              cryptocomPro,
     'currencycom':            currencycomPro,
     'deribit':                deribitPro,
@@ -355,11 +357,13 @@ const pro = {
     'krakenfutures':          krakenfuturesPro,
     'kucoin':                 kucoinPro,
     'kucoinfutures':          kucoinfuturesPro,
+    'lbank':                  lbankPro,
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
     'ndax':                   ndaxPro,
     'okcoin':                 okcoinPro,
     'okx':                    okxPro,
+    'onetrading':             onetradingPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
     'poloniexfutures':        poloniexfuturesPro,
@@ -479,7 +483,7 @@ export {
     bitrue,
     bitso,
     bitstamp,
-    bittrex,
+    bitteam,
     bitvavo,
     bl3p,
     blockchaincom,
@@ -490,7 +494,6 @@ export {
     bybit,
     cex,
     coinbase,
-    coinbaseprime,
     coinbasepro,
     coincheck,
     coinex,
@@ -534,6 +537,7 @@ export {
     oceanex,
     okcoin,
     okx,
+    onetrading,
     p2b,
     paymium,
     phemex,

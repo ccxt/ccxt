@@ -111,7 +111,7 @@
                 "output": "{\"symbol\":\"LTCUSDT\",\"type\":\"market\",\"size\":1,\"side\":1,\"open_type\":\"cross\",\"leverage\":\"1\"}"
             },
             {
-                "description": "Fill this with a description of the method call",
+                "description": "Swap limit sell order",
                 "method": "createOrder",
                 "url": "https://api-cloud.bitmart.com/contract/private/submit-order",
                 "input": [
@@ -171,6 +171,42 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTC_USDT\",\"side\":\"buy\",\"type\":\"market\",\"notional\":\"5\"}"
+            },
+            {
+                "description": "Swap trailing order",
+                "method": "createOrder",
+                "url": "https://api-cloud.bitmart.com/contract/private/submit-order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "leverage": "10",
+                    "marginMode": "isolated",
+                    "trailingPercent": "10",
+                    "trailingTriggerPrice": "50000",
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"market\",\"size\":1,\"activation_price\":\"50000\",\"activation_price_type\":1,\"callback_rate\":\"10\",\"side\":3,\"open_type\":\"isolated\",\"leverage\":\"10\"}"
+            },
+            {
+                "description": "Swap stop limit buy order using the triggerPrice param (type 1)",
+                "method": "createOrder",
+                "url": "https://api-cloud.bitmart.com/contract/private/submit-plan-order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  1,
+                  30000,
+                  {
+                    "triggerPrice": "31000"
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"limit\",\"size\":1,\"price\":\"30000\",\"executive_price\":\"30000\",\"trigger_price\":\"31000\",\"price_type\":1,\"price_way\":1,\"side\":1,\"open_type\":\"cross\",\"leverage\":\"1\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -225,6 +261,46 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Swap open trailing orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api-cloud.bitmart.com/contract/private/get-open-orders?symbol=BTCUSDT&type=trailing",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "orderType": "trailing"
+                  }
+                ]
+            },
+            {
+                "description": "open trigger orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api-cloud.bitmart.com/contract/private/current-plan-order?symbol=LTCUSDT",
+                "input": [
+                  "LTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true
+                  }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Swap trailing order by id",
+                "method": "fetchOrder",
+                "url": "https://api-cloud.bitmart.com/contract/private/order?type=trailing&symbol=BTCUSDT&order_id=2312139250106560",
+                "input": [
+                  "2312139250106560",
+                  "BTC/USDT:USDT",
+                  {
+                    "orderType": "trailing"
+                  }
+                ]
             }
         ],
         "fetchClosedOrders": [
@@ -268,6 +344,19 @@
                     "LTC/USDT"
                 ],
                 "output": "{\"symbol\":\"LTC_USDT\",\"order_id\":\"200683008340521505\"}"
+            },
+            {
+                "description": "Swap cancel plan order",
+                "method": "cancelOrder",
+                "url": "https://api-cloud.bitmart.com/contract/private/cancel-plan-order",
+                "input": [
+                  "2312213461000000",
+                  "BTC/USDT:USDT",
+                  {
+                    "stop": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"order_id\":\"2312213461000000\"}"
             }
         ],
         "cancelAllOrders": [

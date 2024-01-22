@@ -1,20 +1,19 @@
 {
   "env": {
-    "node": true,
-    "mocha": true
+      "node": true
   },
   "parserOptions": {
-    "ecmaVersion": 2020,
-    "sourceType": "module",
+      "ecmaVersion": 2020,
+      "sourceType": "script"
   },
-  "extends": ["eslint:recommended"],
+  "extends": [ "eslint:recommended" ],
   "rules": {
-      "semi": ["error"],
-      "no-unused-vars": ["off"],
-      "quotes": ["off", "single"],
-      "func-call-spacing": ["error", "always"],
+      "semi": [ "error", "always" ],
+      "no-unused-vars": [ "off" ],
+      "quotes": [ "off", "single" ],
+      "func-call-spacing": [ "error", "always" ],
       "one-var": "off",
-      "indent": ["error", 4],
+      "indent": [ "error", 4 ],
       "comma-style": "off",
       "no-multi-spaces": "off",
       "comma-dangle": "off",
@@ -31,11 +30,23 @@
       "operator-linebreak": "off",
       "key-spacing": "off",
       "brace-style": "off",
-      "padding-line-between-statements": ["off",
-        { "blankLine": "always", "prev":"function", "next": "*" },
-        { "blankLine": "always", "prev":"directive", "next": "*" },
-        { "blankLine": "always", "prev":"*", "next": "cjs-export" },
+      "no-path-concat": "off",
+      "no-use-before-define": "off",
+      "new-cap": "off",
+      "max-classes-per-file": [ "error", 2 ],
+      "lines-between-class-members": "off",
+      "padding-line-between-statements": [ "off",
+          { "blankLine": "always", "prev": "function", "next": "*" },
+          { "blankLine": "always", "prev": "directive", "next": "*" },
+          { "blankLine": "always", "prev": "*", "next": "cjs-export" },
       ],
-      "import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
-    },
+      "import/no-extraneous-dependencies": [ "error", { "devDependencies": true } ],
+      "jsdoc/require-jsdoc": "off",
+      "no-shadow": ["error", {
+        "builtinGlobals": true, // prevent shadowing global vars (i.e. Object, Array, Number, etc...)
+        "hoist": "all", // just for cleanest practices
+        "allow": [], // no need to allow any
+        "ignoreOnInitialization": false // don't ignore lambdas and etc.
+      }]
+  }
 }

@@ -12,7 +12,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class independentreserve
- * @extends Exchange
+ * @augments Exchange
  */
 export default class independentreserve extends Exchange {
     describe() {
@@ -515,7 +515,7 @@ export default class independentreserve extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -686,20 +686,22 @@ export default class independentreserve extends Exchange {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const capitalizedOrderType = this.capitalize(type);
-        const method = 'privatePostPlace' + capitalizedOrderType + 'Order';
-        let orderType = capitalizedOrderType;
+        let orderType = this.capitalize(type);
         orderType += (side === 'sell') ? 'Offer' : 'Bid';
         const request = this.ordered({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         });
+        let response = undefined;
+        request['volume'] = amount;
         if (type === 'limit') {
             request['price'] = price;
+            response = await this.privatePostPlaceLimitOrder(this.extend(request, params));
         }
-        request['volume'] = amount;
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.privatePostPlaceMarketOrder(this.extend(request, params));
+        }
         return this.safeOrder({
             'info': response,
             'id': response['OrderGuid'],

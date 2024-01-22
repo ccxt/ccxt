@@ -365,15 +365,23 @@ class Exchange {
                 'createMarketOrderWithCost': undefined,
                 'createMarketSellOrderWithCost': undefined,
                 'createOrders': undefined,
+                'createOrderWithTakeProfitAndStopLoss': undefined,
                 'createPostOnlyOrder': undefined,
                 'createReduceOnlyOrder': undefined,
+                'createStopLossOrder': undefined,
                 'createStopOrder': undefined,
                 'createStopLimitOrder': undefined,
                 'createStopMarketOrder': undefined,
+                'createTakeProfitOrder': undefined,
+                'createTrailingAmountOrder': undefined,
+                'createTrailingPercentOrder': undefined,
+                'createTriggerOrder': undefined,
                 'createOrderWs': undefined,
                 'editOrderWs': undefined,
                 'fetchOpenOrdersWs': undefined,
+                'fetchClosedOrdersWs': undefined,
                 'fetchOrderWs': undefined,
+                'fetchOrdersWs': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrdersWs': undefined,
                 'cancelAllOrdersWs': undefined,
@@ -431,7 +439,7 @@ class Exchange {
                 'fetchPositionsForSymbol': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
-                'fetchStatus': 'emulated',
+                'fetchStatus': undefined,
                 'fetchTicker': true,
                 'fetchTickers': undefined,
                 'fetchTime': undefined,
@@ -660,10 +668,28 @@ class Exchange {
         console.log(...args);
     }
     async loadProxyModules() {
+        if (this.proxyModulesLoaded) {
+            return;
+        }
         this.proxyModulesLoaded = true;
-        // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-        this.httpProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js'); });
-        this.httpsProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js'); });
+        // we have to handle it with below nested way, because of dynamic
+        // import issues (https://github.com/ccxt/ccxt/pull/20687)
+        try {
+            // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
+            this.httpProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js'); });
+            this.httpsProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js'); });
+        }
+        catch (e) {
+            // if several users are using those frameworks which cause exceptions,
+            // let them to be able to load modules still, by installing them
+            try {
+                // @ts-ignore
+                this.httpProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'http-proxy-agent')); });
+                // @ts-ignore
+                this.httpProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'https-proxy-agent')); });
+            }
+            catch { }
+        }
         if (this.socksProxyAgentModuleChecked === false) {
             this.socksProxyAgentModuleChecked = true;
             try {
@@ -705,6 +731,26 @@ class Exchange {
         }
         return chosenAgent;
     }
+    async loadHttpProxyAgent() {
+        // for `http://` protocol proxy-urls, we need to load `http` module only on first call
+        if (!this.httpAgent) {
+            const httpModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:http')); });
+            this.httpAgent = new httpModule.Agent();
+        }
+        return this.httpAgent;
+    }
+    getHttpAgentIfNeeded(url) {
+        if (isNode) {
+            // only for non-ssl proxy
+            if (url.substring(0, 5) === 'ws://') {
+                if (this.httpAgent === undefined) {
+                    throw new errors.NotSupported(this.id + ' to use proxy with non-ssl ws:// urls, at first run  `await exchange.loadHttpProxyAgent()` method');
+                }
+                return this.httpAgent;
+            }
+        }
+        return undefined;
+    }
     async fetch(url, method = 'GET', headers = undefined, body = undefined) {
         // load node-http(s) modules only on first call
         if (isNode) {
@@ -718,18 +764,16 @@ class Exchange {
         headers = this.extend(this.headers, headers);
         // proxy-url
         const proxyUrl = this.checkProxyUrlSettings(url, method, headers, body);
-        let isHttpAgentNeeded = false;
+        let httpProxyAgent = false;
         if (proxyUrl !== undefined) {
-            // in node we need to set header to *
+            // part only for node-js
             if (isNode) {
+                // in node we need to set header to *
                 headers = this.extend({ 'Origin': this.origin }, headers);
-                if (proxyUrl.substring(0, 5) !== 'https') {
-                    // for `http://` protocol proxy-urls, we need to load `http` module only on first call
-                    if (!this.httpAgent) {
-                        const httpModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:http')); });
-                        this.httpAgent = new httpModule.Agent();
-                    }
-                    isHttpAgentNeeded = true;
+                // only for http proxy
+                if (proxyUrl.substring(0, 5) === 'http:') {
+                    await this.loadHttpProxyAgent();
+                    httpProxyAgent = this.httpAgent;
                 }
             }
             url = proxyUrl + url;
@@ -737,8 +781,10 @@ class Exchange {
         // proxy agents
         const [httpProxy, httpsProxy, socksProxy] = this.checkProxySettings(url, method, headers, body);
         this.checkConflictingProxies(httpProxy || httpsProxy || socksProxy, proxyUrl);
-        if (!this.proxyModulesLoaded) {
-            await this.loadProxyModules(); // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
+        // skip proxies on the browser
+        if (isNode) {
+            // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
+            await this.loadProxyModules();
         }
         const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
         // user-agent
@@ -760,13 +806,29 @@ class Exchange {
         // end of proxies & headers
         if (this.fetchImplementation === undefined) {
             if (isNode) {
-                const module = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/node-fetch/index.js'); });
                 if (this.agent === undefined) {
                     this.agent = this.httpsAgent;
                 }
-                this.AbortError = module.AbortError;
-                this.fetchImplementation = module.default;
-                this.FetchError = module.FetchError;
+                try {
+                    const module = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/node-fetch/index.js'); });
+                    this.AbortError = module.AbortError;
+                    this.fetchImplementation = module.default;
+                    this.FetchError = module.FetchError;
+                }
+                catch (e) {
+                    // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
+                    // so let them to fallback to node's native fetch
+                    if (typeof fetch === 'function') {
+                        this.fetchImplementation = fetch;
+                        // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
+                        // it throws same error types
+                        this.AbortError = DOMException;
+                        this.FetchError = TypeError;
+                    }
+                    else {
+                        throw new Error('Seems, "fetch" function is not available in your node-js version, please use latest node-js version');
+                    }
+                }
             }
             else {
                 this.fetchImplementation = self.fetch;
@@ -782,9 +844,9 @@ class Exchange {
             params['agent'] = this.agent;
         }
         // override agent, if needed
-        if (isHttpAgentNeeded) {
-            // if proxyUrl is being used, so we don't overwrite `this.agent` itself
-            params['agent'] = this.httpAgent;
+        if (httpProxyAgent) {
+            // if proxyUrl is being used, then specifically in nodejs, we need http module, not https
+            params['agent'] = httpProxyAgent;
         }
         else if (chosenAgent) {
             // if http(s)Proxy is being used
@@ -958,8 +1020,11 @@ class Exchange {
         }
     }
     spawn(method, ...args) {
-        const future = Future.createFuture();
-        method.apply(this, args).then(future.resolve).catch(future.reject);
+        const future = Future.Future();
+        // using setTimeout 0 to force the execution to run after the future is returned
+        setTimeout(() => {
+            method.apply(this, args).then(future.resolve).catch(future.reject);
+        }, 0);
         return future;
     }
     delay(timeout, method, ...args) {
@@ -993,7 +1058,9 @@ class Exchange {
             // proxy agents
             const [httpProxy, httpsProxy, socksProxy] = this.checkWsProxySettings();
             const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
-            const finalAgent = chosenAgent ? chosenAgent : this.agent;
+            // part only for node-js
+            const httpProxyAgent = this.getHttpAgentIfNeeded(url);
+            const finalAgent = chosenAgent ? chosenAgent : (httpProxyAgent ? httpProxyAgent : this.agent);
             //
             const options = this.deepExtend(this.streaming, {
                 'log': this.log ? this.log.bind(this) : this.log,
@@ -1008,6 +1075,99 @@ class Exchange {
             this.clients[url] = new WsClient(url, onMessage, onError, onClose, onConnected, options);
         }
         return this.clients[url];
+    }
+    watchMultiple(url, messageHashes, message = undefined, subscribeHashes = undefined, subscription = undefined) {
+        //
+        // Without comments the code of this method is short and easy:
+        //
+        //     const client = this.client (url)
+        //     const backoffDelay = 0
+        //     const future = client.future (messageHash)
+        //     const connected = client.connect (backoffDelay)
+        //     connected.then (() => {
+        //         if (message && !client.subscriptions[subscribeHash]) {
+        //             client.subscriptions[subscribeHash] = true
+        //             client.send (message)
+        //         }
+        //     }).catch ((error) => {})
+        //     return future
+        //
+        // The following is a longer version of this method with comments
+        //
+        const client = this.client(url);
+        // todo: calculate the backoff using the clients cache
+        const backoffDelay = 0;
+        //
+        //  watchOrderBook ---- future ----+---------------+----→ user
+        //                                 |               |
+        //                                 ↓               ↑
+        //                                 |               |
+        //                              connect ......→ resolve
+        //                                 |               |
+        //                                 ↓               ↑
+        //                                 |               |
+        //                             subscribe -----→ receive
+        //
+        const future = Future.Future.race(messageHashes.map(messageHash => client.future(messageHash)));
+        // read and write subscription, this is done before connecting the client
+        // to avoid race conditions when other parts of the code read or write to the client.subscriptions
+        let missingSubscriptions = [];
+        if (subscribeHashes !== undefined) {
+            for (let i = 0; i < subscribeHashes.length; i++) {
+                const subscribeHash = subscribeHashes[i];
+                if (!client.subscriptions[subscribeHash]) {
+                    missingSubscriptions.push(subscribeHash);
+                    client.subscriptions[subscribeHash] = subscription || true;
+                }
+            }
+        }
+        // we intentionally do not use await here to avoid unhandled exceptions
+        // the policy is to make sure that 100% of promises are resolved or rejected
+        // either with a call to client.resolve or client.reject with
+        //  a proper exception class instance
+        const connected = client.connect(backoffDelay);
+        // the following is executed only if the catch-clause does not
+        // catch any connection-level exceptions from the client
+        // (connection established successfully)
+        if ((subscribeHashes === undefined) || missingSubscriptions.length) {
+            connected.then(() => {
+                const options = this.safeValue(this.options, 'ws');
+                const cost = this.safeValue(options, 'cost', 1);
+                if (message) {
+                    if (this.enableRateLimit && client.throttle) {
+                        // add cost here |
+                        //               |
+                        //               V
+                        client.throttle(cost).then(() => {
+                            client.send(message);
+                        }).catch((e) => {
+                            for (let i = 0; i < missingSubscriptions.length; i++) {
+                                const subscribeHash = missingSubscriptions[i];
+                                delete client.subscriptions[subscribeHash];
+                            }
+                            future.reject(e);
+                        });
+                    }
+                    else {
+                        client.send(message)
+                            .catch((e) => {
+                            for (let i = 0; i < missingSubscriptions.length; i++) {
+                                const subscribeHash = missingSubscriptions[i];
+                                delete client.subscriptions[subscribeHash];
+                            }
+                            future.reject(e);
+                        });
+                    }
+                }
+            }).catch((e) => {
+                for (let i = 0; i < missingSubscriptions.length; i++) {
+                    const subscribeHash = missingSubscriptions[i];
+                    delete client.subscriptions[subscribeHash];
+                }
+                future.reject(e);
+            });
+        }
+        return future;
     }
     watch(url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
         //
@@ -1113,10 +1273,15 @@ class Exchange {
         const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
-            delete this.clients[client.url];
+            client.error = new errors.ExchangeClosedByUser(this.id + ' closedByUser');
             closedClients.push(client.close());
         }
-        return Promise.all(closedClients);
+        await Promise.all(closedClients);
+        for (let i = 0; i < clients.length; i++) {
+            const client = clients[i];
+            delete this.clients[client.url];
+        }
+        return;
     }
     async loadOrderBook(client, messageHash, symbol, limit = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
@@ -1171,6 +1336,17 @@ class Exchange {
     }
     axolotl(payload, hexKey, ed25519) {
         return crypto.axolotl(payload, hexKey, ed25519);
+    }
+    fixStringifiedJsonMembers(content) {
+        // used for instance in bingx
+        // when stringified json has members with their values also stringified, like:
+        // '{"code":0, "data":{"order":{"orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"{\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1}","reduceOnly":false}}}'
+        // we can fix with below manipulations
+        // @ts-ignore
+        let modifiedContent = content.replaceAll('\\', '');
+        modifiedContent = modifiedContent.replaceAll('"{', '{');
+        modifiedContent = modifiedContent.replaceAll('}"', '}');
+        return modifiedContent;
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------
@@ -1269,7 +1445,7 @@ class Exchange {
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join(',');
-            throw new errors.ExchangeError(this.id + ' you have multiple conflicting proxy_url settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
+            throw new errors.ProxyError(this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return proxyUrl;
     }
@@ -1279,11 +1455,11 @@ class Exchange {
         let httpsProxy = undefined;
         let socksProxy = undefined;
         // httpProxy
-        if (this.httpProxy !== undefined) {
+        if (this.valueIsDefined(this.httpProxy)) {
             usedProxies.push('httpProxy');
             httpProxy = this.httpProxy;
         }
-        if (this.http_proxy !== undefined) {
+        if (this.valueIsDefined(this.http_proxy)) {
             usedProxies.push('http_proxy');
             httpProxy = this.http_proxy;
         }
@@ -1296,11 +1472,11 @@ class Exchange {
             httpProxy = this.http_proxy_callback(url, method, headers, body);
         }
         // httpsProxy
-        if (this.httpsProxy !== undefined) {
+        if (this.valueIsDefined(this.httpsProxy)) {
             usedProxies.push('httpsProxy');
             httpsProxy = this.httpsProxy;
         }
-        if (this.https_proxy !== undefined) {
+        if (this.valueIsDefined(this.https_proxy)) {
             usedProxies.push('https_proxy');
             httpsProxy = this.https_proxy;
         }
@@ -1313,11 +1489,11 @@ class Exchange {
             httpsProxy = this.https_proxy_callback(url, method, headers, body);
         }
         // socksProxy
-        if (this.socksProxy !== undefined) {
+        if (this.valueIsDefined(this.socksProxy)) {
             usedProxies.push('socksProxy');
             socksProxy = this.socksProxy;
         }
-        if (this.socks_proxy !== undefined) {
+        if (this.valueIsDefined(this.socks_proxy)) {
             usedProxies.push('socks_proxy');
             socksProxy = this.socks_proxy;
         }
@@ -1333,7 +1509,7 @@ class Exchange {
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join(',');
-            throw new errors.ExchangeError(this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback');
+            throw new errors.ProxyError(this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback');
         }
         return [httpProxy, httpsProxy, socksProxy];
     }
@@ -1341,35 +1517,45 @@ class Exchange {
         const usedProxies = [];
         let wsProxy = undefined;
         let wssProxy = undefined;
-        // wsProxy
-        if (this.wsProxy !== undefined) {
+        let wsSocksProxy = undefined;
+        // ws proxy
+        if (this.valueIsDefined(this.wsProxy)) {
             usedProxies.push('wsProxy');
             wsProxy = this.wsProxy;
         }
-        if (this.ws_proxy !== undefined) {
+        if (this.valueIsDefined(this.ws_proxy)) {
             usedProxies.push('ws_proxy');
             wsProxy = this.ws_proxy;
         }
-        // wsProxy
-        if (this.wssProxy !== undefined) {
+        // wss proxy
+        if (this.valueIsDefined(this.wssProxy)) {
             usedProxies.push('wssProxy');
             wssProxy = this.wssProxy;
         }
-        if (this.wss_proxy !== undefined) {
+        if (this.valueIsDefined(this.wss_proxy)) {
             usedProxies.push('wss_proxy');
             wssProxy = this.wss_proxy;
+        }
+        // ws socks proxy
+        if (this.valueIsDefined(this.wsSocksProxy)) {
+            usedProxies.push('wsSocksProxy');
+            wsSocksProxy = this.wsSocksProxy;
+        }
+        if (this.valueIsDefined(this.ws_socks_proxy)) {
+            usedProxies.push('ws_socks_proxy');
+            wsSocksProxy = this.ws_socks_proxy;
         }
         // check
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join(',');
-            throw new errors.ExchangeError(this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy');
+            throw new errors.ProxyError(this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy');
         }
-        return [wsProxy, wssProxy];
+        return [wsProxy, wssProxy, wsSocksProxy];
     }
     checkConflictingProxies(proxyAgentSet, proxyUrlSet) {
         if (proxyAgentSet && proxyUrlSet) {
-            throw new errors.ExchangeError(this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+            throw new errors.ProxyError(this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
     }
     findMessageHashes(client, element) {
@@ -1686,6 +1872,7 @@ class Exchange {
             fee['cost'] = this.safeNumber(fee, 'cost');
         }
         const timestamp = this.safeInteger(entry, 'timestamp');
+        const info = this.safeValue(entry, 'info', {});
         return {
             'id': this.safeString(entry, 'id'),
             'timestamp': timestamp,
@@ -1701,7 +1888,7 @@ class Exchange {
             'after': this.parseNumber(after),
             'status': this.safeString(entry, 'status'),
             'fee': fee,
-            'info': entry,
+            'info': info,
         };
     }
     safeCurrencyStructure(currency) {
@@ -2163,6 +2350,11 @@ class Exchange {
             if ('rate' in tradeFee) {
                 tradeFee['rate'] = this.safeNumber(tradeFee, 'rate');
             }
+            const entryFees = this.safeValue(entry, 'fees', []);
+            for (let j = 0; j < entryFees.length; j++) {
+                entryFees[j]['cost'] = this.safeNumber(entryFees[j], 'cost');
+            }
+            entry['fees'] = entryFees;
             entry['fee'] = tradeFee;
         }
         let timeInForce = this.safeString(order, 'timeInForce');
@@ -2723,11 +2915,11 @@ class Exchange {
         }
         return result;
     }
-    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1) {
+    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         bidasks = this.toArray(bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
-            result.push(this.parseBidAsk(bidasks[i], priceKey, amountKey));
+            result.push(this.parseBidAsk(bidasks[i], priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -2896,9 +3088,9 @@ class Exchange {
         const value = this.safeString2(dictionary, key1, key2);
         return this.parseNumber(value, d);
     }
-    parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
-        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey);
-        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey);
+    parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),
@@ -3213,10 +3405,15 @@ class Exchange {
     async fetchBidsAsks(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchBidsAsks() is not supported yet');
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
-        return [price, amount];
+        const countOrId = this.safeInteger(bidask, countOrIdKey);
+        const bidAsk = [price, amount];
+        if (countOrId !== undefined) {
+            bidAsk.push(countOrId);
+        }
+        return bidAsk;
     }
     safeCurrency(currencyId, currency = undefined) {
         if ((currencyId === undefined) && (currency !== undefined)) {
@@ -3264,7 +3461,7 @@ class Exchange {
                     }
                 }
             }
-            else if (delimiter !== undefined) {
+            else if (delimiter !== undefined && delimiter !== '') {
                 const parts = marketId.split(delimiter);
                 const partsLength = parts.length;
                 if (partsLength === 2) {
@@ -3425,6 +3622,30 @@ class Exchange {
         }
         return [value, params];
     }
+    handleOptionAndParams2(params, methodName, methodName2, optionName, defaultValue = undefined) {
+        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
+        const defaultOptionName = 'default' + this.capitalize(optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if params contain the key
+        let value = this.safeValue2(params, optionName, defaultOptionName);
+        if (value !== undefined) {
+            params = this.omit(params, [optionName, defaultOptionName]);
+        }
+        else {
+            // check if exchange has properties for this method
+            const exchangeWideMethodOptions = this.safeValue2(this.options, methodName, methodName2);
+            if (exchangeWideMethodOptions !== undefined) {
+                // check if the option is defined inside this method's props
+                value = this.safeValue2(exchangeWideMethodOptions, optionName, defaultOptionName);
+            }
+            if (value === undefined) {
+                // if it's still undefined, check if global exchange-wide option exists
+                value = this.safeValue2(this.options, optionName, defaultOptionName);
+            }
+            // if it's still undefined, use the default value
+            value = (value !== undefined) ? value : defaultValue;
+        }
+        return [value, params];
+    }
     handleOption(methodName, optionName, defaultValue = undefined) {
         // eslint-disable-next-line no-unused-vars
         const [result, empty] = this.handleOptionAndParams({}, methodName, optionName, defaultValue);
@@ -3563,6 +3784,60 @@ class Exchange {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrder() is not supported yet');
     }
+    async createTrailingAmountOrder(symbol, type, side, amount, price = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTrailingAmountOrder
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingAmount the quote amount to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (trailingAmount === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTrailingAmountOrder() requires a trailingAmount argument');
+        }
+        params['trailingAmount'] = trailingAmount;
+        if (trailingTriggerPrice !== undefined) {
+            params['trailingTriggerPrice'] = trailingTriggerPrice;
+        }
+        if (this.has['createTrailingAmountOrder']) {
+            return await this.createOrder(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTrailingAmountOrder() is not supported yet');
+    }
+    async createTrailingPercentOrder(symbol, type, side, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTrailingPercentOrder
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingPercent the percent to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (trailingPercent === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTrailingPercentOrder() requires a trailingPercent argument');
+        }
+        params['trailingPercent'] = trailingPercent;
+        if (trailingTriggerPrice !== undefined) {
+            params['trailingTriggerPrice'] = trailingTriggerPrice;
+        }
+        if (this.has['createTrailingPercentOrder']) {
+            return await this.createOrder(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTrailingPercentOrder() is not supported yet');
+    }
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
         /**
          * @method
@@ -3574,7 +3849,7 @@ class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (this.options['createMarketOrderWithCost'] || (this.options['createMarketBuyOrderWithCost'] && this.options['createMarketSellOrderWithCost'])) {
+        if (this.has['createMarketOrderWithCost'] || (this.has['createMarketBuyOrderWithCost'] && this.has['createMarketSellOrderWithCost'])) {
             return await this.createOrder(symbol, 'market', side, cost, 1, params);
         }
         throw new errors.NotSupported(this.id + ' createMarketOrderWithCost() is not supported yet');
@@ -3589,7 +3864,7 @@ class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (this.options['createMarketBuyOrderRequiresPrice'] || this.options['createMarketBuyOrderWithCost']) {
+        if (this.options['createMarketBuyOrderRequiresPrice'] || this.has['createMarketBuyOrderWithCost']) {
             return await this.createOrder(symbol, 'market', 'buy', cost, 1, params);
         }
         throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() is not supported yet');
@@ -3604,10 +3879,153 @@ class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (this.options['createMarketSellOrderRequiresPrice'] || this.options['createMarketSellOrderWithCost']) {
+        if (this.options['createMarketSellOrderRequiresPrice'] || this.has['createMarketSellOrderWithCost']) {
             return await this.createOrder(symbol, 'market', 'sell', cost, 1, params);
         }
         throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() is not supported yet');
+    }
+    async createTriggerOrder(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTriggerOrder
+         * @description create a trigger stop order (type 1)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (triggerPrice === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTriggerOrder() requires a triggerPrice argument');
+        }
+        params['triggerPrice'] = triggerPrice;
+        if (this.has['createTriggerOrder']) {
+            return await this.createOrder(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTriggerOrder() is not supported yet');
+    }
+    async createStopLossOrder(symbol, type, side, amount, price = undefined, stopLossPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createStopLossOrder
+         * @description create a trigger stop loss order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (stopLossPrice === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createStopLossOrder() requires a stopLossPrice argument');
+        }
+        params['stopLossPrice'] = stopLossPrice;
+        if (this.has['createStopLossOrder']) {
+            return await this.createOrder(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createStopLossOrder() is not supported yet');
+    }
+    async createTakeProfitOrder(symbol, type, side, amount, price = undefined, takeProfitPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTakeProfitOrder
+         * @description create a trigger take profit order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (takeProfitPrice === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTakeProfitOrder() requires a takeProfitPrice argument');
+        }
+        params['takeProfitPrice'] = takeProfitPrice;
+        if (this.has['createTakeProfitOrder']) {
+            return await this.createOrder(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTakeProfitOrder() is not supported yet');
+    }
+    async createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price = undefined, takeProfit = undefined, stopLoss = undefined, params = {}) {
+        /**
+         * @method
+         * @name createOrderWithTakeProfitAndStopLoss
+         * @description create an order with a stop loss or take profit attached (type 3)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} [takeProfit] the take profit price, in units of the quote currency
+         * @param {float} [stopLoss] the stop loss price, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
+         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
+         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if ((takeProfit === undefined) && (stopLoss === undefined)) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument');
+        }
+        if (takeProfit !== undefined) {
+            params['takeProfit'] = {
+                'triggerPrice': takeProfit,
+            };
+        }
+        if (stopLoss !== undefined) {
+            params['stopLoss'] = {
+                'triggerPrice': stopLoss,
+            };
+        }
+        const takeProfitType = this.safeString(params, 'takeProfitType');
+        const takeProfitPriceType = this.safeString(params, 'takeProfitPriceType');
+        const takeProfitLimitPrice = this.safeString(params, 'takeProfitLimitPrice');
+        const takeProfitAmount = this.safeString(params, 'takeProfitAmount');
+        const stopLossType = this.safeString(params, 'stopLossType');
+        const stopLossPriceType = this.safeString(params, 'stopLossPriceType');
+        const stopLossLimitPrice = this.safeString(params, 'stopLossLimitPrice');
+        const stopLossAmount = this.safeString(params, 'stopLossAmount');
+        if (takeProfitType !== undefined) {
+            params['takeProfit']['type'] = takeProfitType;
+        }
+        if (takeProfitPriceType !== undefined) {
+            params['takeProfit']['priceType'] = takeProfitPriceType;
+        }
+        if (takeProfitLimitPrice !== undefined) {
+            params['takeProfit']['price'] = this.parseToNumeric(takeProfitLimitPrice);
+        }
+        if (takeProfitAmount !== undefined) {
+            params['takeProfit']['amount'] = this.parseToNumeric(takeProfitAmount);
+        }
+        if (stopLossType !== undefined) {
+            params['stopLoss']['type'] = stopLossType;
+        }
+        if (stopLossPriceType !== undefined) {
+            params['stopLoss']['priceType'] = stopLossPriceType;
+        }
+        if (stopLossLimitPrice !== undefined) {
+            params['stopLoss']['price'] = this.parseToNumeric(stopLossLimitPrice);
+        }
+        if (stopLossAmount !== undefined) {
+            params['stopLoss']['amount'] = this.parseToNumeric(stopLossAmount);
+        }
+        params = this.omit(params, ['takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount']);
+        if (this.has['createOrderWithTakeProfitAndStopLoss']) {
+            return await this.createOrder(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createOrderWithTakeProfitAndStopLoss() is not supported yet');
     }
     async createOrders(orders, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrders() is not supported yet');
@@ -3636,6 +4054,9 @@ class Exchange {
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrders() is not supported yet');
     }
+    async fetchOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOrdersWs() is not supported yet');
+    }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrderTrades() is not supported yet');
     }
@@ -3643,13 +4064,32 @@ class Exchange {
         throw new errors.NotSupported(this.id + ' watchOrders() is not supported yet');
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrders']) {
+            const orders = await this.fetchOrders(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'open');
+        }
         throw new errors.NotSupported(this.id + ' fetchOpenOrders() is not supported yet');
     }
     async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrdersWs']) {
+            const orders = await this.fetchOrdersWs(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'open');
+        }
         throw new errors.NotSupported(this.id + ' fetchOpenOrdersWs() is not supported yet');
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrders']) {
+            const orders = await this.fetchOrders(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'closed');
+        }
         throw new errors.NotSupported(this.id + ' fetchClosedOrders() is not supported yet');
+    }
+    async fetchClosedOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrdersWs']) {
+            const orders = await this.fetchOrdersWs(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'closed');
+        }
+        throw new errors.NotSupported(this.id + ' fetchClosedOrdersWs() is not supported yet');
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchMyTrades() is not supported yet');
@@ -3701,10 +4141,13 @@ class Exchange {
         throw new errors.NotSupported(this.id + ' fetchFundingHistory() is not supported yet');
     }
     async closePosition(symbol, side = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' closePositions() is not supported yet');
+        throw new errors.NotSupported(this.id + ' closePosition() is not supported yet');
     }
     async closeAllPositions(params = {}) {
         throw new errors.NotSupported(this.id + ' closeAllPositions() is not supported yet');
+    }
+    async fetchL3OrderBook(symbol, limit = undefined, params = {}) {
+        throw new errors.BadRequest(this.id + ' fetchL3OrderBook() is not supported yet');
     }
     parseLastPrice(price, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseLastPrice() is not supported yet');
@@ -4272,8 +4715,8 @@ class Exchange {
         /**
          * @ignore
          * @method
-         * * Must add timeInForce to this.options to use this method
-         * @return {string} returns the exchange specific value for timeInForce
+         * Must add timeInForce to this.options to use this method
+         * @returns {string} returns the exchange specific value for timeInForce
          */
         const timeInForce = this.safeStringUpper(params, 'timeInForce'); // supported values GTC, IOC, PO
         if (timeInForce !== undefined) {
@@ -4289,7 +4732,7 @@ class Exchange {
         /**
          * @ignore
          * @method
-         * * Must add accountsByType to this.options to use this method
+         * Must add accountsByType to this.options to use this method
          * @param {string} account key for account name in this.options['accountsByType']
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
@@ -4484,31 +4927,6 @@ class Exchange {
          * @description Typed wrapper for filterByArray that returns a dictionary of tickers
          */
         return this.filterByArray(objects, key, values, indexed);
-    }
-    resolvePromiseIfMessagehashMatches(client, prefix, symbol, data) {
-        const messageHashes = this.findMessageHashes(client, prefix);
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split(',');
-            if (this.inArray(symbol, symbols)) {
-                client.resolve(data, messageHash);
-            }
-        }
-    }
-    resolveMultipleOHLCV(client, prefix, symbol, timeframe, data) {
-        const messageHashes = this.findMessageHashes(client, 'multipleOHLCV::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split('::');
-            const symbolsAndTimeframes = parts[1];
-            const splitted = symbolsAndTimeframes.split(',');
-            const id = symbol + '#' + timeframe;
-            if (this.inArray(id, splitted)) {
-                client.resolve([symbol, timeframe, data], messageHash);
-            }
-        }
     }
     createOHLCVObject(symbol, timeframe, data) {
         const res = {};

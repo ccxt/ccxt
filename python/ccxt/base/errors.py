@@ -31,6 +31,7 @@ error_hierarchy = {
                 'ContractUnavailable': {},
             },
             'NotSupported': {},
+            'ProxyError': {},
         },
         'OperationFailed': {
             'NetworkError': {
@@ -44,6 +45,7 @@ error_hierarchy = {
                 'RequestTimeout': {},
             },
         },
+        'ExchangeClosedByUser': {},
     },
 }
 
@@ -152,6 +154,10 @@ class NotSupported(ExchangeError):
     pass
 
 
+class ProxyError(ExchangeError):
+    pass
+
+
 class OperationFailed(BaseError):
     pass
 
@@ -184,6 +190,10 @@ class RequestTimeout(NetworkError):
     pass
 
 
+class ExchangeClosedByUser(BaseError):
+    pass
+
+
 __all__ = [
     'error_hierarchy',
     'BaseError',
@@ -212,6 +222,7 @@ __all__ = [
     'DuplicateOrderId',
     'ContractUnavailable',
     'NotSupported',
+    'ProxyError',
     'OperationFailed',
     'NetworkError',
     'DDoSProtection',
@@ -219,5 +230,6 @@ __all__ = [
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
-    'RequestTimeout'
+    'RequestTimeout',
+    'ExchangeClosedByUser'
 ]

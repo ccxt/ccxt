@@ -11,7 +11,7 @@ var Precise = require('./base/Precise.js');
 // ---------------------------------------------------------------------------
 /**
  * @class kuna
- * @extends Exchange
+ * @augments Exchange
  * @description Use the public-key as your apiKey
  */
 class kuna extends kuna$1 {
@@ -30,7 +30,6 @@ class kuna extends kuna$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
@@ -95,7 +94,8 @@ class kuna extends kuna$1 {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -1265,7 +1265,7 @@ class kuna extends kuna$1 {
          * @see https://docs.kuna.io/docs/get-private-orders-history
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for
          *

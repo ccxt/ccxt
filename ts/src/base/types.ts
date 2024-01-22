@@ -39,6 +39,7 @@ export type Fee = FeeInterface | undefined
 
 export interface MarketInterface {
     id: string;
+    numericId?: Num;
     uppercaseId?: string;
     lowercaseId?: string;
     symbol: string;
@@ -73,6 +74,7 @@ export interface MarketInterface {
     precision: {
         amount: Num
         price: Num
+        cost?: Num
     };
     limits: {
         amount?: MinMax,

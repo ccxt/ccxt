@@ -57,7 +57,7 @@ class luno(Exchange, ImplicitAPI):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
-                'fetchOHLCV': False,  # overload of base fetchOHLCV, doesn't hasattr(self, work) exchange
+                'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -85,6 +85,7 @@ class luno(Exchange, ImplicitAPI):
                     'public': 'https://api.luno.com/api',
                     'private': 'https://api.luno.com/api',
                     'exchange': 'https://api.luno.com/api/exchange',
+                    'exchangePrivate': 'https://api.luno.com/api/exchange',
                 },
                 'www': 'https://www.luno.com',
                 'doc': [
@@ -97,6 +98,11 @@ class luno(Exchange, ImplicitAPI):
                 'exchange': {
                     'get': {
                         'markets': 1,
+                    },
+                },
+                'exchangePrivate': {
+                    'get': {
+                        'candles': 1,
                     },
                 },
                 'public': {
@@ -150,6 +156,18 @@ class luno(Exchange, ImplicitAPI):
                         'withdrawals/{id}': 1,
                     },
                 },
+            },
+            'timeframes': {
+                '1m': 60,
+                '5m': 300,
+                '15m': 900,
+                '30m': 1800,
+                '1h': 3600,
+                '3h': 10800,
+                '4h': 14400,
+                '1d': 86400,
+                '3d': 259200,
+                '1w': 604800,
             },
             'fees': {
                 'trading': {
@@ -449,7 +467,7 @@ class luno(Exchange, ImplicitAPI):
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -471,7 +489,7 @@ class luno(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -675,6 +693,66 @@ class luno(Exchange, ImplicitAPI):
         #
         trades = self.safe_value(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        :see: https://www.luno.com/en/developers/api#tag/Market/operation/GetCandles
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the luno api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'duration': self.safe_value(self.timeframes, timeframe, timeframe),
+            'pair': market['id'],
+        }
+        if since is not None:
+            request['since'] = int(since)
+        else:
+            duration = 1000 * 1000 * self.parse_timeframe(timeframe)
+            request['since'] = self.milliseconds() - duration
+        response = self.exchangePrivateGetCandles(self.extend(request, params))
+        #
+        #     {
+        #          "candles": [
+        #              {
+        #                  "timestamp": 1664055240000,
+        #                  "open": "19612.65",
+        #                  "close": "19612.65",
+        #                  "high": "19612.65",
+        #                  "low": "19612.65",
+        #                  "volume": "0.00"
+        #              },...
+        #          ],
+        #          "duration": 60,
+        #          "pair": "XBTEUR"
+        #     }
+        #
+        ohlcvs = self.safe_value(response, 'candles', [])
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+        # {
+        #     "timestamp": 1664055240000,
+        #     "open": "19612.65",
+        #     "close": "19612.65",
+        #     "high": "19612.65",
+        #     "low": "19612.65",
+        #     "volume": "0.00"
+        # }
+        return [
+            self.safe_integer(ohlcv, 'timestamp'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
+        ]
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -939,7 +1017,7 @@ class luno(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         if query:
             url += '?' + self.urlencode(query)
-        if api == 'private':
+        if (api == 'private') or (api == 'exchangePrivate'):
             self.check_required_credentials()
             auth = self.string_to_base64(self.apiKey + ':' + self.secret)
             headers = {

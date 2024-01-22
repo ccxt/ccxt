@@ -673,6 +673,17 @@
                     }
                 ]
             }
+        ],
+        "closePosition": [
+            {
+                "description": "close position",
+                "method": "closePosition",
+                "url": "https://api.hitbtc.com/api/3/futures/position/cross/TRXUSDT_PERP",
+                "input": [
+                  "TRX/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\"}"
+            }
         ]
     }
 }

@@ -770,7 +770,7 @@ export default class htx extends htxRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -933,11 +933,16 @@ export default class htx extends htxRest {
                 // inject trade in existing order by faking an order object
                 const orderId = this.safeString(parsedTrade, 'order');
                 const trades = [parsedTrade];
+                const status = this.parseOrderStatus(this.safeString2(data, 'orderStatus', 'status', 'closed'));
+                const filled = this.safeString(data, 'execAmt');
+                const remaining = this.safeString(data, 'remainAmt');
                 const order = {
                     'id': orderId,
                     'trades': trades,
-                    'status': 'closed',
+                    'status': status,
                     'symbol': market['symbol'],
+                    'filled': this.parseNumber(filled),
+                    'remaining': this.parseNumber(remaining),
                 };
                 parsedOrder = order;
             }

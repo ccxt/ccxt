@@ -36,12 +36,14 @@ class cryptocom extends Exchange {
                 'future' => true,
                 'option' => true,
                 'addMargin' => false,
-                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'closeAllPositions' => false,
                 'closePosition' => true,
+                'createMarketBuyOrderWithCost' => false,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
                 'fetchAccounts' => true,
@@ -101,7 +103,8 @@ class cryptocom extends Exchange {
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
-                'repayMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -135,7 +138,10 @@ class cryptocom extends Exchange {
                     'derivatives' => 'https://deriv-api.crypto.com/v1',
                 ),
                 'www' => 'https://crypto.com/',
-                'referral' => 'https://crypto.com/exch/5835vstech',
+                'referral' => array(
+                    'url' => 'https://crypto.com/exch/kdacthrnxt',
+                    'discount' => 0.15,
+                ),
                 'doc' => array(
                     'https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html',
                     'https://exchange-docs.crypto.com/spot/index.html',
@@ -771,6 +777,7 @@ class cryptocom extends Exchange {
             //                     "p" => "26386.00",
             //                     "q" => "0.00453",
             //                     "t" => 1686944282062,
+            //                     "tn" : 1704476468851524373,
             //                     "d" => "4611686018455979970",
             //                     "i" => "BTC_USD"
             //                 ),
@@ -1165,7 +1172,7 @@ class cryptocom extends Exchange {
              * create a list of trade $orders
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
-             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1325,21 +1332,26 @@ class cryptocom extends Exchange {
         }
         if (($side === 'buy') && (($uppercaseType === 'MARKET') || ($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT'))) {
             // use createmarketBuy logic here
-            if ($this->options['createMarketBuyOrderRequiresPrice']) {
-                $cost = $this->safe_number_2($params, 'cost', 'notional');
-                $params = $this->omit($params, 'cost');
-                if ($price === null && $cost === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
+            $quoteAmount = null;
+            $createMarketBuyOrderRequiresPrice = true;
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            $cost = $this->safe_number_2($params, 'cost', 'notional');
+            $params = $this->omit($params, 'cost');
+            if ($cost !== null) {
+                $quoteAmount = $this->cost_to_precision($symbol, $cost);
+            } elseif ($createMarketBuyOrderRequiresPrice) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
                 } else {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
-                    $quoteAmount = Precise::string_mul($amountString, $priceString);
-                    $amount = ($cost !== null) ? $cost : $this->parse_number($quoteAmount);
-                    $request['notional'] = $this->cost_to_precision($symbol, $amount);
+                    $costRequest = Precise::string_mul($amountString, $priceString);
+                    $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                 }
             } else {
-                $request['notional'] = $this->cost_to_precision($symbol, $amount);
+                $quoteAmount = $this->cost_to_precision($symbol, $amount);
             }
+            $request['notional'] = $quoteAmount;
         } else {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
@@ -1889,6 +1901,7 @@ class cryptocom extends Exchange {
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 'i');
         $market = $this->safe_market($marketId, $market, '_');
+        $quote = $this->safe_string($market, 'quote');
         $last = $this->safe_string($ticker, 'a');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
@@ -1909,7 +1922,7 @@ class cryptocom extends Exchange {
             'percentage' => $this->safe_string($ticker, 'c'),
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'v'),
-            'quoteVolume' => $this->safe_string($ticker, 'vv'),
+            'quoteVolume' => ($quote === 'USD') ? $this->safe_string($ticker, 'vv') : null,
             'info' => $ticker,
         ), $market);
     }
@@ -1922,7 +1935,8 @@ class cryptocom extends Exchange {
         //         "s" => "sell",
         //         "p" => "26386.00",
         //         "q" => "0.00453",
-        //         "t" => 1686944282062,
+        //         "tn" => 1686944282062,
+        //         "tn" => 1704476468851524373,
         //         "d" => "4611686018455979970",
         //         "i" => "BTC_USD"
         //     }
@@ -2229,7 +2243,7 @@ class cryptocom extends Exchange {
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} the $marginMode in lowercase
+         * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);
