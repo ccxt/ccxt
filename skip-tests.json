@@ -352,7 +352,7 @@
             }
         }
     },
-    "bitpanda": {
+    "onetrading": {
         "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "some bid might be lower than next bid",
@@ -1209,6 +1209,7 @@
         }
     },
     "lbank": {
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "settle must be defined when contract is true",
             "fetchTickers": {

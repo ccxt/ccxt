@@ -10,6 +10,7 @@ class binanceus extends binance {
             'id': 'binanceus',
             'name': 'Binance US',
             'countries': ['US'],
+            'rateLimit': 50,
             'certified': false,
             'pro': true,
             'urls': {
@@ -76,6 +77,13 @@ class binanceus extends binance {
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+            },
+            'api': {
+                'public': {
+                    'get': {
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                    },
+                },
             },
         });
     }

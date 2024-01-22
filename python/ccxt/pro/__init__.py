@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.2.18'
+__version__ = '4.2.19'
 
 # ----------------------------------------------------------------------------
 
@@ -57,11 +57,13 @@ from ccxt.pro.kraken import kraken                                        # noqa
 from ccxt.pro.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
 from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
+from ccxt.pro.lbank import lbank                                          # noqa: F401
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okcoin import okcoin                                        # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
+from ccxt.pro.onetrading import onetrading                                # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.poloniex import poloniex                                    # noqa: F401
 from ccxt.pro.poloniexfutures import poloniexfutures                      # noqa: F401
@@ -117,11 +119,13 @@ exchanges = [
     'krakenfutures',
     'kucoin',
     'kucoinfutures',
+    'lbank',
     'luno',
     'mexc',
     'ndax',
     'okcoin',
     'okx',
+    'onetrading',
     'phemex',
     'poloniex',
     'poloniexfutures',

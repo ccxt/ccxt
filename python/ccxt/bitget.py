@@ -5789,6 +5789,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://www.bitget.com/api-doc/contract/position/Get-History-Position
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginCoin]: the settle currency of the positions, needs to match the productType
         :param str [params.productType]: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -5817,9 +5818,21 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         isHistory = False
         if method == 'privateMixGetV2MixPositionAllPosition':
-            if symbols is None:
-                raise ArgumentsRequired(self.id + ' fetchPositions() requires a symbols argument')
-            request['marginCoin'] = market['settleId']
+            marginCoin = self.safe_string(params, 'marginCoin', 'USDT')
+            if symbols is not None:
+                marginCoin = market['settleId']
+            elif productType == 'USDT-FUTURES':
+                marginCoin = 'USDT'
+            elif productType == 'USDC-FUTURES':
+                marginCoin = 'USDC'
+            elif productType == 'SUSDT-FUTURES':
+                marginCoin = 'SUSDT'
+            elif productType == 'SUSDC-FUTURES':
+                marginCoin = 'SUSDC'
+            elif (productType == 'SCOIN-FUTURES') or (productType == 'COIN-FUTURES'):
+                if marginCoin is None:
+                    raise ArgumentsRequired(self.id + ' fetchPositions() requires a marginCoin parameter that matches the productType')
+            request['marginCoin'] = marginCoin
             response = self.privateMixGetV2MixPositionAllPosition(self.extend(request, params))
         else:
             isHistory = True
