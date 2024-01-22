@@ -19,7 +19,7 @@ export default class bitopro extends bitoproRest {
                 'watchMyTrades': false,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
-                'watchOrders': true,
+                'watchOrders': false,
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
@@ -260,24 +260,6 @@ export default class bitopro extends bitoproRest {
         // instantiate client
         this.client (url);
         this.options['ws']['options']['headers'] = originalHeaders;
-    }
-
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name bitopro#watchOrders
-         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/history_orders_stream.md
-         * @description watches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] maximum number of orderic to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        const openOrders = await this.watchOpenOrders (symbol, since, limit, params);
-        const closedOrders = await this.watchClosedOrders (symbol, since, limit, params);
-        const result = this.arrayConcat (this.toArray (openOrders), this.toArray (closedOrders));
-        return this.filterBySinceLimit (result, since, limit, 'timestamp', true);
     }
 
     async watchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
