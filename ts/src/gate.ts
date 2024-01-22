@@ -5517,7 +5517,7 @@ export default class gate extends Exchange {
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
@@ -5662,6 +5662,34 @@ export default class gate extends Exchange {
         return this.parseMarketLeverageTiers (response, market);
     }
 
+    parseEmulatedLeverageTiers (info, market = undefined) {
+        const maintenanceMarginUnit = this.safeString (info, 'maintenance_rate'); // '0.005',
+        const leverageMax = this.safeString (info, 'leverage_max'); // '100',
+        const riskLimitStep = this.safeString (info, 'risk_limit_step'); // '1000000',
+        const riskLimitMax = this.safeString (info, 'risk_limit_max'); // '16000000',
+        const initialMarginUnit = Precise.stringDiv ('1', leverageMax);
+        let maintenanceMarginRate = maintenanceMarginUnit;
+        let initialMarginRatio = initialMarginUnit;
+        let floor = '0';
+        const tiers = [];
+        while (Precise.stringLt (floor, riskLimitMax)) {
+            const cap = Precise.stringAdd (floor, riskLimitStep);
+            tiers.push ({
+                'tier': this.parseNumber (Precise.stringDiv (cap, riskLimitStep)),
+                'currency': this.safeString (market, 'settle'),
+                'minNotional': this.parseNumber (floor),
+                'maxNotional': this.parseNumber (cap),
+                'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
+                'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRatio)),
+                'info': info,
+            });
+            maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, maintenanceMarginUnit);
+            initialMarginRatio = Precise.stringAdd (initialMarginRatio, initialMarginUnit);
+            floor = cap;
+        }
+        return tiers;
+    }
+
     parseMarketLeverageTiers (info, market: Market = undefined) {
         //
         //     [
@@ -5674,6 +5702,9 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
+        if (!Array.isArray (info)) {
+            return this.parseEmulatedLeverageTiers (info, market);
+        }
         let minNotional = 0;
         const tiers = [];
         for (let i = 0; i < info.length; i++) {
