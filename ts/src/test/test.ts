@@ -207,6 +207,11 @@ export default class testMainClass extends baseMainTestClass {
     async init (exchangeId, symbolArgv) {
         this.parseCliArgs ();
 
+        if (this.requestTests && this.responseTests) {
+            await this.runStaticRequestTests (exchangeId, symbolArgv);
+            await this.runStaticResponseTests (exchangeId, symbolArgv);
+            return;
+        }
         if (this.responseTests) {
             await this.runStaticResponseTests (exchangeId, symbolArgv);
             return;
@@ -1327,7 +1332,6 @@ export default class testMainClass extends baseMainTestClass {
         } else {
             const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString () + ' static ' + type + ' tests passed.';
             dump ('[INFO]' + successMessage);
-            exitScript (0);
         }
     }
 
