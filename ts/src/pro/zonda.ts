@@ -379,27 +379,7 @@ export default class zonda extends zondaRest {
         return await this.subscribePublic (name, false, params);
     }
 
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name zonda#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {[string]} symbols array of unified market symbols
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @returns {[object]} an array of ticker structures [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-         */
-        await this.loadMarkets ();
-        const options = this.safeValue (this.options, 'watchTicker');
-        const defaultMethod = this.safeString (options, 'method', 'ticker');
-        const name = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
-        const tickers = await this.subscribePublic (name, true, params);
-        return this.filterByArray (tickers, 'symbol', symbols);
-    }
-
     handleTicker (client: Client, message) {
-        //
-        // TODO
-        // ticker
         //
         //    {
         //        action: 'push',
@@ -407,24 +387,42 @@ export default class zonda extends zondaRest {
         //        message: {
         //            market: {
         //                code: 'BTC-USDT',
-        //                first: [Object],
-        //                second: [Object],
+        //                first: {
+        //                    currency: "BTC",
+        //                    minOffer: "0.0000028",
+        //                    scale: 8,
+        //                },
+        //                second: {
+        //                    currency: "USDT",
+        //                    minOffer: "0.108",
+        //                    scale: 6,
+        //                },
         //                amountPrecision: 8,
         //                pricePrecision: 6,
         //                ratePrecision: 6
         //            },
-        //            time: '1705443996064',
-        //            highestBid: '43301.640002',
-        //            lowestAsk: '43420.565141',
-        //            rate: '43406.420002',
-        //            previousRate: '43486.838493'
+        //            time: '1705985905717',
+        //            highestBid: '40084.863',
+        //            lowestAsk: '40129.182218',
+        //            rate: '39936.159614',
+        //            previousRate: '39809.546219'
         //        },
-        //        timestamp: '1705443996064',
-        //        seqNo: 94461165
+        //        timestamp: '1705985905717',
+        //        seqNo: 94754371
         //    }
         //
-        // stats
-        //
+        const data = this.safeValue (message, 'message');
+        const responseMarket = this.safeValue (data, 'market');
+        const marketId = this.safeString (responseMarket, 'code');
+        const market = this.safeMarket (marketId);
+        const ticker = this.parseWsTicker (data, market);
+        this.tickers[market['symbol']] = ticker;
+        const messageHash = 'ticker/' + market['id'];
+        client.resolve (ticker, messageHash);
+        return message;
+    }
+
+    handleStats (client: Client, message) {
         //    {
         //        "action": "push",
         //        "topic": "trading/stats/btc-pln",
@@ -440,91 +438,63 @@ export default class zonda extends zondaRest {
         //        "timestamp": "1576846510713",
         //        "seqNo": 430772
         //    }
-        //
-        const data = this.safeValue (message, 'data', {});
-        const marketIds = Object.keys (data);
-        const channel = this.safeString (message, 'ch');
-        const newTickers = [];
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
-            const ticker = this.parseWsTicker (data[marketId], market);
-            this.tickers[symbol] = ticker;
-            newTickers.push (ticker);
-            const messageHash = channel + '::' + symbol;
-            client.resolve (this.tickers[symbol], messageHash);
-        }
-        const messageHashes = this.findMessageHashes (client, channel + '::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split ('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            const tickers = this.filterByArray (newTickers, 'symbol', symbols);
-            const tickersSymbols = Object.keys (tickers);
-            const numTickers = tickersSymbols.length;
-            if (numTickers > 0) {
-                client.resolve (tickers, messageHash);
-            }
-        }
-        client.resolve (this.tickers, channel);
-        return message;
     }
 
     parseWsTicker (ticker, market = undefined) {
         //
-        // TODO
         //    {
-        //        "t": 1614815872000,             // Timestamp in milliseconds
-        //        "a": "0.031175",                // Best ask
-        //        "A": "0.03329",                 // Best ask quantity
-        //        "b": "0.031148",                // Best bid
-        //        "B": "0.10565",                 // Best bid quantity
-        //        "c": "0.031210",                // Last price
-        //        "o": "0.030781",                // Open price
-        //        "h": "0.031788",                // High price
-        //        "l": "0.030733",                // Low price
-        //        "v": "62.587",                  // Base asset volume
-        //        "q": "1.951420577",             // Quote asset volume
-        //        "p": "0.000429",                // Price change
-        //        "P": "1.39",                    // Price change percent
-        //        "L": 1182694927                 // Last trade identifier
+        //        market: {
+        //                code: 'BTC-USDT',
+        //                first: {
+        //                    currency: "BTC",
+        //                    minOffer: "0.0000028",
+        //                    scale: 8,
+        //                },
+        //                second: {
+        //                    currency: "USDT",
+        //                    minOffer: "0.108",
+        //                    scale: 6,
+        //                },
+        //                amountPrecision: 8,
+        //                pricePrecision: 6,
+        //                ratePrecision: 6
+        //            },
+        //            time: '1705985905717',
+        //            highestBid: '40084.863',
+        //            lowestAsk: '40129.182218',
+        //            rate: '39936.159614',
+        //            previousRate: '39809.546219'
+        //        },
+        //        timestamp: '1705985905717',
+        //        seqNo: 94754371
         //    }
         //
-        //    {
-        //        "t": 1614815872030,
-        //        "o": "32636.79",
-        //        "c": "32085.51",
-        //        "h": "33379.92",
-        //        "l": "30683.28",
-        //        "v": "11.90667",
-        //        "q": "384081.1955629"
-        //    }
-        //
-        const timestamp = this.safeInteger (ticker, 't');
-        const symbol = this.safeSymbol (undefined, market);
-        const last = this.safeString (ticker, 'c');
+        const data = this.safeValue (ticker, 'message');
+        const responseMarket = this.safeValue (data, 'market');
+        const marketId = this.safeString (responseMarket, 'code');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        const last = this.safeString (ticker, 'rate');
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'h'),
-            'low': this.safeString (ticker, 'l'),
-            'bid': this.safeString (ticker, 'b'),
-            'bidVolume': this.safeString (ticker, 'B'),
-            'ask': this.safeString (ticker, 'a'),
-            'askVolume': this.safeString (ticker, 'A'),
+            'high': undefined,
+            'low': undefined,
+            'bid': this.safeString (ticker, 'highestBid'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'lowestAsk'),
+            'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString (ticker, 'o'),
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'v'),
-            'quoteVolume': this.safeString (ticker, 'q'),
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
             'info': ticker,
         }, market);
     }
@@ -1065,11 +1035,14 @@ export default class zonda extends zondaRest {
     handleMessage (client: Client, message) {
         this.handleError (client, message);
         const action = this.safeString (message, 'action');
-        if (action === 'subscribe-public-confirm') {
-            return this.handleSubscriptionStatus (client, message);
-        }
-        if (action === 'proxy-response') {
-            return this.handleSnapshot (client, message);
+        const path = this.safeString (message, 'path');
+        const isOrderbookPath = (path === 'orderbook');
+        if (isOrderbookPath) {
+            if (action === 'subscribe-public-confirm') {
+                return this.handleSubscriptionStatus (client, message);
+            } else if (action === 'proxy-response') {
+                return this.handleSnapshot (client, message);
+            }
         }
         const topic = this.safeString (message, 'topic');
         let splitTopic = undefined;
