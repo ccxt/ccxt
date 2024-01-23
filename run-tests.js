@@ -69,7 +69,7 @@ const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 // for REST exchange test, because the rate-limit & throttling, the overall timeout
 // might be needed around 200+ seconds for some exchanges
 // for WS, we have watchOHLCV which might need at least 60 seconds to get an update.
-const timeoutSeconds = wsFlag ? 120 : 250;
+const timeoutSeconds = wsFlag ? 100 : 250;
 
 
 /*  --------------------------------------------------------------------------- */
