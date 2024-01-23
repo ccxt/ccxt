@@ -560,6 +560,26 @@
                 ]
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "swap regular order",
+                "method": "fetchOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?orderId=1749821585366409216&symbol=BTC-USDT&timestamp=1706025010037&signature=4b458843844af55589041681c20a6eb42bbef7df7fd3e1d40e2cba87709530cf",
+                "input": [
+                  "1749821585366409216",
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "swap trigger order",
+                "method": "fetchOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?orderId=1749820977469153280&symbol=BTC-USDT&timestamp=1706024901991&signature=547fb0bb6a8cd1d39f49ba7d2c9753a78bfe5b3b806c5e21b659a0e28438bf3e",
+                "input": [
+                  "1749820977469153280",
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Spot open orders",
