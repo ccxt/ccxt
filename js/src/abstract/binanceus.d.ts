@@ -591,6 +591,7 @@ interface binance {
     privateGetMyPreventedMatches(params?: {}): Promise<implicitReturnType>;
     privateGetMyAllocations(params?: {}): Promise<implicitReturnType>;
     privateGetAccountCommission(params?: {}): Promise<implicitReturnType>;
+    privateGetStatus(params?: {}): Promise<implicitReturnType>;
     privatePostOrderOco(params?: {}): Promise<implicitReturnType>;
     privatePostSorOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSorOrderTest(params?: {}): Promise<implicitReturnType>;

@@ -1565,8 +1565,9 @@ class coinex extends Exchange {
          */
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $isMargin = $this->safe_value($params, 'margin', false);
-        $marketType = $isMargin ? 'margin' : $marketType;
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
+        $marketType = ($marginMode !== null) ? 'margin' : $marketType;
         $params = $this->omit($params, 'margin');
         if ($marketType === 'margin') {
             return $this->fetch_margin_balance($params);
@@ -2077,8 +2078,9 @@ class coinex extends Exchange {
             }
         }
         $accountId = $this->safe_integer($params, 'account_id');
-        $defaultType = $this->safe_string($this->options, 'defaultType');
-        if ($defaultType === 'margin') {
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        if ($marginMode !== null) {
             if ($accountId === null) {
                 throw new BadRequest($this->id . ' createOrder() requires an account_id parameter for margin orders');
             }
@@ -2578,9 +2580,10 @@ class coinex extends Exchange {
             'market' => $market['id'],
         );
         $accountId = $this->safe_integer($params, 'account_id');
-        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
         $clientOrderId = $this->safe_string_2($params, 'client_id', 'clientOrderId');
-        if ($defaultType === 'margin') {
+        if ($marginMode !== null) {
             if ($accountId === null) {
                 throw new BadRequest($this->id . ' cancelOrder() requires an account_id parameter for margin orders');
             }
@@ -2939,8 +2942,9 @@ class coinex extends Exchange {
         }
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
         $accountId = $this->safe_integer($params, 'account_id');
-        $defaultType = $this->safe_string($this->options, 'defaultType');
-        if ($defaultType === 'margin') {
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrdersByStatus', $params);
+        if ($marginMode !== null) {
             if ($accountId === null) {
                 throw new BadRequest($this->id . ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders');
             }
@@ -3333,8 +3337,9 @@ class coinex extends Exchange {
         }
         $swap = ($type === 'swap');
         $accountId = $this->safe_integer($params, 'account_id');
-        $defaultType = $this->safe_string($this->options, 'defaultType');
-        if ($defaultType === 'margin') {
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
+        if ($marginMode !== null) {
             if ($accountId === null) {
                 throw new BadRequest($this->id . ' fetchMyTrades() requires an account_id parameter for margin trades');
             }
@@ -4645,9 +4650,10 @@ class coinex extends Exchange {
             $request['limit'] = 100;
         }
         $params = $this->omit($params, 'page');
-        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchTransfers', $params);
         $response = null;
-        if ($defaultType === 'margin') {
+        if ($marginMode !== null) {
             $response = $this->privateGetMarginTransferHistory (array_merge($request, $params));
         } else {
             $response = $this->privateGetContractTransferHistory (array_merge($request, $params));
@@ -5223,6 +5229,25 @@ class coinex extends Exchange {
             $depositWithdrawFees[$code] = $this->assign_default_deposit_withdraw_fees($depositWithdrawFees[$code], $currency);
         }
         return $depositWithdrawFees;
+    }
+
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
+        /**
+         * @ignore
+         * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return array([string|null, object]) the $marginMode in lowercase
+         */
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $isMargin = $this->safe_value($params, 'margin', false);
+        $marginMode = null;
+        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
+        if ($marginMode === null) {
+            if (($defaultType === 'margin') || ($isMargin === true)) {
+                $marginMode = 'isolated';
+            }
+        }
+        return array( $marginMode, $params );
     }
 
     public function nonce() {

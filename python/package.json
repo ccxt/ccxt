@@ -22,6 +22,9 @@
   },
   "readme": "README.md",
   "scripts": {
+    "instrument": "nyc instrument js/ jsInstrumented/",
+    "nyc-coverage": "nyc --reporter=html --reporter=lcov --exclude='js/src/pro/**' --exclude='js/src/base/**' --exclude='js/src/test/**' --exclude='js/src/abstract/**' --exclude='js/src/static_dependencies' node jsInstrumented/src/test/test.js --requestTests --responseTests",
+    "coverage-js": "npm run instrument && npm run nyc-coverage && rm -rf jsInstrumented",
     "docker": "docker-compose run --rm ccxt",
     "fixTSBug": "node build/fixTSBug",
     "build-docs": "node jsdoc2md.js && node examples2md.js",
