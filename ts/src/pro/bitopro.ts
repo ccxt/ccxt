@@ -26,8 +26,8 @@ export default class bitopro extends bitoproRest {
             },
             'urls': {
                 'ws': {
-                    'public': 'wss://stream.bitopro.com:9443/ws/v1/pub',
-                    'private': 'wss://stream.bitopro.com:9443/ws/v1/pub/auth',
+                    'public': 'wss://stream.bitopro.com:443/ws/v1/pub',
+                    'private': 'wss://stream.bitopro.com:443/ws/v1/pub/auth',
                 },
             },
             'requiredCredentials': {
@@ -240,7 +240,7 @@ export default class bitopro extends bitoproRest {
             'identity': this.login,
         });
         const payload = this.stringToBase64 (rawData);
-        const signature = this.hmac (payload, this.encode (this.secret), sha384);
+        const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
         const defaultOptions = {
             'ws': {
                 'options': {
