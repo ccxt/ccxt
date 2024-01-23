@@ -1922,16 +1922,19 @@ export default class phemex extends Exchange {
          * @method
          * @name phemex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://phemex-docs.github.io/#query-wallets
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
+         * @see https://phemex-docs.github.io/#query-trading-account-and-positions
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] spot or swap
+         * @param {string} [params.code] *swap only* currency code of the balance to query (USD, USDT, etc), default is USDT
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const code = this.safeString (params, 'code');
-        params = this.omit (params, [ 'type', 'code' ]);
+        params = this.omit (params, [ 'code' ]);
         let response = undefined;
         const request = {};
         if ((type !== 'spot') && (type !== 'swap')) {
@@ -1939,7 +1942,7 @@ export default class phemex extends Exchange {
         }
         if (type === 'swap') {
             let settle = undefined;
-            [ settle, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'settle');
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'settle', 'USDT');
             if (code !== undefined || settle !== undefined) {
                 let coin = undefined;
                 if (code !== undefined) {
