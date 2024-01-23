@@ -1855,6 +1855,7 @@ export default class coinmetro extends Exchange {
             if (headers === undefined) {
                 headers = {};
             }
+            headers['CCXT'] = true;
             if (url === 'https://api.coinmetro.com/jwt') { // handle with headers for login endpoint
                 headers['X-Device-Id'] = 'bypass';
                 if (this.twofa !== undefined) {
