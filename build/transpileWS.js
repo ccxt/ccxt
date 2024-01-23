@@ -266,6 +266,8 @@ class CCXTProTranspiler extends Transpiler {
         if (result.baseClass === result.className + 'Rest') {
             return result;
         }
+        // we need this because exchanges like binanceusWs extends binanceWs but we need to get the binanceus
+        // Rest describe() to inherit all the properties
         const matchOfRestImports = contents.matchAll('\nimport (.*?)Rest from \'..(.*?)\';');
         const matches = [...matchOfRestImports];
         if (matches.length) {
