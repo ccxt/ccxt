@@ -2762,7 +2762,7 @@ export default class phemex extends Exchange {
             request['baseQtyEV'] = finalQty;
         } else if (amount !== undefined) {
             if (isUSDTSettled) {
-                request['baseQtyEV'] = this.amountToPrecision (market['symbol'], amount);
+                request['orderQtyRq'] = this.amountToPrecision (market['symbol'], amount);
             } else {
                 request['baseQtyEV'] = this.toEv (amount, market);
             }
