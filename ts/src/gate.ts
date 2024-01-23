@@ -529,6 +529,7 @@ export default class gate extends Exchange {
                             'multi_collateral/currency_quota': 20 / 15,
                             'multi_collateral/currencies': 20 / 15,
                             'multi_collateral/ltv': 20 / 15,
+                            'multi_collateral/fixed_rate': 20 / 15,
                         },
                         'post': {
                             'collateral/orders': 20 / 15,
