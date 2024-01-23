@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
-
-namespace ccxt;
+using ccxt;
+namespace ccxt.pro;
 
 public class BaseCache : SlimConcurrentList<object>
 {

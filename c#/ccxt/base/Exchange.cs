@@ -585,7 +585,7 @@ public partial class Exchange
         // to do; improve this implementation to handle ArrayCache (thread-safe) better
         var firstInt = Convert.ToInt32(first);
         var parsedArray = ((IList<object>)array);
-        var isArrayCache = array is ArrayCache;
+        var isArrayCache = array is ccxt.pro.ArrayCache;
         // var typedArray = (array is ArrayCache) ? (ArrayCache)array : (IList<object>array);
         if (second == null)
         {
@@ -598,7 +598,7 @@ public partial class Exchange
                 {
                     // we need to make sure our implementation of ToArray is called, otherwise
                     // it will call the default one that is not thread-safe
-                    return (((array as ArrayCache).ToArray()[index..])).ToList();
+                    return (((array as ccxt.pro.ArrayCache).ToArray()[index..])).ToList();
 
                 }
                 else
@@ -608,7 +608,7 @@ public partial class Exchange
             }
             if (isArrayCache)
             {
-                return ((array as ArrayCache).ToArray()[firstInt..]).ToList();
+                return ((array as ccxt.pro.ArrayCache).ToArray()[firstInt..]).ToList();
             }
             else
             {
@@ -619,7 +619,7 @@ public partial class Exchange
         var secondInt = Convert.ToInt32(second);
         if (isArrayCache)
         {
-            return ((array as ArrayCache).ToArray()[firstInt..secondInt]).ToList();
+            return ((array as ccxt.pro.ArrayCache).ToArray()[firstInt..secondInt]).ToList();
 
         }
         else

@@ -235,10 +235,10 @@ public partial class Exchange
 
     public string json(object obj)
     {
-        if (obj is IOrderBook)
+        if (obj is ccxt.pro.IOrderBook)
         {
             // tmp fix, not this prevents the Collection was modified; enumeration operation may not execute error wtf
-            var ob = (IOrderBook)obj;
+            var ob = (ccxt.pro.IOrderBook)obj;
             var copy = ob.Copy();
             try
             {

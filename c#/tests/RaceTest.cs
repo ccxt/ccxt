@@ -1,5 +1,5 @@
+using ccxt.pro;
 using ccxt;
-
 using Newtonsoft.Json;
 
 namespace Tests;

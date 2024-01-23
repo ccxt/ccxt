@@ -1,30 +1,21 @@
-using System.Globalization;
-using System.Net;
-using System.Collections.Generic;
-using System.Runtime.ExceptionServices;
-namespace ccxt;
+namespace ccxt.pro;
 
-using dict = Dictionary<string, object>;
-
-// public partial class Exchange
+// public partial class Exchange : ccxt.Exchange
 // {
+//     public static int bisectLeft(IList<decimal> arr, decimal x)
+//     {
+//         int low = 0;
+//         int high = arr.Count - 1;
+//         while (low <= high)
+//         {
+//             int mid = (low + high) / 2;
+//             if (arr[mid] < x) low = mid + 1;
+//             else high = mid - 1;
+//         }
+//         return low;
+//     }
 
-public partial class Exchange
-{
-    public static int bisectLeft(IList<decimal> arr, decimal x)
-    {
-        int low = 0;
-        int high = arr.Count - 1;
-        while (low <= high)
-        {
-            int mid = (low + high) / 2;
-            if (arr[mid] < x) low = mid + 1;
-            else high = mid - 1;
-        }
-        return low;
-    }
-
-}
+// }
 
 public interface IOrderBookSide : IList<object>
 {
@@ -58,6 +49,19 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
                 _side = value;
             }
         }
+    }
+
+    public static int bisectLeft(IList<decimal> arr, decimal x)
+    {
+        int low = 0;
+        int high = arr.Count - 1;
+        while (low <= high)
+        {
+            int mid = (low + high) / 2;
+            if (arr[mid] < x) low = mid + 1;
+            else high = mid - 1;
+        }
+        return low;
     }
 
 
@@ -139,7 +143,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
             // }
             // debug
             var index_price = (this.side) ? -price : price;
-            var index = Exchange.bisectLeft(this._index, index_price);
+            var index = bisectLeft(this._index, index_price);
             if (amount != null && amount != 0)
             { // check this out does not make sense right now we have to consider null amounts?
                 if (index < this._index.Count && this._index[index] == index_price)
@@ -309,7 +313,7 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
             var count = Convert.ToInt32(deltaArray[2]);
             var decimalPrice = Convert.ToDecimal(price);
             var index_price = (this.side) ? -decimalPrice : decimalPrice;
-            var index = Exchange.bisectLeft(this._index, index_price);
+            var index = bisectLeft(this._index, index_price);
             if (size != 0 && count != 0)
             {
                 if ((index < this._index.Count) && this._index[index] == index_price)
@@ -400,7 +404,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
 
                     if (index_price == old_price)
                     {
-                        var index2 = Exchange.bisectLeft(this._index, Convert.ToDecimal(index_price));
+                        var index2 = bisectLeft(this._index, Convert.ToDecimal(index_price));
                         while (((IList<object>)this[index2])[2] != order_id)
                         {
                             index2++;
@@ -411,7 +415,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                     }
                     else
                     {
-                        var old_index = Exchange.bisectLeft(this._index, old_price);
+                        var old_index = bisectLeft(this._index, old_price);
                         while (((IList<object>)this[old_index])[2] != order_id)
                         {
                             old_index++;
@@ -422,7 +426,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                 }
                 // insert new price Level
                 this.hasmap[stringId] = index_price;
-                var index = Exchange.bisectLeft(this._index, index_price.Value);
+                var index = bisectLeft(this._index, index_price.Value);
                 while (index < this._index.Count && (this._index[index] == index_price) && (Convert.ToDecimal(((IList<object>)this[index])[2])) < Convert.ToDecimal(order_id))
                 {
                     index++;
@@ -433,7 +437,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
             else if (this.hasmap.ContainsKey(order_id.ToString()))
             {
                 var old_price2 = Convert.ToDecimal(this.hasmap[order_id.ToString()]);
-                var index3 = Exchange.bisectLeft(this._index, old_price2);
+                var index3 = bisectLeft(this._index, old_price2);
                 while (((IList<object>)this[index3])[2] != order_id)
                 {
                     index3++;

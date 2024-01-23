@@ -1,5 +1,5 @@
 
-namespace ccxt;
+namespace ccxt.pro;
 
 using Newtonsoft.Json;
 

@@ -78,7 +78,7 @@ class NewTranspiler {
             [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
             [/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients'],
             [/(orderbook)(\.reset.+)/gm, '($1 as IOrderBook)$2'],
-            [/(\w+)(\.cache)/gm, '($1 as ccxt.OrderBook)$2'],
+            [/(\w+)(\.cache)/gm, '($1 as ccxt.pro.OrderBook)$2'],
             //  [/(\w+)(\.reset)/gm, '($1 as ccxt.OrderBook)$2'],
             [/((?:this\.)?\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
             [/(countedBookSide)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
@@ -264,13 +264,14 @@ class NewTranspiler {
     }
 
     getCsharpImports(file, ws = false) {
+        const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
         const values = [
-            "using ccxt;",
-            "namespace ccxt;"
+            // "using ccxt;",
+            namespace,
         ]
-        if (ws) {
-            values.push("using System.Reflection;");
-        }
+        // if (ws) {
+        //     values.push("using System.Reflection;");
+        // }
         return values;
     }
 
@@ -302,7 +303,7 @@ class NewTranspiler {
 
         // handle watchOrderBook exception here (watchOrderBook and watchOrderBookForSymbols)
         if (name.startsWith('watchOrderBook')) { 
-            return `Task<IOrderBook>`;
+            return `Task<ccxt.pro.IOrderBook>`;
         }
 
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
@@ -483,7 +484,7 @@ class NewTranspiler {
     createReturnStatement(methodName: string,  unwrappedType:string ) {
         // handle watchOrderBook exception here
         if (methodName.startsWith('watchOrderBook')) {
-            return `return ((IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
+            return `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
         }
 
 
@@ -578,12 +579,13 @@ class NewTranspiler {
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
-        const exchangeName = ws ? exchange + 'Ws' : exchange;
+        // const exchangeName = ws ? exchange + 'Ws' : exchange;
+        const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
         const file = [
-            'namespace ccxt;',
+            namespace,
             '',
             this.createGeneratedHeader().join('\n'),
-            `public partial class ${exchangeName}`,
+            `public partial class ${exchange}`,
             '{',
             wrappersIndented,
             '}',
@@ -837,8 +839,8 @@ class NewTranspiler {
         if (!ws) {
             content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
         } else {
-            const wsParent =  baseWsClass.endsWith('Rest') ? baseWsClass.replace('Rest', '') : baseWsClass + 'Ws';
-            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1Ws : ${wsParent}`);
+            const wsParent =  baseWsClass.endsWith('Rest') ? 'ccxt.' + baseWsClass.replace('Rest', '') : baseWsClass;
+            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1 : ${wsParent}`);
         }
         content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
         // WS fixes
@@ -898,7 +900,7 @@ class NewTranspiler {
         const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
 
         const file = [
-            'using ccxt;',
+            'using ccxt.pro;',
             'namespace Tests;',
             '',
             this.createGeneratedHeader().join('\n'),
@@ -941,7 +943,7 @@ class NewTranspiler {
         const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
 
         const file = [
-            'using ccxt;',
+            'using ccxt.pro;',
             'namespace Tests;',
             '',
             this.createGeneratedHeader().join('\n'),
@@ -1253,8 +1255,9 @@ class NewTranspiler {
             }
 
             contentIndentend = this.regexAll (contentIndentend, regexes)
+            const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
             const fileHeaders = [
-                'using ccxt;',
+                namespace,
                 'namespace Tests;',
                 '',
                 this.createGeneratedHeader().join('\n'),

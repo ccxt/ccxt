@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace ccxt;
+namespace ccxt.pro;
 
 public class CustomConcurrentDictionary<TKey, TValue> : ConcurrentDictionary<TKey, TValue>
 {

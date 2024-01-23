@@ -362,3 +362,11 @@ dotnet_naming_style.s_camelcase.required_suffix =
 dotnet_naming_style.s_camelcase.word_separator = 
 dotnet_naming_style.s_camelcase.capitalization = camel_case
 
+
+[*.{cs,vb}]
+
+# IDE0002: Name can be simplified
+dotnet_diagnostic.IDE0002.severity = suggestion
+
+# IDE0005: Remove unnecessary imports
+dotnet_diagnostic.IDE0005.severity = suggestion

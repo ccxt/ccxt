@@ -1,4 +1,5 @@
 using ccxt;
+using ccxt.pro;
 
 using Newtonsoft.Json;
 
@@ -55,7 +56,8 @@ public partial class testMainClass : BaseTest
     {
         if (isWs)
         {
-            exchangeId = (string)exchangeId + "Ws";
+            // var binance = new ccxt.binance();
+            exchangeId = "ccxt.pro." + (string)exchangeId;// + "Ws";
         }
         var exchange = Exchange.MagicallyCreateInstance((string)exchangeId, exchangeArgs);
         return exchange;
