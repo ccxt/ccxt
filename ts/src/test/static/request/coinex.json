@@ -618,6 +618,19 @@
                 "input": [
                     "BTC"
                 ]
+            },
+            {
+                "description": "Spot-margin transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.coinex.com/v1/margin/transfer/history?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&limit=100&page=1&tonce=1706032791206",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ]
             }
         ]
     },
