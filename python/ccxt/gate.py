@@ -547,6 +547,7 @@ class gate(Exchange, ImplicitAPI):
                             'multi_collateral/currency_quota': 20 / 15,
                             'multi_collateral/currencies': 20 / 15,
                             'multi_collateral/ltv': 20 / 15,
+                            'multi_collateral/fixed_rate': 20 / 15,
                         },
                         'post': {
                             'collateral/orders': 20 / 15,
@@ -5168,7 +5169,7 @@ class gate(Exchange, ImplicitAPI):
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2
-        :param str[]|None symbols: list of unified market symbols
+        :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
@@ -5306,6 +5307,32 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_market_leverage_tiers(response, market)
 
+    def parse_emulated_leverage_tiers(self, info, market=None):
+        maintenanceMarginUnit = self.safe_string(info, 'maintenance_rate')  # '0.005',
+        leverageMax = self.safe_string(info, 'leverage_max')  # '100',
+        riskLimitStep = self.safe_string(info, 'risk_limit_step')  # '1000000',
+        riskLimitMax = self.safe_string(info, 'risk_limit_max')  # '16000000',
+        initialMarginUnit = Precise.string_div('1', leverageMax)
+        maintenanceMarginRate = maintenanceMarginUnit
+        initialMarginRatio = initialMarginUnit
+        floor = '0'
+        tiers = []
+        while(Precise.string_lt(floor, riskLimitMax)):
+            cap = Precise.string_add(floor, riskLimitStep)
+            tiers.append({
+                'tier': self.parse_number(Precise.string_div(cap, riskLimitStep)),
+                'currency': self.safe_string(market, 'settle'),
+                'minNotional': self.parse_number(floor),
+                'maxNotional': self.parse_number(cap),
+                'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
+                'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRatio)),
+                'info': info,
+            })
+            maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, maintenanceMarginUnit)
+            initialMarginRatio = Precise.string_add(initialMarginRatio, initialMarginUnit)
+            floor = cap
+        return tiers
+
     def parse_market_leverage_tiers(self, info, market: Market = None):
         #
         #     [
@@ -5318,6 +5345,8 @@ class gate(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
+        if not isinstance(info, list):
+            return self.parse_emulated_leverage_tiers(info, market)
         minNotional = 0
         tiers = []
         for i in range(0, len(info)):

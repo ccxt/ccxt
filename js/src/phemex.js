@@ -193,6 +193,7 @@ export default class phemex extends Exchange {
                         'api-data/g-futures/trades': 5,
                         'api-data/futures/trading-fees': 5,
                         'api-data/g-futures/trading-fees': 5,
+                        'api-data/futures/v2/tradeAccountDetail': 5,
                         'g-orders/activeList': 1,
                         'orders/activeList': 1,
                         'exchange/order/list': 5,
@@ -2770,7 +2771,7 @@ export default class phemex extends Exchange {
         }
         else if (amount !== undefined) {
             if (isUSDTSettled) {
-                request['baseQtyEV'] = this.amountToPrecision(market['symbol'], amount);
+                request['orderQtyRq'] = this.amountToPrecision(market['symbol'], amount);
             }
             else {
                 request['baseQtyEV'] = this.toEv(amount, market);

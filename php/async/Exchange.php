@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.20';
+$version = '4.2.21';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.20';
+    const VERSION = '4.2.21';
 
     public $browser;
     public $marketsLoading = null;
@@ -2138,7 +2138,7 @@ class Exchange extends \ccxt\Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $item = $response[$i];
             $id = $this->safe_string($item, $marketIdKey);
-            $market = $this->safe_market($id, null, null, $this->safe_string($this->options, 'defaultType'));
+            $market = $this->safe_market($id, null, null, 'swap');
             $symbol = $market['symbol'];
             $contract = $this->safe_value($market, 'contract', false);
             if ($contract && (($symbols === null) || $this->in_array($symbol, $symbols))) {

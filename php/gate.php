@@ -527,6 +527,7 @@ class gate extends Exchange {
                             'multi_collateral/currency_quota' => 20 / 15,
                             'multi_collateral/currencies' => 20 / 15,
                             'multi_collateral/ltv' => 20 / 15,
+                            'multi_collateral/fixed_rate' => 20 / 15,
                         ),
                         'post' => array(
                             'collateral/orders' => 20 / 15,
@@ -5437,7 +5438,7 @@ class gate extends Exchange {
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2
-         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
          */
@@ -5580,6 +5581,34 @@ class gate extends Exchange {
         return $this->parse_market_leverage_tiers($response, $market);
     }
 
+    public function parse_emulated_leverage_tiers($info, $market = null) {
+        $maintenanceMarginUnit = $this->safe_string($info, 'maintenance_rate'); // '0.005',
+        $leverageMax = $this->safe_string($info, 'leverage_max'); // '100',
+        $riskLimitStep = $this->safe_string($info, 'risk_limit_step'); // '1000000',
+        $riskLimitMax = $this->safe_string($info, 'risk_limit_max'); // '16000000',
+        $initialMarginUnit = Precise::string_div('1', $leverageMax);
+        $maintenanceMarginRate = $maintenanceMarginUnit;
+        $initialMarginRatio = $initialMarginUnit;
+        $floor = '0';
+        $tiers = array();
+        while (Precise::string_lt($floor, $riskLimitMax)) {
+            $cap = Precise::string_add($floor, $riskLimitStep);
+            $tiers[] = array(
+                'tier' => $this->parse_number(Precise::string_div($cap, $riskLimitStep)),
+                'currency' => $this->safe_string($market, 'settle'),
+                'minNotional' => $this->parse_number($floor),
+                'maxNotional' => $this->parse_number($cap),
+                'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
+                'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRatio)),
+                'info' => $info,
+            );
+            $maintenanceMarginRate = Precise::string_add($maintenanceMarginRate, $maintenanceMarginUnit);
+            $initialMarginRatio = Precise::string_add($initialMarginRatio, $initialMarginUnit);
+            $floor = $cap;
+        }
+        return $tiers;
+    }
+
     public function parse_market_leverage_tiers($info, ?array $market = null) {
         //
         //     array(
@@ -5592,6 +5621,9 @@ class gate extends Exchange {
         //         }
         //     )
         //
+        if (gettype($info) !== 'array' || array_keys($info) !== array_keys(array_keys($info))) {
+            return $this->parse_emulated_leverage_tiers($info, $market);
+        }
         $minNotional = 0;
         $tiers = array();
         for ($i = 0; $i < count($info); $i++) {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.20'
+__version__ = '4.2.21'
 
 # -----------------------------------------------------------------------------
 
@@ -3204,7 +3204,7 @@ class Exchange(object):
         for i in range(0, len(response)):
             item = response[i]
             id = self.safe_string(item, marketIdKey)
-            market = self.safe_market(id, None, None, self.safe_string(self.options, 'defaultType'))
+            market = self.safe_market(id, None, None, 'swap')
             symbol = market['symbol']
             contract = self.safe_value(market, 'contract', False)
             if contract and ((symbols is None) or self.in_array(symbol, symbols)):

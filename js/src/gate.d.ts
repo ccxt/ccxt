@@ -220,6 +220,7 @@ export default class gate extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
+    parseEmulatedLeverageTiers(info: any, market?: any): any[];
     parseMarketLeverageTiers(info: any, market?: Market): any[];
     repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
         id: number;
