@@ -26,7 +26,7 @@
               "balanceEv": "330431102856",
               "lockedTradingBalanceEv": "616000000",
               "lockedWithdrawEv": "0",
-              "lastUpdateTimeNs": "1705974256252940795",
+              "lastUpdateTimeNs": "1705974256252000000",
               "walletVid": "0"
             }
           ]
@@ -49,7 +49,7 @@
                 "balanceEv": "330431102856",
                 "lockedTradingBalanceEv": "616000000",
                 "lockedWithdrawEv": "0",
-                "lastUpdateTimeNs": "1705974256252940795",
+                "lastUpdateTimeNs": "1705974256252000000",
                 "walletVid": "0"
               }
             ]
@@ -784,7 +784,7 @@
                 "timeInForce": "GoodTillCancel",
                 "ordStatus": "New",
                 "execStatus": "ReAdded",
-                "createTimeNs": "1700817998742540341",
+                "createTimeNs": "1700817998742000000",
                 "cumFeeEv": "0",
                 "cumBaseValueEv": "0",
                 "cumQuoteValueEv": "0",
@@ -815,7 +815,7 @@
               "timeInForce": "GoodTillCancel",
               "ordStatus": "New",
               "execStatus": "ReAdded",
-              "createTimeNs": "1700817998742540341",
+              "createTimeNs": "1700817998742000000",
               "cumFeeEv": "0",
               "cumBaseValueEv": "0",
               "cumQuoteValueEv": "0",
