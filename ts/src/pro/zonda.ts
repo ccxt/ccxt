@@ -418,21 +418,39 @@ export default class zonda extends zondaRest {
     }
 
     handleStats (client: Client, message) {
+        //  another method for watchTicker
+        //
         //    {
         //        "action": "push",
         //        "topic": "trading/stats/btc-pln",
         //        "message": [
         //            {
-        //                "m": "BTC-PLN",
-        //                "h": 28094.15,
-        //                "l": 27381.89,
-        //                "v": 1837.10247456,
-        //                "r24h": 27940
+        //                "m": "BTC-PLN",      // Currency pair of the market.
+        //                "h": 28094.15,       // Highest price of the last 24 hours.
+        //                "l": 27381.89,       // Lowest price of the last 24 hours.
+        //                "v": 1837.10247456,  // Volume of the last 24 hours.
+        //                "r24h": 27940        // Average rate of the last 24 hours.
         //            }
         //        ],
         //        "timestamp": "1576846510713",
         //        "seqNo": 430772
         //    }
+        //
+        const data = this.safeValue (message, 'message');
+        const timestamp = this.safeInteger (message, 'timestamp');
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            const ticker = this.parseWsTicker (item);
+            ticker['timestamp'] = timestamp;
+            ticker['datetime'] = this.iso8601 (timestamp);
+            const symbol = ticker['symbol'];
+            const market = this.market (symbol);
+            this.tickers[market['symbol']] = ticker;
+            const messageHash = 'stats/' + market['id'];
+            client.resolve (ticker, 'stats');
+            client.resolve (ticker, messageHash);
+        }
+        return message;
     }
 
     parseWsTicker (ticker, market = undefined) {
@@ -471,11 +489,11 @@ export default class zonda extends zondaRest {
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeString (ticker, 'rate');
         return this.safeTicker ({
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString2 (market, 'symbol', 'm'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
+            'high': this.safeString (ticker, 'h'),
+            'low': this.safeString (ticker, 'l'),
             'bid': this.safeString (ticker, 'highestBid'),
             'bidVolume': undefined,
             'ask': this.safeString (ticker, 'lowestAsk'),
@@ -487,8 +505,8 @@ export default class zonda extends zondaRest {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': undefined,
-            'baseVolume': undefined,
+            'average': this.safeString (ticker, 'r24h'),
+            'baseVolume': this.safeString (ticker, 'v'),
             'quoteVolume': undefined,
             'info': ticker,
         }, market);
@@ -540,7 +558,7 @@ export default class zonda extends zondaRest {
         const transactions = this.safeValue (data, 'transactions', {});
         const topic = this.safeString (message, 'topic');
         const splitTopic = topic.split ('/');
-        const marketId = this.safeString (splitTopic, 2);
+        const marketId = this.safeStringUpper (splitTopic, 2);
         const channel = this.safeString (splitTopic, 1);
         const messageHash = channel + '/' + marketId;
         const market = this.market (marketId);
