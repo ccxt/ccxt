@@ -22,9 +22,10 @@ export default class zonda extends zondaRest {
                 'watchTrades': true,
                 'watchOrderBook': true,
                 'watchBalance': true,
+                'watchOHLCV': false,
                 'watchOrders': true,
-                'watchOHLCV': true,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
+                'watchPositions': false,
                 'createOrderWs': false,
                 'cancelOrderWs': false,
                 'fetchOpenOrdersWs': false,
@@ -138,9 +139,12 @@ export default class zonda extends zondaRest {
             messageHash = messageHash + '::' + symbol;
         }
         const subscribe = {
-            'method': name,
-            'params': params,
-            'id': this.nonce (),
+            'action': 'subscribe-private',
+            'module': 'trading',
+            'path': 'offers',
+            'hashSignature': '8892f16e0713c5f3e3d7e9fa26c5a5f2817b09fc48fece72ed5712ae33547c92e91e735b1818397136beea760efae61d1449a93e48ee2f80789dfa24830ef720',
+            'publicKey': '12345f6f-1b1d-1234-a973-a10b1bdba1a1',
+            'requestTimestamp': 1529897422,
         };
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
@@ -608,13 +612,10 @@ export default class zonda extends zondaRest {
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
-         * TODO
-         * @method
          * @name zonda#watchOrders
          * @description watches information on multiple orders made by the user
-         * @see https://api.zonda.com/#subscribe-to-reports
-         * @see https://api.zonda.com/#subscribe-to-reports-2
-         * @see https://api.zonda.com/#subscribe-to-reports-3
+         * @see https://docs.zondacrypto.exchange/reference/active-orders-ws
+         * @see https://docs.zondacrypto.exchange/reference/active-stop-orders-1
          * @param {string} [symbol] unified CCXT market symbol
          * @param {int} [since] timestamp in ms of the earliest order to fetch
          * @param {int} [limit] the maximum amount of orders to fetch
@@ -861,13 +862,8 @@ export default class zonda extends zondaRest {
          * @method
          * @name zonda#watchBalance
          * @description watches balance updates, cannot subscribe to margin account balances
-         * @see https://api.zonda.com/#subscribe-to-spot-balances
-         * @see https://api.zonda.com/#subscribe-to-futures-balances
+         * @see https://docs.zondacrypto.exchange/reference/available-funds-ws
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.type] 'spot', 'swap', or 'future'
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-         * @param {string} [params.mode] 'updates' or 'batches' (default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
          * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
