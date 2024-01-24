@@ -17,34 +17,34 @@ function equals($a, $b) {
 
 
 // ----------------------------------------------------------------------------
-$array_cache = new ArrayCache(3);
+$cache = new ArrayCache(3);
 
 
-$array_cache->append(array(
+$cache->append(array(
     'symbol' => 'BTC/USDT',
     'data' => 1,
 ));
 
 
-$array_cache->append(array(
+$cache->append(array(
     'symbol' => 'BTC/USDT',
     'data' => 2,
 ));
 
 
-$array_cache->append(array(
+$cache->append(array(
     'symbol' => 'BTC/USDT',
     'data' => 3,
 ));
 
 
-$array_cache->append(array(
+$cache->append(array(
     'symbol' => 'BTC/USDT',
     'data' => 4,
 ));
 
 
-assert(equals($array_cache, [array(
+assert(equals($cache, [array(
     'symbol' => 'BTC/USDT',
     'data' => 2,
 ), array(
@@ -56,31 +56,31 @@ assert(equals($array_cache, [array(
 )]));
 
 
-$array_cache->append(array(
+$cache->append(array(
     'symbol' => 'BTC/USDT',
     'data' => 5,
 ));
 
 
-$array_cache->append(array(
+$cache->append(array(
     'symbol' => 'BTC/USDT',
     'data' => 6,
 ));
 
 
-$array_cache->append(array(
+$cache->append(array(
     'symbol' => 'BTC/USDT',
     'data' => 7,
 ));
 
 
-$array_cache->append(array(
+$cache->append(array(
     'symbol' => 'BTC/USDT',
     'data' => 8,
 ));
 
 
-assert(equals($array_cache, [array(
+assert(equals($cache, [array(
     'symbol' => 'BTC/USDT',
     'data' => 6,
 ), array(
@@ -92,45 +92,45 @@ assert(equals($array_cache, [array(
 )]));
 
 
-$array_cache->clear();
+$cache->clear();
 
 
-$array_cache->append(array(
+$cache->append(array(
     'symbol' => 'BTC/USDT',
     'data' => 1,
 ));
 
 
-assert(equals($array_cache, [array(
+assert(equals($cache, [array(
     'symbol' => 'BTC/USDT',
     'data' => 1,
 )]));
 
 
 // ----------------------------------------------------------------------------
-$arraycache2 = new ArrayCache(1);
+$cache = new ArrayCache(1);
 
 
-$arraycache2->append(array(
+$cache->append(array(
     'symbol' => 'BTC/USDT',
     'data' => 1,
 ));
 
 
-$arraycache2->append(array(
+$cache->append(array(
     'symbol' => 'BTC/USDT',
     'data' => 2,
 ));
 
 
-assert(equals($arraycache2, [array(
+assert(equals($cache, [array(
     'symbol' => 'BTC/USDT',
     'data' => 2,
 )]));
 
 
 // ----------------------------------------------------------------------------
-$timestamp_cache = new ArrayCacheByTimestamp();
+$cache = new ArrayCacheByTimestamp();
 
 
 $ohlcv1 = [100, 1, 2, 3];
@@ -139,26 +139,26 @@ $ohlcv1 = [100, 1, 2, 3];
 $ohlcv2 = [200, 5, 6, 7];
 
 
-$timestamp_cache->append($ohlcv1);
+$cache->append($ohlcv1);
 
 
-$timestamp_cache->append($ohlcv2);
+$cache->append($ohlcv2);
 
 
-assert(equals($timestamp_cache, [$ohlcv1, $ohlcv2]));
+assert(equals($cache, [$ohlcv1, $ohlcv2]));
 
 
 $modify2 = [200, 10, 11, 12];
 
 
-$timestamp_cache->append($modify2);
+$cache->append($modify2);
 
 
-assert(equals($timestamp_cache, [$ohlcv1, $modify2]));
+assert(equals($cache, [$ohlcv1, $modify2]));
 
 
 // ----------------------------------------------------------------------------
-$cache_symbol_id = new ArrayCacheBySymbolById();
+$cache = new ArrayCacheBySymbolById();
 
 
 $object1 = array(
@@ -182,24 +182,23 @@ $object3 = array(
 );
 
 
-$cache_symbol_id->append($object1);
+$cache->append($object1);
 
 
-$cache_symbol_id->append($object2);
+$cache->append($object2);
 
 
-$cache_symbol_id->append($object3); // should update index 0
+$cache->append($object3); // should update index 0
 
 
-assert(equals($cache_symbol_id, [$object2, $object3]));
+assert(equals($cache, [$object2, $object3]));
 
 
-// ----------------------------------------------------------------------------
-$cache_symbol_id_5 = new ArrayCacheBySymbolById(5);
+$cache = new ArrayCacheBySymbolById(5);
 
 
 for ($i = 1; $i < 11; $i++) {
-    $cache_symbol_id_5->append(array(
+    $cache->append(array(
         'symbol' => 'BTC/USDT',
         'id' => ((string) $i),
         'i' => $i,
@@ -207,7 +206,7 @@ for ($i = 1; $i < 11; $i++) {
 }
 
 
-assert(equals($cache_symbol_id_5, [array(
+assert(equals($cache, [array(
     'symbol' => 'BTC/USDT',
     'id' => '6',
     'i' => 6,
@@ -231,7 +230,7 @@ assert(equals($cache_symbol_id_5, [array(
 
 
 for ($i = 1; $i < 11; $i++) {
-    $cache_symbol_id_5->append(array(
+    $cache->append(array(
         'symbol' => 'BTC/USDT',
         'id' => ((string) $i),
         'i' => $i + 10,
@@ -239,7 +238,7 @@ for ($i = 1; $i < 11; $i++) {
 }
 
 
-assert(equals($cache_symbol_id_5, [array(
+assert(equals($cache, [array(
     'symbol' => 'BTC/USDT',
     'id' => '6',
     'i' => 16,
@@ -269,10 +268,10 @@ $middle = array(
 );
 
 
-$cache_symbol_id_5->append($middle);
+$cache->append($middle);
 
 
-assert(equals($cache_symbol_id_5, [array(
+assert(equals($cache, [array(
     'symbol' => 'BTC/USDT',
     'id' => '6',
     'i' => 16,
@@ -302,10 +301,10 @@ $other_middle = array(
 );
 
 
-$cache_symbol_id_5->append($other_middle);
+$cache->append($other_middle);
 
 
-assert(equals($cache_symbol_id_5, [array(
+assert(equals($cache, [array(
     'symbol' => 'BTC/USDT',
     'id' => '6',
     'i' => 16,
@@ -329,7 +328,7 @@ assert(equals($cache_symbol_id_5, [array(
 
 
 for ($i = 30; $i < 33; $i++) {
-    $cache_symbol_id_5->append(array(
+    $cache->append(array(
         'symbol' => 'BTC/USDT',
         'id' => ((string) $i),
         'i' => $i + 10,
@@ -337,7 +336,7 @@ for ($i = 30; $i < 33; $i++) {
 }
 
 
-assert(equals($cache_symbol_id_5, [array(
+assert(equals($cache, [array(
     'symbol' => 'BTC/USDT',
     'id' => '8',
     'i' => 28,
@@ -367,10 +366,10 @@ $first = array(
 );
 
 
-$cache_symbol_id_5->append($first);
+$cache->append($first);
 
 
-assert(equals($cache_symbol_id_5, [array(
+assert(equals($cache, [array(
     'symbol' => 'BTC/USDT',
     'id' => '7',
     'i' => 27,
@@ -400,10 +399,10 @@ $another = array(
 );
 
 
-$cache_symbol_id_5->append($another);
+$cache->append($another);
 
 
-assert(equals($cache_symbol_id_5, [array(
+assert(equals($cache, [array(
     'symbol' => 'BTC/USDT',
     'id' => '7',
     'i' => 27,
@@ -431,14 +430,14 @@ assert(equals($cache_symbol_id_5, [array(
 $symbol = 'BTC/USDT';
 
 
-$cache_symbol_id_2 = new ArrayCacheBySymbolById();
+$cache = new ArrayCacheBySymbolById();
 
 
 $initial_length = 5;
 
 
 for ($i = 0; $i < $initial_length; $i++) {
-    $cache_symbol_id_2->append(array(
+    $cache->append(array(
         'symbol' => $symbol,
         'id' => ((string) $i),
         'i' => $i,
@@ -446,21 +445,20 @@ for ($i = 0; $i < $initial_length; $i++) {
 }
 
 
-$limited = $cache_symbol_id_2->get_limit($symbol, null);
+$limited = $cache->get_limit($symbol, null);
 
 
 assert($initial_length === $limited);
 
 
-// ----------------------------------------------------------------------------
-$cache_symbol_id_3 = new ArrayCacheBySymbolById();
+$cache = new ArrayCacheBySymbolById();
 
 
 $append_items_length = 3;
 
 
 for ($i = 0; $i < $append_items_length; $i++) {
-    $cache_symbol_id_3->append(array(
+    $cache->append(array(
         'symbol' => $symbol,
         'id' => ((string) $i),
         'i' => $i,
@@ -471,7 +469,7 @@ for ($i = 0; $i < $append_items_length; $i++) {
 $outside_limit = 5;
 
 
-$limited = $cache_symbol_id_3->get_limit($symbol, $outside_limit);
+$limited = $cache->get_limit($symbol, $outside_limit);
 
 
 assert($append_items_length === $limited);
@@ -480,7 +478,7 @@ assert($append_items_length === $limited);
 $outside_limit = 2; // if limit < newsUpdate that should be returned
 
 
-$limited = $cache_symbol_id_3->get_limit($symbol, $outside_limit);
+$limited = $cache->get_limit($symbol, $outside_limit);
 
 
 assert($outside_limit === $limited);
@@ -491,14 +489,14 @@ assert($outside_limit === $limited);
 $symbol = 'BTC/USDT';
 
 
-$cache_symbol_id_4 = new ArrayCacheBySymbolById();
+$cache = new ArrayCacheBySymbolById();
 
 
 $initial_length = 5;
 
 
 for ($i = 0; $i < $initial_length; $i++) {
-    $cache_symbol_id_4->append(array(
+    $cache->append(array(
         'symbol' => $symbol,
         'id' => ((string) $i),
         'i' => $i,
@@ -506,21 +504,20 @@ for ($i = 0; $i < $initial_length; $i++) {
 }
 
 
-$limited = $cache_symbol_id_4->get_limit(null, null);
+$limited = $cache->get_limit(null, null);
 
 
 assert($initial_length === $limited);
 
 
-// ----------------------------------------------------------------------------
-$cache_symbol_id_6 = new ArrayCacheBySymbolById();
+$cache = new ArrayCacheBySymbolById();
 
 
 $append_items_length = 3;
 
 
 for ($i = 0; $i < $append_items_length; $i++) {
-    $cache_symbol_id_6->append(array(
+    $cache->append(array(
         'symbol' => $symbol,
         'id' => ((string) $i),
         'i' => $i,
@@ -531,7 +528,7 @@ for ($i = 0; $i < $append_items_length; $i++) {
 $outside_limit = 5;
 
 
-$limited = $cache_symbol_id_6->get_limit($symbol, $outside_limit);
+$limited = $cache->get_limit($symbol, $outside_limit);
 
 
 assert($append_items_length === $limited);
@@ -540,7 +537,7 @@ assert($append_items_length === $limited);
 $outside_limit = 2; // if limit < newsUpdate that should be returned
 
 
-$limited = $cache_symbol_id_6->get_limit($symbol, $outside_limit);
+$limited = $cache->get_limit($symbol, $outside_limit);
 
 
 assert($outside_limit === $limited);
@@ -548,7 +545,7 @@ assert($outside_limit === $limited);
 
 // ----------------------------------------------------------------------------
 // test ArrayCacheBySymbolById, same order should not increase the limit
-$cache_symbol_id_7 = new ArrayCacheBySymbolById();
+$cache = new ArrayCacheBySymbolById();
 
 
 $symbol = 'BTC/USDT';
@@ -557,21 +554,21 @@ $symbol = 'BTC/USDT';
 $other_symbol = 'ETH/USDT';
 
 
-$cache_symbol_id_7->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'id' => 'singleId',
     'i' => 3,
 ));
 
 
-$cache_symbol_id_7->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'id' => 'singleId',
     'i' => 3,
 ));
 
 
-$cache_symbol_id_7->append(array(
+$cache->append(array(
     'symbol' => $other_symbol,
     'id' => 'singleId',
     'i' => 3,
@@ -581,32 +578,32 @@ $cache_symbol_id_7->append(array(
 $outside_limit = 5;
 
 
-$limited = $cache_symbol_id_7->get_limit($symbol, $outside_limit);
+$limited = $cache->get_limit($symbol, $outside_limit);
 
 
-$limited2 = $cache_symbol_id_7->get_limit(null, $outside_limit);
+$limited2 = $cache->get_limit(null, $outside_limit);
 
 
-assert($limited === 1);
+assert($limited == 1);
 
 
-assert($limited2 === 2);
+assert($limited2 == 2);
 
 
 // ----------------------------------------------------------------------------
 // test testLimitArrayCacheByTimestamp limit
-$timestamp_cache_2 = new ArrayCacheByTimestamp();
+$cache = new ArrayCacheByTimestamp();
 
 
 $initial_length = 5;
 
 
 for ($i = 0; $i < $initial_length; $i++) {
-    $timestamp_cache_2->append([$i * 10, $i * 10, $i * 10, $i * 10]);
+    $cache->append([$i * 10, $i * 10, $i * 10, $i * 10]);
 }
 
 
-$limited = $timestamp_cache_2->get_limit(null, null);
+$limited = $cache->get_limit(null, null);
 
 
 assert($initial_length === $limited);
@@ -616,14 +613,14 @@ $append_items_length = 3;
 
 
 for ($i = 0; $i < $append_items_length; $i++) {
-    $timestamp_cache_2->append([$i * 4, $i * 4, $i * 4, $i * 4]);
+    $cache->append([$i * 4, $i * 4, $i * 4, $i * 4]);
 }
 
 
 $outside_limit = 5;
 
 
-$limited = $timestamp_cache_2->get_limit(null, $outside_limit);
+$limited = $cache->get_limit(null, $outside_limit);
 
 
 assert($append_items_length === $limited);
@@ -632,7 +629,7 @@ assert($append_items_length === $limited);
 $outside_limit = 2; // if limit < newsUpdate that should be returned
 
 
-$limited = $timestamp_cache_2->get_limit(null, $outside_limit);
+$limited = $cache->get_limit(null, $outside_limit);
 
 
 assert($outside_limit === $limited);
@@ -640,7 +637,7 @@ assert($outside_limit === $limited);
 
 // ----------------------------------------------------------------------------
 // test ArrayCacheBySymbolById, watch all orders, same symbol and order id gets updated
-$cache_symbol_id_8 = new ArrayCacheBySymbolById();
+$cache = new ArrayCacheBySymbolById();
 
 
 $symbol = 'BTC/USDT';
@@ -649,44 +646,44 @@ $symbol = 'BTC/USDT';
 $outside_limit = 5;
 
 
-$cache_symbol_id_8->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'id' => 'oneId',
     'i' => 3,
 )); // create first order
 
 
-$cache_symbol_id_8->get_limit(null, $outside_limit); // watch all orders
+$cache->get_limit(null, $outside_limit); // watch all orders
 
 
-$cache_symbol_id_8->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'id' => 'oneId',
     'i' => 4,
 )); // first order is closed
 
 
-$cache_symbol_id_8->get_limit(null, $outside_limit); // watch all orders
+$cache->get_limit(null, $outside_limit); // watch all orders
 
 
-$cache_symbol_id_8->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'id' => 'twoId',
     'i' => 5,
 )); // create second order
 
 
-$cache_symbol_id_8->get_limit(null, $outside_limit); // watch all orders
+$cache->get_limit(null, $outside_limit); // watch all orders
 
 
-$cache_symbol_id_8->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'id' => 'twoId',
     'i' => 6,
 )); // second order is closed
 
 
-$limited = $cache_symbol_id_8->get_limit(null, $outside_limit); // watch all orders
+$limited = $cache->get_limit(null, $outside_limit); // watch all orders
 
 
 assert($limited === 1); // one new update
@@ -694,7 +691,7 @@ assert($limited === 1); // one new update
 
 // ----------------------------------------------------------------------------
 // test ArrayCacheBySymbolById, watch all orders, and watchOrders (symbol) work independently
-$cache_symbol_id_9 = new ArrayCacheBySymbolById();
+$cache = new ArrayCacheBySymbolById();
 
 
 $symbol = 'BTC/USDT';
@@ -706,66 +703,66 @@ $symbol2 = 'ETH/USDT';
 $outside_limit = 5;
 
 
-$cache_symbol_id_9->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'id' => 'one',
     'i' => 1,
 )); // create first order
 
 
-$cache_symbol_id_9->append(array(
+$cache->append(array(
     'symbol' => $symbol2,
     'id' => 'two',
     'i' => 1,
 )); // create second order
 
 
-assert($cache_symbol_id_9->get_limit(null, $outside_limit) === 2); // watch all orders
+assert($cache->get_limit(null, $outside_limit) === 2); // watch all orders
 
 
-assert($cache_symbol_id_9->get_limit($symbol, $outside_limit) === 1); // watch by symbol
+assert($cache->get_limit($symbol, $outside_limit) === 1); // watch by symbol
 
 
-$cache_symbol_id_9->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'id' => 'one',
     'i' => 2,
 )); // update first order
 
 
-$cache_symbol_id_9->append(array(
+$cache->append(array(
     'symbol' => $symbol2,
     'id' => 'two',
     'i' => 2,
 )); // update second order
 
 
-assert($cache_symbol_id_9->get_limit($symbol, $outside_limit) === 1); // watch by symbol
+assert($cache->get_limit($symbol, $outside_limit) === 1); // watch by symbol
 
 
-assert($cache_symbol_id_9->get_limit(null, $outside_limit) === 2); // watch all orders
+assert($cache->get_limit(null, $outside_limit) === 2); // watch all orders
 
 
-$cache_symbol_id_9->append(array(
+$cache->append(array(
     'symbol' => $symbol2,
     'id' => 'two',
     'i' => 3,
 )); // update second order
 
 
-$cache_symbol_id_9->append(array(
+$cache->append(array(
     'symbol' => $symbol2,
     'id' => 'three',
     'i' => 3,
 )); // create third order
 
 
-assert($cache_symbol_id_9->get_limit(null, $outside_limit) === 2); // watch all orders
+assert($cache->get_limit(null, $outside_limit) === 2); // watch all orders
 
 
 // ----------------------------------------------------------------------------
 // test ArrayCacheBySymbolBySide, watch all positions, same symbol and side id gets updated
-$cache_symbol_side = new ArrayCacheBySymbolBySide();
+$cache = new ArrayCacheBySymbolBySide();
 
 
 $symbol = 'BTC/USDT';
@@ -774,36 +771,36 @@ $symbol = 'BTC/USDT';
 $outside_limit = 5;
 
 
-$cache_symbol_side->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'side' => 'short',
     'contracts' => 1,
 )); // create first position
 
 
-$cache_symbol_side->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'side' => 'short',
     'contracts' => 0,
 )); // first position is closed
 
 
-assert($cache_symbol_side->get_limit($symbol, $outside_limit) === 1); // limit position
+assert($cache->get_limit($symbol, $outside_limit) === 1); // limit position
 
 
-$cache_symbol_side->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'side' => 'short',
     'contracts' => 1,
 )); // create first position
 
 
-assert($cache_symbol_side->get_limit($symbol, $outside_limit) === 1); // watch all positions
+assert($cache->get_limit($symbol, $outside_limit) === 1); // watch all positions
 
 
 // ----------------------------------------------------------------------------
 // test ArrayCacheBySymbolBySide, watch all positions, same symbol and side id gets updated
-$cache_symbol_side_2 = new ArrayCacheBySymbolBySide();
+$cache = new ArrayCacheBySymbolBySide();
 
 
 $symbol = 'BTC/USDT';
@@ -812,56 +809,56 @@ $symbol = 'BTC/USDT';
 $outside_limit = 5;
 
 
-$cache_symbol_side_2->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'side' => 'short',
     'contracts' => 1,
 )); // create first position
 
 
-assert($cache_symbol_side_2->get_limit(null, $outside_limit) === 1); // watch all positions
+assert($cache->get_limit(null, $outside_limit) === 1); // watch all positions
 
 
-$cache_symbol_side_2->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'side' => 'short',
     'contracts' => 0,
 )); // first position is closed
 
 
-assert($cache_symbol_side_2->get_limit(null, $outside_limit) === 1); // watch all positions
+assert($cache->get_limit(null, $outside_limit) === 1); // watch all positions
 
 
-$cache_symbol_side_2->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'side' => 'long',
     'contracts' => 3,
 )); // create second position
 
 
-assert($cache_symbol_side_2->get_limit(null, $outside_limit) === 1); // watch all positions
+assert($cache->get_limit(null, $outside_limit) === 1); // watch all positions
 
 
-$cache_symbol_side_2->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'side' => 'long',
     'contracts' => 2,
 )); // second position is reduced
 
 
-$cache_symbol_side_2->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'side' => 'long',
     'contracts' => 1,
 )); // second position is reduced
 
 
-assert($cache_symbol_side_2->get_limit(null, $outside_limit) === 1); // watch all orders
+assert($cache->get_limit(null, $outside_limit) === 1); // watch all orders
 
 
 // ----------------------------------------------------------------------------
 // test ArrayCacheBySymbolBySide, watchPositions, and watchPosition (symbol) work independently
-$cache_symbol_side_3 = new ArrayCacheBySymbolBySide();
+$cache = new ArrayCacheBySymbolBySide();
 
 
 $symbol = 'BTC/USDT';
@@ -870,51 +867,51 @@ $symbol = 'BTC/USDT';
 $symbol2 = 'ETH/USDT';
 
 
-$cache_symbol_side_3->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'side' => 'short',
     'contracts' => 1,
 )); // create first position
 
 
-$cache_symbol_side_3->append(array(
+$cache->append(array(
     'symbol' => $symbol2,
     'side' => 'long',
     'contracts' => 1,
 )); // create second position
 
 
-assert($cache_symbol_side_3->get_limit(null, $outside_limit) === 2); // watch all positions
+assert($cache->get_limit(null, $outside_limit) === 2); // watch all positions
 
 
-assert($cache_symbol_side_3->get_limit($symbol, $outside_limit) === 1); // watch by symbol
+assert($cache->get_limit($symbol, $outside_limit) === 1); // watch by symbol
 
 
-$cache_symbol_side_3->append(array(
+$cache->append(array(
     'symbol' => $symbol,
     'side' => 'short',
     'contracts' => 2,
 )); // update first position
 
 
-$cache_symbol_side_3->append(array(
+$cache->append(array(
     'symbol' => $symbol2,
     'side' => 'long',
     'contracts' => 2,
 )); // update second position
 
 
-assert($cache_symbol_side_3->get_limit($symbol, $outside_limit) === 1); // watch by symbol
+assert($cache->get_limit($symbol, $outside_limit) === 1); // watch by symbol
 
 
-assert($cache_symbol_side_3->get_limit(null, $outside_limit) === 2); // watch all positions
+assert($cache->get_limit(null, $outside_limit) === 2); // watch all positions
 
 
-$cache_symbol_side_3->append(array(
+$cache->append(array(
     'symbol' => $symbol2,
     'side' => 'long',
     'contracts' => 3,
 )); // update second position
 
 
-assert($cache_symbol_side_3->get_limit(null, $outside_limit) === 1); // watch all positions
+assert($cache->get_limit(null, $outside_limit) === 1); // watch all positions

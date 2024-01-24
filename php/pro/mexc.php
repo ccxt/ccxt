@@ -1143,7 +1143,7 @@ class mexc extends \ccxt\async\mexc {
         //
         $msg = $this->safe_string($message, 'msg');
         if ($msg === 'PONG') {
-            $this->handle_pong($client, $message);
+            return $this->handle_pong($client, $message);
         } elseif (mb_strpos($msg, '@') > -1) {
             $parts = explode('@', $msg);
             $channel = $this->safe_string($parts, 1);
@@ -1166,8 +1166,7 @@ class mexc extends \ccxt\async\mexc {
             return;
         }
         if (is_array($message) && array_key_exists('msg', $message)) {
-            $this->handle_subscription_status($client, $message);
-            return;
+            return $this->handle_subscription_status($client, $message);
         }
         $c = $this->safe_string($message, 'c');
         $channel = null;

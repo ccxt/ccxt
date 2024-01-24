@@ -726,7 +726,7 @@ class bitfinex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -969,7 +969,7 @@ class bitfinex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = 50, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, $limit = 50, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for

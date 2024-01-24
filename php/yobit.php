@@ -1161,29 +1161,11 @@ class yobit extends Exchange {
         $address = $this->safe_string($response['return'], 'address');
         $this->check_address($address);
         return array(
-            'id' => null,
             'currency' => $code,
             'address' => $address,
             'tag' => null,
             'network' => null,
             'info' => $response,
-            'txid' => null,
-            'type' => null,
-            'amount' => null,
-            'status' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'addressFrom' => null,
-            'addressTo' => null,
-            'tagFrom' => null,
-            'tagTo' => null,
-            'updated' => null,
-            'comment' => null,
-            'fee' => array(
-                'currency' => null,
-                'cost' => null,
-                'rate' => null,
-            ),
         );
     }
 
@@ -1215,27 +1197,6 @@ class yobit extends Exchange {
         return array(
             'info' => $response,
             'id' => null,
-            'txid' => null,
-            'type' => null,
-            'currency' => null,
-            'network' => null,
-            'amount' => null,
-            'status' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'address' => null,
-            'addressFrom' => null,
-            'addressTo' => null,
-            'tag' => null,
-            'tagFrom' => null,
-            'tagTo' => null,
-            'updated' => null,
-            'comment' => null,
-            'fee' => array(
-                'currency' => null,
-                'cost' => null,
-                'rate' => null,
-            ),
         );
     }
 

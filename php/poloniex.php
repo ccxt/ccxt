@@ -1804,7 +1804,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-accounts-transfer

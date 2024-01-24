@@ -640,16 +640,13 @@ class alpaca extends \ccxt\async\alpaca {
             $T = $this->safe_string($data, 'T');
             $msg = $this->safe_value($data, 'msg', array());
             if ($T === 'subscription') {
-                $this->handle_subscription($client, $data);
-                return;
+                return $this->handle_subscription($client, $data);
             }
             if ($T === 'success' && $msg === 'connected') {
-                $this->handle_connected($client, $data);
-                return;
+                return $this->handle_connected($client, $data);
             }
             if ($T === 'success' && $msg === 'authenticated') {
-                $this->handle_authenticate($client, $data);
-                return;
+                return $this->handle_authenticate($client, $data);
             }
             $methods = array(
                 'error' => array($this, 'handle_error_message'),
@@ -680,8 +677,7 @@ class alpaca extends \ccxt\async\alpaca {
 
     public function handle_message(Client $client, $message) {
         if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
-            $this->handle_crypto_message($client, $message);
-            return;
+            return $this->handle_crypto_message($client, $message);
         }
         $this->handle_trading_message($client, $message);
     }

@@ -2633,22 +2633,6 @@ class Exchange {
         throw new NotSupported($this->id . ' setLeverage() is not supported yet');
     }
 
-    public function fetch_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchOpenInterestHistory() is not supported yet');
-    }
-
-    public function fetch_open_interest(string $symbol, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
-    }
-
-    public function sign_in($params = array ()) {
-        throw new NotSupported($this->id . ' signIn() is not supported yet');
-    }
-
-    public function fetch_payment_methods($params = array ()) {
-        throw new NotSupported($this->id . ' fetchPaymentMethods() is not supported yet');
-    }
-
     public function parse_to_int($number) {
         // Solve Common intvalmisuse ex => intval((since / (string) 1000))
         // using a $number which is not valid in ts
@@ -4615,9 +4599,6 @@ class Exchange {
     }
 
     public function throw_exactly_matched_exception($exact, $string, $message) {
-        if ($string === null) {
-            return;
-        }
         if (is_array($exact) && array_key_exists($string, $exact)) {
             throw new $exact[$string]($message);
         }
@@ -4706,7 +4687,7 @@ class Exchange {
         return $this->fetch_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
@@ -5064,7 +5045,7 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchDepositsWithdrawals() is not supported yet');
     }
 
-    public function fetch_deposits(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDeposits() is not supported yet');
     }
 
@@ -5178,7 +5159,7 @@ class Exchange {
     }
 
     public function handle_withdraw_tag_and_params($tag, $params) {
-        if (($tag !== null) && (gettype($tag) === 'array')) {
+        if (gettype($tag) === 'array') {
             $params = array_merge($tag, $params);
             $tag = null;
         }
@@ -5973,8 +5954,7 @@ class Exchange {
                     $response = $this->$method ($symbol, null, $maxEntriesPerRequest, $params);
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $backwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
-                        $this->log ($backwardMessage);
+                        $this->log ('Dynamic pagination call', $calls, 'method', $method, 'response length', $responseLength, 'timestamp', $paginationTimestamp);
                     }
                     if ($responseLength === 0) {
                         break;
@@ -5991,8 +5971,7 @@ class Exchange {
                     $response = $this->$method ($symbol, $paginationTimestamp, $maxEntriesPerRequest, $params);
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $forwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
-                        $this->log ($forwardMessage);
+                        $this->log ('Dynamic pagination call', $calls, 'method', $method, 'response length', $responseLength, 'timestamp', $paginationTimestamp);
                     }
                     if ($responseLength === 0) {
                         break;
@@ -6036,7 +6015,6 @@ class Exchange {
                 throw $e;
             }
         }
-        return null;
     }
 
     public function fetch_paginated_call_deterministic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array (), $maxEntriesPerRequest = null) {
@@ -6102,8 +6080,7 @@ class Exchange {
                 $errors = 0;
                 $responseLength = count($response);
                 if ($this->verbose) {
-                    $cursorMessage = 'Cursor pagination call ' . $i + 1 . ' $method ' . $method . ' $response length ' . $responseLength . ' cursor ' . $cursorValue;
-                    $this->log ($cursorMessage);
+                    $this->log ('Cursor pagination call', $i + 1, 'method', $method, 'response length', $responseLength, 'cursor', $cursorValue);
                 }
                 if ($responseLength === 0) {
                     break;
@@ -6147,8 +6124,7 @@ class Exchange {
                 $errors = 0;
                 $responseLength = count($response);
                 if ($this->verbose) {
-                    $incrementalMessage = 'Incremental pagination call ' . $i + 1 . ' $method ' . $method . ' $response length ' . $responseLength;
-                    $this->log ($incrementalMessage);
+                    $this->log ('Incremental pagination call', $i + 1, 'method', $method, 'response length', $responseLength);
                 }
                 if ($responseLength === 0) {
                     break;

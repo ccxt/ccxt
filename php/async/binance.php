@@ -2482,7 +2482,7 @@ class binance extends Exchange {
         return $account;
     }
 
-    public function parse_balance_custom($response, $type = null, $marginMode = null): array {
+    public function parse_balance($response, $type = null, $marginMode = null): array {
         $result = array(
             'info' => $response,
         );
@@ -2814,7 +2814,7 @@ class binance extends Exchange {
             //       }
             //     )
             //
-            return $this->parse_balance_custom($response, $type, $marginMode);
+            return $this->parse_balance($response, $type, $marginMode);
         }) ();
     }
 
@@ -6142,7 +6142,7 @@ class binance extends Exchange {
         );
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -8795,8 +8795,8 @@ class binance extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array ()) {
-        return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
+        return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config, $context) {
             $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
             // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
             if ($api === 'private') {
@@ -9443,7 +9443,6 @@ class binance extends Exchange {
             } else {
                 return $this->parse_open_interest($response, $market);
             }
-            return null;
         }) ();
     }
 

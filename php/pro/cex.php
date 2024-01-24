@@ -992,15 +992,15 @@ class cex extends \ccxt\async\cex {
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer_2($data, 'timestamp_ms', 'timestamp');
         $incrementalId = $this->safe_number($data, 'id');
-        $orderbook = $this->order_book(array());
+        $storedOrderBook = $this->order_book(array());
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
         $snapshot['nonce'] = $incrementalId;
-        $orderbook->reset ($snapshot);
+        $storedOrderBook->reset ($snapshot);
         $this->options['orderbook'][$symbol] = array(
             'incrementalId' => $incrementalId,
         );
-        $this->orderbooks[$symbol] = $orderbook;
-        $client->resolve ($orderbook, $messageHash);
+        $this->orderbooks[$symbol] = $storedOrderBook;
+        $client->resolve ($storedOrderBook, $messageHash);
     }
 
     public function pair_to_symbol($pair) {
@@ -1483,8 +1483,7 @@ class cex extends \ccxt\async\cex {
     public function handle_message(Client $client, $message) {
         $ok = $this->safe_string($message, 'ok');
         if ($ok === 'error') {
-            $this->handle_error_message($client, $message);
-            return;
+            return $this->handle_error_message($client, $message);
         }
         $event = $this->safe_string($message, 'e');
         $handlers = array(
@@ -1512,8 +1511,9 @@ class cex extends \ccxt\async\cex {
         );
         $handler = $this->safe_value($handlers, $event);
         if ($handler !== null) {
-            $handler($client, $message);
+            return $handler($client, $message);
         }
+        return $message;
     }
 
     public function handle_authentication_message(Client $client, $message) {

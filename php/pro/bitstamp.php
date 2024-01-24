@@ -518,9 +518,9 @@ class bitstamp extends \ccxt\async\bitstamp {
         //
         $event = $this->safe_string($message, 'event');
         if ($event === 'bts:subscription_succeeded') {
-            $this->handle_subscription_status($client, $message);
+            return $this->handle_subscription_status($client, $message);
         } else {
-            $this->handle_subject($client, $message);
+            return $this->handle_subject($client, $message);
         }
     }
 
@@ -545,6 +545,7 @@ class bitstamp extends \ccxt\async\bitstamp {
                     $this->options['expiresIn'] = $this->sum($time, $validity);
                     $this->options['userId'] = $userId;
                     $this->options['wsSessionToken'] = $sessionToken;
+                    return $response;
                 }
             }
         }) ();

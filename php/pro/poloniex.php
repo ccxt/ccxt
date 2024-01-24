@@ -1069,8 +1069,7 @@ class poloniex extends \ccxt\async\poloniex {
                         $bid = $this->safe_value($bids, $j);
                         $price = $this->safe_number($bid, 0);
                         $amount = $this->safe_number($bid, 1);
-                        $bidsSide = $orderbook['bids'];
-                        $bidsSide->store ($price, $amount);
+                        $orderbook['bids'].store ($price, $amount);
                     }
                 }
                 if ($asks !== null) {
@@ -1078,8 +1077,7 @@ class poloniex extends \ccxt\async\poloniex {
                         $ask = $this->safe_value($asks, $j);
                         $price = $this->safe_number($ask, 0);
                         $amount = $this->safe_number($ask, 1);
-                        $asksSide = $orderbook['asks'];
-                        $asksSide->store ($price, $amount);
+                        $orderbook['asks'].store ($price, $amount);
                     }
                 }
                 $orderbook['symbol'] = $symbol;
@@ -1216,13 +1214,13 @@ class poloniex extends \ccxt\async\poloniex {
             if ($orderId === '0') {
                 $this->handle_error_message($client, $item);
             } else {
-                $this->handle_order_request($client, $message);
+                return $this->handle_order_request($client, $message);
             }
         } else {
             $data = $this->safe_value($message, 'data', array());
             $dataLength = count($data);
             if ($dataLength > 0) {
-                $method($client, $message);
+                return $method($client, $message);
             }
         }
     }

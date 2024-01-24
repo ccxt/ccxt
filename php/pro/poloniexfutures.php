@@ -69,22 +69,17 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
     }
 
     public function negotiate($privateChannel, $params = array ()) {
-        return Async\async(function () use ($privateChannel, $params) {
-            $connectId = $privateChannel ? 'private' : 'public';
-            $urls = $this->safe_value($this->options, 'urls', array());
-            if (is_array($urls) && array_key_exists($connectId, $urls)) {
-                // return $urls[$connectId];
-                $storedFuture = $urls[$connectId];
-                return Async\await($storedFuture);
-            }
-            // we store an awaitable to the url
-            // so that multiple calls don't asynchronously
-            // fetch different $urls and overwrite each other
-            $urls[$connectId] = $this->spawn(array($this, 'negotiate_helper'), $privateChannel, $params);
-            $this->options['urls'] = $urls;
-            $future = $urls[$connectId];
-            return Async\await($future);
-        }) ();
+        $connectId = $privateChannel ? 'private' : 'public';
+        $urls = $this->safe_value($this->options, 'urls', array());
+        if (is_array($urls) && array_key_exists($connectId, $urls)) {
+            return $urls[$connectId];
+        }
+        // we store an awaitable to the url
+        // so that multiple calls don't asynchronously
+        // fetch different $urls and overwrite each other
+        $urls[$connectId] = $this->spawn(array($this, 'negotiate_helper'), $privateChannel, $params);
+        $this->options['urls'] = $urls;
+        return $urls[$connectId];
     }
 
     public function negotiate_helper($privateChannel, $params = array ()) {
@@ -744,7 +739,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         $messageHash = $this->safe_string($message, 'topic');
         $subject = $this->safe_string($message, 'subject');
         if ($subject === 'received') {
-            return;
+            return $message;
         }
         // At the time of writting this, there is no implementation to easily convert each order into the orderbook so raw messages are returned
         $client->resolve ($message, $messageHash);
@@ -764,10 +759,9 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         $topic = $this->safe_string($message, 'topic');
         $isSnapshot = mb_strpos($topic, 'Depth') !== false;
         if ($isSnapshot) {
-            $this->hande_l2_snapshot($client, $message);
-            return;
+            return $this->hande_l2_snapshot($client, $message);
         }
-        $this->handle_l2_order_book($client, $message);
+        return $this->handle_l2_order_book($client, $message);
     }
 
     public function handle_l2_order_book(Client $client, $message) {
@@ -1000,7 +994,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         );
         $method = $this->safe_value($methods, $subject);
         if ($method !== null) {
-            $method($client, $message);
+            return $method($client, $message);
         }
     }
 
@@ -1040,7 +1034,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         );
         $method = $this->safe_value($methods, $type);
         if ($method !== null) {
-            $method($client, $message);
+            return $method($client, $message);
         }
     }
 

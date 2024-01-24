@@ -924,7 +924,7 @@ class bybit extends \ccxt\async\bybit {
             /**
              * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
              * watch all open positions
-             * @param {string[]} [$symbols] list of unified market $symbols
+             * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
@@ -959,7 +959,7 @@ class bybit extends \ccxt\async\bybit {
 
     public function set_positions_cache(Client $client, ?array $symbols = null) {
         if ($this->positions !== null) {
-            return;
+            return $this->positions;
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         if ($fetchPositionsSnapshot) {
@@ -1097,7 +1097,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, $message, $subscription = null) {
         //
         //     spot
         //     {
@@ -1656,29 +1656,27 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function authenticate($url, $params = array ()) {
-        return Async\async(function () use ($url, $params) {
-            $this->check_required_credentials();
-            $messageHash = 'authenticated';
-            $client = $this->client($url);
-            $future = $client->future ($messageHash);
-            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-            if ($authenticated === null) {
-                $expiresInt = $this->milliseconds() + 10000;
-                $expires = $this->number_to_string($expiresInt);
-                $path = 'GET/realtime';
-                $auth = $path . $expires;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'hex');
-                $request = array(
-                    'op' => 'auth',
-                    'args' => array(
-                        $this->apiKey, $expires, $signature,
-                    ),
-                );
-                $message = array_merge($request, $params);
-                $this->watch($url, $messageHash, $message, $messageHash);
-            }
-            return Async\await($future);
-        }) ();
+        $this->check_required_credentials();
+        $messageHash = 'authenticated';
+        $client = $this->client($url);
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
+            $expiresInt = $this->milliseconds() + 10000;
+            $expires = (string) $expiresInt;
+            $path = 'GET/realtime';
+            $auth = $path . $expires;
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'hex');
+            $request = array(
+                'op' => 'auth',
+                'args' => array(
+                    $this->apiKey, $expires, $signature,
+                ),
+            );
+            $message = array_merge($request, $params);
+            $this->watch($url, $messageHash, $message, $messageHash);
+        }
+        return $future;
     }
 
     public function handle_error_message(Client $client, $message) {

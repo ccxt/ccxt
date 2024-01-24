@@ -191,27 +191,27 @@ class independentreserve extends \ccxt\async\independentreserve {
         $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
         $receivedSnapshot = $this->safe_value($subscription, 'receivedSnapshot', false);
         $timestamp = $this->safe_integer($message, 'Time');
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
+        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
+        if ($storedOrderBook === null) {
+            $storedOrderBook = $this->order_book(array());
+            $this->orderbooks[$symbol] = $storedOrderBook;
         }
         if ($event === 'OrderBookSnapshot') {
             $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'Bids', 'Offers', 'Price', 'Volume');
-            $orderbook->reset ($snapshot);
+            $storedOrderBook->reset ($snapshot);
             $subscription['receivedSnapshot'] = true;
         } else {
             $asks = $this->safe_value($orderBook, 'Offers', array());
             $bids = $this->safe_value($orderBook, 'Bids', array());
-            $this->handle_deltas($orderbook['asks'], $asks);
-            $this->handle_deltas($orderbook['bids'], $bids);
-            $orderbook['timestamp'] = $timestamp;
-            $orderbook['datetime'] = $this->iso8601($timestamp);
+            $this->handle_deltas($storedOrderBook['asks'], $asks);
+            $this->handle_deltas($storedOrderBook['bids'], $bids);
+            $storedOrderBook['timestamp'] = $timestamp;
+            $storedOrderBook['datetime'] = $this->iso8601($timestamp);
         }
         $checksum = $this->safe_value($this->options, 'checksum', true);
         if ($checksum && $receivedSnapshot) {
-            $storedAsks = $orderbook['asks'];
-            $storedBids = $orderbook['bids'];
+            $storedAsks = $storedOrderBook['asks'];
+            $storedBids = $storedOrderBook['bids'];
             $asksLength = count($storedAsks);
             $bidsLength = count($storedBids);
             $payload = '';
@@ -233,7 +233,7 @@ class independentreserve extends \ccxt\async\independentreserve {
             }
         }
         if ($receivedSnapshot) {
-            $client->resolve ($orderbook, $messageHash);
+            $client->resolve ($storedOrderBook, $messageHash);
         }
     }
 
@@ -289,8 +289,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         );
         $handler = $this->safe_value($handlers, $event);
         if ($handler !== null) {
-            $handler($client, $message);
-            return;
+            return $handler($client, $message);
         }
         throw new NotSupported($this->id . ' received an unsupported $message => ' . $this->json($message));
     }

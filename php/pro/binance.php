@@ -548,7 +548,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function parse_ws_trade($trade, $market = null): array {
+    public function parse_trade($trade, $market = null): array {
         //
         // public watchTrades
         //
@@ -656,7 +656,7 @@ class binance extends \ccxt\async\binance {
         $executionType = $this->safe_string($trade, 'x');
         $isTradeExecution = ($executionType === 'TRADE');
         if (!$isTradeExecution) {
-            return $this->parse_trade($trade, $market);
+            return parent::parse_trade($trade, $market);
         }
         $id = $this->safe_string_2($trade, 't', 'a');
         $timestamp = $this->safe_integer($trade, 'T');
@@ -722,7 +722,7 @@ class binance extends \ccxt\async\binance {
         $lowerCaseId = $this->safe_string_lower($message, 's');
         $event = $this->safe_string($message, 'e');
         $messageHash = $lowerCaseId . '@' . $event;
-        $trade = $this->parse_ws_trade($message, $market);
+        $trade = $this->parse_trade($message, $market);
         $tradesArray = $this->safe_value($this->trades, $symbol);
         if ($tradesArray === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -1268,8 +1268,7 @@ class binance extends \ccxt\async\binance {
                 for ($j = 0; $j < count($subscriptionKeys); $j++) {
                     $subscribeType = $subscriptionKeys[$j];
                     if ($subscribeType === $type) {
-                        $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
-                        return;
+                        return $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
                     }
                 }
             }
@@ -1278,7 +1277,7 @@ class binance extends \ccxt\async\binance {
 
     public function set_balance_cache(Client $client, $type) {
         if (is_array($client->subscriptions) && array_key_exists($type, $client->subscriptions)) {
-            return;
+            return null;
         }
         $options = $this->safe_value($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_value($options, 'fetchBalanceSnapshot', false);
@@ -1383,7 +1382,7 @@ class binance extends \ccxt\async\binance {
         //
         $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_value($message, 'result', array());
-        $parsedBalances = $this->parse_balance($result);
+        $parsedBalances = $this->parse_balance($result, 'spot');
         $client->resolve ($parsedBalances, $messageHash);
     }
 
@@ -2767,15 +2766,13 @@ class binance extends \ccxt\async\binance {
         $status = $this->safe_string($message, 'status');
         $error = $this->safe_value($message, 'error');
         if (($error !== null) || ($status !== null && $status !== '200')) {
-            $this->handle_ws_error($client, $message);
-            return;
+            return $this->handle_ws_error($client, $message);
         }
         $id = $this->safe_string($message, 'id');
         $subscriptions = $this->safe_value($client->subscriptions, $id);
         $method = $this->safe_value($subscriptions, 'method');
         if ($method !== null) {
-            $method($client, $message);
-            return;
+            return $method($client, $message);
         }
         // handle other APIs
         $methods = array(
@@ -2805,8 +2802,7 @@ class binance extends \ccxt\async\binance {
         if ($method === null) {
             $requestId = $this->safe_string($message, 'id');
             if ($requestId !== null) {
-                $this->handle_subscription_status($client, $message);
-                return;
+                return $this->handle_subscription_status($client, $message);
             }
             // special case for the real-time bookTicker, since it comes without an $event identifier
             //
@@ -2824,7 +2820,7 @@ class binance extends \ccxt\async\binance {
                 $this->handle_tickers($client, $message);
             }
         } else {
-            $method($client, $message);
+            return $method($client, $message);
         }
     }
 }

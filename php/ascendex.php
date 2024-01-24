@@ -3085,10 +3085,10 @@ class ascendex extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'assetCode');
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * $transfer $currency internally between wallets on the same $account
-         * @param {string} $code unified $currency $codeåå
+         * @param {string} $code unified $currency $code
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount $account to $transfer from
          * @param {string} $toAccount $account to $transfer to

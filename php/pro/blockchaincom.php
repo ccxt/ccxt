@@ -110,7 +110,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //
         $event = $this->safe_string($message, 'event');
         if ($event === 'subscribed') {
-            return;
+            return $message;
         }
         $result = array( 'info' => $message );
         $balances = $this->safe_value($message, 'balances', array());
@@ -183,7 +183,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //
         $event = $this->safe_string($message, 'event');
         if ($event === 'subscribed') {
-            // return;
+            return $message;
         } elseif ($event === 'rejected') {
             throw new ExchangeError($this->id . ' ' . $this->json($message));
         } elseif ($event === 'updated') {
@@ -267,7 +267,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $symbol = $market['symbol'];
         $ticker = null;
         if ($event === 'subscribed') {
-            return;
+            return $message;
         } elseif ($event === 'snapshot') {
             $ticker = $this->parse_ticker($message, $market);
         } elseif ($event === 'updated') {
@@ -367,7 +367,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //
         $event = $this->safe_string($message, 'event');
         if ($event !== 'updated') {
-            return;
+            return $message;
         }
         $marketId = $this->safe_string($message, 'symbol');
         $symbol = $this->safe_symbol($marketId);
@@ -532,7 +532,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $this->orders = new ArrayCacheBySymbolById ($limit);
         }
         if ($event === 'subscribed') {
-            return;
+            return $message;
         } elseif ($event === 'rejected') {
             throw new ExchangeError($this->id . ' ' . $this->json($message));
         } elseif ($event === 'snapshot') {
@@ -703,27 +703,27 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $messageHash = 'orderbook:' . $symbol . ':' . $type;
         $datetime = $this->safe_string($message, 'timestamp');
         $timestamp = $this->parse8601($datetime);
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->counted_order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
+        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
+        if ($storedOrderBook === null) {
+            $storedOrderBook = $this->counted_order_book(array());
+            $this->orderbooks[$symbol] = $storedOrderBook;
         }
         if ($event === 'subscribed') {
-            return;
+            return $message;
         } elseif ($event === 'snapshot') {
             $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'px', 'qty', 'num');
             $storedOrderBook->reset ($snapshot);
         } elseif ($event === 'updated') {
             $asks = $this->safe_value($message, 'asks', array());
             $bids = $this->safe_value($message, 'bids', array());
-            $this->handle_deltas($orderbook['asks'], $asks);
-            $this->handle_deltas($orderbook['bids'], $bids);
-            $orderbook['timestamp'] = $timestamp;
-            $orderbook['datetime'] = $datetime;
+            $this->handle_deltas($storedOrderBook['asks'], $asks);
+            $this->handle_deltas($storedOrderBook['bids'], $bids);
+            $storedOrderBook['timestamp'] = $timestamp;
+            $storedOrderBook['datetime'] = $datetime;
         } else {
             throw new NotSupported($this->id . ' watchOrderBook() does not support ' . $event . ' yet');
         }
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve ($storedOrderBook, $messageHash);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -767,8 +767,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         );
         $handler = $this->safe_value($handlers, $channel);
         if ($handler !== null) {
-            $handler($client, $message);
-            return;
+            return $handler($client, $message);
         }
         throw new NotSupported($this->id . ' received an unsupported $message => ' . $this->json($message));
     }

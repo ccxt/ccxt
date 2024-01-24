@@ -527,24 +527,24 @@ class exmo extends \ccxt\async\exmo {
         $orderBook = $this->safe_value($message, 'data', array());
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer($message, 'ts');
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
+        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
+        if ($storedOrderBook === null) {
+            $storedOrderBook = $this->order_book(array());
+            $this->orderbooks[$symbol] = $storedOrderBook;
         }
         $event = $this->safe_string($message, 'event');
         if ($event === 'snapshot') {
             $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'bid', 'ask');
-            $orderbook->reset ($snapshot);
+            $storedOrderBook->reset ($snapshot);
         } else {
             $asks = $this->safe_value($orderBook, 'ask', array());
             $bids = $this->safe_value($orderBook, 'bid', array());
-            $this->handle_deltas($orderbook['asks'], $asks);
-            $this->handle_deltas($orderbook['bids'], $bids);
-            $orderbook['timestamp'] = $timestamp;
-            $orderbook['datetime'] = $this->iso8601($timestamp);
+            $this->handle_deltas($storedOrderBook['asks'], $asks);
+            $this->handle_deltas($storedOrderBook['bids'], $bids);
+            $storedOrderBook['timestamp'] = $timestamp;
+            $storedOrderBook['datetime'] = $this->iso8601($timestamp);
         }
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve ($storedOrderBook, $messageHash);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -582,8 +582,7 @@ class exmo extends \ccxt\async\exmo {
         );
         $eventHandler = $this->safe_value($events, $event);
         if ($eventHandler !== null) {
-            $eventHandler($client, $message);
-            return;
+            return $eventHandler($client, $message);
         }
         if (($event === 'update') || ($event === 'snapshot')) {
             $topic = $this->safe_string($message, 'topic');
@@ -605,8 +604,7 @@ class exmo extends \ccxt\async\exmo {
                 );
                 $handler = $this->safe_value($handlers, $channel);
                 if ($handler !== null) {
-                    $handler($client, $message);
-                    return;
+                    return $handler($client, $message);
                 }
             }
         }

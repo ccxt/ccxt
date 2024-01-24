@@ -990,7 +990,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 }
             }
         } else {
-            $method($client, $message);
+            return $method($client, $message);
         }
     }
 }

@@ -1041,9 +1041,8 @@ class ace extends Exchange {
         $feedback = $this->id . ' ' . $body;
         $status = $this->safe_number($response, 'status', 200);
         if ($status > 200) {
-            $statusStr = (string) $status;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $statusStr, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $statusStr, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $status, $feedback);
         }
         return null;
     }

@@ -55,21 +55,18 @@ class kucoin extends \ccxt\async\kucoin {
     }
 
     public function negotiate($privateChannel, $params = array ()) {
-        return Async\async(function () use ($privateChannel, $params) {
-            $connectId = $privateChannel ? 'private' : 'public';
-            $urls = $this->safe_value($this->options, 'urls', array());
-            $spawaned = $this->safe_value($urls, $connectId);
-            if ($spawaned !== null) {
-                return Async\await($spawaned);
-            }
-            // we store an awaitable to the url
-            // so that multiple calls don't asynchronously
-            // fetch different $urls and overwrite each other
-            $urls[$connectId] = $this->spawn(array($this, 'negotiate_helper'), $privateChannel, $params);
-            $this->options['urls'] = $urls;
-            $future = $urls[$connectId];
-            return Async\await($future);
-        }) ();
+        $connectId = $privateChannel ? 'private' : 'public';
+        $urls = $this->safe_value($this->options, 'urls', array());
+        $spawaned = $this->safe_value($urls, $connectId);
+        if ($spawaned !== null) {
+            return $spawaned;
+        }
+        // we store an awaitable to the url
+        // so that multiple calls don't asynchronously
+        // fetch different $urls and overwrite each other
+        $urls[$connectId] = $this->spawn(array($this, 'negotiate_helper'), $privateChannel, $params);
+        $this->options['urls'] = $urls;
+        return $urls[$connectId];
     }
 
     public function negotiate_helper($privateChannel, $params = array ()) {
@@ -573,7 +570,7 @@ class kucoin extends \ccxt\async\kucoin {
             $limit = $this->safe_integer($subscription, 'limit');
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 5);
             if ($cacheLength === $snapshotDelay) {
-                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit, array());
+                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit);
             }
             $storedOrderBook->cache[] = $data;
             return;
@@ -1029,8 +1026,7 @@ class kucoin extends \ccxt\async\kucoin {
         //
         $topic = $this->safe_string($message, 'topic');
         if ($topic === '/market/ticker:all') {
-            $this->handle_ticker($client, $message);
-            return;
+            return $this->handle_ticker($client, $message);
         }
         $subject = $this->safe_string($message, 'subject');
         $methods = array(
@@ -1045,8 +1041,10 @@ class kucoin extends \ccxt\async\kucoin {
             'stopOrder' => array($this, 'handle_order'),
         );
         $method = $this->safe_value($methods, $subject);
-        if ($method !== null) {
-            $method($client, $message);
+        if ($method === null) {
+            return $message;
+        } else {
+            return $method($client, $message);
         }
     }
 
@@ -1098,7 +1096,7 @@ class kucoin extends \ccxt\async\kucoin {
         );
         $method = $this->safe_value($methods, $type);
         if ($method !== null) {
-            $method($client, $message);
+            return $method($client, $message);
         }
     }
 }

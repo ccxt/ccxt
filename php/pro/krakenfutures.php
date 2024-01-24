@@ -1091,15 +1091,13 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $bid = $bids[$i];
             $price = $this->safe_number($bid, 'price');
             $qty = $this->safe_number($bid, 'qty');
-            $bidsSide = $orderbook['bids'];
-            $bidsSide->store ($price, $qty);
+            $orderbook['bids'].store ($price, $qty);
         }
         for ($i = 0; $i < count($asks); $i++) {
             $ask = $asks[$i];
             $price = $this->safe_number($ask, 'price');
             $qty = $this->safe_number($ask, 'qty');
-            $asksSide = $orderbook['asks'];
-            $asksSide->store ($price, $qty);
+            $orderbook['asks'].store ($price, $qty);
         }
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
@@ -1129,11 +1127,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $qty = $this->safe_number($message, 'qty');
         $timestamp = $this->safe_integer($message, 'timestamp');
         if ($side === 'sell') {
-            $asks = $orderbook['asks'];
-            $asks->store ($price, $qty);
+            $orderbook['asks'].store ($price, $qty);
         } else {
-            $bids = $orderbook['bids'];
-            $bids->store ($price, $qty);
+            $orderbook['bids'].store ($price, $qty);
         }
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
@@ -1472,7 +1468,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         if ($event === 'challenge') {
             $this->handle_authenticate($client, $message);
         } elseif ($event === 'alert') {
-            $this->handle_error_message($client, $message);
+            return $this->handle_error_message($client, $message);
         } elseif ($event === 'pong') {
             $client->lastPong = $this->milliseconds();
         } elseif ($event === null) {
@@ -1497,7 +1493,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             );
             $method = $this->safe_value($methods, $feed);
             if ($method !== null) {
-                $method($client, $message);
+                return $method($client, $message);
             }
         }
     }

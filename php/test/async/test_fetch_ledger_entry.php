@@ -17,9 +17,7 @@ function test_fetch_ledger_entry($exchange, $skipped_properties, $code) {
         $items = Async\await($exchange->fetch_ledger($code));
         $length = count($items);
         if ($length > 0) {
-            $first_item = $items[0];
-            $id = $first_item['id'];
-            $item = Async\await($exchange->fetch_ledger_entry($id));
+            $item = Async\await($exchange->fetch_ledger_entry($items[0]->id));
             $now = $exchange->milliseconds();
             test_ledger_entry($exchange, $skipped_properties, $method, $item, $code, $now);
         }

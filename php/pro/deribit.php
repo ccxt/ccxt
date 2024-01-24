@@ -783,16 +783,16 @@ class deribit extends \ccxt\async\deribit {
             );
             $handler = $this->safe_value($handlers, $channelId);
             if ($handler !== null) {
-                $handler($client, $message);
-                return;
+                return $handler($client, $message);
             }
             throw new NotSupported($this->id . ' no $handler found for this $message ' . $this->json($message));
         }
         $result = $this->safe_value($message, 'result', array());
         $accessToken = $this->safe_string($result, 'access_token');
         if ($accessToken !== null) {
-            $this->handle_authentication_message($client, $message);
+            return $this->handle_authentication_message($client, $message);
         }
+        return $message;
     }
 
     public function handle_authentication_message(Client $client, $message) {

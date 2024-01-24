@@ -473,30 +473,32 @@ class okcoin extends \ccxt\async\okcoin {
     }
 
     public function authenticate($params = array ()) {
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws'];
-        $messageHash = 'login';
-        $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $future = $client->future ('authenticated');
-            $timestamp = (string) $this->seconds();
-            $method = 'GET';
-            $path = '/users/self/verify';
-            $auth = $timestamp . $method . $path;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
-            $request = array(
-                'op' => $messageHash,
-                'args' => array(
-                    $this->apiKey,
-                    $this->password,
-                    $timestamp,
-                    $signature,
-                ),
-            );
-            $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws'];
+            $messageHash = 'login';
+            $client = $this->client($url);
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $future = $client->future ('authenticated');
+                $timestamp = (string) $this->seconds();
+                $method = 'GET';
+                $path = '/users/self/verify';
+                $auth = $timestamp . $method . $path;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+                $request = array(
+                    'op' => $messageHash,
+                    'args' => array(
+                        $this->apiKey,
+                        $this->password,
+                        $timestamp,
+                        $signature,
+                    ),
+                );
+                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function watch_balance($params = array ()): PromiseInterface {
@@ -736,8 +738,7 @@ class okcoin extends \ccxt\async\okcoin {
         // }
         //
         if ($message === 'pong') {
-            $this->handle_pong($client, $message);
-            return;
+            return $this->handle_pong($client, $message);
         }
         $table = $this->safe_string($message, 'table');
         if ($table === null) {
@@ -750,8 +751,10 @@ class okcoin extends \ccxt\async\okcoin {
                     'subscribe' => array($this, 'handle_subscription_status'),
                 );
                 $method = $this->safe_value($methods, $event);
-                if ($method !== null) {
-                    $method($client, $message);
+                if ($method === null) {
+                    return $message;
+                } else {
+                    return $method($client, $message);
                 }
             }
         } else {
@@ -772,8 +775,10 @@ class okcoin extends \ccxt\async\okcoin {
             if (mb_strpos($name, 'candle') !== false) {
                 $method = array($this, 'handle_ohlcv');
             }
-            if ($method !== null) {
-                $method($client, $message);
+            if ($method === null) {
+                return $message;
+            } else {
+                return $method($client, $message);
             }
         }
     }

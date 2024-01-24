@@ -397,13 +397,13 @@ class ndax extends \ccxt\async\ndax {
         $firstBidAsk = $this->safe_value($payload, 0, array());
         $marketId = $this->safe_string($firstBidAsk, 7);
         if ($marketId === null) {
-            return;
+            return $message;
         }
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
-            return;
+            return $message;
         }
         $timestamp = null;
         $nonce = null;
@@ -495,8 +495,10 @@ class ndax extends \ccxt\async\ndax {
         $subscription = $this->safe_value($subscriptionsById, $id);
         if ($subscription !== null) {
             $method = $this->safe_value($subscription, 'method');
-            if ($method !== null) {
-                $method($client, $message, $subscription);
+            if ($method === null) {
+                return $message;
+            } else {
+                return $method($client, $message, $subscription);
             }
         }
     }
@@ -526,7 +528,7 @@ class ndax extends \ccxt\async\ndax {
         //
         $payload = $this->safe_string($message, 'o');
         if ($payload === null) {
-            return;
+            return $message;
         }
         $message['o'] = json_decode($payload, $as_associative_array = true);
         $methods = array(
@@ -541,8 +543,10 @@ class ndax extends \ccxt\async\ndax {
         );
         $event = $this->safe_string($message, 'n');
         $method = $this->safe_value($methods, $event);
-        if ($method !== null) {
-            $method($client, $message);
+        if ($method === null) {
+            return $message;
+        } else {
+            return $method($client, $message);
         }
     }
 }

@@ -753,38 +753,36 @@ class okx extends \ccxt\async\okx {
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $this->check_required_credentials();
-            $access = $this->safe_string($params, 'access', 'private');
-            $params = $this->omit($params, array( 'access' ));
-            $url = $this->get_url('users', $access);
-            $messageHash = 'authenticated';
-            $client = $this->client($url);
-            $future = $client->future ($messageHash);
-            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-            if ($authenticated === null) {
-                $timestamp = (string) $this->seconds();
-                $method = 'GET';
-                $path = '/users/self/verify';
-                $auth = $timestamp . $method . $path;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
-                $operation = 'login';
-                $request = array(
-                    'op' => $operation,
-                    'args' => array(
-                        array(
-                            'apiKey' => $this->apiKey,
-                            'passphrase' => $this->password,
-                            'timestamp' => $timestamp,
-                            'sign' => $signature,
-                        ),
+        $this->check_required_credentials();
+        $access = $this->safe_string($params, 'access', 'private');
+        $params = $this->omit($params, array( 'access' ));
+        $url = $this->get_url('users', $access);
+        $messageHash = 'authenticated';
+        $client = $this->client($url);
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
+            $timestamp = (string) $this->seconds();
+            $method = 'GET';
+            $path = '/users/self/verify';
+            $auth = $timestamp . $method . $path;
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+            $operation = 'login';
+            $request = array(
+                'op' => $operation,
+                'args' => array(
+                    array(
+                        'apiKey' => $this->apiKey,
+                        'passphrase' => $this->password,
+                        'timestamp' => $timestamp,
+                        'sign' => $signature,
                     ),
-                );
-                $message = array_merge($request, $params);
-                $this->watch($url, $messageHash, $message, $messageHash);
-            }
-            return Async\await($future);
-        }) ();
+                ),
+            );
+            $message = array_merge($request, $params);
+            $this->watch($url, $messageHash, $message, $messageHash);
+        }
+        return $future;
     }
 
     public function watch_balance($params = array ()): PromiseInterface {
@@ -1601,8 +1599,7 @@ class okx extends \ccxt\async\okx {
         //
         //
         if ($message === 'pong') {
-            $this->handle_pong($client, $message);
-            return;
+            return $this->handle_pong($client, $message);
         }
         // $table = $this->safe_string($message, 'table');
         // if ($table === null) {
@@ -1621,8 +1618,10 @@ class okx extends \ccxt\async\okx {
                 'mass-cancel' => array($this, 'handle_cancel_all_orders'),
             );
             $method = $this->safe_value($methods, $event);
-            if ($method !== null) {
-                $method($client, $message);
+            if ($method === null) {
+                return $message;
+            } else {
+                return $method($client, $message);
             }
         } else {
             $arg = $this->safe_value($message, 'arg', array());
@@ -1648,9 +1647,11 @@ class okx extends \ccxt\async\okx {
             if ($method === null) {
                 if (mb_strpos($channel, 'candle') === 0) {
                     $this->handle_ohlcv($client, $message);
+                } else {
+                    return $message;
                 }
             } else {
-                $method($client, $message);
+                return $method($client, $message);
             }
         }
     }

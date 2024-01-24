@@ -1504,8 +1504,8 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
-        $dataResponse = $this->safe_value($response, 'data', array());
-        return $this->parse_markets($dataResponse);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_markets($data);
     }
 
     public function safe_network($networkId) {
@@ -3024,7 +3024,7 @@ class okx extends Exchange {
          * @param {string[]|string} $ids order $ids
          * @return {string[]} list of order $ids
          */
-        if (($ids !== null) && gettype($ids) === 'string') {
+        if (gettype($ids) === 'string') {
             return explode(',', $ids);
         } else {
             return $ids;
@@ -5309,7 +5309,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
@@ -7040,7 +7040,6 @@ class okx extends Exchange {
                 return $this->parse_greeks($entry, $market);
             }
         }
-        return null;
     }
 
     public function parse_greeks($greeks, ?array $market = null) {

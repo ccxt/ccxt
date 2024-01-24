@@ -865,15 +865,13 @@ class woo extends \ccxt\async\woo {
         $event = $this->safe_string($message, 'event');
         $method = $this->safe_value($methods, $event);
         if ($method !== null) {
-            $method($client, $message);
-            return;
+            return $method($client, $message);
         }
         $topic = $this->safe_string($message, 'topic');
         if ($topic !== null) {
             $method = $this->safe_value($methods, $topic);
             if ($method !== null) {
-                $method($client, $message);
-                return;
+                return $method($client, $message);
             }
             $splitTopic = explode('@', $topic);
             $splitLength = count($splitTopic);
@@ -881,22 +879,22 @@ class woo extends \ccxt\async\woo {
                 $name = $this->safe_string($splitTopic, 1);
                 $method = $this->safe_value($methods, $name);
                 if ($method !== null) {
-                    $method($client, $message);
-                    return;
+                    return $method($client, $message);
                 }
                 $splitName = explode('_', $name);
                 $splitNameLength = count($splitTopic);
                 if ($splitNameLength === 2) {
                     $method = $this->safe_value($methods, $this->safe_string($splitName, 0));
                     if ($method !== null) {
-                        $method($client, $message);
+                        return $method($client, $message);
                     }
                 }
             }
         }
+        return $message;
     }
 
-    public function ping(Client $client) {
+    public function ping($client) {
         return array( 'event' => 'ping' );
     }
 

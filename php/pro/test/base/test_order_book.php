@@ -263,11 +263,17 @@ $negative_stored_incremetal_order_book_target = array(
 );
 
 
+$bids = null;
+
+
+$asks = null;
+
+
 // --------------------------------------------------------------------------------------------------------------------
 $order_book = new OrderBook($order_book_input);
 
 
-$limited = new OrderBook($order_book_input,5);
+$limited = new OrderBook($order_book_input, 5);
 
 
 $order_book->limit();
@@ -334,7 +340,7 @@ assert(equals($limited, $limited_deleted_order_book_target));
 $indexed_order_book = new IndexedOrderBook($indexed_order_book_input);
 
 
-$limited_indexed_order_book = new IndexedOrderBook($indexed_order_book_input,5);
+$limited_indexed_order_book = new IndexedOrderBook($indexed_order_book_input, 5);
 
 
 $indexed_order_book->limit();
@@ -355,34 +361,34 @@ $indexed_order_book->limit();
 assert(equals($indexed_order_book, $indexed_order_book_target));
 
 
-$indexed_bids = $indexed_order_book['bids'];
+$bids = $indexed_order_book['bids'];
 
 
-$indexed_bids->store(1000, 0, '12345');
+$bids->store(1000, 0, '12345');
 
 
 assert(equals($indexed_order_book, $indexed_order_book_target));
 
 
-$indexed_bids->store(10, 0, '1234');
+$bids->store(10, 0, '1234');
 
 
-$indexed_bids->store(10, 2, '1231');
+$bids->store(10, 2, '1231');
 
 
-$indexed_bids->store(10, 1, '1232');
+$bids->store(10, 1, '1232');
 
 
-$indexed_bids->store(4, 2, '12399');
+$bids->store(4, 2, '12399');
 
 
-$indexed_bids->store(9, 2, '1231');
+$bids->store(9, 2, '1231');
 
 
-$indexed_bids->store(9, 3, '1231');
+$bids->store(9, 3, '1231');
 
 
-$indexed_bids->store(9, 1, '1232');
+$bids->store(9, 1, '1232');
 
 
 $indexed_order_book->limit();
@@ -394,10 +400,10 @@ assert(equals($indexed_order_book, $overwrite1234));
 $indexed_order_book = new IndexedOrderBook($indexed_order_book_input);
 
 
-$indexed_asks = $indexed_order_book['asks'];
+$asks = $indexed_order_book['asks'];
 
 
-$indexed_asks->store(13.5, 13, '1244');
+$asks->store(13.5, 13, '1244');
 
 
 $indexed_order_book->limit();
@@ -410,7 +416,7 @@ assert(equals($indexed_order_book, $overwrite1244));
 $counted_order_book = new CountedOrderBook($counted_order_book_input);
 
 
-$limited_counted_order_book = new CountedOrderBook($counted_order_book_input,5);
+$limited_counted_order_book = new CountedOrderBook($counted_order_book_input, 5);
 
 
 $counted_order_book->limit();
@@ -431,10 +437,10 @@ $counted_order_book->limit();
 assert(equals($counted_order_book, $counted_order_book_target));
 
 
-$counted_bids = $counted_order_book['bids'];
+$bids = $counted_order_book['bids'];
 
 
-$counted_bids->store(5, 0, 6);
+$bids->store(5, 0, 6);
 
 
 $counted_order_book->limit();
@@ -443,7 +449,7 @@ $counted_order_book->limit();
 assert(equals($counted_order_book, $counted_order_book_target));
 
 
-$counted_bids->store(1, 1, 6);
+$bids->store(1, 1, 6);
 
 
 $counted_order_book->limit();

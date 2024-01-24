@@ -1516,7 +1516,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $broadKey = $this->find_broadly_matched_key($broad, $error);
                 $exception = null;
                 if ($broadKey === null) {
-                    $exception = new ExchangeError (string) ($error);
+                    $exception = new ExchangeError ($error);
                 } else {
                     $exception = new $broad[$broadKey] ($error);
                 }
@@ -1584,10 +1584,12 @@ class bitmex extends \ccxt\async\bitmex {
                 $request = $this->safe_value($message, 'request', array());
                 $op = $this->safe_value($request, 'op');
                 if ($op === 'authKeyExpires') {
-                    $this->handle_authentication_message($client, $message);
+                    return $this->handle_authentication_message($client, $message);
+                } else {
+                    return $message;
                 }
             } else {
-                $method($client, $message);
+                return $method($client, $message);
             }
         }
     }
