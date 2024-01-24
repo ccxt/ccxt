@@ -19,6 +19,7 @@ export default class binanceus extends binance {
                 'api': {
                     'web': 'https://www.binance.us',
                     'sapi': 'https://api.binance.us/sapi/v1',
+                    'sapi_v3': 'https://api.binance.us/sapi/v3',
                     'wapi': 'https://api.binance.us/wapi/v3',
                     'public': 'https://api.binance.us/api/v3',
                     'private': 'https://api.binance.us/api/v3',
@@ -100,6 +101,28 @@ export default class binanceus extends binance {
                 'private': {
                     'get': {
                         'status': 1,
+                    },
+                },
+                'sapi': {
+                    'get': {
+                        'apiTradingStatus': 1,
+                        'asset/assetDistributionHistory': 1,
+                        'asset/query/trading-fee': 1,
+                        'asset/query/trading-volume': 1,
+                        'sub-account​/spotSummary': 1,
+                        'sub-account​/status': 1,
+                    },
+                },
+                'sapi_v3': {
+                    'get': {
+                        'accountStatus': 1,
+                        'apiTradingStatus': 1,
+                        'sub-account/list': 1,
+                        'sub-account/transfer/history': 1,
+                        'sub-account/assets': 1,
+                    },
+                    'post': {
+                        'sub-account/transfer': 1,
                     },
                 },
             },
