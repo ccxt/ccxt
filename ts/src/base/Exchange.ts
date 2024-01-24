@@ -352,6 +352,8 @@ export default class Exchange {
     newUpdates = true
     streaming = {}
 
+    alias = false;
+
     deepExtend = deepExtend
     isNode = isNode
     keys = keysFunc

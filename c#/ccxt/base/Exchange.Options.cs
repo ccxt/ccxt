@@ -4,8 +4,8 @@ using list = List<object>;
 
 public partial class Exchange
 {
+    public HttpClient httpClient { get; set; }
     public object fetchResponse = null; // tmp for response tests
-    public HttpClient client { get; set; }
     public string id { get; set; } = "Exchange";
 
     public bool alias { get; set; } = false;
@@ -151,6 +151,22 @@ public partial class Exchange
     public Func<object, object, object, object> socksProxyCallback { get; set; } = null;
     public Func<object, object, object, object> socks_proxy_callback { get; set; } = null;
 
+    // WS options
+    public object tickers = new dict();
+
+    public object transactions = new dict();
+    public object myTrades;
+    public object orders;
+    public object triggerOrders;
+    public object balance = new dict();
+
+    public bool newUpdates;
+
+    public object positions;
+    public object trades = new dict();
+    public object orderbooks = new dict();
+
+    public object ohlcvs = new dict();
     public object wssProxy { get; set; } = null;
     public object wss_proxy { get; set; } = null;
 
@@ -415,6 +431,7 @@ public partial class Exchange
         this.name = SafeString(extendedProperties, "name");
         this.httpsProxy = SafeString(extendedProperties, "httpsProxy");
         this.httpProxy = SafeString(extendedProperties, "httpProxy");
+        this.newUpdates = SafeValue(extendedProperties, "newUpdates") as bool? ?? true;
         this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
     }
 }

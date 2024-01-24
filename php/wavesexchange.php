@@ -1247,7 +1247,8 @@ class wavesexchange extends Exchange {
         // $precise->decimals should be integer
         $precise->decimals = $this->parse_to_int(Precise::string_sub($this->number_to_string($precise->decimals), $this->number_to_string($scale)));
         $precise->reduce ();
-        return $precise;
+        $stringValue = (string) $precise;
+        return $stringValue;
     }
 
     public function currency_from_precision($currency, $amount) {

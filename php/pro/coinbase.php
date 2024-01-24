@@ -478,7 +478,8 @@ class coinbase extends \ccxt\async\coinbase {
             $side = $this->safe_string($this->options['sides'], $sideId);
             $price = $this->safe_number($trade, 'price_level');
             $amount = $this->safe_number($trade, 'new_quantity');
-            $orderbook[$side].store ($price, $amount);
+            $orderbookSide = $orderbook[$side];
+            $orderbookSide->store ($price, $amount);
         }
     }
 
@@ -573,6 +574,6 @@ class coinbase extends \ccxt\async\coinbase {
             throw new ExchangeError($errorMessage);
         }
         $method = $this->safe_value($methods, $channel);
-        return $method($client, $message);
+        $method($client, $message);
     }
 }

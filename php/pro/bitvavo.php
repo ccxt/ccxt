@@ -436,7 +436,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //
         $response = $this->safe_value($message, 'response');
         if ($response === null) {
-            return $message;
+            return;
         }
         $marketId = $this->safe_string($response, 'market');
         $symbol = $this->safe_symbol($marketId, null, '-');

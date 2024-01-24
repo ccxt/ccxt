@@ -1125,7 +1125,7 @@ class phemex extends Exchange {
     }
 
     public function to_en($n, $scale) {
-        $stringN = (string) $n;
+        $stringN = $this->number_to_string($n);
         $precise = new Precise ($stringN);
         $precise->decimals = $precise->decimals - $scale;
         $precise->reduce ();
@@ -2504,10 +2504,10 @@ class phemex extends Exchange {
                     }
                 }
                 $cost = ($cost === null) ? $amount : $cost;
-                $costString = (string) $cost;
+                $costString = $this->number_to_string($cost);
                 $request['quoteQtyEv'] = $this->to_ev($costString, $market);
             } else {
-                $amountString = (string) $amount;
+                $amountString = $this->number_to_string($amount);
                 $request['baseQtyEv'] = $this->to_ev($amountString, $market);
             }
         } elseif ($market['swap']) {
@@ -4226,9 +4226,9 @@ class phemex extends Exchange {
          * @param {float} $leverage the rate of $leverage, 100 > $leverage > -100 excluding numbers between -1 to 1
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [$params->hedged] set to true if hedged position mode is enabled (by default $long and $short $leverage are set to the same value)
-         * @param {float} [$params->longLeverageRr] *hedged mode only* set the $leverage for $long positions
-         * @param {float} [$params->shortLeverageRr] *hedged mode only* set the $leverage for $short positions
+         * @param {bool} [$params->hedged] set to true if hedged position mode is enabled (by default long and short $leverage are set to the same value)
+         * @param {float} [$params->longLeverageRr] *hedged mode only* set the $leverage for long positions
+         * @param {float} [$params->shortLeverageRr] *hedged mode only* set the $leverage for short positions
          * @return {array} $response from the exchange
          */
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
@@ -4252,10 +4252,10 @@ class phemex extends Exchange {
             if (!$isHedged && $longLeverageRr === null && $shortLeverageRr === null) {
                 $request['leverageRr'] = $leverage;
             } else {
-                $long = ($longLeverageRr !== null) ? $longLeverageRr : $leverage;
-                $short = ($shortLeverageRr !== null) ? $shortLeverageRr : $leverage;
-                $request['longLeverageRr'] = $long;
-                $request['shortLeverageRr'] = $short;
+                $longVar = ($longLeverageRr !== null) ? $longLeverageRr : $leverage;
+                $shortVar = ($shortLeverageRr !== null) ? $shortLeverageRr : $leverage;
+                $request['longLeverageRr'] = $longVar;
+                $request['shortLeverageRr'] = $shortVar;
             }
             $response = $this->privatePutGPositionsLeverage (array_merge($request, $params));
         } else {
@@ -4265,7 +4265,7 @@ class phemex extends Exchange {
         return $response;
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * $transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code

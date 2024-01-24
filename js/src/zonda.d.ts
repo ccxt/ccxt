@@ -1,5 +1,5 @@
 import Exchange from './abstract/zonda.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class zonda
  * @augments Exchange
@@ -58,17 +58,7 @@ export default class zonda extends Exchange {
         info: any;
     }>;
     fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
-        info: any;
-        id: any;
-        timestamp: any;
-        datetime: any;
-        currency: string;
-        amount: any;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
-    }>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: any;

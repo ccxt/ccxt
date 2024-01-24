@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinlist.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class coinlist
  * @augments Exchange
@@ -48,17 +48,7 @@ export default class coinlist extends Exchange {
     parseOrder(order: any, market?: Market): Order;
     parseOrderStatus(status: any): string;
     parseOrderType(status: any): string;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
-    }>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;

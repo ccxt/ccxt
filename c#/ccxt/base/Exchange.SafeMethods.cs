@@ -1,6 +1,10 @@
 using System.Text;
 using System.Security.Cryptography;
 using System.Globalization;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
 
 namespace ccxt;
 
@@ -8,6 +12,31 @@ using dict = Dictionary<string, object>;
 
 public partial class Exchange
 {
+
+    // aux method
+    public static IDictionary<string, object> ConvertToDictionaryOfStringObject(object potentialDictionary)
+    {
+        // First, check if the object is a dictionary
+        if (potentialDictionary is IDictionary && potentialDictionary.GetType().IsGenericType)
+        {
+            var dictionaryType = potentialDictionary.GetType().GetGenericTypeDefinition();
+            // if (dictionaryType == typeof(Dictionary<,>))
+            // {
+            var result = new Dictionary<string, object>();
+            var dict = (IDictionary)potentialDictionary;
+
+            foreach (DictionaryEntry entry in dict)
+            {
+                // Convert the key to a string and add the entry to the new dictionary
+                result[entry.Key.ToString()] = entry.Value;
+            }
+
+            return result;
+            // }
+        }
+
+        throw new InvalidOperationException("The provided object is not a dictionary.");
+    }
     // falsy and truthy methods wrappers
 
     // tmp safe number
@@ -203,7 +232,7 @@ public partial class Exchange
             // }
 
         }
-        return parsedValue == null ? null : parsedValue;
+        return parsedValue == null ? Convert.ToInt64(defaultValue) : parsedValue;
     }
 
     public object safeStringN(object obj, object keys, object defaultValue = null) => SafeStringN(obj, keys, defaultValue);
@@ -221,6 +250,15 @@ public partial class Exchange
         else if (result.GetType() == typeof(double))
         {
             returnResult = ((double)result).ToString(CultureInfo.InvariantCulture);
+        }
+        else if (result is double)
+        {
+            returnResult = ((double)result).ToString(CultureInfo.InvariantCulture);
+
+        }
+        else if (result is decimal)
+        {
+            returnResult = ((decimal)result).ToString(CultureInfo.InvariantCulture);
         }
         else
         {
@@ -248,13 +286,13 @@ public partial class Exchange
         object parsedValue = null;
         try
         {
-            parsedValue = Convert.ToDouble(result); // altough the name is float right now it is double
+            parsedValue = Convert.ToDouble(result, CultureInfo.InvariantCulture); // altough the name is float right now it is double
         }
         catch (Exception e)
         {
 
         }
-        return parsedValue == null ? defaultValue : Convert.ToDouble(result);
+        return parsedValue == null ? defaultValue : Convert.ToDouble(result, CultureInfo.InvariantCulture);
     }
     public object safeValueN(object obj, object keys2, object defaultValue = null) => SafeValueN(obj, keys2, defaultValue);
     public static object SafeValueN(object obj, object keys2, object defaultValue = null)
@@ -270,9 +308,9 @@ public partial class Exchange
             obj = new List<object>((object[])obj);
         }
 
-        if (obj.GetType() == typeof(dict))
+        if (obj is IDictionary<string, object>)
         {
-            var dict = (dict)obj;
+            var dict = (IDictionary<string, object>)obj;
             foreach (var key2 in keys)
             {
                 if (key2 == null)
@@ -298,11 +336,33 @@ public partial class Exchange
                     return returnValue;
                 }
             }
+            return defaultValue;
+        }
+
+        if (obj is IDictionary || (obj.GetType().IsGenericType && obj.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) // is the second cond needed?
+        {
+            // check if this is a dictionary regardless of the value type
+            IDictionary<string, object> dict = ConvertToDictionaryOfStringObject(obj);
+            foreach (var key2 in keys)
+            {
+                if (key2 == null)
+                    continue;
+                var key = key2.ToString();
+                if (dict.ContainsKey(key))
+                {
+                    var returnValue = dict[key];
+                    if (returnValue == null || returnValue.ToString().Length == 0)
+                        continue;
+
+                    return returnValue;
+                }
+            }
+            return defaultValue;
         }
         // duplicated code for now, check this later
-        if (obj.GetType() == typeof(List<object>))
+        if (obj is IList<object>)
         {
-            var list = (List<object>)obj;
+            var list = (IList<object>)obj;
             foreach (var key in keys)
             {
                 var sucess = Int32.TryParse(key.ToString(), out int keyInt);
@@ -325,9 +385,9 @@ public partial class Exchange
         }
 
 
-        if (obj.GetType() == typeof(List<string>))
+        if (obj is IList<string>)
         {
-            var list = (List<string>)obj;
+            var list = (IList<string>)obj;
             foreach (var key in keys)
             {
                 var sucess = Int32.TryParse(key.ToString(), out int keyInt);
@@ -344,9 +404,9 @@ public partial class Exchange
             }
         }
 
-        if (obj.GetType() == typeof(List<int>))
+        if (obj is IList<int>)
         {
-            var list = (List<int>)obj;
+            var list = (IList<int>)obj;
             foreach (var key in keys)
             {
                 if (list.IndexOf((int)key) > -1) // this is wrong apparently

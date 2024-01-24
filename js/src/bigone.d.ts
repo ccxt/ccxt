@@ -1,5 +1,5 @@
 import Exchange from './abstract/bigone.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class bigone
  * @augments Exchange
@@ -51,23 +51,13 @@ export default class bigone extends Exchange {
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
-        info: any;
-        id: any;
-        timestamp: any;
-        datetime: any;
-        currency: number;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
-    }>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: any;
         timestamp: any;
         datetime: any;
-        currency: number;
+        currency: any;
         amount: any;
         fromAccount: any;
         toAccount: any;

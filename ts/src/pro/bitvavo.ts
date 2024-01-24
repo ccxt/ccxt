@@ -429,7 +429,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const response = this.safeValue (message, 'response');
         if (response === undefined) {
-            return message;
+            return;
         }
         const marketId = this.safeString (response, 'market');
         const symbol = this.safeSymbol (marketId, undefined, '-');
@@ -1250,7 +1250,7 @@ export default class bitvavo extends bitvavoRest {
         return message;
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
@@ -1396,9 +1396,15 @@ export default class bitvavo extends bitvavoRest {
             'getCandles': this.handleFetchOHLCV,
             'getMarkets': this.handleMarkets,
         };
-        const event = this.safeString2 (message, 'event', 'action');
-        const method = this.safeValue (methods, event);
-        if (method !== undefined) {
+        const event = this.safeString (message, 'event');
+        let method = this.safeValue (methods, event);
+        if (method === undefined) {
+            const action = this.safeString (message, 'action');
+            method = this.safeValue (methods, action);
+            if (method !== undefined) {
+                method.call (this, client, message);
+            }
+        } else {
             method.call (this, client, message);
         }
     }

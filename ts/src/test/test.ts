@@ -239,6 +239,9 @@ export default class testMainClass extends baseMainTestClass {
             'timeout': 30000,
         };
         const exchange = initExchange (exchangeId, exchangeArgs, this.wsTests);
+        if (exchange.alias) {
+            exitScript (0);
+        }
         await this.importFiles (exchange);
         assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         this.expandSettings (exchange);

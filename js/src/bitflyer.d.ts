@@ -26,9 +26,9 @@ export default class bitflyer extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
-    fetchOrders(symbol?: Str, since?: Int, limit?: number, params?: {}): Promise<Order[]>;
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: number, params?: {}): Promise<Order[]>;
-    fetchClosedOrders(symbol?: Str, since?: Int, limit?: number, params?: {}): Promise<Order[]>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<any>;

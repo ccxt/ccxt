@@ -6420,7 +6420,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * $transfer $currency internally between wallets on the same account
          * @see https://bybit-exchange.github.io/docs/v5/asset/create-inter-$transfer

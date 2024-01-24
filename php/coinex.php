@@ -948,7 +948,7 @@ class coinex extends Exchange {
         return $this->safe_integer($response, 'data');
     }
 
-    public function fetch_order_book(string $symbol, $limit = 20, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = 20, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market004_market_depth
@@ -4500,7 +4500,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account014_balance_contract_transfer

@@ -1,5 +1,5 @@
 import Exchange from './abstract/htx.js';
-import type { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency } from './base/types.js';
+import type { BorrowRate, TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency } from './base/types.js';
 /**
  * @class huobi
  * @augments Exchange
@@ -65,7 +65,7 @@ export default class htx extends Exchange {
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchSpotOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchTrades(symbol: string, since?: Int, limit?: number, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchAccounts(params?: {}): Promise<any[]>;
@@ -128,18 +128,8 @@ export default class htx extends Exchange {
         toAccount: any;
         status: any;
     };
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        timestamp: any;
-        datetime: any;
-        currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: any;
-    }>;
-    fetchIsolatedBorrowRates(params?: {}): Promise<any[]>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
+    fetchIsolatedBorrowRates(params?: {}): Promise<BorrowRate[]>;
     parseIsolatedBorrowRate(info: any, market?: Market): {
         symbol: string;
         base: string;

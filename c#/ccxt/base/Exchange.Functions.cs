@@ -95,14 +95,24 @@ public partial class Exchange
         return omit(a, keys);
     }
 
-    public List<object> toArray(object a)
+    public IList<object> toArray(object a)
     {
         if (a == null)
             return null;
 
-        if (a.GetType() == typeof(List<object>))
+        // if (a.GetType() == typeof(List<object>))
+        // {
+        //     return (List<object>)a;
+        // }
+        if (a is List<object>)
         {
             return (List<object>)a;
+        }
+
+        if (a is IList<object>)
+        {
+            // return ((IList<object>)a).ToList();
+            return ((IList<object>)a);
         }
         // if (a.GetType() == typeof(List<string>))
         // {
@@ -121,7 +131,8 @@ public partial class Exchange
 
     public object arrayConcat(object aa, object bb)
     {
-        if (aa.GetType() == typeof(List<object>))
+        // if (aa.GetType() == typeof(List<object>))
+        if (aa is List<object>)
         {
             var a = (List<object>)aa;
             var b = (List<object>)bb;
@@ -222,8 +233,22 @@ public partial class Exchange
 
     }
 
-    public object json(object obj)
+    public string json(object obj)
     {
+        if (obj is ccxt.pro.IOrderBook)
+        {
+            // tmp fix, not this prevents the Collection was modified; enumeration operation may not execute error wtf
+            var ob = (ccxt.pro.IOrderBook)obj;
+            var copy = ob.Copy();
+            try
+            {
+                return Json(copy);
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
         return Json(obj);
     }
 
@@ -235,7 +260,7 @@ public partial class Exchange
         // if (obj.GetType() == typeof(dict))
         // {
         //     var obj2 = (dict)obj;
-        //     return JsonSerializer.Serialize<Dictionary<string, object>>(obj2);
+        //     return JsonSerializer.Serialize<Dictionary<string, object>>(obj2)dd;
         // }
         // if (obj.GetType() == typeof(List<object>))
         // {

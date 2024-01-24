@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry } from './base/types.js';
 /**
  * @class bitget
  * @augments Exchange
@@ -17,27 +17,7 @@ export default class bitget extends Exchange {
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
     parseMarketLeverageTiers(info: any, market?: Market): any[];
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        id: string;
-        info: any;
-        txid: any;
-        timestamp: any;
-        datetime: any;
-        network: any;
-        addressFrom: any;
-        address: any;
-        addressTo: any;
-        amount: any;
-        type: string;
-        currency: any;
-        status: any;
-        updated: any;
-        tagFrom: any;
-        tag: any;
-        tagTo: any;
-        comment: any;
-        fee: any;
-    }>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
@@ -184,17 +164,7 @@ export default class bitget extends Exchange {
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
-    }>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: string;

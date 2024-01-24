@@ -31,8 +31,11 @@ public class Tests
     public static bool privateTests = false;
     public static bool privateOnly = false;
     public static bool baseTests = false;
+    public static bool cacheTests = false;
+    public static bool orderBookTests = false;
     public static bool info = false;
     public static bool debug = false;
+    public static bool raceCondition = false;
 
     public static string[] args;
 
@@ -42,6 +45,9 @@ public class Tests
     {
         var isBase = args.Contains("--base");
         baseTests = isBase;
+        cacheTests = args.Contains("--cache");
+        orderBookTests = args.Contains("--orderbook");
+        raceCondition = args.Contains("--race");
         var argsWithoutOptions = args.Where(arg => !arg.StartsWith("--")).ToList();
         if (argsWithoutOptions.Count > 0)
         {
@@ -80,6 +86,7 @@ public class Tests
     static void Main(string[] args)
     {
 
+        Console.WriteLine("C# version: " + Environment.Version.ToString());
         Tests.args = args;
         ReadConfig();
         InitOptions(args);
@@ -87,6 +94,25 @@ public class Tests
         if (baseTests)
         {
             RunBaseTests();
+            return;
+        }
+
+
+        if (cacheTests)
+        {
+            RunCacheTests();
+            return;
+        }
+
+        if (orderBookTests)
+        {
+            OrderBookTests();
+            return;
+        }
+
+        if (raceCondition)
+        {
+            RaceConditionTests();
             return;
         }
 
@@ -102,5 +128,24 @@ public class Tests
         Helper.Green(" [C#] Precision tests passed");
         tests.CryptoTests();
         Helper.Green(" [C#] Crypto tests passed");
+    }
+
+    static void RunCacheTests()
+    {
+        tests.CacheTests();
+        Helper.Green(" [C#] ArrayCache tests passed");
+    }
+
+    static void OrderBookTests()
+    {
+        tests.OrderBookTests();
+        Helper.Green(" [C#] OrderBook tests passed");
+    }
+
+    static void RaceConditionTests()
+    {
+        var res = tests.RaceTest();
+        res.Wait();
+        Helper.Green(" [C#] RaceCondition tests passed");
     }
 }

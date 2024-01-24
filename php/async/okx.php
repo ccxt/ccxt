@@ -1523,8 +1523,8 @@ class okx extends Exchange {
             //         "msg" => ""
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
-            return $this->parse_markets($data);
+            $dataResponse = $this->safe_value($response, 'data', array());
+            return $this->parse_markets($dataResponse);
         }) ();
     }
 
@@ -3076,7 +3076,7 @@ class okx extends Exchange {
          * @param {string[]|string} $ids order $ids
          * @return {string[]} list of order $ids
          */
-        if (gettype($ids) === 'string') {
+        if (($ids !== null) && gettype($ids) === 'string') {
             return explode(',', $ids);
         } else {
             return $ids;
@@ -5399,7 +5399,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -7179,6 +7179,7 @@ class okx extends Exchange {
                     return $this->parse_greeks($entry, $market);
                 }
             }
+            return null;
         }) ();
     }
 

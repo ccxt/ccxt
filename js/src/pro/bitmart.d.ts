@@ -19,7 +19,7 @@ export default class bitmart extends bitmartRest {
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     handlePositions(client: Client, message: any): void;
     parseWsPosition(position: any, market?: Market): Position;
-    handleTrade(client: Client, message: any): any;
+    handleTrade(client: Client, message: any): void;
     parseWsTrade(trade: any, market?: Market): Trade;
     handleTicker(client: Client, message: any): any;
     resolveMessageHashesForSymbol(client: any, symbol: any, result: any, prexif: any): void;
@@ -35,5 +35,5 @@ export default class bitmart extends bitmartRest {
     handleSubscriptionStatus(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
 }

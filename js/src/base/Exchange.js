@@ -27,6 +27,7 @@ import totp from './functions/totp.js';
  */
 export default class Exchange {
     constructor(userConfig = {}) {
+        this.throttleProp = undefined;
         this.api = undefined;
         this.userAgent = undefined;
         this.user_agent = undefined;
@@ -951,7 +952,7 @@ export default class Exchange {
         const markets = await this.fetchMarkets(params);
         return this.setMarkets(markets, currencies);
     }
-    loadMarkets(reload = false, params = {}) {
+    async loadMarkets(reload = false, params = {}) {
         // this method is async, it returns a promise
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
             this.reloadingMarkets = true;
@@ -965,7 +966,7 @@ export default class Exchange {
         }
         return this.marketsLoading;
     }
-    fetchCurrencies(params = {}) {
+    async fetchCurrencies(params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -1818,6 +1819,18 @@ export default class Exchange {
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' setLeverage() is not supported yet');
+    }
+    async fetchOpenInterestHistory(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOpenInterestHistory() is not supported yet');
+    }
+    async fetchOpenInterest(symbol, params = {}) {
+        throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+    }
+    async signIn(params = {}) {
+        throw new NotSupported(this.id + ' signIn() is not supported yet');
+    }
+    async fetchPaymentMethods(params = {}) {
+        throw new NotSupported(this.id + ' fetchPaymentMethods() is not supported yet');
     }
     parseToInt(number) {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
@@ -3729,6 +3742,9 @@ export default class Exchange {
         return this.handleOptionAndParams(params, methodName, 'marginMode', defaultValue);
     }
     throwExactlyMatchedException(exact, string, message) {
+        if (string === undefined) {
+            return;
+        }
         if (string in exact) {
             throw new exact[string](message);
         }
@@ -4149,7 +4165,7 @@ export default class Exchange {
          */
         throw new NotSupported(this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
-    async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchDeposits() is not supported yet');
     }
     async fetchDepositsWs(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4251,7 +4267,7 @@ export default class Exchange {
         throw new NotSupported(this.id + ' createExpiredOptionMarket () is not supported yet');
     }
     handleWithdrawTagAndParams(tag, params) {
-        if (typeof tag === 'object') {
+        if ((tag !== undefined) && (typeof tag === 'object')) {
             params = this.extend(tag, params);
             tag = undefined;
         }
@@ -5015,7 +5031,8 @@ export default class Exchange {
                     const response = await this[method](symbol, undefined, maxEntriesPerRequest, params);
                     const responseLength = response.length;
                     if (this.verbose) {
-                        this.log('Dynamic pagination call', calls, 'method', method, 'response length', responseLength, 'timestamp', paginationTimestamp);
+                        const backwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp;
+                        this.log(backwardMessage);
                     }
                     if (responseLength === 0) {
                         break;
@@ -5033,7 +5050,8 @@ export default class Exchange {
                     const response = await this[method](symbol, paginationTimestamp, maxEntriesPerRequest, params);
                     const responseLength = response.length;
                     if (this.verbose) {
-                        this.log('Dynamic pagination call', calls, 'method', method, 'response length', responseLength, 'timestamp', paginationTimestamp);
+                        const forwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp;
+                        this.log(forwardMessage);
                     }
                     if (responseLength === 0) {
                         break;
@@ -5079,6 +5097,7 @@ export default class Exchange {
                 throw e;
             }
         }
+        return undefined;
     }
     async fetchPaginatedCallDeterministic(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = undefined) {
         let maxCalls = undefined;
@@ -5143,7 +5162,8 @@ export default class Exchange {
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    this.log('Cursor pagination call', i + 1, 'method', method, 'response length', responseLength, 'cursor', cursorValue);
+                    const cursorMessage = 'Cursor pagination call ' + i + 1 + ' method ' + method + ' response length ' + responseLength + ' cursor ' + cursorValue;
+                    this.log(cursorMessage);
                 }
                 if (responseLength === 0) {
                     break;
@@ -5187,7 +5207,8 @@ export default class Exchange {
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    this.log('Incremental pagination call', i + 1, 'method', method, 'response length', responseLength);
+                    const incrementalMessage = 'Incremental pagination call ' + i + 1 + ' method ' + method + ' response length ' + responseLength;
+                    this.log(incrementalMessage);
                 }
                 if (responseLength === 0) {
                     break;

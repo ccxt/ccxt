@@ -837,7 +837,7 @@ class bitmart extends \ccxt\async\bitmart {
             $messageHash .= ':' . $this->safe_string($data[0], 'symbol');
         }
         $client->resolve ($stored, $messageHash);
-        return $message;
+        return;
     }
 
     public function parse_ws_trade($trade, ?array $market = null) {
@@ -940,7 +940,7 @@ class bitmart extends \ccxt\async\bitmart {
             $client->resolve ($ticker, 'tickers::swap');
             $this->resolve_message_hashes_for_symbol($client, $symbol, $ticker, 'tickers::');
         }
-        return $message;
+        return;
     }
 
     public function resolve_message_hashes_for_symbol($client, $symbol, $result, $prexif) {
@@ -1482,10 +1482,8 @@ class bitmart extends \ccxt\async\bitmart {
                     'subscribe' => array($this, 'handle_subscription_status'),
                 );
                 $method = $this->safe_value($methods, $event);
-                if ($method === null) {
-                    return $message;
-                } else {
-                    return $method($client, $message);
+                if ($method !== null) {
+                    $method($client, $message);
                 }
             }
         } else {
@@ -1504,7 +1502,7 @@ class bitmart extends \ccxt\async\bitmart {
                 $key = $keys[$i];
                 if (mb_strpos($channel, $key) !== false) {
                     $method = $this->safe_value($methods, $key);
-                    return $method($client, $message);
+                    $method($client, $message);
                 }
             }
         }

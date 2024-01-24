@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitmart.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry } from './base/types.js';
 /**
  * @class bitmart
  * @augments Exchange
@@ -35,18 +35,7 @@ export default class bitmart extends Exchange {
         };
         networks: {};
     };
-    fetchDepositWithdrawFee(code: string, params?: {}): Promise<{
-        info: any;
-        withdraw: {
-            fee: number;
-            percentage: any;
-        };
-        deposit: {
-            fee: any;
-            percentage: any;
-        };
-        networks: {};
-    }>;
+    fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -136,7 +125,7 @@ export default class bitmart extends Exchange {
         info: any;
     };
     fetchIsolatedBorrowRates(params?: {}): Promise<any[]>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
     parseTransferStatus(status: any): string;
     parseTransferToAccount(type: any): string;
     parseTransferFromAccount(type: any): string;

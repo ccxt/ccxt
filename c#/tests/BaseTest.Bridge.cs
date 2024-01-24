@@ -120,22 +120,47 @@ public partial class BaseTest
 
     public bool equals(object a, object b)
     {
-        var dict1 = a as dict;
-        var dict2 = b as dict;
-
-        var keysA = dict1.Keys;
-        foreach (var key in keysA)
+        if (a is IList<object>)
         {
-            if (!dict2.ContainsKey(key))
+            var list1 = (IList<object>)a;
+            var list2 = (IList<object>)b;
+            if (list1.Count != list2.Count)
             {
                 return false;
             }
-            if (!isEqual(dict1[key], dict2[key]))
+            for (int i = 0; i < list1.Count; i++)
             {
-                return false;
+                var item1 = list1[i];
+                var item2 = list2[i];
+                // recursive comparion
+                if (!equals(item1, item2))
+                {
+                    return false;
+                }
             }
+            return true;
         }
-        return true;
+        else if (a is IDictionary<string, object>)
+        {
+            var dict1 = a as IDictionary<string, object>;
+            var dict2 = b as IDictionary<string, object>;
+
+            var keysA = dict1.Keys;
+            foreach (var key in keysA)
+            {
+                if (!dict2.ContainsKey(key))
+                {
+                    return false;
+                }
+                if (!equals(dict1[key], dict2[key]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return isEqual(a, b);
+
     }
 
 }

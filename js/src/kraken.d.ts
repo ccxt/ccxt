@@ -113,8 +113,8 @@ export default class kraken extends Exchange {
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<any>;
     parseAccount(account: any): string;
-    transferOut(code: string, amount: any, params?: {}): Promise<any>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
+    transferOut(code: string, amount: any, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: string;

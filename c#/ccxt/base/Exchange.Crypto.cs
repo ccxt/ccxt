@@ -1,5 +1,6 @@
 using System.Text;
 using System.Security.Cryptography;
+using System.IO.Compression;
 
 namespace ccxt;
 
@@ -471,5 +472,17 @@ public partial class Exchange
     public object axolotl(object a, object b, object c)
     {
         return ""; // to be implemented
+    }
+
+    public static object inflate(object data)
+    {
+        var compressedMessage = Encoding.UTF8.GetBytes((string)data);
+        using (var compressedStream = new MemoryStream(compressedMessage))
+        using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress))
+        using (var resultStream = new MemoryStream())
+        {
+            deflateStream.CopyTo(resultStream);
+            return resultStream.ToArray();
+        }
     }
 }

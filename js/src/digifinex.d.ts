@@ -1,5 +1,5 @@
 import Exchange from './abstract/digifinex.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry } from './base/types.js';
 /**
  * @class digifinex
  * @augments Exchange
@@ -84,17 +84,7 @@ export default class digifinex extends Exchange {
         toAccount: any;
         status: string;
     };
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
-    }>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: Market): {
@@ -116,7 +106,7 @@ export default class digifinex extends Exchange {
         datetime: string;
         info: any;
     }>;
-    fetchCrossBorrowRates(params?: {}): Promise<{}>;
+    fetchCrossBorrowRates(params?: {}): Promise<any>;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: string;
         rate: number;
@@ -125,26 +115,8 @@ export default class digifinex extends Exchange {
         datetime: string;
         info: any;
     };
-    parseBorrowRates(info: any, codeKey: any): {};
-    fetchFundingRate(symbol: string, params?: {}): Promise<{
-        info: any;
-        symbol: string;
-        markPrice: any;
-        indexPrice: any;
-        interestRate: any;
-        estimatedSettlePrice: any;
-        timestamp: any;
-        datetime: any;
-        fundingRate: number;
-        fundingTimestamp: number;
-        fundingDatetime: string;
-        nextFundingRate: string;
-        nextFundingTimestamp: number;
-        nextFundingDatetime: string;
-        previousFundingRate: any;
-        previousFundingTimestamp: any;
-        previousFundingDatetime: any;
-    }>;
+    parseBorrowRates(info: any, codeKey: any): any;
+    fetchFundingRate(symbol: string, params?: {}): Promise<any>;
     parseFundingRate(contract: any, market?: Market): {
         info: any;
         symbol: string;

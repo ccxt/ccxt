@@ -64,7 +64,7 @@ export default class coinbase extends Exchange {
     fetchTickerV2(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickerV3(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: any, market?: Market): Ticker;
-    parseBalance(response: any, params?: {}): Balances;
+    parseCustomBalance(response: any, params?: {}): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntryStatus(status: any): string;
@@ -103,7 +103,7 @@ export default class coinbase extends Exchange {
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
     editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    fetchOrders(symbol?: Str, since?: Int, limit?: number, params?: {}): Promise<Order[]>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

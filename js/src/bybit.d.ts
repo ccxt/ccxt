@@ -1,5 +1,5 @@
 import Exchange from './abstract/bybit.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry } from './base/types.js';
 /**
  * @class bybit
  * @augments Exchange
@@ -155,7 +155,7 @@ export default class bybit extends Exchange {
         datetime: any;
         info: any;
     };
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     borrowCrossMargin(code: string, amount: any, params?: {}): Promise<any>;
     repayCrossMargin(code: string, amount: any, params?: {}): Promise<any>;

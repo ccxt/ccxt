@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitrue.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class bitrue
  * @augments Exchange
@@ -71,17 +71,7 @@ export default class bitrue extends Exchange {
         status: string;
     };
     fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
-        info: any;
-        id: any;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
-    }>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     parseMarginModification(data: any, market?: any): {
         info: any;

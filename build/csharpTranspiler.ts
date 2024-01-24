@@ -32,9 +32,11 @@ if (platform === 'win32') {
 
 const GLOBAL_WRAPPER_FILE = './c#/ccxt/base/Exchange.Wrappers.cs';
 const EXCHANGE_WRAPPER_FOLDER = './c#/ccxt/wrappers/'
+const EXCHANGE_WS_WRAPPER_FOLDER = './c#/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FILE = './c#/ccxt/base/Exchange.Errors.cs';
 const BASE_METHODS_FILE = './c#/ccxt/base/Exchange.BaseMethods.cs';
 const EXCHANGES_FOLDER = './c#/ccxt/exchanges/';
+const EXCHANGES_WS_FOLDER = './c#/ccxt/exchanges/pro/';
 const GENERATED_TESTS_FOLDER = './c#/tests/Generated/Exchange/';
 const BASE_TESTS_FOLDER = './c#/tests/Generated/Base';
 const BASE_TESTS_FILE =  './c#/tests/Generated/TestMethods.cs';
@@ -52,6 +54,8 @@ class NewTranspiler {
     constructor() {
 
         this.setupTranspiler()
+        // this.transpiler.csharpTranspiler.VAR_TOKEN = 'var'; // tmp fix
+
 
         this.pythonStandardLibraries = {
             'hashlib': 'hashlib',
@@ -61,6 +65,45 @@ class NewTranspiler {
             'sys': 'sys',
         }
     }
+
+    getWsRegexes() {
+        // hoplefully we won't need this in the future by having everything typed properly in the typescript side
+        return [
+            [/return await (\w+);/gm, 'return await ($1 as Exchange.Future);'],
+            // [/typeof\(client\)/gm, 'client'],
+            // [/typeof\(orderbook\)/gm, 'orderbook'], // fix this in the transpiler later
+            [/new\sgetValue\((\w+),\s(\w+)\)\((\w+)\)/gm, 'this.newException(getValue($1, $2), $3)'],
+            [/\(object\)client\).subscriptions/gm, '(WebSocketClient)client).subscriptions'],
+            [/client\.subscriptions/gm, '((WebSocketClient)client).subscriptions'],
+            [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
+            [/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients'],
+            [/(orderbook)(\.reset.+)/gm, '($1 as IOrderBook)$2'],
+            [/(\w+)(\.cache)/gm, '($1 as ccxt.pro.OrderBook)$2'],
+            //  [/(\w+)(\.reset)/gm, '($1 as ccxt.OrderBook)$2'],
+            [/((?:this\.)?\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
+            [/(countedBookSide)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
+            [/(\w+)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
+            [/(\w+)\.store\(((.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
+            [/(\w+)(\.storeArray\(.+\))/gm, '($1 as IOrderBookSide)$2'],
+            // [/(.+)\.store\((.+),(.+)\)/gm, '($1 as OrderBookSide).store($2,$3)'],
+            [/(\w+)\.call\(this,(.+)\)/gm, 'DynamicInvoker.InvokeMethod($1, new object[] {$2})'],
+            [/(\w+)(\.limit\(\))/gm, '($1 as IOrderBook)$2'],
+            [/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)'],
+            [/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})'],
+            [/this\.delay\(([^,]+),([^,]+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
+            // [/(this\.\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})'], // check this.orders
+            [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$3", new object[] {$4})'],
+            [/future(\.reject.+)/gm, '((Future)future)$1'],
+            [/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2'],
+            [/(client)(\.reset.+)/gm, '((WebSocketClient)$1)$2'],
+            [/\(client,/g, '(client as WebSocketClient,'],
+            [/\(object client,/gm, '(WebSocketClient client,'],
+            [/\(object client\)/gm, '(WebSocketClient client)'],
+            [/object client =/gm, 'var client ='],
+            [/object future =/gm, 'var future ='],
+        ]
+    }
+
 
     // c# custom method
     customCSharpPropAssignment(node, identation) {
@@ -97,7 +140,8 @@ class NewTranspiler {
             "csharp": {
                 "parser": {
                     "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
-                    "ELEMENT_ACCESS_WRAPPER_CLOSE": ")"
+                    "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
+                    "VAR_TOKEN": "var",
                 }
             },
         }
@@ -128,7 +172,7 @@ class NewTranspiler {
         //
         // Returns:
         //     A 64-bit signed integer that is equivalent to value
-        return `
+        const comment = `
     /// <summary>
     /// ${desc}
     /// </summary>
@@ -139,6 +183,8 @@ class NewTranspiler {
     /// </list>
     /// </remarks>
     /// <returns> <term>${returnType}</term> ${returnDesc}.</returns>`
+    const commentWithoutEmptyLines = comment.replace(/^\s*[\r\n]/gm, "");
+    return commentWithoutEmptyLines;
     }
 
     transformTSCommentIntoCSharp(name: string, desc: string, sees: string[], params : string[], returnType:string, returnDesc: string) {
@@ -178,14 +224,14 @@ class NewTranspiler {
             });
         }
         // const paramRegex = /@param\s{(\w+)}\s\[(\w+)\]\s(.+)/g; // @param\s{(\w+)}\s\[((\w+(.\w+)?))\]\s(.+)
-        const paramRegex = /@param\s{(\w+)}\s\[(\w+\.?\w+?)]\s(.+)/g;
+        const paramRegex = /@param\s{(\w+[?]?)}\s\[(\w+\.?\w+?)]\s(.+)/g;
         const params = [] as any;
         let paramMatch;
         while ((paramMatch = paramRegex.exec(comment)) !== null) {
             const [, type, name, description] = paramMatch;
             params.push({type, name, description});
         }
-        const returnRegex = /@returns\s{(\w+)}\s(.+)/;
+        const returnRegex = /@returns\s{(\w+[?]?)}\s(.+)/;
         const returnMatch = comment.match(returnRegex);
         const returnType = returnMatch ? returnMatch[1] : undefined;
         const returnDescription =  returnMatch && returnMatch.length > 1 ? returnMatch[2]: undefined;
@@ -217,11 +263,16 @@ class NewTranspiler {
         ]
     }
 
-    getCsharpImports(file) {
-        return [
-            "using ccxt;",
-            "namespace ccxt;"
+    getCsharpImports(file, ws = false) {
+        const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
+        const values = [
+            // "using ccxt;",
+            namespace,
         ]
+        // if (ws) {
+        //     values.push("using System.Reflection;");
+        // }
+        return values;
     }
 
     isObject(type: string) {
@@ -248,7 +299,13 @@ class NewTranspiler {
         return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType')
     }
 
-    convertJavascriptTypeToCsharpType(type: string, isReturn = false): string | undefined {
+    convertJavascriptTypeToCsharpType(name: string, type: string, isReturn = false): string | undefined {
+
+        // handle watchOrderBook exception here (watchOrderBook and watchOrderBookForSymbols)
+        if (name.startsWith('watchOrderBook')) { 
+            return `Task<ccxt.pro.IOrderBook>`;
+        }
+
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
         let isList = false;
@@ -308,7 +365,7 @@ class NewTranspiler {
         if (wrappedType.startsWith('Dictionary<')) {
             let type = wrappedType.substring(11, wrappedType.length - 1);
             if (type.startsWith('Dictionary<')) {
-                type = this.convertJavascriptTypeToCsharpType(type) as any;
+                type = this.convertJavascriptTypeToCsharpType(name, type) as any;
             }
             return addTaskIfNeeded(`Dictionary<string, ${type}>`);
         }
@@ -333,7 +390,7 @@ class NewTranspiler {
         if (param.type == undefined) {
             paramType = 'object';
         } else {
-            paramType = this.convertJavascriptTypeToCsharpType(param.type);
+            paramType = this.convertJavascriptTypeToCsharpType(name, param.type);
         }
         const isNonNullableType = this.isNumberType(param.type) || this.isBooleanType(param.type) || this.isIntegerType(param.type);
         if (isNonNullableType) {
@@ -368,7 +425,7 @@ class NewTranspiler {
         return `${paramType}${op} ${safeName}`
     }
 
-    shouldCreateWrapper(methodName: string): boolean {
+    shouldCreateWrapper(methodName: string, isWs = false): boolean {
         const allowedPrefixes = [
             'fetch',
             'create',
@@ -379,8 +436,12 @@ class NewTranspiler {
             'setL',
             'transfer',
             'withdraw',
+            'watch',
             // 'load',
         ];
+        // const allowedPrefixesWs = [
+        //     ''
+        // ]
         const blacklistMethods = [
             'fetch',
             'setSandBoxMode',
@@ -389,8 +450,20 @@ class NewTranspiler {
             'loadMarketsHelper',
             'createNetworksByIdObject',
             'setProperty',
-            'setProxyAgents'
+            'setProxyAgents',
+            'watch',
+            'watchMultipleSubscription',
+            'watchMultiple',
+            'watchPrivate',
+            'watchPublic',
+            'setPositionsCache',
+            'setPositionCache'
         ] // improve this later
+        if (isWs) {
+            if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
+                return false;
+            }
+        }
         const isBlackListed = blacklistMethods.includes(methodName);
         const startsWithAllowedPrefix = allowedPrefixes.some(prefix => methodName.startsWith(prefix));
         return !isBlackListed && startsWithAllowedPrefix;
@@ -408,23 +481,29 @@ class NewTranspiler {
         return type.startsWith('Dictionary<string,') && type.endsWith('>') ? type.substring(19, type.length - 1) : type;
     }
 
-    createReturnStatement( unwrappedType:string ) {
+    createReturnStatement(methodName: string,  unwrappedType:string ) {
+        // handle watchOrderBook exception here
+        if (methodName.startsWith('watchOrderBook')) {
+            return `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
+        }
+
+
         const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';
         let returnStatement = "";
         if (unwrappedType.startsWith('List<')) {
             if (unwrappedType === 'List<Dictionary<string, object>>') {
-                returnStatement = `return ((List<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();`
+                returnStatement = `return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();`
             } else {
-                returnStatement = `return ((List<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
+                returnStatement = `return ((IList<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
             }
         } else if (unwrappedType.startsWith('Dictionary<string,') && unwrappedType !== 'Dictionary<string, object>' && !unwrappedType.startsWith('Dictionary')) {
             const type = this.unwrapDictionaryIfNeeded(unwrappedType);
             const returnParts = [
-                `var keys = ((Dictionary<string, object>)res).Keys.ToList();`,
+                `var keys = ((IDictionary<string, object>)res).Keys.ToList();`,
                 `        var result = new Dictionary<string, ${type}>();`,
                 `        foreach (var key in keys)`,
                 `        {`,
-                `            result[key] = new ${type}(((Dictionary<string,object>)res)[key]);`,
+                `            result[key] = new ${type}(((IDictionary<string,object>)res)[key]);`,
                 `        }`,
                 `        return result;`,
             ].join("\n");
@@ -454,14 +533,14 @@ class NewTranspiler {
         return '    '.repeat(level);
     }
 
-    createWrapper (exchangeName, methodWrapper) {
+    createWrapper (exchangeName, methodWrapper, isWs = false) {
         const isAsync = methodWrapper.async;
         const methodName = methodWrapper.name;
-        if (!this.shouldCreateWrapper(methodName)) {
+        if (!this.shouldCreateWrapper(methodName, isWs)) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
         }
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
-        const returnType = this.convertJavascriptTypeToCsharpType(methodWrapper.returnType, true);
+        const returnType = this.convertJavascriptTypeToCsharpType(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         const args = methodWrapper.parameters.map(param => this.convertJavascriptParamToCsharpParam(param));
         const stringArgs = args.filter(arg => arg !== undefined).join(', ');
@@ -478,7 +557,7 @@ class NewTranspiler {
             `${one}{`,
             this.getDefaultParamsWrappers(methodWrapper.parameters),
             `${two}var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
-            `${two}${this.createReturnStatement(unwrappedType)}`,
+            `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
             `${one}}`
         ];
         return methodDoc.concat(method).filter(e => !!e).join('\n')
@@ -496,12 +575,14 @@ class NewTranspiler {
         return res;
     }
 
-    createCSharpWrappers(exchange:string, path: string, wrappers) {
-        const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper)).filter(wrapper => wrapper !== '').join('\n');
+    createCSharpWrappers(exchange:string, path: string, wrappers, ws = false) {
+        const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
+        // const exchangeName = ws ? exchange + 'Ws' : exchange;
+        const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
         const file = [
-            'namespace ccxt;',
+            namespace,
             '',
             this.createGeneratedHeader().join('\n'),
             `public partial class ${exchange}`,
@@ -600,7 +681,7 @@ class NewTranspiler {
 
 
         // custom transformations needed for c#
-        baseClass = baseClass.replaceAll("client.futures", "getValue(client, \"futures\")"); // tmp fix for c# not needed after ws-merge
+        // baseClass = baseClass.replaceAll("client.futures", "getValue(client, \"futures\")"); // tmp fix for c# not needed after ws-merge
         baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#
         baseClass = baseClass.replaceAll("client.resolve", "// client.resolve"); // tmp fix for c#
         baseClass = baseClass.replaceAll("((object)this).number = float;", "this.number = typeof(float);"); // tmp fix for c#
@@ -609,6 +690,12 @@ class NewTranspiler {
         baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(exact, str)(((string)message));", "this.throwDynamicException(exact, str, message);"); // tmp fix for c#
         // baseClass = baseClass.replace("throw new getValue(exact, str)(message);", "throw new Exception ((string) message);"); // tmp fix for c#
+
+
+        // WS fixes
+        baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
+        baseClass = baseClass.replace(/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
+
 
         const jsDelimiter = '// ' + delimiter
         const parts = baseClass.split (jsDelimiter)
@@ -622,6 +709,13 @@ class NewTranspiler {
             const file = fileHeader + baseMethods + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
         }
+    }
+
+    async transpileWS(force = false) {
+        const tsFolder = './ts/src/pro/';
+        const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:exchanges.ws }
+        // const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(exchanges.ws), true )
     }
 
     async transpileEverything (force = false, child = false, baseOnly = false) {
@@ -686,7 +780,7 @@ class NewTranspiler {
         return flatResult;
     }
 
-    async transpileDerivedExchangeFiles (jsFolder, options, pattern = '.ts', force = false, child = false) {
+    async transpileDerivedExchangeFiles (jsFolder, options, pattern = '.ts', force = false, child = false, ws = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -711,32 +805,59 @@ class NewTranspiler {
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[csharp] Transpiling [', exchanges.join(', '), ']');
         const transpiledFiles =  allFilesPath.map(file => this.transpiler.transpileCSharpByPath(file));
-        
-        for (let i = 0; i < transpiledFiles.length; i++) {
-            const transpiled = transpiledFiles[i];
-            const exchangeName = exchanges[i].replace('.ts','');
-            const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '.cs';
-            this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
-            // transpiledFiles.forEach((transpiled, idx) => this.createCSharpWrappers(exchanges[idx], EXCHANGE_WRAPPER_FOLDER + exchanges[idx] + '.cs', transpiled.methodsTypes))
 
+        if (!ws) {
+            for (let i = 0; i < transpiledFiles.length; i++) {
+                const transpiled = transpiledFiles[i];
+                const exchangeName = exchanges[i].replace('.ts','');
+                const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '.cs';
+                this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
+            }
+        } else {
+            //
+            for (let i = 0; i < transpiledFiles.length; i++) {
+                const transpiled = transpiledFiles[i];
+                const exchangeName = exchanges[i].replace('.ts','');
+                const path = EXCHANGE_WS_WRAPPER_FOLDER + exchangeName + '.cs';
+                this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
+            }
         }
-        exchanges.map ((file, idx) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force))
+        exchanges.map ((file, idx) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws))
 
         const classes = {}
 
         return classes
     }
 
-    createCSharpClass(csharpVersion) {
-        const csharpImports = this.getCsharpImports(csharpVersion).join("\n") + "\n\n";
+    createCSharpClass(csharpVersion, ws = false) {
+        const csharpImports = this.getCsharpImports(csharpVersion, ws).join("\n") + "\n\n";
         let content = csharpVersion.content;
-        content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
+
+        const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
+        const baseWsClassExec = baseWsClassRegex.exec(content);
+        const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
+        if (!ws) {
+            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
+        } else {
+            const wsParent =  baseWsClass.endsWith('Rest') ? 'ccxt.' + baseWsClass.replace('Rest', '') : baseWsClass;
+            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1 : ${wsParent}`);
+        }
         content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
+        // WS fixes
+        if (ws) {
+            const wsRegexes = this.getWsRegexes();
+            content = this.regexAll (content, wsRegexes);
+            const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
+            const classNameExec = classNameRegex.exec(content);
+            const className = classNameExec ? classNameExec[1] : '';
+            const constructorLine = `\npublic partial class ${className} { public ${className}(object args = null) : base(args) { } }\n`
+            content = constructorLine  + content;
+        }
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
     }
 
-    transpileDerivedExchangeFile (tsFolder, filename, options, csharpResult, force = false) {
+    transpileDerivedExchangeFile (tsFolder, filename, options, csharpResult, force = false, ws = false) {
 
         const tsPath = tsFolder + filename
 
@@ -746,12 +867,98 @@ class NewTranspiler {
 
         const tsMtime = fs.statSync (tsPath).mtime.getTime ()
 
-        const csharp  = this.createCSharpClass (csharpResult)
+        const csharp  = this.createCSharpClass (csharpResult, ws)
 
         if (csharpFolder) {
             overwriteFile (csharpFolder + csharpFilename, csharp)
             fs.utimesSync (csharpFolder + csharpFilename, new Date (), new Date (tsMtime))
         }
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    transpileOrderbookTestsToCSharp (outDir: string) {
+
+        const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
+        const csharpFile = `${outDir}/Orderbook.cs`;
+
+        log.magenta ('Transpiling from', (jsFile as any).yellow)
+
+        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
+        let content = csharp.content;
+        const splitParts = content.split('// --------------------------------------------------------------------------------------------------------------------');
+        splitParts.shift();
+        content = splitParts.join('\n// --------------------------------------------------------------------------------------------------------------------\n');
+        content = this.regexAll (content, [
+            [/typeof\((\w+)\)/g,'$1'], // tmp fix
+            [/object\s*(\w+)\s=\sgetValue\((\w+),\s*"(bids|asks)".+/g,'var $1 = $2.$3;'], // tmp fix
+            [ /object  = functions;/g, '' ], // tmp fix
+            [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
+            [/assert/g, 'Assert'],
+        ]).trim ()
+
+        const contentLines = content.split ('\n');
+        const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
+
+        const file = [
+            'using ccxt.pro;',
+            'namespace Tests;',
+            '',
+            this.createGeneratedHeader().join('\n'),
+            'public partial class BaseTest',
+            '{',
+            '    public void OrderBookTests()',
+            '    {',
+            contentIdented,
+            '    }',
+            '}',
+        ].join('\n')
+
+        log.magenta ('→', (csharpFile as any).yellow)
+
+        overwriteFile (csharpFile, file);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    transpileCacheTestsToCSharp (outDir: string) {
+
+        const jsFile = './ts/src/pro/test/base/test.Cache.ts';
+        const csharpFile = `${outDir}/Cache.cs`;
+
+        log.magenta ('Transpiling from', (jsFile as any).yellow)
+
+        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
+        let content = csharp.content;
+        const splitParts = content.split('// ----------------------------------------------------------------------------');
+        splitParts.shift();
+        content = splitParts.join('\n// ----------------------------------------------------------------------------\n');
+        content = this.regexAll (content, [
+            [/typeof\((\w+)\)/g,'$1'], // tmp fix
+            [/typeof\(timestampCache\)/g,'timestampCache'], // tmp fix
+            [ /object  = functions;/g, '' ], // tmp fix
+            [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
+            [/assert/g, 'Assert'],
+        ]).trim ()
+
+        const contentLines = content.split ('\n');
+        const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
+
+        const file = [
+            'using ccxt.pro;',
+            'namespace Tests;',
+            '',
+            this.createGeneratedHeader().join('\n'),
+            'public partial class BaseTest',
+            '{',
+            '    public void CacheTests()',
+            '    {',
+            contentIdented,
+            '    }',
+            '}',
+        ].join('\n')
+
+        log.magenta ('→', (csharpFile as any).yellow)
+
+        overwriteFile (csharpFile, file);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -919,6 +1126,8 @@ class NewTranspiler {
         this.transpilePrecisionTestsToCSharp(outDir);
         this.transpileCryptoTestsToCSharp(outDir);
         this.transpileDatetimeTestsToCSharp(outDir);
+        this.transpileCacheTestsToCSharp(outDir);
+        this.transpileOrderbookTestsToCSharp(outDir);
     }
 
     capitalize(s: string) {
@@ -1003,18 +1212,52 @@ class NewTranspiler {
         this.transpileAndSaveCsharpExchangeTests (tests);
     }
 
-    async transpileAndSaveCsharpExchangeTests(tests) {
+    transpileWsExchangeTests(){
+
+        const baseFolders = {
+            ts: './ts/src/pro/test/Exchange/',
+            csharp: EXCHANGE_GENERATED_FOLDER + 'Ws/',
+        };
+
+        const wsTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+
+        const tests = [] as any;
+
+        wsTests.forEach (test => {
+            tests.push({
+                name: test,
+                tsFile: baseFolders.ts + test + '.ts',
+                csharpFile: baseFolders.csharp + test + '.cs',
+            });
+        });
+
+        this.transpileAndSaveCsharpExchangeTests (tests, true);
+    }
+
+    async transpileAndSaveCsharpExchangeTests(tests, isWs = false) {
         const paths = tests.map(test => test.tsFile);
         const flatResult = await this.webworkerTranspile (paths, this.getTranspilerConfig());
         flatResult.forEach((file, idx) => {
             let contentIndentend = file.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
-            contentIndentend = this.regexAll (contentIndentend, [
+
+            let regexes = [
                 [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
                 [ /throw new Error/g, 'throw new Exception' ],
+                [/testSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
                 [ /void function/g, 'void']
-            ])
+            ];
+
+            if (isWs) {
+                // add ws-tests specific regeces
+                regexes = regexes.concat([
+                    [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
+                ]);
+            }
+
+            contentIndentend = this.regexAll (contentIndentend, regexes)
+            const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
             const fileHeaders = [
-                'using ccxt;',
+                namespace,
                 'namespace Tests;',
                 '',
                 this.createGeneratedHeader().join('\n'),
@@ -1052,10 +1295,12 @@ class NewTranspiler {
     transpileTests(){
         this.transpileBaseTestsToCSharp();
         this.transpileExchangeTests();
+        this.transpileWsExchangeTests();
     }
 }
 
 if (isMainEntry(import.meta.url)) {
+    const ws = process.argv.includes ('--ws')
     const baseOnly = process.argv.includes ('--base')
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const force = process.argv.includes ('--force')
@@ -1065,8 +1310,9 @@ if (isMainEntry(import.meta.url)) {
         log.bright.green ({ force })
     }
     const transpiler = new NewTranspiler ();
-
-    if (test) {
+    if (ws) {
+        await transpiler.transpileWS (force)
+    } else if (test) {
         transpiler.transpileTests ()
     } else if (multiprocess) {
         parallelizeTranspiling (exchangeIds)

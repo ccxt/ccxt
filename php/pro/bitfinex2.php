@@ -356,7 +356,6 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             $stored->append ($parsed);
         }
         $client->resolve ($stored, $messageHash);
-        return $message;
     }
 
     public function parse_ws_trade($trade, $market = null) {
@@ -611,8 +610,9 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 $deltas = $message[1];
                 for ($i = 0; $i < count($deltas); $i++) {
                     $delta = $deltas[$i];
-                    $size = ($delta[2] < 0) ? -$delta[2] : $delta[2];
-                    $side = ($delta[2] < 0) ? 'asks' : 'bids';
+                    $delta2 = $delta[2];
+                    $size = ($delta2 < 0) ? -$delta2 : $delta2;
+                    $side = ($delta2 < 0) ? 'asks' : 'bids';
                     $bookside = $orderbook[$side];
                     $idString = $this->safe_string($delta, 0);
                     $price = $this->safe_float($delta, 1);
@@ -638,8 +638,9 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             $orderbookItem = $this->orderbooks[$symbol];
             if ($isRaw) {
                 $price = $this->safe_string($deltas, 1);
-                $size = ($deltas[2] < 0) ? -$deltas[2] : $deltas[2];
-                $side = ($deltas[2] < 0) ? 'asks' : 'bids';
+                $deltas2 = $deltas[2];
+                $size = ($deltas2 < 0) ? -$deltas2 : $deltas2;
+                $side = ($deltas2 < 0) ? 'asks' : 'bids';
                 $bookside = $orderbookItem[$side];
                 // $price = 0 means that you have to remove the order from your book
                 $amount = Precise::string_gt($price, '0') ? $size : '0';
@@ -687,7 +688,8 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             }
             if ($ask !== null) {
                 $stringArray[] = $this->number_to_string($asks[$i][$idToCheck]);
-                $stringArray[] = $this->number_to_string(-$asks[$i][1]);
+                $aski1 = $asks[$i][1];
+                $stringArray[] = $this->number_to_string(-$aski1);
             }
         }
         $payload = implode(':', $stringArray);
@@ -1127,7 +1129,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         //
         if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
             if ($message[1] === 'hb') {
-                return $message; // skip heartbeats within $subscription channels for now
+                return; // skip heartbeats within $subscription channels for now
             }
             $subscription = $this->safe_value($client->subscriptions, $channelId, array());
             $channel = $this->safe_string($subscription, 'channel');
@@ -1154,10 +1156,8 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             } else {
                 $method = $this->safe_value_2($publicMethods, $name, $channel);
             }
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message, $subscription);
+            if ($method !== null) {
+                $method($client, $message, $subscription);
             }
         } else {
             $event = $this->safe_string($message, 'event');
@@ -1168,10 +1168,8 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                     'auth' => array($this, 'handle_authentication_message'),
                 );
                 $method = $this->safe_value($methods, $event);
-                if ($method === null) {
-                    return $message;
-                } else {
-                    return $method($client, $message);
+                if ($method !== null) {
+                    $method($client, $message);
                 }
             }
         }

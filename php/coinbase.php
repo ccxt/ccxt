@@ -1606,7 +1606,7 @@ class coinbase extends Exchange {
         ), $market);
     }
 
-    public function parse_balance($response, $params = array ()) {
+    public function parse_custom_balance($response, $params = array ()) {
         $balances = $this->safe_value_2($response, 'data', 'accounts', array());
         $accounts = $this->safe_value($params, 'type', $this->options['accounts']);
         $v3Accounts = $this->safe_value($params, 'type', $this->options['v3Accounts']);
@@ -1752,7 +1752,7 @@ class coinbase extends Exchange {
         //         "size" => 9
         //     }
         //
-        return $this->parse_balance($response, $params);
+        return $this->parse_custom_balance($response, $params);
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -2699,7 +2699,7 @@ class coinbase extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array ()): array {
         /**
          * fetches information on multiple $orders made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders

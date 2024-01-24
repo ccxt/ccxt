@@ -1348,10 +1348,10 @@ class tokocrypto extends Exchange {
         //         "timestamp":1659666786943
         //     }
         //
-        return $this->parse_balance($response, $type, $marginMode);
+        return $this->parse_balance_custom($response, $type, $marginMode);
     }
 
-    public function parse_balance($response, $type = null, $marginMode = null) {
+    public function parse_balance_custom($response, $type = null, $marginMode = null) {
         $timestamp = $this->safe_integer($response, 'updateTime');
         $result = array(
             'info' => $response,

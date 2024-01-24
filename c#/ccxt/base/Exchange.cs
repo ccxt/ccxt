@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using System.Net;
+using System.Reflection;
 
 namespace ccxt;
 
@@ -32,16 +33,16 @@ public partial class Exchange
         if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpProxy.ToString());
-            this.client = new HttpClient(new HttpClientHandler { Proxy = proxy });
+            this.httpClient = new HttpClient(new HttpClientHandler { Proxy = proxy });
         }
         else if (this.httpsProxy != null && this.httpsProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpsProxy.ToString());
-            this.client = new HttpClient(new HttpClientHandler { Proxy = proxy });
+            this.httpClient = new HttpClient(new HttpClientHandler { Proxy = proxy });
         }
         else
         {
-            this.client = new HttpClient();
+            this.httpClient = new HttpClient();
         }
     }
 
@@ -65,11 +66,11 @@ public partial class Exchange
                 }
                 else
                 {
-                    if (value.GetType() == typeof(List<object>))
+                    if (value is IList<object>)
                     {
                         // when endpoints are a list of string
                         endpoints = new List<string>();
-                        var listValue = value as List<object>;
+                        var listValue = value as IList<object>;
                         foreach (var item in listValue)
                         {
                             endpoints.Add(item.ToString());
@@ -155,8 +156,8 @@ public partial class Exchange
         // to do: add all proxies support
         this.checkProxySettings();
         // add headers
-        client.DefaultRequestHeaders.Accept.Clear();
-        client.DefaultRequestHeaders.Clear();
+        httpClient.DefaultRequestHeaders.Accept.Clear();
+        httpClient.DefaultRequestHeaders.Clear();
         var headersList = new List<string>(headers.Keys);
 
         var contentType = "";
@@ -165,7 +166,7 @@ public partial class Exchange
 
             if (key.ToLower() != "content-type")
             {
-                client.DefaultRequestHeaders.Add(key, headers[key].ToString());
+                httpClient.DefaultRequestHeaders.Add(key, headers[key].ToString());
             }
             else
             {
@@ -177,7 +178,7 @@ public partial class Exchange
         }
         // user agent
         if (this.userAgent != null && this.userAgent.Length > 0)
-            client.DefaultRequestHeaders.Add("User-Agent", userAgent);
+            httpClient.DefaultRequestHeaders.Add("User-Agent", userAgent);
 
 
         var result = "";
@@ -188,7 +189,7 @@ public partial class Exchange
 
             if (method == "GET")
             {
-                response = await this.client.GetAsync(url);
+                response = await this.httpClient.GetAsync(url);
                 result = await response.Content.ReadAsStringAsync();
             }
             else
@@ -202,15 +203,15 @@ public partial class Exchange
                 var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
                 if (method == "POST")
                 {
-                    response = await this.client.PostAsync(url, stringContent);
+                    response = await this.httpClient.PostAsync(url, stringContent);
                 }
                 else if (method == "DELETE")
                 {
-                    response = await this.client.DeleteAsync(url);
+                    response = await this.httpClient.DeleteAsync(url);
                 }
                 else if (method == "PUT")
                 {
-                    response = await this.client.PutAsync(url, stringContent);
+                    response = await this.httpClient.PutAsync(url, stringContent);
                 }
                 else if (method == "PATCH")
                 {
@@ -222,7 +223,7 @@ public partial class Exchange
                         Content = stringContent
                     };
 
-                    response = await client.SendAsync(request);
+                    response = await httpClient.SendAsync(request);
                 }
                 result = await response.Content.ReadAsStringAsync();
             }
@@ -239,7 +240,7 @@ public partial class Exchange
             throw e;
         }
 
-        this.client.DefaultRequestHeaders.Clear();
+        this.httpClient.DefaultRequestHeaders.Clear();
 
         var responseHeaders = response?.Headers.ToDictionary(x => x, y => y.Value.First());
         this.last_response_headers = responseHeaders;
@@ -591,20 +592,51 @@ public partial class Exchange
 
     public object arraySlice(object array, object first, object second = null)
     {
+        // to do; improve this implementation to handle ArrayCache (thread-safe) better
         var firstInt = Convert.ToInt32(first);
-        var parsedArray = ((List<object>)array);
+        var parsedArray = ((IList<object>)array);
+        var isArrayCache = array is ccxt.pro.ArrayCache;
+        // var typedArray = (array is ArrayCache) ? (ArrayCache)array : (IList<object>array);
         if (second == null)
         {
             if (firstInt < 0)
             {
                 var index = parsedArray.Count + firstInt;
                 index = index < 0 ? 0 : index;
-                return (parsedArray.ToArray()[index..]).ToList();
+
+                if (isArrayCache)
+                {
+                    // we need to make sure our implementation of ToArray is called, otherwise
+                    // it will call the default one that is not thread-safe
+                    return (((array as ccxt.pro.ArrayCache).ToArray()[index..])).ToList();
+
+                }
+                else
+                {
+                    return (parsedArray.ToArray()[index..]).ToList();
+                }
             }
-            return (parsedArray.ToArray()[firstInt..]).ToList();
+            if (isArrayCache)
+            {
+                return ((array as ccxt.pro.ArrayCache).ToArray()[firstInt..]).ToList();
+            }
+            else
+            {
+                return (parsedArray.ToArray()[firstInt..]).ToList();
+
+            }
         }
         var secondInt = Convert.ToInt32(second);
-        return (parsedArray.ToArray()[firstInt..secondInt]).ToList();
+        if (isArrayCache)
+        {
+            return ((array as ccxt.pro.ArrayCache).ToArray()[firstInt..secondInt]).ToList();
+
+        }
+        else
+        {
+            return (parsedArray.ToArray()[firstInt..secondInt]).ToList();
+
+        }
     }
 
     public object stringToCharsArray(object str)
@@ -623,6 +655,61 @@ public partial class Exchange
         return Task.Delay(Convert.ToInt32(ms));
     }
 
+    public bool isEmpty(object a)
+    {
+        if (a == null)
+            return true;
+        if (a.GetType() == typeof(string))
+            return a.ToString().Length == 0;
+        if (a is IList<object>)
+            return ((IList<object>)a).Count == 0;
+        if (a is IDictionary<string, object>)
+            return ((IDictionary<string, object>)a).Count == 0;
+        return false;
+    }
+
+    public object spawn(object action, object[] args = null)
+    {
+        // stub to implement later
+        // var task = Task.Run(() => DynamicInvoker.InvokeMethod(action, args));
+        // task.Wait();
+        // return task.Result;
+        // var res = DynamicInvoker.InvokeMethod(action, args);
+        // return res;
+        var future = new Future();
+        Task.Run(() =>
+        {
+            try
+            {
+                var invokedAction = DynamicInvoker.InvokeMethod(action, args);
+                if (invokedAction is Task<object>)
+                {
+                    var res = (Task<object>)invokedAction;
+                    res.Wait();
+                    future.resolve(res.Result);
+                    return;
+                }
+                if (invokedAction is Task)
+                {
+                    var task = invokedAction as Task;
+                    task.Wait();
+                    future.resolve(task);
+                    return;
+                }
+
+            }
+            catch (Exception e)
+            {
+                future.reject(e);
+            }
+        });
+        return future;
+    }
+
+    public void delay(object timeout2, object methodName, object[] args = null)
+    {
+        Task.Delay(Convert.ToInt32(timeout2)).ContinueWith((t) => spawn(methodName, args));
+    }
     public void setProperty(object obj, object property, object defaultValue = null)
     {
         var type = obj.GetType();
@@ -641,8 +728,42 @@ public partial class Exchange
         modified = modified.Replace("}\"", "}");
         return modified;
     }
-}
 
+    public class DynamicInvoker
+    {
+        public static object InvokeMethod(object action, object[] parameters)
+        {
+            // var methodName = (string)methodName2;
+            // // Assuming the method is in the current class for simplicity
+            // MethodInfo methodInfo = typeof(DynamicInvoker).GetMethod(methodName);
+
+            // if (methodInfo != null)
+            // {
+            //     Delegate methodDelegate = Delegate.CreateDelegate(typeof(Action), methodInfo);
+            //     methodDelegate.DynamicInvoke(parameters);
+            // }
+            // else
+            // {
+            //     throw new Exception("Method not found.");
+            // }
+            Delegate myDelegate = action as Delegate;
+
+            // Get parameter types
+            // MethodInfo methodInfo = myDelegate.Method;
+            // ParameterInfo[] parametersAux = methodInfo.GetParameters();
+
+            // Prepare arguments (in a real scenario, these would be dynamically determined)
+            // object[] args = new object[parametersAux.Length];
+            // args[0] = 123; // Assuming the first parameter is an int
+            // args[1] = "Hello"; // Assuming the second parameter is a string
+
+            // Dynamically invoke the action
+            var result = myDelegate.DynamicInvoke(parameters);
+            return result;
+        }
+    }
+
+}
 
 public static class BoolExtensions
 {
