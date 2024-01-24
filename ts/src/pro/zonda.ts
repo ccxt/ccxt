@@ -100,7 +100,7 @@ export default class zonda extends zondaRest {
         return future;
     }
 
-    async subscribePublic (name: string, snapshot: boolean, params = {}) {
+    async subscribePublic (name: string, params = {}) {
         /**
          * @ignore
          * @method
@@ -111,17 +111,12 @@ export default class zonda extends zondaRest {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         const subscribe = {
-            'action': snapshot ? 'proxy' : 'subscribe-public',
+            'action': 'subscribe-public',
             'module': 'trading',
             'path': name,
         };
-        let messageHash = name;
-        if (snapshot) {
-            subscribe['requestId'] = this.milliseconds ();
-            messageHash += '::snapshot';
-        }
         const message = this.extend (subscribe, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, name, message, name);
     }
 
     async subscribePrivate (name: string, symbol: Str = undefined, params = {}) {
@@ -376,7 +371,7 @@ export default class zonda extends zondaRest {
         params = this.omit (params, [ 'method', 'defaultMethod' ]);
         const market = this.market (symbol);
         const name = method + '/' + market['id'];
-        return await this.subscribePublic (name, false, params);
+        return await this.subscribePublic (name, params);
     }
 
     handleTicker (client: Client, message) {
@@ -514,7 +509,7 @@ export default class zonda extends zondaRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'transactions/' + market['id'].toLowerCase ();
-        const trades = await this.subscribePublic (name, true, params);
+        const trades = await this.subscribePublic (name, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
