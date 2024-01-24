@@ -366,7 +366,8 @@ class bingx extends bingx$1 {
                     '80017': errors.OrderNotFound,
                     '100414': errors.AccountSuspended,
                     '100419': errors.PermissionDenied,
-                    '100437': errors.BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
+                    '100437': errors.BadRequest,
+                    '101204': errors.InsufficientFunds, // bingx {"code":101204,"msg":"","data":{}}
                 },
                 'broad': {},
             },

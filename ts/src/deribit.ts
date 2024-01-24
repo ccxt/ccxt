@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
-import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarketInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -403,6 +403,162 @@ export default class deribit extends Exchange {
                 },
             },
         });
+    }
+
+    convertExpireDate (date) {
+        // parse YYMMDD to timestamp
+        const year = date.slice (0, 2);
+        const month = date.slice (2, 4);
+        const day = date.slice (4, 6);
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        return reconstructedDate;
+    }
+
+    convertMarketIdExpireDate (date) {
+        // parse 19JAN24 to 240119
+        const monthMappping = {
+            'JAN': '01',
+            'FEB': '02',
+            'MAR': '03',
+            'APR': '04',
+            'MAY': '05',
+            'JUN': '06',
+            'JUL': '07',
+            'AUG': '08',
+            'SEP': '09',
+            'OCT': '10',
+            'NOV': '11',
+            'DEC': '12',
+        };
+        const year = date.slice (0, 2);
+        const monthName = date.slice (2, 5);
+        const month = this.safeString (monthMappping, monthName);
+        const day = date.slice (5, 7);
+        const reconstructedDate = day + month + year;
+        return reconstructedDate;
+    }
+
+    convertExpireDateToMarketIdDate (date) {
+        // parse 240119 to 19JAN24
+        const year = date.slice (0, 2);
+        const monthRaw = date.slice (2, 4);
+        let month = undefined;
+        const day = date.slice (4, 6);
+        if (monthRaw === '01') {
+            month = 'JAN';
+        } else if (monthRaw === '02') {
+            month = 'FEB';
+        } else if (monthRaw === '03') {
+            month = 'MAR';
+        } else if (monthRaw === '04') {
+            month = 'APR';
+        } else if (monthRaw === '05') {
+            month = 'MAY';
+        } else if (monthRaw === '06') {
+            month = 'JUN';
+        } else if (monthRaw === '07') {
+            month = 'JUL';
+        } else if (monthRaw === '08') {
+            month = 'AUG';
+        } else if (monthRaw === '09') {
+            month = 'SEP';
+        } else if (monthRaw === '10') {
+            month = 'OCT';
+        } else if (monthRaw === '11') {
+            month = 'NOV';
+        } else if (monthRaw === '12') {
+            month = 'DEC';
+        }
+        const reconstructedDate = day + month + year;
+        return reconstructedDate;
+    }
+
+    createExpiredOptionMarket (symbol) {
+        // support expired option contracts
+        let quote = 'USD';
+        let settle = undefined;
+        const optionParts = symbol.split ('-');
+        const symbolBase = symbol.split ('/');
+        let base = undefined;
+        let expiry = undefined;
+        if (symbol.indexOf ('/') > -1) {
+            base = this.safeString (symbolBase, 0);
+            expiry = this.safeString (optionParts, 1);
+            if (symbol.indexOf ('USDC') > -1) {
+                base = base + '_USDC';
+            }
+        } else {
+            base = this.safeString (optionParts, 0);
+            expiry = this.convertMarketIdExpireDate (this.safeString (optionParts, 1));
+        }
+        if (symbol.indexOf ('USDC') > -1) {
+            quote = 'USDC';
+            settle = 'USDC';
+        } else {
+            settle = base;
+        }
+        let splitBase = base;
+        if (base.indexOf ('_') > -1) {
+            const splitSymbol = base.split ('_');
+            splitBase = this.safeString (splitSymbol, 0);
+        }
+        const strike = this.safeString (optionParts, 2);
+        const optionType = this.safeString (optionParts, 3);
+        const datetime = this.convertExpireDate (expiry);
+        const timestamp = this.parse8601 (datetime);
+        return {
+            'id': base + '-' + this.convertExpireDateToMarketIdDate (expiry) + '-' + strike + '-' + optionType,
+            'symbol': splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': false,
+            'type': 'option',
+            'linear': undefined,
+            'inverse': undefined,
+            'spot': false,
+            'swap': false,
+            'future': false,
+            'option': true,
+            'margin': false,
+            'contract': true,
+            'contractSize': undefined,
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': (optionType === 'C') ? 'call' : 'put',
+            'strike': this.parseNumber (strike),
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': undefined,
+        } as MarketInterface;
+    }
+
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        const isOption = (marketId !== undefined) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')));
+        if (isOption && !(marketId in this.markets_by_id)) {
+            // handle expired option contracts
+            return this.createExpiredOptionMarket (marketId);
+        }
+        return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
     async fetchTime (params = {}) {

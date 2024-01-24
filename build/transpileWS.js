@@ -37,7 +37,7 @@ class CCXTProTranspiler extends Transpiler {
         return 'class ' + className + '(' +  baseClasses.join (', ') + '):'
     }
 
-    createPythonClassImports (baseClass, async = false) {
+    createPythonClassImports (baseClass, className, async = false) {
 
         const baseClasses = {
             'Exchange': 'base.exchange',
@@ -258,6 +258,29 @@ class CCXTProTranspiler extends Transpiler {
         // this.transpileErrorHierarchy ({ tsFilename })
 
         log.bright.green ('Transpiled successfully.')
+    }
+
+    
+    afterTranspileClass (result, contents) {
+        // if same class import (like binanceWS extending binanceRest)
+        if (result.baseClass === result.className + 'Rest') {
+            return result;
+        }
+        // we need this because exchanges like binanceusWs extends binanceWs but we need to get the binanceus
+        // Rest describe() to inherit all the properties
+        const matchOfRestImports = contents.matchAll('\nimport (.*?)Rest from \'..(.*?)\';');
+        const matches = [...matchOfRestImports];
+        if (matches.length) {
+            for (const match of matches) {
+                if (match[1]) {
+                    const exchangeName = match[1];
+                    const exchangeNameRest = exchangeName + 'Rest';
+                    result.python3 = result.python3.replace ('\nclass ', 'import ccxt.async_support.' + exchangeName + ' as ' + exchangeNameRest + '\n\n\nclass ');
+                    result.phpAsync = result.phpAsync.replace ('new '+ exchangeNameRest, 'new \\ccxt\\async\\' + exchangeName);
+                }
+            }
+        }
+        return result;
     }
 }
 

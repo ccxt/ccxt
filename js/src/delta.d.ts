@@ -8,7 +8,6 @@ export default class delta extends Exchange {
     describe(): any;
     convertExpireDate(date: any): string;
     createExpiredOptionMarket(symbol: any): MarketInterface;
-    market(symbol: any): any;
     safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;
     fetchTime(params?: {}): Promise<number>;
     fetchStatus(params?: {}): Promise<{

@@ -27,8 +27,8 @@ class bitopro extends \ccxt\async\bitopro {
             ),
             'urls' => array(
                 'ws' => array(
-                    'public' => 'wss://stream.bitopro.com:9443/ws/v1/pub',
-                    'private' => 'wss://stream.bitopro.com:9443/ws/v1/pub/auth',
+                    'public' => 'wss://stream.bitopro.com:443/ws/v1/pub',
+                    'private' => 'wss://stream.bitopro.com:443/ws/v1/pub/auth',
                 ),
             ),
             'requiredCredentials' => array(
@@ -60,6 +60,7 @@ class bitopro extends \ccxt\async\bitopro {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/order_book_stream.md
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -126,6 +127,7 @@ class bitopro extends \ccxt\async\bitopro {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/trade_stream.md
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -187,6 +189,7 @@ class bitopro extends \ccxt\async\bitopro {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/ticker_stream.md
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -243,7 +246,7 @@ class bitopro extends \ccxt\async\bitopro {
             'identity' => $this->login,
         ));
         $payload = base64_encode($rawData);
-        $signature = $this->hmac($payload, $this->encode($this->secret), 'sha384');
+        $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384');
         $defaultOptions = array(
             'ws' => array(
                 'options' => array(
@@ -269,6 +272,7 @@ class bitopro extends \ccxt\async\bitopro {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/user_balance_stream.md
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */

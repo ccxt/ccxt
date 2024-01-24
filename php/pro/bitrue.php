@@ -361,7 +361,12 @@ class bitrue extends \ccxt\async\bitrue {
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($message, 'ts');
         $tick = $this->safe_value($message, 'tick', array());
-        $orderbook = $this->parse_order_book($tick, $symbol, $timestamp, 'buys', 'asks');
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            $orderbook = $this->order_book();
+        }
+        $snapshot = $this->parse_order_book($tick, $symbol, $timestamp, 'buys', 'asks');
+        $orderbook->reset ($snapshot);
         $this->orderbooks[$symbol] = $orderbook;
         $messageHash = 'orderbook:' . $symbol;
         $client->resolve ($orderbook, $messageHash);

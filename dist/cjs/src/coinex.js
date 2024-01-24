@@ -1577,8 +1577,9 @@ class coinex extends coinex$1 {
          */
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        const isMargin = this.safeValue(params, 'margin', false);
-        marketType = isMargin ? 'margin' : marketType;
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
+        marketType = (marginMode !== undefined) ? 'margin' : marketType;
         params = this.omit(params, 'margin');
         if (marketType === 'margin') {
             return await this.fetchMarginBalance(params);
@@ -2108,8 +2109,9 @@ class coinex extends coinex$1 {
             }
         }
         const accountId = this.safeInteger(params, 'account_id');
-        const defaultType = this.safeString(this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new errors.BadRequest(this.id + ' createOrder() requires an account_id parameter for margin orders');
             }
@@ -2628,9 +2630,10 @@ class coinex extends coinex$1 {
             'market': market['id'],
         };
         const accountId = this.safeInteger(params, 'account_id');
-        const defaultType = this.safeString(this.options, 'defaultType');
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
         const clientOrderId = this.safeString2(params, 'client_id', 'clientOrderId');
-        if (defaultType === 'margin') {
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new errors.BadRequest(this.id + ' cancelOrder() requires an account_id parameter for margin orders');
             }
@@ -3002,8 +3005,9 @@ class coinex extends coinex$1 {
         }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
         const accountId = this.safeInteger(params, 'account_id');
-        const defaultType = this.safeString(this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchOrdersByStatus', params);
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new errors.BadRequest(this.id + ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders');
             }
@@ -3406,8 +3410,9 @@ class coinex extends coinex$1 {
         }
         const swap = (type === 'swap');
         const accountId = this.safeInteger(params, 'account_id');
-        const defaultType = this.safeString(this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchMyTrades', params);
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new errors.BadRequest(this.id + ' fetchMyTrades() requires an account_id parameter for margin trades');
             }
@@ -4732,9 +4737,10 @@ class coinex extends coinex$1 {
             request['limit'] = 100;
         }
         params = this.omit(params, 'page');
-        const defaultType = this.safeString(this.options, 'defaultType');
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchTransfers', params);
         let response = undefined;
-        if (defaultType === 'margin') {
+        if (marginMode !== undefined) {
             response = await this.privateGetMarginTransferHistory(this.extend(request, params));
         }
         else {
@@ -5314,6 +5320,25 @@ class coinex extends coinex$1 {
             depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency);
         }
         return depositWithdrawFees;
+    }
+    handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase
+         */
+        const defaultType = this.safeString(this.options, 'defaultType');
+        const isMargin = this.safeValue(params, 'margin', false);
+        let marginMode = undefined;
+        [marginMode, params] = super.handleMarginModeAndParams(methodName, params, defaultValue);
+        if (marginMode === undefined) {
+            if ((defaultType === 'margin') || (isMargin === true)) {
+                marginMode = 'isolated';
+            }
+        }
+        return [marginMode, params];
     }
     nonce() {
         return this.milliseconds();
