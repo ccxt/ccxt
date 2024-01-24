@@ -100,11 +100,12 @@ export default class zonda extends zondaRest {
         return future;
     }
 
-    async subscribePublic (name: string, params = {}) {
+    async subscribePublic (path: string, messageHash: string, params = {}) {
         /**
          * @ignore
          * @method
          * @param {string} name websocket endpoint name
+         * @param {string} messageHash
          * @param {string[]} [symbols] unified CCXT symbol(s)
          * @param {object} [params] extra parameters specific to the zonda api
          */
@@ -113,10 +114,10 @@ export default class zonda extends zondaRest {
         const subscribe = {
             'action': 'subscribe-public',
             'module': 'trading',
-            'path': name,
+            'path': path,
         };
         const message = this.extend (subscribe, params);
-        return await this.watch (url, name, message, name);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     async subscribePrivate (name: string, symbol: Str = undefined, params = {}) {
@@ -371,7 +372,34 @@ export default class zonda extends zondaRest {
         params = this.omit (params, [ 'method', 'defaultMethod' ]);
         const market = this.market (symbol);
         const name = method + '/' + market['id'];
-        return await this.subscribePublic (name, params);
+        return await this.subscribePublic (name, name, params);
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name kucoin#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const options = this.safeValue (this.options, 'watchTicker');
+        const defaultMethod = this.safeString (options, 'method', 'ticker');
+        const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
+        params = this.omit (params, [ 'method', 'defaultMethod' ]);
+        symbols = this.marketSymbols (symbols);
+        const messageHash = method;
+        // TODO: symbols? each ticker is returned in a separate response
+        // if (symbols !== undefined) {
+        //     messageHash = messageHash + '::' + symbols.join (',');
+        // }
+        const tickers = await this.subscribePublic (method, messageHash, params);
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
@@ -414,6 +442,7 @@ export default class zonda extends zondaRest {
         this.tickers[market['symbol']] = ticker;
         const messageHash = 'ticker/' + market['id'];
         client.resolve (ticker, messageHash);
+        client.resolve (ticker, 'ticker');
         return message;
     }
 
@@ -447,9 +476,9 @@ export default class zonda extends zondaRest {
             const market = this.market (symbol);
             this.tickers[market['symbol']] = ticker;
             const messageHash = 'stats/' + market['id'];
-            client.resolve (ticker, 'stats');
             client.resolve (ticker, messageHash);
         }
+        client.resolve (this.tickers, 'stats');
         return message;
     }
 
@@ -527,7 +556,7 @@ export default class zonda extends zondaRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'transactions/' + market['id'].toLowerCase ();
-        const trades = await this.subscribePublic (name, params);
+        const trades = await this.subscribePublic (name, name, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
