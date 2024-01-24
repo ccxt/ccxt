@@ -406,7 +406,17 @@ public partial class Exchange
         return this.toArray(this.markets);
     }
 
+    public virtual async Task<object> fetchMarketsWs(object parameters = null)
+    {
+        return this.toArray(this.markets);
+    }
+
     public virtual async Task<object> fetchCurrencies(object parameters = null)
+    {
+        return this.currencies;
+    }
+
+    public virtual async Task<object> fetchCurrenciesWs(object parameters = null)
     {
         return this.currencies;
     }
