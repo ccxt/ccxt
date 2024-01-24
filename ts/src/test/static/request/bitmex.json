@@ -125,7 +125,7 @@
         "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":36000,\"postOnly\":true,\"timeInForce\":\"GTC\"}"
       },
       {
-        "description": "spot market buy with triggerPrice and triggerDirection below",
+        "description": "spot market buy with triggerPrice and triggerDirection falling",
         "method": "createOrder",
         "url": "https://www.bitmex.com/api/v1/order",
         "input": [
@@ -136,13 +136,13 @@
           null,
           {
             "triggerPrice": 35,
-            "triggerDirection": "below"
+            "triggerDirection": "falling"
           }
         ],
         "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000000,\"ordType\":\"MarketIfTouched\",\"text\":\"CCXT\",\"stopPx\":35}"
       },
       {
-        "description": "spot market buy with triggerPrice and triggerDirection above",
+        "description": "spot market buy with triggerPrice and triggerDirection rising",
         "method": "createOrder",
         "url": "https://www.bitmex.com/api/v1/order",
         "input": [
@@ -153,7 +153,7 @@
           null,
           {
             "triggerPrice": 37000,
-            "triggerDirection": "above"
+            "triggerDirection": "rising"
           }
         ],
         "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000000,\"ordType\":\"Stop\",\"text\":\"CCXT\",\"stopPx\":37000}"
@@ -202,7 +202,7 @@
           null,
           {
             "trailingAmount": 100,
-            "triggerDirection": "above"
+            "triggerDirection": "rising"
           }
         ],
         "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"MarketIfTouched\",\"text\":\"CCXT\",\"pegOffsetValue\":100,\"pegPriceType\":\"TrailingStopPeg\"}"
@@ -219,7 +219,7 @@
           45000,
           {
             "trailingAmount": 100,
-            "triggerDirection": "above"
+            "triggerDirection": "rising"
           }
         ],
         "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"LimitIfTouched\",\"text\":\"CCXT\",\"pegOffsetValue\":100,\"pegPriceType\":\"TrailingStopPeg\",\"price\":45000}"
@@ -285,7 +285,7 @@
           null,
           {
             "trailingAmount": 11000,
-            "triggerDirection": "above"
+            "triggerDirection": "rising"
           }
         ],
         "output": "{\"pegOffsetValue\":11000,\"orderID\":\"f21aa11e-3857-4e39-9230-53cb15a04c3f\",\"orderQty\":1000,\"text\":\"CCXT\"}"
