@@ -260,4 +260,17 @@ public partial class Exchange
         return ob; //stub
     }
 
+    public bool isEmpty(object ob)
+    {
+        if (ob is IDictionary<string, object>)
+        {
+            return ((IDictionary<string, object>)ob).Count == 0;
+        }
+        if (ob is IList<object>)
+        {
+            return ((IList<object>)ob).Count == 0;
+        }
+        return false;
+    }
+
 }
