@@ -830,7 +830,6 @@ export default class bitmart extends bitmartRest {
             messageHash += ':' + this.safeString (data[0], 'symbol');
         }
         client.resolve (stored, messageHash);
-        return;
     }
 
     parseWsTrade (trade, market: Market = undefined) {
@@ -933,7 +932,6 @@ export default class bitmart extends bitmartRest {
             client.resolve (ticker, 'tickers::swap');
             this.resolveMessageHashesForSymbol (client, symbol, ticker, 'tickers::');
         }
-        return;
     }
 
     resolveMessageHashesForSymbol (client, symbol, result, prexif) {
