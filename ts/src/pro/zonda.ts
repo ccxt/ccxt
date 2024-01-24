@@ -978,7 +978,7 @@ export default class zonda extends zondaRest {
         return message;
     }
 
-    handleSnapshot (client: Client, message) {
+    handleOrderbookSnapshot (client: Client, message) {
         //
         //    {
         //        "action": "proxy-response",
@@ -1027,16 +1027,48 @@ export default class zonda extends zondaRest {
         client.resolve (orderbook, messageHash);
     }
 
+    handleTradesSnapshot (client: Client, message) {
+        //
+        //    {
+        //        "action": "proxy-response",
+        //        "requestId": "78539fe0-e9b0-4e4e-8c86-70b36aa93d4f",
+        //        "statusCode": 200,
+        //        "body": {
+        //            "status": "Ok",
+        //            "items": [
+        //                {
+        //                    "id": "7688b214-232a-11ea-8d5d-0242ac110008",     // UUID of transaction.
+        //                    "t": "1576847587249",                             // Transaction time.
+        //                    "a": "0.00755734",                                // Amount of cryptocurrency in the transaction.
+        //                    "r": "27787.53",                                  // Price of the transaction.
+        //                    "ty": "Buy"                                       // Transaction type: buy / sell.
+        //                }
+        //            ]
+        //        }
+        //    }
+        //
+        const messageHash = this.safeString (message, 'requestId');
+        const body = this.safeValue (message, 'body');
+        const items = this.safeValue (body, 'items');
+        const trades = this.parseTrades (items);
+        client.resolve (trades, messageHash);
+    }
+
     handleMessage (client: Client, message) {
         this.handleError (client, message);
         const action = this.safeString (message, 'action');
         const path = this.safeString (message, 'path');
         const isOrderbookPath = (path === 'orderbook');
-        if (isOrderbookPath) {
+        const isTradesPath = (path === 'transactions');
+        if (isOrderbookPath || isTradesPath) {
             if (action === 'subscribe-public-confirm') {
                 return this.handleSubscriptionStatus (client, message);
             } else if (action === 'proxy-response') {
-                return this.handleSnapshot (client, message);
+                if (isOrderbookPath) {
+                    return this.handleOrderbookSnapshot (client, message);
+                } else {
+                    return this.handleTradesSnapshot (client, message);
+                }
             }
         }
         const topic = this.safeString (message, 'topic');
