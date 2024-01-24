@@ -5871,6 +5871,38 @@ e.g.
 { code: -4046, msg: 'No need to change margin type.' }
 ```
 
+### Notes On The marginMode Parameter
+
+Some methods allow the usage of a `marginMode` parameter that can be set to either `cross` or `isolated`. This can be useful for specifying the `marginMode` directly within the methods params, for use with spot margin or contract markets. To specify a spot margin market, you need to use a unified spot symbol or set the market type to spot, while setting the marginMode parameter to `cross` or `isolated`.
+
+Create a Spot Margin Order:
+
+*Use a unified spot symbol, while setting the marginMode parameter.*
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const params = {
+    'marginMode': 'isolated', // or 'cross'
+}
+const order = await exchange.createOrder ('ETH/USDT', 'market', 'buy', 0.1, 1500, params)
+```
+#### **Python**
+```python
+params = {
+    'marginMode': 'isolated', # or 'cross'
+}
+order = exchange.create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, params)
+```
+#### **PHP**
+```php
+$params = {
+    'marginMode': 'isolated', // or 'cross'
+}
+$order = $exchange->create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, $params);
+```
+<!-- tabs:end -->
+
 ## Leverage
 
 *margin and contract only*
