@@ -3,10 +3,10 @@
 
 import Exchange from './abstract/coinbase.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency } from './base/types.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InvalidNonce, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 // ----------------------------------------------------------------------------
 
@@ -123,8 +123,7 @@ export default class coinbase extends Exchange {
                 'referral': 'https://www.coinbase.com/join/58cbe25a355148797479dbd2',
             },
             'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
+                'token': true,
             },
             'api': {
                 'v2': {
