@@ -47,7 +47,7 @@ export default class binance extends binanceRest {
                     'ws': {
                         'spot': 'wss://testnet.binance.vision/ws',
                         'margin': 'wss://testnet.binance.vision/ws',
-                        'future': 'wss://stream.binancefuture.com/ws',
+                        'future': 'wss://fstream.binancefuture.com/ws',
                         'delivery': 'wss://dstream.binancefuture.com/ws',
                         'ws': 'wss://testnet.binance.vision/ws-api/v3',
                     },
