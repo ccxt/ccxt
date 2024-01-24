@@ -118,12 +118,10 @@ public static class Program
 
         var isWsMethod = methodName.StartsWith("watch") || methodName.StartsWith("Watch");
         var isWsCrudeMethod = methodName.EndsWith("Ws");
-        var exchangeNameAdapted = (isWsMethod || isWsCrudeMethod) ? exchangeName + "Ws" : exchangeName;
+        var exchangeNameAdapted = (isWsMethod || isWsCrudeMethod) ? "ccxt.pro." + exchangeName : exchangeName;
         var instance = Exchange.MagicallyCreateInstance(exchangeNameAdapted);
 
         InitOptions(instance, flags);
-        instance.apiKey = "lug8rHp6sfJjg2RMX3EnHosE4GLAXpcUiBgLumscNS11hW5laeadqvXhA3JWBNci";
-        instance.secret = "vhD77dqxSEwwnWwxvlk9OAUVRbee8xAvl8bOEqpe1QU2hsP6t0uS55HL5y72qVsv";
         SetCredentials(instance);
 
         // tmp
