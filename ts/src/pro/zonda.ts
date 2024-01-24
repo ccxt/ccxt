@@ -518,89 +518,45 @@ export default class zonda extends zondaRest {
 
     handleTrades (client: Client, message) {
         //
-        // TODO
         //    {
-        //        action: 'push',
-        //        topic: 'trading/transactions/btc-usdt',
-        //        message: {
-        //            transactions: [
+        //        "action": "push",
+        //        "topic": "trading/transactions/btc-pln",
+        //        "message": {
+        //            "transactions": [
         //                {
-        //                    {
-        //                        "id": "50764c8c-232a-11ea-8d5d-0242ac110008",
-        //                        "t": "1576847523375",
-        //                        "a": "0.03245411",
-        //                        "r": "27787.66",
-        //                        "ty": "Buy"
-        //                    }
+        //                    "id": "50764c8c-232a-11ea-8d5d-0242ac110008",
+        //                    "t": "1576847523375",
+        //                    "a": "0.03245411",
+        //                    "r": "27787.66",
+        //                    "ty": "Buy"
         //                }
         //            ]
         //        },
-        //        timestamp: '1705447699746',
-        //        seqNo: 962433
+        //        "timestamp": "1576847523375",
+        //        "seqNo": 1182873
         //    }
         //
-        const data = this.safeValue2 (message, 'snapshot', 'update', {});
-        const marketIds = Object.keys (data);
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const market = this.safeMarket (marketId);
-            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            const symbol = market['symbol'];
-            let stored = this.safeValue (this.trades, symbol);
-            if (stored === undefined) {
-                stored = new ArrayCache (tradesLimit);
-                this.trades[symbol] = stored;
-            }
-            const trades = this.parseWsTrades (data[marketId], market);
-            for (let j = 0; j < trades.length; j++) {
-                stored.append (trades[j]);
-            }
-            const messageHash = 'trades::' + symbol;
-            client.resolve (stored, messageHash);
+        const data = this.safeValue (message, 'message', {});
+        const transactions = this.safeValue (data, 'transactions', {});
+        const topic = this.safeString (message, 'topic');
+        const splitTopic = topic.split ('/');
+        const marketId = this.safeString (splitTopic, 2);
+        const channel = this.safeString (splitTopic, 1);
+        const messageHash = channel + '/' + marketId;
+        const market = this.market (marketId);
+        const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+        const symbol = market['symbol'];
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            stored = new ArrayCache (tradesLimit);
+            this.trades[symbol] = stored;
         }
+        const trades = this.parseTrades (transactions, market);
+        for (let j = 0; j < trades.length; j++) {
+            stored.append (trades[j]);
+        }
+        client.resolve (stored, messageHash);
         return message;
-    }
-
-    parseWsTrades (trades, market: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        // TODO
-        trades = this.toArray (trades);
-        let result = [];
-        for (let i = 0; i < trades.length; i++) {
-            const trade = this.extend (this.parseWsTrade (trades[i], market), params);
-            result.push (trade);
-        }
-        result = this.sortBy2 (result, 'timestamp', 'id');
-        const symbol = this.safeString (market, 'symbol');
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
-    }
-
-    parseWsTrade (trade, market = undefined) {
-        //
-        // TODO
-        //    {
-        //        "t": 1626861123552,       // Timestamp in milliseconds
-        //        "i": 1555634969,          // Trade identifier
-        //        "p": "30877.68",          // Price
-        //        "q": "0.00006",           // Quantity
-        //        "s": "sell"               // Side
-        //    }
-        //
-        const timestamp = this.safeInteger (trade, 't');
-        return this.safeTrade ({
-            'info': trade,
-            'id': this.safeString (trade, 'i'),
-            'order': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': this.safeString (market, 'symbol'),
-            'type': undefined,
-            'side': this.safeString (trade, 's'),
-            'takerOrMaker': undefined,
-            'price': this.safeString (trade, 'p'),
-            'amount': this.safeString (trade, 'q'),
-            'cost': undefined,
-            'fee': undefined,
-        }, market);
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
