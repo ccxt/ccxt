@@ -2,9 +2,6 @@ namespace ccxt;
 
 using System.Globalization;
 
-using System.Security.Cryptography;
-using System.Text;
-
 using dict = IDictionary<string, object>;
 using list = List<object>;
 

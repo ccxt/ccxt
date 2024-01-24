@@ -1,6 +1,3 @@
-using System.Text;
-using System.Security.Cryptography;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Globalization;
 

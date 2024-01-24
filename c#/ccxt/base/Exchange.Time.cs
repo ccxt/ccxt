@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace ccxt;
 
 public partial class Exchange

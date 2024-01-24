@@ -1,8 +1,3 @@
-using System.Text;
-using System.Security.Cryptography;
-// using System.Globalization;
-using System.Linq;
-using System.Globalization;
 using System.Numerics;
 
 namespace ccxt
