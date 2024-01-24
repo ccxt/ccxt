@@ -5551,7 +5551,7 @@ export default class Exchange {
     ethEncodeStructuredData (domain, messageTypes, message) {
         return [
             this.base16ToBinary (TypedDataEncoder.hashDomain (domain).slice (-64)),
-            this.base16ToBinary (TypedDataEncoder.from (messageTypes).hash(message).slice (-64))
+            this.base16ToBinary (TypedDataEncoder.from (messageTypes).hash (message).slice (-64)),
         ];
     }
 }
