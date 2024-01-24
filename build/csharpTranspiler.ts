@@ -69,6 +69,7 @@ class NewTranspiler {
     getWsRegexes() {
         // hoplefully we won't need this in the future by having everything typed properly in the typescript side
         return [
+            [/new (\w+)Rest\(\)/, 'new ccxt.$1()'],
             [/return await (\w+);/gm, 'return await ($1 as Exchange.Future);'],
             // [/typeof\(client\)/gm, 'client'],
             // [/typeof\(orderbook\)/gm, 'orderbook'], // fix this in the transpiler later
@@ -76,6 +77,7 @@ class NewTranspiler {
             [/\(object\)client\).subscriptions/gm, '(WebSocketClient)client).subscriptions'],
             [/client\.subscriptions/gm, '((WebSocketClient)client).subscriptions'],
             [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
+            [/this\.safeValue\(client\.futures,/gm, 'this.safeValue((client as WebSocketClient).futures,'],
             [/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients'],
             [/(orderbook)(\.reset.+)/gm, '($1 as IOrderBook)$2'],
             [/(\w+)(\.cache)/gm, '($1 as ccxt.pro.OrderBook)$2'],

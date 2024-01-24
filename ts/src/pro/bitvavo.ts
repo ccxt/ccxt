@@ -1136,7 +1136,7 @@ export default class bitvavo extends bitvavoRest {
     checkMessageHashDoesNotExist (messageHash) {
         const supressMultipleWsRequestsError = this.safeValue (this.options, 'supressMultipleWsRequestsError', false);
         if (!supressMultipleWsRequestsError) {
-            const client = this.safeValue (this.clients, this.urls['api']['ws']);
+            const client = this.safeValue (this.clients, this.urls['api']['ws']) as Client;
             if (client !== undefined) {
                 const future = this.safeValue (client.futures, messageHash);
                 if (future !== undefined) {
