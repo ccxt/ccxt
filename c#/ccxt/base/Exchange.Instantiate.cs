@@ -8,8 +8,10 @@ public partial class Exchange
     {
         var assembly = Assembly.GetExecutingAssembly();
 
+        // var filtered = assembly.GetTypes().Select(t => t.Name).Where(t => t.EndsWith("binance"));
+
         var type = assembly.GetTypes()
-            .First(t => t.Name == className);
+            .First(t => t.Name == className || t.FullName == className);
 
 
         // tmp check this, can't find constructor
