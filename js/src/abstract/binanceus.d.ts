@@ -591,6 +591,7 @@ interface binance {
     privateGetMyPreventedMatches(params?: {}): Promise<implicitReturnType>;
     privateGetMyAllocations(params?: {}): Promise<implicitReturnType>;
     privateGetAccountCommission(params?: {}): Promise<implicitReturnType>;
+    privateGetStatus(params?: {}): Promise<implicitReturnType>;
     privatePostOrderOco(params?: {}): Promise<implicitReturnType>;
     privatePostSorOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSorOrderTest(params?: {}): Promise<implicitReturnType>;
@@ -600,6 +601,7 @@ interface binance {
     privateDeleteOpenOrders(params?: {}): Promise<implicitReturnType>;
     privateDeleteOrderList(params?: {}): Promise<implicitReturnType>;
     privateDeleteOrder(params?: {}): Promise<implicitReturnType>;
+    papiGetPing(params?: {}): Promise<implicitReturnType>;
     papiGetUmOrder(params?: {}): Promise<implicitReturnType>;
     papiGetUmOpenOrder(params?: {}): Promise<implicitReturnType>;
     papiGetUmOpenOrders(params?: {}): Promise<implicitReturnType>;

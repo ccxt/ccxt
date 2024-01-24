@@ -1746,7 +1746,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
-        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-funding-rate
+        :see: https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -1770,7 +1770,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data')
-        fundingTimestamp = self.safe_number(data, 'timePoint')
+        fundingTimestamp = self.safe_integer(data, 'timePoint')
         # the website displayes the previous funding rate as "funding rate"
         return {
             'info': data,
@@ -1781,15 +1781,15 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': self.safe_number(data, 'predictedValue'),
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
-            'nextFundingRate': None,
+            'fundingRate': self.safe_number(data, 'value'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
+            'nextFundingRate': self.safe_number(data, 'predictedValue'),
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
-            'previousFundingRate': self.safe_number(data, 'value'),
-            'previousFundingTimestamp': fundingTimestamp,
-            'previousFundingDatetime': self.iso8601(fundingTimestamp),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
         }
 
     def parse_balance(self, response) -> Balances:

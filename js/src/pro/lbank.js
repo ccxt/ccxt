@@ -685,7 +685,7 @@ export default class lbank extends lbankRest {
         };
         const request = this.deepExtend(subscribe, params);
         const orderbook = await this.watch(url, messageHash, request, messageHash);
-        return orderbook.limit(limit);
+        return orderbook.limit();
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**

@@ -41,6 +41,3 @@ __pycache__
 bin/
 obj/
 
-# docs
-wiki/spec.md
-wiki/examples/**/*.md

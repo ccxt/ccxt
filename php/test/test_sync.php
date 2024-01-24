@@ -323,6 +323,11 @@ class testMainClass extends baseMainTestClass {
 
     public function init($exchange_id, $symbol_argv) {
         $this->parse_cli_args();
+        if ($this->request_tests && $this->response_tests) {
+            $this->run_static_request_tests($exchange_id, $symbol_argv);
+            $this->run_static_response_tests($exchange_id, $symbol_argv);
+            return;
+        }
         if ($this->response_tests) {
             $this->run_static_response_tests($exchange_id, $symbol_argv);
             return;
@@ -1363,7 +1368,6 @@ class testMainClass extends baseMainTestClass {
         } else {
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] ' . ((string) $sum) . ' static ' . $type . ' tests passed.';
             dump('[INFO]' . $success_message);
-            exit_script(0);
         }
     }
 

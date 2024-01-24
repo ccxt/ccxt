@@ -601,6 +601,7 @@ class ImplicitAPI:
     private_delete_openorders = privateDeleteOpenOrders = Entry('openOrders', 'private', 'DELETE', {'cost': 0.2})
     private_delete_orderlist = privateDeleteOrderList = Entry('orderList', 'private', 'DELETE', {'cost': 0.2})
     private_delete_order = privateDeleteOrder = Entry('order', 'private', 'DELETE', {'cost': 0.2})
+    papi_get_ping = papiGetPing = Entry('ping', 'papi', 'GET', {'cost': 1})
     papi_get_um_order = papiGetUmOrder = Entry('um/order', 'papi', 'GET', {'cost': 1})
     papi_get_um_openorder = papiGetUmOpenOrder = Entry('um/openOrder', 'papi', 'GET', {'cost': 1})
     papi_get_um_openorders = papiGetUmOpenOrders = Entry('um/openOrders', 'papi', 'GET', {'cost': 1})

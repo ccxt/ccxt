@@ -949,17 +949,20 @@ class okx(ccxt.async_support.okx):
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
         watches information on multiple orders made by the user
-        :param str [symbol]: unified market symbol of the market orders were made in
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
+        :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.stop]: True if fetching trigger or conditional orders
+        :param str [params.type]: 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
+        :param str [params.marginMode]: 'cross' or 'isolated', for automatically setting the type to spot margin
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         type = None
         # By default, receive order updates from any instrument type
+        type, params = self.handle_option_and_params(params, 'watchOrders', 'defaultType')
         type, params = self.handle_option_and_params(params, 'watchOrders', 'type', 'ANY')
         isStop = self.safe_value_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
@@ -973,6 +976,11 @@ class okx(ccxt.async_support.okx):
         if type == 'future':
             type = 'futures'
         uppercaseType = type.upper()
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('watchOrders', params)
+        if uppercaseType == 'SPOT':
+            if marginMode is not None:
+                uppercaseType = 'MARGIN'
         request = {
             'instType': uppercaseType,
         }

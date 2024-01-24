@@ -1688,49 +1688,49 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('listenKey', 'eapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function public_get_ping($params = array()) {
-        return $this->request('ping', 'public', 'GET', $params, null, null, array("cost" => 0.2));
+        return $this->request('ping', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_time($params = array()) {
-        return $this->request('time', 'public', 'GET', $params, null, null, array("cost" => 0.2));
+        return $this->request('time', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_depth($params = array()) {
         return $this->request('depth', 'public', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[100, 1], [500, 5], [1000, 10], [5000, 50]]));
     }
     public function public_get_trades($params = array()) {
-        return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_aggtrades($params = array()) {
-        return $this->request('aggTrades', 'public', 'GET', $params, null, null, array("cost" => 0.4));
+        return $this->request('aggTrades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_historicaltrades($params = array()) {
-        return $this->request('historicalTrades', 'public', 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('historicalTrades', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function public_get_klines($params = array()) {
-        return $this->request('klines', 'public', 'GET', $params, null, null, array("cost" => 0.4));
+        return $this->request('klines', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_uiklines($params = array()) {
         return $this->request('uiKlines', 'public', 'GET', $params, null, null, array("cost" => 0.4));
     }
     public function public_get_ticker_24hr($params = array()) {
-        return $this->request('ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 16));
+        return $this->request('ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function public_get_ticker($params = array()) {
-        return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 16));
+        return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 2, "noSymbol" => 100));
     }
     public function public_get_ticker_tradingday($params = array()) {
         return $this->request('ticker/tradingDay', 'public', 'GET', $params, null, null, array("cost" => 0.8));
     }
     public function public_get_ticker_price($params = array()) {
-        return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 0.8));
+        return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
     }
     public function public_get_ticker_bookticker($params = array()) {
-        return $this->request('ticker/bookTicker', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 0.8));
+        return $this->request('ticker/bookTicker', 'public', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
     }
     public function public_get_exchangeinfo($params = array()) {
-        return $this->request('exchangeInfo', 'public', 'GET', $params, null, null, array("cost" => 4));
+        return $this->request('exchangeInfo', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
     public function public_get_avgprice($params = array()) {
-        return $this->request('avgPrice', 'public', 'GET', $params, null, null, array("cost" => 0.4));
+        return $this->request('avgPrice', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_put_userdatastream($params = array()) {
         return $this->request('userDataStream', 'public', 'PUT', $params, null, null, array("cost" => 0.4));
@@ -1777,6 +1777,9 @@ abstract class binanceus extends \ccxt\async\binance {
     public function private_get_account_commission($params = array()) {
         return $this->request('account/commission', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function private_get_status($params = array()) {
+        return $this->request('status', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_post_order_oco($params = array()) {
         return $this->request('order/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
@@ -1803,6 +1806,9 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function private_delete_order($params = array()) {
         return $this->request('order', 'private', 'DELETE', $params, null, null, array("cost" => 0.2));
+    }
+    public function papi_get_ping($params = array()) {
+        return $this->request('ping', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papi_get_um_order($params = array()) {
         return $this->request('um/order', 'papi', 'GET', $params, null, null, array("cost" => 1));
@@ -3734,49 +3740,49 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('listenKey', 'eapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function publicGetPing($params = array()) {
-        return $this->request('ping', 'public', 'GET', $params, null, null, array("cost" => 0.2));
+        return $this->request('ping', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetTime($params = array()) {
-        return $this->request('time', 'public', 'GET', $params, null, null, array("cost" => 0.2));
+        return $this->request('time', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetDepth($params = array()) {
         return $this->request('depth', 'public', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[100, 1], [500, 5], [1000, 10], [5000, 50]]));
     }
     public function publicGetTrades($params = array()) {
-        return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetAggTrades($params = array()) {
-        return $this->request('aggTrades', 'public', 'GET', $params, null, null, array("cost" => 0.4));
+        return $this->request('aggTrades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetHistoricalTrades($params = array()) {
-        return $this->request('historicalTrades', 'public', 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('historicalTrades', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function publicGetKlines($params = array()) {
-        return $this->request('klines', 'public', 'GET', $params, null, null, array("cost" => 0.4));
+        return $this->request('klines', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetUiKlines($params = array()) {
         return $this->request('uiKlines', 'public', 'GET', $params, null, null, array("cost" => 0.4));
     }
     public function publicGetTicker24hr($params = array()) {
-        return $this->request('ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 16));
+        return $this->request('ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function publicGetTicker($params = array()) {
-        return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 16));
+        return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 2, "noSymbol" => 100));
     }
     public function publicGetTickerTradingDay($params = array()) {
         return $this->request('ticker/tradingDay', 'public', 'GET', $params, null, null, array("cost" => 0.8));
     }
     public function publicGetTickerPrice($params = array()) {
-        return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 0.8));
+        return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
     }
     public function publicGetTickerBookTicker($params = array()) {
-        return $this->request('ticker/bookTicker', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 0.8));
+        return $this->request('ticker/bookTicker', 'public', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
     }
     public function publicGetExchangeInfo($params = array()) {
-        return $this->request('exchangeInfo', 'public', 'GET', $params, null, null, array("cost" => 4));
+        return $this->request('exchangeInfo', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
     public function publicGetAvgPrice($params = array()) {
-        return $this->request('avgPrice', 'public', 'GET', $params, null, null, array("cost" => 0.4));
+        return $this->request('avgPrice', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicPutUserDataStream($params = array()) {
         return $this->request('userDataStream', 'public', 'PUT', $params, null, null, array("cost" => 0.4));
@@ -3823,6 +3829,9 @@ abstract class binanceus extends \ccxt\async\binance {
     public function privateGetAccountCommission($params = array()) {
         return $this->request('account/commission', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function privateGetStatus($params = array()) {
+        return $this->request('status', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privatePostOrderOco($params = array()) {
         return $this->request('order/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
@@ -3849,6 +3858,9 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function privateDeleteOrder($params = array()) {
         return $this->request('order', 'private', 'DELETE', $params, null, null, array("cost" => 0.2));
+    }
+    public function papiGetPing($params = array()) {
+        return $this->request('ping', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papiGetUmOrder($params = array()) {
         return $this->request('um/order', 'papi', 'GET', $params, null, null, array("cost" => 1));

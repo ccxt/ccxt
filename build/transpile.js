@@ -1395,7 +1395,7 @@ class Transpiler {
         // altogether in PHP, async PHP, Python sync and async
         const sync = false
         const async = true
-        return {
+        const result = {
             python2:      this.createPythonClass (className, baseClass, python2,  methodNames, sync),
             python3:      this.createPythonClass (className, baseClass, python3,  methodNames, async),
             php:          this.createPHPClass    (className, baseClass, php,      methodNames, sync),
@@ -1403,8 +1403,13 @@ class Transpiler {
             className,
             baseClass,
         }
+        return this.afterTranspileClass (result, contents);
     }
 
+    // for override
+    afterTranspileClass (result, contents) {
+        return result
+    }
     // ========================================================================
 
     transpileDerivedExchangeFile (tsFolder, filename, options, force = false) {
