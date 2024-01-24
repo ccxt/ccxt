@@ -1895,7 +1895,7 @@ export default class bitmex extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTriggerOrder || isTrailingAmountOrder) {
             const triggerDirection = this.safeString (params, 'triggerDirection');
-            const isAscending = (triggerDirection === 'above') || (triggerDirection === 'rising');
+            const isAscending = (triggerDirection === 'rising');
             if ((type === 'limit') || (type === 'market')) {
                 this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'rising', 'falling' ]);
             }
@@ -1949,7 +1949,7 @@ export default class bitmex extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTrailingAmountOrder) {
             const triggerDirection = this.safeString (params, 'triggerDirection');
-            const isAscending = (triggerDirection === 'above') || (triggerDirection === 'rising');
+            const isAscending = (triggerDirection === 'rising');
             if ((type === 'limit') || (type === 'market')) {
                 this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'rising', 'falling' ]);
             }

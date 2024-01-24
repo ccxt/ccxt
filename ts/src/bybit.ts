@@ -3633,8 +3633,8 @@ export default class bybit extends Exchange {
                 if (triggerDirection === undefined) {
                     throw new ArgumentsRequired (this.id + ' stop/trigger orders require a triggerDirection parameter, either "rising" or "falling" to determine the direction of the trigger.');
                 }
-                const isAsending = ((triggerDirection === 'above') || (triggerDirection === '1') || (triggerDirection === 'rising'));
-                request['triggerDirection'] = isAsending ? 1 : 2;
+                const isAscending = ((triggerDirection === '1') || (triggerDirection === 'rising'));
+                request['triggerDirection'] = isAscending ? 1 : 2;
             }
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
