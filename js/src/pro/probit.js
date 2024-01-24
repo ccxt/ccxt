@@ -4,6 +4,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
+'use strict';
 //  ---------------------------------------------------------------------------
 import probitRest from '../probit.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
@@ -453,20 +454,20 @@ export default class probit extends probitRest {
         const symbol = this.safeSymbol(marketId);
         const dataBySide = this.groupBy(orderBook, 'side');
         const messageHash = 'orderbook:' + symbol;
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook({});
-            this.orderbooks[symbol] = orderbook;
+        let storedOrderBook = this.safeValue(this.orderbooks, symbol);
+        if (storedOrderBook === undefined) {
+            storedOrderBook = this.orderBook({});
+            this.orderbooks[symbol] = storedOrderBook;
         }
         const reset = this.safeValue(message, 'reset', false);
         if (reset) {
             const snapshot = this.parseOrderBook(dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
-            orderbook.reset(snapshot);
+            storedOrderBook.reset(snapshot);
         }
         else {
-            this.handleDelta(orderbook, dataBySide);
+            this.handleDelta(storedOrderBook, dataBySide);
         }
-        client.resolve(orderbook, messageHash);
+        client.resolve(storedOrderBook, messageHash);
     }
     handleBidAsks(bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
@@ -539,13 +540,11 @@ export default class probit extends probitRest {
         //
         const errorCode = this.safeString(message, 'errorCode');
         if (errorCode !== undefined) {
-            this.handleErrorMessage(client, message);
-            return;
+            return this.handleErrorMessage(client, message);
         }
         const type = this.safeString(message, 'type');
         if (type === 'authorization') {
-            this.handleAuthenticate(client, message);
-            return;
+            return this.handleAuthenticate(client, message);
         }
         const handlers = {
             'marketdata': this.handleMarketData,
@@ -557,8 +556,7 @@ export default class probit extends probitRest {
         const channel = this.safeString(message, 'channel');
         const handler = this.safeValue(handlers, channel);
         if (handler !== undefined) {
-            handler.call(this, client, message);
-            return;
+            return handler.call(this, client, message);
         }
         const error = new NotSupported(this.id + ' handleMessage: unknown message: ' + this.json(message));
         client.reject(error);
@@ -586,6 +584,6 @@ export default class probit extends probitRest {
             future = this.watch(url, messageHash, this.extend(request, params));
             client.subscriptions[messageHash] = future;
         }
-        return future;
+        return await future;
     }
 }

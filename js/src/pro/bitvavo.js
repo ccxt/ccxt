@@ -415,7 +415,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const response = this.safeValue(message, 'response');
         if (response === undefined) {
-            return;
+            return message;
         }
         const marketId = this.safeString(response, 'market');
         const symbol = this.safeSymbol(marketId, undefined, '-');
@@ -1197,7 +1197,7 @@ export default class bitvavo extends bitvavoRest {
         }
         return message;
     }
-    async authenticate(params = {}) {
+    authenticate(params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';

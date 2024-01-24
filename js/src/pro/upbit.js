@@ -166,15 +166,15 @@ export default class upbit extends upbitRest {
         if (type === 'SNAPSHOT') {
             this.orderbooks[symbol] = this.orderBook({}, limit);
         }
-        const orderbook = this.orderbooks[symbol];
+        const orderBook = this.orderbooks[symbol];
         // upbit always returns a snapshot of 15 topmost entries
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
-        orderbook.reset({});
-        orderbook['symbol'] = symbol;
-        const bids = orderbook['bids'];
-        const asks = orderbook['asks'];
+        orderBook.reset({});
+        orderBook['symbol'] = symbol;
+        const bids = orderBook['bids'];
+        const asks = orderBook['asks'];
         const data = this.safeValue(message, 'orderbook_units', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -187,10 +187,10 @@ export default class upbit extends upbitRest {
         }
         const timestamp = this.safeInteger(message, 'timestamp');
         const datetime = this.iso8601(timestamp);
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = datetime;
+        orderBook['timestamp'] = timestamp;
+        orderBook['datetime'] = datetime;
         const messageHash = 'orderbook:' + marketId;
-        client.resolve(orderbook, messageHash);
+        client.resolve(orderBook, messageHash);
     }
     handleTrades(client, message) {
         // { type: "trade",

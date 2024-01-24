@@ -656,29 +656,29 @@ export default class coinex extends coinexRest {
         //
         const params = this.safeValue(message, 'params', []);
         const fullOrderBook = this.safeValue(params, 0);
-        let orderbook = this.safeValue(params, 1);
+        let orderBook = this.safeValue(params, 1);
         const marketId = this.safeString(params, 2);
         const defaultType = this.safeString(this.options, 'defaultType');
         const market = this.safeMarket(marketId, undefined, undefined, defaultType);
         const symbol = market['symbol'];
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;
-        const timestamp = this.safeInteger(orderbook, 'time');
+        const timestamp = this.safeInteger(orderBook, 'time');
         const currentOrderBook = this.safeValue(this.orderbooks, symbol);
         if (fullOrderBook) {
-            const snapshot = this.parseOrderBook(orderbook, symbol, timestamp);
+            const snapshot = this.parseOrderBook(orderBook, symbol, timestamp);
             if (currentOrderBook === undefined) {
-                orderbook = this.orderBook(snapshot);
-                this.orderbooks[symbol] = orderbook;
+                orderBook = this.orderBook(snapshot);
+                this.orderbooks[symbol] = orderBook;
             }
             else {
-                orderbook = this.orderbooks[symbol];
-                orderbook.reset(snapshot);
+                orderBook = this.orderbooks[symbol];
+                orderBook.reset(snapshot);
             }
         }
         else {
-            const asks = this.safeValue(orderbook, 'asks', []);
-            const bids = this.safeValue(orderbook, 'bids', []);
+            const asks = this.safeValue(orderBook, 'asks', []);
+            const bids = this.safeValue(orderBook, 'bids', []);
             this.handleDeltas(currentOrderBook['asks'], asks);
             this.handleDeltas(currentOrderBook['bids'], bids);
             currentOrderBook['nonce'] = timestamp;
@@ -999,10 +999,9 @@ export default class coinex extends coinexRest {
         };
         const handler = this.safeValue(handlers, method);
         if (handler !== undefined) {
-            handler.call(this, client, message);
-            return;
+            return handler.call(this, client, message);
         }
-        this.handleSubscriptionStatus(client, message);
+        return this.handleSubscriptionStatus(client, message);
     }
     handleAuthenticationMessage(client, message) {
         //
@@ -1026,8 +1025,7 @@ export default class coinex extends coinexRest {
         if (subscription !== undefined) {
             const futureIndex = this.safeString(subscription, 'future');
             if (futureIndex === 'ohlcv') {
-                this.handleOHLCV(client, message);
-                return;
+                return this.handleOHLCV(client, message);
             }
             const future = this.safeValue(client.futures, futureIndex);
             if (future !== undefined) {
@@ -1036,7 +1034,7 @@ export default class coinex extends coinexRest {
             delete client.subscriptions[id];
         }
     }
-    async authenticate(params = {}) {
+    authenticate(params = {}) {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('authenticate', undefined, params);
         const url = this.urls['api']['ws'][type];

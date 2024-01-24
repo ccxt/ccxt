@@ -28,9 +28,9 @@ export default class htx extends htxRest {
     handlePositions(client: any, message: any): void;
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
-    handleSubscriptionStatus(client: Client, message: any): void;
+    handleSubscriptionStatus(client: Client, message: any): any;
     handleSystemStatus(client: Client, message: any): any;
-    handleSubject(client: Client, message: any): void;
+    handleSubject(client: Client, message: any): any;
     pong(client: any, message: any): Promise<void>;
     handlePing(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): void;

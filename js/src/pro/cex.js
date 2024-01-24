@@ -963,15 +963,15 @@ export default class cex extends cexRest {
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger2(data, 'timestamp_ms', 'timestamp');
         const incrementalId = this.safeNumber(data, 'id');
-        const orderbook = this.orderBook({});
+        const storedOrderBook = this.orderBook({});
         const snapshot = this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks');
         snapshot['nonce'] = incrementalId;
-        orderbook.reset(snapshot);
+        storedOrderBook.reset(snapshot);
         this.options['orderbook'][symbol] = {
             'incrementalId': incrementalId,
         };
-        this.orderbooks[symbol] = orderbook;
-        client.resolve(orderbook, messageHash);
+        this.orderbooks[symbol] = storedOrderBook;
+        client.resolve(storedOrderBook, messageHash);
     }
     pairToSymbol(pair) {
         const parts = pair.split(':');
@@ -1437,8 +1437,7 @@ export default class cex extends cexRest {
     handleMessage(client, message) {
         const ok = this.safeString(message, 'ok');
         if (ok === 'error') {
-            this.handleErrorMessage(client, message);
-            return;
+            return this.handleErrorMessage(client, message);
         }
         const event = this.safeString(message, 'e');
         const handlers = {
@@ -1466,8 +1465,9 @@ export default class cex extends cexRest {
         };
         const handler = this.safeValue(handlers, event);
         if (handler !== undefined) {
-            handler.call(this, client, message);
+            return handler.call(this, client, message);
         }
+        return message;
     }
     handleAuthenticationMessage(client, message) {
         //

@@ -478,7 +478,7 @@ export default class okcoin extends okcoinRest {
             };
             this.spawn(this.watch, url, messageHash, request, messageHash, future);
         }
-        return future;
+        return await future;
     }
     async watchBalance(params = {}) {
         /**
@@ -711,8 +711,7 @@ export default class okcoin extends okcoinRest {
         // }
         //
         if (message === 'pong') {
-            this.handlePong(client, message);
-            return;
+            return this.handlePong(client, message);
         }
         const table = this.safeString(message, 'table');
         if (table === undefined) {
@@ -725,8 +724,11 @@ export default class okcoin extends okcoinRest {
                     'subscribe': this.handleSubscriptionStatus,
                 };
                 const method = this.safeValue(methods, event);
-                if (method !== undefined) {
-                    method.call(this, client, message);
+                if (method === undefined) {
+                    return message;
+                }
+                else {
+                    return method.call(this, client, message);
                 }
             }
         }
@@ -748,8 +750,11 @@ export default class okcoin extends okcoinRest {
             if (name.indexOf('candle') >= 0) {
                 method = this.handleOHLCV;
             }
-            if (method !== undefined) {
-                method.call(this, client, message);
+            if (method === undefined) {
+                return message;
+            }
+            else {
+                return method.call(this, client, message);
             }
         }
     }

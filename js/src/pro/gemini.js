@@ -591,8 +591,7 @@ export default class gemini extends geminiRest {
         //
         const isArray = Array.isArray(message);
         if (isArray) {
-            this.handleOrder(client, message);
-            return;
+            return this.handleOrder(client, message);
         }
         const reason = this.safeString(message, 'reason');
         if (reason === 'error') {
@@ -606,8 +605,7 @@ export default class gemini extends geminiRest {
         };
         const type = this.safeString(message, 'type', '');
         if (type.indexOf('candles') >= 0) {
-            this.handleOHLCV(client, message);
-            return;
+            return this.handleOHLCV(client, message);
         }
         const method = this.safeValue(methods, type);
         if (method !== undefined) {

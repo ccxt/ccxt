@@ -15,7 +15,6 @@ declare class baseMainTestClass {
     debug: boolean;
     privateTest: boolean;
     privateTestOnly: boolean;
-    loadKeys: boolean;
     sandbox: boolean;
     skippedMethods: {};
     checkedPublicTests: {};
@@ -64,8 +63,8 @@ export default class testMainClass extends baseMainTestClass {
     testMethodStatically(exchange: any, method: string, data: object, type: string, skipKeys: string[]): Promise<void>;
     testResponseStatically(exchange: any, method: string, skipKeys: string[], data: object): Promise<void>;
     initOfflineExchange(exchangeName: string): Exchange;
-    testExchangeRequestStatically(exchangeName: string, exchangeData: object, testName?: string): Promise<boolean>;
-    testExchangeResponseStatically(exchangeName: string, exchangeData: object, testName?: string): Promise<boolean>;
+    testExchangeRequestStatically(exchangeName: string, exchangeData: object, testName?: string): Promise<void>;
+    testExchangeResponseStatically(exchangeName: string, exchangeData: object, testName?: string): Promise<void>;
     getNumberOfTestsFromExchange(exchange: any, exchangeData: object): number;
     runStaticRequestTests(targetExchange?: string, testName?: string): Promise<void>;
     runStaticTests(type: string, targetExchange?: string, testName?: string): Promise<void>;

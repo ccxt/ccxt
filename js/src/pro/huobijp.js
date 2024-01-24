@@ -364,7 +364,6 @@ export default class huobijp extends huobijpRest {
             delete client.subscriptions[messageHash];
             client.reject(e, messageHash);
         }
-        return undefined;
     }
     handleDelta(bookside, delta) {
         const price = this.safeFloat(delta, 0);
@@ -530,8 +529,11 @@ export default class huobijp extends huobijpRest {
                 // ...
             };
             const method = this.safeValue(methods, methodName);
-            if (method !== undefined) {
-                method.call(this, client, message);
+            if (method === undefined) {
+                return message;
+            }
+            else {
+                return method.call(this, client, message);
             }
         }
     }

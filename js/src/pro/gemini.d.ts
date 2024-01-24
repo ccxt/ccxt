@@ -20,6 +20,6 @@ export default class gemini extends geminiRest {
     parseWsOrderStatus(status: any): string;
     parseWsOrderType(type: any): string;
     handleError(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): any;
     authenticate(params?: {}): Promise<void>;
 }

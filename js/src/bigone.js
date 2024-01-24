@@ -2125,7 +2125,7 @@ export default class bigone extends Exchange {
             'id': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': undefined,
+            'currency': code,
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,

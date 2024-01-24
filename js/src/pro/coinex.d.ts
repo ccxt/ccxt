@@ -24,8 +24,8 @@ export default class coinex extends coinexRest {
     handleOrders(client: Client, message: any): void;
     parseWsOrder(order: any, market?: any): Order;
     parseWsOrderStatus(status: any): string;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): any;
     handleAuthenticationMessage(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): void;
-    authenticate(params?: {}): Promise<any>;
+    authenticate(params?: {}): any;
 }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/krakenfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
 /**
  * @class krakenfutures
  * @augments Exchange
@@ -29,7 +29,7 @@ export default class krakenfutures extends Exchange {
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
-    fetchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<{}>;
     parseFundingRate(ticker: any, market?: Market): {
         info: any;
         symbol: string;
@@ -89,8 +89,8 @@ export default class krakenfutures extends Exchange {
         status: string;
     };
     parseAccount(account: any): any;
-    transferOut(code: string, amount: any, params?: {}): Promise<TransferEntry>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
+    transferOut(code: string, amount: any, params?: {}): Promise<any>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
     fetchLeverage(symbol?: Str, params?: {}): Promise<any>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;

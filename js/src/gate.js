@@ -1621,34 +1621,32 @@ export default class gate extends Exchange {
             let withdrawAvailable = this.safeValue(result[code], 'withdraw');
             withdrawAvailable = (withdrawEnabled) ? withdrawEnabled : withdrawAvailable;
             const networks = this.safeValue(result[code], 'networks', {});
-            if (networkCode !== undefined) {
-                networks[networkCode] = {
-                    'info': entry,
-                    'id': networkId,
-                    'network': networkCode,
-                    'currencyId': currencyId,
-                    'lowerCaseCurrencyId': currencyIdLower,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'active': active,
-                    'fee': undefined,
-                    'precision': this.parseNumber('1e-4'),
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
+            networks[networkCode] = {
+                'info': entry,
+                'id': networkId,
+                'network': networkCode,
+                'currencyId': currencyId,
+                'lowerCaseCurrencyId': currencyIdLower,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'active': active,
+                'fee': undefined,
+                'precision': this.parseNumber('1e-4'),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
                     },
-                };
-            }
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
             result[code]['networks'] = networks;
             const info = this.safeValue(result[code], 'info', []);
             info.push(entry);
@@ -6936,7 +6934,6 @@ export default class gate extends Exchange {
                 return this.parseGreeks(entry, market);
             }
         }
-        return undefined;
     }
     parseGreeks(greeks, market = undefined) {
         //

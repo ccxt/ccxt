@@ -1133,7 +1133,7 @@ export default class phemex extends Exchange {
         return orderbook;
     }
     toEn(n, scale) {
-        const stringN = this.numberToString(n);
+        const stringN = n.toString();
         const precise = new Precise(stringN);
         precise.decimals = precise.decimals - scale;
         precise.reduce();
@@ -2526,11 +2526,11 @@ export default class phemex extends Exchange {
                     }
                 }
                 cost = (cost === undefined) ? amount : cost;
-                const costString = this.numberToString(cost);
+                const costString = cost.toString();
                 request['quoteQtyEv'] = this.toEv(costString, market);
             }
             else {
-                const amountString = this.numberToString(amount);
+                const amountString = amount.toString();
                 request['baseQtyEv'] = this.toEv(amountString, market);
             }
         }
@@ -4336,10 +4336,10 @@ export default class phemex extends Exchange {
                 request['leverageRr'] = leverage;
             }
             else {
-                const longVar = (longLeverageRr !== undefined) ? longLeverageRr : leverage;
-                const shortVar = (shortLeverageRr !== undefined) ? shortLeverageRr : leverage;
-                request['longLeverageRr'] = longVar;
-                request['shortLeverageRr'] = shortVar;
+                const long = (longLeverageRr !== undefined) ? longLeverageRr : leverage;
+                const short = (shortLeverageRr !== undefined) ? shortLeverageRr : leverage;
+                request['longLeverageRr'] = long;
+                request['shortLeverageRr'] = short;
             }
             response = await this.privatePutGPositionsLeverage(this.extend(request, params));
         }

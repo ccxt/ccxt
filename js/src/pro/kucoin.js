@@ -50,20 +50,19 @@ export default class kucoin extends kucoinRest {
             },
         });
     }
-    async negotiate(privateChannel, params = {}) {
+    negotiate(privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue(this.options, 'urls', {});
         const spawaned = this.safeValue(urls, connectId);
         if (spawaned !== undefined) {
-            return await spawaned;
+            return spawaned;
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
         urls[connectId] = this.spawn(this.negotiateHelper, privateChannel, params);
         this.options['urls'] = urls;
-        const future = urls[connectId];
-        return await future;
+        return urls[connectId];
     }
     async negotiateHelper(privateChannel, params = {}) {
         let response = undefined;
@@ -549,7 +548,7 @@ export default class kucoin extends kucoinRest {
             const limit = this.safeInteger(subscription, 'limit');
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
             if (cacheLength === snapshotDelay) {
-                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit, {});
+                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit);
             }
             storedOrderBook.cache.push(data);
             return;
@@ -991,8 +990,7 @@ export default class kucoin extends kucoinRest {
         //
         const topic = this.safeString(message, 'topic');
         if (topic === '/market/ticker:all') {
-            this.handleTicker(client, message);
-            return;
+            return this.handleTicker(client, message);
         }
         const subject = this.safeString(message, 'subject');
         const methods = {
@@ -1007,8 +1005,11 @@ export default class kucoin extends kucoinRest {
             'stopOrder': this.handleOrder,
         };
         const method = this.safeValue(methods, subject);
-        if (method !== undefined) {
-            method.call(this, client, message);
+        if (method === undefined) {
+            return message;
+        }
+        else {
+            return method.call(this, client, message);
         }
     }
     ping(client) {
@@ -1056,7 +1057,7 @@ export default class kucoin extends kucoinRest {
         };
         const method = this.safeValue(methods, type);
         if (method !== undefined) {
-            method.call(this, client, message);
+            return method.call(this, client, message);
         }
     }
 }

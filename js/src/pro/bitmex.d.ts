@@ -26,5 +26,5 @@ export default class bitmex extends bitmexRest {
     handleSystemStatus(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): boolean;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): any;
 }

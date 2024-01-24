@@ -464,8 +464,7 @@ export default class coinbase extends coinbaseRest {
             const side = this.safeString(this.options['sides'], sideId);
             const price = this.safeNumber(trade, 'price_level');
             const amount = this.safeNumber(trade, 'new_quantity');
-            const orderbookSide = orderbook[side];
-            orderbookSide.store(price, amount);
+            orderbook[side].store(price, amount);
         }
     }
     handleOrderBook(client, message) {
@@ -558,6 +557,6 @@ export default class coinbase extends coinbaseRest {
             throw new ExchangeError(errorMessage);
         }
         const method = this.safeValue(methods, channel);
-        method.call(this, client, message);
+        return method.call(this, client, message);
     }
 }

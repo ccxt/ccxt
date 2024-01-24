@@ -633,13 +633,13 @@ export default class phemex extends phemexRest {
         }
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
-    customHandleDelta(bookside, delta, market = undefined) {
+    handleDelta(bookside, delta, market = undefined) {
         const bidAsk = this.customParseBidAsk(delta, 0, 1, market);
         bookside.storeArray(bidAsk);
     }
-    customHandleDeltas(bookside, deltas, market = undefined) {
+    handleDeltas(bookside, deltas, market = undefined) {
         for (let i = 0; i < deltas.length; i++) {
-            this.customHandleDelta(bookside, deltas[i], market);
+            this.handleDelta(bookside, deltas[i], market);
         }
     }
     handleOrderBook(client, message) {
@@ -709,8 +709,8 @@ export default class phemex extends phemexRest {
                 const changes = this.safeValue2(message, 'book', 'orderbook_p', {});
                 const asks = this.safeValue(changes, 'asks', []);
                 const bids = this.safeValue(changes, 'bids', []);
-                this.customHandleDeltas(orderbook['asks'], asks, market);
-                this.customHandleDeltas(orderbook['bids'], bids, market);
+                this.handleDeltas(orderbook['asks'], asks, market);
+                this.handleDeltas(orderbook['bids'], bids, market);
                 orderbook['nonce'] = nonce;
                 orderbook['timestamp'] = timestamp;
                 orderbook['datetime'] = this.iso8601(timestamp);
@@ -1406,26 +1406,21 @@ export default class phemex extends phemexRest {
             const method = client.subscriptions[id];
             delete client.subscriptions[id];
             if (method !== true) {
-                method.call(this, client, message);
-                return;
+                return method.call(this, client, message);
             }
         }
         const methodName = this.safeString(message, 'method', '');
         if (('market24h' in message) || ('spot_market24h' in message) || (methodName.indexOf('perp_market24h_pack_p') >= 0)) {
-            this.handleTicker(client, message);
-            return;
+            return this.handleTicker(client, message);
         }
         else if (('trades' in message) || ('trades_p' in message)) {
-            this.handleTrades(client, message);
-            return;
+            return this.handleTrades(client, message);
         }
         else if (('kline' in message) || ('kline_p' in message)) {
-            this.handleOHLCV(client, message);
-            return;
+            return this.handleOHLCV(client, message);
         }
         else if (('book' in message) || ('orderbook_p' in message)) {
-            this.handleOrderBook(client, message);
-            return;
+            return this.handleOrderBook(client, message);
         }
         if (('orders' in message) || ('orders_p' in message)) {
             const orders = this.safeValue2(message, 'orders', 'orders_p', {});
@@ -1512,6 +1507,6 @@ export default class phemex extends phemexRest {
             future = this.watch(url, messageHash, message);
             client.subscriptions[messageHash] = future;
         }
-        return future;
+        return await future;
     }
 }

@@ -1512,8 +1512,8 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const dataResponse = this.safeValue(response, 'data', []);
-        return this.parseMarkets(dataResponse);
+        const data = this.safeValue(response, 'data', []);
+        return this.parseMarkets(data);
     }
     safeNetwork(networkId) {
         const networksById = {
@@ -3077,7 +3077,7 @@ export default class okx extends Exchange {
          * @param {string[]|string} ids order ids
          * @returns {string[]} list of order ids
          */
-        if ((ids !== undefined) && typeof ids === 'string') {
+        if (typeof ids === 'string') {
             return ids.split(',');
         }
         else {
@@ -7153,7 +7153,6 @@ export default class okx extends Exchange {
                 return this.parseGreeks(entry, market);
             }
         }
-        return undefined;
     }
     parseGreeks(greeks, market = undefined) {
         //

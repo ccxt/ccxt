@@ -1042,8 +1042,7 @@ export default class poloniex extends poloniexRest {
                         const bid = this.safeValue(bids, j);
                         const price = this.safeNumber(bid, 0);
                         const amount = this.safeNumber(bid, 1);
-                        const bidsSide = orderbook['bids'];
-                        bidsSide.store(price, amount);
+                        orderbook['bids'].store(price, amount);
                     }
                 }
                 if (asks !== undefined) {
@@ -1051,8 +1050,7 @@ export default class poloniex extends poloniexRest {
                         const ask = this.safeValue(asks, j);
                         const price = this.safeNumber(ask, 0);
                         const amount = this.safeNumber(ask, 1);
-                        const asksSide = orderbook['asks'];
-                        asksSide.store(price, amount);
+                        orderbook['asks'].store(price, amount);
                     }
                 }
                 orderbook['symbol'] = symbol;
@@ -1186,14 +1184,14 @@ export default class poloniex extends poloniexRest {
                 this.handleErrorMessage(client, item);
             }
             else {
-                this.handleOrderRequest(client, message);
+                return this.handleOrderRequest(client, message);
             }
         }
         else {
             const data = this.safeValue(message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {
-                method.call(this, client, message);
+                return method.call(this, client, message);
             }
         }
     }

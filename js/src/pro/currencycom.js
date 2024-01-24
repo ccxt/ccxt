@@ -535,11 +535,10 @@ export default class currencycom extends currencycomRest {
                         };
                         const method = this.safeValue(methods, subscriptionDestination);
                         if (method === undefined) {
-                            return;
+                            return message;
                         }
                         else {
-                            method.call(this, client, message, subscription);
-                            return;
+                            return method.call(this, client, message, subscription);
                         }
                     }
                 }
@@ -554,8 +553,11 @@ export default class currencycom extends currencycomRest {
                 'ping': this.handlePong,
             };
             const method = this.safeValue(methods, destination);
-            if (method !== undefined) {
-                method.call(this, client, message);
+            if (method === undefined) {
+                return message;
+            }
+            else {
+                return method.call(this, client, message);
             }
         }
     }

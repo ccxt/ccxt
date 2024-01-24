@@ -33,7 +33,7 @@ export default class poloniex extends poloniexRest {
     parseWsBalance(response: any): Balances;
     handleMyTrades(client: Client, parsedTrade: any): void;
     handlePong(client: Client): void;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): boolean;
     handleAuthenticate(client: Client, message: any): any;
     ping(client: any): {

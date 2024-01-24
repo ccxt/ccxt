@@ -98,9 +98,7 @@ export default class bitget extends bitgetRest {
         else {
             instType = 'SPOT';
         }
-        let instypeAux = undefined;
-        [instypeAux, params] = this.handleOptionAndParams(params, 'getInstType', 'instType', instType);
-        instType = instypeAux;
+        [instType, params] = this.handleOptionAndParams(params, 'getInstType', 'instType', instType);
         return [instType, params];
     }
     async watchTicker(symbol, params = {}) {

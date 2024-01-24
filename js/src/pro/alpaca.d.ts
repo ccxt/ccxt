@@ -23,9 +23,9 @@ export default class alpaca extends alpacaRest {
     authenticate(url: any, params?: {}): Promise<any>;
     handleErrorMessage(client: Client, message: any): void;
     handleConnected(client: Client, message: any): any;
-    handleCryptoMessage(client: Client, message: any): void;
+    handleCryptoMessage(client: Client, message: any): any;
     handleTradingMessage(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): void;
     handleSubscription(client: Client, message: any): any;
 }

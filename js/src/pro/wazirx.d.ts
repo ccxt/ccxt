@@ -27,6 +27,6 @@ export default class wazirx extends wazirxRest {
     handleConnected(client: Client, message: any): any;
     handleSubscribed(client: Client, message: any): any;
     handleError(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): any;
     authenticate(params?: {}): Promise<string>;
 }

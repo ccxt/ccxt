@@ -20,7 +20,7 @@ export default class tokocrypto extends Exchange {
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchBalance(params?: {}): Promise<Balances>;
-    parseBalanceCustom(response: any, type?: any, marginMode?: any): Balances;
+    parseBalance(response: any, type?: any, marginMode?: any): Balances;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
     parseOrderType(status: any): string;

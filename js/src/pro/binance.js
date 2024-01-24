@@ -540,7 +540,7 @@ export default class binance extends binanceRest {
          */
         return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
-    parseWsTrade(trade, market = undefined) {
+    parseTrade(trade, market = undefined) {
         //
         // public watchTrades
         //
@@ -648,7 +648,7 @@ export default class binance extends binanceRest {
         const executionType = this.safeString(trade, 'x');
         const isTradeExecution = (executionType === 'TRADE');
         if (!isTradeExecution) {
-            return this.parseTrade(trade, market);
+            return super.parseTrade(trade, market);
         }
         const id = this.safeString2(trade, 't', 'a');
         const timestamp = this.safeInteger(trade, 'T');
@@ -713,7 +713,7 @@ export default class binance extends binanceRest {
         const lowerCaseId = this.safeStringLower(message, 's');
         const event = this.safeString(message, 'e');
         const messageHash = lowerCaseId + '@' + event;
-        const trade = this.parseWsTrade(message, market);
+        const trade = this.parseTrade(message, market);
         let tradesArray = this.safeValue(this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -1263,15 +1263,14 @@ export default class binance extends binanceRest {
             for (let j = 0; j < subscriptionKeys.length; j++) {
                 const subscribeType = subscriptionKeys[j];
                 if (subscribeType === type) {
-                    this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
-                    return;
+                    return this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
                 }
             }
         }
     }
     setBalanceCache(client, type) {
         if (type in client.subscriptions) {
-            return;
+            return undefined;
         }
         const options = this.safeValue(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeValue(options, 'fetchBalanceSnapshot', false);
@@ -1372,7 +1371,7 @@ export default class binance extends binanceRest {
         //
         const messageHash = this.safeString(message, 'id');
         const result = this.safeValue(message, 'result', {});
-        const parsedBalances = this.parseBalance(result);
+        const parsedBalances = this.parseBalance(result, 'spot');
         client.resolve(parsedBalances, messageHash);
     }
     async watchBalance(params = {}) {
@@ -2742,15 +2741,13 @@ export default class binance extends binanceRest {
         const status = this.safeString(message, 'status');
         const error = this.safeValue(message, 'error');
         if ((error !== undefined) || (status !== undefined && status !== '200')) {
-            this.handleWsError(client, message);
-            return;
+            return this.handleWsError(client, message);
         }
         const id = this.safeString(message, 'id');
         const subscriptions = this.safeValue(client.subscriptions, id);
         let method = this.safeValue(subscriptions, 'method');
         if (method !== undefined) {
-            method.call(this, client, message);
-            return;
+            return method.call(this, client, message);
         }
         // handle other APIs
         const methods = {
@@ -2780,8 +2777,7 @@ export default class binance extends binanceRest {
         if (method === undefined) {
             const requestId = this.safeString(message, 'id');
             if (requestId !== undefined) {
-                this.handleSubscriptionStatus(client, message);
-                return;
+                return this.handleSubscriptionStatus(client, message);
             }
             // special case for the real-time bookTicker, since it comes without an event identifier
             //
@@ -2800,7 +2796,7 @@ export default class binance extends binanceRest {
             }
         }
         else {
-            method.call(this, client, message);
+            return method.call(this, client, message);
         }
     }
 }

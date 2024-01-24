@@ -181,28 +181,28 @@ export default class independentreserve extends independentreserveRest {
         const subscription = this.safeValue(client.subscriptions, messageHash, {});
         const receivedSnapshot = this.safeValue(subscription, 'receivedSnapshot', false);
         const timestamp = this.safeInteger(message, 'Time');
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook({});
-            this.orderbooks[symbol] = orderbook;
+        let storedOrderBook = this.safeValue(this.orderbooks, symbol);
+        if (storedOrderBook === undefined) {
+            storedOrderBook = this.orderBook({});
+            this.orderbooks[symbol] = storedOrderBook;
         }
         if (event === 'OrderBookSnapshot') {
             const snapshot = this.parseOrderBook(orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume');
-            orderbook.reset(snapshot);
+            storedOrderBook.reset(snapshot);
             subscription['receivedSnapshot'] = true;
         }
         else {
             const asks = this.safeValue(orderBook, 'Offers', []);
             const bids = this.safeValue(orderBook, 'Bids', []);
-            this.handleDeltas(orderbook['asks'], asks);
-            this.handleDeltas(orderbook['bids'], bids);
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601(timestamp);
+            this.handleDeltas(storedOrderBook['asks'], asks);
+            this.handleDeltas(storedOrderBook['bids'], bids);
+            storedOrderBook['timestamp'] = timestamp;
+            storedOrderBook['datetime'] = this.iso8601(timestamp);
         }
         const checksum = this.safeValue(this.options, 'checksum', true);
         if (checksum && receivedSnapshot) {
-            const storedAsks = orderbook['asks'];
-            const storedBids = orderbook['bids'];
+            const storedAsks = storedOrderBook['asks'];
+            const storedBids = storedOrderBook['bids'];
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;
             let payload = '';
@@ -224,7 +224,7 @@ export default class independentreserve extends independentreserveRest {
             }
         }
         if (receivedSnapshot) {
-            client.resolve(orderbook, messageHash);
+            client.resolve(storedOrderBook, messageHash);
         }
     }
     valueToChecksum(value) {
@@ -274,8 +274,7 @@ export default class independentreserve extends independentreserveRest {
         };
         const handler = this.safeValue(handlers, event);
         if (handler !== undefined) {
-            handler.call(this, client, message);
-            return;
+            return handler.call(this, client, message);
         }
         throw new NotSupported(this.id + ' received an unsupported message: ' + this.json(message));
     }

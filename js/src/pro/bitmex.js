@@ -1495,7 +1495,7 @@ export default class bitmex extends bitmexRest {
                 const broadKey = this.findBroadlyMatchedKey(broad, error);
                 let exception = undefined;
                 if (broadKey === undefined) {
-                    exception = new ExchangeError(error.toString());
+                    exception = new ExchangeError(error);
                 }
                 else {
                     exception = new broad[broadKey](error);
@@ -1563,11 +1563,14 @@ export default class bitmex extends bitmexRest {
                 const request = this.safeValue(message, 'request', {});
                 const op = this.safeValue(request, 'op');
                 if (op === 'authKeyExpires') {
-                    this.handleAuthenticationMessage(client, message);
+                    return this.handleAuthenticationMessage.call(this, client, message);
+                }
+                else {
+                    return message;
                 }
             }
             else {
-                method.call(this, client, message);
+                return method.call(this, client, message);
             }
         }
     }

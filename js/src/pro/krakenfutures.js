@@ -1067,15 +1067,13 @@ export default class krakenfutures extends krakenfuturesRest {
             const bid = bids[i];
             const price = this.safeNumber(bid, 'price');
             const qty = this.safeNumber(bid, 'qty');
-            const bidsSide = orderbook['bids'];
-            bidsSide.store(price, qty);
+            orderbook['bids'].store(price, qty);
         }
         for (let i = 0; i < asks.length; i++) {
             const ask = asks[i];
             const price = this.safeNumber(ask, 'price');
             const qty = this.safeNumber(ask, 'qty');
-            const asksSide = orderbook['asks'];
-            asksSide.store(price, qty);
+            orderbook['asks'].store(price, qty);
         }
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
@@ -1104,12 +1102,10 @@ export default class krakenfutures extends krakenfuturesRest {
         const qty = this.safeNumber(message, 'qty');
         const timestamp = this.safeInteger(message, 'timestamp');
         if (side === 'sell') {
-            const asks = orderbook['asks'];
-            asks.store(price, qty);
+            orderbook['asks'].store(price, qty);
         }
         else {
-            const bids = orderbook['bids'];
-            bids.store(price, qty);
+            orderbook['bids'].store(price, qty);
         }
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
@@ -1445,7 +1441,7 @@ export default class krakenfutures extends krakenfuturesRest {
             this.handleAuthenticate(client, message);
         }
         else if (event === 'alert') {
-            this.handleErrorMessage(client, message);
+            return this.handleErrorMessage(client, message);
         }
         else if (event === 'pong') {
             client.lastPong = this.milliseconds();
@@ -1472,7 +1468,7 @@ export default class krakenfutures extends krakenfuturesRest {
             };
             const method = this.safeValue(methods, feed);
             if (method !== undefined) {
-                method.call(this, client, message);
+                return method.call(this, client, message);
             }
         }
     }

@@ -819,7 +819,7 @@ export default class bitmart extends bitmartRest {
             messageHash += ':' + this.safeString(data[0], 'symbol');
         }
         client.resolve(stored, messageHash);
-        return;
+        return message;
     }
     parseWsTrade(trade, market = undefined) {
         // spot
@@ -921,7 +921,7 @@ export default class bitmart extends bitmartRest {
             client.resolve(ticker, 'tickers::swap');
             this.resolveMessageHashesForSymbol(client, symbol, ticker, 'tickers::');
         }
-        return;
+        return message;
     }
     resolveMessageHashesForSymbol(client, symbol, result, prexif) {
         const prefixSeparator = '::';
@@ -1455,8 +1455,11 @@ export default class bitmart extends bitmartRest {
                     'subscribe': this.handleSubscriptionStatus,
                 };
                 const method = this.safeValue(methods, event);
-                if (method !== undefined) {
-                    method.call(this, client, message);
+                if (method === undefined) {
+                    return message;
+                }
+                else {
+                    return method.call(this, client, message);
                 }
             }
         }
@@ -1476,7 +1479,7 @@ export default class bitmart extends bitmartRest {
                 const key = keys[i];
                 if (channel.indexOf(key) >= 0) {
                     const method = this.safeValue(methods, key);
-                    method.call(this, client, message);
+                    return method.call(this, client, message);
                 }
             }
         }

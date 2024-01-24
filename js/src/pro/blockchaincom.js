@@ -102,7 +102,7 @@ export default class blockchaincom extends blockchaincomRest {
         //
         const event = this.safeString(message, 'event');
         if (event === 'subscribed') {
-            return;
+            return message;
         }
         const result = { 'info': message };
         const balances = this.safeValue(message, 'balances', []);
@@ -173,7 +173,7 @@ export default class blockchaincom extends blockchaincomRest {
         //
         const event = this.safeString(message, 'event');
         if (event === 'subscribed') {
-            // return;
+            return message;
         }
         else if (event === 'rejected') {
             throw new ExchangeError(this.id + ' ' + this.json(message));
@@ -258,7 +258,7 @@ export default class blockchaincom extends blockchaincomRest {
         const symbol = market['symbol'];
         let ticker = undefined;
         if (event === 'subscribed') {
-            return;
+            return message;
         }
         else if (event === 'snapshot') {
             ticker = this.parseTicker(message, market);
@@ -357,7 +357,7 @@ export default class blockchaincom extends blockchaincomRest {
         //
         const event = this.safeString(message, 'event');
         if (event !== 'updated') {
-            return;
+            return message;
         }
         const marketId = this.safeString(message, 'symbol');
         const symbol = this.safeSymbol(marketId);
@@ -519,7 +519,7 @@ export default class blockchaincom extends blockchaincomRest {
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         if (event === 'subscribed') {
-            return;
+            return message;
         }
         else if (event === 'rejected') {
             throw new ExchangeError(this.id + ' ' + this.json(message));
@@ -689,13 +689,13 @@ export default class blockchaincom extends blockchaincomRest {
         const messageHash = 'orderbook:' + symbol + ':' + type;
         const datetime = this.safeString(message, 'timestamp');
         const timestamp = this.parse8601(datetime);
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.countedOrderBook({});
-            this.orderbooks[symbol] = orderbook;
+        let storedOrderBook = this.safeValue(this.orderbooks, symbol);
+        if (storedOrderBook === undefined) {
+            storedOrderBook = this.countedOrderBook({});
+            this.orderbooks[symbol] = storedOrderBook;
         }
         if (event === 'subscribed') {
-            return;
+            return message;
         }
         else if (event === 'snapshot') {
             const snapshot = this.parseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num');
@@ -704,15 +704,15 @@ export default class blockchaincom extends blockchaincomRest {
         else if (event === 'updated') {
             const asks = this.safeValue(message, 'asks', []);
             const bids = this.safeValue(message, 'bids', []);
-            this.handleDeltas(orderbook['asks'], asks);
-            this.handleDeltas(orderbook['bids'], bids);
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = datetime;
+            this.handleDeltas(storedOrderBook['asks'], asks);
+            this.handleDeltas(storedOrderBook['bids'], bids);
+            storedOrderBook['timestamp'] = timestamp;
+            storedOrderBook['datetime'] = datetime;
         }
         else {
             throw new NotSupported(this.id + ' watchOrderBook() does not support ' + event + ' yet');
         }
-        client.resolve(orderbook, messageHash);
+        client.resolve(storedOrderBook, messageHash);
     }
     handleDelta(bookside, delta) {
         const bookArray = this.parseBidAsk(delta, 'px', 'qty', 'num');
@@ -753,8 +753,7 @@ export default class blockchaincom extends blockchaincomRest {
         };
         const handler = this.safeValue(handlers, channel);
         if (handler !== undefined) {
-            handler.call(this, client, message);
-            return;
+            return handler.call(this, client, message);
         }
         throw new NotSupported(this.id + ' received an unsupported message: ' + this.json(message));
     }
@@ -776,7 +775,7 @@ export default class blockchaincom extends blockchaincomRest {
             future.resolve(true);
         }
     }
-    async authenticate(params = {}) {
+    authenticate(params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';

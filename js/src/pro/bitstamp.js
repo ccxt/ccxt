@@ -501,10 +501,10 @@ export default class bitstamp extends bitstampRest {
         //
         const event = this.safeString(message, 'event');
         if (event === 'bts:subscription_succeeded') {
-            this.handleSubscriptionStatus(client, message);
+            return this.handleSubscriptionStatus(client, message);
         }
         else {
-            this.handleSubject(client, message);
+            return this.handleSubject(client, message);
         }
     }
     async authenticate(params = {}) {
@@ -527,6 +527,7 @@ export default class bitstamp extends bitstampRest {
                 this.options['expiresIn'] = this.sum(time, validity);
                 this.options['userId'] = userId;
                 this.options['wsSessionToken'] = sessionToken;
+                return response;
             }
         }
     }
