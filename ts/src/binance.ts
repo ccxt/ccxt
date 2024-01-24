@@ -7883,12 +7883,20 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchPositions
+         * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
          * @description fetch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
-        const defaultMethod = this.safeString (this.options, 'fetchPositions', 'positionRisk');
+        const defaultValue = this.safeString (this.options, 'fetchPositions', 'positionRisk');
+        let defaultMethod = undefined;
+        [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', defaultValue);
         if (defaultMethod === 'positionRisk') {
             return await this.fetchPositionsRisk (symbols, params);
         } else if (defaultMethod === 'account') {
@@ -7896,7 +7904,7 @@ export default class binance extends Exchange {
         } else if (defaultMethod === 'option') {
             return await this.fetchOptionPositions (symbols, params);
         } else {
-            throw new NotSupported (this.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account", "positionRisk" and "option"');
+            throw new NotSupported (this.id + '.options["fetchPositions"]/params["method"] = "' + defaultMethod + '" is invalid, please choose between "account", "positionRisk" and "option"');
         }
     }
 
