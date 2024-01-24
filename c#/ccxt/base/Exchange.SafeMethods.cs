@@ -135,7 +135,7 @@ public partial class Exchange
         return parsedValue == null ? defaultValue : parsedValue;
     }
 
-    public object safeIntegerProduct2(object obj, object key1, object key2, object defaultValue = null, object multiplier = null)
+    public object safeIntegerProduct2(object obj, object key1, object key2, object multiplier = null, object defaultValue = null)
     {
         var result = safeValueN(obj, new List<object> { key1, key2 }, defaultValue);
         object parsedValue = null;
