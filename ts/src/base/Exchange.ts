@@ -1235,7 +1235,7 @@ export default class Exchange {
         return new Promise ((resolve, reject) => resolve (this.currencies));
     }
 
-    fetchCurrenciesWs (params = {}) {
+    async fetchCurrenciesWs (params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -1243,7 +1243,7 @@ export default class Exchange {
         return new Promise ((resolve, reject) => resolve (this.currencies));
     }
 
-    fetchMarkets (params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -1251,7 +1251,7 @@ export default class Exchange {
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
-    fetchMarketsWs (params = {}): Promise<Market[]> {
+    async fetchMarketsWs (params = {}): Promise<Market[]> {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
