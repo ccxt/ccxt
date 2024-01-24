@@ -6299,21 +6299,25 @@ class bitget extends Exchange {
         // fetchPositions => privateMixGetV2MixPositionAllPosition
         //
         //     {
-        //       "symbol" => "ETHUSDT_UMCBL",
-        //       "marginCoin" => "USDT",
-        //       "holdSide" => "short",
-        //       "openAvgPrice" => "1206.7",
-        //       "closeAvgPrice" => "1206.8",
-        //       "marginMode" => "fixed",
-        //       "openTotalPos" => "1.15",
-        //       "closeTotalPos" => "1.15",
-        //       "pnl" => "-0.11",
-        //       "netProfit" => "-1.780315",
-        //       "totalFunding" => "0",
-        //       "openFee" => "-0.83",
-        //       "closeFee" => "-0.83",
-        //       "ctime" => "1689300233897",
-        //       "utime" => "1689300238205"
+        //         "marginCoin" => "USDT",
+        //         "symbol" => "BTCUSDT",
+        //         "holdSide" => "long",
+        //         "openDelegateSize" => "0",
+        //         "marginSize" => "3.73555",
+        //         "available" => "0.002",
+        //         "locked" => "0",
+        //         "total" => "0.002",
+        //         "leverage" => "20",
+        //         "achievedProfits" => "0",
+        //         "openPriceAvg" => "37355.5",
+        //         "marginMode" => "crossed",
+        //         "posMode" => "hedge_mode",
+        //         "unrealizedPL" => "0.03",
+        //         "liquidationPrice" => "31725.023602417",
+        //         "keepMarginRate" => "0.004",
+        //         "markPrice" => "37370.5",
+        //         "marginRatio" => "0.029550120396",
+        //         "cTime" => "1700807507275"
         //     }
         //
         // fetchPositions => privateMixGetV2MixPositionHistoryPosition
@@ -8052,10 +8056,6 @@ class bitget extends Exchange {
         );
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
     public function close_position(string $symbol, ?string $side = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $side, $params) {
             /**
@@ -8108,7 +8108,6 @@ class bitget extends Exchange {
         }) ();
     }
 
->>>>>>> ca42389862f846ae6ea6d657c1c0b9da0c71ceb8
     public function close_all_positions($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -8148,7 +8147,6 @@ class bitget extends Exchange {
         }) ();
     }
 
->>>>>>> 3da8111d40408139d79f75ff72ab797be3be0acf
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
