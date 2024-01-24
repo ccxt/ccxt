@@ -751,7 +751,7 @@
         ],
         "fetchOrderTrades": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "spot order trades",
                 "method": "fetchOrderTrades",
                 "url": "https://api.binance.com/api/v3/myTrades?timestamp=1706095069482&symbol=LTCUSDT&orderId=3010478906&recvWindow=10000&signature=69dfdb9c6162ba56efe69b3ae4b95800994ee7fd58d37b1a240440d35c4ebde0",
                 "input": [
