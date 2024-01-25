@@ -9066,7 +9066,7 @@ export default class binance extends Exchange {
 
     getExceptionsByUrl (url, exactOrBroad) {
         let marketType = undefined;
-        const hostname = 'binance.com'; // temporarily hardcoded
+        const hostname = (this.hostname !== undefined) ? this.hostname : 'binance.com';
         if (url.startsWith ('https://api.' + hostname + '/')) {
             marketType = 'spot';
         } else if (url.startsWith ('https://dapi.' + hostname + '/')) {
