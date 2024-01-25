@@ -146,6 +146,9 @@ def dump(*args):
     print(' '.join([str(arg) for arg in args]))
 
 
+def convert_ascii(str):
+    return str # stub
+
 def json_parse(elem):
     return json.loads(elem)
 
