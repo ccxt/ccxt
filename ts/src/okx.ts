@@ -1536,6 +1536,7 @@ export default class okx extends Exchange {
     safeNetwork (networkId) {
         const networksById = {
             'Bitcoin': 'BTC',
+            'Optimism (V2)': 'Optimism',
             'Omni': 'OMNI',
             'TRON': 'TRC20',
         };
