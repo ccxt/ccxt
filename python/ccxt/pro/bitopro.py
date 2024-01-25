@@ -29,8 +29,8 @@ class bitopro(ccxt.async_support.bitopro):
             },
             'urls': {
                 'ws': {
-                    'public': 'wss://stream.bitopro.com:9443/ws/v1/pub',
-                    'private': 'wss://stream.bitopro.com:9443/ws/v1/pub/auth',
+                    'public': 'wss://stream.bitopro.com:443/ws/v1/pub',
+                    'private': 'wss://stream.bitopro.com:443/ws/v1/pub/auth',
                 },
             },
             'requiredCredentials': {
@@ -57,6 +57,7 @@ class bitopro(ccxt.async_support.bitopro):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/order_book_stream.md
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -115,6 +116,7 @@ class bitopro(ccxt.async_support.bitopro):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/trade_stream.md
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -169,6 +171,7 @@ class bitopro(ccxt.async_support.bitopro):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/ticker_stream.md
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -221,7 +224,7 @@ class bitopro(ccxt.async_support.bitopro):
             'identity': self.login,
         })
         payload = self.string_to_base64(rawData)
-        signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
+        signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
         defaultOptions = {
             'ws': {
                 'options': {
@@ -245,6 +248,7 @@ class bitopro(ccxt.async_support.bitopro):
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/user_balance_stream.md
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """

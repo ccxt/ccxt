@@ -197,6 +197,7 @@ class phemex extends Exchange {
                         'api-data/g-futures/trades' => 5, // ?symbol=<symbol>
                         'api-data/futures/trading-fees' => 5, // ?symbol=<symbol>
                         'api-data/g-futures/trading-fees' => 5, // ?symbol=<symbol>
+                        'api-data/futures/v2/tradeAccountDetail' => 5, // ?currency=<currecny>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
                         'g-orders/activeList' => 1, // ?symbol=<symbol>
                         'orders/activeList' => 1, // ?symbol=<symbol>
                         'exchange/order/list' => 5, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
@@ -1921,16 +1922,19 @@ class phemex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://phemex-docs.github.io/#query-wallets
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
+             * @see https://phemex-docs.github.io/#query-trading-account-and-positions
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] spot or swap
+             * @param {string} [$params->code] *swap only* $currency $code of the balance to query (USD, USDT, etc), default is USDT
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
             $code = $this->safe_string($params, 'code');
-            $params = $this->omit($params, array( 'type', 'code' ));
+            $params = $this->omit($params, array( 'code' ));
             $response = null;
             $request = array();
             if (($type !== 'spot') && ($type !== 'swap')) {
@@ -1938,7 +1942,7 @@ class phemex extends Exchange {
             }
             if ($type === 'swap') {
                 $settle = null;
-                list($settle, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'settle');
+                list($settle, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'settle', 'USDT');
                 if ($code !== null || $settle !== null) {
                     $coin = null;
                     if ($code !== null) {
@@ -2761,7 +2765,7 @@ class phemex extends Exchange {
                 $request['baseQtyEV'] = $finalQty;
             } elseif ($amount !== null) {
                 if ($isUSDTSettled) {
-                    $request['baseQtyEV'] = $this->amount_to_precision($market['symbol'], $amount);
+                    $request['orderQtyRq'] = $this->amount_to_precision($market['symbol'], $amount);
                 } else {
                     $request['baseQtyEV'] = $this->to_ev($amount, $market);
                 }

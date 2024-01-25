@@ -250,6 +250,7 @@ interface Exchange {
     privateLoanGetMultiCollateralCurrencyQuota (params?: {}): Promise<implicitReturnType>;
     privateLoanGetMultiCollateralCurrencies (params?: {}): Promise<implicitReturnType>;
     privateLoanGetMultiCollateralLtv (params?: {}): Promise<implicitReturnType>;
+    privateLoanGetMultiCollateralFixedRate (params?: {}): Promise<implicitReturnType>;
     privateLoanPostCollateralOrders (params?: {}): Promise<implicitReturnType>;
     privateLoanPostCollateralRepay (params?: {}): Promise<implicitReturnType>;
     privateLoanPostCollateralCollaterals (params?: {}): Promise<implicitReturnType>;

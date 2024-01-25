@@ -274,6 +274,10 @@ class testMainClass(baseMainTestClass):
 
     async def init(self, exchange_id, symbol_argv):
         self.parse_cli_args()
+        if self.request_tests and self.response_tests:
+            await self.run_static_request_tests(exchange_id, symbol_argv)
+            await self.run_static_response_tests(exchange_id, symbol_argv)
+            return
         if self.response_tests:
             await self.run_static_response_tests(exchange_id, symbol_argv)
             return
@@ -1130,7 +1134,6 @@ class testMainClass(baseMainTestClass):
         else:
             success_message = '[' + self.lang + '][TEST_SUCCESS] ' + str(sum) + ' static ' + type + ' tests passed.'
             dump('[INFO]' + success_message)
-            exit_script(0)
 
     async def run_static_response_tests(self, exchange_name=None, test=None):
         #  -----------------------------------------------------------------------------

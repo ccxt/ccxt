@@ -243,6 +243,7 @@ class ImplicitAPI:
     private_loan_get_multi_collateral_currency_quota = privateLoanGetMultiCollateralCurrencyQuota = Entry('multi_collateral/currency_quota', ['private', 'loan'], 'GET', {'cost': 1.3333333333333333})
     private_loan_get_multi_collateral_currencies = privateLoanGetMultiCollateralCurrencies = Entry('multi_collateral/currencies', ['private', 'loan'], 'GET', {'cost': 1.3333333333333333})
     private_loan_get_multi_collateral_ltv = privateLoanGetMultiCollateralLtv = Entry('multi_collateral/ltv', ['private', 'loan'], 'GET', {'cost': 1.3333333333333333})
+    private_loan_get_multi_collateral_fixed_rate = privateLoanGetMultiCollateralFixedRate = Entry('multi_collateral/fixed_rate', ['private', 'loan'], 'GET', {'cost': 1.3333333333333333})
     private_loan_post_collateral_orders = privateLoanPostCollateralOrders = Entry('collateral/orders', ['private', 'loan'], 'POST', {'cost': 1.3333333333333333})
     private_loan_post_collateral_repay = privateLoanPostCollateralRepay = Entry('collateral/repay', ['private', 'loan'], 'POST', {'cost': 1.3333333333333333})
     private_loan_post_collateral_collaterals = privateLoanPostCollateralCollaterals = Entry('collateral/collaterals', ['private', 'loan'], 'POST', {'cost': 1.3333333333333333})

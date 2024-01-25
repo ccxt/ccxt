@@ -838,8 +838,10 @@ class blockchaincom extends Exchange {
             $tag = null;
             $address = null;
             if ($rawAddress !== null) {
+                $addressParts = explode(';', $rawAddress);
                 // if a $tag or memo is used it is separated by a colon in the 'address' value
-                list($address, $tag) = explode(':', $rawAddress);
+                $tag = $this->safe_string($addressParts, 0);
+                $address = $this->safe_string($addressParts, 1);
             }
             $result = array( 'info' => $response );
             $result['currency'] = $currency['code'];

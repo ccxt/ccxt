@@ -373,7 +373,8 @@
             "fetchCurrencies": {
                 "precision": "not provided",
                 "withdraw": "not provided",
-                "deposit": "not provided"
+                "deposit": "not provided",
+                "currencyIdAndCode": "broken currencies"
             },
             "fetchTrades": {
                 "side": "not set"
@@ -1432,6 +1433,10 @@
             },
             "watchOrderBook": {
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6909"
+            },
+            "watchTickers": {
+                "quoteVolume": "same",
+                "baseVolume": "same"
             }
         }
     },

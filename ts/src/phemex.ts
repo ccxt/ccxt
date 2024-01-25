@@ -192,6 +192,7 @@ export default class phemex extends Exchange {
                         'api-data/g-futures/trades': 5, // ?symbol=<symbol>
                         'api-data/futures/trading-fees': 5, // ?symbol=<symbol>
                         'api-data/g-futures/trading-fees': 5, // ?symbol=<symbol>
+                        'api-data/futures/v2/tradeAccountDetail': 5, // ?currency=<currecny>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
                         'g-orders/activeList': 1, // ?symbol=<symbol>
                         'orders/activeList': 1, // ?symbol=<symbol>
                         'exchange/order/list': 5, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
@@ -1921,16 +1922,19 @@ export default class phemex extends Exchange {
          * @method
          * @name phemex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://phemex-docs.github.io/#query-wallets
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
+         * @see https://phemex-docs.github.io/#query-trading-account-and-positions
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] spot or swap
+         * @param {string} [params.code] *swap only* currency code of the balance to query (USD, USDT, etc), default is USDT
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const code = this.safeString (params, 'code');
-        params = this.omit (params, [ 'type', 'code' ]);
+        params = this.omit (params, [ 'code' ]);
         let response = undefined;
         const request = {};
         if ((type !== 'spot') && (type !== 'swap')) {
@@ -1938,7 +1942,7 @@ export default class phemex extends Exchange {
         }
         if (type === 'swap') {
             let settle = undefined;
-            [ settle, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'settle');
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'settle', 'USDT');
             if (code !== undefined || settle !== undefined) {
                 let coin = undefined;
                 if (code !== undefined) {
@@ -2761,7 +2765,7 @@ export default class phemex extends Exchange {
             request['baseQtyEV'] = finalQty;
         } else if (amount !== undefined) {
             if (isUSDTSettled) {
-                request['baseQtyEV'] = this.amountToPrecision (market['symbol'], amount);
+                request['orderQtyRq'] = this.amountToPrecision (market['symbol'], amount);
             } else {
                 request['baseQtyEV'] = this.toEv (amount, market);
             }

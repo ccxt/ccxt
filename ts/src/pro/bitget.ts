@@ -1265,7 +1265,7 @@ export default class bitget extends bitgetRest {
             'price': this.safeString (order, 'price'),
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
-            'amount': this.safeString2 (order, 'size', 'baseSize'),
+            'amount': this.safeString (order, 'baseVolume'),
             'cost': this.safeStringN (order, [ 'notional', 'notionalUsd', 'quoteSize' ]),
             'average': this.omitZero (this.safeString2 (order, 'priceAvg', 'fillPrice')),
             'filled': this.safeString2 (order, 'accBaseVolume', 'baseVolume'),

@@ -10,7 +10,6 @@ use ccxt\async\abstract\okx as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use ccxt\BadSymbol;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
@@ -1162,23 +1161,6 @@ class okx extends Exchange {
             ),
             'info' => null,
         );
-    }
-
-    public function market($symbol) {
-        if ($this->markets === null) {
-            throw new ExchangeError($this->id . ' $markets not loaded');
-        }
-        if (gettype($symbol) === 'string') {
-            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
-                return $this->markets[$symbol];
-            } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
-                $markets = $this->markets_by_id[$symbol];
-                return $markets[0];
-            } elseif ((mb_strpos($symbol, '-C') > -1) || (mb_strpos($symbol, '-P') > -1)) {
-                return $this->create_expired_option_market($symbol);
-            }
-        }
-        throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);
     }
 
     public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
