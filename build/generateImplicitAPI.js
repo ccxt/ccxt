@@ -104,8 +104,11 @@ function createImplicitMethods(){
     const exchanges = Object.keys(storedCamelCaseMethods);
     for (const index in exchanges) {
         const exchange = exchanges[index];
-        const camelCaseMethods = storedCamelCaseMethods[exchange];
-        const underscoreMethods = storedUnderscoreMethods[exchange]
+        let camelCaseMethods = storedCamelCaseMethods[exchange];
+        let underscoreMethods = storedUnderscoreMethods[exchange];
+        // remove duplicates
+        camelCaseMethods = [... new Set(camelCaseMethods)];
+        underscoreMethods = [... new Set(underscoreMethods)];
 
         const typeScriptMethods = camelCaseMethods.map (method => {
             return `${IDEN}${method} (params?: {}): Promise<implicitReturnType>;`
