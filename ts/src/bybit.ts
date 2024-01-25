@@ -3458,7 +3458,7 @@ export default class bybit extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, 1, params);
     }
 
-    async createMarkeSellOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketSellOrderWithCost (symbol: string, cost, params = {}) {
         /**
          * @method
          * @name bybit#createMarkeSellOrderWithCost
