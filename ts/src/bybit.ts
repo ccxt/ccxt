@@ -40,7 +40,7 @@ export default class bybit extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketSellOrderWithCost': false,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
@@ -3458,6 +3458,30 @@ export default class bybit extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, 1, params);
     }
 
+    async createMarkeSellOrderWithCost (symbol: string, cost, params = {}) {
+        /**
+         * @method
+         * @name bybit#createMarkeSellOrderWithCost
+         * @see https://bybit-exchange.github.io/docs/v5/order/create-order
+         * @description create a market sell order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const types = await this.isUnifiedEnabled ();
+        const enableUnifiedAccount = types[1];
+        if (!enableUnifiedAccount) {
+            throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports UTA accounts only');
+        }
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot orders only');
+        }
+        return await this.createOrder (symbol, 'market', 'sell', cost, 1, params);
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -3706,6 +3730,8 @@ export default class bybit extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        const accounts = await this.isUnifiedEnabled ();
+        const isUta = accounts[1];
         const ordersRequests = [];
         const orderSymbols = [];
         for (let i = 0; i < orders.length; i++) {
@@ -3717,7 +3743,7 @@ export default class bybit extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeValue (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams, isUta);
             ordersRequests.push (orderRequest);
         }
         const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
