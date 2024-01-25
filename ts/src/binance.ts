@@ -8887,19 +8887,18 @@ export default class binance extends Exchange {
 
     getExceptionMarketTypeByUrl (url, exactOrBroad) {
         let marketType = undefined;
-        if (url.startsWith ('https://api.binance.com/sapi/') || url.startsWith ('https://api.binance.com/api/v1') || url.startsWith ('https://api.binance.com/api/v3')) {
+        const hostname = 'binance.com'; // temporarily hardcoded
+        if (url.startsWith ('https://api.' + hostname + '/')) {
             marketType = 'spot';
-        } else if (url.startsWith ('https://api.binance.com/dapi/')) {
+        } else if (url.startsWith ('https://dapi.' + hostname + '/')) {
             marketType = 'inverse';
-        } else if (url.startsWith ('https://api.binance.com/fapi/')) {
+        } else if (url.startsWith ('https://fapi.' + hostname + '/')) {
             marketType = 'linear';
-        } else if (url.startsWith ('https://api.binance.com/eapi/')) {
+        } else if (url.startsWith ('https://eapi.' + hostname + '/')) {
             marketType = 'option';
+        } else if (url.startsWith ('https://papi.' + hostname + '/')) {
+            marketType = 'portfoliomargin';
         }
-        // for now these are skipped:
-        // 'dapiData': 'https://dapi.binance.com/futures/data'
-        // 'fapiData': 'https://fapi.binance.com/futures/data'
-        // 'papi': 'https://papi.binance.com/papi/v1'
         if (marketType !== undefined) {
             const exceptionsForMarketType = this.safeValue (this.exceptions, marketType, {});
             const targetExceptions = this.safeValue (exceptionsForMarketType, exactOrBroad, {});
