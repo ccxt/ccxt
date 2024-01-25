@@ -123,8 +123,7 @@ export default class coinbase extends Exchange {
                 'referral': 'https://www.coinbase.com/join/58cbe25a355148797479dbd2',
             },
             'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
+                'token': true,
             },
             'api': {
                 'v2': {
