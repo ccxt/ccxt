@@ -1362,35 +1362,81 @@ export default class binance extends Exchange {
                 'legalMoney': {
                     'MXN': true,
                     'UGX': true,
+                    'SDG': true,
+                    'XOF': true,
                     'SEK': true,
+                    'GNF': true,
+                    'QAR': true,
+                    'LYD': true,
+                    'KWD': true,
+                    'ISK': true,
+                    'PAB': true,
                     'CHF': true,
+                    'HRK': true,
                     'VND': true,
+                    'TJS': true,
                     'AED': true,
                     'DKK': true,
+                    'BGN': true,
+                    'BHD': true,
                     'KZT': true,
+                    'AFN': true,
+                    'EURPS': true,
                     'HUF': true,
                     'PEN': true,
+                    'TMT': true,
+                    'CLP': true,
+                    'TND': true,
+                    'DOP': true,
+                    'MAD': true,
                     'PHP': true,
-                    'USD': true,
+                    'COP': true,
+                    'ETB': true,
+                    'LAK': true,
+                    'BND': true,
+                    'MDL': true,
+                    'AMD': true,
                     'TRY': true,
                     'EUR': true,
+                    'RON': true,
                     'NGN': true,
+                    'CRC': true,
+                    'PKR': true,
                     'PLN': true,
                     'BRL': true,
                     'ZAR': true,
+                    'TWD': true,
+                    'UYU': true,
+                    'OMR': true,
                     'KES': true,
                     'ARS': true,
+                    'UZS': true,
                     'RUB': true,
+                    'DZD': true,
+                    'KGS': true,
+                    'XAF': true,
+                    'TZS': true,
                     'AUD': true,
+                    'KHR': true,
+                    'IDR': true,
+                    'BWP': true,
+                    'MMK': true,
                     'NOK': true,
                     'CZK': true,
+                    'MNT': true,
                     'GBP': true,
+                    'BYN': true,
+                    'GEL': true,
+                    'AZN': true,
                     'UAH': true,
+                    'ILS': true,
                     'GHS': true,
+                    'JOD': true,
                     'HKD': true,
                     'CAD': true,
-                    'INR': true,
+                    'SAR': true,
                     'JPY': true,
+                    'EGP': true,
                     'NZD': true,
                 },
                 'legalMoneyCurrenciesById': {
@@ -1967,53 +2013,56 @@ export default class binance extends Exchange {
             const id = this.safeString (entry, 'coin');
             const name = this.safeString (entry, 'name');
             const code = this.safeCurrencyCode (id);
-            let minPrecision = undefined;
-            let isTokenWithdrawable = false;
-            let isTokenDepositable = false;
-            const networkList = this.safeValue (entry, 'networkList', []);
-            const fees = {};
-            let fee = undefined;
-            for (let j = 0; j < networkList.length; j++) {
-                const networkItem = networkList[j];
-                const network = this.safeString (networkItem, 'network');
-                // const name = this.safeString (networkItem, 'name');
-                const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
-                const isDepositEnabled = this.safeValue (networkItem, 'depositEnable');
-                const isWithdrawalEnabled = this.safeValue (networkItem, 'withdrawEnable');
-                isTokenDepositable = isDepositEnabled || isTokenDepositable;
-                isTokenWithdrawable = isWithdrawalEnabled || isTokenWithdrawable;
-                fees[network] = withdrawFee;
-                const isDefault = this.safeValue (networkItem, 'isDefault');
-                if (isDefault || (fee === undefined)) {
-                    fee = withdrawFee;
+            const legalMoney = this.safeValue (this.options, 'legalMoney', {});
+            if (!(code in legalMoney)) {
+                let minPrecision = undefined;
+                let isTokenWithdrawable = false;
+                let isTokenDepositable = false;
+                const networkList = this.safeValue (entry, 'networkList', []);
+                const fees = {};
+                let fee = undefined;
+                for (let j = 0; j < networkList.length; j++) {
+                    const networkItem = networkList[j];
+                    const network = this.safeString (networkItem, 'network');
+                    // const name = this.safeString (networkItem, 'name');
+                    const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
+                    const isDepositEnabled = this.safeValue (networkItem, 'depositEnable');
+                    const isWithdrawalEnabled = this.safeValue (networkItem, 'withdrawEnable');
+                    isTokenDepositable = isDepositEnabled || isTokenDepositable;
+                    isTokenWithdrawable = isWithdrawalEnabled || isTokenWithdrawable;
+                    fees[network] = withdrawFee;
+                    const isDefault = this.safeValue (networkItem, 'isDefault');
+                    if (isDefault || (fee === undefined)) {
+                        fee = withdrawFee;
+                    }
+                    const precisionTick = this.safeString (networkItem, 'withdrawIntegerMultiple');
+                    // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
+                    // so, when there is zero instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended or other reasons
+                    if (!Precise.stringEq (precisionTick, '0')) {
+                        minPrecision = (minPrecision === undefined) ? precisionTick : Precise.stringMin (minPrecision, precisionTick);
+                    }
                 }
-                const precisionTick = this.safeString (networkItem, 'withdrawIntegerMultiple');
-                // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                // so, when there is zero instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended or other reasons
-                if (!Precise.stringEq (precisionTick, '0')) {
-                    minPrecision = (minPrecision === undefined) ? precisionTick : Precise.stringMin (minPrecision, precisionTick);
+                const trading = this.safeValue (entry, 'trading');
+                const active = (isTokenWithdrawable && isTokenDepositable && trading);
+                let maxDecimalPlaces = undefined;
+                if (minPrecision !== undefined) {
+                    maxDecimalPlaces = parseInt (this.numberToString (this.precisionFromString (minPrecision)));
                 }
+                result[code] = {
+                    'id': id,
+                    'name': name,
+                    'code': code,
+                    'precision': maxDecimalPlaces,
+                    'info': entry,
+                    'active': active,
+                    'deposit': isTokenDepositable,
+                    'withdraw': isTokenWithdrawable,
+                    'networks': networkList,
+                    'fee': fee,
+                    'fees': fees,
+                    'limits': this.limits,
+                };
             }
-            const trading = this.safeValue (entry, 'trading');
-            const active = (isTokenWithdrawable && isTokenDepositable && trading);
-            let maxDecimalPlaces = undefined;
-            if (minPrecision !== undefined) {
-                maxDecimalPlaces = parseInt (this.numberToString (this.precisionFromString (minPrecision)));
-            }
-            result[code] = {
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': maxDecimalPlaces,
-                'info': entry,
-                'active': active,
-                'deposit': isTokenDepositable,
-                'withdraw': isTokenWithdrawable,
-                'networks': networkList,
-                'fee': fee,
-                'fees': fees,
-                'limits': this.limits,
-            };
         }
         return result;
     }
