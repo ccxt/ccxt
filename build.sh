@@ -41,7 +41,7 @@ function run_tests {
   if [ -z "$ws_pid" ]; then
     if [ -z "$ws_args" ] || { [ -n "$ws_args" ] && [ "$ws_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node run-tests --ws --js --python-async --php-async --useProxy $ws_args &
+      node run-tests --ws --js --python-async --php-async --csharp --useProxy $ws_args &
       local ws_pid=$!
     fi
   fi
@@ -191,6 +191,7 @@ for exchange in "${REST_EXCHANGES[@]}"; do
   npm run request-js -- $exchange
   npm run request-py -- $exchange
   php php/test/test_async.php $exchange --requestTests
+  npm run request-csharp -- $exchange
 done
 
 #response static tests
@@ -198,6 +199,7 @@ for exchange in "${REST_EXCHANGES[@]}"; do
   npm run response-js -- $exchange
   npm run response-py -- $exchange
   php php/test/test_async.php $exchange --responseTests
+  npm run response-csharp -- $exchange
 done
 
 run_tests "$rest_args" "$ws_args"
