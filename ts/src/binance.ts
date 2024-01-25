@@ -2043,7 +2043,7 @@ export default class binance extends Exchange {
                         '-4196': BadRequest, // Only limit order is supported.
                         '-4197': OperationRejected, // No need to modify the order.
                         '-4198': OperationRejected, // Exceed maximum modify order limit.
-                        '-4199': OperationRejected, // Symbol is not in trading status. Order amendment is not permitted.
+                        '-4199': BadRequest, // Symbol is not in trading status. Order amendment is not permitted.
                         '-4200': PermissionDenied, // More than 20x leverage is available %s days after Futures account registration.
                         '-4201': PermissionDenied, // Users in your location/country can only access a maximum leverage of %s
                         '-4202': OperationRejected, // Current symbol leverage cannot exceed 20 when using position limit adjustment service.
@@ -2170,11 +2170,11 @@ export default class binance extends Exchange {
                         '-2019': InsufficientFunds, // Margin is insufficient
                         '-2020': OrderNotFillable, // UNABLE_TO_FILL
                         '-2021': OrderImmediatelyFillable, // Order would immediately trigger.
-                        '-2022': OperationRejected, // ReduceOnly Order is rejected
+                        '-2022': InvalidOrder, // ReduceOnly Order is rejected
                         '-2023': OperationFailed, // User in liquidation mode now
                         '-2024': OperationRejected, // Position is not sufficient
                         '-2025': OperationRejected, // Reach max open order limit.
-                        '-2026': OperationRejected, // This OrderType is not supported when reduceOnly.
+                        '-2026': InvalidOrder, // This OrderType is not supported when reduceOnly.
                         '-2027': OperationRejected, // Exceeded the maximum allowable position at current leverage.
                         '-2028': OperationRejected, // Leverage is smaller than permitted: insufficient margin balance.
                         '-4000': InvalidOrder, // INVALID_ORDER_STATUS
@@ -2193,7 +2193,7 @@ export default class binance extends Exchange {
                         '-4013': BadRequest, // PRICE_LESS_THAN_MIN_PRICE
                         '-4014': BadRequest, // PRICE NOT INCREASED BY TICK SIZE
                         '-4015': BadRequest, // Client order id is not valid
-                        '-4016': OperationRejected, // Price is higher than mark price multiplier cap.
+                        '-4016': BadRequest, // Price is higher than mark price multiplier cap.
                         '-4017': BadRequest, // MULTIPLIER_UP_LESS_THAN_ZERO
                         '-4018': BadRequest, // MULTIPLIER_DOWN_LESS_THAN_ZERO
                         '-4019': OperationRejected, // COMPOSITE_SCALE_OVERFLOW
@@ -2241,7 +2241,7 @@ export default class binance extends Exchange {
                         '-4071': BadRequest, // Invalid options direction
                         '-4072': OperationRejected, // premium fee is not updated, reject order
                         '-4073': BadRequest, // OPTIONS_PREMIUM_INPUT_LESS_THAN_ZERO
-                        '-4074': OperationRejected, // Order amount is bigger than upper boundary or less than 0, reject order
+                        '-4074': BadRequest, // Order amount is bigger than upper boundary or less than 0, reject order
                         '-4075': BadRequest, // output premium fee is less than 0, reject order
                         '-4076': OperationRejected, // original fee is too much higher than last fee
                         '-4077': OperationRejected, // place order amount has reached to limit, reject order
@@ -2249,7 +2249,7 @@ export default class binance extends Exchange {
                         '-4079': BadRequest, // invalid options id
                         '-4080': PermissionDenied, // user not found with id: %s
                         '-4081': BadRequest, // OPTIONS_NOT_FOUND
-                        '-4082': OperationRejected, // Invalid number of batch place orders
+                        '-4082': BadRequest, // Invalid number of batch place orders
                         '-4083': OperationFailed, // Fail to place batch orders.
                         '-4084': BadRequest, // UPCOMING_METHOD
                         '-4085': BadRequest, // Invalid notional limit coefficient
@@ -2266,7 +2266,7 @@ export default class binance extends Exchange {
                         '-4138': BadRequest, // Reduce only must be true with closePosition equals true
                         '-4139': BadRequest, // Order type can not be market if it's unable to cancel
                         '-4140': BadRequest, // Invalid symbol status for opening position
-                        '-4141': OperationRejected, // Symbol is closed
+                        '-4141': BadRequest, // Symbol is closed
                         '-4142': OrderImmediatelyFillable, // REJECT: take profit or stop order will be triggered immediately
                         '-4144': BadSymbol, // Invalid pair
                         '-4161': OperationRejected, // Leverage reduction is not supported in Isolated Margin Mode with open positions
