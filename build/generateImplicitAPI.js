@@ -69,9 +69,6 @@ function generateImplicitMethodNames(id, api, paths = []){
                 const result = paths.concat (key).concat (endpoint.split (pattern)).filter(r => r.length > 0);
                 let camelCasePath = result.map(capitalize).join('');
                 camelCasePath = lowercaseFirstLetter(camelCasePath);
-                if (storedCamelCaseMethods[id].includes(camelCasePath)) {
-                    continue;
-                }
                 storedCamelCaseMethods[id].push (camelCasePath)
                 let underscorePath = result.map (x => x.toLowerCase ()).join ('_')
                 storedUnderscoreMethods[id].push (underscorePath)
@@ -110,7 +107,6 @@ function createImplicitMethods(){
         const camelCaseMethods = storedCamelCaseMethods[exchange];
         const underscoreMethods = storedUnderscoreMethods[exchange]
 
-        
         const typeScriptMethods = camelCaseMethods.map (method => {
             return `${IDEN}${method} (params?: {}): Promise<implicitReturnType>;`
         });
