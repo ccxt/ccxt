@@ -1881,7 +1881,7 @@ export default class Exchange {
         return result;
     }
 
-    filterByLimit (array: object[], limit: Int = undefined, key: IndexType = 'timestamp'): any {
+    filterByLimit (array: object[], limit: Int = undefined, key: IndexType = 'timestamp', fromStart: boolean = false): any {
         if (this.valueIsDefined (limit)) {
             const arrayLength = array.length;
             if (arrayLength > 0) {
@@ -1893,7 +1893,11 @@ export default class Exchange {
                         ascending = first <= last;  // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
-                array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
+                if (fromStart) {
+                    array = ascending ? this.arraySlice (array, 0, limit) : this.arraySlice (array, -limit)
+                } else {
+                    array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
+                }
             }
         }
         return array;
@@ -1916,7 +1920,7 @@ export default class Exchange {
         if (tail && limit !== undefined) {
             return this.arraySlice (result, -limit);
         }
-        return this.filterByLimit (result, limit, key);
+        return this.filterByLimit (result, limit, key, sinceIsDefined);
     }
 
     filterByValueSinceLimit (array: object[], field: IndexType, value = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any {
@@ -1942,7 +1946,7 @@ export default class Exchange {
         if (tail && limit !== undefined) {
             return this.arraySlice (result, -limit);
         }
-        return this.filterByLimit (result, limit, key);
+        return this.filterByLimit (result, limit, key, sinceIsDefined);
     }
 
     setSandboxMode (enabled) {
