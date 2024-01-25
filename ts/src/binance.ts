@@ -1897,9 +1897,6 @@ export default class binance extends Exchange {
                 'inverse': {
                     // https://binance-docs.github.io/apidocs/delivery/en/#error-codes
                     'exact': {
-                        //
-                        // documented codes
-                        //
                         '-1000': OperationFailed, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                         '-1001': OperationFailed, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
                         '-1002': AuthenticationError, // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
@@ -1917,6 +1914,7 @@ export default class binance extends Exchange {
                         '-1020': BadRequest, // {"code":-1020,"msg":"'This operation is not supported.'"}
                         '-1021': InvalidNonce, // {"code":-1021,"msg":"'your time is ahead of server'"}
                         '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
+                        '-1023': BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
                         '-1100': BadRequest, // {"code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'"}
                         '-1101': BadRequest, // {"code":-1101,"msg":"Too many parameters; expected %s and received %s."}
                         '-1102': BadRequest, // {"code":-1102,"msg":"Param %s or %s must be sent, but both were empty"}
@@ -1924,6 +1922,9 @@ export default class binance extends Exchange {
                         '-1104': BadRequest, // {"code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9"}
                         '-1105': BadRequest, // {"code":-1105,"msg":"Parameter %s was empty."}
                         '-1106': BadRequest, // {"code":-1106,"msg":"Parameter %s sent when not required."}
+                        '-1108': BadSymbol, // {"code":-1108,"msg":"Invalid asset."}
+                        '-1109': AuthenticationError, // {"code":-1109,"msg":"Invalid account."}
+                        '-1110': BadSymbol, // {"code":-1110,"msg":"Invalid symbolType."}
                         '-1111': BadRequest, // {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
                         '-1112': OperationRejected, // {"code":-1112,"msg":"No orders on book for symbol."}
                         '-1113': BadRequest, // {"code":-1113,"msg":"Withdrawal amount must be negative."}
@@ -1939,49 +1940,14 @@ export default class binance extends Exchange {
                         '-1127': OperationRejected, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
                         '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                         '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
-                        '-1135': BadRequest, // undocumented - This error code will occur if a parameter requiring a JSON object is invalid.
-                        '-2008': AuthenticationError, // {"code":-2008,"msg":"Invalid Api-Key ID."}
-                        // todo: '-2010': ExchangeError, // {"code":-2010,"msg":"generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc..."}
+                        '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
+                        '-2010': InvalidOrder, // NEW_ORDER_REJECTED
                         '-2011': OrderNotFound, // {"code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'"}
                         '-2013': OrderNotFound, // {"code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'"}
                         '-2014': AuthenticationError, // {"code":-2014,"msg":"API-key format invalid."}
                         '-2015': AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                         '-2016': OperationRejected, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
                         '-2018': InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
-                        //
-                        // undocumented
-                        //
-                        '-9000': InsufficientFunds, // {"code":-9000,"msg":"user have no avaliable amount"}"
-                        '-10017': OperationRejected, // {"code":-10017,"msg":"Repay amount should not be larger than liability."}
-                        '-11008': OperationRejected, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}
-                        '-21001': BadRequest, // {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}
-                        '-21002': BadRequest, // {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}
-                        '-21003': BadRequest, // {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}
-                        //
-                        // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
-                        //
-                        '-20121': BadSymbol, // Invalid symbol.
-                        '-20124': BadRequest, // Invalid algo id or it has been completed.
-                        '-20130': BadRequest, // Invalid data sent for a parameter
-                        '-20132': BadRequest, // The client algo id is duplicated
-                        '-20194': BadRequest, // Duration is too short to execute all required quantity.
-                        '-20195': BadRequest, // The total size is too small.
-                        '-20196': BadRequest, // The total size is too large.
-                        '-20198': OperationRejected, // Reach the max open orders allowed.
-                        '-20204': BadRequest, // The notional of USD is less or more than the limit.
-                        //
-                        // undocumented
-                        //
-                        '100001003': AuthenticationError, // {"code":100001003,"msg":"Verification failed"}
-                        '200003903': AuthenticationError, // {"code":200003903,"msg":"Your identity verification has been rejected. Please complete identity verification again."}
-                        //
-                        '-1008': ExchangeError, // undocumented
-                        '-1023': BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
-                        // '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
-                        '-1108': BadSymbol, // {"code":-1108,"msg":"Invalid asset."}
-                        '-1109': AuthenticationError, // {"code":-1109,"msg":"Invalid account."}
-                        '-1110': BadSymbol, // {"code":-1110,"msg":"Invalid symbolType."}
-                        '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
                         '-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
                         '-2020': OperationFailed, // {"code":-2020,"msg":"Unable to fill."}
                         '-2021': OrderImmediatelyFillable, // {"code":-2021,"msg":"Order would immediately trigger."}
@@ -2083,73 +2049,8 @@ export default class binance extends Exchange {
                         '-4201': PermissionDenied, // Users in your location/country can only access a maximum leverage of %s
                         '-4202': OperationRejected, // Current symbol leverage cannot exceed 20 when using position limit adjustment service.
                         '-4188': BadRequest, // Timestamp for this request is outside of the ME recvWindow.
-                    },
-                },
-                'option': {
-                    // https://binance-docs.github.io/apidocs/voptions/en/#error-codes
-                    'exact': {
                         //
-                        // documented codes
-                        //
-                        '-1000': OperationFailed, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
-                        '-1001': OperationFailed, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
-                        '-1002': AuthenticationError, // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
-                        '-1003': RateLimitExceeded, // {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
-                        '-1004': OperationRejected, // DUPLICATE_IP : This IP is already on the white list
-                        '-1005': PermissionDenied, // {"code":-1005,"msg":"No such IP has been white listed"}
-                        '-1006': OperationFailed, // {"code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown."}
-                        '-1007': RequestTimeout, // {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
-                        '-1010': OperationFailed, // {"code":-1010,"msg":"ERROR_MSG_RECEIVED."}
-                        '-1011': PermissionDenied, // {"code":-1011,"msg":"This IP cannot access this route."}
-                        '-1013': BadRequest, // {"code":-1013,"msg":"createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL"} | -1013 INVALID_MESSAGE
-                        '-1014': InvalidOrder, // {"code":-1014,"msg":"Unsupported order combination."}
-                        '-1015': RateLimitExceeded, // {"code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'"}
-                        '-1016': BadRequest, // {"code":-1016,"msg":"'This service is no longer available.',"}
-                        '-1020': BadRequest, // {"code":-1020,"msg":"'This operation is not supported.'"}
-                        '-1021': InvalidNonce, // {"code":-1021,"msg":"'your time is ahead of server'"}
-                        '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
-                        '-1100': BadRequest, // {"code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'"}
-                        '-1101': BadRequest, // {"code":-1101,"msg":"Too many parameters; expected %s and received %s."}
-                        '-1102': BadRequest, // {"code":-1102,"msg":"Param %s or %s must be sent, but both were empty"}
-                        '-1103': BadRequest, // {"code":-1103,"msg":"An unknown parameter was sent."}
-                        '-1104': BadRequest, // {"code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9"}
-                        '-1105': BadRequest, // {"code":-1105,"msg":"Parameter %s was empty."}
-                        '-1106': BadRequest, // {"code":-1106,"msg":"Parameter %s sent when not required."}
-                        '-1111': BadRequest, // {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
-                        '-1112': OperationRejected, // {"code":-1112,"msg":"No orders on book for symbol."}
-                        '-1113': BadRequest, // {"code":-1113,"msg":"Withdrawal amount must be negative."}
-                        '-1114': BadRequest, // {"code":-1114,"msg":"TimeInForce parameter sent when not required."}
-                        '-1115': BadRequest, // {"code":-1115,"msg":"Invalid timeInForce."}
-                        '-1116': BadRequest, // {"code":-1116,"msg":"Invalid orderType."}
-                        '-1117': BadRequest, // {"code":-1117,"msg":"Invalid side."}
-                        '-1118': BadRequest, // {"code":-1118,"msg":"New client order ID was empty."}
-                        '-1119': BadRequest, // {"code":-1119,"msg":"Original client order ID was empty."}
-                        '-1120': BadRequest, // {"code":-1120,"msg":"Invalid interval."}
-                        '-1121': BadSymbol, // {"code":-1121,"msg":"Invalid symbol."}
-                        '-1125': AuthenticationError, // {"code":-1125,"msg":"This listenKey does not exist."}
-                        '-1127': OperationRejected, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
-                        '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
-                        '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
-                        '-1135': BadRequest, // undocumented - This error code will occur if a parameter requiring a JSON object is invalid.
-                        '-2008': AuthenticationError, // {"code":-2008,"msg":"Invalid Api-Key ID."}
-                        // todo: '-2010': ExchangeError, // {"code":-2010,"msg":"generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc..."}
-                        '-2011': OrderNotFound, // {"code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'"}
-                        '-2013': OrderNotFound, // {"code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'"}
-                        '-2014': AuthenticationError, // {"code":-2014,"msg":"API-key format invalid."}
-                        '-2015': AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-                        '-2016': OperationRejected, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
-                        '-2018': InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
-                        //
-                        // undocumented
-                        //
-                        '-9000': InsufficientFunds, // {"code":-9000,"msg":"user have no avaliable amount"}"
-                        '-10017': OperationRejected, // {"code":-10017,"msg":"Repay amount should not be larger than liability."}
-                        '-11008': OperationRejected, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}
-                        '-21001': BadRequest, // {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}
-                        '-21002': BadRequest, // {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}
-                        '-21003': BadRequest, // {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}
-                        //
-                        // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
+                        // spot & futures algo
                         //
                         '-20121': BadSymbol, // Invalid symbol.
                         '-20124': BadRequest, // Invalid algo id or it has been completed.
@@ -2160,28 +2061,48 @@ export default class binance extends Exchange {
                         '-20196': BadRequest, // The total size is too large.
                         '-20198': OperationRejected, // Reach the max open orders allowed.
                         '-20204': BadRequest, // The notional of USD is less or more than the limit.
-                        //
-                        // undocumented
-                        //
-                        '100001003': AuthenticationError, // {"code":100001003,"msg":"Verification failed"}
-                        '200003903': AuthenticationError, // {"code":200003903,"msg":"Your identity verification has been rejected. Please complete identity verification again."}
-                        //
-                        '-1003': ExchangeError, // undocumented
-                        '-1004': ExchangeError, // undocumented
-                        '-1005': ExchangeError, // undocumented
-                        '-1006': ExchangeError, // undocumented
+                    },
+                },
+                'option': {
+                    // https://binance-docs.github.io/apidocs/voptions/en/#error-codes
+                    'exact': {
+                        '-1000': OperationFailed, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                        '-1001': OperationFailed, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
+                        '-1002': AuthenticationError, // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
                         '-1008': RateLimitExceeded, // TOO_MANY_REQUESTS
-                        '-1010': ExchangeError, // undocumented
-                        '-1011': ExchangeError, // undocumented
-                        '-1013': ExchangeError, // undocumented
-                        '-1112': ExchangeError, // undocumented
-                        '-1113': ExchangeError, // undocumented
-                        '-1114': ExchangeError, // undocumented
+                        '-1014': InvalidOrder, // {"code":-1014,"msg":"Unsupported order combination."}
+                        '-1015': RateLimitExceeded, // {"code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'"}
+                        '-1016': BadRequest, // {"code":-1016,"msg":"'This service is no longer available.',"}
+                        '-1020': BadRequest, // {"code":-1020,"msg":"'This operation is not supported.'"}
+                        '-1021': InvalidNonce, // {"code":-1021,"msg":"'your time is ahead of server'"}
+                        '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
+                        
+                        '-1100': BadRequest, // {"code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'"}
+                        '-1101': BadRequest, // {"code":-1101,"msg":"Too many parameters; expected %s and received %s."}
+                        '-1102': BadRequest, // {"code":-1102,"msg":"Param %s or %s must be sent, but both were empty"}
+                        '-1103': BadRequest, // {"code":-1103,"msg":"An unknown parameter was sent."}
+                        '-1104': BadRequest, // {"code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9"}
+                        '-1105': BadRequest, // {"code":-1105,"msg":"Parameter %s was empty."}
+                        '-1106': BadRequest, // {"code":-1106,"msg":"Parameter %s sent when not required."}
+                        '-1111': BadRequest, // {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
+                        '-1115': BadRequest, // {"code":-1115,"msg":"Invalid timeInForce."}
+                        '-1116': BadRequest, // {"code":-1116,"msg":"Invalid orderType."}
+                        '-1117': BadRequest, // {"code":-1117,"msg":"Invalid side."}
+                        '-1118': BadRequest, // {"code":-1118,"msg":"New client order ID was empty."}
+                        '-1119': BadRequest, // {"code":-1119,"msg":"Original client order ID was empty."}
+                        '-1120': BadRequest, // {"code":-1120,"msg":"Invalid interval."}
+                        '-1121': BadSymbol, // {"code":-1121,"msg":"Invalid symbol."}
+                        '-1125': AuthenticationError, // {"code":-1125,"msg":"This listenKey does not exist."}
+                        '-1127': OperationRejected, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
                         '-1128': BadSymbol, // BAD_CONTRACT
                         '-1129': BadSymbol, // BAD_CURRENCY
+                        '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
                         '-1131': BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
-                        '-2011': ExchangeError, // undocumented
-                        '-2016': ExchangeError, // undocumented
+                        '-2010': InvalidOrder, // NEW_ORDER_REJECTED
+                        '-2013': OrderNotFound, // {"code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'"}
+                        '-2014': AuthenticationError, // {"code":-2014,"msg":"API-key format invalid."}
+                        '-2015': AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                        '-2018': InsufficientFunds, // BALANCE_NOT_SUFFICIENT
                         '-2027': InsufficientFunds, // OPTION_MARGIN_NOT_SUFFICIENT
                         '-3029': OperationFailed, // {"code":-3029,"msg":"Transfer failed."}
                         '-4001': BadRequest, // PRICE_LESS_THAN_ZERO
@@ -2197,9 +2118,6 @@ export default class binance extends Exchange {
                 },
                 'portfolioMargin': {
                     'exact': {
-                        //
-                        // documented codes
-                        //
                         '-1000': OperationFailed, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                         '-1001': OperationFailed, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
                         '-1002': AuthenticationError, // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
