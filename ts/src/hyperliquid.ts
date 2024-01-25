@@ -551,62 +551,64 @@ export default class hyperliquid extends Exchange {
          * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {string} [params.clientOrderId] client order id (default undefined)
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const orderType = type.toUpperCase ();
-        const orderSide = side.toUpperCase ();
+        type = type.toUpperCase ();
+        const isMarket = (type === 'MARKET');
+        side = side.toUpperCase ();
+        const isBuy = (side === 'BUY');
         const defaultSlippage = this.safeValue (this.options, 'defaultSlippage');
         const slippage = this.safeValue (params, 'slippage', defaultSlippage);
         const vaultAddress = this.safeString (params, 'vaultAddress');
-        let timeInForce = this.safeStringLower (params, 'timeInForce', 'gtc');
+        const defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
+        let timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
         timeInForce = this.capitalize (timeInForce);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         const zeroAddress = this.safeString (this.options, 'zeroAddress');
-        params = this.omit (params, [ 'slippage', 'vaultAddress', 'timeInForce', 'triggerPrice', 'clientOrderId', 'client_id' ]);
+        let triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice', 0);
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isTrigger = (stopLossPrice || takeProfitPrice);
+        params = this.omit (params, [ 'slippage', 'vaultAddress', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id' ]);
         // TODO: round px to 5 significant figures and 6 decimals
         // TODO: cloid
         let px = price;
-        if (orderType === 'MARKET') {
-            px = (orderSide === 'BUY') ? price * (1 + slippage) : price * (1 - slippage);
+        if (isMarket) {
+            px = (isBuy) ? price * (1 + slippage) : price * (1 - slippage);
         }
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
-        const request = {
-            'coin': this.parseToInt (market['baseId']),
-            'is_buy': (orderSide === 'BUY'),
-            // 'sz': this.amountToPrecision (symbol, amount),
-            // 'limit_px': this.priceToPrecision (symbol, px),
-            'sz': amount,
-            'limit_px': px,
-            'reduce_only': reduceOnly,
-        };
-        const orderSpec = {
-            'order': {
-                'asset': this.parseToInt (market['baseId']),
-                'isBuy': (orderSide === 'BUY'),
-                'sz': amount,
-                'limitPx': px,
-                'reduceOnly': reduceOnly,
-            },
-        };
         // TODO: trigger order type
-        const hOrderType = {};
-        if (orderType === 'MARKET') {
-            timeInForce = 'Ioc';
-        }
-        hOrderType['limit'] = {
-            'tif': timeInForce,
-        };
-        request['order_type'] = hOrderType;
-        orderSpec['orderType'] = hOrderType;
+        const orderType = {};
         let signingOrderType = 0;
-        if (timeInForce === 'Ioc') {
-            signingOrderType = 3;
-        } else if (timeInForce === 'Alo') {
-            signingOrderType = 1;
-        } else if (timeInForce === 'Gtc') {
-            signingOrderType = 2;
+        if (isTrigger) {
+            let isTp = false;
+            if (takeProfitPrice !== undefined) {
+                triggerPrice = takeProfitPrice;
+                isTp = true;
+                signingOrderType = (isMarket) ? 4 : 5;
+            } else {
+                triggerPrice = stopLossPrice;
+                signingOrderType = (isMarket) ? 6 : 7;
+            }
+            orderType['trigger'] = {
+                'triggerPx': this.parseToInt (this.priceToPrecision (symbol, triggerPrice)),
+                'tpsl': (isTp) ? 'tp' : 'sl',
+                'isMarket': isMarket,
+            };
+        } else {
+            orderType['limit'] = {
+                'tif': timeInForce,
+            };
+            if (timeInForce === 'Ioc') {
+                signingOrderType = 3;
+            } else if (timeInForce === 'Alo') {
+                signingOrderType = 1;
+            } else if (timeInForce === 'Gtc') {
+                signingOrderType = 2;
+            }
         }
         const base = Math.pow (10, 8);
         const nonce = this.milliseconds ();
@@ -616,14 +618,14 @@ export default class hyperliquid extends Exchange {
             const signatureData = [
                 [
                     [
-                        orderSpec['order']['asset'],
-                        orderSpec['order']['isBuy'],
-                        this.parseToInt (orderSpec['order']['limitPx'] * base),
-                        this.parseToInt (orderSpec['order']['sz'] * base),
-                        orderSpec['order']['reduceOnly'],
-                        signingOrderType,
-                        0,
-                        this.base16ToBinary (this.remove0xPrefix (clientOrderId)),
+                        this.parseToInt (market['baseId']), // asset
+                        isBuy, // isBuy
+                        this.parseToInt (px * base), // px
+                        this.parseToInt (amount * base), // sz
+                        reduceOnly, // reduceOnly
+                        signingOrderType, // signingOrderType
+                        this.parseToInt (triggerPrice * base), // trigger_px
+                        this.base16ToBinary (this.remove0xPrefix (clientOrderId)), // clientOid
                     ],
                 ],
                 0, // na grouping
@@ -636,13 +638,13 @@ export default class hyperliquid extends Exchange {
             const signatureData = [
                 [
                     [
-                        orderSpec['order']['asset'],
-                        orderSpec['order']['isBuy'],
-                        this.parseToInt (orderSpec['order']['limitPx'] * base),
-                        this.parseToInt (orderSpec['order']['sz'] * base),
-                        orderSpec['order']['reduceOnly'],
-                        signingOrderType,
-                        0,
+                        this.parseToInt (market['baseId']), // asset
+                        isBuy, // isBuy
+                        this.parseToInt (px * base), // px
+                        this.parseToInt (amount * base), // sz
+                        reduceOnly, // reduceOnly
+                        signingOrderType, // signingOrderType
+                        this.parseToInt (triggerPrice * base), // trigger_px
                     ],
                 ],
                 0, // na grouping
@@ -657,11 +659,11 @@ export default class hyperliquid extends Exchange {
                 'grouping': 'na',
                 'orders': [ {
                     'asset': this.parseToInt (market['baseId']),
-                    'isBuy': (orderSide === 'BUY'),
+                    'isBuy': isBuy,
                     'sz': this.amountToPrecision (symbol, amount),
                     'limitPx': this.amountToPrecision (symbol, px),
                     'reduceOnly': reduceOnly,
-                    'orderType': request['order_type'],
+                    'orderType': orderType,
                     'cloid': clientOrderId,
                 } ],
             },
@@ -850,8 +852,6 @@ export default class hyperliquid extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] *spot only* whether the order is a stop order
-         * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
          * @param {string} [params.clientOrderId] client order id (default undefined)
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
