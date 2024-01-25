@@ -148,7 +148,7 @@ def dump(*args):
 
 
 def convert_ascii(str):
-    return str # stub
+    return str  # stub
 
 def json_parse(elem):
     return json.loads(elem)
