@@ -1913,6 +1913,7 @@ export default class binance extends Exchange {
         }
         const response = await this.sapiGetCapitalConfigGetall (params);
         const result = {};
+        const legalMoney = this.safeValue (this.options, 'legalMoney', {});
         for (let i = 0; i < response.length; i++) {
             //
             //    {
@@ -2013,7 +2014,6 @@ export default class binance extends Exchange {
             const id = this.safeString (entry, 'coin');
             const name = this.safeString (entry, 'name');
             const code = this.safeCurrencyCode (id);
-            const legalMoney = this.safeValue (this.options, 'legalMoney', {});
             if (!(code in legalMoney)) {
                 let minPrecision = undefined;
                 let isTokenWithdrawable = false;
