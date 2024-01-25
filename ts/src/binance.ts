@@ -9064,7 +9064,7 @@ export default class binance extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    getExceptionMarketTypeByUrl (url, exactOrBroad) {
+    getExceptionsByUrl (url, exactOrBroad) {
         let marketType = undefined;
         const hostname = 'binance.com'; // temporarily hardcoded
         if (url.startsWith ('https://api.' + hostname + '/')) {
@@ -9080,10 +9080,9 @@ export default class binance extends Exchange {
         }
         if (marketType !== undefined) {
             const exceptionsForMarketType = this.safeValue (this.exceptions, marketType, {});
-            const targetExceptions = this.safeValue (exceptionsForMarketType, exactOrBroad, {});
-            return targetExceptions;
+            return this.safeValue (exceptionsForMarketType, exactOrBroad, {});
         }
-        return undefined;
+        return {};
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -9126,15 +9125,9 @@ export default class binance extends Exchange {
         }
         const message = this.safeString (response, 'msg');
         if (message !== undefined) {
-            const exactExceptions = this.getExceptionMarketTypeByUrl (url, 'exact');
-            if (exactExceptions !== undefined) {
-                this.throwExactlyMatchedException (exactExceptions, message, this.id + ' ' + message);
-            }
+            this.throwExactlyMatchedException (this.getExceptionsByUrl (url, 'exact'), message, this.id + ' ' + message);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
-            const broadExceptions = this.getExceptionMarketTypeByUrl (url, 'broad');
-            if (broadExceptions !== undefined) {
-                this.throwBroadlyMatchedException (broadExceptions, message, this.id + ' ' + message);
-            }
+            this.throwBroadlyMatchedException (this.getExceptionsByUrl (url, 'broad'), message, this.id + ' ' + message);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, this.id + ' ' + message);
         }
         // checks against error codes
@@ -9160,10 +9153,7 @@ export default class binance extends Exchange {
                 // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
                 throw new MarginModeAlreadySet (feedback);
             }
-            const exactExceptions = this.getExceptionMarketTypeByUrl (url, 'exact');
-            if (exactExceptions !== undefined) {
-                this.throwExactlyMatchedException (exactExceptions, error, feedback);
-            }
+            this.throwExactlyMatchedException (this.getExceptionsByUrl (url, 'exact'), error, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             throw new ExchangeError (feedback);
         }
@@ -9177,10 +9167,7 @@ export default class binance extends Exchange {
                 const element = response[0];
                 const errorCode = this.safeString (element, 'code');
                 if (errorCode !== undefined) {
-                    const exactExceptions = this.getExceptionMarketTypeByUrl (url, 'exact');
-                    if (exactExceptions !== undefined) {
-                        this.throwExactlyMatchedException (exactExceptions, errorCode, this.id + ' ' + body);
-                    }
+                    this.throwExactlyMatchedException (this.getExceptionsByUrl (url, 'exact'), errorCode, this.id + ' ' + body);
                     this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + body);
                 }
             }
