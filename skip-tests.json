@@ -1433,6 +1433,10 @@
             },
             "watchOrderBook": {
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6909"
+            },
+            "watchTickers": {
+                "quoteVolume": "same",
+                "baseVolume": "same"
             }
         }
     },
