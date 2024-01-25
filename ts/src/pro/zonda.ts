@@ -9,6 +9,7 @@ import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { AuthenticationError, ExchangeError, InvalidNonce } from '../base/errors.js';
 import { CountedOrderBook } from '../base/ws/OrderBook.js';
+import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -52,101 +53,30 @@ export default class zonda extends zondaRest {
         });
     }
 
-    async authenticate () {
-        /**
-         * TODO
-         * @ignore
-         * @method
-         * @description authenticates the user to access private web socket channels
-         * @see https://api.zonda.com/#socket-authentication
-         * @returns {object} response from exchange
-         */
-        this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws']['private'];
-        const messageHash = 'authenticated';
-        const client = this.client (url);
-        const future = client.future (messageHash);
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
-            const timestamp = this.milliseconds ();
-            const signature = this.hmac (this.encode (this.numberToString (timestamp)), this.encode (this.secret), sha256, 'hex');
-            const request = {
-                'method': 'login',
-                'params': {
-                    'type': 'HS256',
-                    'api_key': this.apiKey,
-                    'timestamp': timestamp,
-                    'signature': signature,
-                },
-            };
-            this.watch (url, messageHash, request, messageHash);
-            //
-            //    {
-            //        "jsonrpc": "2.0",
-            //        "result": true
-            //    }
-            //
-            //    # Failure to return results
-            //
-            //    {
-            //        "jsonrpc": "2.0",
-            //        "error": {
-            //            "code": 1002,
-            //            "message": "Authorization is required or has been failed",
-            //            "description": "invalid signature format"
-            //        }
-            //    }
-            //
-        }
-        return future;
-    }
-
-    async subscribePublic (path: string, messageHash: string, params = {}) {
+    async subscribe (path: string, messageHash: string, isPrivate: boolean, params = {}) {
         /**
          * @ignore
          * @method
          * @param {string} name websocket endpoint name
          * @param {string} messageHash
-         * @param {string[]} [symbols] unified CCXT symbol(s)
+         * @param {boolean} isPrivate true for private endpoints
          * @param {object} [params] extra parameters specific to the zonda api
          */
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         const subscribe = {
-            'action': 'subscribe-public',
+            'action': isPrivate ? 'subscribe-private' : 'subscribe-public',
             'module': 'trading',
             'path': path,
         };
+        if (isPrivate) {
+            const payload = this.apiKey + this.nonce ();
+            subscribe['hashSignature'] = this.hmac (payload, this.secret, sha512);
+            subscribe['publicKey'] = this.apiKey;
+            subscribe['requestTimestamp'] = this.milliseconds ();
+        }
         const message = this.extend (subscribe, params);
         return await this.watch (url, messageHash, message, messageHash);
-    }
-
-    async subscribePrivate (name: string, symbol: Str = undefined, params = {}) {
-        /**
-         * TODO
-         * @ignore
-         * @method
-         * @param {string} name websocket endpoint name
-         * @param {string} [symbol] unified CCXT symbol
-         * @param {object} [params] extra parameters specific to the zonda api
-         */
-        await this.loadMarkets ();
-        await this.authenticate ();
-        const url = this.urls['api']['ws']['private'];
-        const splitName = name.split ('_subscribe');
-        let messageHash = this.safeString (splitName, 0);
-        if (symbol !== undefined) {
-            messageHash = messageHash + '::' + symbol;
-        }
-        const subscribe = {
-            'action': 'subscribe-private',
-            'module': 'trading',
-            'path': 'offers',
-            'hashSignature': '8892f16e0713c5f3e3d7e9fa26c5a5f2817b09fc48fece72ed5712ae33547c92e91e735b1818397136beea760efae61d1449a93e48ee2f80789dfa24830ef720',
-            'publicKey': '12345f6f-1b1d-1234-a973-a10b1bdba1a1',
-            'requestTimestamp': 1529897422,
-        };
-        return await this.watch (url, messageHash, subscribe, messageHash);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -376,7 +306,7 @@ export default class zonda extends zondaRest {
         params = this.omit (params, [ 'method', 'defaultMethod' ]);
         const market = this.market (symbol);
         const name = method + '/' + market['id'];
-        return await this.subscribePublic (name, name, params);
+        return await this.subscribe (name, name, false, params);
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -399,7 +329,7 @@ export default class zonda extends zondaRest {
         // if (symbols !== undefined) {
         //     messageHash = messageHash + '::' + symbols.join (',');
         // }
-        const tickers = await this.subscribePublic (method, messageHash, params);
+        const tickers = await this.subscribe (method, messageHash, false, params);
         if (this.newUpdates) {
             return tickers;
         }
@@ -560,7 +490,7 @@ export default class zonda extends zondaRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'transactions/' + market['id'].toLowerCase ();
-        const trades = await this.subscribePublic (name, name, params);
+        const trades = await this.subscribe (name, name, false, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -623,86 +553,119 @@ export default class zonda extends zondaRest {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        let marketType = undefined;
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
+        let name = 'offers/';
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            name = 'stop/offers/';
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        const name = this.getSupportedMapping (marketType, {
-            'spot': 'spot_subscribe',
-            'margin': 'margin_subscribe',
-            'swap': 'futures_subscribe',
-            'future': 'futures_subscribe',
-        });
-        const orders = await this.subscribePrivate (name, symbol, params);
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            name += market['id'];
+        }
+        const orders = await this.subscribe (name, name, true, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp');
     }
 
-    handleOrder (client: Client, message) {
-        //
-        // TODO
+    handleOrderSnapshot (client: Client, message) {
+        // order snapshot
         //    {
-        //        "jsonrpc": "2.0",
-        //        "method": "spot_order",                            // "margin_order", "future_order"
-        //        "params": {
-        //            "id": 584244931496,
-        //            "client_order_id": "b5acd79c0a854b01b558665bcf379456",
-        //            "symbol": "BTCUSDT",
-        //            "side": "buy",
-        //            "status": "new",
-        //            "type": "limit",
-        //            "time_in_force": "GTC",
-        //            "quantity": "0.01000",
-        //            "quantity_cumulative": "0",
-        //            "price": "0.01",                              // only updates and snapshots
-        //            "post_only": false,
-        //            "reduce_only": false,                         // only margin and contract
-        //            "display_quantity": "0",                      // only updates and snapshot
-        //            "created_at": "2021-07-02T22:52:32.864Z",
-        //            "updated_at": "2021-07-02T22:52:32.864Z",
-        //            "trade_id": 1361977606,                       // only trades
-        //            "trade_quantity": "0.00001",                  // only trades
-        //            "trade_price": "49595.04",                    // only trades
-        //            "trade_fee": "0.001239876000",                // only trades
-        //            "trade_taker": true,                          // only trades, only spot
-        //            "trade_position_id": 485308,                  // only trades, only margin
-        //            "report_type": "new"                          // "trade", "status" (snapshot)
+        //        "action": "proxy-response",
+        //        "requestId": "4976d5bd-b1d0-c547-9245-44e4e419e12f",
+        //        "statusCode": 200,
+        //        "body": {
+        //            "status": "Ok",
+        //            "items": [
+        //                {
+        //                    "market": "BTC-PLN",
+        //                    "offerType": "Buy",
+        //                    "id": "90996f21-27e5-11ea-8d5d-0242ac110008",
+        //                    "currentAmount": "15",
+        //                    "lockedAmount": "15.00",
+        //                    "rate": "1",
+        //                    "startAmount": "15",
+        //                    "time": "1577367751519",
+        //                    "postOnly": false,
+        //                    "hidden": false,
+        //                    "mode": "limit",
+        //                    "receivedAmount": "0.0",
+        //                    "firstBalanceId": "380c5b41-44e4-4962-aa8b-451d32d4d352",
+        //                    "secondBalanceId": "6c25f724-4b07-4a0f-bad2-8432ffc07b22"
+        //                }
+        //            ]
         //        }
         //    }
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        // order
         //
         //    {
-        //       "jsonrpc": "2.0",
-        //       "method": "spot_orders",                            // "margin_orders", "future_orders"
-        //       "params": [
-        //            {
-        //                "id": 584244931496,
-        //                "client_order_id": "b5acd79c0a854b01b558665bcf379456",
-        //                "symbol": "BTCUSDT",
-        //                "side": "buy",
-        //                "status": "new",
-        //                "type": "limit",
-        //                "time_in_force": "GTC",
-        //                "quantity": "0.01000",
-        //                "quantity_cumulative": "0",
-        //                "price": "0.01",                              // only updates and snapshots
-        //                "post_only": false,
-        //                "reduce_only": false,                         // only margin and contract
-        //                "display_quantity": "0",                      // only updates and snapshot
-        //                "created_at": "2021-07-02T22:52:32.864Z",
-        //                "updated_at": "2021-07-02T22:52:32.864Z",
-        //                "trade_id": 1361977606,                       // only trades
-        //                "trade_quantity": "0.00001",                  // only trades
-        //                "trade_price": "49595.04",                    // only trades
-        //                "trade_fee": "0.001239876000",                // only trades
-        //                "trade_taker": true,                          // only trades, only spot
-        //                "trade_position_id": 485308,                  // only trades, only margin
-        //                "report_type": "new"                          // "trade", "status" (snapshot)
+        //        "action": "push",
+        //        "topic": "trading/offers/btc-pln",
+        //        "message": {
+        //            "entryType": "Buy",
+        //            "rate": "1",
+        //            "action": "update",
+        //            "offerId": "90996f21-27e5-11ea-8d5d-0242ac110008",
+        //            "market": "BTC-PLN",
+        //            "state": {
+        //                "market": "BTC-PLN",
+        //                "offerType": "Buy",
+        //                "id": "90996f21-27e5-11ea-8d5d-0242ac110008",
+        //                "currentAmount": "15",
+        //                "lockedAmount": "15.00",
+        //                "rate": "1",
+        //                "startAmount": "15",
+        //                "time": "1577367751519",
+        //                "postOnly": false,
+        //                "hidden": false,
+        //                "mode": "Limit",
+        //                "receivedAmount": "0.0",
+        //                "balances": {
+        //                    "first": "36b3e538-7aac-4fe9-8834-a0577f7706a2",
+        //                    "second": "00a6680d-f453-41dd-beca-7594e5680f5a"
+        //                },
+        //        },
+        //        "timestamp": "1577367751519"
+        //        },
+        //        "timestamp": "1577367751519",
+        //        "seqNo": 16
+        //    }
+        //
+        // stop orders
+        //
+        //    {
+        //        "action": "push",
+        //        "topic": "trading/stop/offers",
+        //        "message": {
+        //            "action": "rejected",
+        //            "rejectionReason": "InsufficientFunds",
+        //            "exchangeOfferId": "8887265-8399-11e9-becc-0242ac110aaa",
+        //            "state": {
+        //            "id": "79b57265-8399-11e9-becc-0242ac110004",
+        //            "operationId": "2b6823c5-dadc-8672-4053-d5d2ca071fc2",
+        //            "userId": "f3788966-2c59-425b-9066-51f80fe1a6fd",
+        //            "market": "BTC-PLN",
+        //            "amount": "1",
+        //            "rate": null,
+        //            "stopRate": "100000",
+        //            "status": "rejected",
+        //            "offerType": "Buy",
+        //            "mode": "stop-market",
+        //            "balances": {
+        //                "first": "36b3e538-7aac-4fe9-8834-a0577f7706a2",
+        //                "second": "00a6680d-f453-41dd-beca-7594e5680f5a"
+        //            },
+        //            "createdAt": "1559303080684",
+        //            "flags": []
         //            }
-        //        ]
+        //        },
+        //        "timestamp": "1559303080684",
+        //        "seqNo": 54
         //    }
         //
         if (this.orders === undefined) {
