@@ -880,7 +880,7 @@ class NewTranspiler {
     // ---------------------------------------------------------------------------------------------
     transpileOrderbookTestsToCSharp (outDir: string) {
 
-        const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
+        const jsFile = './ts/src/pro/test/base/test.OrderBook.ts';
         const csharpFile = `${outDir}/Orderbook.cs`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
