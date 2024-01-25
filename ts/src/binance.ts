@@ -1461,7 +1461,7 @@ export default class binance extends Exchange {
                         '-1105': BadRequest, // {"code":-1105,"msg":"Parameter %s was empty."}
                         '-1106': BadRequest, // {"code":-1106,"msg":"Parameter %s sent when not required."}
                         '-1111': BadRequest, // {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
-                        '-1112': OperationRejected, // {"code":-1112,"msg":"No orders on book for symbol."}
+                        '-1112': OperationFailed, // {"code":-1112,"msg":"No orders on book for symbol."}
                         '-1114': BadRequest, // {"code":-1114,"msg":"TimeInForce parameter sent when not required."}
                         '-1115': BadRequest, // {"code":-1115,"msg":"Invalid timeInForce."}
                         '-1116': BadRequest, // {"code":-1116,"msg":"Invalid orderType."}
@@ -1471,7 +1471,7 @@ export default class binance extends Exchange {
                         '-1120': BadRequest, // {"code":-1120,"msg":"Invalid interval."}
                         '-1121': BadSymbol, // {"code":-1121,"msg":"Invalid symbol."}
                         '-1125': AuthenticationError, // {"code":-1125,"msg":"This listenKey does not exist."}
-                        '-1127': OperationRejected, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
+                        '-1127': BadRequest, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
                         '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                         '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
                         '-1131': BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
@@ -1492,22 +1492,22 @@ export default class binance extends Exchange {
                         '-3002': BadSymbol, // {"code":-3002,"msg":"We don't have this asset."}
                         '-3003': BadRequest, // {"code":-3003,"msg":"Margin account does not exist."}
                         '-3004': OperationRejected, // {"code":-3004,"msg":"Trade not allowed."}
-                        '-3005': OperationRejected, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
-                        '-3006': OperationRejected, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
+                        '-3005': BadRequest, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
+                        '-3006': BadRequest, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
                         '-3007': OperationFailed, // {"code":-3007,"msg":"You have pending transaction, please try again later.."}
-                        '-3008': OperationRejected, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
+                        '-3008': BadRequest, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
                         '-3009': OperationRejected, // {"code":-3009,"msg":"This asset are not allowed to transfer into margin account currently."}
-                        '-3010': OperationRejected, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                        '-3010': BadRequest, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
                         '-3011': BadRequest, // {"code":-3011,"msg":"Your input date is invalid."}
                         '-3012': OperationRejected, // {"code":-3012,"msg":"Borrow is banned for this asset."}
-                        '-3013': OperationRejected, // {"code":-3013,"msg":"Borrow amount less than minimum borrow amount."}
+                        '-3013': BadRequest, // {"code":-3013,"msg":"Borrow amount less than minimum borrow amount."}
                         '-3014': AccountSuspended, // {"code":-3014,"msg":"Borrow is banned for this account."}
-                        '-3015': OperationRejected, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
-                        '-3016': OperationRejected, // {"code":-3016,"msg":"Repay amount less than minimum repay amount."}
+                        '-3015': BadRequest, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
+                        '-3016': BadRequest, // {"code":-3016,"msg":"Repay amount less than minimum repay amount."}
                         '-3017': OperationRejected, // {"code":-3017,"msg":"This asset are not allowed to transfer into margin account currently."}
                         '-3018': AccountSuspended, // {"code":-3018,"msg":"Transferring in has been banned for this account."}
                         '-3019': AccountSuspended, // {"code":-3019,"msg":"Transferring out has been banned for this account."}
-                        '-3020': OperationRejected, // {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
+                        '-3020': BadRequest, // {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
                         '-3021': BadRequest, // {"code":-3021,"msg":"Margin account are not allowed to trade this trading pair."}
                         '-3022': AccountSuspended, // {"code":-3022,"msg":"You account's trading is banned."}
                         '-3023': OperationRejected, // {"code":-3023,"msg":"You can't transfer out/place order under current margin level."}
@@ -1526,7 +1526,7 @@ export default class binance extends Exchange {
                         '-3044': OperationFailed, // {"code":-3044,"msg":"System busy."}
                         '-3045': OperationFailed, // {"code":-3045,"msg":"The system doesn't have enough asset now."}
                         '-3999': PermissionDenied, // {"code":-3999,"msg":"This function is only available for invited users."}
-                        '-4001': OperationRejected, // {"code":-4001 ,"msg":"Invalid operation."}
+                        '-4001': BadRequest, // {"code":-4001 ,"msg":"Invalid operation."}
                         '-4002': BadRequest, // {"code":-4002 ,"msg":"Invalid get."}
                         '-4003': BadRequest, // {"code":-4003 ,"msg":"Your input email is invalid."}
                         '-4004': AuthenticationError, // {"code":-4004,"msg":"You don't login or auth."}
@@ -1539,20 +1539,20 @@ export default class binance extends Exchange {
                         '-4011': BadRequest, // {"code":-4011 ,"msg":"White list mail is invalid."}
                         '-4012': PermissionDenied, // {"code":-4012 ,"msg":"White list is not opened."}
                         '-4013': AuthenticationError, // {"code":-4013 ,"msg":"2FA is not opened."}
-                        '-4014': OperationRejected, // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
+                        '-4014': OperationFailed, // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
                         '-4015': PermissionDenied, // {"code":-4015 ,"msg":"Withdraw is limited."}
                         '-4016': PermissionDenied, // {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
                         '-4017': PermissionDenied, // {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
                         '-4018': BadSymbol, // {"code":-4018,"msg":"We don't have this asset."}
-                        '-4019': OperationRejected, // {"code":-4019,"msg":"Current asset is not open for withdrawal."}
+                        '-4019': BadRequest, // {"code":-4019,"msg":"Current asset is not open for withdrawal."}
                         '-4021': BadRequest, // {"code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s."}
                         '-4022': BadRequest, // {"code":-4022,"msg":"Not less than the minimum pick-up quantity %s."}
-                        '-4023': OperationRejected, // {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
+                        '-4023': OperationFailed, // {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
                         '-4024': InsufficientFunds, // {"code":-4024,"msg":"You don't have this asset."}
                         '-4025': InsufficientFunds, // {"code":-4025,"msg":"The number of hold asset is less than zero."}
                         '-4026': InsufficientFunds, // {"code":-4026,"msg":"You have insufficient balance."}
                         '-4027': OperationFailed, // {"code":-4027,"msg":"Failed to obtain tranId."}
-                        '-4028': OperationRejected, // {"code":-4028,"msg":"The amount of withdrawal must be greater than the Commission."}
+                        '-4028': BadRequest, // {"code":-4028,"msg":"The amount of withdrawal must be greater than the Commission."}
                         '-4029': BadRequest, // {"code":-4029,"msg":"The withdrawal record does not exist."}
                         '-4030': BadResponse, // {"code":-4030,"msg":"Confirmation of successful asset withdrawal. [TODO] possible bug in docs"}
                         '-4031': OperationFailed, // {"code":-4031,"msg":"Cancellation failed."}
@@ -1578,7 +1578,7 @@ export default class binance extends Exchange {
                         '-5003': InsufficientFunds, // You don't have this asset.
                         '-5004': OperationRejected, // The residual balances of %s have exceeded 0.001BTC, Please re-choose.
                         '-5005': OperationRejected, // The residual balances of %s is too low, Please re-choose.
-                        '-5006': OperationRejected, // Only transfer once in 24 hours.
+                        '-5006': OperationFailed, // Only transfer once in 24 hours.
                         '-5007': BadRequest, // Quantity must be greater than zero.
                         '-5008': OperationRejected, // Insufficient amount of returnable assets.
                         '-5009': BadSymbol, // Product does not exist.
@@ -1590,7 +1590,7 @@ export default class binance extends Exchange {
                         '-5022': BadRequest, // future account or sub relation not exists.
                         '-6001': BadSymbol, // Daily product not exists.
                         '-6003': PermissionDenied, // Product not exist or you don't have permission
-                        '-6004': OperationRejected, // Product not in purchase status
+                        '-6004': BadRequest, // Product not in purchase status
                         '-6005': BadRequest, // Smaller than min purchase limit
                         '-6006': BadRequest, // Redeem amount error
                         '-6007': OperationFailed, // Not in redeem time
@@ -1611,8 +1611,8 @@ export default class binance extends Exchange {
                         '-10001': OperationFailed, // The system is under maintenance, please try again later.
                         '-10002': BadRequest, // Invalid input parameters.
                         '-10005': BadResponse, // No records found.
-                        '-10007': OperationRejected, // This coin is not loanable.
-                        '-10008': OperationRejected, // This coin is not loanable
+                        '-10007': BadRequest, // This coin is not loanable
+                        '-10008': BadRequest, // This coin is not loanable
                         '-10009': BadRequest, // This coin can not be used as collateral.
                         '-10010': BadRequest, // This coin can not be used as collateral.
                         '-10011': InsufficientFunds, // Insufficient spot assets.
@@ -1627,7 +1627,7 @@ export default class binance extends Exchange {
                         '-10021': InvalidOrder, // Order does not exist.
                         '-10022': BadRequest, // Invalid adjustment amount.
                         '-10023': OperationFailed, // Failed to adjust LTV.
-                        '-10024': OperationRejected, // LTV adjustment not supported.
+                        '-10024': BadRequest, // LTV adjustment not supported.
                         '-10025': OperationFailed, // Repayment failed.
                         '-10026': BadRequest, // Invalid parameter.
                         '-10028': BadRequest, // Invalid parameter.
@@ -1716,7 +1716,7 @@ export default class binance extends Exchange {
                         '-1109': PermissionDenied, // {"code":-1109,"msg":"Invalid account."}
                         '-1110': BadRequest, // {"code":-1110,"msg":"Invalid symbolType."}
                         '-1111': BadRequest, // {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
-                        '-1112': OperationRejected, // {"code":-1112,"msg":"No orders on book for symbol."}
+                        '-1112': OperationFailed, // {"code":-1112,"msg":"No orders on book for symbol."}
                         '-1113': BadRequest, // {"code":-1113,"msg":"Withdrawal amount must be negative."}
                         '-1114': BadRequest, // {"code":-1114,"msg":"TimeInForce parameter sent when not required."}
                         '-1115': BadRequest, // {"code":-1115,"msg":"Invalid timeInForce."}
@@ -1729,7 +1729,7 @@ export default class binance extends Exchange {
                         '-1122': BadRequest, // INVALID_SYMBOL_STATUS
                         '-1125': AuthenticationError, // {"code":-1125,"msg":"This listenKey does not exist."}
                         '-1126': BadSymbol, // ASSET_NOT_SUPPORTED
-                        '-1127': OperationRejected, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
+                        '-1127': BadRequest, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
                         '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                         '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
                         '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
@@ -1925,7 +1925,7 @@ export default class binance extends Exchange {
                         '-1109': AuthenticationError, // {"code":-1109,"msg":"Invalid account."}
                         '-1110': BadSymbol, // {"code":-1110,"msg":"Invalid symbolType."}
                         '-1111': BadRequest, // {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
-                        '-1112': OperationRejected, // {"code":-1112,"msg":"No orders on book for symbol."}
+                        '-1112': OperationFailed, // {"code":-1112,"msg":"No orders on book for symbol."}
                         '-1113': BadRequest, // {"code":-1113,"msg":"Withdrawal amount must be negative."}
                         '-1114': BadRequest, // {"code":-1114,"msg":"TimeInForce parameter sent when not required."}
                         '-1115': BadRequest, // {"code":-1115,"msg":"Invalid timeInForce."}
@@ -1936,7 +1936,7 @@ export default class binance extends Exchange {
                         '-1120': BadRequest, // {"code":-1120,"msg":"Invalid interval."}
                         '-1121': BadSymbol, // {"code":-1121,"msg":"Invalid symbol."}
                         '-1125': AuthenticationError, // {"code":-1125,"msg":"This listenKey does not exist."}
-                        '-1127': OperationRejected, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
+                        '-1127': BadRequest, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
                         '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                         '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
                         '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
@@ -1950,7 +1950,7 @@ export default class binance extends Exchange {
                         '-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
                         '-2020': OperationFailed, // {"code":-2020,"msg":"Unable to fill."}
                         '-2021': OrderImmediatelyFillable, // {"code":-2021,"msg":"Order would immediately trigger."}
-                        '-2022': OperationRejected, // {"code":-2022,"msg":"ReduceOnly Order is rejected."}
+                        '-2022': InvalidOrder, // {"code":-2022,"msg":"ReduceOnly Order is rejected."}
                         '-2023': OperationFailed, // {"code":-2023,"msg":"User in liquidation mode now."}
                         '-2024': BadRequest, // {"code":-2024,"msg":"Position is not sufficient."}
                         '-2025': OperationRejected, // {"code":-2025,"msg":"Reach max open order limit."}
@@ -1973,7 +1973,7 @@ export default class binance extends Exchange {
                         '-4013': BadRequest, // PRICE_LESS_THAN_MIN_PRICE
                         '-4014': BadRequest, // PRICE NOT INCREASED BY TICK SIZE
                         '-4015': BadRequest, // Client order id is not valid
-                        '-4016': OperationRejected, // Price is higher than mark price multiplier cap.
+                        '-4016': BadRequest, // Price is higher than mark price multiplier cap.
                         '-4017': BadRequest, // MULTIPLIER_UP_LESS_THAN_ZERO
                         '-4018': BadRequest, // MULTIPLIER_DOWN_LESS_THAN_ZERO
                         '-4019': OperationRejected, // COMPOSITE_SCALE_OVERFLOW
@@ -2091,7 +2091,7 @@ export default class binance extends Exchange {
                         '-1120': BadRequest, // {"code":-1120,"msg":"Invalid interval."}
                         '-1121': BadSymbol, // {"code":-1121,"msg":"Invalid symbol."}
                         '-1125': AuthenticationError, // {"code":-1125,"msg":"This listenKey does not exist."}
-                        '-1127': OperationRejected, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
+                        '-1127': BadRequest, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
                         '-1128': BadSymbol, // BAD_CONTRACT
                         '-1129': BadSymbol, // BAD_CURRENCY
                         '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
@@ -2145,7 +2145,7 @@ export default class binance extends Exchange {
                         '-1109': BadRequest, // BAD_ACCOUNT
                         '-1110': BadSymbol, // BAD_INSTRUMENT_TYPE
                         '-1111': BadRequest, // {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
-                        '-1112': OperationRejected, // {"code":-1112,"msg":"No orders on book for symbol."}
+                        '-1112': OperationFailed, // {"code":-1112,"msg":"No orders on book for symbol."}
                         '-1113': BadRequest, // {"code":-1113,"msg":"Withdrawal amount must be negative."}
                         '-1114': BadRequest, // {"code":-1114,"msg":"TimeInForce parameter sent when not required."}
                         '-1115': BadRequest, // {"code":-1115,"msg":"Invalid timeInForce."}
@@ -2156,7 +2156,7 @@ export default class binance extends Exchange {
                         '-1120': BadRequest, // {"code":-1120,"msg":"Invalid interval."}
                         '-1121': BadSymbol, // {"code":-1121,"msg":"Invalid symbol."}
                         '-1125': AuthenticationError, // {"code":-1125,"msg":"This listenKey does not exist."}
-                        '-1127': OperationRejected, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
+                        '-1127': BadRequest, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
                         '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                         '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
                         '-1136': BadRequest, // INVALID_NEW_ORDER_RESP_TYPE
