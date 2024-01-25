@@ -11,12 +11,12 @@ sys.path.append(root + '/python')
 
 # ----------------------------------------------------------------------------
 import asyncio
-import ccxt.async_support as ccxt  # noqa: E402
+import ccxt.pro as ccxt  # noqa: E402
 
 
 # AUTO-TRANSPILE #
 async def example():
-    binance = ccxt.pro.binance({})
+    binance = ccxt.binance({})
     subscriptions = [['BTC/USDT', '5m'], ['ETH/USDT', '5m'], ['BTC/USDT', '1h']]
     while True:
         ohlcv = await binance.watch_ohlcv_for_symbols(subscriptions)

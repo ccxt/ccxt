@@ -15,6 +15,7 @@ class binanceus extends binance {
             'id' => 'binanceus',
             'name' => 'Binance US',
             'countries' => array( 'US' ), // US
+            'rateLimit' => 50, // 1200 req per min
             'certified' => false,
             'pro' => true,
             'urls' => array(
@@ -47,10 +48,47 @@ class binanceus extends binance {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
+                'margin' => false,
+                'swap' => false,
                 'future' => null,
-                'option' => null,
+                'option' => false,
+                'addMargin' => false,
+                'closeAllPositions' => false,
+                'closePosition' => false,
+                'createReduceOnlyOrder' => false,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => false,
+                'fetchMarkOHLCV' => false,
+                'fetchOpenInterestHistory' => false,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMargin' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
+            ),
+            'api' => array(
+                'public' => array(
+                    'get' => array(
+                        'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
+                    ),
+                ),
             ),
         ));
     }

@@ -11,6 +11,7 @@ use ccxt\InvalidNonce;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitfinex2 extends \ccxt\async\bitfinex2 {
 
@@ -81,7 +82,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -89,7 +90,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the biftfinex2 api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -197,15 +198,15 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             $trades = Async\await($this->subscribe('trades', $symbol, $params));
             if ($this->newUpdates) {
@@ -215,15 +216,15 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }) ();
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             Async\await($this->load_markets());
             $messageHash = 'myTrade';
@@ -239,13 +240,13 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }) ();
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             return Async\await($this->subscribe('ticker', $symbol, $params));
         }) ();
@@ -313,7 +314,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         //
         //    array(
         //        360141,
-        //        'te',
+        //        "te",
         //        array(
         //            1128060969, // id
         //            1654702500098, // mts
@@ -532,14 +533,14 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         ), $market);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             if ($limit !== null) {
                 if (($limit !== 25) && ($limit !== 100)) {
@@ -659,7 +660,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
 
     public function handle_checksum(Client $client, $message, $subscription) {
         //
-        // array( 173904, 'cs', -890884919 )
+        // array( 173904, "cs", -890884919 )
         //
         $marketId = $this->safe_string($subscription, 'symbol');
         $symbol = $this->safe_symbol($marketId);
@@ -698,13 +699,13 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {str} [$params->type] spot or contract if not provided $this->options['defaultType'] is used
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $balanceType = $this->safe_string($params, 'wallet', 'exchange'); // exchange, margin
@@ -719,24 +720,24 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         // snapshot (exchange . margin together)
         //   array(
         //       0,
-        //       'ws',
+        //       "ws",
         //       array(
         //           array(
-        //               'exchange',
-        //               'LTC',
+        //               "exchange",
+        //               "LTC",
         //               0.05479727,
         //               0,
         //               null,
-        //               'Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)',
+        //               "Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)",
         //               null,
         //           )
         //           array(
-        //               'margin',
-        //               'USTF0',
+        //               "margin",
+        //               "USTF0",
         //               11.960650700086292,
         //               0,
         //               null,
-        //               'Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)',
+        //               "Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)",
         //               null,
         //           ),
         //       ),
@@ -745,22 +746,22 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         // spot
         //   array(
         //       0,
-        //       'wu',
+        //       "wu",
         //       array(
-        //         'exchange',
-        //         'LTC', // currency
+        //         "exchange",
+        //         "LTC", // currency
         //         0.06729727, // wallet $balance
         //         0, // unsettled $balance
         //         0.06729727, // available $balance might be null
-        //         'Exchange 0.4 LTC for UST @ 65.075',
+        //         "Exchange 0.4 LTC for UST @ 65.075",
         //         {
-        //           reason => 'TRADE',
-        //           order_id => 96596397973,
-        //           order_id_oppo => 96596632735,
-        //           trade_price => '65.075',
-        //           trade_amount => '-0.4',
-        //           order_cid => 1654636218766,
-        //           order_gid => null
+        //           "reason" => "TRADE",
+        //           "order_id" => 96596397973,
+        //           "order_id_oppo" => 96596632735,
+        //           "trade_price" => "65.075",
+        //           "trade_amount" => "-0.4",
+        //           "order_cid" => 1654636218766,
+        //           "order_gid" => null
         //         }
         //       )
         //   )
@@ -768,12 +769,12 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         // margin
         //
         //   array(
-        //       'margin',
-        //       'USTF0',
+        //       "margin",
+        //       "USTF0",
         //       11.960650700086292, // total
         //       0,
         //       6.776250700086292, // available
-        //       'Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)',
+        //       "Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)",
         //       null
         //   )
         //
@@ -808,12 +809,12 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     public function parse_ws_balance($balance) {
         //
         //     array(
-        //         'exchange',
-        //         'LTC',
+        //         "exchange",
+        //         "LTC",
         //         0.05479727, // $balance
         //         0,
         //         null, // available null if not calculated yet
-        //         'Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)',
+        //         "Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)",
         //         null,
         //     )
         //
@@ -830,10 +831,10 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     public function handle_system_status(Client $client, $message) {
         //
         //     {
-        //         event => 'info',
-        //         version => 2,
-        //         serverId => 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-        //         platform => array( status => 1 ), // 1 for operative, 0 for maintenance
+        //         "event" => "info",
+        //         "version" => 2,
+        //         "serverId" => "e293377e-7bb7-427e-b28c-5db045b2c1d1",
+        //         "platform" => array( status => 1 ), // 1 for operative, 0 for maintenance
         //     }
         //
         return $message;
@@ -842,14 +843,14 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     public function handle_subscription_status(Client $client, $message) {
         //
         //     {
-        //         event => 'subscribed',
-        //         channel => 'book',
-        //         chanId => 67473,
-        //         symbol => 'tBTCUSD',
-        //         prec => 'P0',
-        //         freq => 'F0',
-        //         len => '25',
-        //         pair => 'BTCUSD'
+        //         "event" => "subscribed",
+        //         "channel" => "book",
+        //         "chanId" => 67473,
+        //         "symbol" => "tBTCUSD",
+        //         "prec" => "P0",
+        //         "freq" => "F0",
+        //         "len" => "25",
+        //         "pair" => "BTCUSD"
         //     }
         //
         $channelId = $this->safe_string($message, 'chanId');
@@ -898,15 +899,15 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
             $messageHash = 'orders';
@@ -1016,17 +1017,17 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         //       97084883506, // $order $id
         //       null,
         //       1655110144596, // $clientOrderId
-        //       'tLTCUST', // $symbol
+        //       "tLTCUST", // $symbol
         //       1655110144596, // created $timestamp
         //       1655110144598, // updated $timestamp
         //       0, // $amount
         //       0.1, // amount_orig negative if sell $order
-        //       'EXCHANGE MARKET', // $type
+        //       "EXCHANGE MARKET", // $type
         //       null,
         //       null,
         //       null,
         //       0,
-        //       'EXECUTED @ 42.821(0.1)', // $status
+        //       "EXECUTED @ 42.821(0.1)", // $status
         //       null,
         //       null,
         //       42.799, // $price
@@ -1041,7 +1042,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         //       null,
         //       null,
         //       null,
-        //       'BFX',
+        //       "BFX",
         //       null,
         //       null,
         //       array()
@@ -1102,25 +1103,25 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         //
         //     array(
         //         1231,
-        //         'hb',
+        //         "hb",
         //     )
         //
         // auth $message
         //    {
-        //        $event => 'auth',
-        //        status => 'OK',
-        //        chanId => 0,
-        //        userId => 3159883,
-        //        auth_id => 'ac7108e7-2f26-424d-9982-c24700dc02ca',
-        //        caps => {
-        //          orders => array( read => 1, write => 1 ),
-        //          account => array( read => 1, write => 1 ),
-        //          funding => array( read => 1, write => 1 ),
-        //          history => array( read => 1, write => 0 ),
-        //          wallets => array( read => 1, write => 1 ),
-        //          withdraw => array( read => 0, write => 1 ),
-        //          positions => array( read => 1, write => 1 ),
-        //          ui_withdraw => array( read => 0, write => 0 )
+        //        "event" => "auth",
+        //        "status" => "OK",
+        //        "chanId" => 0,
+        //        "userId" => 3159883,
+        //        "auth_id" => "ac7108e7-2f26-424d-9982-c24700dc02ca",
+        //        "caps" => {
+        //          "orders" => array( read => 1, write => 1 ),
+        //          "account" => array( read => 1, write => 1 ),
+        //          "funding" => array( read => 1, write => 1 ),
+        //          "history" => array( read => 1, write => 0 ),
+        //          "wallets" => array( read => 1, write => 1 ),
+        //          "withdraw" => array( read => 0, write => 1 ),
+        //          "positions" => array( read => 1, write => 1 ),
+        //          "ui_withdraw" => array( read => 0, write => 0 )
         //        }
         //    }
         //

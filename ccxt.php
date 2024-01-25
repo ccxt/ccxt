@@ -73,7 +73,6 @@ require_once PATH_TO_CCXT . 'NoChange.php';
 require_once PATH_TO_CCXT . 'OperationRejected.php';
 require_once PATH_TO_CCXT . 'BadResponse.php';
 require_once PATH_TO_CCXT . 'NullResponse.php';
-require_once PATH_TO_CCXT . 'OperationFailed.php';
 require_once PATH_TO_CCXT . 'InsufficientFunds.php';
 require_once PATH_TO_CCXT . 'InvalidAddress.php';
 require_once PATH_TO_CCXT . 'AddressPending.php';
@@ -86,6 +85,8 @@ require_once PATH_TO_CCXT . 'OrderNotFillable.php';
 require_once PATH_TO_CCXT . 'DuplicateOrderId.php';
 require_once PATH_TO_CCXT . 'ContractUnavailable.php';
 require_once PATH_TO_CCXT . 'NotSupported.php';
+require_once PATH_TO_CCXT . 'ProxyError.php';
+require_once PATH_TO_CCXT . 'OperationFailed.php';
 require_once PATH_TO_CCXT . 'NetworkError.php';
 require_once PATH_TO_CCXT . 'DDoSProtection.php';
 require_once PATH_TO_CCXT . 'RateLimitExceeded.php';
@@ -93,6 +94,7 @@ require_once PATH_TO_CCXT . 'ExchangeNotAvailable.php';
 require_once PATH_TO_CCXT . 'OnMaintenance.php';
 require_once PATH_TO_CCXT . 'InvalidNonce.php';
 require_once PATH_TO_CCXT . 'RequestTimeout.php';
+require_once PATH_TO_CCXT . 'ExchangeClosedByUser.php';
 
 
 require_once PATH_TO_WS_CCXT . 'ClientTrait.php';

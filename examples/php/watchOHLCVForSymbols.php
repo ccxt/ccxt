@@ -19,7 +19,7 @@ use React\Promise;
 // AUTO-TRANSPILE //
 function example() {
     return Async\async(function () {
-        $binance = new \ccxt\async\pro->binance(array());
+        $binance = new \ccxt\pro\binance(array());
         $subscriptions = [['BTC/USDT', '5m'], ['ETH/USDT', '5m'], ['BTC/USDT', '1h']];
         while (true) {
             $ohlcv = Async\await($binance->watch_ohlcv_for_symbols($subscriptions));

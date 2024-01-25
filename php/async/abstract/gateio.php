@@ -499,6 +499,9 @@ abstract class gateio extends \ccxt\async\gate {
     public function private_futures_get_settle_fee($params = array()) {
         return $this->request('{settle}/fee', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_futures_get_settle_risk_limit_tiers($params = array()) {
+        return $this->request('{settle}/risk_limit_tiers', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_futures_get_settle_price_orders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -534,6 +537,9 @@ abstract class gateio extends \ccxt\async\gate {
     }
     public function private_futures_post_settle_countdown_cancel_all($params = array()) {
         return $this->request('{settle}/countdown_cancel_all', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    public function private_futures_post_settle_batch_cancel_orders($params = array()) {
+        return $this->request('{settle}/batch_cancel_orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
     }
     public function private_futures_post_settle_price_orders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
@@ -652,6 +658,12 @@ abstract class gateio extends \ccxt\async\gate {
     public function private_options_delete_orders_order_id($params = array()) {
         return $this->request('orders/{order_id}', array('private', 'options'), 'DELETE', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function private_earn_get_uni_currencies($params = array()) {
+        return $this->request('uni/currencies', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_earn_get_uni_currencies_currency($params = array()) {
+        return $this->request('uni/currencies/{currency}', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function private_earn_get_uni_lends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -663,6 +675,9 @@ abstract class gateio extends \ccxt\async\gate {
     }
     public function private_earn_get_uni_interest_records($params = array()) {
         return $this->request('uni/interest_records', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_earn_get_uni_interest_status_currency($params = array()) {
+        return $this->request('uni/interest_status/{currency}', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function private_earn_post_uni_lends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
@@ -694,6 +709,27 @@ abstract class gateio extends \ccxt\async\gate {
     public function private_loan_get_collateral_currencies($params = array()) {
         return $this->request('collateral/currencies', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function private_loan_get_multi_collateral_orders($params = array()) {
+        return $this->request('multi_collateral/orders', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_get_multi_collateral_orders_order_id($params = array()) {
+        return $this->request('multi_collateral/orders/{order_id}', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_get_multi_collateral_repay($params = array()) {
+        return $this->request('multi_collateral/repay', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_get_multi_collateral_mortgage($params = array()) {
+        return $this->request('multi_collateral/mortgage', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_get_multi_collateral_currency_quota($params = array()) {
+        return $this->request('multi_collateral/currency_quota', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_get_multi_collateral_currencies($params = array()) {
+        return $this->request('multi_collateral/currencies', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_get_multi_collateral_ltv($params = array()) {
+        return $this->request('multi_collateral/ltv', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function private_loan_post_collateral_orders($params = array()) {
         return $this->request('collateral/orders', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -702,6 +738,15 @@ abstract class gateio extends \ccxt\async\gate {
     }
     public function private_loan_post_collateral_collaterals($params = array()) {
         return $this->request('collateral/collaterals', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_post_multi_collateral_orders($params = array()) {
+        return $this->request('multi_collateral/orders', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_post_multi_collateral_repay($params = array()) {
+        return $this->request('multi_collateral/repay', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_post_multi_collateral_mortgage($params = array()) {
+        return $this->request('multi_collateral/mortgage', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function private_account_get_detail($params = array()) {
         return $this->request('detail', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
@@ -1219,6 +1264,9 @@ abstract class gateio extends \ccxt\async\gate {
     public function privateFuturesGetSettleFee($params = array()) {
         return $this->request('{settle}/fee', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateFuturesGetSettleRiskLimitTiers($params = array()) {
+        return $this->request('{settle}/risk_limit_tiers', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateFuturesGetSettlePriceOrders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1254,6 +1302,9 @@ abstract class gateio extends \ccxt\async\gate {
     }
     public function privateFuturesPostSettleCountdownCancelAll($params = array()) {
         return $this->request('{settle}/countdown_cancel_all', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    public function privateFuturesPostSettleBatchCancelOrders($params = array()) {
+        return $this->request('{settle}/batch_cancel_orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
     }
     public function privateFuturesPostSettlePriceOrders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
@@ -1372,6 +1423,12 @@ abstract class gateio extends \ccxt\async\gate {
     public function privateOptionsDeleteOrdersOrderId($params = array()) {
         return $this->request('orders/{order_id}', array('private', 'options'), 'DELETE', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function privateEarnGetUniCurrencies($params = array()) {
+        return $this->request('uni/currencies', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateEarnGetUniCurrenciesCurrency($params = array()) {
+        return $this->request('uni/currencies/{currency}', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function privateEarnGetUniLends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -1383,6 +1440,9 @@ abstract class gateio extends \ccxt\async\gate {
     }
     public function privateEarnGetUniInterestRecords($params = array()) {
         return $this->request('uni/interest_records', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateEarnGetUniInterestStatusCurrency($params = array()) {
+        return $this->request('uni/interest_status/{currency}', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privateEarnPostUniLends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
@@ -1414,6 +1474,27 @@ abstract class gateio extends \ccxt\async\gate {
     public function privateLoanGetCollateralCurrencies($params = array()) {
         return $this->request('collateral/currencies', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function privateLoanGetMultiCollateralOrders($params = array()) {
+        return $this->request('multi_collateral/orders', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanGetMultiCollateralOrdersOrderId($params = array()) {
+        return $this->request('multi_collateral/orders/{order_id}', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanGetMultiCollateralRepay($params = array()) {
+        return $this->request('multi_collateral/repay', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanGetMultiCollateralMortgage($params = array()) {
+        return $this->request('multi_collateral/mortgage', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanGetMultiCollateralCurrencyQuota($params = array()) {
+        return $this->request('multi_collateral/currency_quota', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanGetMultiCollateralCurrencies($params = array()) {
+        return $this->request('multi_collateral/currencies', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanGetMultiCollateralLtv($params = array()) {
+        return $this->request('multi_collateral/ltv', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function privateLoanPostCollateralOrders($params = array()) {
         return $this->request('collateral/orders', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -1422,6 +1503,15 @@ abstract class gateio extends \ccxt\async\gate {
     }
     public function privateLoanPostCollateralCollaterals($params = array()) {
         return $this->request('collateral/collaterals', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanPostMultiCollateralOrders($params = array()) {
+        return $this->request('multi_collateral/orders', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanPostMultiCollateralRepay($params = array()) {
+        return $this->request('multi_collateral/repay', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanPostMultiCollateralMortgage($params = array()) {
+        return $this->request('multi_collateral/mortgage', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privateAccountGetDetail($params = array()) {
         return $this->request('detail', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));

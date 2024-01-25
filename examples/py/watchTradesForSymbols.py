@@ -11,12 +11,12 @@ sys.path.append(root + '/python')
 
 # ----------------------------------------------------------------------------
 import asyncio
-import ccxt.async_support as ccxt  # noqa: E402
+import ccxt.pro as ccxt  # noqa: E402
 
 
 # AUTO-TRANSPILE #
 async def example():
-    binance = ccxt.pro.binance({})
+    binance = ccxt.binance({})
     symbols = ['BTC/USDT', 'ETH/USDT', 'DOGE/USDT']
     while True:
         trades = await binance.watch_trades_for_symbols(symbols)

@@ -19,10 +19,10 @@ use React\Promise;
 // AUTO-TRANSPILE //
 function example() {
     return Async\async(function () {
-        $binance = new \ccxt\async\pro->binance(array());
-        $symbol = ['BTC/USDT', 'ETH/USDT', 'DOGE/USDT'];
+        $binance = new \ccxt\pro\binance(array());
+        $symbols = ['BTC/USDT', 'ETH/USDT', 'DOGE/USDT'];
         while (true) {
-            $orderbook = Async\await($binance->watch_order_book_for_symbols($symbol));
+            $orderbook = Async\await($binance->watch_order_book_for_symbols($symbols));
             var_dump($orderbook['symbol'], $orderbook['asks'][0], $orderbook['bids'][0]);
         }
     }) ();

@@ -11,6 +11,7 @@ export default class binanceus extends binance {
             'id': 'binanceus',
             'name': 'Binance US',
             'countries': [ 'US' ], // US
+            'rateLimit': 50, // 1200 req per min
             'certified': false,
             'pro': true,
             'urls': {
@@ -43,10 +44,47 @@ export default class binanceus extends binance {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
+                'margin': false,
+                'swap': false,
                 'future': undefined,
-                'option': undefined,
+                'option': false,
+                'addMargin': false,
+                'closeAllPositions': false,
+                'closePosition': false,
+                'createReduceOnlyOrder': false,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
+                'fetchMarketLeverageTiers': false,
+                'fetchMarkOHLCV': false,
+                'fetchOpenInterestHistory': false,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMargin': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
+            },
+            'api': {
+                'public': {
+                    'get': {
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                    },
+                },
             },
         });
     }

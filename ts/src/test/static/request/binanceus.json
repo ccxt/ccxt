@@ -1,0 +1,114 @@
+{
+    "exchange": "binanceus",
+    "skipKeys": [
+        "signature",
+        "timestamp",
+        "recvWindow",
+        "newClientOrderId"
+    ],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchOrders": [
+            {
+                "description": "Spot orders",
+                "method": "fetchOrders",
+                "url": "https://api.binance.us/api/v3/allOrders?timestamp=1701861193803&symbol=LTCUSDT&recvWindow=10000&signature=0848294c4e79dbea8f93f208cd45427b2b8fc02908e8c6a36072505f21cfc49e",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Spot private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.binance.us/api/v3/myTrades?timestamp=1701861193945&symbol=LTCUSDT&startTime=1699457638000&limit=5&recvWindow=10000&signature=471ca04fe8570a604049f964be68f7b01a47f2e1a6791ed79f0c6d11c94c0ee5",
+                "input": [
+                    "LTC/USDT",
+                    1699457638000,
+                    5
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.binance.us/api/v3/openOrders?timestamp=1701861194084&symbol=LTCUSDT&recvWindow=10000&signature=edadfacb90dbc7b0a38fe8f5f886d7a665630e384d6710b0de880665eccfb522",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Spot closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.binance.us/api/v3/allOrders?timestamp=1701861194219&symbol=LTCUSDT&recvWindow=10000&signature=eed8e08e8036423639a21be89c6068fe2a9361aabe241ad7254d7033966a9d7d",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api.binance.us/api/v3/account?timestamp=1701861194492&recvWindow=10000&signature=c6d74a5ac03aeb5bf465c8bfcba8c761c2ff44b317da63b2bbe6e797a4fb88e6",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.binance.us/sapi/v1/capital/deposit/hisrec?timestamp=1701861197559&recvWindow=10000&signature=78637f9cfea04ae15c4436b5b2e9c4a325f050963cdb7b87e6b8edeeb57bcbf5",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Spot public trades",
+                "method": "fetchTrades",
+                "url": "https://api.binance.us/api/v3/aggTrades?symbol=LTCUSDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Spot OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.binance.us/api/v3/klines?interval=1m&limit=500&symbol=LTCUSDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.binance.us/api/v3/ticker/24hr?symbol=LTCUSDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchLastPrices": [
+            {
+                "description": "fetch last prices",
+                "method": "fetchLastPrices",
+                "disabled": true,
+                "reason": "url mismatch for some reason",
+                "url": "https://api.binance.us/api/v1/ticker/price",
+                "input": []
+            }
+        ]
+    }
+}

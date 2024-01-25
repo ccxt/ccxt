@@ -8,10 +8,10 @@ import { execSync } from 'child_process'
 import ccxt from '../../ts/ccxt.js'
 import { Agent } from 'https'
 
+const fsPromises = fs.promises;
 ansi.nice
 const log = ololog.configure ({ locate: false }).unlimited
 const { ExchangeError , NetworkError} = ccxt
-const fsPromises = fs.promises;
 //-----------------------------------------------------------------------------
 
 let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
@@ -35,6 +35,9 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , isSwap = process.argv.includes ('--swap')
     , isFuture = process.argv.includes ('--future')
     , isOption = process.argv.includes ('--option')
+    , shouldCreateRequestReport = process.argv.includes ('--report')
+    , shouldCreateResponseReport = process.argv.includes ('--response')
+    , shouldCreateBoth = process.argv.includes ('--static')
 
 //-----------------------------------------------------------------------------
 
@@ -128,6 +131,38 @@ try {
 
 //-----------------------------------------------------------------------------
 
+function createRequestTemplate(exchange, methodName, args, result) {
+    const final = {
+        'description': 'Fill this with a description of the method call',
+        'method': methodName,
+        'url': exchange.last_request_url ?? '',
+        'input': args,
+        'output': exchange.last_request_body ?? undefined
+    }
+    log('Report: (paste inside static/request/' + exchange.id + '.json ->' + methodName + ')')
+    log.green('-------------------------------------------')
+    log (JSON.stringify (final, null, 2))
+    log.green('-------------------------------------------')
+}
+
+//-----------------------------------------------------------------------------
+
+function createResponseTemplate(exchange, methodName, args, result) {
+    const final = {
+        'description': 'Fill this with a description of the method call',
+        'method': methodName,
+        'input': args,
+        'httpResponse': exchange.last_json_response ?? exchange.last_http_response,
+        'parsedResponse': result
+    }
+    log('Report: (paste inside static/response/' + exchange.id + '.json ->' + methodName + ')')
+    log.green('-------------------------------------------')
+    log (JSON.stringify (final, function(k, v) { return v === undefined ? null : v; }, 2))
+    log.green('-------------------------------------------')
+}
+
+//-----------------------------------------------------------------------------
+
 function printSupportedExchanges () {
     log ('Supported exchanges:', (ccxt.exchanges.join (', ') as any).green)
 }
@@ -175,9 +210,8 @@ const printHumanReadable = (exchange, result) => {
             })
 
         if (arrayOfObjects || table && Array.isArray (result)) {
-            const delimiter = (' | ' as any).lightGray.dim;
             const configuredAsTable = (asTable as any).configure ({
-                delimiter: delimiter,
+                delimiter: (' | ' as any).lightGray.dim,
                 right: true,
                 title: x => (String (x) as any).lightGray,
                 dash: ('-' as any).lightGray.dim,
@@ -225,11 +259,14 @@ async function run () {
 
         printUsage ()
 
-    } else if (exchange !== undefined) {
+    } else {
 
         let args = params
-            .map (s => s.match (/^[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}/g) ? exchange.parse8601 (s) : s)
-            .map (s => (() => { try { return eval ('(() => (' + s + ')) ()') } catch (e) { return s } }) ())
+            .map (s => s.match (/^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g) ? exchange.parse8601 (s) : s)
+            .map (s => (() => { 
+                if (s.match ( /^\d+$/g)) return s < Number.MAX_SAFE_INTEGER ? Number (s) : s
+                try {return eval ('(() => (' + s + ')) ()') } catch (e) { return s }
+            }) ())
 
         const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
 
@@ -306,6 +343,12 @@ async function run () {
                         printHumanReadable (exchange, result)
                         if (!isWsMethod) {
                             log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
+                        }
+                        if (shouldCreateRequestReport || shouldCreateBoth) {
+                            createRequestTemplate(exchange, methodName, args, result)
+                        }
+                        if (shouldCreateResponseReport || shouldCreateBoth) {
+                            createResponseTemplate(exchange, methodName, args, result)
                         }
                         start = end
                     } catch (e) {
