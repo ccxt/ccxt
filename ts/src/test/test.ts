@@ -1269,6 +1269,9 @@ export default class testMainClass extends baseMainTestClass {
             for (let j = 0; j < results.length; j++) {
                 const result = results[j];
                 const description = exchange.safeValue (result, 'description');
+                const oldExchangeOptions = exchange.options; // snapshot options;
+                const testExchangeOptions = exchange.safeValue (result, 'options', {});
+                exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 const isDisabled = exchange.safeValue (result, 'disabled', false);
                 if (isDisabled) {
                     continue;
@@ -1282,6 +1285,8 @@ export default class testMainClass extends baseMainTestClass {
                 }
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testResponseStatically (exchange, method, skipKeys, result);
+                // reset options
+                exchange.options = oldExchangeOptions;
             }
         }
         await close (exchange);
