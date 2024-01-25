@@ -1736,7 +1736,6 @@ export default class binance extends Exchange {
                         '-2010': OrderNotFound, // NEW_ORDER_REJECTED
                         '-2011': OrderNotFound, // {"code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'"}
                         '-2012': OperationFailed, // CANCEL_ALL_FAIL
-                        
                         '-2013': OrderNotFound, // {"code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'"}
                         '-2014': AuthenticationError, // {"code":-2014,"msg":"API-key format invalid."}
                         '-2015': AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
@@ -2076,7 +2075,6 @@ export default class binance extends Exchange {
                         '-1020': BadRequest, // {"code":-1020,"msg":"'This operation is not supported.'"}
                         '-1021': InvalidNonce, // {"code":-1021,"msg":"'your time is ahead of server'"}
                         '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
-                        
                         '-1100': BadRequest, // {"code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'"}
                         '-1101': BadRequest, // {"code":-1101,"msg":"Too many parameters; expected %s and received %s."}
                         '-1102': BadRequest, // {"code":-1102,"msg":"Param %s or %s must be sent, but both were empty"}
@@ -2128,13 +2126,14 @@ export default class binance extends Exchange {
                         '-1007': RequestTimeout, // {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
                         '-1010': OperationFailed, // {"code":-1010,"msg":"ERROR_MSG_RECEIVED."}
                         '-1011': PermissionDenied, // {"code":-1011,"msg":"This IP cannot access this route."}
-                        '-1013': BadRequest, // {"code":-1013,"msg":"createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL"} | -1013 INVALID_MESSAGE
+                        '-1013': OperationFailed, //
                         '-1014': InvalidOrder, // {"code":-1014,"msg":"Unsupported order combination."}
                         '-1015': RateLimitExceeded, // {"code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'"}
                         '-1016': BadRequest, // {"code":-1016,"msg":"'This service is no longer available.',"}
                         '-1020': BadRequest, // {"code":-1020,"msg":"'This operation is not supported.'"}
                         '-1021': InvalidNonce, // {"code":-1021,"msg":"'your time is ahead of server'"}
                         '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
+                        '-1023': BadRequest, // START_TIME_GREATER_THAN_END_TIME
                         '-1100': BadRequest, // {"code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'"}
                         '-1101': BadRequest, // {"code":-1101,"msg":"Too many parameters; expected %s and received %s."}
                         '-1102': BadRequest, // {"code":-1102,"msg":"Param %s or %s must be sent, but both were empty"}
@@ -2142,6 +2141,9 @@ export default class binance extends Exchange {
                         '-1104': BadRequest, // {"code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9"}
                         '-1105': BadRequest, // {"code":-1105,"msg":"Parameter %s was empty."}
                         '-1106': BadRequest, // {"code":-1106,"msg":"Parameter %s sent when not required."}
+                        '-1108': BadSymbol, // BAD_ASSET
+                        '-1109': BadRequest, // BAD_ACCOUNT
+                        '-1110': BadSymbol, // BAD_INSTRUMENT_TYPE
                         '-1111': BadRequest, // {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
                         '-1112': OperationRejected, // {"code":-1112,"msg":"No orders on book for symbol."}
                         '-1113': BadRequest, // {"code":-1113,"msg":"Withdrawal amount must be negative."}
@@ -2157,41 +2159,123 @@ export default class binance extends Exchange {
                         '-1127': OperationRejected, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
                         '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                         '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
-                        '-1135': BadRequest, // undocumented - This error code will occur if a parameter requiring a JSON object is invalid.
-                        '-2008': AuthenticationError, // {"code":-2008,"msg":"Invalid Api-Key ID."}
-                        // todo: '-2010': ExchangeError, // {"code":-2010,"msg":"generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc..."}
+                        '-1136': BadRequest, // INVALID_NEW_ORDER_RESP_TYPE
+                        '-2010': InvalidOrder, // NEW_ORDER_REJECTED
                         '-2011': OrderNotFound, // {"code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'"}
                         '-2013': OrderNotFound, // {"code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'"}
                         '-2014': AuthenticationError, // {"code":-2014,"msg":"API-key format invalid."}
                         '-2015': AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                         '-2016': OperationRejected, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
                         '-2018': InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
-                        //
-                        // undocumented
-                        //
-                        '-9000': InsufficientFunds, // {"code":-9000,"msg":"user have no avaliable amount"}"
-                        '-10017': OperationRejected, // {"code":-10017,"msg":"Repay amount should not be larger than liability."}
-                        '-11008': OperationRejected, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}
-                        '-21001': BadRequest, // {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}
-                        '-21002': BadRequest, // {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}
-                        '-21003': BadRequest, // {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}
-                        //
-                        // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
-                        //
-                        '-20121': BadSymbol, // Invalid symbol.
-                        '-20124': BadRequest, // Invalid algo id or it has been completed.
-                        '-20130': BadRequest, // Invalid data sent for a parameter
-                        '-20132': BadRequest, // The client algo id is duplicated
-                        '-20194': BadRequest, // Duration is too short to execute all required quantity.
-                        '-20195': BadRequest, // The total size is too small.
-                        '-20196': BadRequest, // The total size is too large.
-                        '-20198': OperationRejected, // Reach the max open orders allowed.
-                        '-20204': BadRequest, // The notional of USD is less or more than the limit.
-                        //
-                        // undocumented
-                        //
-                        '100001003': AuthenticationError, // {"code":100001003,"msg":"Verification failed"}
-                        '200003903': AuthenticationError, // {"code":200003903,"msg":"Your identity verification has been rejected. Please complete identity verification again."}
+                        '-2019': InsufficientFunds, // Margin is insufficient
+                        '-2020': OrderNotFillable, // UNABLE_TO_FILL
+                        '-2021': OrderImmediatelyFillable, // Order would immediately trigger.
+                        '-2022': OperationRejected, // ReduceOnly Order is rejected
+                        '-2023': OperationFailed, // User in liquidation mode now
+                        '-2024': OperationRejected, // Position is not sufficient
+                        '-2025': OperationRejected, // Reach max open order limit.
+                        '-2026': OperationRejected, // This OrderType is not supported when reduceOnly.
+                        '-2027': OperationRejected, // Exceeded the maximum allowable position at current leverage.
+                        '-2028': OperationRejected, // Leverage is smaller than permitted: insufficient margin balance.
+                        '-4000': InvalidOrder, // INVALID_ORDER_STATUS
+                        '-4001': BadRequest, // PRICE_LESS_THAN_ZERO
+                        '-4002': BadRequest, // PRICE_GREATER_THAN_MAX_PRICE
+                        '-4003': BadRequest, // QTY_LESS_THAN_ZERO
+                        '-4004': BadRequest, // QTY_LESS_THAN_MIN_QTY
+                        '-4005': BadRequest, // QTY_GREATER_THAN_MAX_QTY
+                        '-4006': BadRequest, // STOP_PRICE_LESS_THAN_ZERO
+                        '-4007': BadRequest, // STOP_PRICE_GREATER_THAN_MAX_PRICE
+                        '-4008': BadRequest, // TICK SIZE LESS THAN ZERO
+                        '-4009': BadRequest, // MAX_PRICE_LESS_THAN_MIN_PRICE
+                        '-4010': BadRequest, // MAX_QTY_LESS_THAN_MIN_QTY
+                        '-4011': BadRequest, // STEP_SIZE_LESS_THAN_ZERO
+                        '-4012': BadRequest, // MAX_NUM_ORDERS_LESS_THAN_ZERO
+                        '-4013': BadRequest, // PRICE_LESS_THAN_MIN_PRICE
+                        '-4014': BadRequest, // PRICE NOT INCREASED BY TICK SIZE
+                        '-4015': BadRequest, // Client order id is not valid
+                        '-4016': OperationRejected, // Price is higher than mark price multiplier cap.
+                        '-4017': BadRequest, // MULTIPLIER_UP_LESS_THAN_ZERO
+                        '-4018': BadRequest, // MULTIPLIER_DOWN_LESS_THAN_ZERO
+                        '-4019': OperationRejected, // COMPOSITE_SCALE_OVERFLOW
+                        '-4020': BadRequest, // TARGET_STRATEGY_INVALID
+                        '-4021': BadRequest, // INVALID_DEPTH_LIMIT
+                        '-4022': BadRequest, // WRONG_MARKET_STATUS
+                        '-4023': BadRequest, // QTY_NOT_INCREASED_BY_STEP_SIZE
+                        '-4024': BadRequest, // PRICE_LOWER_THAN_MULTIPLIER_DOWN
+                        '-4025': BadRequest, // MULTIPLIER_DECIMAL_LESS_THAN_ZERO
+                        '-4026': BadRequest, // COMMISSION_INVALID
+                        '-4027': BadRequest, // INVALID_ACCOUNT_TYPE
+                        '-4028': BadRequest, // INVALID_LEVERAGE
+                        '-4029': BadRequest, // INVALID TICK SIZE PRECISION
+                        '-4030': BadRequest, // INVALID_STEP_SIZE_PRECISION
+                        '-4031': BadRequest, // INVALID_WORKING_TYPE
+                        '-4032': OperationRejected, // EXCEED_MAX_CANCEL_ORDER_SIZE
+                        '-4033': BadRequest, // INSURANCE_ACCOUNT_NOT_FOUND
+                        '-4044': BadRequest, // INVALID_BALANCE_TYPE
+                        '-4045': OperationRejected, // MAX_STOP_ORDER_EXCEEDED
+                        '-4046': OperationRejected, // NO_NEED_TO_CHANGE_MARGIN_TYPE
+                        '-4047': OperationRejected, // Margin type cannot be changed if there exists open orders.
+                        '-4048': OperationRejected, // Margin type cannot be changed if there exists position.
+                        '-4049': BadRequest, // Add margin only support for isolated position.
+                        '-4050': InsufficientFunds, // Cross balance insufficient
+                        '-4051': InsufficientFunds, // Isolated balance insufficient.
+                        '-4052': OperationRejected, // No need to change auto add margin.
+                        '-4053': BadRequest, // Auto add margin only support for isolated position.
+                        '-4054': OperationRejected, // Cannot add position margin: position is 0.
+                        '-4055': BadRequest, // Amount must be positive.
+                        '-4056': AuthenticationError, // Invalid api key type.
+                        '-4057': AuthenticationError, // Invalid api public key
+                        '-4058': BadRequest, // MAX_PRICE_TOO_LARGE
+                        '-4059': OperationRejected, // NO_NEED_TO_CHANGE_POSITION_SIDE
+                        '-4060': BadRequest, // INVALID_POSITION_SIDE
+                        '-4061': BadRequest, // POSITION_SIDE_NOT_MATCH
+                        '-4062': BadRequest, // REDUCE_ONLY_CONFLICT
+                        '-4063': BadRequest, // INVALID_OPTIONS_REQUEST_TYPE
+                        '-4064': BadRequest, // INVALID_OPTIONS_TIME_FRAME
+                        '-4065': BadRequest, // INVALID_OPTIONS_AMOUNT
+                        '-4066': BadRequest, // INVALID_OPTIONS_EVENT_TYPE
+                        '-4067': OperationRejected, // Position side cannot be changed if there exists open orders.
+                        '-4068': OperationRejected, // Position side cannot be changed if there exists position.
+                        '-4069': BadRequest, // Position INVALID_OPTIONS_PREMIUM_FEE
+                        '-4070': BadRequest, // Client options id is not valid.
+                        '-4071': BadRequest, // Invalid options direction
+                        '-4072': OperationRejected, // premium fee is not updated, reject order
+                        '-4073': BadRequest, // OPTIONS_PREMIUM_INPUT_LESS_THAN_ZERO
+                        '-4074': OperationRejected, // Order amount is bigger than upper boundary or less than 0, reject order
+                        '-4075': BadRequest, // output premium fee is less than 0, reject order
+                        '-4076': OperationRejected, // original fee is too much higher than last fee
+                        '-4077': OperationRejected, // place order amount has reached to limit, reject order
+                        '-4078': OperationFailed, // options internal error
+                        '-4079': BadRequest, // invalid options id
+                        '-4080': PermissionDenied, // user not found with id: %s
+                        '-4081': BadRequest, // OPTIONS_NOT_FOUND
+                        '-4082': OperationRejected, // Invalid number of batch place orders
+                        '-4083': OperationFailed, // Fail to place batch orders.
+                        '-4084': BadRequest, // UPCOMING_METHOD
+                        '-4085': BadRequest, // Invalid notional limit coefficient
+                        '-4086': BadRequest, // Invalid price spread threshold
+                        '-4087': PermissionDenied, // User can only place reduce only order
+                        '-4088': PermissionDenied, // User can not place order currently
+                        '-4104': BadRequest, // INVALID_CONTRACT_TYPE
+                        '-4114': BadRequest, // INVALID_CLIENT_TRAN_ID_LEN
+                        '-4115': BadRequest, // DUPLICATED_CLIENT_TRAN_ID
+                        '-4118': OperationRejected, // REDUCE_ONLY_MARGIN_CHECK_FAILED
+                        '-4131': OperationRejected, // The counterparty's best price does not meet the PERCENT_PRICE filter limit
+                        '-4135': BadRequest, // Invalid activation price
+                        '-4137': BadRequest, // Quantity must be zero with closePosition equals true
+                        '-4138': BadRequest, // Reduce only must be true with closePosition equals true
+                        '-4139': BadRequest, // Order type can not be market if it's unable to cancel
+                        '-4140': BadRequest, // Invalid symbol status for opening position
+                        '-4141': OperationRejected, // Symbol is closed
+                        '-4142': OrderImmediatelyFillable, // REJECT: take profit or stop order will be triggered immediately
+                        '-4144': BadSymbol, // Invalid pair
+                        '-4161': OperationRejected, // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                        '-4164': OperationRejected, // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                        '-4165': BadRequest, // Invalid time interval
+                        '-4183': BadRequest, // Price is higher than stop price multiplier cap.
+                        '-4184': BadRequest, // Price is lower than stop price multiplier floor.
+                        '-5021': OrderNotFillable, // Due to the order could not be filled immediately, the FOK order has been rejected.
+                        '-5022': OrderNotFillable, // Due to the order could not be executed as maker, the Post Only order will be rejected.
                     },
                 },
                 'exact': {
@@ -2217,7 +2301,7 @@ export default class binance extends Exchange {
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
-                    'MAX_POSITION': OperationRejected, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
+                    'MAX_POSITION': BadRequest, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
             },
         });
