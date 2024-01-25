@@ -4978,7 +4978,7 @@ class coinex(Exchange, ImplicitAPI):
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [str|None, dict]: the marginMode in lowercase
+        :returns Array: the marginMode in lowercase
         """
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_value(params, 'margin', False)

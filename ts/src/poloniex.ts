@@ -47,6 +47,7 @@ export default class poloniex extends Exchange {
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
+                'fetchFundingRate': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -57,7 +58,6 @@ export default class poloniex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchFundingRate': false,
                 'fetchOrderTrades': true, // true endpoint for trades of a single open or closed order
                 'fetchPosition': false,
                 'fetchPositionMode': false,

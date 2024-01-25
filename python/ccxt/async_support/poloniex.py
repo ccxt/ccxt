@@ -60,6 +60,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
+                'fetchFundingRate': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,

@@ -308,6 +308,7 @@ class binance extends binance$1 {
                         'convert/exchangeInfo': 50,
                         'convert/assetInfo': 10,
                         'convert/orderStatus': 0.6667,
+                        'convert/limit/queryOpenOrders': 20.001,
                         'account/status': 0.1,
                         'account/apiTradingStatus': 0.1,
                         'account/apiRestrictions/ipRestriction': 0.1,
@@ -579,6 +580,8 @@ class binance extends binance$1 {
                         'loan/vip/repay': 40.002,
                         'convert/getQuote': 1.3334,
                         'convert/acceptQuote': 3.3335,
+                        'convert/limit/placeOrder': 3.3335,
+                        'convert/limit/cancelOrder': 1.3334,
                         'portfolio/auto-collection': 150,
                         'portfolio/asset-collection': 6,
                         'portfolio/bnb-transfer': 150,
@@ -7965,12 +7968,20 @@ class binance extends binance$1 {
         /**
          * @method
          * @name binance#fetchPositions
+         * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
          * @description fetch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
-        const defaultMethod = this.safeString(this.options, 'fetchPositions', 'positionRisk');
+        const defaultValue = this.safeString(this.options, 'fetchPositions', 'positionRisk');
+        let defaultMethod = undefined;
+        [defaultMethod, params] = this.handleOptionAndParams(params, 'fetchPositions', 'method', defaultValue);
         if (defaultMethod === 'positionRisk') {
             return await this.fetchPositionsRisk(symbols, params);
         }
@@ -7981,7 +7992,7 @@ class binance extends binance$1 {
             return await this.fetchOptionPositions(symbols, params);
         }
         else {
-            throw new errors.NotSupported(this.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account", "positionRisk" and "option"');
+            throw new errors.NotSupported(this.id + '.options["fetchPositions"]/params["method"] = "' + defaultMethod + '" is invalid, please choose between "account", "positionRisk" and "option"');
         }
     }
     async fetchAccountPositions(symbols = undefined, params = {}) {

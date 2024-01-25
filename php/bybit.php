@@ -34,7 +34,7 @@ class bybit extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createMarketBuyOrderWithCost' => true,
-                'createMarketSellOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createOrderWithTakeProfitAndStopLoss' => true,
@@ -954,7 +954,7 @@ class bybit extends Exchange {
                 'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
                 'enableUnifiedMargin' => null,
                 'enableUnifiedAccount' => null,
-                'createMarketBuyOrderRequiresPrice' => true,
+                'createMarketBuyOrderRequiresPrice' => true, // only true for classic accounts
                 'createUnifiedMarginAccount' => false,
                 'defaultType' => 'swap',  // 'swap', 'future', 'option', 'spot'
                 'defaultSubType' => 'linear',  // 'linear', 'inverse'
@@ -3423,8 +3423,29 @@ class bybit extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        $params['createMarketBuyOrderRequiresPrice'] = false;
-        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+        return $this->create_order($symbol, 'market', 'buy', $cost, 1, $params);
+    }
+
+    public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * @see https://bybit-exchange.github.io/docs/v5/order/create-order
+         * create a $market sell order by providing the $symbol and $cost
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $types = $this->is_unified_enabled();
+        $enableUnifiedAccount = $types[1];
+        if (!$enableUnifiedAccount) {
+            throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports UTA accounts only');
+        }
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot orders only');
+        }
+        return $this->create_order($symbol, 'market', 'sell', $cost, 1, $params);
     }
 
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
@@ -3467,7 +3488,7 @@ class bybit extends Exchange {
         }
         $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'trailingStop');
         $isTrailingAmountOrder = $trailingAmount !== null;
-        $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+        $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, $enableUnifiedAccount);
         $response = null;
         if ($isTrailingAmountOrder) {
             $response = $this->privatePostV5PositionTradingStop ($orderRequest);
@@ -3490,7 +3511,7 @@ class bybit extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array (), $isUTA = true) {
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
         $lowerCaseType = strtolower($type);
@@ -3531,12 +3552,33 @@ class bybit extends Exchange {
         } elseif ($market['option']) {
             $request['category'] = 'option';
         }
-        if ($market['spot'] && ($type === 'market') && ($side === 'buy')) {
+        $cost = $this->safe_string($params, 'cost');
+        $params = $this->omit($params, 'cost');
+        // if the $cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
+        $isMarketBuyAndCostInferable = ($lowerCaseType === 'market') && ($side === 'buy') && (($price !== null) || ($cost !== null));
+        if ($market['spot'] && ($type === 'market') && $isUTA && !$isMarketBuyAndCostInferable) {
+            // UTA account can specify the $cost of the order on both sides
+            if (($cost !== null) || ($price !== null)) {
+                $request['marketUnit'] = 'quoteCoin';
+                $orderCost = null;
+                if ($cost !== null) {
+                    $orderCost = $cost;
+                } else {
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $quoteAmount = Precise::string_mul($amountString, $priceString);
+                    $orderCost = $quoteAmount;
+                }
+                $request['qty'] = $this->cost_to_precision($symbol, $orderCost);
+            } else {
+                $request['marketUnit'] = 'baseCoin';
+                $request['qty'] = $this->amount_to_precision($symbol, $amount);
+            }
+        } elseif ($market['spot'] && ($type === 'market') && ($side === 'buy')) {
+            // classic accounts
             // for $market buy it requires the $amount of quote currency to spend
             $createMarketBuyOrderRequiresPrice = true;
             list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            $cost = $this->safe_number($params, 'cost');
-            $params = $this->omit($params, 'cost');
             if ($createMarketBuyOrderRequiresPrice) {
                 if (($price === null) && ($cost === null)) {
                     throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
@@ -3650,6 +3692,8 @@ class bybit extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
+        $accounts = $this->is_unified_enabled();
+        $isUta = $accounts[1];
         $ordersRequests = array();
         $orderSymbols = array();
         for ($i = 0; $i < count($orders); $i++) {
@@ -3661,7 +3705,7 @@ class bybit extends Exchange {
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_value($rawOrder, 'params', array());
-            $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+            $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams, $isUta);
             $ordersRequests[] = $orderRequest;
         }
         $symbols = $this->market_symbols($orderSymbols, null, false, true, true);
