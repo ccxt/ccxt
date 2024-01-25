@@ -837,42 +837,69 @@ export default class hyperliquid extends Exchange {
          * @name hyperliquid#cancelOrder
          * @description cancels an open order
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.stop] *spot only* whether the order is a stop order
          * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
+         * @param {string} [params.clientOrderId] client order id (default undefined)
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const vaultAddress = this.safeString (params, 'vaultAddress');
         const zeroAddress = this.safeString (this.options, 'zeroAddress');
-        params = this.omit (params, 'vaultAddress');
-        const signatureTypes = [ '(uint32,uint64)[]', 'address', 'uint256' ];
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
+        params = this.omit (params, [ 'vaultAddress', 'clientOrderId', 'client_id' ]);
         const nonce = this.milliseconds ();
-        const signatureData = [
-            [
-                [
-                    this.parseToNumeric (market['baseId']),
-                    this.parseToNumeric (id),
-                ],
-            ],
-            (vaultAddress) ? vaultAddress : zeroAddress,
-            nonce,
-        ];
-        const sig = this.buildSig (signatureTypes, signatureData);
         const request = {
-            'action': {
+            'nonce': nonce,
+        };
+        if (clientOrderId !== undefined) {
+            const encodeClientOrderId = this.base16ToBinary (this.remove0xPrefix (clientOrderId));
+            const signatureTypes = [ '(uint32,bytes16)[]', 'address', 'uint256' ];
+            const signatureData = [
+                [
+                    [
+                        this.parseToNumeric (market['baseId']),
+                        encodeClientOrderId,
+                    ],
+                ],
+                (vaultAddress) ? vaultAddress : zeroAddress,
+                nonce,
+            ];
+            const sig = this.buildSig (signatureTypes, signatureData);
+            request['action'] = {
+                'type': 'cancelByCloid',
+                'cancels': [ {
+                    'asset': this.parseToNumeric (market['baseId']),
+                    'cloid': clientOrderId,
+                } ],
+            };
+            request['signature'] = sig;
+        } else {
+            const signatureTypes = [ '(uint32,uint64)[]', 'address', 'uint256' ];
+            const signatureData = [
+                [
+                    [
+                        this.parseToNumeric (market['baseId']),
+                        this.parseToNumeric (id),
+                    ],
+                ],
+                (vaultAddress) ? vaultAddress : zeroAddress,
+                nonce,
+            ];
+            const sig = this.buildSig (signatureTypes, signatureData);
+            request['action'] = {
                 'type': 'cancel',
                 'cancels': [ {
                     'asset': this.parseToNumeric (market['baseId']),
                     'oid': this.parseToNumeric (id),
                 } ],
-            },
-            'nonce': nonce,
-            'signature': sig,
-        };
+            };
+            request['signature'] = sig;
+        }
         const response = await this.privatePostExchange (this.extend (request, params));
         //
         //     {
